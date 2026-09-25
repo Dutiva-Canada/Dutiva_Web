@@ -104,6 +104,17 @@ describe('FinanceView', () => {
     expect(screen.getByText('Payroll reserve — 2 cycles')).toBeInTheDocument()
   })
 
+  it('shows covenant, notice, and the maturing marker on treasury debt', () => {
+    renderAt('/app/finance/treasury')
+
+    expect(screen.getByText('Business line of credit')).toBeInTheDocument()
+    // Covenant + notice columns render together on the terms line.
+    expect(screen.getByText(/Covenant: DSC ≥ 1\.25×/)).toBeInTheDocument()
+    expect(screen.getByText(/Notice period: 60 days/)).toBeInTheDocument()
+    // The fixture matures 2026-11-30 — inside the 90-day window.
+    expect(screen.getByText('Maturing soon')).toBeInTheDocument()
+  })
+
   it('renders the deal pipeline grouped by stage with capital partners', () => {
     renderAt('/app/finance/deals')
 
@@ -120,6 +131,11 @@ describe('FinanceView', () => {
     // Capital partners section surfaces investor/lender parties.
     expect(screen.getByText('Capital partners')).toBeInTheDocument()
     expect(screen.getByText('Laurentian Growth Partners')).toBeInTheDocument()
+    // Commitment ledger renders committed/called/uncalled under each partner.
+    expect(screen.getByText('Growth equity commitment')).toBeInTheDocument()
+    expect(screen.getByText('Acquisition credit facility')).toBeInTheDocument()
+    expect(screen.getAllByText(/Uncalled 900000\.00/).length).toBe(1)
+    expect(screen.getByText(/Next call: 2026-11-15/)).toBeInTheDocument()
     // The hedging note stays on the record/workflow wording.
     expect(
       screen.getByText(/does not broker deals or provide investment advice/),

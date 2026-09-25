@@ -37,8 +37,11 @@ export const financeTreasury = defineMessages({
   finance_holding_mark_stale: { en: 'Mark stale', fr: 'Marquer obsolète' },
   finance_holding_refresh: { en: 'Mark current', fr: 'Marquer à jour' },
 
-  /* Treasury — debt */
+  /* Treasury — debt [FR self-authored] */
   finance_debt_mark_paid_off: { en: 'Mark paid off', fr: 'Marquer remboursé' },
+  finance_debt_covenant: { en: 'Covenant', fr: 'Covenant' },
+  finance_debt_notice: { en: 'Notice period', fr: 'Préavis' },
+  finance_debt_maturing: { en: 'Maturing soon', fr: 'Échéance proche' },
 
   /* Master data */
   finance_bank_account_create: { en: 'New bank account', fr: 'Nouveau compte bancaire' },

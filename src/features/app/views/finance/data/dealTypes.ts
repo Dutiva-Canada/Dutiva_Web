@@ -46,3 +46,31 @@ export interface FinanceDeal {
   /** When a closed deal produced a tracked holding. */
   holdingId?: string
 }
+
+/* ---------- Capital-partner commitments (migration 0172) ---------- */
+
+export type FinanceCommitmentStatus = 'active' | 'closed'
+
+/**
+ * A capital commitment recorded against a finance party — how much an
+ * investor or lender has committed to the entity, how much has been
+ * called so far, and when the next call falls due. Dutiva keeps the
+ * commitment ledger; it does not process capital calls or move money.
+ */
+export interface FinanceCommitment {
+  id: string
+  entityId: string
+  /** The investor/lender party (finance_parties row) the commitment is with. */
+  partyId: string
+  /** What the commitment covers — e.g. "Series A commitment". */
+  label?: Bi
+  /** Total amount committed, decimal string like other money fields. */
+  committed: string
+  /** Amount actually drawn so far. */
+  called: string
+  currency: FinanceCurrency
+  /** When the next capital call is expected. */
+  nextCallDate?: string
+  status: FinanceCommitmentStatus
+  notes?: Bi
+}

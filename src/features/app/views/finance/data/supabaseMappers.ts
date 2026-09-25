@@ -43,6 +43,7 @@ import type {
   FinanceWatchlistItem,
   FinanceDecisionEntry,
   FinanceDeal,
+  FinanceCommitment,
   FinanceWorkspaceState,
 } from './types'
 
@@ -527,6 +528,21 @@ export function mapDeal(r: Record<string, unknown>): FinanceDeal {
     notes: r.notes ? bi(r.notes) : undefined,
     watchlistItemId: (r.watchlist_item_id as string | null) ?? undefined,
     holdingId: (r.holding_id as string | null) ?? undefined,
+  }
+}
+
+export function mapCommitment(r: Record<string, unknown>): FinanceCommitment {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    partyId: r.party_id as string,
+    label: r.label ? bi(r.label) : undefined,
+    committed: num(r.committed),
+    called: num(r.called),
+    currency: r.currency as FinanceCommitment['currency'],
+    nextCallDate: (r.next_call_date as string | null) ?? undefined,
+    status: r.status as FinanceCommitment['status'],
+    notes: r.notes ? bi(r.notes) : undefined,
   }
 }
 

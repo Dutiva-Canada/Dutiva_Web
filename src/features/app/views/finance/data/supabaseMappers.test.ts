@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mapDeal, mapEntity } from './supabaseMappers'
+import { mapCommitment, mapDeal, mapEntity } from './supabaseMappers'
 
 describe('supabaseMappers.mapEntity — ownership fields', () => {
   const baseRow = {
@@ -109,5 +109,48 @@ describe('supabaseMappers.mapDeal', () => {
     const deal = mapDeal({ ...row, watchlist_item_id: 'watch-1', holding_id: 'hold-1' })
     expect(deal.watchlistItemId).toBe('watch-1')
     expect(deal.holdingId).toBe('hold-1')
+  })
+})
+
+describe('supabaseMappers.mapCommitment', () => {
+  const row = {
+    id: 'cm-1',
+    organization_id: 'org-1',
+    entity_id: 'ent-1',
+    party_id: 'party-investor',
+    label: { en: 'Series A commitment', fr: 'Engagement de série A' },
+    committed: '250000.00',
+    called: '100000.00',
+    currency: 'CAD',
+    next_call_date: '2026-10-15',
+    status: 'active',
+    notes: null,
+  }
+
+  it('maps snake_case columns to the FinanceCommitment shape', () => {
+    expect(mapCommitment(row)).toEqual({
+      id: 'cm-1',
+      entityId: 'ent-1',
+      partyId: 'party-investor',
+      label: { en: 'Series A commitment', fr: 'Engagement de série A' },
+      committed: '250000.00',
+      called: '100000.00',
+      currency: 'CAD',
+      nextCallDate: '2026-10-15',
+      status: 'active',
+      notes: undefined,
+    })
+  })
+
+  it('coerces numeric amounts to decimal strings', () => {
+    const c = mapCommitment({ ...row, committed: 250000, called: 0 })
+    expect(c.committed).toBe('250000')
+    expect(c.called).toBe('0')
+  })
+
+  it('leaves optional fields undefined when null', () => {
+    const c = mapCommitment({ ...row, label: null, next_call_date: null })
+    expect(c.label).toBeUndefined()
+    expect(c.nextCallDate).toBeUndefined()
   })
 })

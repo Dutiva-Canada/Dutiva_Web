@@ -39,6 +39,7 @@ import {
   mapScenario,
   mapSubscription,
   mapWatchlistItem,
+  mapCommitment,
 } from './supabaseMappers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -55,6 +56,7 @@ const TABLES = {
   watchlistItems: 'finance_watchlist_items',
   decisionEntries: 'finance_decision_entries',
   deals: 'finance_deals',
+  commitments: 'finance_commitments',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -418,6 +420,79 @@ export async function removeDealInSupabase(orgId: string, id: string): Promise<b
   if (!supabase) return false
   const { error } = await supabase
     .from(TABLES.deals)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
+/* ---------- Capital commitments ---------- */
+
+export async function addCommitmentInSupabase(
+  orgId: string,
+  item: Omit<import('./types').FinanceCommitment, 'id'>,
+): Promise<import('./types').FinanceCommitment | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.commitments)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      party_id: item.partyId,
+      label: item.label ?? null,
+      committed: Number(item.committed || 0),
+      called: Number(item.called || 0),
+      currency: item.currency,
+      next_call_date: item.nextCallDate ?? null,
+      status: item.status,
+      notes: item.notes ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCommitment(data as Record<string, unknown>)
+}
+
+export async function updateCommitmentInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<import('./types').FinanceCommitment, 'id'>>,
+): Promise<import('./types').FinanceCommitment | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.commitments)
+    .update({
+      /* Same Partial contract as updateDealInSupabase — absent keys drop
+         out of the payload, present keys write (or clear). */
+      ...(patch.entityId !== undefined ? { entity_id: patch.entityId } : {}),
+      ...(patch.partyId !== undefined ? { party_id: patch.partyId } : {}),
+      ...(patch.label !== undefined ? { label: patch.label ?? null } : {}),
+      ...(patch.committed !== undefined ? { committed: Number(patch.committed || 0) } : {}),
+      ...(patch.called !== undefined ? { called: Number(patch.called || 0) } : {}),
+      ...(patch.currency !== undefined ? { currency: patch.currency } : {}),
+      ...(patch.nextCallDate !== undefined
+        ? { next_call_date: patch.nextCallDate || null }
+        : {}),
+      ...(patch.status !== undefined ? { status: patch.status } : {}),
+      ...(patch.notes !== undefined ? { notes: patch.notes ?? null } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapCommitment(data as Record<string, unknown>)
+}
+
+export async function removeCommitmentInSupabase(
+  orgId: string,
+  id: string,
+): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from(TABLES.commitments)
     .delete()
     .eq('organization_id', orgId)
     .eq('id', id)
