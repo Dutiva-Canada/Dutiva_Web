@@ -15,6 +15,13 @@ the same architecture as the candidate portal at `/careers/portal`.
   users without a row see a localized "Access required" card; the edge
   function returns `403 no_access` for the same condition. RLS lets a user
   read only their own grant row — they cannot grant themselves.
+- **Roles (0181)** — grants carry `role`: `client` (default) or `admin`.
+  Admins can invoke `run-all` with their own portal JWT; clients cannot
+  (`403 not_admin`).
+- **Owner grant** — `martin.constantineau@dutiva.ca` holds a permanent
+  `admin` grant. Migration 0181 seeds the row and installs
+  `invest_access_owner_signup`, an `auth.users` trigger that re-asserts it
+  on any future signup under that address (covers account re-registration).
 
 ## Data model (migration `0180_invest_platform.sql`)
 
@@ -23,7 +30,7 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 
 | Table | Role |
 |---|---|
-| `invest_access` | Presence = portal access |
+| `invest_access` | Presence = portal access; `role` = `client` \| `admin` |
 | `invest_accounts` | Books of record: `paper`, `live`, `external` + cash balance |
 | `invest_positions` | Holdings per account across asset classes (`equity`, `etf`, `crypto`, `bond`, `cash`, `other`) |
 | `invest_market_snapshots` | Latest price per (user, class, symbol) — `source: 'manual'` today; feed adapters are a deliberate seam |
@@ -36,9 +43,10 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 
 - `POST { action: 'run' }` — portal JWT; evaluates the caller's enabled
   strategies against their snapshots once.
-- `POST { action: 'run-all' }` — service key or `x-trigger-secret`;
-  the pg_cron sweep (`invest-bot-daily`, 07:45 UTC, vault-pair reuse — same
-  secret pair as the candidate agent and signing notifications).
+- `POST { action: 'run-all' }` — service key, `x-trigger-secret`, or an
+  `admin`-role portal JWT; the pg_cron sweep (`invest-bot-daily`, 07:45
+  UTC, vault-pair reuse — same secret pair as the candidate agent and
+  signing notifications).
 - `POST { action: 'execute-order', order_id, fill_price? }` — portal JWT;
   fills a queued **paper** order at the snapshot price, or records a
   **live** order as executed at the caller-supplied fill price.
@@ -77,8 +85,8 @@ page linked from the footer's Investors column; CTA points at `/invest`.
 ## Granting access
 
 ```sql
-insert into public.invest_access (user_id, granted_by, note)
-values ('<auth user uuid>', 'martin', 'client name');
+insert into public.invest_access (user_id, role, granted_by, note)
+values ('<auth user uuid>', 'client', 'martin', 'client name');
 ```
 
 The user signs in at `/invest` with the invited email; the grant check
