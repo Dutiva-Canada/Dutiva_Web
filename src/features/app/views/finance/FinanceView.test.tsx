@@ -219,6 +219,25 @@ describe('FinanceView', () => {
     expect(texts[texts.length - 1]).toContain('Created capital commitment')
   })
 
+  it('renders linked documents on deal cards and holding rows', () => {
+    renderAt('/app/finance/deals')
+
+    // The deal card's Documents block shows the snapshot + deep link.
+    expect(screen.getByText('Employment agreement — Grace Osei · DOC-2026-0151')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Employment agreement — Grace Osei · DOC-2026-0151' }),
+    ).toHaveAttribute('href', '/app/documents/doc_002')
+  })
+
+  it('renders linked documents under holdings on the portfolio tab', () => {
+    renderAt('/app/finance/portfolio')
+
+    expect(screen.getByText('Termination letter — Jordan Mensah · DOC-2026-0138')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Termination letter — Jordan Mensah · DOC-2026-0138' }),
+    ).toHaveAttribute('href', '/app/documents/doc_003')
+  })
+
   it('renders the ownership structure tree on the entities tab', () => {
     renderAt('/app/finance/entities')
 

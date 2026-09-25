@@ -88,6 +88,20 @@ plus mark-executed / cancel / delete controls. `from_account_id <>`
 records the sweep; it does not execute the transfer — account balances
 live on the source systems, and this row is the treasury workflow record.
 
+## Deal/holding document links
+
+`finance_document_links` (migration `0175`) points deals and holdings at
+documents in the HR Documents module (`hr_generated_documents`). The row
+snapshots the document ref + bilingual title so finance screens render
+the link without joining across modules; the deep link resolves to
+`/app/documents/<document_id>`. Each link hangs off exactly one target
+(two CHECK constraints: at least one target, never both), and deleting
+the deal/holding cascades the link. The Deals cards and the Portfolio
+holdings list render their linked documents; production orgs attach via a
+picker over their generated-document library (manual ref/title fallback
+if the picker can't load) and can unlink. Dutiva links records — it does
+not move or attach files itself.
+
 ## Governance board view
 
 `/app/finance/governance` (tab key `governance`) is the board-oriented
@@ -149,8 +163,8 @@ does not move money.
 ## Deploy status
 
 Migrations `0171` (deals + ownership + partner types), `0172`
-(commitments), `0173` (capital calls + party contacts), and `0174`
-(cash sweeps) are applied to the Supabase project
-(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 174/174 applied, 0
-differences. The task hand-off needs no migration — it writes the
-existing `compliance_tasks.metadata` jsonb.
+(commitments), `0173` (capital calls + party contacts), `0174`
+(cash sweeps), and `0175` (deal/holding document links) are applied to
+the Supabase project (`khtwpxnvziiyplaflwru`) — `check:migrations`
+reports 175/175 applied, 0 differences. The task hand-off needs no
+migration — it writes the existing `compliance_tasks.metadata` jsonb.

@@ -17,6 +17,7 @@ import {
   DEAL_STAGE_ORDER,
 } from '../financeLabels'
 import { CapitalCallForm, CommitmentForm, DealDecisionForm, DealForm } from './DealForms'
+import { DocumentLinks } from './DocumentLinks'
 import type {
   FinanceCapitalCallStatus,
   FinanceCommitment,
@@ -358,6 +359,7 @@ export function Deals() {
                             onCancel={() => setDecisionFor(null)}
                           />
                         )}
+                        <DocumentLinks dealId={d.id} />
                       </li>
                     ))}
                   </ul>

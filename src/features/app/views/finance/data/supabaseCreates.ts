@@ -11,6 +11,7 @@ import type {
   FinanceBudget,
   FinanceCashSweep,
   FinanceDebt,
+  FinanceDocumentLink,
   FinanceDecisionEntry,
   FinanceExternalAction,
   FinanceForecast,
@@ -43,6 +44,7 @@ import {
   mapCommitment,
   mapCapitalCall,
   mapCashSweep,
+  mapDocumentLink,
 } from './supabaseMappers'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -62,6 +64,7 @@ const TABLES = {
   commitments: 'finance_commitments',
   capitalCalls: 'finance_capital_calls',
   cashSweeps: 'finance_cash_sweeps',
+  documentLinks: 'finance_document_links',
   debts: 'finance_debts',
   externalActions: 'finance_external_actions',
   bankAccounts: 'finance_bank_accounts',
@@ -1065,4 +1068,41 @@ export async function seedDefaultCategoryRulesInSupabase(orgId: string): Promise
   }
 
   return addedRules
+}
+
+/* ---------- Deal/holding document links (migration 0175) ---------- */
+
+export async function addDocumentLinkInSupabase(
+  orgId: string,
+  item: Omit<FinanceDocumentLink, 'id'>,
+): Promise<FinanceDocumentLink | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.documentLinks)
+    .insert({
+      organization_id: orgId,
+      deal_id: item.dealId ?? null,
+      holding_id: item.holdingId ?? null,
+      document_id: item.documentId,
+      document_ref: item.documentRef ?? null,
+      title: item.title ?? null,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapDocumentLink(data as Record<string, unknown>)
+}
+
+export async function removeDocumentLinkInSupabase(
+  orgId: string,
+  id: string,
+): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from(TABLES.documentLinks)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
 }
