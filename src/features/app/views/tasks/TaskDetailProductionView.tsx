@@ -11,6 +11,7 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { ChatMarkdown } from '@/components/advisor/ChatMarkdown'
 import { WorkspaceLink } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { addTaskNote, getTask, setTaskDone, updateTaskDescription } from './productionApi'
 import type { ProductionTask, ProductionTaskPriority } from './productionApi'
@@ -212,9 +213,15 @@ export function TaskDetailProductionView() {
                   : x(task.description ? M.tasks_detail_regenerate : M.tasks_detail_generate)}
               </button>
             </div>
-            <p className="m-0 text-[13.5px] leading-[1.65] whitespace-pre-wrap text-text-2">
-              {task.description ?? x(M.tasks_detail_plan_empty)}
-            </p>
+            {task.description ? (
+              <ChatMarkdown className="text-[13.5px] leading-[1.65] text-text-2">
+                {task.description}
+              </ChatMarkdown>
+            ) : (
+              <p className="m-0 text-[13.5px] leading-[1.65] text-text-2">
+                {x(M.tasks_detail_plan_empty)}
+              </p>
+            )}
             <Disclaimer variant="inline" className="mt-[10px]" />
           </div>
 
