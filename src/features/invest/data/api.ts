@@ -32,12 +32,23 @@ export interface InvestState {
   runs: InvestBotRun[]
 }
 
+export type InvestRole = 'client' | 'admin'
+
+/**
+ * The signed-in user's grant row, or null when the portal is not open to
+ * them. `role` distinguishes invited clients from operators — an 'admin'
+ * grant can, for example, invoke the run-all sweep with a user JWT.
+ */
+export async function getInvestAccess(): Promise<{ role: InvestRole } | null> {
+  const client = supabase
+  if (!client) return null
+  const { data } = await client.from('invest_access').select('role').maybeSingle()
+  return data ? { role: data.role === 'admin' ? 'admin' : 'client' } : null
+}
+
 /** True when the signed-in user holds an invest_access grant. */
 export async function hasInvestAccess(): Promise<boolean> {
-  const client = supabase
-  if (!client) return false
-  const { data } = await client.from('invest_access').select('user_id').maybeSingle()
-  return !!data
+  return (await getInvestAccess()) !== null
 }
 
 async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; userId: string }> {

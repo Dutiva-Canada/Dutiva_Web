@@ -9550,18 +9550,21 @@ export type Database = {
           granted_at: string
           granted_by: string
           note: string
+          role: string
           user_id: string
         }
         Insert: {
           granted_at?: string
           granted_by?: string
           note?: string
+          role?: string
           user_id: string
         }
         Update: {
           granted_at?: string
           granted_by?: string
           note?: string
+          role?: string
           user_id?: string
         }
         Relationships: []

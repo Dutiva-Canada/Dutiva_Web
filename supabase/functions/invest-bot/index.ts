@@ -21,7 +21,9 @@ import {
  *   { action: 'run' }                          — invest-portal JWT; runs the
  *                                                caller's book once.
  *   { action: 'run-all' }                      — service key / trigger
- *                                                secret; nightly sweep.
+ *                                                secret (nightly sweep), or
+ *                                                a portal JWT whose grant is
+ *                                                role 'admin'.
  *   { action: 'execute-order', order_id }      — invest-portal JWT; executes a
  *                                                draft/queued paper order at
  *                                                the snapshot price, or
@@ -85,6 +87,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 async function authenticateInvestUser(
   req: Request,
   config: ServerConfig,
+  options: { requireAdmin?: boolean } = {},
 ): Promise<{ userId: string; adminClient: SupabaseClient } | Response> {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -96,11 +99,14 @@ async function authenticateInvestUser(
 
   const { data: access, error: accessError } = await adminClient
     .from('invest_access')
-    .select('user_id')
+    .select('user_id, role')
     .eq('user_id', userData.user.id)
     .maybeSingle()
   if (accessError) return json({ error: accessError.message }, 500)
   if (!access) return json({ error: 'Invest access not granted', code: 'no_access' }, 403)
+  if (options.requireAdmin && access.role !== 'admin') {
+    return json({ error: 'Admin access required', code: 'not_admin' }, 403)
+  }
 
   return { userId: userData.user.id, adminClient }
 }
@@ -396,9 +402,14 @@ Deno.serve(async (req: Request) => {
   if (!actionCheck.ok) return json({ error: actionCheck.error }, 400)
 
   if (actionCheck.value === 'run-all') {
-    if (!isAuthorizedTrigger(req)) return json({ error: 'Unauthorized' }, 401)
+    /* Trigger secret / service key first; otherwise an admin-tier grant
+       holder may invoke the sweep with their own portal JWT. */
+    if (!isAuthorizedTrigger(req)) {
+      const authed = await authenticateInvestUser(req, config, { requireAdmin: true })
+      if (authed instanceof Response) return authed
+    }
     const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
-    /* Orgs with at least one enabled strategy — cheaper than sweeping all. */
+    /* Users with at least one enabled strategy — cheaper than sweeping all. */
     const { data: userRows } = await adminClient
       .from('invest_strategies')
       .select('user_id')
