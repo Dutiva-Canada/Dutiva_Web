@@ -76,6 +76,25 @@ first two. The Treasury debt rows now show a covenant / notice line under
 the terms, and an active facility inside 90 days of maturity gets a
 "Maturing soon" chip — no schema change.
 
+## Overview attention strip
+
+`src/features/app/views/finance/data/financeAttention.ts` derives a
+"Needs attention" section on the Finance Overview from dates the user
+already entered — nothing is persisted and no jobs run:
+
+- live capital calls (scheduled/notified) due inside 30 days, or overdue;
+- commitment `nextCallDate`s inside 30 days (skipped when a live call
+  already covers that commitment — the call row is the precise signal);
+- active debts maturing inside 90 days (same window as the Treasury
+  chip), or past maturity;
+- open deals (not closed/passed) whose target date has passed.
+
+Each row links to the tab that owns it (`/app/finance/deals` or
+`/app/finance/treasury`) and carries an overdue / due-soon / upcoming
+chip. `computeFinanceAttention(input, today)` is a pure function with an
+injectable clock, so the window rules are unit-tested against fixed
+dates.
+
 ## What it deliberately is not
 
 - **Not deal brokerage or investment advice.** The screen records where a

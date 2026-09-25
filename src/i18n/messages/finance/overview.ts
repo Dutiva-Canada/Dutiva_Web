@@ -31,4 +31,17 @@ export const financeOverview = defineMessages({
   finance_overview_ap: { en: 'Outstanding payables', fr: 'Dettes en suspens' },
   finance_overview_burn_rate: { en: 'Monthly burn', fr: 'Brûlage mensuel' },
   finance_overview_cash_total: { en: 'Cash on hand', fr: 'Trésorerie disponible' },
+
+  /* Derived attention items (financeAttention.ts) */
+  finance_attention_title: { en: 'Needs attention', fr: 'À traiter' },
+  finance_attention_none: {
+    en: 'Nothing needs attention right now.',
+    fr: 'Rien à traiter pour le moment.',
+  },
+  finance_attention_call_overdue: { en: 'Call overdue', fr: 'Appel en retard' },
+  finance_attention_call_soon: { en: 'Call due soon', fr: 'Appel à échoir' },
+  finance_attention_commitment_upcoming: { en: 'Call upcoming', fr: 'Appel à venir' },
+  finance_attention_debt_overdue: { en: 'Maturity passed', fr: 'Échéance dépassée' },
+  finance_attention_debt_soon: { en: 'Maturing soon', fr: 'Échéance proche' },
+  finance_attention_deal_behind: { en: 'Behind target', fr: 'En retard sur l’échéance' },
 })
