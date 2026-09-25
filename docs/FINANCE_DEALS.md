@@ -87,9 +87,8 @@ does not move money.
 
 ## Deploy status
 
-Migration `0171` is applied to the Supabase project
-(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 171/171 applied, 0
-differences, and the live schema carries `finance_deals`, its 4 RLS
-policies, the entity-ownership columns, and both updated CHECK
-constraints. The task hand-off needs no migration — it writes the
+Migrations `0171` (deals + ownership + partner types) and `0172`
+(commitments) are applied to the Supabase project
+(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 172/172 applied, 0
+differences. The task hand-off needs no migration — it writes the
 existing `compliance_tasks.metadata` jsonb.
