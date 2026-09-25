@@ -8,6 +8,7 @@ import { tasksMessages as M } from '@/i18n/messages/tasks'
 import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
 import type { Task, Tone } from '@/data'
 import { statusChipClass } from '@/components/chips'
+import { ChatMarkdown } from '@/components/advisor/ChatMarkdown'
 import { Disclaimer } from '@/components/Disclaimer'
 import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { AppPage } from '@/features/app/shell/AppPage'
@@ -170,9 +171,15 @@ export function TaskDetailDemoView() {
           <Sparkle size={13} strokeWidth={1.9} className="text-gold-fg" aria-hidden="true" />
           {x(M.tasks_detail_plan_title)}
         </div>
-        <p className="m-0 text-[13.5px] leading-[1.65] text-text-2">
-          {task.detail ? x(task.detail) : x(M.tasks_detail_plan_empty)}
-        </p>
+        {task.detail ? (
+          <ChatMarkdown className="text-[13.5px] leading-[1.65] text-text-2">
+            {x(task.detail)}
+          </ChatMarkdown>
+        ) : (
+          <p className="m-0 text-[13.5px] leading-[1.65] text-text-2">
+            {x(M.tasks_detail_plan_empty)}
+          </p>
+        )}
         <Disclaimer variant="inline" className="mt-[10px]" />
       </div>
 
