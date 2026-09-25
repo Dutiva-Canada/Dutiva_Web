@@ -44,6 +44,21 @@ export const financeDeals = defineMessages({
     en: 'Couldn’t save the deal. Try again.',
     fr: 'Impossible d’enregistrer la transaction. Réessayez.',
   },
+  /* Lifecycle links — a deal feeds the decision journal and the shared
+     task list (metadata.deal_id links the task back). */
+  finance_deals_log_decision: { en: 'Log a decision', fr: 'Consigner une décision' },
+  finance_deals_add_task: { en: 'Add follow-up task', fr: 'Ajouter une tâche de suivi' },
+  finance_deals_task_title: { en: 'Follow up — {deal}', fr: 'Suivi — {deal}' },
+  finance_deals_task_details: {
+    en: 'Deal: {deal} · Type: {kind} · Stage: {stage} · Entity: {entity}',
+    fr: 'Transaction : {deal} · Type : {kind} · Étape : {stage} · Entité : {entity}',
+  },
+  finance_deals_task_added: { en: 'Follow-up task added', fr: 'Tâche de suivi ajoutée' },
+  finance_deals_task_open: { en: 'Open task', fr: 'Ouvrir la tâche' },
+  finance_deals_task_failed: {
+    en: 'Couldn’t add the task. Try again.',
+    fr: 'Impossible d’ajouter la tâche. Réessayez.',
+  },
   finance_deals_kind_acquisition: { en: 'Acquisition', fr: 'Acquisition' },
   finance_deals_kind_investment: { en: 'Investment', fr: 'Investissement' },
   finance_deals_kind_divestiture: { en: 'Divestiture', fr: 'Cession' },

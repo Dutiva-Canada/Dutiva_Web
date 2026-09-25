@@ -46,6 +46,7 @@ describe('tasks productionApi', () => {
       assignedTo: null,
       notes: [],
       linkedEmployeeId: null,
+      linkedDealId: null,
       linkedKind: null,
     })
     expect(rows[1]).toMatchObject({ done: true, dueDate: null })
@@ -142,6 +143,37 @@ describe('tasks productionApi', () => {
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({ description: 'Check the ROE deadline, then file.' }),
     )
+  })
+
+  it('addDealFollowupTask writes the deal link into metadata and maps it back', async () => {
+    const single = vi.fn().mockResolvedValue({
+      data: { ...ROW, metadata: { deal_id: 'deal-1', kind: 'deal_followup' } },
+      error: null,
+    })
+    const select = vi.fn().mockReturnValue({ single })
+    const insert = vi.fn().mockReturnValue({ select })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ insert }) },
+    }))
+    vi.resetModules()
+    const api = await import('./productionApi')
+
+    const task = await api.addDealFollowupTask(
+      'org-1',
+      'deal-1',
+      'Follow up — Northgate acquisition',
+      '2026-08-01',
+      'Deal: Northgate acquisition',
+    )
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'review',
+        description: 'Deal: Northgate acquisition',
+        metadata: { deal_id: 'deal-1', kind: 'deal_followup' },
+      }),
+    )
+    expect(task.linkedDealId).toBe('deal-1')
+    expect(task.linkedKind).toBe('deal_followup')
   })
 
   it('addTaskNote appends to metadata.notes without dropping sibling keys', async () => {
