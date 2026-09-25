@@ -9545,6 +9545,364 @@ export type Database = {
           },
         ]
       }
+      invest_access: {
+        Row: {
+          granted_at: string
+          granted_by: string
+          note: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_accounts: {
+        Row: {
+          base_currency: string
+          cash_balance: number
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_currency?: string
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_currency?: string
+          cash_balance?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_bot_runs: {
+        Row: {
+          id: string
+          orders_executed: number
+          orders_suggested: number
+          ran_at: string
+          signals_emitted: number
+          status: string
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          orders_executed?: number
+          orders_suggested?: number
+          ran_at?: string
+          signals_emitted?: number
+          status?: string
+          summary?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          orders_executed?: number
+          orders_suggested?: number
+          ran_at?: string
+          signals_emitted?: number
+          status?: string
+          summary?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_market_snapshots: {
+        Row: {
+          as_of: string
+          asset_class: string
+          currency: string
+          day_change_pct: number | null
+          id: string
+          ma50: number | null
+          price: number
+          source: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          as_of?: string
+          asset_class: string
+          currency?: string
+          day_change_pct?: number | null
+          id?: string
+          ma50?: number | null
+          price: number
+          source?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          as_of?: string
+          asset_class?: string
+          currency?: string
+          day_change_pct?: number | null
+          id?: string
+          ma50?: number | null
+          price?: number
+          source?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_orders: {
+        Row: {
+          account_id: string
+          asset_class: string
+          created_at: string
+          error: string | null
+          executed_at: string | null
+          executed_price: number | null
+          id: string
+          limit_price: number | null
+          mode: string
+          name: string
+          note: string | null
+          order_type: string
+          quantity: number
+          requested_price: number | null
+          side: string
+          signal_id: string | null
+          status: string
+          symbol: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          asset_class: string
+          created_at?: string
+          error?: string | null
+          executed_at?: string | null
+          executed_price?: number | null
+          id?: string
+          limit_price?: number | null
+          mode?: string
+          name?: string
+          note?: string | null
+          order_type?: string
+          quantity: number
+          requested_price?: number | null
+          side: string
+          signal_id?: string | null
+          status?: string
+          symbol: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          asset_class?: string
+          created_at?: string
+          error?: string | null
+          executed_at?: string | null
+          executed_price?: number | null
+          id?: string
+          limit_price?: number | null
+          mode?: string
+          name?: string
+          note?: string | null
+          order_type?: string
+          quantity?: number
+          requested_price?: number | null
+          side?: string
+          signal_id?: string | null
+          status?: string
+          symbol?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_orders_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invest_orders_signal_id_fkey"
+            columns: ["signal_id"]
+            isOneToOne: false
+            referencedRelation: "invest_signals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invest_positions: {
+        Row: {
+          account_id: string
+          asset_class: string
+          avg_cost: number
+          created_at: string
+          currency: string
+          id: string
+          last_price: number | null
+          last_price_at: string | null
+          name: string
+          quantity: number
+          symbol: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          asset_class: string
+          avg_cost?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          last_price?: number | null
+          last_price_at?: string | null
+          name?: string
+          quantity?: number
+          symbol: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          asset_class?: string
+          avg_cost?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          last_price?: number | null
+          last_price_at?: string | null
+          name?: string
+          quantity?: number
+          symbol?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_positions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invest_signals: {
+        Row: {
+          asset_class: string
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          score: number | null
+          status: string
+          strategy_id: string | null
+          symbol: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          asset_class: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          score?: number | null
+          status?: string
+          strategy_id?: string | null
+          symbol?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          asset_class?: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          score?: number | null
+          status?: string
+          strategy_id?: string | null
+          symbol?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_signals_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "invest_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invest_strategies: {
+        Row: {
+          asset_classes: string[]
+          autonomy: string
+          created_at: string
+          enabled: boolean
+          id: string
+          name: string
+          rules: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_classes?: string[]
+          autonomy?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name: string
+          rules?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_classes?: string[]
+          autonomy?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          rules?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       job_attempts: {
         Row: {
           attempt_number: number
@@ -15946,6 +16304,7 @@ export type Database = {
       }
       trigger_attachment_scan: { Args: never; Returns: undefined }
       trigger_candidate_job_agent: { Args: never; Returns: undefined }
+      trigger_invest_bot: { Args: never; Returns: undefined }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
