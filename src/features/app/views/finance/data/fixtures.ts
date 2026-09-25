@@ -80,6 +80,8 @@ const investor: FinanceWorkspaceState['parties'][number] = {
   name: 'Laurentian Growth Partners',
   type: 'investor',
   bankingDetailsOnFile: true,
+  contactName: 'Amélie Bouchard',
+  contactEmail: 'abouchard@laurentiangrowth.example',
   active: true,
 }
 
@@ -89,6 +91,9 @@ const lender: FinanceWorkspaceState['parties'][number] = {
   name: 'Big Five Bank',
   type: 'lender',
   bankingDetailsOnFile: true,
+  contactName: 'Daniel Roy',
+  contactEmail: 'droy@bigfivebank.example',
+  contactPhone: '+1 514 555 0187',
   active: true,
 }
 
@@ -547,6 +552,28 @@ const commitmentLender: FinanceWorkspaceState['commitments'][number] = {
   status: 'active',
 }
 
+/* Capital calls — the investor's called figure came in as one draw, and
+   the next tranche is already scheduled (matching the commitment's
+   nextCallDate). */
+const capitalCallReceived: FinanceWorkspaceState['capitalCalls'][number] = {
+  id: 'call-1',
+  commitmentId: 'cmt-1',
+  amount: '600000.00',
+  dueDate: '2026-08-15',
+  status: 'received',
+  reference: 'Call notice 2026-01',
+  receivedDate: '2026-08-12',
+}
+
+const capitalCallScheduled: FinanceWorkspaceState['capitalCalls'][number] = {
+  id: 'call-2',
+  commitmentId: 'cmt-1',
+  amount: '250000.00',
+  dueDate: '2026-11-15',
+  status: 'notified',
+  reference: 'Call notice 2026-02',
+}
+
 const debt: FinanceWorkspaceState['debts'][number] = {
   id: 'debt-1',
   entityId: 'ent-1',
@@ -787,6 +814,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   decisionEntries: [decisionEntry, decisionEntry2],
   deals: [dealAcquisition, dealInvestment, dealFinancing, dealPassed],
   commitments: [commitmentInvestor, commitmentLender],
+  capitalCalls: [capitalCallReceived, capitalCallScheduled],
   debts: [debt],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],

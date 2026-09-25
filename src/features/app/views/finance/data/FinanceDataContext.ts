@@ -115,6 +115,14 @@ export interface FinanceDataContextValue {
     patch: Partial<Omit<import('./types').FinanceCommitment, 'id'>>,
   ) => Promise<import('./types').FinanceCommitment | null>
   removeCommitment: (id: string) => Promise<boolean>
+  addCapitalCall: (
+    item: Omit<import('./types').FinanceCapitalCall, 'id'>,
+  ) => Promise<import('./types').FinanceCapitalCall | null>
+  transitionCapitalCallStatus: (
+    id: string,
+    nextStatus: import('./types').FinanceCapitalCallStatus,
+  ) => Promise<import('./types').FinanceCapitalCall | null>
+  removeCapitalCall: (id: string) => Promise<boolean>
   transitionDebtStatus: (
     id: string,
     nextStatus: import('./types').FinanceDebt['status'],

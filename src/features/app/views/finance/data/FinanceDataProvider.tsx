@@ -575,6 +575,7 @@ function emptyState(): FinanceWorkspaceState {
     decisionEntries: [],
     deals: [],
     commitments: [],
+    capitalCalls: [],
     debts: [],
     taxObligations: [],
     taxScenarios: [],

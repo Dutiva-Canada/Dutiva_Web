@@ -44,6 +44,7 @@ import type {
   FinanceDecisionEntry,
   FinanceDeal,
   FinanceCommitment,
+  FinanceCapitalCall,
   FinanceWorkspaceState,
 } from './types'
 
@@ -109,6 +110,9 @@ export function mapParty(r: Record<string, unknown>): FinanceParty {
     type: r.type as FinanceParty['type'],
     externalId: r.external_id as string | undefined,
     bankingDetailsOnFile: r.banking_details_on_file as boolean,
+    contactName: (r.contact_name as string | null) ?? undefined,
+    contactEmail: (r.contact_email as string | null) ?? undefined,
+    contactPhone: (r.contact_phone as string | null) ?? undefined,
     active: r.active as boolean,
   }
 }
@@ -542,6 +546,19 @@ export function mapCommitment(r: Record<string, unknown>): FinanceCommitment {
     currency: r.currency as FinanceCommitment['currency'],
     nextCallDate: (r.next_call_date as string | null) ?? undefined,
     status: r.status as FinanceCommitment['status'],
+    notes: r.notes ? bi(r.notes) : undefined,
+  }
+}
+
+export function mapCapitalCall(r: Record<string, unknown>): FinanceCapitalCall {
+  return {
+    id: r.id as string,
+    commitmentId: r.commitment_id as string,
+    amount: num(r.amount),
+    dueDate: r.due_date as string,
+    status: r.status as FinanceCapitalCall['status'],
+    reference: (r.reference as string | null) ?? undefined,
+    receivedDate: (r.received_date as string | null) ?? undefined,
     notes: r.notes ? bi(r.notes) : undefined,
   }
 }
