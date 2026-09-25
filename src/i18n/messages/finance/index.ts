@@ -5,6 +5,7 @@ import { financeDeals } from './deals'
 import { financeEntities } from './entities'
 import { financeEvidence } from './evidence'
 import { financeExternal } from './external'
+import { financeGovernance } from './governance'
 import { financeImportExport } from './importExport'
 import { financeOverview } from './overview'
 import { financePayroll } from './payroll'
@@ -40,4 +41,5 @@ export const financeMessages = defineMessages({
   ...financeImportExport,
   ...financePortfolio,
   ...financeDeals,
+  ...financeGovernance,
 })

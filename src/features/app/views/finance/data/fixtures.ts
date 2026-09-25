@@ -675,6 +675,42 @@ const auditEvent: FinanceWorkspaceState['auditEvents'][number] = {
   outcome: bi('Committed', 'Engagé'),
 }
 
+/* Finance-lifecycle events for the governance audit trail — the cap-table
+   and partner rows are derived from state, so the board view reads the
+   same records the workspace writes. */
+const auditCallReceived: FinanceWorkspaceState['auditEvents'][number] = {
+  id: 'audit-2',
+  entityId: 'ent-2',
+  actor: 'Riley Chen',
+  action: bi('Recorded capital call receipt', 'Réception d’appel de capital enregistrée'),
+  recordType: 'capital_call',
+  recordId: 'call-1',
+  timestamp: '2026-08-12T16:30:00Z',
+  outcome: bi('Received', 'Reçu'),
+}
+
+const auditCommitmentCreated: FinanceWorkspaceState['auditEvents'][number] = {
+  id: 'audit-3',
+  entityId: 'ent-2',
+  actor: 'Martin Constantineau',
+  action: bi('Created capital commitment', 'Engagement de capital créé'),
+  recordType: 'commitment',
+  recordId: 'cmt-1',
+  timestamp: '2026-07-02T10:15:00Z',
+  outcome: bi('Active', 'Actif'),
+}
+
+const auditDealAdvanced: FinanceWorkspaceState['auditEvents'][number] = {
+  id: 'audit-4',
+  entityId: 'ent-2',
+  actor: 'Jordan Lee',
+  action: bi('Advanced deal stage', 'Étape de l’opération avancée'),
+  recordType: 'deal',
+  recordId: 'deal-1',
+  timestamp: '2026-09-18T09:45:00Z',
+  outcome: bi('Moved to negotiation', 'Passée à la négociation'),
+}
+
 const externalAction: FinanceWorkspaceState['externalActions'][number] = {
   id: 'ext-1',
   entityId: 'ent-1',
@@ -819,7 +855,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],
   approvals: [approval],
-  auditEvents: [auditEvent],
+  auditEvents: [auditEvent, auditCallReceived, auditCommitmentCreated, auditDealAdvanced],
   externalActions: [externalAction],
   categoryRules,
   importSessions: [importSession],

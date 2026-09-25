@@ -76,6 +76,26 @@ first two. The Treasury debt rows now show a covenant / notice line under
 the terms, and an active facility inside 90 days of maturity gets a
 "Maturing soon" chip — no schema change.
 
+## Governance board view
+
+`/app/finance/governance` (tab key `governance`) is the board-oriented
+surface for the investment-firm positioning — everything is derived from
+existing finance state, so the view reads the same records the workspace
+writes:
+
+- **Cap table** — the entity registry with ownership edges: each entity
+  shows its legal form, and a held entity shows `100% · Parent: …` from
+  `parent_entity_id` + `ownership_pct`.
+- **Capital partners** — the investor/lender roster with contact lines
+  and per-currency commitment totals (committed / called / uncalled)
+  summed across the partner's `finance_commitments`.
+- **Audit trail** — the full `finance_audit_events` feed, newest first,
+  with actor, action, record type + id, outcome, and date. (The
+  Accounting tab keeps its compact 20-row recent-activity list; this is
+  the complete trail for board/shareholder review.)
+
+No migration — it renders state that 0171–0173 already persist.
+
 ## Overview attention strip
 
 `src/features/app/views/finance/data/financeAttention.ts` derives a
