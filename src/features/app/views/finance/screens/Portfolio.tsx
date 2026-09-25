@@ -7,6 +7,7 @@ import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
+import { DocumentLinks } from './DocumentLinks'
 import {
   ASSET_CLASS_LABEL,
   CURRENCY_LABEL,
@@ -163,6 +164,7 @@ export function Portfolio() {
                       {x(M.finance_treasury_as_of)}: {h.asOfDate} · {x(M.finance_source)}:{' '}
                       {x(h.valuationSource)}
                     </div>
+                    <DocumentLinks holdingId={h.id} />
                   </div>
                   {h.stale && (
                     <span className={statusChipClass('warning')}>

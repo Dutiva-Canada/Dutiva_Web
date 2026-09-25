@@ -15,6 +15,7 @@ import type {
   FinanceCredit,
   FinanceCashSweep,
   FinanceDebt,
+  FinanceDocumentLink,
   FinanceExternalAction,
   FinanceExternalActionStatus,
   FinanceFiscalPeriod,
@@ -577,6 +578,17 @@ export function mapCashSweep(r: Record<string, unknown>): FinanceCashSweep {
     executedDate: (r.executed_date as string | null) ?? undefined,
     reference: (r.reference as string | null) ?? undefined,
     notes: r.notes ? bi(r.notes) : undefined,
+  }
+}
+
+export function mapDocumentLink(r: Record<string, unknown>): FinanceDocumentLink {
+  return {
+    id: r.id as string,
+    dealId: (r.deal_id as string | null) ?? undefined,
+    holdingId: (r.holding_id as string | null) ?? undefined,
+    documentId: r.document_id as string,
+    documentRef: (r.document_ref as string | null) ?? undefined,
+    title: r.title ? bi(r.title) : undefined,
   }
 }
 

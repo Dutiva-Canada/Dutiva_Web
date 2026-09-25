@@ -3,6 +3,7 @@ import {
   mapCapitalCall,
   mapCashSweep,
   mapCommitment,
+  mapDocumentLink,
   mapDeal,
   mapEntity,
   mapParty,
@@ -261,5 +262,42 @@ describe('supabaseMappers.mapCashSweep', () => {
     expect(c.status).toBe('scheduled')
     expect(c.executedDate).toBeUndefined()
     expect(c.reference).toBeUndefined()
+  })
+})
+
+describe('supabaseMappers.mapDocumentLink', () => {
+  const row = {
+    id: 'link-1',
+    organization_id: 'org-1',
+    deal_id: 'deal-1',
+    holding_id: null,
+    document_id: 'doc_002',
+    document_ref: 'DOC-2026-0151',
+    title: { en: 'Employment agreement — Grace Osei', fr: 'Contrat de travail — Grace Osei' },
+  }
+
+  it('maps snake_case columns to the FinanceDocumentLink shape', () => {
+    expect(mapDocumentLink(row)).toEqual({
+      id: 'link-1',
+      dealId: 'deal-1',
+      holdingId: undefined,
+      documentId: 'doc_002',
+      documentRef: 'DOC-2026-0151',
+      title: { en: 'Employment agreement — Grace Osei', fr: 'Contrat de travail — Grace Osei' },
+    })
+  })
+
+  it('maps holding links and rows without a title snapshot', () => {
+    const l = mapDocumentLink({
+      ...row,
+      deal_id: null,
+      holding_id: 'hold-1',
+      document_ref: null,
+      title: null,
+    })
+    expect(l.dealId).toBeUndefined()
+    expect(l.holdingId).toBe('hold-1')
+    expect(l.documentRef).toBeUndefined()
+    expect(l.title).toBeUndefined()
   })
 })
