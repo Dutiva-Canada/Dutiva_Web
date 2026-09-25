@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 /**
  * Production in-app notifications for org admins (signing complete/decline,
- * integration events, inbound email, finance capital calls).
+ * integration events, inbound email, finance capital calls, debt maturity).
  * Demo mode continues to use fixture data in the Topbar.
  */
 
@@ -16,6 +16,7 @@ export interface WorkspaceNotification {
     | 'integration_event'
     | 'inbound_email'
     | 'finance_call'
+    | 'finance_debt'
   title: Bi
   body: Bi | null
   href: string | null
@@ -32,6 +33,7 @@ const rowSchema = z.object({
     'integration_event',
     'inbound_email',
     'finance_call',
+    'finance_debt',
   ]),
   title_en: z.string(),
   title_fr: z.string(),
