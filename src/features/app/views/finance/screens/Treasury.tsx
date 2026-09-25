@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, RESERVE_TYPE_LABEL } from '../financeLabels'
+import { CashSweepsSection } from './TreasurySweeps'
 import type { FinanceCurrency, FinanceReserveType } from '../data/types'
 
 export function Treasury() {
@@ -184,6 +185,8 @@ export function Treasury() {
           </ul>
         )}
       </section>
+
+      <CashSweepsSection />
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">

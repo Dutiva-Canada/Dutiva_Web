@@ -538,6 +538,29 @@ export interface FinanceDebt {
   status: 'active' | 'paid_off' | 'defaulted'
 }
 
+/* ---------- Treasury cash sweeps (migration 0174) ---------- */
+
+export type FinanceCashSweepStatus = 'scheduled' | 'executed' | 'cancelled'
+
+/**
+ * A treasury sweep record — moving money between finance bank accounts
+ * (operating → reserve, etc.). Dutiva records the instruction and its
+ * outcome; it does not execute the transfer.
+ */
+export interface FinanceCashSweep {
+  id: string
+  entityId: string
+  fromAccountId: string
+  toAccountId: string
+  amount: string
+  currency: FinanceCurrency
+  status: FinanceCashSweepStatus
+  scheduledDate: string
+  executedDate?: string
+  reference?: string
+  notes?: Bi
+}
+
 /* ---------- Portfolio (watchlist + decision journal) ---------- */
 
 /* Portfolio domain types live in ./portfolioTypes (types.ts is at the
@@ -788,6 +811,7 @@ export interface FinanceWorkspaceState {
   commitments: FinanceCommitment[]
   /** Discrete call events against commitments, migration 0173. */
   capitalCalls: FinanceCapitalCall[]
+  cashSweeps: FinanceCashSweep[]
   debts: FinanceDebt[]
   taxObligations: FinanceTaxObligation[]
   taxScenarios: FinanceTaxScenario[]

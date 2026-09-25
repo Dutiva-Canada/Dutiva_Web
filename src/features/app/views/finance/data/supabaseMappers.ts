@@ -13,6 +13,7 @@ import type {
   FinanceClosePeriod,
   FinanceCategorizationFeedback,
   FinanceCredit,
+  FinanceCashSweep,
   FinanceDebt,
   FinanceExternalAction,
   FinanceExternalActionStatus,
@@ -559,6 +560,22 @@ export function mapCapitalCall(r: Record<string, unknown>): FinanceCapitalCall {
     status: r.status as FinanceCapitalCall['status'],
     reference: (r.reference as string | null) ?? undefined,
     receivedDate: (r.received_date as string | null) ?? undefined,
+    notes: r.notes ? bi(r.notes) : undefined,
+  }
+}
+
+export function mapCashSweep(r: Record<string, unknown>): FinanceCashSweep {
+  return {
+    id: r.id as string,
+    entityId: r.entity_id as string,
+    fromAccountId: r.from_account_id as string,
+    toAccountId: r.to_account_id as string,
+    amount: num(r.amount),
+    currency: r.currency as FinanceCashSweep['currency'],
+    status: r.status as FinanceCashSweep['status'],
+    scheduledDate: r.scheduled_date as string,
+    executedDate: (r.executed_date as string | null) ?? undefined,
+    reference: (r.reference as string | null) ?? undefined,
     notes: r.notes ? bi(r.notes) : undefined,
   }
 }

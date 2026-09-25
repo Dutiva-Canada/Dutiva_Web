@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { mapCapitalCall, mapCommitment, mapDeal, mapEntity, mapParty } from './supabaseMappers'
+import {
+  mapCapitalCall,
+  mapCashSweep,
+  mapCommitment,
+  mapDeal,
+  mapEntity,
+  mapParty,
+} from './supabaseMappers'
 
 describe('supabaseMappers.mapEntity — ownership fields', () => {
   const baseRow = {
@@ -214,5 +221,45 @@ describe('supabaseMappers.mapParty — contact fields (0173)', () => {
     expect(p.contactName).toBeUndefined()
     expect(p.contactEmail).toBeUndefined()
     expect(p.contactPhone).toBeUndefined()
+  })
+})
+
+describe('supabaseMappers.mapCashSweep', () => {
+  const row = {
+    id: 'sweep-1',
+    organization_id: 'org-1',
+    entity_id: 'ent-1',
+    from_account_id: 'bank-1',
+    to_account_id: 'bank-2',
+    amount: '4000.00',
+    currency: 'CAD',
+    status: 'executed',
+    scheduled_date: '2026-09-15',
+    executed_date: '2026-09-16',
+    reference: 'Q3 instalment sweep',
+    notes: null,
+  }
+
+  it('maps snake_case columns to the FinanceCashSweep shape', () => {
+    expect(mapCashSweep(row)).toEqual({
+      id: 'sweep-1',
+      entityId: 'ent-1',
+      fromAccountId: 'bank-1',
+      toAccountId: 'bank-2',
+      amount: '4000.00',
+      currency: 'CAD',
+      status: 'executed',
+      scheduledDate: '2026-09-15',
+      executedDate: '2026-09-16',
+      reference: 'Q3 instalment sweep',
+      notes: undefined,
+    })
+  })
+
+  it('leaves executed date and reference undefined on scheduled rows', () => {
+    const c = mapCashSweep({ ...row, status: 'scheduled', executed_date: null, reference: null })
+    expect(c.status).toBe('scheduled')
+    expect(c.executedDate).toBeUndefined()
+    expect(c.reference).toBeUndefined()
   })
 })
