@@ -52,6 +52,8 @@ export interface ProductionTask {
   notes: TaskNote[]
   /** From metadata.employee_id, when the task is linked to a person. */
   linkedEmployeeId: string | null
+  /** From metadata.deal_id, when the task is a follow-up to a finance deal. */
+  linkedDealId: string | null
   /** From metadata.kind — e.g. 'probation_review' for tasks this app creates. */
   linkedKind: string | null
 }
@@ -108,6 +110,7 @@ function toTask(row: z.infer<typeof rowSchema>): ProductionTask {
     assignedTo: row.assigned_to ?? null,
     notes: notes.success ? notes.data : [],
     linkedEmployeeId: typeof meta.employee_id === 'string' ? meta.employee_id : null,
+    linkedDealId: typeof meta.deal_id === 'string' ? meta.deal_id : null,
     linkedKind: typeof meta.kind === 'string' ? meta.kind : null,
   }
 }
@@ -214,6 +217,37 @@ export async function addProbationReviewTask(
       category: 'review',
       due_at: dueDate,
       metadata: { employee_id: employeeId, kind: 'probation_review' },
+    })
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  return toTask(rowSchema.parse(data))
+}
+
+/**
+ * A follow-up task linked to a finance deal through metadata
+ * ({deal_id, kind: 'deal_followup'}) — the link the task detail shows, and
+ * the traceability a pipeline-to-do hand-off needs. Category 'review' stays
+ * inside the table's CHECK constraint vocabulary (no 'finance' value).
+ */
+export async function addDealFollowupTask(
+  organizationId: string,
+  dealId: string,
+  title: string,
+  dueDate: string | null,
+  details: string | null,
+): Promise<ProductionTask> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('compliance_tasks')
+    .insert({
+      organization_id: organizationId,
+      title,
+      priority: 'medium',
+      category: 'review',
+      due_at: dueDate,
+      description: details,
+      metadata: { deal_id: dealId, kind: 'deal_followup' },
     })
     .select(SELECT_COLUMNS)
     .single()

@@ -81,6 +81,7 @@ export const tasksMessages = defineMessages({
     en: 'Open linked conversation',
     fr: 'Ouvrir la conversation liée',
   },
+  tasks_detail_related_deal: { en: 'View in Deals', fr: 'Voir dans Affaires' },
   tasks_detail_mark_done: { en: 'Mark done', fr: 'Marquer comme terminée' },
   tasks_detail_reopen: { en: 'Reopen', fr: 'Rouvrir' },
   tasks_detail_load_failed: {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { useParams } from 'react-router-dom'
-import { ArrowLeft, Check, Sparkle } from 'lucide-react'
+import { ArrowLeft, Check, Handshake, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { tasksMessages as M } from '@/i18n/messages/tasks'
 import { statusChipClass } from '@/components/chips'
@@ -174,6 +174,17 @@ export function TaskDetailProductionView() {
                 .filter(Boolean)
                 .join(' · ')}
             </div>
+            {/* Deal follow-up — the task was created from a pipeline row and
+                metadata.deal_id is the link back. */}
+            {task.linkedDealId && (
+              <WorkspaceLink
+                to="/app/finance/deals"
+                className="mt-[8px] inline-flex items-center gap-[6px] text-[12.5px] font-semibold text-accent hover:underline"
+              >
+                <Handshake size={13} strokeWidth={2} aria-hidden="true" />
+                {x(M.tasks_detail_related_deal)}
+              </WorkspaceLink>
+            )}
             <button
               type="button"
               onClick={() => void onToggleDone()}

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { ListPlus, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 import { statusChipClass } from '@/components/chips'
 import type { ChipTone } from '@/components/chips'
@@ -8,17 +8,22 @@ import { pickL } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useToasts } from '@/features/app/toasts/toastsContext'
+import { addDealFollowupTask } from '../../tasks/productionApi'
 import {
   CURRENCY_LABEL,
   DEAL_KIND_LABEL,
   DEAL_STAGE_LABEL,
   DEAL_STAGE_ORDER,
+  DECISION_KIND_LABEL,
 } from '../financeLabels'
 import type {
   FinanceCurrency,
   FinanceDeal,
   FinanceDealKind,
   FinanceDealStage,
+  FinanceDecisionKind,
 } from '../data/types'
 
 /**
@@ -60,12 +65,16 @@ const ACTIVE_STAGES: ReadonlySet<FinanceDealStage> = new Set([
 
 export function Deals() {
   const { x, lang } = useI18n()
-  const { state, canWrite, addDeal, updateDeal, transitionDealStage, removeDeal } =
+  const { state, canWrite, addDeal, updateDeal, transitionDealStage, removeDeal, addDecisionEntry } =
     useFinanceData()
+  const { organizationId } = useWorkspaceMode()
+  const { showToast } = useToasts()
 
   const [form, setForm] = useState<{ mode: 'add' } | { mode: 'edit'; deal: FinanceDeal } | null>(
     null,
   )
+  const [decisionFor, setDecisionFor] = useState<string | null>(null)
+  const [taskBusy, setTaskBusy] = useState<string | null>(null)
 
   const activeDeals = useMemo(
     () => state.deals.filter((d) => ACTIVE_STAGES.has(d.stage)),
@@ -95,6 +104,38 @@ export function Deals() {
     state.entities.find((e) => e.id === id)?.legalName ?? '—'
 
   const firstEntityId = state.entities[0]?.id ?? ''
+
+  /* Deal → task hand-off: the follow-up lands in compliance_tasks with
+     metadata.deal_id, which the task detail links back from. */
+  const onAddTask = async (d: FinanceDeal) => {
+    if (!organizationId || taskBusy) return
+    setTaskBusy(d.id)
+    try {
+      const name = pickL(d.name, lang)
+      const details = x(M.finance_deals_task_details)
+        .replace('{deal}', name)
+        .replace('{kind}', pickL(DEAL_KIND_LABEL[d.kind], lang))
+        .replace('{stage}', pickL(DEAL_STAGE_LABEL[d.stage], lang))
+        .replace('{entity}', entityName(d.entityId))
+      const task = await addDealFollowupTask(
+        organizationId,
+        d.id,
+        x(M.finance_deals_task_title).replace('{deal}', name),
+        d.targetDate ?? null,
+        details + (d.counterparty ? ` · ${d.counterparty}` : ''),
+      )
+      /* The toast carries the deep link — without it the new task is a dead
+         end, the same complaint that produced the task-detail route. */
+      showToast(M.finance_deals_task_added, 'ok', {
+        label: M.finance_deals_task_open,
+        to: `/app/planning/tasks/${task.id}`,
+      })
+    } catch {
+      showToast(M.finance_deals_task_failed, 'info')
+    } finally {
+      setTaskBusy(null)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-[16px]">
@@ -243,7 +284,7 @@ export function Deals() {
                           )}
                         </div>
                         {canWrite && (
-                          <div className="mt-[8px]">
+                          <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
                             <select
                               value={d.stage}
                               onChange={(e) =>
@@ -264,7 +305,38 @@ export function Deals() {
                                 </option>
                               ))}
                             </select>
+                            {/* Lifecycle links — a deal feeds the decision
+                                journal and the shared task list. */}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDecisionFor((cur) => (cur === d.id ? null : d.id))
+                              }
+                              className="flex items-center gap-[5px] rounded-[6px] border border-border bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:border-(--accent-soft-border)"
+                            >
+                              <NotebookPen size={12} aria-hidden />
+                              {x(M.finance_deals_log_decision)}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={!organizationId || taskBusy === d.id}
+                              onClick={() => void onAddTask(d)}
+                              className="flex items-center gap-[5px] rounded-[6px] border border-border bg-surface px-[8px] py-[3px] text-[11px] font-semibold text-text-2 hover:border-(--accent-soft-border) disabled:opacity-60"
+                            >
+                              <ListPlus size={12} aria-hidden />
+                              {x(M.finance_deals_add_task)}
+                            </button>
                           </div>
+                        )}
+                        {canWrite && decisionFor === d.id && (
+                          <DealDecisionForm
+                            deal={d}
+                            onSubmit={async (entry) => {
+                              await addDecisionEntry(entry)
+                              setDecisionFor(null)
+                            }}
+                            onCancel={() => setDecisionFor(null)}
+                          />
                         )}
                       </li>
                     ))}
@@ -507,6 +579,122 @@ function DealForm({
           type="submit"
           disabled={saving}
           className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
+        >
+          {x(M.finance_save)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/**
+ * Compact journal entry for a deal — same fields as Portfolio's
+ * DecisionForm, minus the subject picker: the entry inherits the deal's
+ * own holdingId/watchlistItemId links and its entityId.
+ */
+function DealDecisionForm({
+  deal,
+  onSubmit,
+  onCancel,
+}: {
+  deal: FinanceDeal
+  onSubmit: (entry: Omit<import('../data/types').FinanceDecisionEntry, 'id'>) => Promise<unknown>
+  onCancel: () => void
+}) {
+  const { x, lang } = useI18n()
+  const [decision, setDecision] = useState<FinanceDecisionKind>('review')
+  const [decidedAt, setDecidedAt] = useState(() => new Date().toISOString().slice(0, 10))
+  const [summary, setSummary] = useState(() => pickL(deal.name, lang))
+  const [rationale, setRationale] = useState('')
+  const [reviewDate, setReviewDate] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!summary.trim()) return
+    await onSubmit({
+      entityId: deal.entityId,
+      holdingId: deal.holdingId,
+      watchlistItemId: deal.watchlistItemId,
+      decision,
+      decidedAt,
+      summary: { en: summary.trim(), fr: summary.trim() } satisfies Bi as Bi,
+      rationale: rationale.trim()
+        ? ({ en: rationale.trim(), fr: rationale.trim() } satisfies Bi as Bi)
+        : undefined,
+      reviewDate: reviewDate || undefined,
+    })
+  }
+
+  return (
+    <form
+      onSubmit={(e) => void handleSubmit(e)}
+      className="mt-[8px] flex flex-col gap-[8px] rounded-[8px] border border-border bg-surface p-[10px]"
+    >
+      <div className="text-[12px] font-semibold text-text">
+        {x(M.finance_deals_log_decision)} — {x(deal.name)}
+      </div>
+      <div className="grid grid-cols-2 gap-[8px]">
+        <label className={labelClass}>
+          <span>{x(M.finance_portfolio_decision)}</span>
+          <select
+            value={decision}
+            onChange={(e) => setDecision(e.target.value as FinanceDecisionKind)}
+            className={inputClass}
+          >
+            {(Object.keys(DECISION_KIND_LABEL) as FinanceDecisionKind[]).map((k) => (
+              <option key={k} value={k}>
+                {x(DECISION_KIND_LABEL[k])}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={labelClass}>
+          <span>{x(M.finance_portfolio_decided_at)}</span>
+          <input
+            type="date"
+            value={decidedAt}
+            onChange={(e) => setDecidedAt(e.target.value)}
+            className={inputClass}
+          />
+        </label>
+      </div>
+      <label className={labelClass}>
+        <span>{x(M.finance_summary)}</span>
+        <input
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          className={inputClass}
+          required
+        />
+      </label>
+      <label className={labelClass}>
+        <span>{x(M.finance_portfolio_rationale)}</span>
+        <input
+          value={rationale}
+          onChange={(e) => setRationale(e.target.value)}
+          className={inputClass}
+        />
+      </label>
+      <label className={labelClass}>
+        <span>{x(M.finance_portfolio_review_date)}</span>
+        <input
+          type="date"
+          value={reviewDate}
+          onChange={(e) => setReviewDate(e.target.value)}
+          className={inputClass}
+        />
+      </label>
+      <div className="flex justify-end gap-[8px]">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-[6px] bg-inset px-[12px] py-[5px] text-[12px] font-semibold text-text-2 border border-border"
+        >
+          {x(M.finance_cancel)}
+        </button>
+        <button
+          type="submit"
+          className="rounded-[6px] bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white"
         >
           {x(M.finance_save)}
         </button>
