@@ -86,4 +86,32 @@ export const financeTreasury = defineMessages({
   /* Capital partners — [FR self-authored] */
   finance_party_type_investor: { en: 'Investor', fr: 'Investisseur' },
   finance_party_type_lender: { en: 'Lender', fr: 'Prêteur' },
+
+  /* Cash sweeps (0174) — records only; Dutiva does not move money.
+     [FR self-authored] */
+  finance_sweeps_title: { en: 'Cash sweeps', fr: 'Virements de trésorerie' },
+  finance_sweep_create: { en: 'Record a sweep', fr: 'Enregistrer un virement' },
+  finance_sweep_from: { en: 'From account', fr: 'Compte source' },
+  finance_sweep_to: { en: 'To account', fr: 'Compte de destination' },
+  finance_sweep_amount: { en: 'Amount', fr: 'Montant' },
+  finance_sweep_scheduled_date: { en: 'Scheduled date', fr: 'Date prévue' },
+  finance_sweep_reference: { en: 'Reference', fr: 'Référence' },
+  finance_sweep_status_scheduled: { en: 'Scheduled', fr: 'Prévu' },
+  finance_sweep_status_executed: { en: 'Executed', fr: 'Exécuté' },
+  finance_sweep_status_cancelled: { en: 'Cancelled', fr: 'Annulé' },
+  finance_sweep_mark_executed: { en: 'Mark executed', fr: 'Marquer exécuté' },
+  finance_sweep_cancel: { en: 'Cancel sweep', fr: 'Annuler le virement' },
+  finance_sweep_remove: { en: 'Delete sweep', fr: 'Supprimer le virement' },
+  finance_sweep_remove_confirm: {
+    en: 'Delete this sweep record?',
+    fr: 'Supprimer cet enregistrement de virement ?',
+  },
+  finance_sweep_same_account: {
+    en: 'Pick two different accounts.',
+    fr: 'Choisissez deux comptes différents.',
+  },
+  finance_sweep_save_failed: {
+    en: 'Could not save the sweep.',
+    fr: 'Impossible d’enregistrer le virement.',
+  },
 })

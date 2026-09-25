@@ -76,6 +76,18 @@ first two. The Treasury debt rows now show a covenant / notice line under
 the terms, and an active facility inside 90 days of maturity gets a
 "Maturing soon" chip — no schema change.
 
+## Treasury cash sweeps
+
+`finance_cash_sweeps` (migration `0174`) records moving money between
+`finance_bank_accounts` (operating → reserve, etc.) with a
+`scheduled → executed | cancelled` lifecycle, amount + currency, scheduled
+and executed dates, and an optional reference. The Treasury tab renders
+the sweep list with status chips and — in production only — a record form
+plus mark-executed / cancel / delete controls. `from_account_id <>`
+`to_account_id` is a CHECK constraint, pre-validated in the form. Dutiva
+records the sweep; it does not execute the transfer — account balances
+live on the source systems, and this row is the treasury workflow record.
+
 ## Governance board view
 
 `/app/finance/governance` (tab key `governance`) is the board-oriented
@@ -137,7 +149,8 @@ does not move money.
 ## Deploy status
 
 Migrations `0171` (deals + ownership + partner types), `0172`
-(commitments), and `0173` (capital calls + party contacts) are applied
-to the Supabase project (`khtwpxnvziiyplaflwru`) — `check:migrations`
-reports 173/173 applied, 0 differences. The task hand-off needs no
-migration — it writes the existing `compliance_tasks.metadata` jsonb.
+(commitments), `0173` (capital calls + party contacts), and `0174`
+(cash sweeps) are applied to the Supabase project
+(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 174/174 applied, 0
+differences. The task hand-off needs no migration — it writes the
+existing `compliance_tasks.metadata` jsonb.

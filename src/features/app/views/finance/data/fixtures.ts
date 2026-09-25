@@ -592,6 +592,33 @@ const debt: FinanceWorkspaceState['debts'][number] = {
   status: 'active',
 }
 
+/* Cash sweeps — operating → tax reserve. Dutiva records the sweep; the
+   executed row carries its executed date, the scheduled one doesn't. */
+const sweepExecuted: FinanceWorkspaceState['cashSweeps'][number] = {
+  id: 'sweep-1',
+  entityId: 'ent-1',
+  fromAccountId: 'bank-1',
+  toAccountId: 'bank-2',
+  amount: '4000.00',
+  currency: 'CAD',
+  status: 'executed',
+  scheduledDate: '2026-09-15',
+  executedDate: '2026-09-16',
+  reference: 'Q3 instalment sweep',
+}
+
+const sweepScheduled: FinanceWorkspaceState['cashSweeps'][number] = {
+  id: 'sweep-2',
+  entityId: 'ent-1',
+  fromAccountId: 'bank-1',
+  toAccountId: 'bank-2',
+  amount: '2500.00',
+  currency: 'CAD',
+  status: 'scheduled',
+  scheduledDate: '2026-10-01',
+  reference: 'Q4 instalment sweep',
+}
+
 const taxObligation: FinanceWorkspaceState['taxObligations'][number] = {
   id: 'tax-1',
   entityId: 'ent-1',
@@ -852,6 +879,7 @@ export const initialFinanceState: FinanceWorkspaceState = {
   commitments: [commitmentInvestor, commitmentLender],
   capitalCalls: [capitalCallReceived, capitalCallScheduled],
   debts: [debt],
+  cashSweeps: [sweepExecuted, sweepScheduled],
   taxObligations: [taxObligation, taxObligation2],
   taxScenarios: [taxScenario],
   approvals: [approval],
