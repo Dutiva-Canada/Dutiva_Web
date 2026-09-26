@@ -3,10 +3,12 @@ import type {
   AssetClass,
   InvestAccount,
   InvestBotRun,
+  InvestNewsItem,
   InvestOrder,
   InvestPosition,
   InvestSignal,
   InvestStrategy,
+  InvestWatchItem,
   MarketSnapshot,
   OrderStatus,
   SignalStatus,
@@ -30,6 +32,8 @@ export interface InvestState {
   signals: InvestSignal[]
   orders: InvestOrder[]
   runs: InvestBotRun[]
+  watchlist: InvestWatchItem[]
+  news: InvestNewsItem[]
 }
 
 export type InvestRole = 'client' | 'admin'
@@ -62,33 +66,66 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs] = await Promise.all([
-    client.from('invest_accounts').select('*'),
-    client.from('invest_positions').select('*'),
-    client
-      .from('invest_market_snapshots')
-      .select('*')
-      .order('as_of', { ascending: false }),
-    client.from('invest_strategies').select('*'),
-    client
-      .from('invest_signals')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200),
-    client
-      .from('invest_orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200),
-    client
-      .from('invest_bot_runs')
-      .select('*')
-      .order('ran_at', { ascending: false })
-      .limit(50),
-  ])
-  for (const res of [accounts, positions, snapshots, strategies, signals, orders, runs]) {
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist] =
+    await Promise.all([
+      client.from('invest_accounts').select('*'),
+      client.from('invest_positions').select('*'),
+      client
+        .from('invest_market_snapshots')
+        .select('*')
+        .order('as_of', { ascending: false }),
+      client.from('invest_strategies').select('*'),
+      client
+        .from('invest_signals')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200),
+      client
+        .from('invest_orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(200),
+      client
+        .from('invest_bot_runs')
+        .select('*')
+        .order('ran_at', { ascending: false })
+        .limit(50),
+      client
+        .from('invest_watchlist')
+        .select('*')
+        .order('created_at', { ascending: false }),
+    ])
+  for (const res of [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist]) {
     if (res.error) throw res.error
   }
+
+  /* News follows the same universe as market-sync: held ∪ watched symbols,
+     plus general-market items (symbol ''). Server-side filter so general
+     headlines can't crowd out a user's symbol news. */
+  const symbols = [
+    ...new Set(
+      [...(positions.data ?? []), ...(watchlist.data ?? [])]
+        .map((r) => String(r.symbol ?? '').toUpperCase())
+        .filter(Boolean),
+    ),
+  ]
+  const newsQuery = client
+    .from('invest_market_news')
+    .select('*')
+    .order('published_at', { ascending: false, nullsFirst: false })
+    .limit(30)
+  const news = await (symbols.length > 0
+    ? newsQuery.or(`symbol.eq."",symbol.in.(${symbols.map((s) => `"${s}"`).join(',')})`)
+    : newsQuery.eq('symbol', ''))
+  if (news.error) throw news.error
+
+  /* The same headline can be stored under several symbols (market-wrap
+     articles fetched by more than one query) — dedupe on url for display. */
+  const seenUrls = new Set<string>()
+  const newsItems = (news.data ?? [])
+    .map(toNewsItem)
+    .filter((n) => (seenUrls.has(n.url) ? false : (seenUrls.add(n.url), true)))
+
   return {
     accounts: (accounts.data ?? []).map(toAccount),
     positions: (positions.data ?? []).map(toPosition),
@@ -97,7 +134,36 @@ export async function loadInvestState(): Promise<InvestState> {
     signals: (signals.data ?? []).map(toSignal),
     orders: (orders.data ?? []).map(toOrder),
     runs: (runs.data ?? []).map(toRun),
+    watchlist: (watchlist.data ?? []).map(toWatchItem),
+    news: newsItems,
   }
+}
+
+/* ── Watchlist ──────────────────────────────────────────────────────────── */
+
+export async function addWatchSymbol(input: {
+  assetClass: AssetClass
+  symbol: string
+  name?: string
+}): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client.from('invest_watchlist').upsert(
+    {
+      user_id: userId,
+      asset_class: input.assetClass,
+      symbol: input.symbol.toUpperCase(),
+      name: input.name?.trim() ?? '',
+    },
+    { onConflict: 'user_id,asset_class,symbol' },
+  )
+  if (error) throw error
+}
+
+export async function removeWatchSymbol(id: string): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('invest_watchlist').delete().eq('id', id)
+  if (error) throw error
 }
 
 /* ── Accounts / positions ────────────────────────────────────────────────── */
@@ -401,6 +467,31 @@ function toSignal(row: any): InvestSignal {
     score: row.score === null ? null : Number(row.score),
     status: row.status,
     createdAt: row.created_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toWatchItem(row: any): InvestWatchItem {
+  return {
+    id: row.id,
+    assetClass: row.asset_class,
+    symbol: row.symbol,
+    name: row.name ?? '',
+    createdAt: row.created_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toNewsItem(row: any): InvestNewsItem {
+  return {
+    id: row.id,
+    symbol: row.symbol ?? '',
+    assetClass: row.asset_class ?? '',
+    title: row.title,
+    url: row.url,
+    source: row.source ?? '',
+    summary: row.summary ?? '',
+    publishedAt: row.published_at ?? null,
   }
 }
 

@@ -23,11 +23,19 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setSignalStatus: vi.fn(),
   executeOrder: vi.fn(),
   setOrderStatus: vi.fn(),
+  addWatchSymbol: vi.fn(),
+  removeWatchSymbol: vi.fn(),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
-const { hasInvestAccess, loadInvestState, setSignalStatus, executeOrder } =
-  await import('@/features/invest/data/api')
+const {
+  hasInvestAccess,
+  loadInvestState,
+  setSignalStatus,
+  executeOrder,
+  addWatchSymbol,
+  removeWatchSymbol,
+} = await import('@/features/invest/data/api')
 
 function asAuth(status: AuthContextValue['status']): AuthContextValue {
   return {
@@ -136,6 +144,27 @@ const STATE: InvestState = {
       status: 'ok',
     },
   ],
+  watchlist: [
+    {
+      id: 'w1',
+      assetClass: 'crypto',
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      createdAt: '2026-01-19T00:00:00Z',
+    },
+  ],
+  news: [
+    {
+      id: 1,
+      symbol: 'SHOP',
+      assetClass: 'equity',
+      title: 'Shopify beats estimates',
+      url: 'https://news.example/shop-beats',
+      source: 'Example News',
+      summary: '',
+      publishedAt: '2026-01-20T09:00:00Z',
+    },
+  ],
 }
 
 function renderPortal(ui: ReactElement, route = '/invest') {
@@ -149,6 +178,7 @@ function renderPortal(ui: ReactElement, route = '/invest') {
                 <Route path="/invest" element={ui} />
                 <Route path="/invest/signals" element={ui} />
                 <Route path="/invest/orders" element={ui} />
+                <Route path="/invest/portfolios" element={ui} />
               </Routes>
             </MemoryRouter>
           </ToastsProvider>
@@ -211,6 +241,9 @@ describe('InvestPortalLayout', () => {
     // Nav labels render
     expect(screen.getAllByText('Signals').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Bot').length).toBeGreaterThan(0)
+    // Market news renders on the overview
+    expect(screen.getByText('Market news')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Shopify beats estimates' })).toBeInTheDocument()
   })
 })
 
@@ -265,6 +298,45 @@ describe('InvestOrdersPage', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /Mark executed/i }))
     await vi.waitFor(() => {
       expect(executeOrder).toHaveBeenCalledWith('o1', undefined)
+    })
+  })
+})
+
+describe('InvestPortfolioPage watchlist', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders watchlist chips and adds/removes symbols', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    vi.mocked(addWatchSymbol).mockResolvedValue(undefined)
+    vi.mocked(removeWatchSymbol).mockResolvedValue(undefined)
+    const { InvestPortfolioPage } = await import('./InvestPortfolioPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestPortfolioPage />
+      </InvestDataProvider>,
+      '/invest/portfolios',
+    )
+
+    const user = userEvent.setup()
+    expect(await screen.findByText('Watchlist')).toBeInTheDocument()
+    expect(screen.getByText('BTC')).toBeInTheDocument()
+
+    await user.type(screen.getByPlaceholderText(/SHOP\.TO/i), 'msft')
+    await user.click(screen.getByRole('button', { name: /^Watch$/i }))
+    await vi.waitFor(() => {
+      expect(addWatchSymbol).toHaveBeenCalledWith(
+        expect.objectContaining({ assetClass: 'equity', symbol: 'msft' }),
+      )
+    })
+
+    await user.click(screen.getByRole('button', { name: /Remove BTC/i }))
+    await vi.waitFor(() => {
+      expect(removeWatchSymbol).toHaveBeenCalledWith('w1')
     })
   })
 })

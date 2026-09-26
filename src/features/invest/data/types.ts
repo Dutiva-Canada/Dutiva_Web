@@ -136,3 +136,27 @@ export interface InvestBotRun {
   summary: string
   status: 'ok' | 'partial' | 'failed'
 }
+
+/** A symbol the user wants priced/tracked without holding it — feeds the
+    market-sync universe (and thereby dip-watcher strategies) and the
+    per-symbol news queries. */
+export interface InvestWatchItem {
+  id: string
+  assetClass: AssetClass
+  symbol: string
+  name: string
+  createdAt: string
+}
+
+/** Shared market headline from invest_market_news (0183). `symbol` '' =
+    a general-market item. Third-party content — English feed text. */
+export interface InvestNewsItem {
+  id: number
+  symbol: string
+  assetClass: string
+  title: string
+  url: string
+  source: string
+  summary: string
+  publishedAt: string | null
+}

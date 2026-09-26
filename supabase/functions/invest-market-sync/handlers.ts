@@ -130,6 +130,8 @@ export interface SyncTarget {
   user_id: string
   asset_class: string
   symbol: string
+  /** Company/coin name when known — drives better headline queries. */
+  name?: string
 }
 
 export type SyncAction = 'sync' | 'sync-all'
@@ -139,4 +141,97 @@ export function validateSyncAction(
 ): { ok: true; value: SyncAction } | { ok: false; error: string } {
   if (action === 'sync' || action === 'sync-all') return { ok: true, value: action }
   return { ok: false, error: `Unknown action: ${String(action)}` }
+}
+
+/* --- News (Google News RSS — free, keyless, delayed) ----------------------- */
+
+export interface NewsItem {
+  symbol: string
+  asset_class: string
+  title: string
+  url: string
+  source: string
+  summary: string
+  published_at: string | null
+}
+
+/** CA-edition Google News RSS for a query — free, unofficial, rate-limited. */
+export function googleNewsUrl(query: string): string {
+  return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-CA&gl=CA&ceid=CA:en`
+}
+
+function xmlText(block: string, tag: string): string {
+  const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`))
+  if (!m) return ''
+  const raw = m[1]
+  const cdata = raw.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/)
+  const text = cdata ? cdata[1] : raw
+  return text
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .trim()
+}
+
+/**
+ * RSS `<item>` blocks → headline rows. Google News titles carry the source
+ * as a " - Source" suffix; the `<source>` element carries it properly, so
+ * prefer that and strip the suffix. Missing/malformed fields drop the item.
+ */
+export function parseRssItems(
+  xml: string,
+  meta: { symbol: string; asset_class: string },
+  maxItems = 12,
+): NewsItem[] {
+  const items: NewsItem[] = []
+  for (const m of xml.matchAll(/<item>([\s\S]*?)<\/item>/g)) {
+    const block = m[1]
+    let title = xmlText(block, 'title')
+    const source = xmlText(block, 'source')
+    const suffix = ` - ${source}`
+    if (source && title.endsWith(suffix)) title = title.slice(0, -suffix.length)
+    const url = xmlText(block, 'link')
+    if (!title || !url) continue
+    const pub = xmlText(block, 'pubDate')
+    const pubMs = pub ? Date.parse(pub) : NaN
+    items.push({
+      symbol: meta.symbol,
+      asset_class: meta.asset_class,
+      title: title.slice(0, 300),
+      url: url.slice(0, 500),
+      source: source.slice(0, 120),
+      summary: xmlText(block, 'description').slice(0, 240),
+      published_at: Number.isFinite(pubMs) ? new Date(pubMs).toISOString() : null,
+    })
+    if (items.length >= maxItems) break
+  }
+  return items
+}
+
+/**
+ * News queries for a sync universe: one general market feed plus one feed
+ * per distinct symbol (asset-class hint keeps "SHOP" from returning dress
+ * shops). Names beat tickers for headline matching.
+ */
+export function newsQueries(
+  targets: { asset_class: string; symbol: string; name?: string }[],
+  maxSymbolFeeds = 8,
+): { query: string; symbol: string; asset_class: string }[] {
+  const queries: { query: string; symbol: string; asset_class: string }[] = [
+    { query: 'stock market Canada', symbol: '', asset_class: '' },
+  ]
+  const seen = new Set<string>()
+  for (const t of targets) {
+    const sym = t.symbol.trim().toUpperCase()
+    if (!sym || seen.has(sym)) continue
+    seen.add(sym)
+    const hint = t.asset_class === 'crypto' ? 'crypto' : 'stock'
+    const term = t.name && t.name.trim() ? t.name.trim() : sym.replace(/\.(TO|V|US)$/, '')
+    queries.push({ query: `${term} ${hint}`, symbol: sym, asset_class: t.asset_class })
+    if (queries.length > maxSymbolFeeds) break
+  }
+  return queries
 }

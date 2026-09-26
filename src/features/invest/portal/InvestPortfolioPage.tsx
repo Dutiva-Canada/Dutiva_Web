@@ -1,12 +1,14 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Loader2, Plus, RefreshCw } from 'lucide-react'
+import { Loader2, Plus, RefreshCw, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AccountKind, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import {
+  addWatchSymbol,
   createAccount,
   createPosition,
+  removeWatchSymbol,
   syncPrices,
   upsertSnapshot,
 } from '@/features/invest/data/api'
@@ -219,7 +221,118 @@ export function InvestPortfolioPage() {
           </div>
         )}
       </section>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_watchlist_title)}</h2>
+        <p className="m-0 mt-[4px] text-[12px] text-text-muted">{x(IM.invest_watchlist_sub)}</p>
+        <WatchForm busy={busy} onAdd={(input) => run(() => addWatchSymbol(input))} />
+        {state.watchlist.length === 0 ? (
+          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
+            {x(IM.invest_watchlist_empty)}
+          </p>
+        ) : (
+          <ul className="m-0 mt-[12px] flex list-none flex-wrap gap-[8px] p-0">
+            {state.watchlist.map((w) => (
+              <li
+                key={w.id}
+                className="flex items-center gap-[8px] rounded-full border border-border bg-inset py-[4px] pr-[6px] pl-[12px]"
+              >
+                <span className="text-[12.5px] font-semibold text-text">{w.symbol}</span>
+                <span className="text-[11px] text-text-muted">{x(IM[assetLabel[w.assetClass]])}</span>
+                {w.name && w.name !== w.symbol && (
+                  <span className="max-w-[140px] truncate text-[11px] text-text-muted">{w.name}</span>
+                )}
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void run(() => removeWatchSymbol(w.id))}
+                  aria-label={`${x(IM.invest_rule_remove)} ${w.symbol}`}
+                  className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full text-text-muted hover:text-risk-fg disabled:opacity-50"
+                >
+                  <X size={13} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
+  )
+}
+
+function WatchForm({
+  busy,
+  onAdd,
+}: {
+  busy: boolean
+  onAdd: (input: { assetClass: AssetClass; symbol: string; name?: string }) => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [assetClass, setAssetClass] = useState<AssetClass>('equity')
+  const [symbol, setSymbol] = useState('')
+  const [name, setName] = useState('')
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    if (!symbol.trim()) return
+    void onAdd({
+      assetClass,
+      symbol: symbol.trim(),
+      name: name.trim() || undefined,
+    }).then(() => {
+      setSymbol('')
+      setName('')
+    })
+  }
+
+  return (
+    <form onSubmit={submit} className="mt-[14px] flex flex-wrap items-end gap-[10px]">
+      <div className="w-[130px]">
+        <label className={labelClass} htmlFor="inv-watch-class">
+          {x(IM.invest_field_asset_class)}
+        </label>
+        <select
+          id="inv-watch-class"
+          value={assetClass}
+          onChange={(e) => setAssetClass(e.target.value as AssetClass)}
+          className={fieldClass}
+        >
+          {ASSET_CLASSES.map((cls) => (
+            <option key={cls} value={cls}>
+              {x(IM[assetLabel[cls]])}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="w-[110px]">
+        <label className={labelClass} htmlFor="inv-watch-symbol">
+          {x(IM.invest_field_symbol)}
+        </label>
+        <input
+          id="inv-watch-symbol"
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          placeholder="SHOP.TO, BTC…"
+          className={fieldClass}
+          required
+        />
+      </div>
+      <div className="min-w-[140px] flex-1">
+        <label className={labelClass} htmlFor="inv-watch-name">
+          {x(IM.invest_field_name)}
+        </label>
+        <input
+          id="inv-watch-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={fieldClass}
+        />
+      </div>
+      <button type="submit" disabled={busy || !symbol.trim()} className={btnClass}>
+        <Plus size={14} aria-hidden="true" />
+        {x(IM.invest_watchlist_add)}
+      </button>
+    </form>
   )
 }
 

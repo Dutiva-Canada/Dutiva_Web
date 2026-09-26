@@ -3,8 +3,11 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   coingeckoId,
   computeMa,
+  googleNewsUrl,
+  newsQueries,
   parseCoingeckoCloses,
   parseCoingeckoSimple,
+  parseRssItems,
   parseStooqCloses,
   parseStooqQuotes,
   stooqSymbol,
@@ -14,20 +17,22 @@ import {
 
 /**
  * invest-market-sync — refreshes invest_market_snapshots from free public
- * feeds so strategies always evaluate fresh prices instead of manual entry.
+ * feeds so strategies always evaluate fresh prices instead of manual entry,
+ * and stores shared market headlines in invest_market_news.
  *
  *   crypto            → CoinGecko simple/price (+ market_chart for ma50)
  *   equity/etf/other  → Stooq daily CSV (delayed quotes; .to/.v = CAD,
  *                       .us/bare = USD)
+ *   headlines         → Google News RSS (CA edition; free, unofficial)
  *
  * Actions (POST body):
- *   { action: 'sync' }      — invest-portal JWT; syncs the caller's book.
+ *   { action: 'sync' }      — invest-portal JWT; syncs the caller's book
+ *                             and refreshes the shared news table.
  *   { action: 'sync-all' }  — trigger secret / service key (the 07:20 UTC
  *                             pg_cron sweep), or an admin-role portal JWT.
  *
- * Only rows already in a user's snapshot table — plus symbols their
- * positions name but no snapshot covers yet — are fetched. Unknown tickers
- * are skipped and reported, never fatal.
+ * A user's universe is snapshot rows ∪ held positions ∪ watchlist symbols.
+ * Unknown tickers are skipped and reported, never fatal.
  */
 
 const corsHeaders = {
@@ -233,19 +238,29 @@ async function syncStooq(
   }
 }
 
-/** One user's universe: snapshot rows ∪ held-position symbols. */
+/** One user's universe: snapshot rows ∪ held-position ∪ watchlist symbols. */
 async function syncUser(adminClient: SupabaseClient, userId: string) {
-  const [snapsRes, positionsRes] = await Promise.all([
+  const [snapsRes, positionsRes, watchRes] = await Promise.all([
     adminClient.from('invest_market_snapshots').select('asset_class, symbol').eq('user_id', userId),
-    adminClient.from('invest_positions').select('asset_class, symbol').eq('user_id', userId),
+    adminClient.from('invest_positions').select('asset_class, symbol, name').eq('user_id', userId),
+    adminClient.from('invest_watchlist').select('asset_class, symbol, name').eq('user_id', userId),
   ])
   const seen = new Set<string>()
   const targets: SyncTarget[] = []
-  for (const r of [...(snapsRes.data ?? []), ...(positionsRes.data ?? [])]) {
+  for (const r of [
+    ...(snapsRes.data ?? []),
+    ...(positionsRes.data ?? []),
+    ...(watchRes.data ?? []),
+  ]) {
     const key = `${r.asset_class}:${r.symbol}`
     if (seen.has(key) || !r.symbol) continue
     seen.add(key)
-    targets.push({ user_id: userId, asset_class: r.asset_class as string, symbol: r.symbol as string })
+    targets.push({
+      user_id: userId,
+      asset_class: r.asset_class as string,
+      symbol: r.symbol as string,
+      name: (r as { name?: string }).name ?? '',
+    })
   }
 
   const crypto = targets.filter((t) => t.asset_class === 'crypto').slice(0, MAX_PER_CLASS)
@@ -263,7 +278,39 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
     if (error) failed.push(`${p.symbol} (upsert)`)
   }
 
-  return { symbols: targets.length, synced: patches.length, failed }
+  return { symbols: targets.length, synced: patches.length, failed, targets }
+}
+
+const NEWS_STAGGER_MS = 300
+const NEWS_MAX_ITEMS_STORED = 40
+
+/**
+ * Shared market headlines — one row per (symbol, url), deduped by the
+ * table's unique constraint. The table is global, so repeats across users
+ * and runs cost one upsert round-trip, not duplicate rows.
+ */
+async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): Promise<number> {
+  const queries = newsQueries(targets)
+  const rows: Record<string, unknown>[] = []
+  const seenUrls = new Set<string>()
+  for (const q of queries) {
+    const xml = await fetchText(googleNewsUrl(q.query))
+    if (!xml) continue
+    for (const item of parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class })) {
+      const key = `${item.symbol}:${item.url}`
+      if (seenUrls.has(key)) continue
+      seenUrls.add(key)
+      rows.push(item)
+      if (rows.length >= NEWS_MAX_ITEMS_STORED) break
+    }
+    if (rows.length >= NEWS_MAX_ITEMS_STORED) break
+    await pause(NEWS_STAGGER_MS)
+  }
+  if (rows.length === 0) return 0
+  const { error } = await adminClient
+    .from('invest_market_news')
+    .upsert(rows, { onConflict: 'symbol,url', ignoreDuplicates: true })
+  return error ? 0 : rows.length
 }
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
@@ -291,33 +338,40 @@ Deno.serve(async (req: Request) => {
       if (authed instanceof Response) return authed
     }
     const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
-    /* Users who have anything invested/tracked — cheaper than sweeping all. */
-    const { data: users } = await adminClient
-      .from('invest_market_snapshots')
-      .select('user_id')
+    /* Users who have anything invested/tracked/watched — cheaper than
+       sweeping all. */
+    const [snapsUsers, positionsUsers, watchUsers] = await Promise.all([
+      adminClient.from('invest_market_snapshots').select('user_id'),
+      adminClient.from('invest_positions').select('user_id'),
+      adminClient.from('invest_watchlist').select('user_id'),
+    ])
     const userIds = [
-      ...new Set((users ?? []).map((r) => r.user_id as string)),
-      ...new Set(
-        (
-          await adminClient.from('invest_positions').select('user_id')
-        ).data?.map((r) => r.user_id as string) ?? [],
-      ),
+      ...new Set([
+        ...(snapsUsers.data ?? []).map((r) => r.user_id as string),
+        ...(positionsUsers.data ?? []).map((r) => r.user_id as string),
+        ...(watchUsers.data ?? []).map((r) => r.user_id as string),
+      ]),
     ]
     const results: Record<string, unknown>[] = []
+    const allTargets: SyncTarget[] = []
     for (const userId of userIds) {
       try {
-        results.push({ userId, ...(await syncUser(adminClient, userId)) })
+        const r = await syncUser(adminClient, userId)
+        allTargets.push(...r.targets)
+        results.push({ userId, symbols: r.symbols, synced: r.synced, failed: r.failed })
       } catch (error) {
         console.error('invest-market-sync: user failed', userId, error)
         results.push({ userId, error: String(error).slice(0, 200) })
       }
     }
-    return json({ scanned: results.length, results })
+    const news = await refreshNews(adminClient, allTargets)
+    return json({ scanned: results.length, news, results })
   }
 
   /* sync — caller's book only */
   const authed = await authenticateInvestUser(req, config)
   if (authed instanceof Response) return authed
   const result = await syncUser(authed.adminClient, authed.userId)
-  return json(result)
+  const news = await refreshNews(authed.adminClient, result.targets)
+  return json({ symbols: result.symbols, synced: result.synced, failed: result.failed, news })
 })

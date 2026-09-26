@@ -163,6 +163,33 @@ export function InvestHomePage() {
           )}
         </section>
       </div>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_news_title)}</h2>
+        {state.news.length === 0 ? (
+          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">{x(IM.invest_news_empty)}</p>
+        ) : (
+          <ul className="m-0 mt-[12px] flex list-none flex-col divide-y divide-border p-0">
+            {state.news.slice(0, 12).map((n) => (
+              <li key={n.id} className="py-[10px]">
+                <a
+                  href={n.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] font-medium text-accent no-underline hover:underline"
+                >
+                  {n.title}
+                </a>
+                <p className="m-0 mt-[3px] text-[11.5px] text-text-muted">
+                  {n.symbol && <span className="font-semibold uppercase">{n.symbol} · </span>}
+                  {n.source}
+                  {n.publishedAt && <> · {new Date(n.publishedAt).toLocaleDateString()}</>}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
