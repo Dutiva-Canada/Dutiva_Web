@@ -82,6 +82,8 @@ const STATE: InvestState = {
       assetClasses: ['equity'],
       rules: [{ metric: 'day_change_pct', op: 'lt', value: -5, kind: 'alert', title: 'Dip', side: 'buy', qty: 5 }],
       autonomy: 'suggest',
+      cadence: 'daily',
+      template: '',
     },
   ],
   signals: [
@@ -94,6 +96,8 @@ const STATE: InvestState = {
       kind: 'alert',
       title: 'SHOP dropped below threshold',
       body: 'Day change -6% < -5%',
+      titleFr: null,
+      bodyFr: null,
       score: 72,
       status: 'new',
       createdAt: '2026-01-20T12:00:00Z',

@@ -21,7 +21,7 @@ const statusLabel: Record<SignalStatus, keyof typeof IM> = {
 
 /** Signals tab — what the bot emitted, with acknowledge/dismiss triage. */
 export function InvestSignalsPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | undefined>()
@@ -74,9 +74,11 @@ export function InvestSignalsPage() {
                     <span className="rounded-full bg-gold-bg px-[8px] py-[2px] text-[10.5px] font-semibold text-gold-fg">
                       {x(IM[kindLabel[s.kind]])}
                     </span>
-                    <span className="rounded-full border border-border px-[8px] py-[2px] text-[10.5px] font-semibold text-text-2">
-                      {s.symbol}
-                    </span>
+                    {s.symbol && (
+                      <span className="rounded-full border border-border px-[8px] py-[2px] text-[10.5px] font-semibold text-text-2">
+                        {s.symbol}
+                      </span>
+                    )}
                     {s.score !== null && (
                       <span className="text-[11px] tabular-nums text-text-muted">
                         {x(IM.invest_score)} {Math.round(s.score)}
@@ -86,9 +88,13 @@ export function InvestSignalsPage() {
                       {new Date(s.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="m-0 mt-[8px] text-[13.5px] font-semibold text-text">{s.title}</p>
-                  {s.body && (
-                    <p className="m-0 mt-[4px] text-[12.5px] leading-[1.5] text-text-3">{s.body}</p>
+                  <p className="m-0 mt-[8px] text-[13.5px] font-semibold text-text">
+                    {lang === 'fr' && s.titleFr ? s.titleFr : s.title}
+                  </p>
+                  {(lang === 'fr' && s.bodyFr ? s.bodyFr : s.body) && (
+                    <p className="m-0 mt-[4px] text-[12.5px] leading-[1.5] text-text-3">
+                      {lang === 'fr' && s.bodyFr ? s.bodyFr : s.body}
+                    </p>
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-[6px]">

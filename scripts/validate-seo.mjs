@@ -456,7 +456,6 @@ if (!notFound.includes('noindex')) fail('404.html: missing noindex')
 const knownRoutes = new Set(pages.map((p) => p.route))
 for (const { route, file } of pages) {
   const doc = await readFile(file, 'utf8')
-  const head = doc.split('</head>')[0]
   const body = doc.split('<div id="root">')[1] ?? ''
   for (const m of body.matchAll(/href="(\/[^"#]*)(#[^"]*)?"/g)) {
     /* Drop the query before resolving, the same way the hash is already

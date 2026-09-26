@@ -2,14 +2,18 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   applyFill,
+  CADENCES,
   parseRules,
   planRun,
   signalKey,
+  strategyDue,
   validateBotAction,
   type MarketSnapshot,
   type Position,
   type Strategy,
+  type StrategyCadence,
 } from './handlers.ts'
+import { maybeEmitInsights } from './insights.ts'
 
 /**
  * Invest-bot edge function — evaluates each user's enabled strategies
@@ -117,11 +121,12 @@ async function runUser(
   adminClient: SupabaseClient,
   userId: string,
 ): Promise<Record<string, unknown>> {
-  const [strategiesRes, snapshotsRes, positionsRes, signalsRes] = await Promise.all([
-    adminClient.from('invest_strategies').select('id, enabled, asset_classes, rules, autonomy').eq('user_id', userId),
+  const [strategiesRes, snapshotsRes, positionsRes, signalsRes, accountsRes] = await Promise.all([
+    adminClient.from('invest_strategies').select('id, enabled, asset_classes, rules, autonomy, cadence, last_evaluated_at').eq('user_id', userId),
     adminClient.from('invest_market_snapshots').select('asset_class, symbol, price, day_change_pct, ma50, currency').eq('user_id', userId),
     adminClient.from('invest_positions').select('id, account_id, asset_class, symbol, name, quantity, avg_cost').eq('user_id', userId),
     adminClient.from('invest_signals').select('strategy_id, symbol, kind, title').eq('user_id', userId).eq('status', 'new'),
+    adminClient.from('invest_accounts').select('cash_balance').eq('user_id', userId).eq('status', 'active'),
   ])
 
   const strategies: Strategy[] = (strategiesRes.data ?? []).map((r) => ({
@@ -130,7 +135,15 @@ async function runUser(
     asset_classes: Array.isArray(r.asset_classes) ? (r.asset_classes as string[]) : [],
     rules: parseRules(r.rules),
     autonomy: r.autonomy === 'paper_execute' ? 'paper_execute' : 'suggest',
+    cadence: CADENCES.includes(r.cadence as string)
+      ? (r.cadence as StrategyCadence)
+      : 'daily',
+    last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
   }))
+  const cashTotal = (accountsRes.data ?? []).reduce(
+    (sum, a) => sum + Number(a.cash_balance),
+    0,
+  )
   const snapshots = (snapshotsRes.data ?? []) as MarketSnapshot[]
   const positions = (positionsRes.data ?? []) as (Position & { id: string; name: string })[]
   const existingKeys = new Set(
@@ -144,7 +157,20 @@ async function runUser(
     ),
   )
 
-  const plan = planRun(strategies, snapshots, positions, existingKeys)
+  const plan = planRun(strategies, snapshots, positions, existingKeys, { cashTotal })
+
+  /* Stamp the evaluation clock on strategies that were actually due — a
+     weekly strategy that ran today must not re-fire tomorrow even if it
+     emitted nothing. */
+  const evaluatedIds = strategies
+    .filter((s) => s.enabled && s.rules.length > 0 && strategyDue(s, new Date()))
+    .map((s) => s.id)
+  if (evaluatedIds.length > 0) {
+    await adminClient
+      .from('invest_strategies')
+      .update({ last_evaluated_at: new Date().toISOString() })
+      .in('id', evaluatedIds)
+  }
 
   /* Insert signals; keep a key→signal id map for order back-links. */
   const signalIdByKey = new Map<string, string>()
@@ -267,9 +293,34 @@ async function runUser(
     }
   }
 
+  /* AI insight pass — bilingual plain-language observations on the run.
+     Never fatal: a model outage must not lose the deterministic signals. */
+  const insights = await maybeEmitInsights(adminClient, {
+    snapshots,
+    positions,
+    cashTotal,
+    signalsEmitted: plan.signals.length,
+    ordersPlanned: plan.orders.length,
+  })
+  for (const insight of insights) {
+    await adminClient.from('invest_signals').insert({
+      user_id: userId,
+      strategy_id: null,
+      asset_class: 'other',
+      symbol: '',
+      name: '',
+      kind: 'insight',
+      title: insight.title_en,
+      title_fr: insight.title_fr,
+      body: insight.body_en,
+      body_fr: insight.body_fr,
+      score: null,
+    })
+  }
+
   await adminClient.from('invest_bot_runs').insert({
     user_id: userId,
-    signals_emitted: plan.signals.length,
+    signals_emitted: plan.signals.length + insights.length,
     orders_suggested: plan.orders.length,
     orders_executed: ordersExecuted,
     summary: `${plan.evaluated} snapshot(s) evaluated`,
