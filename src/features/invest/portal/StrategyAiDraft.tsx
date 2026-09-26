@@ -9,7 +9,7 @@ const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const fieldClass =
   'w-full rounded-[9px] border border-border bg-bg px-[11px] py-[8px] text-[13px] text-text outline-none focus:border-navy'
 const btnClass =
-  'inline-flex h-[38px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
 
 /**
  * The AI drafter — a plain-language goal becomes a reviewable draft. The

@@ -19,7 +19,7 @@ const fieldClass =
   'h-[38px] w-full rounded-[9px] border border-border bg-bg px-[11px] text-[13px] text-text outline-none focus:border-navy'
 const labelClass = 'mb-[4px] block text-[11.5px] font-semibold text-text-2'
 const btnClass =
-  'inline-flex h-[38px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -188,14 +188,14 @@ function OrderRow({
                 value={fill}
                 onChange={(e) => setFill(e.target.value)}
                 placeholder={x(IM.invest_order_fill_price)}
-                className="h-[30px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
+                className="h-[38px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
               />
             )}
             <button
               type="button"
               disabled={busy || (o.mode === 'live' && !fill)}
               onClick={() => void onExecute(o.mode === 'live' ? Number(fill) : undefined)}
-              className="cursor-pointer rounded-[7px] border-none bg-navy px-[9px] py-[4px] text-[11px] font-semibold text-white disabled:opacity-50"
+              className="min-h-[44px] cursor-pointer rounded-[7px] border-none bg-navy px-[12px] text-[12px] font-semibold text-white disabled:opacity-50"
             >
               {x(IM.invest_mark_executed)}
             </button>
@@ -203,7 +203,7 @@ function OrderRow({
               type="button"
               disabled={busy}
               onClick={() => void onCancel()}
-              className="cursor-pointer rounded-[7px] border border-border bg-transparent px-[9px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+              className="min-h-[44px] cursor-pointer rounded-[7px] border border-border bg-transparent px-[12px] text-[12px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
             >
               {x(IM.invest_cancel_order)}
             </button>

@@ -68,7 +68,7 @@ export function InvestSignalsPage() {
               key={s.id}
               className="rounded-[14px] border border-border bg-surface p-[16px]"
             >
-              <div className="flex items-start justify-between gap-[12px]">
+              <div className="flex flex-col gap-[12px] min-[640px]:flex-row min-[640px]:items-start min-[640px]:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-[8px]">
                     <span className="rounded-full bg-gold-bg px-[8px] py-[2px] text-[10.5px] font-semibold text-gold-fg">
@@ -97,17 +97,17 @@ export function InvestSignalsPage() {
                     </p>
                   )}
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-[6px]">
+                <div className="flex shrink-0 items-center justify-between gap-[8px] min-[640px]:flex-col min-[640px]:items-end min-[640px]:justify-start">
                   <span className="rounded-full bg-inset px-[8px] py-[2px] text-[10.5px] font-semibold text-text-2">
                     {x(IM[statusLabel[s.status]])}
                   </span>
                   {s.status === 'new' && (
-                    <span className="flex gap-[6px]">
+                    <span className="flex gap-[8px]">
                       <button
                         type="button"
                         disabled={busyId === s.id}
                         onClick={() => void act(s.id, 'acknowledged')}
-                        className="cursor-pointer rounded-[7px] border-none bg-navy px-[9px] py-[4px] text-[11px] font-semibold text-white disabled:opacity-50"
+                        className="min-h-[44px] cursor-pointer rounded-[8px] border-none bg-navy px-[14px] text-[12px] font-semibold text-white disabled:opacity-50"
                       >
                         {x(IM.invest_acknowledge)}
                       </button>
@@ -115,7 +115,7 @@ export function InvestSignalsPage() {
                         type="button"
                         disabled={busyId === s.id}
                         onClick={() => void act(s.id, 'dismissed')}
-                        className="cursor-pointer rounded-[7px] border border-border bg-transparent px-[9px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+                        className="min-h-[44px] cursor-pointer rounded-[8px] border border-border bg-transparent px-[14px] text-[12px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
                       >
                         {x(IM.invest_dismiss)}
                       </button>
