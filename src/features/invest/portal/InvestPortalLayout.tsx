@@ -72,7 +72,7 @@ export function InvestPortalLayout() {
             <button
               type="button"
               onClick={() => setLang(other)}
-              className="inline-flex h-9 min-w-9 cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border"
+              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border"
               aria-label={L('Toggle language', 'Changer de langue')}
             >
               <Globe size={15} aria-hidden="true" />
@@ -131,7 +131,7 @@ export function InvestPortalLayout() {
             <button
               type="button"
               onClick={() => setLang(other)}
-              className="inline-flex h-[34px] min-w-[34px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
+              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
               aria-label={L('Toggle language', 'Changer de langue')}
             >
               <Globe size={13} aria-hidden="true" />
@@ -140,7 +140,7 @@ export function InvestPortalLayout() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((open) => !open)}
-              className="inline-flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset"
+              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset"
               aria-expanded={mobileMenuOpen}
               aria-controls="invest-portal-mobile-nav"
               aria-label={
@@ -168,7 +168,7 @@ export function InvestPortalLayout() {
                   key={item.to}
                   to={item.to}
                   end={item.end}
-                  className={navLinkClass}
+                  className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {x(item.label)}
@@ -177,7 +177,7 @@ export function InvestPortalLayout() {
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="flex cursor-pointer items-center gap-[6px] rounded-[8px] px-[12px] py-[7px] text-left text-[13px] font-semibold text-text-muted hover:bg-inset hover:text-text-2"
+                className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] px-[12px] py-[7px] text-left text-[13px] font-semibold text-text-muted hover:bg-inset hover:text-text-2"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden="true" />
                 {x(IM.invest_sign_out)}

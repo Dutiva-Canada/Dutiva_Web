@@ -16,7 +16,7 @@ const fieldClass =
   'h-[38px] w-full rounded-[9px] border border-border bg-bg px-[11px] text-[13px] text-text outline-none focus:border-navy'
 const labelClass = 'mb-[4px] block text-[11.5px] font-semibold text-text-2'
 const btnClass =
-  'inline-flex h-[38px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -93,7 +93,7 @@ export function InvestPortfolioPage() {
 
   return (
     <div className="flex flex-col gap-[24px]">
-      <div className="flex items-center justify-between gap-[12px]">
+      <div className="flex flex-wrap items-center justify-between gap-[12px]">
         <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
           {x(IM.invest_tab_portfolios)}
         </h1>
@@ -101,7 +101,7 @@ export function InvestPortfolioPage() {
           type="button"
           disabled={busy}
           onClick={() => void syncNow()}
-          className="inline-flex h-[36px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+          className="inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
         >
           {busy ? (
             <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -450,7 +450,7 @@ function PriceEditor({ busy, onSave }: { busy: boolean; onSave: (price: number) 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="cursor-pointer rounded-[7px] border border-border bg-transparent px-[9px] py-[4px] text-[11px] font-semibold text-text-2 hover:bg-inset"
+        className="min-h-[44px] cursor-pointer rounded-[7px] border border-border bg-transparent px-[12px] text-[12px] font-semibold text-text-2 hover:bg-inset"
       >
         {x(IM.invest_field_last_price)}
       </button>
@@ -464,7 +464,7 @@ function PriceEditor({ busy, onSave }: { busy: boolean; onSave: (price: number) 
         step="any"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
-        className="h-[30px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
+        className="h-[38px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
         aria-label={x(IM.invest_field_last_price)}
       />
       <button
@@ -476,7 +476,7 @@ function PriceEditor({ busy, onSave }: { busy: boolean; onSave: (price: number) 
             setPrice('')
           })
         }
-        className="cursor-pointer rounded-[7px] border-none bg-navy px-[9px] py-[4px] text-[11px] font-semibold text-white disabled:opacity-50"
+        className="min-h-[44px] cursor-pointer rounded-[7px] border-none bg-navy px-[12px] text-[12px] font-semibold text-white disabled:opacity-50"
       >
         {x(IM.invest_save)}
       </button>

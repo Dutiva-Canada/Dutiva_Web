@@ -26,9 +26,9 @@ const fieldClass =
   'h-[38px] w-full rounded-[9px] border border-border bg-bg px-[11px] text-[13px] text-text outline-none focus:border-navy'
 const labelClass = 'mb-[4px] block text-[11.5px] font-semibold text-text-2'
 const btnClass =
-  'inline-flex h-[38px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
 const ghostBtnClass =
-  'inline-flex h-[32px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[11px] text-[12px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50'
+  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[11px] text-[12px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -228,7 +228,7 @@ export function InvestStrategiesPage() {
                     ))}
                   </ul>
                 </div>
-                <div className="flex shrink-0 gap-[6px]">
+                <div className="flex shrink-0 flex-wrap gap-[8px]">
                   <button
                     type="button"
                     disabled={busy}
@@ -258,7 +258,7 @@ export function InvestStrategiesPage() {
                       if (window.confirm(x(IM.invest_delete_confirm)))
                         void run(() => deleteStrategy(s.id))
                     }}
-                    className="inline-flex h-[32px] w-[32px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-muted hover:bg-inset hover:text-risk-fg disabled:opacity-50"
+                    className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-muted hover:bg-inset hover:text-risk-fg disabled:opacity-50"
                   >
                     <Trash2 size={13} aria-hidden="true" />
                   </button>
@@ -523,7 +523,7 @@ function StrategyForm({
                 type="button"
                 onClick={() => setRules((prev) => prev.filter((_, idx) => idx !== i))}
                 disabled={rules.length <= 1}
-                className="h-[38px] cursor-pointer rounded-[9px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-muted hover:text-risk-fg disabled:opacity-50"
+                className="min-h-[44px] cursor-pointer rounded-[9px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-muted hover:text-risk-fg disabled:opacity-50"
               >
                 {x(IM.invest_rule_remove)}
               </button>
