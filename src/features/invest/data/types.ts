@@ -58,8 +58,16 @@ export interface MarketSnapshot {
   asOf: string
 }
 
+export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
+
 export interface StrategyRule {
-  metric: 'day_change_pct' | 'vs_ma50' | 'value_floor'
+  metric:
+    | 'day_change_pct'
+    | 'vs_ma50'
+    | 'value_floor'
+    | 'weight_pct'
+    | 'unrealized_gain_pct'
+    | 'cash_above'
   op: 'lt' | 'gt'
   value: number
   kind: SignalKind
@@ -75,6 +83,9 @@ export interface InvestStrategy {
   assetClasses: AssetClass[]
   rules: StrategyRule[]
   autonomy: StrategyAutonomy
+  cadence: StrategyCadence
+  /** Provenance: 'tpl:<slug>' from the gallery, 'ai-draft', '' = custom. */
+  template: string
 }
 
 export interface InvestSignal {
@@ -86,6 +97,10 @@ export interface InvestSignal {
   kind: SignalKind
   title: string
   body: string
+  /** AI-authored insights carry both languages; engine signals leave these
+      null (their bodies are locale-neutral data strings). */
+  titleFr: string | null
+  bodyFr: string | null
   score: number | null
   status: SignalStatus
   createdAt: string

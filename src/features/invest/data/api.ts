@@ -245,6 +245,8 @@ export async function saveStrategy(
     asset_classes: strategy.assetClasses,
     rules: strategy.rules as never,
     autonomy: strategy.autonomy,
+    cadence: strategy.cadence,
+    template: strategy.template,
     updated_at: new Date().toISOString(),
   }
   const { error } = strategy.id
@@ -284,6 +286,45 @@ export async function runBot(): Promise<{
   })
   if (error) throw error
   return data as { evaluated: number; signals: number; orders: number; executed: number }
+}
+
+/** Refresh the caller's snapshots from the free feeds (CoinGecko/Stooq). */
+export async function syncPrices(): Promise<{ symbols: number; synced: number; failed: string[] }> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-market-sync', {
+    body: { action: 'sync' },
+  })
+  if (error) throw error
+  return data as { symbols: number; synced: number; failed: string[] }
+}
+
+/**
+ * Ask the model to author a strategy draft from a plain-language goal.
+ * Returns a disabled, 'suggest'-autonomy draft — the user reviews and
+ * saves it before anything reaches the book.
+ */
+export async function draftStrategy(
+  goal: string,
+  lang: 'en' | 'fr',
+): Promise<Omit<InvestStrategy, 'id'>> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: { action: 'draft-strategy', goal, lang },
+  })
+  if (error) throw error
+  const d = (data as { draft?: Record<string, unknown> }).draft
+  if (!d) throw new Error('No draft returned')
+  return {
+    name: String(d.name),
+    enabled: false,
+    assetClasses: (Array.isArray(d.asset_classes) ? d.asset_classes : ['equity']) as AssetClass[],
+    rules: Array.isArray(d.rules) ? (d.rules as InvestStrategy['rules']) : [],
+    autonomy: 'suggest',
+    cadence: d.cadence === 'weekly' || d.cadence === 'monthly' ? d.cadence : 'daily',
+    template: 'ai-draft',
+  }
 }
 
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
@@ -339,6 +380,8 @@ function toStrategy(row: any): InvestStrategy {
     assetClasses: Array.isArray(row.asset_classes) ? row.asset_classes : [],
     rules: Array.isArray(row.rules) ? row.rules : [],
     autonomy: row.autonomy === 'paper_execute' ? 'paper_execute' : 'suggest',
+    cadence: row.cadence === 'weekly' || row.cadence === 'monthly' ? row.cadence : 'daily',
+    template: typeof row.template === 'string' ? row.template : '',
   }
 }
 
@@ -353,6 +396,8 @@ function toSignal(row: any): InvestSignal {
     kind: row.kind,
     title: row.title,
     body: row.body,
+    titleFr: row.title_fr ?? null,
+    bodyFr: row.body_fr ?? null,
     score: row.score === null ? null : Number(row.score),
     status: row.status,
     createdAt: row.created_at,

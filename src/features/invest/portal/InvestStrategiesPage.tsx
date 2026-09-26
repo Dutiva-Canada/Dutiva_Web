@@ -8,6 +8,7 @@ import {
   type InvestStrategy,
   type SignalKind,
   type StrategyAutonomy,
+  type StrategyCadence,
   type StrategyRule,
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
@@ -17,6 +18,8 @@ import {
   saveStrategy,
   setStrategyEnabled,
 } from '@/features/invest/data/api'
+import { StrategyTemplates } from './StrategyTemplates'
+import { StrategyAiDraft } from './StrategyAiDraft'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const fieldClass =
@@ -47,6 +50,24 @@ const metricLabel: Record<StrategyRule['metric'], keyof typeof IM> = {
   day_change_pct: 'invest_rule_metric_day_change',
   vs_ma50: 'invest_rule_metric_vs_ma50',
   value_floor: 'invest_rule_metric_value_floor',
+  weight_pct: 'invest_rule_metric_weight',
+  unrealized_gain_pct: 'invest_rule_metric_gain',
+  cash_above: 'invest_rule_metric_cash',
+}
+
+const RULE_METRICS = [
+  'day_change_pct',
+  'vs_ma50',
+  'value_floor',
+  'weight_pct',
+  'unrealized_gain_pct',
+  'cash_above',
+] as const
+
+const cadenceLabel: Record<StrategyCadence, keyof typeof IM> = {
+  daily: 'invest_cadence_daily',
+  weekly: 'invest_cadence_weekly',
+  monthly: 'invest_cadence_monthly',
 }
 
 /** Bot tab — strategies, autonomy, on-demand runs, run history. */
@@ -57,6 +78,22 @@ export function InvestStrategiesPage() {
   const [error, setError] = useState<string | undefined>()
   const [editing, setEditing] = useState<InvestStrategy | null>(null)
   const [creating, setCreating] = useState(false)
+  const [seed, setSeed] = useState<Omit<InvestStrategy, 'id'> | null>(null)
+  const [drafted, setDrafted] = useState(false)
+
+  const openSeededForm = (s: Omit<InvestStrategy, 'id'>, fromAi: boolean) => {
+    setSeed(s)
+    setDrafted(fromAi)
+    setCreating(true)
+    setEditing(null)
+  }
+
+  const closeForm = () => {
+    setCreating(false)
+    setEditing(null)
+    setSeed(null)
+    setDrafted(false)
+  }
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -104,6 +141,8 @@ export function InvestStrategiesPage() {
             onClick={() => {
               setCreating(true)
               setEditing(null)
+              setSeed(null)
+              setDrafted(false)
             }}
             className={ghostBtnClass}
           >
@@ -120,19 +159,20 @@ export function InvestStrategiesPage() {
 
       <p className="m-0 text-[12px] leading-normal text-text-muted">{x(IM.invest_info_note)}</p>
 
+      <StrategyTemplates disabled={busy} onPick={(s) => openSeededForm(s, false)} />
+      <StrategyAiDraft disabled={busy} onDraft={(s) => openSeededForm(s, true)} />
+
       {(creating || editing) && (
         <StrategyForm
           initial={editing}
+          seed={seed}
+          drafted={drafted}
           busy={busy}
-          onCancel={() => {
-            setCreating(false)
-            setEditing(null)
-          }}
+          onCancel={closeForm}
           onSave={(s) =>
             run(async () => {
               await saveStrategy(s)
-              setCreating(false)
-              setEditing(null)
+              closeForm()
             })
           }
         />
@@ -164,6 +204,14 @@ export function InvestStrategiesPage() {
                           : IM.invest_autonomy_suggest,
                       )}
                     </span>
+                    <span className="rounded-full border border-border px-[8px] py-[2px] text-[10.5px] font-semibold text-text-2">
+                      {x(IM[cadenceLabel[s.cadence]])}
+                    </span>
+                    {s.template.startsWith('tpl:') && (
+                      <span className="rounded-full border border-border px-[8px] py-[2px] text-[10.5px] font-semibold text-text-2">
+                        {x(IM.invest_template_badge)}
+                      </span>
+                    )}
                   </div>
                   <p className="m-0 mt-[6px] text-[11.5px] text-text-muted">
                     {s.assetClasses.map((cls) => x(IM[assetLabel[cls]])).join(' · ')} —{' '}
@@ -195,6 +243,8 @@ export function InvestStrategiesPage() {
                     onClick={() => {
                       setEditing(s)
                       setCreating(false)
+                      setSeed(null)
+                      setDrafted(false)
                     }}
                     className={ghostBtnClass}
                   >
@@ -251,23 +301,29 @@ export function InvestStrategiesPage() {
 
 function StrategyForm({
   initial,
+  seed,
+  drafted,
   busy,
   onSave,
   onCancel,
 }: {
   initial: InvestStrategy | null
+  seed: Omit<InvestStrategy, 'id'> | null
+  drafted: boolean
   busy: boolean
   onSave: (s: Omit<InvestStrategy, 'id'> & { id?: string }) => Promise<void>
   onCancel: () => void
 }) {
   const { x } = useI18n()
-  const [name, setName] = useState(initial?.name ?? '')
+  const base = initial ?? seed
+  const [name, setName] = useState(base?.name ?? '')
   const [assetClasses, setAssetClasses] = useState<AssetClass[]>(
-    initial?.assetClasses ?? ['equity'],
+    base?.assetClasses ?? ['equity'],
   )
-  const [autonomy, setAutonomy] = useState<StrategyAutonomy>(initial?.autonomy ?? 'suggest')
+  const [autonomy, setAutonomy] = useState<StrategyAutonomy>(base?.autonomy ?? 'suggest')
+  const [cadence, setCadence] = useState<StrategyCadence>(base?.cadence ?? 'daily')
   const [rules, setRules] = useState<StrategyRule[]>(
-    initial?.rules ?? [{ metric: 'day_change_pct', op: 'lt', value: -5, kind: 'screen', title: '' }],
+    base?.rules ?? [{ metric: 'day_change_pct', op: 'lt', value: -5, kind: 'screen', title: '' }],
   )
 
   const toggleClass = (cls: AssetClass) =>
@@ -288,11 +344,18 @@ function StrategyForm({
       assetClasses,
       rules,
       autonomy,
+      cadence,
+      template: seed?.template ?? initial?.template ?? '',
     })
   }
 
   return (
     <form onSubmit={submit} className={`${cardClass} flex flex-col gap-[14px]`}>
+      {drafted && (
+        <p className="m-0 rounded-[9px] border border-border bg-inset px-[11px] py-[8px] text-[12px] text-text-2">
+          {x(IM.invest_ai_review)}
+        </p>
+      )}
       <div className="flex flex-wrap gap-[10px]">
         <div className="min-w-[200px] flex-1">
           <label className={labelClass} htmlFor="inv-str-name">
@@ -318,6 +381,23 @@ function StrategyForm({
           >
             <option value="suggest">{x(IM.invest_autonomy_suggest)}</option>
             <option value="paper_execute">{x(IM.invest_autonomy_paper)}</option>
+          </select>
+        </div>
+        <div className="w-[160px]">
+          <label className={labelClass} htmlFor="inv-str-cadence">
+            {x(IM.invest_cadence_label)}
+          </label>
+          <select
+            id="inv-str-cadence"
+            value={cadence}
+            onChange={(e) => setCadence(e.target.value as StrategyCadence)}
+            className={fieldClass}
+          >
+            {(['daily', 'weekly', 'monthly'] as const).map((c) => (
+              <option key={c} value={c}>
+                {x(IM[cadenceLabel[c]])}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -361,7 +441,7 @@ function StrategyForm({
                   onChange={(e) => setRule(i, { metric: e.target.value as StrategyRule['metric'] })}
                   className={fieldClass}
                 >
-                  {(['day_change_pct', 'vs_ma50', 'value_floor'] as const).map((m) => (
+                  {RULE_METRICS.map((m) => (
                     <option key={m} value={m}>
                       {x(IM[metricLabel[m]])}
                     </option>

@@ -9821,6 +9821,7 @@ export type Database = {
         Row: {
           asset_class: string
           body: string
+          body_fr: string | null
           created_at: string
           id: string
           kind: string
@@ -9830,11 +9831,13 @@ export type Database = {
           strategy_id: string | null
           symbol: string
           title: string
+          title_fr: string | null
           user_id: string
         }
         Insert: {
           asset_class: string
           body?: string
+          body_fr?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -9844,11 +9847,13 @@ export type Database = {
           strategy_id?: string | null
           symbol?: string
           title: string
+          title_fr?: string | null
           user_id: string
         }
         Update: {
           asset_class?: string
           body?: string
+          body_fr?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -9858,6 +9863,7 @@ export type Database = {
           strategy_id?: string | null
           symbol?: string
           title?: string
+          title_fr?: string | null
           user_id?: string
         }
         Relationships: [
@@ -9874,33 +9880,42 @@ export type Database = {
         Row: {
           asset_classes: string[]
           autonomy: string
+          cadence: string
           created_at: string
           enabled: boolean
           id: string
+          last_evaluated_at: string | null
           name: string
           rules: Json
+          template: string
           updated_at: string
           user_id: string
         }
         Insert: {
           asset_classes?: string[]
           autonomy?: string
+          cadence?: string
           created_at?: string
           enabled?: boolean
           id?: string
+          last_evaluated_at?: string | null
           name: string
           rules?: Json
+          template?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           asset_classes?: string[]
           autonomy?: string
+          cadence?: string
           created_at?: string
           enabled?: boolean
           id?: string
+          last_evaluated_at?: string | null
           name?: string
           rules?: Json
+          template?: string
           updated_at?: string
           user_id?: string
         }
@@ -16308,6 +16323,7 @@ export type Database = {
       trigger_attachment_scan: { Args: never; Returns: undefined }
       trigger_candidate_job_agent: { Args: never; Returns: undefined }
       trigger_invest_bot: { Args: never; Returns: undefined }
+      trigger_invest_market_sync: { Args: never; Returns: undefined }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
