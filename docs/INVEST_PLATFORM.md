@@ -39,6 +39,13 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 | `invest_orders` | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed` |
 | `invest_bot_runs` | Run log: counts + summary per sweep |
 
+Two more tables came with `0183_invest_watchlist_news.sql`:
+
+| Table | Role |
+|---|---|
+| `invest_watchlist` | User-scoped symbols tracked without a position — feeds the market-sync universe (a watched symbol gets a daily snapshot, so dip-watchers work before the first buy) and the per-symbol news queries |
+| `invest_market_news` | **Shared** headlines, unique on `(symbol, url)`; `''` symbol = general market item. Grant-holders read via `invest_market_news_read`; only the service role writes |
+
 ## The bot (`supabase/functions/invest-bot`)
 
 - `POST { action: 'run' }` — portal JWT; evaluates the caller's enabled
@@ -82,9 +89,21 @@ no insights, never a failed run.
   JWT; sweeps every user's symbols. pg_cron `invest-market-sync-daily` at
   **07:20 UTC** — twenty minutes before the bot's 07:45 sweep, so
   strategies always evaluate fresh prices.
-- Only symbols the user actually references (positions + strategy watch)
-  are fetched; unknown symbols land in `failed` and are reported back.
-- The Portfolios page exposes a "Refresh prices" button wired to `sync`.
+- Only symbols the user actually references (snapshots ∪ positions ∪
+  watchlist) are fetched; unknown symbols land in `failed` and are
+  reported back.
+- **News refresh (0183)** — both actions also rebuild `invest_market_news`:
+  `newsQueries` turns the synced universe into Google News RSS queries
+  (one general CA-market feed + one per distinct symbol, company names
+  preferred over tickers, 8 feeds max per run), `parseRssItems` normalizes
+  `<item>` blocks, and rows upsert on `(symbol, url)` — shared table, so
+  repeats across users/runs cost nothing. Google News RSS is free and
+  keyless but unofficial — English wire text, surfaced under the standard
+  "headlines come from third parties" posture.
+- The Portfolios page exposes a "Refresh prices" button wired to `sync`
+  (which also refreshes that user's news slice) plus the Watchlist
+  section; Overview carries the Market news card filtered to the user's
+  held ∪ watched symbols + general items.
 
 ## AI strategy drafter (`supabase/functions/invest-ai`)
 
@@ -146,10 +165,12 @@ runs on layout mount and inside the edge function.
   (rule parsing, plan generation, fill math, dedupe, book metrics, cadence
   gating, insight parsing).
 - `supabase/functions/invest-market-sync/invest-market-sync.test.ts` —
-  9 provider-helper tests (CoinGecko/Stooq parsing, symbol mapping).
+  14 provider-helper tests (CoinGecko/Stooq parsing, symbol mapping, RSS
+  parsing, news-query shaping).
 - `supabase/functions/invest-ai/invest-ai.test.ts` — 6 drafter tests
   (prompt, tolerant parsing, validation).
-- `src/features/invest/portal/InvestPortal.test.tsx` — 5 tests (auth gate,
-  access gate, overview render, signal dismiss, paper-order execute).
+- `src/features/invest/portal/InvestPortal.test.tsx` — 6 tests (auth gate,
+  access gate, overview render incl. news, signal dismiss, paper-order
+  execute, watchlist add/remove).
 - Live: `trigger_invest_bot()` → `200 {scanned:0, results:[]}`;
   unauthenticated POST → 401.

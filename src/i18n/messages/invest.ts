@@ -174,6 +174,21 @@ export const investMessages = defineMessages({
     en: 'Some symbols could not be priced: {symbols}',
     fr: 'Certains symboles n’ont pas pu être évalués : {symbols}',
   },
+  invest_watchlist_title: { en: 'Watchlist', fr: 'Surveillance' },
+  invest_watchlist_sub: {
+    en: 'Symbols you don’t hold yet — priced on every refresh, and your dip rules can fire on them.',
+    fr: 'Symboles que vous ne détenez pas — évalués à chaque actualisation, et vos règles de creux peuvent s’y appliquer.',
+  },
+  invest_watchlist_add: { en: 'Watch', fr: 'Surveiller' },
+  invest_watchlist_empty: {
+    en: 'Nothing watched yet — add a symbol to track its price and headlines.',
+    fr: 'Aucun symbole surveillé — ajoutez-en un pour suivre son cours et ses nouvelles.',
+  },
+  invest_news_title: { en: 'Market news', fr: 'Actualités du marché' },
+  invest_news_empty: {
+    en: 'No headlines yet — they arrive with the daily market sync and the Refresh prices button.',
+    fr: 'Aucune manchette pour l’instant — elles arrivent avec la synchronisation quotidienne et le bouton Actualiser les cours.',
+  },
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

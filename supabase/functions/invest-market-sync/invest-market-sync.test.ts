@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   coingeckoId,
   computeMa,
+  googleNewsUrl,
+  newsQueries,
   parseCoingeckoCloses,
   parseCoingeckoSimple,
+  parseRssItems,
   parseStooqCloses,
   parseStooqQuotes,
   stooqSymbol,
@@ -89,5 +92,76 @@ describe('validateSyncAction', () => {
     expect(validateSyncAction('sync').ok).toBe(true)
     expect(validateSyncAction('sync-all').ok).toBe(true)
     expect(validateSyncAction('run').ok).toBe(false)
+  })
+})
+
+const RSS = `<?xml version="1.0"?><rss><channel>
+  <item>
+    <title>Shopify posts record quarter - Reuters</title>
+    <link>https://news.google.com/rss/articles/abc123</link>
+    <source url="https://reuters.com">Reuters</source>
+    <pubDate>Fri, 26 Sep 2026 12:00:00 GMT</pubDate>
+    <description><![CDATA[<a href="#">Shopify posts record quarter</a> details here]]></description>
+  </item>
+  <item>
+    <title><![CDATA[Second headline &amp; more]]></title>
+    <link>https://news.google.com/rss/articles/def456</link>
+    <pubDate>not a date</pubDate>
+  </item>
+  <item><title>no link — dropped</title></item>
+</channel></rss>`
+
+describe('parseRssItems', () => {
+  it('parses items, strips the " - Source" suffix and CDATA', () => {
+    const items = parseRssItems(RSS, { symbol: 'SHOP', asset_class: 'equity' })
+    expect(items).toHaveLength(2)
+    expect(items[0]).toMatchObject({
+      symbol: 'SHOP',
+      asset_class: 'equity',
+      title: 'Shopify posts record quarter',
+      source: 'Reuters',
+      published_at: '2026-09-26T12:00:00.000Z',
+    })
+    expect(items[0].summary).not.toContain('<a')
+    expect(items[1].title).toBe('Second headline & more')
+    expect(items[1].published_at).toBeNull()
+  })
+
+  it('caps items and tolerates empty xml', () => {
+    expect(parseRssItems(RSS, { symbol: 'X', asset_class: 'equity' }, 1)).toHaveLength(1)
+    expect(parseRssItems('<rss></rss>', { symbol: 'X', asset_class: 'equity' })).toHaveLength(0)
+  })
+})
+
+describe('newsQueries', () => {
+  it('leads with the general feed and dedupes symbols', () => {
+    const q = newsQueries([
+      { asset_class: 'equity', symbol: 'SHOP.TO', name: 'Shopify' },
+      { asset_class: 'crypto', symbol: 'BTC', name: 'Bitcoin' },
+      { asset_class: 'equity', symbol: 'SHOP.TO' },
+    ])
+    expect(q[0]).toEqual({ query: 'stock market Canada', symbol: '', asset_class: '' })
+    expect(q).toHaveLength(3)
+    expect(q[1]).toEqual({ query: 'Shopify stock', symbol: 'SHOP.TO', asset_class: 'equity' })
+    expect(q[2].query).toBe('Bitcoin crypto')
+  })
+
+  it('caps symbol feeds and falls back to the stripped symbol', () => {
+    const targets = Array.from({ length: 15 }, (_, i) => ({
+      asset_class: 'equity',
+      symbol: `S${i}`,
+      name: '',
+    }))
+    const q = newsQueries(targets)
+    expect(q).toHaveLength(9) // 1 general + 8 symbols
+    expect(newsQueries([{ asset_class: 'equity', symbol: 'VFV.TO' }])[1].query).toBe('VFV stock')
+  })
+})
+
+describe('googleNewsUrl', () => {
+  it('builds a CA-edition RSS url', () => {
+    const url = googleNewsUrl('Shopify stock')
+    expect(url).toContain('news.google.com/rss/search?q=Shopify%20stock')
+    expect(url).toContain('hl=en-CA')
   })
 })

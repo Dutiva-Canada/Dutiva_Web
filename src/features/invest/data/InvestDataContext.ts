@@ -20,6 +20,8 @@ export const EMPTY_INVEST_STATE: InvestState = {
   signals: [],
   orders: [],
   runs: [],
+  watchlist: [],
+  news: [],
 }
 
 export const InvestDataContext = createContext<InvestDataContextValue>({

@@ -9638,6 +9638,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_market_news: {
+        Row: {
+          asset_class: string
+          fetched_at: string
+          id: number
+          published_at: string | null
+          source: string
+          summary: string
+          symbol: string
+          title: string
+          url: string
+        }
+        Insert: {
+          asset_class?: string
+          fetched_at?: string
+          id?: never
+          published_at?: string | null
+          source?: string
+          summary?: string
+          symbol?: string
+          title: string
+          url: string
+        }
+        Update: {
+          asset_class?: string
+          fetched_at?: string
+          id?: never
+          published_at?: string | null
+          source?: string
+          summary?: string
+          symbol?: string
+          title?: string
+          url?: string
+        }
+        Relationships: []
+      }
       invest_market_snapshots: {
         Row: {
           as_of: string
@@ -9917,6 +9953,33 @@ export type Database = {
           rules?: Json
           template?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_watchlist: {
+        Row: {
+          asset_class: string
+          created_at: string
+          id: string
+          name: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          asset_class: string
+          created_at?: string
+          id?: string
+          name?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          asset_class?: string
+          created_at?: string
+          id?: string
+          name?: string
+          symbol?: string
           user_id?: string
         }
         Relationships: []
