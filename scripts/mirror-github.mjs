@@ -12,27 +12,35 @@
  * this script drives the PR path end to end:
  *
  *   1. Verify the working tree is clean and on main.
- *   2. Sign any unsigned commits in the github/main..HEAD range with the
- *      repo's SSH signing key (created for the MartinConstantineau-code
- *      account — its verified email is what makes signatures verify).
- *      Signing rewrites SHAs, so GitLab is force-pushed to match.
- *   3. Push a fresh mirror branch to GitHub.
- *   4. Open a PR via the stored git credential for github.com
+ *   2. Push a fresh mirror branch to GitHub.
+ *   3. Open a PR via the stored git credential for github.com
  *      (MartinConstantineau-code — martinconstantineau itself cannot author
  *      API writes while its email is unverified).
- *   5. Try an immediate squash merge; if branch protection still reports
+ *   4. Try an immediate squash merge; if branch protection still reports
  *      blocked (e.g. a fresh Devin Review posted unresolved threads), arm
  *      auto-merge instead and report what's holding it.
  *
- * Usage:  npm run mirror            — sync + PR + merge/auto-merge
+ * Signing is opt-in (`--sign`) and normally unnecessary: a squash merge
+ * produces a single commit authored and signed by GitHub's web flow, which
+ * satisfies the mirror's signed-commits rule on its own. The rebase-sign
+ * also cannot run on a repeat sync — merge-base(main, github/main) resolves
+ * to the previous squash commit (linked into main's history only through
+ * the back-merge), so `fork..main` still contains every GitLab-side commit
+ * the squash flattened, and replaying them onto the squash tip conflicts
+ * on every pick. Use --sign only if a future protection change makes the
+ * branch commits themselves require signatures.
+ *
+ * Usage:  npm run mirror             — sync + PR + merge/auto-merge
  *         npm run mirror -- --resolve — additionally resolve all open review
  *                                       threads before merging (use after
  *                                       you've read them)
+ *         npm run mirror -- --sign    — rebase-sign unsigned commits first
+ *                                       (rewrites SHAs; GitLab is
+ *                                       force-pushed to match)
  *
- * Prerequisites: the SSH signing key at ~/.ssh/dutiva_signing_ed25519 must
- * exist and its .pub half must be registered as a *signing* key on the
- * GitHub account that owns the commit email. Unsigned commits are pushed
- * anyway but the merge will stay blocked.
+ * --sign prerequisite: the SSH signing key at ~/.ssh/dutiva_signing_ed25519
+ * must exist and its .pub half must be registered as a *signing* key on the
+ * GitHub account that owns the commit email.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -43,6 +51,7 @@ const MIRROR_BRANCH = `mirror/${Date.now().toString(36)}`
 const HOME = process.env.USERPROFILE ?? process.env.HOME
 const SIGNING_PUB = `${HOME}/.ssh/dutiva_signing_ed25519.pub`
 const RESOLVE = process.argv.includes('--resolve')
+const SIGN = process.argv.includes('--sign')
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()
 const gitOk = (...args) => {
@@ -114,14 +123,18 @@ if (ghTree === localTree) {
 const isSigned = (sha) => git('cat-file', 'commit', sha).includes('\ngpgsig ')
 // github/main's tip is a squash commit that already contains the synced
 // changes — replaying onto it conflicts every pick. The rebase base is the
-// merge-base (the last commit both histories share).
-const fork = git('merge-base', 'main', 'github/main')
-const unsigned = git('rev-list', `${fork}..${localTip}`)
-  .split('\n')
-  .filter(Boolean)
-  .filter((sha) => !isSigned(sha))
+// merge-base (the last commit both histories share). Even so, fork..main
+// still lists every GitLab-side commit the squash flattened, so this range
+// is only meaningful when --sign was explicitly requested.
+const fork = SIGN ? git('merge-base', 'main', 'github/main') : ''
+const unsigned = SIGN
+  ? git('rev-list', `${fork}..${localTip}`)
+      .split('\n')
+      .filter(Boolean)
+      .filter((sha) => !isSigned(sha))
+  : []
 
-if (unsigned.length > 0) {
+if (SIGN && unsigned.length > 0) {
   if (!existsSync(SIGNING_PUB))
     throw new Error(
       `${unsigned.length} unsigned commits and no signing key at ${SIGNING_PUB} — ` +
