@@ -49,6 +49,15 @@ describe('StatusPage', () => {
     expect(main.getByText('Slower than usual while we investigate.')).toBeInTheDocument()
   })
 
+  it('re-fetches the live status when refreshed', async () => {
+    const user = userEvent.setup()
+    renderApp(<StatusPage />, { route: '/status', path: '/status' })
+    expect(await screen.findByText('All systems operational')).toBeInTheDocument()
+    expect(getServiceStatus).toHaveBeenCalledTimes(1)
+    await user.click(screen.getByRole('button', { name: 'Refresh' }))
+    expect(getServiceStatus).toHaveBeenCalledTimes(2)
+  })
+
   it('re-localizes to French via the header language toggle', async () => {
     const user = userEvent.setup()
     renderApp(<StatusPage />, { route: '/status', path: '/status' })

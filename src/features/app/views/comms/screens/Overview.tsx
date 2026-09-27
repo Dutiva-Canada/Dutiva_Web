@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 import { statusChipClass } from '@/components/chips'
@@ -19,9 +20,26 @@ import {
 
 export function Overview() {
   const { x, lang } = useI18n()
-  const { contentItems } = useContentItems()
-  const { executionEvents } = useExecutionEvents()
-  const { initiatives } = useInitiatives()
+  const {
+    contentItems,
+    loading: contentLoading,
+    refresh: refreshContent,
+  } = useContentItems()
+  const {
+    executionEvents,
+    loading: eventsLoading,
+    refresh: refreshEvents,
+  } = useExecutionEvents()
+  const {
+    initiatives,
+    loading: initiativesLoading,
+    refresh: refreshInitiatives,
+  } = useInitiatives()
+
+  const refreshing = contentLoading || eventsLoading || initiativesLoading
+  const onRefresh = async () => {
+    await Promise.all([refreshContent(), refreshEvents(), refreshInitiatives()])
+  }
 
   const upcoming = useMemo(
     () =>
@@ -190,11 +208,24 @@ export function Overview() {
         </section>
       )}
 
-      {activity.length > 0 && (
-        <section className="rounded-[12px] border border-border bg-surface p-[16px]">
-          <h2 className="mb-[12px] text-[15px] font-semibold text-text">
+      <section className="rounded-[12px] border border-border bg-surface p-[16px]">
+        <div className="mb-[12px] flex items-center justify-between gap-[12px]">
+          <h2 className="text-[15px] font-semibold text-text">
             {x(M.comms_overview_activity)}
           </h2>
+          <button
+            type="button"
+            onClick={() => void onRefresh()}
+            disabled={refreshing}
+            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
+            {x(M.comms_intelligence_refresh)}
+          </button>
+        </div>
+        {activity.length === 0 ? (
+          <p className="text-[13px] text-text-muted">{x(M.comms_overview_no_activity)}</p>
+        ) : (
           <ul className="m-0 flex flex-col gap-[10px] p-0">
             {activity.map((event) => {
               const item = contentItems.find((c) => c.id === event.contentItemId)
@@ -242,8 +273,8 @@ export function Overview() {
               )
             })}
           </ul>
-        </section>
-      )}
+        )}
+      </section>
 
       <section className="rounded-[12px] border border-border bg-surface p-[16px]">
         <h2 className="mb-[12px] text-[15px] font-semibold text-text">

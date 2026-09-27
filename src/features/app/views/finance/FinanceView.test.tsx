@@ -61,6 +61,12 @@ describe('FinanceView', () => {
     expect(screen.getByRole('link', { name: 'Tax' })).toBeInTheDocument()
   })
 
+  it('offers a refresh control that reloads the workspace data', () => {
+    renderAt('/app/finance/portfolio')
+
+    expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeDisabled()
+  })
+
   it('shows cash position and upcoming obligations on the overview', () => {
     renderAt('/app/finance/overview')
 

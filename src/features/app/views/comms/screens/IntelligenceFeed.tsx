@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useSources } from '../data/useSources'
@@ -40,7 +40,7 @@ function sourceTone(sourceType: CommsSourceType) {
 
 export function IntelligenceFeed() {
   const { x, lang } = useI18n()
-  const { canWrite, addSource, removeSource, sources } = useSources()
+  const { canWrite, addSource, removeSource, sources, refresh, loading } = useSources()
   const [open, setOpen] = useState(false)
   const [sourceTypeFilter, setSourceTypeFilter] = useState<CommsSourceType | 'all'>('all')
   const [jurisdictionFilter, setJurisdictionFilter] = useState<string>('all')
@@ -94,16 +94,27 @@ export function IntelligenceFeed() {
     <section className="rounded-[12px] border border-border bg-surface p-[16px]">
       <div className="mb-[12px] flex flex-wrap items-center justify-between gap-[12px]">
         <h3 className="text-[15px] font-semibold text-text">{x(M.comms_intelligence_feed)}</h3>
-        {canWrite && !open && (
+        <div className="flex flex-wrap items-center gap-[8px]">
           <button
             type="button"
-            onClick={() => setOpen(true)}
-            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
           >
-            <Plus size={14} aria-hidden="true" />
-            {x(M.comms_intelligence_add_source)}
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+            {x(M.comms_intelligence_refresh)}
           </button>
-        )}
+          {canWrite && !open && (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+            >
+              <Plus size={14} aria-hidden="true" />
+              {x(M.comms_intelligence_add_source)}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mb-[12px] flex flex-wrap gap-[10px]">

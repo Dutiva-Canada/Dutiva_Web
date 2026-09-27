@@ -39,6 +39,11 @@ describe('GuidanceSourcesPanel', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('keeps the refresh control behind sign-in like the data it reloads', () => {
+    renderApp(<GuidanceSourcesPanel />)
+    expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument()
+  })
+
   it('reports the not-configured error when submitting without Supabase configured', async () => {
     const user = userEvent.setup()
     renderApp(<GuidanceSourcesPanel />)
