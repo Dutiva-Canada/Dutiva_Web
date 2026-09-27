@@ -20,6 +20,7 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/invest/data/api')>()),
   hasInvestAccess: vi.fn(),
   loadInvestState: vi.fn(),
+  syncPrices: vi.fn(),
   setSignalStatus: vi.fn(),
   executeOrder: vi.fn(),
   setOrderStatus: vi.fn(),
@@ -31,6 +32,7 @@ const { useAuth } = await import('@/features/app/auth/authContext')
 const {
   hasInvestAccess,
   loadInvestState,
+  syncPrices,
   setSignalStatus,
   executeOrder,
   addWatchSymbol,
@@ -244,6 +246,35 @@ describe('InvestPortalLayout', () => {
     // Market news renders on the overview
     expect(screen.getByText('Market news')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Shopify beats estimates' })).toBeInTheDocument()
+  })
+})
+
+describe('InvestHomePage', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('re-syncs quotes and headlines when the refresh control is clicked', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'Refresh prices' }))
+    await vi.waitFor(() => {
+      expect(syncPrices).toHaveBeenCalledTimes(1)
+    })
+    // Initial load plus the post-sync reload.
+    expect(vi.mocked(loadInvestState).mock.calls.length).toBeGreaterThanOrEqual(2)
+    expect(await screen.findByText(/Prices refreshed/)).toBeInTheDocument()
   })
 })
 

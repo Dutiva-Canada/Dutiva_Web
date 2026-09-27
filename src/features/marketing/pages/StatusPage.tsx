@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, TriangleAlert } from 'lucide-react'
+import { CheckCircle2, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { seoRoute } from '@/seo/routes'
@@ -39,18 +39,25 @@ function StatusPageInner() {
       updatedAt: '',
     })),
   )
+  const [refreshing, setRefreshing] = useState(false)
+  const requestRef = useRef(0)
 
-  useEffect(() => {
-    let cancelled = false
+  const reload = useCallback(() => {
+    const request = ++requestRef.current
+    setRefreshing(true)
     getServiceStatus()
       .then((r) => {
-        if (!cancelled) setRows(r)
+        if (requestRef.current === request) setRows(r)
       })
       .catch((e: unknown) => console.error('status: failed to load', e))
-    return () => {
-      cancelled = true
-    }
+      .finally(() => {
+        if (requestRef.current === request) setRefreshing(false)
+      })
   }, [])
+
+  useEffect(() => {
+    reload()
+  }, [reload])
 
   const overall = overallStatus(rows)
   const allOk = overall === 'operational'
@@ -64,17 +71,32 @@ function StatusPageInner() {
 
       <section className="mx-auto max-w-[720px] px-6 pb-20">
         <div
-          className="mb-6 flex items-center gap-3 rounded-[14px] border border-border px-[20px] py-[16px]"
+          className="mb-6 flex items-center justify-between gap-3 rounded-[14px] border border-border px-[20px] py-[16px]"
           role="status"
         >
-          {allOk ? (
-            <CheckCircle2 size={22} aria-hidden="true" className={STATUS_ICON_CLASS.operational} />
-          ) : (
-            <TriangleAlert size={22} aria-hidden="true" className={STATUS_ICON_CLASS[overall]} />
-          )}
-          <span className="text-[1.0625rem] font-semibold text-text">
-            {x(allOk ? M.status_all_operational : M.status_some_issues)}
-          </span>
+          <div className="flex items-center gap-3">
+            {allOk ? (
+              <CheckCircle2 size={22} aria-hidden="true" className={STATUS_ICON_CLASS.operational} />
+            ) : (
+              <TriangleAlert size={22} aria-hidden="true" className={STATUS_ICON_CLASS[overall]} />
+            )}
+            <span className="text-[1.0625rem] font-semibold text-text">
+              {x(allOk ? M.status_all_operational : M.status_some_issues)}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={reload}
+            disabled={refreshing}
+            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[0.8125rem] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+          >
+            <RefreshCw
+              size={12}
+              className={refreshing ? 'animate-spin' : ''}
+              aria-hidden="true"
+            />
+            {x(M.status_refresh)}
+          </button>
         </div>
 
         <ul className="grid list-none gap-2.5 p-0">

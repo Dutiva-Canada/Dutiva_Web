@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
-import { Info, Loader2 } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Info, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
+import { syncPrices } from '@/features/invest/data/api'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -19,7 +20,10 @@ const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 /** Overview tab — book value, cash, open signals, last bot run, allocation. */
 export function InvestHomePage() {
   const { x, lang } = useI18n()
-  const { state, loading } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | undefined>()
+  const [syncNote, setSyncNote] = useState<string | undefined>()
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -40,6 +44,24 @@ export function InvestHomePage() {
   const openSignals = state.signals.filter((s) => s.status === 'new').length
   const lastRun = state.runs[0]
 
+  const syncNow = async () => {
+    setBusy(true)
+    setError(undefined)
+    try {
+      const r = await syncPrices()
+      setSyncNote(
+        r.failed.length > 0
+          ? x(IM.invest_sync_partial).replace('{symbols}', r.failed.join(', '))
+          : x(IM.invest_sync_done).replace('{count}', String(r.synced)),
+      )
+      await refresh()
+    } catch {
+      setError(x(IM.invest_error_generic))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const allocation = ASSET_CLASSES.map((cls) => ({
     cls,
     value: state.positions
@@ -57,12 +79,37 @@ export function InvestHomePage() {
 
   return (
     <div className="flex flex-col gap-[24px]">
-      <div>
-        <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
-          {x(IM.invest_title)}
-        </h1>
-        <p className="m-0 mt-[4px] text-[13px] text-text-3">{x(IM.invest_subtitle)}</p>
+      <div className="flex flex-wrap items-center justify-between gap-[12px]">
+        <div>
+          <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
+            {x(IM.invest_title)}
+          </h1>
+          <p className="m-0 mt-[4px] text-[13px] text-text-3">{x(IM.invest_subtitle)}</p>
+        </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void syncNow()}
+          className="inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+        >
+          {busy ? (
+            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+          ) : (
+            <RefreshCw size={13} aria-hidden="true" />
+          )}
+          {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
+        </button>
       </div>
+      {error && (
+        <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+          {error}
+        </p>
+      )}
+      {syncNote && !error && (
+        <p role="status" className="m-0 text-[12.5px] text-text-2">
+          {syncNote}
+        </p>
+      )}
 
       <div className="flex items-start gap-[8px] rounded-[12px] border border-border bg-surface px-[14px] py-[11px] text-[12px] leading-normal text-text-muted">
         <Info size={15} strokeWidth={1.7} className="mt-px shrink-0" aria-hidden="true" />

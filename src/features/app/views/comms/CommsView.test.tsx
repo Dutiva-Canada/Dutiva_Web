@@ -45,6 +45,13 @@ describe('CommsView', () => {
     expect(screen.getByRole('link', { name: 'Settings' })).toBeInTheDocument()
   })
 
+  it('offers a refresh control on the overview activity log', () => {
+    renderAt('/app/comms/overview')
+
+    expect(screen.getByText('Recent activity')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeDisabled()
+  })
+
   it('shows the pilot launch initiative on the overview', () => {
     renderAt('/app/comms/overview')
 
@@ -58,6 +65,14 @@ describe('CommsView', () => {
     expect(screen.getByText('English launch announcement')).toBeInTheDocument()
     expect(screen.getByText('French launch announcement')).toBeInTheDocument()
     expect(screen.getByText('Press pitch')).toBeInTheDocument()
+  })
+
+  it('offers refresh controls on the intelligence news surfaces', () => {
+    renderAt('/app/comms/intelligence')
+
+    const refreshButtons = screen.getAllByRole('button', { name: 'Refresh' })
+    expect(refreshButtons).toHaveLength(3)
+    refreshButtons.forEach((button) => expect(button).not.toBeDisabled())
   })
 
   it('shows the restricted HR handoff issue without leaking the underlying case', () => {

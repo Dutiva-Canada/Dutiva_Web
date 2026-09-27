@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { AlertTriangle, ExternalLink, Loader2 } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { AlertTriangle, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { guidanceMessages as M } from '@/i18n/messages/guidance'
 import { authMessages as A } from '@/i18n/messages/auth'
@@ -50,26 +50,29 @@ export function GuidanceSourcesPanel() {
   const { x, lang } = useI18n()
   const { status: authStatus, signOut } = useAuth()
   const [load, setLoad] = useState<LoadState>({ status: 'idle' })
+  const requestRef = useRef(0)
 
-  useEffect(() => {
-    if (authStatus !== 'signed-in') {
-      setLoad({ status: 'idle' })
-      return
-    }
-    let cancelled = false
+  const reload = useCallback(() => {
+    const request = ++requestRef.current
     setLoad({ status: 'loading' })
     Promise.all([fetchGuidanceSources(), fetchRecentLawUpdates()])
       .then(([sources, updates]) => {
-        if (!cancelled) setLoad({ status: 'ready', sources, updates })
+        if (requestRef.current === request) setLoad({ status: 'ready', sources, updates })
       })
       .catch((error: unknown) => {
         console.error('guidance: failed to load live legal sources', error)
-        if (!cancelled) setLoad({ status: 'error' })
+        if (requestRef.current === request) setLoad({ status: 'error' })
       })
-    return () => {
-      cancelled = true
+  }, [])
+
+  useEffect(() => {
+    if (authStatus !== 'signed-in') {
+      requestRef.current++
+      setLoad({ status: 'idle' })
+      return
     }
-  }, [authStatus])
+    reload()
+  }, [authStatus, reload])
 
   return (
     <div className="mt-[28px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]">
@@ -79,13 +82,28 @@ export function GuidanceSourcesPanel() {
           <p className="mt-[2px] text-[12px] text-text-muted">{x(M.guidance_panel_beta)}</p>
         </div>
         {authStatus === 'signed-in' && (
-          <button
-            type="button"
-            onClick={() => void signOut()}
-            className="shrink-0 cursor-pointer rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2"
-          >
-            {x(A.auth_sign_out)}
-          </button>
+          <div className="flex shrink-0 items-center gap-[8px]">
+            <button
+              type="button"
+              onClick={reload}
+              disabled={load.status === 'loading'}
+              className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 disabled:opacity-50"
+            >
+              <RefreshCw
+                size={12}
+                className={load.status === 'loading' ? 'animate-spin' : ''}
+                aria-hidden="true"
+              />
+              {x(M.guidance_refresh)}
+            </button>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="cursor-pointer rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2"
+            >
+              {x(A.auth_sign_out)}
+            </button>
+          </div>
         )}
       </div>
 

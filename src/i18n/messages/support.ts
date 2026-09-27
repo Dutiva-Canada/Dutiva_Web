@@ -258,6 +258,7 @@ export const supportMessages = defineMessages({
     fr: 'Tous les systèmes sont opérationnels',
   },
   status_some_issues: { en: 'Some systems are affected', fr: 'Certains systèmes sont touchés' },
+  status_refresh: { en: 'Refresh', fr: 'Actualiser' },
   status_updated: { en: 'Updated', fr: 'Mis à jour' },
   status_admin_title: { en: 'Service status', fr: 'État des services' },
   status_admin_message_ph: {

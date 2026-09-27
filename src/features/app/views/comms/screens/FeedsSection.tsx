@@ -25,7 +25,8 @@ const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 export function FeedsSection() {
   const { x, lang } = useI18n()
-  const { canWrite, addFeed, removeFeed, syncFeed, syncAllFeeds, feeds } = useFeeds()
+  const { canWrite, addFeed, removeFeed, syncFeed, syncAllFeeds, feeds, refresh, loading } =
+    useFeeds()
   const { initiatives } = useInitiatives()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState('')
@@ -112,6 +113,15 @@ export function FeedsSection() {
       <div className="mb-[12px] flex flex-wrap items-center justify-between gap-[12px]">
         <h3 className="text-[15px] font-semibold text-text">{x(M.comms_intelligence_feeds)}</h3>
         <div className="flex flex-wrap items-center gap-[8px]">
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+          >
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+            {x(M.comms_intelligence_refresh)}
+          </button>
           {canWrite && feeds.some((f) => f.enabled) && (
             <button
               type="button"
