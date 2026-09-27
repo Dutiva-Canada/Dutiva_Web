@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsFeed } from './types'
 import { addCoverageItem } from './coverageApi'
 import { parseFeedXml } from './feedParser'
@@ -41,11 +43,11 @@ function fromRow(raw: unknown): CommsFeed {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsFeed, 'id'>) {
+function toRow(workspaceOrgId: string, item: Omit<CommsFeed, 'id'>): TablesInsert<'comms_feeds'> {
   return {
     organization_id: workspaceOrgId,
     url: item.url,
-    label: item.label as unknown,
+    label: toJson(item.label),
     source_type: item.sourceType,
     initiative_id: item.initiativeId ?? null,
     enabled: item.enabled,
@@ -58,10 +60,10 @@ function toRow(workspaceOrgId: string, item: Omit<CommsFeed, 'id'>) {
   }
 }
 
-function patchToRow(patch: Partial<CommsFeed>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsFeed>): TablesUpdate<'comms_feeds'> {
+  const row: TablesUpdate<'comms_feeds'> = {}
   if (patch.url !== undefined) row.url = patch.url
-  if (patch.label !== undefined) row.label = patch.label as unknown
+  if (patch.label !== undefined) row.label = toJson(patch.label)
   if (patch.sourceType !== undefined) row.source_type = patch.sourceType
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
   if (patch.enabled !== undefined) row.enabled = patch.enabled
@@ -93,7 +95,7 @@ export async function addFeed(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_feeds')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -108,7 +110,7 @@ export async function updateFeed(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_feeds')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

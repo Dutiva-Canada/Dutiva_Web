@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsMetric } from './types'
 
 function fromRow(raw: unknown): CommsMetric {
@@ -27,12 +29,15 @@ function fromRow(raw: unknown): CommsMetric {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsMetric, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsMetric, 'id'>,
+): TablesInsert<'comms_metrics'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId,
-    name: item.name as unknown,
-    period: item.period ?? null,
+    name: toJson(item.name),
+    period: toJson(item.period ?? null),
     value: item.value ?? null,
     baseline: item.baseline ?? null,
     target: item.target ?? null,
@@ -59,7 +64,7 @@ export async function addMetric(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_metrics')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error

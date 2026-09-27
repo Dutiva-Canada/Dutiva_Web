@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsIntegration } from './types'
 
 function fromRow(raw: unknown): CommsIntegration {
@@ -21,24 +23,27 @@ function fromRow(raw: unknown): CommsIntegration {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsIntegration, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsIntegration, 'id'>,
+): TablesInsert<'comms_integrations'> {
   return {
     organization_id: workspaceOrgId,
     name: item.name,
-    type: item.type as unknown,
+    type: toJson(item.type),
     status: item.status,
     owner: item.owner,
-    notes: item.notes ?? null,
+    notes: toJson(item.notes ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsIntegration>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsIntegration>): TablesUpdate<'comms_integrations'> {
+  const row: TablesUpdate<'comms_integrations'> = {}
   if (patch.name !== undefined) row.name = patch.name
-  if (patch.type !== undefined) row.type = patch.type as unknown
+  if (patch.type !== undefined) row.type = toJson(patch.type)
   if (patch.status !== undefined) row.status = patch.status
   if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.notes !== undefined) row.notes = patch.notes ?? null
+  if (patch.notes !== undefined) row.notes = toJson(patch.notes ?? null)
   return row
 }
 
@@ -60,7 +65,7 @@ export async function addIntegration(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_integrations')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -75,7 +80,7 @@ export async function updateIntegration(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_integrations')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

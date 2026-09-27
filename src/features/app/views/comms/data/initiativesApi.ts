@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsInitiative } from './types'
 
 const emptyBi: Bi = { en: '', fr: '' }
@@ -41,15 +43,18 @@ function fromRow(raw: unknown): CommsInitiative {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsInitiative, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsInitiative, 'id'>,
+): TablesInsert<'comms_initiatives'> {
   return {
     organization_id: workspaceOrgId,
-    title: item.title as unknown,
+    title: toJson(item.title),
     type: item.type,
     domain: item.domain,
     owner: item.owner,
-    audience: item.audience as unknown,
-    intended_outcome: item.intendedOutcome as unknown,
+    audience: toJson(item.audience),
+    intended_outcome: toJson(item.intendedOutcome),
     baseline: item.baseline ?? null,
     target: item.target ?? null,
     start_date: item.startDate ?? null,
@@ -61,14 +66,15 @@ function toRow(workspaceOrgId: string, item: Omit<CommsInitiative, 'id'>) {
   }
 }
 
-function patchToRow(patch: Partial<CommsInitiative>) {
-  const row: Record<string, unknown> = {}
-  if (patch.title !== undefined) row.title = patch.title as unknown
+function patchToRow(patch: Partial<CommsInitiative>): TablesUpdate<'comms_initiatives'> {
+  const row: TablesUpdate<'comms_initiatives'> = {}
+  if (patch.title !== undefined) row.title = toJson(patch.title)
   if (patch.type !== undefined) row.type = patch.type
   if (patch.domain !== undefined) row.domain = patch.domain
   if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.audience !== undefined) row.audience = patch.audience as unknown
-  if (patch.intendedOutcome !== undefined) row.intended_outcome = patch.intendedOutcome as unknown
+  if (patch.audience !== undefined) row.audience = toJson(patch.audience)
+  if (patch.intendedOutcome !== undefined)
+    row.intended_outcome = toJson(patch.intendedOutcome)
   if (patch.baseline !== undefined) row.baseline = patch.baseline ?? null
   if (patch.target !== undefined) row.target = patch.target ?? null
   if (patch.startDate !== undefined) row.start_date = patch.startDate ?? null
@@ -98,7 +104,7 @@ export async function addInitiative(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_initiatives')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -113,7 +119,7 @@ export async function updateInitiative(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_initiatives')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

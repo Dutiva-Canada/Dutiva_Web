@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsContentItem, CommsExecutionAction } from './types'
 
 function fromRow(raw: unknown): CommsContentItem {
@@ -41,37 +43,41 @@ function fromRow(raw: unknown): CommsContentItem {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsContentItem, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsContentItem, 'id'>,
+): TablesInsert<'comms_content_items'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId,
-    title: item.title as unknown,
+    title: toJson(item.title),
     language: item.language,
     channel: item.channel,
     status: item.status,
     delivery_status: item.deliveryStatus,
-    body: item.body ?? null,
-    revision_note: item.revisionNote ?? null,
+    body: toJson(item.body ?? null),
+    revision_note: toJson(item.revisionNote ?? null),
     due_date: item.dueDate ?? null,
     scheduled_for: item.scheduledFor ?? null,
     time_zone: item.timeZone ?? null,
     owner: item.owner,
     source_revision_id: item.sourceRevisionId ?? null,
     needs_translation_review: item.needsTranslationReview ?? null,
-    delivery_note: item.deliveryNote ?? null,
+    delivery_note: toJson(item.deliveryNote ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsContentItem>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsContentItem>): TablesUpdate<'comms_content_items'> {
+  const row: TablesUpdate<'comms_content_items'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId
-  if (patch.title !== undefined) row.title = patch.title as unknown
+  if (patch.title !== undefined) row.title = toJson(patch.title)
   if (patch.language !== undefined) row.language = patch.language
   if (patch.channel !== undefined) row.channel = patch.channel
   if (patch.status !== undefined) row.status = patch.status
   if (patch.deliveryStatus !== undefined) row.delivery_status = patch.deliveryStatus
-  if (patch.body !== undefined) row.body = patch.body ?? null
-  if (patch.revisionNote !== undefined) row.revision_note = patch.revisionNote ?? null
+  if (patch.body !== undefined) row.body = toJson(patch.body ?? null)
+  if (patch.revisionNote !== undefined)
+    row.revision_note = toJson(patch.revisionNote ?? null)
   if (patch.dueDate !== undefined) row.due_date = patch.dueDate ?? null
   if (patch.scheduledFor !== undefined) row.scheduled_for = patch.scheduledFor ?? null
   if (patch.timeZone !== undefined) row.time_zone = patch.timeZone ?? null
@@ -79,7 +85,8 @@ function patchToRow(patch: Partial<CommsContentItem>) {
   if (patch.sourceRevisionId !== undefined) row.source_revision_id = patch.sourceRevisionId ?? null
   if (patch.needsTranslationReview !== undefined)
     row.needs_translation_review = patch.needsTranslationReview ?? null
-  if (patch.deliveryNote !== undefined) row.delivery_note = patch.deliveryNote ?? null
+  if (patch.deliveryNote !== undefined)
+    row.delivery_note = toJson(patch.deliveryNote ?? null)
   return row
 }
 
@@ -132,7 +139,7 @@ export async function addContentItem(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_content_items')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -147,7 +154,7 @@ export async function updateContentItem(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_content_items')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

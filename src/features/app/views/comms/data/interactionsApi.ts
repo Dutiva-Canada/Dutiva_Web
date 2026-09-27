@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsInteraction, CommsInteractionStatus } from './types'
 
 function fromRow(raw: unknown): CommsInteraction {
@@ -33,36 +35,41 @@ function fromRow(raw: unknown): CommsInteraction {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsInteraction, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsInteraction, 'id'>,
+): TablesInsert<'comms_interactions'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
     contact_id: item.contactId ?? null,
     type: item.type,
-    source: item.source as unknown,
+    source: toJson(item.source),
     visibility: item.visibility,
-    summary: item.summary as unknown,
+    summary: toJson(item.summary),
     response_target: item.responseTarget ?? null,
     owner: item.owner,
     status: item.status,
-    escalation_reason: item.escalationReason ?? null,
-    moderation_reason: item.moderationReason ?? null,
+    escalation_reason: toJson(item.escalationReason ?? null),
+    moderation_reason: toJson(item.moderationReason ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsInteraction>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsInteraction>): TablesUpdate<'comms_interactions'> {
+  const row: TablesUpdate<'comms_interactions'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
   if (patch.contactId !== undefined) row.contact_id = patch.contactId ?? null
   if (patch.type !== undefined) row.type = patch.type
-  if (patch.source !== undefined) row.source = patch.source ?? null
+  if (patch.source !== undefined) row.source = toJson(patch.source ?? null)
   if (patch.visibility !== undefined) row.visibility = patch.visibility
-  if (patch.summary !== undefined) row.summary = patch.summary ?? null
+  if (patch.summary !== undefined) row.summary = toJson(patch.summary ?? null)
   if (patch.responseTarget !== undefined) row.response_target = patch.responseTarget ?? null
   if (patch.owner !== undefined) row.owner = patch.owner
   if (patch.status !== undefined) row.status = patch.status
-  if (patch.escalationReason !== undefined) row.escalation_reason = patch.escalationReason ?? null
-  if (patch.moderationReason !== undefined) row.moderation_reason = patch.moderationReason ?? null
+  if (patch.escalationReason !== undefined)
+    row.escalation_reason = toJson(patch.escalationReason ?? null)
+  if (patch.moderationReason !== undefined)
+    row.moderation_reason = toJson(patch.moderationReason ?? null)
   return row
 }
 
@@ -84,7 +91,7 @@ export async function addInteraction(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_interactions')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -99,7 +106,7 @@ export async function updateInteraction(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_interactions')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

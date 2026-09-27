@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsCoverageItem, CommsCoverageSentiment } from './types'
 
 function fromRow(row: {
@@ -34,13 +36,16 @@ function fromRow(row: {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsCoverageItem, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsCoverageItem, 'id'>,
+): TablesInsert<'comms_coverage_items'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
     source_id: item.sourceId ?? null,
-    outlet: item.outlet as unknown,
-    headline: item.headline as unknown,
+    outlet: toJson(item.outlet),
+    headline: toJson(item.headline),
     language: item.language,
     published_date: item.publishedDate ?? null,
     url: item.url ?? null,
@@ -48,16 +53,16 @@ function toRow(workspaceOrgId: string, item: Omit<CommsCoverageItem, 'id'>) {
     sentiment: item.sentiment ?? null,
     provenance: item.provenance,
     owner: item.owner,
-    notes: item.notes ?? null,
+    notes: toJson(item.notes ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsCoverageItem>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsCoverageItem>): TablesUpdate<'comms_coverage_items'> {
+  const row: TablesUpdate<'comms_coverage_items'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
   if (patch.sourceId !== undefined) row.source_id = patch.sourceId ?? null
-  if (patch.outlet !== undefined) row.outlet = patch.outlet as unknown
-  if (patch.headline !== undefined) row.headline = patch.headline as unknown
+  if (patch.outlet !== undefined) row.outlet = toJson(patch.outlet)
+  if (patch.headline !== undefined) row.headline = toJson(patch.headline)
   if (patch.language !== undefined) row.language = patch.language
   if (patch.publishedDate !== undefined) row.published_date = patch.publishedDate ?? null
   if (patch.url !== undefined) row.url = patch.url ?? null
@@ -65,7 +70,7 @@ function patchToRow(patch: Partial<CommsCoverageItem>) {
   if (patch.sentiment !== undefined) row.sentiment = patch.sentiment ?? null
   if (patch.provenance !== undefined) row.provenance = patch.provenance
   if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.notes !== undefined) row.notes = patch.notes ?? null
+  if (patch.notes !== undefined) row.notes = toJson(patch.notes ?? null)
   return row
 }
 
@@ -87,7 +92,7 @@ export async function addCoverageItem(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_coverage_items')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -102,7 +107,7 @@ export async function updateCoverageItem(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_coverage_items')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

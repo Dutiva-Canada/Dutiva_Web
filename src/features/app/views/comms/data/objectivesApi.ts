@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsObjective } from './types'
 
 function fromRow(raw: unknown): CommsObjective {
@@ -25,28 +27,32 @@ function fromRow(raw: unknown): CommsObjective {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsObjective, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsObjective, 'id'>,
+): TablesInsert<'comms_objectives'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId,
-    label: item.label as unknown,
+    label: toJson(item.label),
     baseline: item.baseline ?? null,
     target: item.target ?? null,
-    period: item.period ?? null,
+    period: toJson(item.period ?? null),
     owner: item.owner,
-    evidence_source: item.evidenceSource ?? null,
+    evidence_source: toJson(item.evidenceSource ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsObjective>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsObjective>): TablesUpdate<'comms_objectives'> {
+  const row: TablesUpdate<'comms_objectives'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId
-  if (patch.label !== undefined) row.label = patch.label as unknown
+  if (patch.label !== undefined) row.label = toJson(patch.label)
   if (patch.baseline !== undefined) row.baseline = patch.baseline ?? null
   if (patch.target !== undefined) row.target = patch.target ?? null
-  if (patch.period !== undefined) row.period = patch.period ?? null
+  if (patch.period !== undefined) row.period = toJson(patch.period ?? null)
   if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.evidenceSource !== undefined) row.evidence_source = patch.evidenceSource ?? null
+  if (patch.evidenceSource !== undefined)
+    row.evidence_source = toJson(patch.evidenceSource ?? null)
   return row
 }
 
@@ -68,7 +74,7 @@ export async function addObjective(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_objectives')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -83,7 +89,7 @@ export async function updateObjective(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_objectives')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')
