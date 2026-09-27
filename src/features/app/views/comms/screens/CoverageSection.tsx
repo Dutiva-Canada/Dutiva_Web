@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useCoverage } from '../data/useCoverage'
@@ -30,7 +30,8 @@ function sentimentTone(sentiment: CommsCoverageSentiment | undefined) {
 export function CoverageSection() {
   const { x, lang } = useI18n()
   const { initiatives } = useInitiatives()
-  const { coverageItems, canWrite, addCoverageItem, removeCoverageItem } = useCoverage()
+  const { coverageItems, canWrite, addCoverageItem, removeCoverageItem, refresh, loading } =
+    useCoverage()
   const [open, setOpen] = useState(false)
   const [outlet, setOutlet] = useState('')
   const [headline, setHeadline] = useState('')
@@ -84,19 +85,30 @@ export function CoverageSection() {
     <section className="rounded-[12px] border border-border bg-surface p-[16px]">
       <div className="mb-[12px] flex flex-wrap items-center justify-between gap-[12px]">
         <h3 className="text-[15px] font-semibold text-text">{x(M.comms_intelligence_coverage)}</h3>
-        {canWrite && !open && (
+        <div className="flex flex-wrap items-center gap-[8px]">
           <button
             type="button"
-            onClick={() => {
-              reset()
-              setOpen(true)
-            }}
-            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+            onClick={() => void refresh()}
+            disabled={loading}
+            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
           >
-            <Plus size={14} aria-hidden="true" />
-            {x(M.comms_intelligence_add_coverage)}
+            <RefreshCw size={12} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+            {x(M.comms_intelligence_refresh)}
           </button>
-        )}
+          {canWrite && !open && (
+            <button
+              type="button"
+              onClick={() => {
+                reset()
+                setOpen(true)
+              }}
+              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+            >
+              <Plus size={14} aria-hidden="true" />
+              {x(M.comms_intelligence_add_coverage)}
+            </button>
+          )}
+        </div>
       </div>
 
       {open && (

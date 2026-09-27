@@ -1,6 +1,7 @@
 import { careersMessages as M } from '@/i18n/messages/careers'
 import type { ChipTone } from '@/components/chips'
 import type { ApplicationStatus } from '@/features/careers/data/applicationsApi'
+import type { ExternalApplicationStatus } from '@/features/careers/data/agentApi'
 
 /**
  * Shared candidate-application status presentation — chip tone and the
@@ -68,5 +69,44 @@ export function applicationStatusLabel(status: ApplicationStatus) {
       return M.careers_applications_status_withdrawn
     default:
       return M.careers_applications_status_submitted
+  }
+}
+
+/** External (agent) application status → chip tone. */
+export function externalApplicationStatusTone(status: ExternalApplicationStatus): ChipTone {
+  switch (status) {
+    case 'submitted':
+      return 'success'
+    case 'needs_review':
+    case 'queued':
+      return 'info'
+    case 'manual_required':
+      return 'warning'
+    case 'failed':
+      return 'risk'
+    case 'skipped':
+      return 'neutral'
+    default:
+      return 'neutral'
+  }
+}
+
+/** External (agent) application status → localized label message. */
+export function externalApplicationStatusLabel(status: ExternalApplicationStatus) {
+  switch (status) {
+    case 'needs_review':
+      return M.careers_external_status_needs_review
+    case 'queued':
+      return M.careers_external_status_queued
+    case 'submitted':
+      return M.careers_external_status_submitted
+    case 'manual_required':
+      return M.careers_external_status_manual
+    case 'skipped':
+      return M.careers_external_status_skipped
+    case 'failed':
+      return M.careers_external_status_failed
+    default:
+      return M.careers_external_status_queued
   }
 }

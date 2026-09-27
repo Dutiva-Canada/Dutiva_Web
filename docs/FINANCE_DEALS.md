@@ -141,6 +141,39 @@ chip. `computeFinanceAttention(input, today)` is a pure function with an
 injectable clock, so the window rules are unit-tested against fixed
 dates.
 
+## Capital-call notifications
+
+Migration `0176` wires the call lifecycle into the existing
+`hr_workspace_notifications` surface (the Topbar bell). When a call's
+status *becomes* `notified`, a trigger
+(`finance_capital_calls_notify` → `_finance_call_notify_admins`, the
+same service-role fan-out pattern signing and integration events use)
+inserts one bilingual row per active owner/admin member — party, amount,
+due date, optional reference — linking to `/app/finance/deals`. The
+trigger's `when` clause fires only on the transition into `notified`, so
+re-saving a notified call doesn't double-notify. Scheduling, receiving,
+and cancelling calls produce no notifications — `notified` is the
+externally meaningful event. The date-driven items stay on the
+derived Overview strip above; the bell only carries the event.
+
+Two follow-ups extend the same wiring:
+
+- **Communications log** (migration `0178`) — the notify function also
+  writes one `hr_communications` row per call-notification: channel
+  `email`, status `sent`, audience = the partner, title carrying the
+  amount/due/reference. Marking a call notified means the notice was
+  sent; the Communications workspace now shows that record alongside
+  every other outbound message.
+- **Debt-maturity alerts** (migration `0177`) — a daily pg_cron scan
+  (`finance-debt-maturity-daily`, 07:15 UTC) calls
+  `_finance_debt_maturity_scan()`, which fans out a `finance_debt`
+  notification per owner/admin for each active facility inside 90 days
+  of maturity — the same window as the Treasury "Maturing soon" chip.
+  `finance_debts.maturity_notified_at` stamps each alert so the daily
+  job is idempotent; a renewed facility (maturity pushed forward after
+  an alert) re-alerts on the new date because the stamp predates the
+  new maturity minus 90 days. href: `/app/finance/treasury`.
+
 ## What it deliberately is not
 
 - **Not deal brokerage or investment advice.** The screen records where a
@@ -164,7 +197,9 @@ does not move money.
 
 Migrations `0171` (deals + ownership + partner types), `0172`
 (commitments), `0173` (capital calls + party contacts), `0174`
-(cash sweeps), and `0175` (deal/holding document links) are applied to
-the Supabase project (`khtwpxnvziiyplaflwru`) — `check:migrations`
-reports 175/175 applied, 0 differences. The task hand-off needs no
-migration — it writes the existing `compliance_tasks.metadata` jsonb.
+(cash sweeps), `0175` (deal/holding document links), `0176`
+(capital-call notifications), `0177` (debt-maturity alerts), and
+`0178` (capital-call comms logging) are applied to the Supabase project
+(`khtwpxnvziiyplaflwru`) — `check:migrations` reports 178/178 applied,
+0 differences. The task hand-off needs no migration — it writes the
+existing `compliance_tasks.metadata` jsonb.

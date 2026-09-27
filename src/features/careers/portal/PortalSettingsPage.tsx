@@ -7,6 +7,7 @@ import { useTheme } from '@/lib/themeContext'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { deleteMyCandidateProfile } from '@/features/careers/data/candidateApi'
+import { AgentSettingsCard } from '@/features/careers/portal/AgentSettingsCard'
 
 function segClass(on: boolean): string {
   return `cursor-pointer rounded-[8px] border-none px-[14px] py-[8px] text-[13px] font-semibold transition-colors duration-150 ${
@@ -119,6 +120,9 @@ export function PortalSettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Job search agent */}
+      <AgentSettingsCard />
 
       {/* Account */}
       <div className="rounded-[12px] border border-border bg-surface p-[20px]">

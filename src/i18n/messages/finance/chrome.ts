@@ -45,6 +45,7 @@ export const financeChrome = defineMessages({
   finance_remove: { en: 'Remove', fr: 'Retirer' },
   finance_create: { en: 'Create', fr: 'Créer' },
   finance_close: { en: 'Close', fr: 'Fermer' },
+  finance_refresh: { en: 'Refresh', fr: 'Actualiser' },
   finance_none: { en: 'None', fr: 'Aucun' },
   finance_search: { en: 'Search', fr: 'Rechercher' },
   finance_amount: { en: 'Amount', fr: 'Montant' },

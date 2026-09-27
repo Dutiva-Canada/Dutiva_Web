@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   Banknote,
@@ -10,6 +11,7 @@ import {
   Paperclip,
   PiggyBank,
   Receipt,
+  RefreshCw,
   Scale,
   ShoppingBag,
   TrendingUp,
@@ -55,8 +57,18 @@ interface FinanceLayoutProps {
 
 export function FinanceLayout({ mode }: FinanceLayoutProps) {
   const { x } = useI18n()
-  const { hasSupabase } = useFinanceData()
+  const { hasSupabase, reload } = useFinanceData()
   const { organization } = useWorkspaceMode()
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    try {
+      await reload()
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const visibleTabs =
     mode === 'demo'
@@ -75,9 +87,20 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
 
   return (
     <AppPage width="comfort">
-      <div className="mb-[18px]">
-        <h1 className="text-[22px] font-bold text-text">{x(M.finance_title)}</h1>
-        <p className="mt-[4px] text-[13px] text-text-muted">{x(M.finance_subtitle)}</p>
+      <div className="mb-[18px] flex flex-wrap items-start justify-between gap-[12px]">
+        <div>
+          <h1 className="text-[22px] font-bold text-text">{x(M.finance_title)}</h1>
+          <p className="mt-[4px] text-[13px] text-text-muted">{x(M.finance_subtitle)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => void onRefresh()}
+          disabled={refreshing}
+          className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+        >
+          <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
+          {x(M.finance_refresh)}
+        </button>
       </div>
 
       <div className="mb-[18px] flex flex-wrap gap-[6px]">
