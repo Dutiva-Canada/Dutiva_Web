@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsPolicyFile } from './types'
 
 function fromRow(raw: unknown): CommsPolicyFile {
@@ -27,13 +29,16 @@ function fromRow(raw: unknown): CommsPolicyFile {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsPolicyFile, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsPolicyFile, 'id'>,
+): TablesInsert<'comms_policy_files'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
-    jurisdiction: item.jurisdiction as unknown,
-    authority: item.authority as unknown,
-    objective: item.objective as unknown,
+    jurisdiction: toJson(item.jurisdiction),
+    authority: toJson(item.authority),
+    objective: toJson(item.objective),
     source_url: item.sourceUrl ?? null,
     stage: item.stage,
     deadline: item.deadline ?? null,
@@ -41,12 +46,12 @@ function toRow(workspaceOrgId: string, item: Omit<CommsPolicyFile, 'id'>) {
   }
 }
 
-function patchToRow(patch: Partial<CommsPolicyFile>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsPolicyFile>): TablesUpdate<'comms_policy_files'> {
+  const row: TablesUpdate<'comms_policy_files'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
-  if (patch.jurisdiction !== undefined) row.jurisdiction = patch.jurisdiction as unknown
-  if (patch.authority !== undefined) row.authority = patch.authority as unknown
-  if (patch.objective !== undefined) row.objective = patch.objective as unknown
+  if (patch.jurisdiction !== undefined) row.jurisdiction = toJson(patch.jurisdiction)
+  if (patch.authority !== undefined) row.authority = toJson(patch.authority)
+  if (patch.objective !== undefined) row.objective = toJson(patch.objective)
   if (patch.sourceUrl !== undefined) row.source_url = patch.sourceUrl ?? null
   if (patch.stage !== undefined) row.stage = patch.stage
   if (patch.deadline !== undefined) row.deadline = patch.deadline ?? null
@@ -72,7 +77,7 @@ export async function addPolicyFile(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_policy_files')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -87,7 +92,7 @@ export async function updatePolicyFile(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_policy_files')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

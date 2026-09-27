@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsApproval } from './types'
 
 function fromRow(raw: unknown): CommsApproval {
@@ -23,14 +25,17 @@ function fromRow(raw: unknown): CommsApproval {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsApproval, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsApproval, 'id'>,
+): TablesInsert<'comms_approvals'> {
   return {
     organization_id: workspaceOrgId,
     content_item_id: item.contentItemId,
     approver: item.approver,
     policy_version: item.policyVersion ?? null,
     decision: item.decision,
-    rationale: item.rationale ?? null,
+    rationale: toJson(item.rationale ?? null),
     decided_at: item.decidedAt,
   }
 }
@@ -53,7 +58,7 @@ export async function addApproval(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_approvals')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error

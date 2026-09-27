@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsSegment, CommsSegmentMembership } from './types'
 import { z } from 'zod'
 
@@ -41,18 +43,21 @@ function fromSegmentRow(row: {
   }
 }
 
-function toSegmentRow(organizationId: string, item: Omit<CommsSegment, 'id'>) {
+function toSegmentRow(
+  organizationId: string,
+  item: Omit<CommsSegment, 'id'>,
+): TablesInsert<'comms_contact_segments'> {
   return {
     organization_id: organizationId,
-    name: item.name,
-    description: item.description ?? null,
+    name: toJson(item.name),
+    description: toJson(item.description ?? null),
   }
 }
 
-function patchToSegmentRow(patch: Partial<CommsSegment>) {
-  const row: Record<string, unknown> = {}
-  if (patch.name !== undefined) row.name = patch.name
-  if (patch.description !== undefined) row.description = patch.description ?? null
+function patchToSegmentRow(patch: Partial<CommsSegment>): TablesUpdate<'comms_contact_segments'> {
+  const row: TablesUpdate<'comms_contact_segments'> = {}
+  if (patch.name !== undefined) row.name = toJson(patch.name)
+  if (patch.description !== undefined) row.description = toJson(patch.description ?? null)
   return row
 }
 
@@ -78,7 +83,7 @@ export async function listSegments(organizationId: string): Promise<CommsSegment
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []).map((row) => fromSegmentRow(row as any))
+  return (data ?? []).map(fromSegmentRow)
 }
 
 export async function createSegment(
@@ -88,7 +93,7 @@ export async function createSegment(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_contact_segments')
-    .insert(toSegmentRow(organizationId, item) as any)
+    .insert(toSegmentRow(organizationId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -108,7 +113,7 @@ export async function updateSegment(
   }
   const { data, error } = await supabase
     .from('comms_contact_segments')
-    .update(row as any)
+    .update(row)
     .eq('id', id)
     .eq('organization_id', organizationId)
     .select('*')
@@ -144,7 +149,7 @@ export async function listSegmentMemberships(
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []).map((row) => fromMembershipRow(row as any))
+  return (data ?? []).map(fromMembershipRow)
 }
 
 export async function addContactToSegment(
@@ -159,7 +164,7 @@ export async function addContactToSegment(
       organization_id: organizationId,
       comms_contact_id: contactId,
       comms_segment_id: segmentId,
-    } as any)
+    })
     .select('*')
     .single()
   if (error) throw error

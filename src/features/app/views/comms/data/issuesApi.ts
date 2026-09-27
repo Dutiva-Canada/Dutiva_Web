@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsIssue } from './types'
 
 function fromRow(raw: unknown): CommsIssue {
@@ -31,34 +33,34 @@ function fromRow(raw: unknown): CommsIssue {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsIssue, 'id'>) {
+function toRow(workspaceOrgId: string, item: Omit<CommsIssue, 'id'>): TablesInsert<'comms_issues'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
-    title: item.title as unknown,
+    title: toJson(item.title),
     severity: item.severity,
     status: item.status,
     lead: item.lead,
     spokesperson: item.spokesperson ?? null,
     affected_channels: item.affectedChannels,
     restricted: item.restricted,
-    summary: item.summary ?? null,
-    resolution: item.resolution ?? null,
+    summary: toJson(item.summary ?? null),
+    resolution: toJson(item.resolution ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsIssue>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsIssue>): TablesUpdate<'comms_issues'> {
+  const row: TablesUpdate<'comms_issues'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
-  if (patch.title !== undefined) row.title = patch.title as unknown
+  if (patch.title !== undefined) row.title = toJson(patch.title)
   if (patch.severity !== undefined) row.severity = patch.severity
   if (patch.status !== undefined) row.status = patch.status
   if (patch.lead !== undefined) row.lead = patch.lead
   if (patch.spokesperson !== undefined) row.spokesperson = patch.spokesperson ?? null
   if (patch.affectedChannels !== undefined) row.affected_channels = patch.affectedChannels
   if (patch.restricted !== undefined) row.restricted = patch.restricted
-  if (patch.summary !== undefined) row.summary = patch.summary ?? null
-  if (patch.resolution !== undefined) row.resolution = patch.resolution ?? null
+  if (patch.summary !== undefined) row.summary = toJson(patch.summary ?? null)
+  if (patch.resolution !== undefined) row.resolution = toJson(patch.resolution ?? null)
   return row
 }
 
@@ -80,7 +82,7 @@ export async function addIssue(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_issues')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -95,7 +97,7 @@ export async function updateIssue(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_issues')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

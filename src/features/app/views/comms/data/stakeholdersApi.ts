@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsContact, CommsContactType, CommsOrganization } from './types'
 
 /**
@@ -39,16 +41,19 @@ function fromContactRow(row: {
   }
 }
 
-function toContactRow(organizationId: string, contact: Omit<CommsContact, 'id'>) {
+function toContactRow(
+  organizationId: string,
+  contact: Omit<CommsContact, 'id'>,
+): TablesInsert<'comms_contacts'> {
   return {
     organization_id: organizationId,
     comms_organization_id: contact.organizationId ?? null,
     name: contact.name,
     type: contact.type,
-    role: contact.role ?? null,
-    purpose: contact.purpose ?? null,
-    channel_preference: contact.channelPreference ?? null,
-    source: contact.source ?? null,
+    role: toJson(contact.role ?? null),
+    purpose: toJson(contact.purpose ?? null),
+    channel_preference: toJson(contact.channelPreference ?? null),
+    source: toJson(contact.source ?? null),
     active: contact.active ?? true,
   }
 }
@@ -69,13 +74,16 @@ function fromOrganizationRow(row: {
   }
 }
 
-function toOrganizationRow(organizationId: string, organization: Omit<CommsOrganization, 'id'>) {
+function toOrganizationRow(
+  organizationId: string,
+  organization: Omit<CommsOrganization, 'id'>,
+): TablesInsert<'comms_organizations'> {
   return {
     organization_id: organizationId,
     name: organization.name,
-    type: organization.type ?? null,
-    jurisdiction: organization.jurisdiction ?? null,
-    notes: organization.notes ?? null,
+    type: toJson(organization.type ?? null),
+    jurisdiction: toJson(organization.jurisdiction ?? null),
+    notes: toJson(organization.notes ?? null),
   }
 }
 
@@ -97,7 +105,7 @@ export async function addOrganization(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_organizations')
-    .insert(toOrganizationRow(workspaceOrgId, organization) as any)
+    .insert(toOrganizationRow(workspaceOrgId, organization))
     .select('*')
     .single()
   if (error) throw error
@@ -110,14 +118,14 @@ export async function updateOrganization(
   patch: Partial<CommsOrganization>,
 ): Promise<CommsOrganization | null> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const row: Record<string, unknown> = {}
+  const row: TablesUpdate<'comms_organizations'> = {}
   if (patch.name !== undefined) row.name = patch.name
-  if (patch.type !== undefined) row.type = patch.type ?? null
-  if (patch.jurisdiction !== undefined) row.jurisdiction = patch.jurisdiction ?? null
-  if (patch.notes !== undefined) row.notes = patch.notes ?? null
+  if (patch.type !== undefined) row.type = toJson(patch.type ?? null)
+  if (patch.jurisdiction !== undefined) row.jurisdiction = toJson(patch.jurisdiction ?? null)
+  if (patch.notes !== undefined) row.notes = toJson(patch.notes ?? null)
   const { data, error } = await supabase
     .from('comms_organizations')
-    .update(row as any)
+    .update(row)
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')
@@ -154,7 +162,7 @@ export async function addContact(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_contacts')
-    .insert(toContactRow(workspaceOrgId, contact) as any)
+    .insert(toContactRow(workspaceOrgId, contact))
     .select('*')
     .single()
   if (error) throw error
@@ -167,19 +175,19 @@ export async function updateContact(
   patch: Partial<CommsContact>,
 ): Promise<CommsContact | null> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const row: Record<string, unknown> = {}
+  const row: TablesUpdate<'comms_contacts'> = {}
   if (patch.organizationId !== undefined) row.comms_organization_id = patch.organizationId ?? null
   if (patch.name !== undefined) row.name = patch.name
   if (patch.type !== undefined) row.type = patch.type
-  if (patch.role !== undefined) row.role = patch.role ?? null
-  if (patch.purpose !== undefined) row.purpose = patch.purpose ?? null
+  if (patch.role !== undefined) row.role = toJson(patch.role ?? null)
+  if (patch.purpose !== undefined) row.purpose = toJson(patch.purpose ?? null)
   if (patch.channelPreference !== undefined)
-    row.channel_preference = patch.channelPreference ?? null
-  if (patch.source !== undefined) row.source = patch.source ?? null
+    row.channel_preference = toJson(patch.channelPreference ?? null)
+  if (patch.source !== undefined) row.source = toJson(patch.source ?? null)
   if (patch.active !== undefined) row.active = patch.active
   const { data, error } = await supabase
     .from('comms_contacts')
-    .update(row as any)
+    .update(row)
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

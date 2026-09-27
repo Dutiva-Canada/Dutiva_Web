@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsExecutionEvent } from './types'
 
 function fromRow(raw: unknown): CommsExecutionEvent {
@@ -25,7 +27,10 @@ function fromRow(raw: unknown): CommsExecutionEvent {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsExecutionEvent, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsExecutionEvent, 'id'>,
+): TablesInsert<'comms_execution_events'> {
   return {
     organization_id: workspaceOrgId,
     content_item_id: item.contentItemId,
@@ -33,7 +38,7 @@ function toRow(workspaceOrgId: string, item: Omit<CommsExecutionEvent, 'id'>) {
     previous_status: item.previousStatus ?? null,
     new_status: item.newStatus ?? null,
     actor: item.actor,
-    note: item.note ?? null,
+    note: toJson(item.note ?? null),
     timestamp: item.timestamp,
   }
 }
@@ -56,7 +61,7 @@ export async function addExecutionEvent(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_execution_events')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error

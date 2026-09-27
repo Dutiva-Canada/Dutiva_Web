@@ -538,7 +538,7 @@ export async function listEmployeePerformanceReviews(
   employeeId: string,
 ): Promise<ProductionPerformanceReview[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { data, error } = await client
     .from('hr_performance_reviews')
     .select(PERFORMANCE_REVIEW_SELECT)
@@ -561,7 +561,7 @@ export async function addPerformanceReview(
   },
 ): Promise<ProductionPerformanceReview> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { data, error } = await client
     .from('hr_performance_reviews')
     .insert({
@@ -582,7 +582,7 @@ export async function addPerformanceReview(
 
 export async function removePerformanceReview(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { error } = await client.from('hr_performance_reviews').delete().eq('id', id)
   if (error) throw error
 }
@@ -634,7 +634,7 @@ export async function listEmployeeOnboardingTasks(
   employeeId: string,
 ): Promise<ProductionOnboardingTask[]> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { data, error } = await client
     .from('hr_onboarding_tasks')
     .select(ONBOARDING_TASK_SELECT)
@@ -656,7 +656,7 @@ export async function addOnboardingTask(
   },
 ): Promise<ProductionOnboardingTask> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { data, error } = await client
     .from('hr_onboarding_tasks')
     .insert({
@@ -675,7 +675,7 @@ export async function addOnboardingTask(
 
 export async function toggleOnboardingTask(id: string, completed: boolean): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { error } = await client
     .from('hr_onboarding_tasks')
     .update({
@@ -689,7 +689,7 @@ export async function toggleOnboardingTask(id: string, completed: boolean): Prom
 
 export async function removeOnboardingTask(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
-  const client = supabase as any
+  const client = supabase
   const { error } = await client.from('hr_onboarding_tasks').delete().eq('id', id)
   if (error) throw error
 }

@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsSubmission, CommsSubmissionStatus } from './types'
 
 function fromRow(raw: unknown): CommsSubmission {
@@ -29,29 +31,32 @@ function fromRow(raw: unknown): CommsSubmission {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsSubmission, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsSubmission, 'id'>,
+): TablesInsert<'comms_submissions'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId,
     policy_file_id: item.policyFileId ?? null,
-    authority: item.authority as unknown,
+    authority: toJson(item.authority),
     submitted_at: item.submittedAt ?? null,
     deadline: item.deadline ?? null,
-    method: item.method as unknown,
+    method: toJson(item.method),
     confirmation_ref: item.confirmationRef ?? null,
     owner: item.owner,
     status: item.status,
   }
 }
 
-function patchToRow(patch: Partial<CommsSubmission>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsSubmission>): TablesUpdate<'comms_submissions'> {
+  const row: TablesUpdate<'comms_submissions'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId
   if (patch.policyFileId !== undefined) row.policy_file_id = patch.policyFileId ?? null
-  if (patch.authority !== undefined) row.authority = patch.authority as unknown
+  if (patch.authority !== undefined) row.authority = toJson(patch.authority)
   if (patch.submittedAt !== undefined) row.submitted_at = patch.submittedAt ?? null
   if (patch.deadline !== undefined) row.deadline = patch.deadline ?? null
-  if (patch.method !== undefined) row.method = patch.method as unknown
+  if (patch.method !== undefined) row.method = toJson(patch.method)
   if (patch.confirmationRef !== undefined) row.confirmation_ref = patch.confirmationRef ?? null
   if (patch.owner !== undefined) row.owner = patch.owner
   if (patch.status !== undefined) row.status = patch.status
@@ -76,7 +81,7 @@ export async function addSubmission(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_submissions')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -91,7 +96,7 @@ export async function updateSubmission(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_submissions')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsBrandClaim } from './types'
 
 function fromRow(raw: unknown): CommsBrandClaim {
@@ -21,21 +23,24 @@ function fromRow(raw: unknown): CommsBrandClaim {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsBrandClaim, 'id'>) {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsBrandClaim, 'id'>,
+): TablesInsert<'comms_brand_claims'> {
   return {
     organization_id: workspaceOrgId,
-    text: item.text as unknown,
-    evidence: item.evidence as unknown,
+    text: toJson(item.text),
+    evidence: toJson(item.evidence),
     owner: item.owner,
     review_date: item.reviewDate ?? null,
     status: item.status,
   }
 }
 
-function patchToRow(patch: Partial<CommsBrandClaim>) {
-  const row: Record<string, unknown> = {}
-  if (patch.text !== undefined) row.text = patch.text as unknown
-  if (patch.evidence !== undefined) row.evidence = patch.evidence as unknown
+function patchToRow(patch: Partial<CommsBrandClaim>): TablesUpdate<'comms_brand_claims'> {
+  const row: TablesUpdate<'comms_brand_claims'> = {}
+  if (patch.text !== undefined) row.text = toJson(patch.text)
+  if (patch.evidence !== undefined) row.evidence = toJson(patch.evidence)
   if (patch.owner !== undefined) row.owner = patch.owner
   if (patch.reviewDate !== undefined) row.review_date = patch.reviewDate ?? null
   if (patch.status !== undefined) row.status = patch.status
@@ -60,7 +65,7 @@ export async function addBrandClaim(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_brand_claims')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -75,7 +80,7 @@ export async function updateBrandClaim(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_brand_claims')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

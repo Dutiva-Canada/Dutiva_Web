@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
+import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
+import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsSource } from './types'
 
 function fromRow(raw: unknown): CommsSource {
@@ -33,36 +35,36 @@ function fromRow(raw: unknown): CommsSource {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsSource, 'id'>) {
+function toRow(workspaceOrgId: string, item: Omit<CommsSource, 'id'>): TablesInsert<'comms_sources'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
     issue_id: item.issueId ?? null,
     source_type: item.sourceType,
     url: item.url ?? null,
-    publisher: item.publisher as unknown,
+    publisher: toJson(item.publisher),
     published_date: item.publishedDate ?? null,
     retrieved_at: item.retrievedAt ?? null,
-    jurisdiction: item.jurisdiction ?? null,
-    rights: item.rights ?? null,
-    classification: item.classification as unknown,
-    supports: item.supports ?? null,
+    jurisdiction: toJson(item.jurisdiction ?? null),
+    rights: toJson(item.rights ?? null),
+    classification: toJson(item.classification),
+    supports: toJson(item.supports ?? null),
   }
 }
 
-function patchToRow(patch: Partial<CommsSource>) {
-  const row: Record<string, unknown> = {}
+function patchToRow(patch: Partial<CommsSource>): TablesUpdate<'comms_sources'> {
+  const row: TablesUpdate<'comms_sources'> = {}
   if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
   if (patch.issueId !== undefined) row.issue_id = patch.issueId ?? null
   if (patch.sourceType !== undefined) row.source_type = patch.sourceType
   if (patch.url !== undefined) row.url = patch.url ?? null
-  if (patch.publisher !== undefined) row.publisher = patch.publisher as unknown
+  if (patch.publisher !== undefined) row.publisher = toJson(patch.publisher)
   if (patch.publishedDate !== undefined) row.published_date = patch.publishedDate ?? null
   if (patch.retrievedAt !== undefined) row.retrieved_at = patch.retrievedAt ?? null
-  if (patch.jurisdiction !== undefined) row.jurisdiction = patch.jurisdiction ?? null
-  if (patch.rights !== undefined) row.rights = patch.rights ?? null
-  if (patch.classification !== undefined) row.classification = patch.classification as unknown
-  if (patch.supports !== undefined) row.supports = patch.supports ?? null
+  if (patch.jurisdiction !== undefined) row.jurisdiction = toJson(patch.jurisdiction ?? null)
+  if (patch.rights !== undefined) row.rights = toJson(patch.rights ?? null)
+  if (patch.classification !== undefined) row.classification = toJson(patch.classification)
+  if (patch.supports !== undefined) row.supports = toJson(patch.supports ?? null)
   return row
 }
 
@@ -84,7 +86,7 @@ export async function addSource(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_sources')
-    .insert(toRow(workspaceOrgId, item) as any)
+    .insert(toRow(workspaceOrgId, item))
     .select('*')
     .single()
   if (error) throw error
@@ -99,7 +101,7 @@ export async function updateSource(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_sources')
-    .update(patchToRow(patch) as any)
+    .update(patchToRow(patch))
     .eq('id', id)
     .eq('organization_id', workspaceOrgId)
     .select('*')

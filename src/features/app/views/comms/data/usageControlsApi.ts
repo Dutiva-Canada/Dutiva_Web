@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsUsageControls } from './types'
 
 function fromRow(raw: unknown): CommsUsageControls {
@@ -18,7 +19,7 @@ function fromRow(raw: unknown): CommsUsageControls {
   }
 }
 
-function toRow(item: CommsUsageControls) {
+function toRow(item: CommsUsageControls): Omit<TablesInsert<'comms_usage_controls'>, 'organization_id'> {
   return {
     monthly_content_budget: item.monthlyContentBudget ?? null,
     monthly_interaction_budget: item.monthlyInteractionBudget ?? null,
@@ -46,7 +47,7 @@ export async function updateUsageControls(
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
     .from('comms_usage_controls')
-    .upsert({ organization_id: workspaceOrgId, ...toRow(item) } as any, {
+    .upsert({ organization_id: workspaceOrgId, ...toRow(item) }, {
       onConflict: 'organization_id',
     })
     .select('*')
