@@ -13,7 +13,7 @@
  */
 
 import { hasAnalyticsConsent } from '@/lib/analyticsConsent'
-import { loadGa4 } from './ga4'
+import { loadGa4, type GtagWindow } from './ga4'
 
 const SCRIPT_ID = 'dutiva-gtm'
 const IFRAME_ID = 'dutiva-gtm-ns'
@@ -42,8 +42,7 @@ export function loadGtm(): boolean {
   const id = containerId()
   if (!id) return false
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any
+  const w: GtagWindow = window
   w.dataLayer = w.dataLayer || []
   if (!document.getElementById(SCRIPT_ID)) {
     w.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })

@@ -29,10 +29,6 @@ export const guidanceMessages = defineMessages({
     en: 'Loading…',
     fr: 'Chargement…',
   },
-  guidance_refresh: {
-    en: 'Refresh',
-    fr: 'Actualiser',
-  },
   guidance_empty_sources: {
     en: 'No guidance sources yet.',
     fr: 'Aucune source de référence pour le moment.',

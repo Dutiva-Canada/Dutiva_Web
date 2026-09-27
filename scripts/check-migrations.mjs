@@ -407,6 +407,7 @@ if (!token || !projectRef) {
 } else {
   let applied
   let appliedRows
+  let credentialsRejected = false
   try {
     const response = await fetch(
       `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
@@ -425,62 +426,76 @@ if (!token || !projectRef) {
          that names neither the cause nor the fix. Say both, describing the
          value's shape rather than the value. The body stays in the message so a
          403 that is NOT about the token (an egress proxy, say) is still legible
-         rather than misdiagnosed. */
+         rather than misdiagnosed.
+         A rejected token is the same condition as a missing one — drift
+         unchecked — so it skips loudly instead of failing the whole local
+         `npm run check`. A stale token on a developer machine must not block
+         the rest of the gate; the CI warning annotation keeps the skip
+         visible where results are read. */
       if (response.status === 401 || response.status === 403) {
-        throw new Error(
-          `${response.status} ${body}\n` +
+        credentialsRejected = true
+        console.error(
+          `check-migrations: drift check skipped — SUPABASE_ACCESS_TOKEN rejected (${response.status} ${body})\n` +
             `  SUPABASE_ACCESS_TOKEN ${describeSecret(process.env.SUPABASE_ACCESS_TOKEN)}.\n` +
             `  ${ACCESS_TOKEN_HELP}`,
         )
+        await announceSkippedDriftCheck(
+          `SUPABASE_ACCESS_TOKEN was rejected (${response.status}) — the repo was ` +
+            'not compared against the live project. Rotate or unset the token secret.',
+        )
+      } else {
+        throw new Error(`${response.status} ${body}`)
       }
-      throw new Error(`${response.status} ${body}`)
+    } else {
+      appliedRows = await response.json()
+      applied = new Set(appliedRows.map((row) => row.name))
     }
-    appliedRows = await response.json()
-    applied = new Set(appliedRows.map((row) => row.name))
   } catch (error) {
     /* A credentials or network failure must not read as "no drift". */
     console.error(`check-migrations: could not read applied migrations — ${error.message}`)
     process.exit(1)
   }
 
-  for (const [slug, file] of localSlugs) {
-    if (applied.has(slug)) continue
-    const reason = ACCEPTED_UNAPPLIED.get(slug)
-    if (reason) notes.push(`${file}: not applied — ${reason}`)
-    else problems.push(`${file}: present in the repo but NOT applied to ${projectRef}`)
-  }
-
-  /* Reverse drift: applied on the project, absent from the repo.
-   *
-   * This direction was missing until 2026-08-06, when a migration
-   * (purge_support_analytics_rate_limit) was applied straight to the project
-   * with no file committed. The check was green throughout, because it only
-   * ever asked whether repo files had been applied — never whether the
-   * database was running something nobody could read. That is the worse
-   * direction: an unapplied migration makes a feature inert and someone
-   * eventually notices, while an uncommitted one is schema that exists only in
-   * production and vanishes on any rebuild from source. */
-  const baselineIndex = appliedRows.findIndex((row) => row.name === REPO_HISTORY_BEGINS_AT)
-  if (baselineIndex === -1) {
-    notes.push(
-      `could not find "${REPO_HISTORY_BEGINS_AT}" on ${projectRef} — reverse drift not checked`,
-    )
-  } else {
-    for (const row of appliedRows.slice(baselineIndex)) {
-      if (localSlugs.has(row.name)) continue
-      const reason = ACCEPTED_UNTRACKED.get(row.name)
-      if (reason) notes.push(`${row.name}: applied, no repo file — ${reason}`)
-      else
-        problems.push(
-          `${row.name} (version ${row.version}): applied to ${projectRef} but NOT in the repo`,
-        )
+  if (!credentialsRejected) {
+    for (const [slug, file] of localSlugs) {
+      if (applied.has(slug)) continue
+      const reason = ACCEPTED_UNAPPLIED.get(slug)
+      if (reason) notes.push(`${file}: not applied — ${reason}`)
+      else problems.push(`${file}: present in the repo but NOT applied to ${projectRef}`)
     }
-  }
 
-  console.log(
-    `check-migrations: ${applied.size} applied on ${projectRef}, ` +
-      `${localSlugs.size} in the repo, ${notes.length} accepted difference(s)`,
-  )
+    /* Reverse drift: applied on the project, absent from the repo.
+     *
+     * This direction was missing until 2026-08-06, when a migration
+     * (purge_support_analytics_rate_limit) was applied straight to the project
+     * with no file committed. The check was green throughout, because it only
+     * ever asked whether repo files had been applied — never whether the
+     * database was running something nobody could read. That is the worse
+     * direction: an unapplied migration makes a feature inert and someone
+     * eventually notices, while an uncommitted one is schema that exists only
+     * in production and vanishes on any rebuild from source. */
+    const baselineIndex = appliedRows.findIndex((row) => row.name === REPO_HISTORY_BEGINS_AT)
+    if (baselineIndex === -1) {
+      notes.push(
+        `could not find "${REPO_HISTORY_BEGINS_AT}" on ${projectRef} — reverse drift not checked`,
+      )
+    } else {
+      for (const row of appliedRows.slice(baselineIndex)) {
+        if (localSlugs.has(row.name)) continue
+        const reason = ACCEPTED_UNTRACKED.get(row.name)
+        if (reason) notes.push(`${row.name}: applied, no repo file — ${reason}`)
+        else
+          problems.push(
+            `${row.name} (version ${row.version}): applied to ${projectRef} but NOT in the repo`,
+          )
+      }
+    }
+
+    console.log(
+      `check-migrations: ${applied.size} applied on ${projectRef}, ` +
+        `${localSlugs.size} in the repo, ${notes.length} accepted difference(s)`,
+    )
+  }
 }
 
 for (const note of notes) console.log(`  note: ${note}`)

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Plus, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
+import { common } from '@/i18n/messages/common'
 import { useFeeds } from '../data/useFeeds'
 import { useInitiatives } from '../data/useInitiatives'
 import { CURATED_FEEDS } from '../data/feedPresets'
@@ -117,17 +118,17 @@ export function FeedsSection() {
             type="button"
             onClick={() => void refresh()}
             disabled={loading}
-            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+            className="flex min-h-[44px] cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
           >
             <RefreshCw size={12} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
-            {x(M.comms_intelligence_refresh)}
+            {x(common.refresh)}
           </button>
           {canWrite && feeds.some((f) => f.enabled) && (
             <button
               type="button"
               onClick={onSyncAll}
               disabled={syncing.__all}
-              className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+              className="flex min-h-[44px] cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
             >
               <RefreshCw size={12} className={syncing.__all ? 'animate-spin' : ''} />
               {x(M.comms_intelligence_sync_all)}
@@ -140,7 +141,7 @@ export function FeedsSection() {
                 reset()
                 setOpen(true)
               }}
-              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
+              className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] border-none bg-navy px-[12px] py-[7px] font-sans text-[12.5px] font-semibold text-white"
             >
               <Plus size={14} aria-hidden="true" />
               {x(M.comms_intelligence_add_feed)}

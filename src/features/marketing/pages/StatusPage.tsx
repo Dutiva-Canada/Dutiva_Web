@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { Seo } from '@/seo/Seo'
 import { seoRoute } from '@/seo/routes'
 import { supportMessages as M } from '@/i18n/messages/support'
+import { common } from '@/i18n/messages/common'
 import {
   SERVICE_COMPONENTS,
   STATUS_DOT_CLASS,
@@ -40,6 +41,7 @@ function StatusPageInner() {
     })),
   )
   const [refreshing, setRefreshing] = useState(false)
+  const [checkedAt, setCheckedAt] = useState<Date | null>(null)
   const requestRef = useRef(0)
 
   const reload = useCallback(() => {
@@ -47,7 +49,10 @@ function StatusPageInner() {
     setRefreshing(true)
     getServiceStatus()
       .then((r) => {
-        if (requestRef.current === request) setRows(r)
+        if (requestRef.current === request) {
+          setRows(r)
+          setCheckedAt(new Date())
+        }
       })
       .catch((e: unknown) => console.error('status: failed to load', e))
       .finally(() => {
@@ -80,22 +85,35 @@ function StatusPageInner() {
             ) : (
               <TriangleAlert size={22} aria-hidden="true" className={STATUS_ICON_CLASS[overall]} />
             )}
-            <span className="text-[1.0625rem] font-semibold text-text">
-              {x(allOk ? M.status_all_operational : M.status_some_issues)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[1.0625rem] font-semibold text-text">
+                {x(allOk ? M.status_all_operational : M.status_some_issues)}
+              </span>
+              {checkedAt && (
+                <span className="text-[0.75rem] text-text-muted">
+                  {x(common.last_checked).replace(
+                    '{time}',
+                    checkedAt.toLocaleTimeString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    }),
+                  )}
+                </span>
+              )}
+            </div>
           </div>
           <button
             type="button"
             onClick={reload}
             disabled={refreshing}
-            className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[0.8125rem] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+            className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[0.8125rem] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
           >
             <RefreshCw
               size={12}
               className={refreshing ? 'animate-spin' : ''}
               aria-hidden="true"
             />
-            {x(M.status_refresh)}
+            {x(common.refresh)}
           </button>
         </div>
 

@@ -4,6 +4,7 @@
  */
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import { webcrypto } from 'node:crypto'
 import { afterEach } from 'vitest'
 
 // Node ≥25 defines a global `localStorage` that is broken unless Node is
@@ -37,6 +38,26 @@ Object.defineProperty(globalThis, 'localStorage', {
   writable: true,
   configurable: true,
 })
+
+/* jsdom never implemented scrollTo; components that scroll on mount fill the
+   output with "Not implemented" noise. A no-op stub is enough — tests assert
+   on rendered content, not scroll position. */
+Object.defineProperty(window, 'scrollTo', {
+  value: () => {},
+  writable: true,
+  configurable: true,
+})
+
+/* Under the vmThreads pool the VM context's crypto comes from jsdom, which
+   never implemented WebCrypto — crypto.subtle is undefined and every signing
+   or hashing test fails. Node ships a real implementation; put it back. */
+if (!globalThis.crypto?.subtle) {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    writable: true,
+    configurable: true,
+  })
+}
 
 afterEach(() => {
   cleanup()

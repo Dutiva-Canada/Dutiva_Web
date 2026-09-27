@@ -2,10 +2,9 @@
  * Shared utilities for the communications workspace.
  *
  * The localStorage persistence stub that previously lived here has been
- * replaced by Supabase-backed API files (`*Api.ts`) and the
- * `CommsDataProvider` now loads and persists through those directly.
- * This module retains only the domain-agnostic helpers that screens import
- * directly (e.g. `getSubmissionDueStatus`).
+ * replaced by Supabase-backed API files (`*Api.ts`) that screens load and
+ * persist through directly. This module retains only the domain-agnostic
+ * helpers that screens import (e.g. `getSubmissionDueStatus`).
  */
 
 export type SubmissionDueStatus = 'overdue' | 'due-soon' | 'ok'

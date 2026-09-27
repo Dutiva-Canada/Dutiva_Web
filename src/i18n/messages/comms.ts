@@ -369,7 +369,6 @@ export const commsMessages = defineMessages({
   comms_intelligence_filter_source_type: { en: 'Source type', fr: 'Type de source' },
   comms_intelligence_filter_jurisdiction: { en: 'Jurisdiction', fr: 'Compétence' },
   comms_intelligence_add_source: { en: 'Add source', fr: 'Ajouter une source' },
-  comms_intelligence_refresh: { en: 'Refresh', fr: 'Actualiser' },
   comms_intelligence_retrieved: { en: 'Retrieved', fr: 'Consulté le' },
   comms_intelligence_supports: { en: 'Supports', fr: 'Appuie' },
   comms_intelligence_rights: { en: 'Rights', fr: 'Droits' },

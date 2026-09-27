@@ -43,6 +43,13 @@ export function InvestHomePage() {
   const cash = state.accounts.reduce((sum, a) => sum + a.cashBalance, 0)
   const openSignals = state.signals.filter((s) => s.status === 'new').length
   const lastRun = state.runs[0]
+  const pricesAsOf = useMemo(() => {
+    let latest: string | undefined
+    for (const s of state.snapshots) {
+      if (!latest || s.asOf > latest) latest = s.asOf
+    }
+    return latest
+  }, [state.snapshots])
 
   const syncNow = async () => {
     setBusy(true)
@@ -85,6 +92,14 @@ export function InvestHomePage() {
             {x(IM.invest_title)}
           </h1>
           <p className="m-0 mt-[4px] text-[13px] text-text-3">{x(IM.invest_subtitle)}</p>
+          {pricesAsOf && (
+            <p className="m-0 mt-[4px] text-[11.5px] text-text-muted">
+              {x(IM.invest_prices_as_of).replace(
+                '{time}',
+                new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
+              )}
+            </p>
+          )}
         </div>
         <button
           type="button"

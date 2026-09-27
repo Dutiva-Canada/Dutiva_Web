@@ -8,8 +8,8 @@ import type { CommsWorkspaceState } from './types'
  * Read-only hook that loads the full comms workspace state from Supabase.
  *
  * Used by cross-module screens (e.g. revenue) that need comms initiatives and
- * content items for entity linking but don't need the full CRUD surface of
- * `CommsDataProvider`. In demo mode it returns the fixtures.
+ * content items for entity linking but don't need the comms screens' CRUD
+ * surface. In demo mode it returns the fixtures.
  */
 export function useCommsState(): CommsWorkspaceState {
   const { mode, organizationId } = useWorkspaceMode()

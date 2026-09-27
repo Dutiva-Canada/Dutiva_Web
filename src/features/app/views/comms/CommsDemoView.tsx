@@ -1,4 +1,3 @@
-import { CommsDataProvider } from './data/CommsDataProvider'
 import { CommsLayout } from './CommsLayout'
 
 /**
@@ -7,9 +6,5 @@ import { CommsLayout } from './CommsLayout'
  * shared.
  */
 export function CommsDemoView() {
-  return (
-    <CommsDataProvider mode="demo">
-      <CommsLayout mode="demo" />
-    </CommsDataProvider>
-  )
+  return <CommsLayout mode="demo" />
 }

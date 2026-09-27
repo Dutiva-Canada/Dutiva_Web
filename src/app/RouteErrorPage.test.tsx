@@ -8,9 +8,16 @@ import userEvent from '@testing-library/user-event'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { RouteErrorPage } from './RouteErrorPage'
 import { reportRouteError } from '@/lib/errorReporting'
+import { reloadPage } from '@/lib/reloadPage'
 
 vi.mock('@/lib/errorReporting', () => ({
   reportRouteError: vi.fn(),
+}))
+
+/* jsdom's Location is non-configurable in every pool, so the component's
+   reload goes through a module seam the test can mock. */
+vi.mock('@/lib/reloadPage', () => ({
+  reloadPage: vi.fn(),
 }))
 
 function Boom(): never {
@@ -61,7 +68,6 @@ describe('RouteErrorPage', () => {
   it('unregisters the service worker and drops every cache before reloading', async () => {
     const unregister = vi.fn().mockResolvedValue(true)
     const remove = vi.fn().mockResolvedValue(true)
-    const reload = vi.fn()
     vi.stubGlobal('navigator', {
       ...navigator,
       serviceWorker: { getRegistrations: vi.fn().mockResolvedValue([{ unregister }]) },
@@ -70,11 +76,7 @@ describe('RouteErrorPage', () => {
       keys: vi.fn().mockResolvedValue(['dutiva-precache-1', 'dutiva-runtime-1']),
       delete: remove,
     })
-    vi.spyOn(window, 'location', 'get').mockReturnValue({
-      ...window.location,
-      pathname: '/',
-      reload,
-    } as unknown as Location)
+
 
     renderAtError('/')
     await userEvent.setup().click(screen.getByRole('button', { name: /clear the offline cache/i }))
@@ -82,6 +84,6 @@ describe('RouteErrorPage', () => {
     expect(unregister).toHaveBeenCalled()
     expect(remove).toHaveBeenCalledWith('dutiva-precache-1')
     expect(remove).toHaveBeenCalledWith('dutiva-runtime-1')
-    expect(reload).toHaveBeenCalled()
+    expect(reloadPage).toHaveBeenCalled()
   })
 })

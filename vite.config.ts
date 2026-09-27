@@ -312,6 +312,10 @@ export default defineConfig(({ command }) => {
     test: {
       environment: 'jsdom',
       setupFiles: ['./src/test/setup.ts'],
+      /* vmThreads keeps one jsdom per worker instead of one per test file —
+         the forked-process default dominated suite time (jsdom construction
+         was ~900s of a ~170s run). Files stay isolated via VM contexts. */
+      pool: 'vmThreads',
       /* The e2e/ specs are Playwright's (*.spec.ts), driven by its own runner
          and a real browser — keep Vitest's default glob from claiming them. */
       exclude: [...configDefaults.exclude, 'e2e/**'],
