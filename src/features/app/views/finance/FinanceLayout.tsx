@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
+import { common } from '@/i18n/messages/common'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
@@ -96,10 +97,10 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
           type="button"
           onClick={() => void onRefresh()}
           disabled={refreshing}
-          className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+          className="flex min-h-[44px] cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
         >
           <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
-          {x(M.finance_refresh)}
+          {x(common.refresh)}
         </button>
       </div>
 

@@ -47,8 +47,9 @@ export function noteToBi(note?: string): Bi | undefined {
 }
 
 /**
- * Loads every comms domain from Supabase in parallel. Used by
- * `CommsDataProvider` on mount and after feed syncs.
+ * Loads every comms domain from Supabase in parallel. Used by `useCommsState`
+ * (the read-only cross-module hook) — comms screens fetch their own slices
+ * via the domain hooks instead of paying for the full join.
  */
 export async function loadFullCommsState(orgId: string): Promise<CommsWorkspaceState> {
   const [

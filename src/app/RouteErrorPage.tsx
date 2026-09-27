@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useRouteError } from 'react-router-dom'
 import { langOfPath } from '@/seo/routes'
 import { reportRouteError } from '@/lib/errorReporting'
+import { reloadPage } from '@/lib/reloadPage'
 import { supportChannel } from '@/config/support'
 
 const SUPPORT_EMAIL = supportChannel('support').email
@@ -60,7 +61,7 @@ export function RouteErrorPage() {
     } catch {
       /* Best effort — reload regardless. */
     }
-    window.location.reload()
+    reloadPage()
   }
 
   return (
@@ -80,7 +81,7 @@ export function RouteErrorPage() {
           <button
             type="button"
             className="gold-button pill-button"
-            onClick={() => window.location.reload()}
+            onClick={() => reloadPage()}
           >
             {L('Reload the page', 'Recharger la page')}
           </button>

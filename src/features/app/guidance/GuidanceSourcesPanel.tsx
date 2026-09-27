@@ -3,6 +3,7 @@ import { AlertTriangle, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { guidanceMessages as M } from '@/i18n/messages/guidance'
 import { authMessages as A } from '@/i18n/messages/auth'
+import { common } from '@/i18n/messages/common'
 import { statusChipClass } from '@/components/chips'
 import { useAuth } from '../auth/authContext'
 import { AuthSignInForm } from '../auth/AuthSignInForm'
@@ -87,19 +88,19 @@ export function GuidanceSourcesPanel() {
               type="button"
               onClick={reload}
               disabled={load.status === 'loading'}
-              className="flex cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 disabled:opacity-50"
+              className="flex min-h-[44px] cursor-pointer items-center gap-[5px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 disabled:opacity-50"
             >
               <RefreshCw
                 size={12}
                 className={load.status === 'loading' ? 'animate-spin' : ''}
                 aria-hidden="true"
               />
-              {x(M.guidance_refresh)}
+              {x(common.refresh)}
             </button>
             <button
               type="button"
               onClick={() => void signOut()}
-              className="cursor-pointer rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2"
+              className="min-h-[44px] cursor-pointer rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2"
             >
               {x(A.auth_sign_out)}
             </button>

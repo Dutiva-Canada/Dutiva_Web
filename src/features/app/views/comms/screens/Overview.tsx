@@ -5,6 +5,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 import { statusChipClass } from '@/components/chips'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
+import { common } from '@/i18n/messages/common'
 import { useContentItems } from '../data/useContentItems'
 import { useExecutionEvents } from '../data/useExecutionEvents'
 import { useInitiatives } from '../data/useInitiatives'
@@ -217,10 +218,10 @@ export function Overview() {
             type="button"
             onClick={() => void onRefresh()}
             disabled={refreshing}
-            className="flex cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
+            className="flex min-h-[44px] cursor-pointer items-center gap-[4px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-semibold text-text hover:bg-inset disabled:opacity-50"
           >
             <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
-            {x(M.comms_intelligence_refresh)}
+            {x(common.refresh)}
           </button>
         </div>
         {activity.length === 0 ? (

@@ -174,6 +174,7 @@ export const investMessages = defineMessages({
     en: 'Some symbols could not be priced: {symbols}',
     fr: 'Certains symboles n’ont pas pu être évalués : {symbols}',
   },
+  invest_prices_as_of: { en: 'Prices as of {time}', fr: 'Cours au {time}' },
   invest_watchlist_title: { en: 'Watchlist', fr: 'Surveillance' },
   invest_watchlist_sub: {
     en: 'Symbols you don’t hold yet — priced on every refresh, and your dip rules can fire on them.',

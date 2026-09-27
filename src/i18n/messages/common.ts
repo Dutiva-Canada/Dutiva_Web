@@ -18,6 +18,14 @@ export const common = defineMessages({
     fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d'emploi à risque élevé, consultez un conseiller juridique qualifié.",
   },
   theme_toggle_aria: { en: 'Toggle dark mode', fr: 'Basculer le mode sombre' },
+  /* Generic data-refresh action shared by workspace and marketing surfaces. */
+  refresh: { en: 'Refresh', fr: 'Actualiser' }, // [FR self-authored]
+  /* Freshness stamp shown next to a refresh control. `{time}` is a localized
+     date/time string. */
+  last_checked: {
+    en: 'Last checked {time}',
+    fr: 'Dernière vérification : {time}', // [FR self-authored]
+  },
   lang_en_aria: { en: 'English', fr: 'English' },
   lang_fr_aria: { en: 'Français', fr: 'Français' },
 })

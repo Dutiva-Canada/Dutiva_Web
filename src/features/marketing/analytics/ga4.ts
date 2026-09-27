@@ -18,6 +18,12 @@
 
 import { hasAnalyticsConsent } from '@/lib/analyticsConsent'
 
+/** window plus the globals the Google tags define. */
+export type GtagWindow = Window & {
+  dataLayer?: unknown[]
+  gtag?: (...args: unknown[]) => void
+}
+
 /** Whether GA4 should load at all. */
 export function isGa4Configured(): boolean {
   const id = import.meta.env.VITE_GA_MEASUREMENT_ID
@@ -37,11 +43,10 @@ export function loadGa4(): boolean {
   const measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string
 
   // Standard GA4 snippet — only runs when both gates have passed.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const w = window as any
+  const w: GtagWindow = window
   w.dataLayer = w.dataLayer || []
   w.gtag = function gtag() {
-    w.dataLayer.push(arguments)
+    ;(w.dataLayer ??= []).push(arguments)
   }
   w.gtag('js', new Date())
   w.gtag('config', measurementId, { anonymize_ip: true })
