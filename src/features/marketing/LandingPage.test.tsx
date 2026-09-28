@@ -56,7 +56,7 @@ describe('LandingPage', () => {
     }
   })
 
-  it('points header nav at landing sections, /pricing, /guides, and sign-in', () => {
+  it('points header nav at landing sections, /guides, and sign-in', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
     const nav = document.querySelector('header nav') as HTMLElement | null
     expect(nav).not.toBeNull()
@@ -64,7 +64,7 @@ describe('LandingPage', () => {
 
     expect(href('How it works')).toBe('/#how')
     expect(href('Workspace')).toBe('/#workspace')
-    expect(href('Pricing')).toBe('/pricing')
+    expect(href('Coverage')).toBe('/#coverage')
     expect(href('Guides')).toBe('/guides')
     expect(href('Careers')).toBe('/careers')
 
