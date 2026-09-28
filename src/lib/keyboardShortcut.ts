@@ -8,8 +8,3 @@ export function modKeyLabel(): string {
 export function searchShortcutLabel(): string {
   return `${modKeyLabel()}K`
 }
-
-/** Sidebar expand/collapse — Ctrl+\ on Windows/Linux, ⌘\ on macOS. */
-export function sidebarToggleShortcutLabel(): string {
-  return `${modKeyLabel()}\\`
-}

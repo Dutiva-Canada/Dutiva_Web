@@ -30,9 +30,6 @@ export type ScanVerdict =
 /** How many times a single attachment is offered to the scanner before we stop. */
 export const SCAN_MAX_ATTEMPTS = 5
 
-/** Rows drained per worker run — bounds a run against the function timeout. */
-export const SCAN_BATCH_SIZE = 25
-
 const CLEAN_WORDS = new Set([
   'clean',
   'ok',

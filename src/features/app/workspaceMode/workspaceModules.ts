@@ -52,14 +52,6 @@ export const TOGGLEABLE_MODULES: readonly WorkspaceModuleKey[] = WORKSPACE_MODUL
   (key) => !ALWAYS_ENABLED_MODULES.includes(key as WorkspaceModuleKey),
 ) as WorkspaceModuleKey[]
 
-/** Default: every module is enabled. */
-export function defaultEnabledModules(): Record<WorkspaceModuleKey, boolean> {
-  return Object.fromEntries(WORKSPACE_MODULE_KEYS.map((key) => [key, true])) as Record<
-    WorkspaceModuleKey,
-    boolean
-  >
-}
-
 /** Resolve whether a module is enabled, defaulting to true if not set. */
 export function isModuleEnabled(
   enabled: Record<string, boolean> | undefined | null,

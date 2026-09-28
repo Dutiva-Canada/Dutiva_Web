@@ -57,31 +57,3 @@ export function notificationsForNewTicket(
     { kind: 'operator_alert', audience: 'operator', channel: operatorChannel(category, priority) },
   ]
 }
-
-/**
- * Reminder rules for the future scheduler (not sent inline). Declarative so the
- * scheduling worker can consume them; documented in SUPPORT_ARCHITECTURE.md.
- */
-export interface ReminderRule {
-  id: string
-  description: string
-  audience: 'customer' | 'operator'
-}
-
-export const REMINDER_RULES: readonly ReminderRule[] = [
-  {
-    id: 'approaching_target',
-    description: 'Ticket approaching its initial-response target',
-    audience: 'operator',
-  },
-  {
-    id: 'waiting_on_customer',
-    description: 'No customer reply after N business days on a waiting_on_customer ticket',
-    audience: 'customer',
-  },
-  {
-    id: 'post_call_summary',
-    description: 'Follow-up to add a written summary after a scheduled call',
-    audience: 'operator',
-  },
-] as const

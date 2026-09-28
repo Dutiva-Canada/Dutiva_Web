@@ -23,9 +23,10 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 
 export type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
-/* Collapsible section keys, positionally aligned with NAV_GROUPS: group i
-   with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups (Home /
-   Advisor / Workflows, Analytics) render as always-visible top-level items. */
+/* Collapsible section keys, positionally aligned with getNavGroups output:
+   group i with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups
+   (Home / Advisor / Workflows, Analytics) render as always-visible top-level
+   items. */
 const SECTION_KEYS = [
   'revenue',
   'operations',

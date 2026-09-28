@@ -5,7 +5,7 @@ import type { Bi, Lang } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import type { MemoryAuditAction } from './memoryStore'
 import { useMemoryStore, type MemoryAuditEntry } from './memoryStore'
-import { memoryScenarioTodayISO } from '@/data'
+import { demoTodayISO } from '@/data'
 import { formatMemoryDate } from './memoryDates'
 
 /**
@@ -57,7 +57,7 @@ const selectClass =
 export function MemoryActivityTab() {
   const { x, lang } = useI18n()
   const { audit } = useMemoryStore()
-  const todayISO = memoryScenarioTodayISO
+  const todayISO = demoTodayISO
   const [event, setEvent] = useState<MemoryAuditAction | 'all'>('all')
 
   const filtered = useMemo(

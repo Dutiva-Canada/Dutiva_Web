@@ -19,7 +19,7 @@ Read alongside:
   — open Gradient processing-location question (OA9).
 - [`CANONICAL_FACTS.md`](CANONICAL_FACTS.md) — plan prices, Advisor reply
   packs, and claims that must not be made (including PIPEDA).
-- [`ASSESSMENT/IP_AND_DATA_BOUNDARY.md`](../ASSESSMENT/IP_AND_DATA_BOUNDARY.md)
+- [`ASSESSMENT/IP_AND_DATA_BOUNDARY.md`](ASSESSMENT/IP_AND_DATA_BOUNDARY.md)
   — the guidance corpus and prompts are Dutiva IP.
 
 The code outranks this file. Current completion path:

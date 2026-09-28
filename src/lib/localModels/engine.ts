@@ -97,8 +97,3 @@ function firstText(out: unknown): string {
   }
   return typeof item === 'string' ? item : ''
 }
-
-/** Tests only — drop memoized pipelines. */
-export function clearLocalModelPipelinesForTests() {
-  pipelines.clear()
-}

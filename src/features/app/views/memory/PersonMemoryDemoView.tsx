@@ -15,7 +15,7 @@ import {
   workspacePath,
 } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { CATEGORY_LABELS, PERSON_CATEGORY_ORDER } from './memoryModel'
-import { memoryScenarioTodayISO } from '@/data'
+import { demoTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
 import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
@@ -167,11 +167,7 @@ export function PersonMemoryDemoView() {
                 </div>
                 <div className="overflow-hidden rounded-[13px] border border-border-soft bg-surface">
                   {group.items.map((fact) => (
-                    <MemoryFactRow
-                      key={fact.id}
-                      fact={fact}
-                      dateReferenceISO={memoryScenarioTodayISO}
-                    />
+                    <MemoryFactRow key={fact.id} fact={fact} dateReferenceISO={demoTodayISO} />
                   ))}
                 </div>
               </div>

@@ -17,7 +17,7 @@ import type { AdvisorSearchNavState } from '@/features/app/search/searchCorpus'
 import { memoryCaseContent } from './memoryCaseContent'
 import type { MemoryCaseChip } from './memoryCaseContent'
 import { KnowFact } from './KnowFact'
-import { memoryScenarioTodayISO } from '@/data'
+import { demoTodayISO } from '@/data'
 import { MemoryFactRow } from './MemoryFactRow'
 import { useMemoryStore } from './memoryStore'
 import { WorkspaceNavigate as Navigate } from '@/features/app/workspaceRoot/WorkspaceLink'
@@ -176,11 +176,7 @@ export function CaseMemoryDemoView() {
             </div>
             <div className="mb-[20px] overflow-hidden rounded-[13px] border border-border-soft bg-surface">
               {caseFacts.map((fact) => (
-                <MemoryFactRow
-                  key={fact.id}
-                  fact={fact}
-                  dateReferenceISO={memoryScenarioTodayISO}
-                />
+                <MemoryFactRow key={fact.id} fact={fact} dateReferenceISO={demoTodayISO} />
               ))}
               {caseFacts.length === 0 && (
                 <div className="px-[20px] py-[24px] text-center text-[13px] text-text-faint">

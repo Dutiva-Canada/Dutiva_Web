@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
-import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsSource } from './types'
 
 function fromRow(raw: unknown): CommsSource {
@@ -35,7 +35,10 @@ function fromRow(raw: unknown): CommsSource {
   }
 }
 
-function toRow(workspaceOrgId: string, item: Omit<CommsSource, 'id'>): TablesInsert<'comms_sources'> {
+function toRow(
+  workspaceOrgId: string,
+  item: Omit<CommsSource, 'id'>,
+): TablesInsert<'comms_sources'> {
   return {
     organization_id: workspaceOrgId,
     initiative_id: item.initiativeId ?? null,
@@ -50,22 +53,6 @@ function toRow(workspaceOrgId: string, item: Omit<CommsSource, 'id'>): TablesIns
     classification: toJson(item.classification),
     supports: toJson(item.supports ?? null),
   }
-}
-
-function patchToRow(patch: Partial<CommsSource>): TablesUpdate<'comms_sources'> {
-  const row: TablesUpdate<'comms_sources'> = {}
-  if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
-  if (patch.issueId !== undefined) row.issue_id = patch.issueId ?? null
-  if (patch.sourceType !== undefined) row.source_type = patch.sourceType
-  if (patch.url !== undefined) row.url = patch.url ?? null
-  if (patch.publisher !== undefined) row.publisher = toJson(patch.publisher)
-  if (patch.publishedDate !== undefined) row.published_date = patch.publishedDate ?? null
-  if (patch.retrievedAt !== undefined) row.retrieved_at = patch.retrievedAt ?? null
-  if (patch.jurisdiction !== undefined) row.jurisdiction = toJson(patch.jurisdiction ?? null)
-  if (patch.rights !== undefined) row.rights = toJson(patch.rights ?? null)
-  if (patch.classification !== undefined) row.classification = toJson(patch.classification)
-  if (patch.supports !== undefined) row.supports = toJson(patch.supports ?? null)
-  return row
 }
 
 export async function listSources(workspaceOrgId: string): Promise<CommsSource[]> {
@@ -91,23 +78,6 @@ export async function addSource(
     .single()
   if (error) throw error
   return fromRow(data)
-}
-
-export async function updateSource(
-  workspaceOrgId: string,
-  id: string,
-  patch: Partial<CommsSource>,
-): Promise<CommsSource | null> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('comms_sources')
-    .update(patchToRow(patch))
-    .eq('id', id)
-    .eq('organization_id', workspaceOrgId)
-    .select('*')
-    .single()
-  if (error) throw error
-  return data ? fromRow(data) : null
 }
 
 export async function removeSource(workspaceOrgId: string, id: string): Promise<void> {

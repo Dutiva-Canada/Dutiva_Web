@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
-import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsIssue } from './types'
 
 function fromRow(raw: unknown): CommsIssue {
@@ -49,21 +49,6 @@ function toRow(workspaceOrgId: string, item: Omit<CommsIssue, 'id'>): TablesInse
   }
 }
 
-function patchToRow(patch: Partial<CommsIssue>): TablesUpdate<'comms_issues'> {
-  const row: TablesUpdate<'comms_issues'> = {}
-  if (patch.initiativeId !== undefined) row.initiative_id = patch.initiativeId ?? null
-  if (patch.title !== undefined) row.title = toJson(patch.title)
-  if (patch.severity !== undefined) row.severity = patch.severity
-  if (patch.status !== undefined) row.status = patch.status
-  if (patch.lead !== undefined) row.lead = patch.lead
-  if (patch.spokesperson !== undefined) row.spokesperson = patch.spokesperson ?? null
-  if (patch.affectedChannels !== undefined) row.affected_channels = patch.affectedChannels
-  if (patch.restricted !== undefined) row.restricted = patch.restricted
-  if (patch.summary !== undefined) row.summary = toJson(patch.summary ?? null)
-  if (patch.resolution !== undefined) row.resolution = toJson(patch.resolution ?? null)
-  return row
-}
-
 export async function listIssues(workspaceOrgId: string): Promise<CommsIssue[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
@@ -87,23 +72,6 @@ export async function addIssue(
     .single()
   if (error) throw error
   return fromRow(data)
-}
-
-export async function updateIssue(
-  workspaceOrgId: string,
-  id: string,
-  patch: Partial<CommsIssue>,
-): Promise<CommsIssue | null> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('comms_issues')
-    .update(patchToRow(patch))
-    .eq('id', id)
-    .eq('organization_id', workspaceOrgId)
-    .select('*')
-    .single()
-  if (error) throw error
-  return data ? fromRow(data) : null
 }
 
 export async function removeIssue(workspaceOrgId: string, id: string): Promise<void> {

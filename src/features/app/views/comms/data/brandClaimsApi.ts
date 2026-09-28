@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
-import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsBrandClaim } from './types'
 
 function fromRow(raw: unknown): CommsBrandClaim {
@@ -37,16 +37,6 @@ function toRow(
   }
 }
 
-function patchToRow(patch: Partial<CommsBrandClaim>): TablesUpdate<'comms_brand_claims'> {
-  const row: TablesUpdate<'comms_brand_claims'> = {}
-  if (patch.text !== undefined) row.text = toJson(patch.text)
-  if (patch.evidence !== undefined) row.evidence = toJson(patch.evidence)
-  if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.reviewDate !== undefined) row.review_date = patch.reviewDate ?? null
-  if (patch.status !== undefined) row.status = patch.status
-  return row
-}
-
 export async function listBrandClaims(workspaceOrgId: string): Promise<CommsBrandClaim[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
@@ -70,23 +60,6 @@ export async function addBrandClaim(
     .single()
   if (error) throw error
   return fromRow(data)
-}
-
-export async function updateBrandClaim(
-  workspaceOrgId: string,
-  id: string,
-  patch: Partial<CommsBrandClaim>,
-): Promise<CommsBrandClaim | null> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('comms_brand_claims')
-    .update(patchToRow(patch))
-    .eq('id', id)
-    .eq('organization_id', workspaceOrgId)
-    .select('*')
-    .single()
-  if (error) throw error
-  return data ? fromRow(data) : null
 }
 
 export async function removeBrandClaim(workspaceOrgId: string, id: string): Promise<void> {

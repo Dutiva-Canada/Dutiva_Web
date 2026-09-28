@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import { toJson } from '@/lib/supabaseJson'
 import type { Bi } from '@/i18n/core'
-import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
+import type { TablesInsert } from '@/lib/supabase/types'
 import type { CommsIntegration } from './types'
 
 function fromRow(raw: unknown): CommsIntegration {
@@ -37,16 +37,6 @@ function toRow(
   }
 }
 
-function patchToRow(patch: Partial<CommsIntegration>): TablesUpdate<'comms_integrations'> {
-  const row: TablesUpdate<'comms_integrations'> = {}
-  if (patch.name !== undefined) row.name = patch.name
-  if (patch.type !== undefined) row.type = toJson(patch.type)
-  if (patch.status !== undefined) row.status = patch.status
-  if (patch.owner !== undefined) row.owner = patch.owner
-  if (patch.notes !== undefined) row.notes = toJson(patch.notes ?? null)
-  return row
-}
-
 export async function listIntegrations(workspaceOrgId: string): Promise<CommsIntegration[]> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data, error } = await supabase
@@ -70,23 +60,6 @@ export async function addIntegration(
     .single()
   if (error) throw error
   return fromRow(data)
-}
-
-export async function updateIntegration(
-  workspaceOrgId: string,
-  id: string,
-  patch: Partial<CommsIntegration>,
-): Promise<CommsIntegration | null> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase
-    .from('comms_integrations')
-    .update(patchToRow(patch))
-    .eq('id', id)
-    .eq('organization_id', workspaceOrgId)
-    .select('*')
-    .single()
-  if (error) throw error
-  return data ? fromRow(data) : null
 }
 
 export async function removeIntegration(workspaceOrgId: string, id: string): Promise<void> {

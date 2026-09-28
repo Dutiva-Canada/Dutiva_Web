@@ -9,7 +9,6 @@ import type {
   FinanceDealKind,
   FinanceDealStage,
   FinanceDecisionKind,
-  FinanceExternalActionStatus,
   FinanceInvoiceStatus,
   FinanceJournalStatus,
   FinanceLegalForm,
@@ -125,17 +124,6 @@ export const OBLIGATION_STATUS_LABEL: Record<FinanceObligationStatus, Bi> = {
   confirmed: { en: 'Confirmed', fr: 'Confirmée' },
   overdue: { en: 'Overdue', fr: 'En retard' },
   withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
-}
-
-export const EXTERNAL_ACTION_STATUS_LABEL: Record<FinanceExternalActionStatus, Bi> = {
-  internal_approval: { en: 'Internal approval', fr: 'Approbation interne' },
-  export_prepared: { en: 'Export prepared', fr: 'Export préparé' },
-  provider_accepted: { en: 'Provider accepted', fr: 'Fournisseur a accepté' },
-  settled: { en: 'Settled', fr: 'Réglé' },
-  filing_accepted: { en: 'Filing accepted', fr: 'Dépôt accepté' },
-  failed: { en: 'Failed', fr: 'Échec' },
-  returned: { en: 'Returned', fr: 'Retourné' },
-  unknown: { en: 'Unknown', fr: 'Inconnu' },
 }
 
 export const CATEGORY_MATCH_TYPE_LABEL: Record<FinanceCategoryMatchType, Bi> = {

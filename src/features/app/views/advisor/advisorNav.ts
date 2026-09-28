@@ -17,11 +17,6 @@ export interface AdvisorStartFlowNavState {
   flowKey?: FlowKeyOrFallback
 }
 
-/** Sidebar "New conversation" / mobile Ask tab — always reset to a fresh chat. */
-export interface AdvisorNewChatNavState {
-  newConversation: true
-}
-
 function isFlowKey(value: unknown): value is FlowKeyOrFallback {
   return typeof value === 'string' && value in flowTitles
 }
@@ -43,6 +38,7 @@ export function readNavStartFlow(state: unknown): AdvisorStartFlowNavState | nul
   return { prompt, flowKey: isFlowKey(flowKey) ? flowKey : undefined }
 }
 
+/** Sidebar "New conversation" / mobile Ask tab — always reset to a fresh chat. */
 export function readNavNewChat(state: unknown): boolean {
   return (
     state !== null &&

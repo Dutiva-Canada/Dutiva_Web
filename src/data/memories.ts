@@ -12,9 +12,6 @@ import type { MemoryFact, MemoryRetentionCategory, MemorySourceType } from './ty
  * real routes. EN follows corrected demo facts; FR [self-authored].
  */
 
-/** @deprecated Use `demoTodayISO` from `@/data` — kept for memory imports. */
-export const memoryScenarioTodayISO = demoTodayISO
-
 /* People with a memory profile (memory nav "People" group). */
 export interface MemoryPersonChip {
   tone: 'ok' | 'warn' | 'risk' | 'neutral'
