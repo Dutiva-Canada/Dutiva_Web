@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { supabase } from '@/lib/supabaseClient'
 import type { SupportCategory, SupportPriority, SupportStatus } from '@/config/support'
+import type { ScheduledCallSlot, ScheduledCallView } from './supportApi'
 import { supportQueueRank, type RequesterPlan } from './triage'
 
 /**
@@ -191,11 +192,6 @@ export async function adminGetTicket(id: string): Promise<AdminTicket | null> {
   }
 }
 
-export interface ScheduledCallSlot {
-  start: string
-  end: string
-}
-
 export type AgentAction =
   | { action: 'reply'; body: string }
   | { action: 'note'; body: string }
@@ -216,17 +212,7 @@ export async function runAgentAction(ticketId: string, payload: AgentAction): Pr
    every ticket's scheduled call the same way it grants ticket/message reads;
    the only write is propose_call above, through the edge function. */
 
-export type ScheduledCallStatus = 'proposed' | 'confirmed' | 'completed' | 'cancelled'
-
-export interface AdminScheduledCall {
-  id: string
-  proposedSlots: ScheduledCallSlot[]
-  durationMinutes: number
-  status: ScheduledCallStatus
-  confirmedStart: string | null
-  confirmedEnd: string | null
-  meetLink: string | null
-}
+export type AdminScheduledCall = ScheduledCallView
 
 const scheduledCallSchema = z.object({
   id: z.string(),

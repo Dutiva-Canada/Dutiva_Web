@@ -9,37 +9,11 @@
  *     dynamic wordDoc) with the returned stamp → triggerDownload().
  */
 
-export {
-  contentFingerprint,
-  decodeInvisibleTag,
-  encodeInvisibleTag,
-  isExportId,
-  newExportId,
-} from './fingerprint'
-export {
-  applyTextWatermark,
-  formatStampTime,
-  watermarkFooterLines,
-  watermarkNotice,
-  type ExportStamp,
-} from './watermark'
-export {
-  appendExportAudit,
-  clearExportAudit,
-  localExportDecision,
-  readExportAudit,
-  LOCAL_GUARD_POLICY,
-  type ExportAuditEntry,
-  type ExportKind,
-  type ExportSurface,
-} from './localAudit'
-export {
-  authorizeExport,
-  exportDenialMessage,
-  type ExportDecision,
-  type ExportRequest,
-} from './authorize'
-export { buildTextPdf, type TextPdfInput } from './artifacts/textPdf'
+export { decodeInvisibleTag, encodeInvisibleTag } from './fingerprint'
+export { formatStampTime, watermarkFooterLines, watermarkNotice } from './watermark'
+export { appendExportAudit, clearExportAudit, readExportAudit } from './localAudit'
+export { authorizeExport, exportDenialMessage } from './authorize'
+export { buildTextPdf } from './artifacts/textPdf'
 /* Word OOXML stays off this barrel — `docx` must not reach the eager graph.
    Callers dynamic-import `@/lib/exportProtection/artifacts/wordDoc`. */
 export { exportFilename, triggerDownload } from './artifacts/download'

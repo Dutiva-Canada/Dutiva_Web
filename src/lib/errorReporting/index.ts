@@ -18,7 +18,7 @@ import { RELEASE_SHA } from '@/lib/release'
 import { createReporter } from './reporter'
 import type { Reporter } from './reporter'
 
-export type { ReportKind, ReportPayload } from './reporter'
+
 
 let reporter: Reporter | null = null
 
