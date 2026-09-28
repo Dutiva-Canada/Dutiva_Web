@@ -64,7 +64,7 @@ export interface CaseApprovalState {
 }
 
 /** Read-only derived data behind the Overview tab. */
-export interface CaseOverviewData {
+interface CaseOverviewData {
   caze: WorkspaceCase
   risk: CaseRisk
   rec: FixtureToneCard

@@ -7,7 +7,7 @@ import type { Lang } from '@/i18n/core'
 
 export type SigningStatusEvent = 'completed' | 'declined'
 
-export interface SigningStatusEmailContext {
+interface SigningStatusEmailContext {
   language: Lang
   organizationName: string
   documentTitle: string

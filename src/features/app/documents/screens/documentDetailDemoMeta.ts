@@ -21,9 +21,9 @@ export const DETAIL_TABS = [
 
 export type DetailTabKey = (typeof DETAIL_TABS)[number][0]
 
-export const EDIT_TOAST: Bi = bi('Editing in the guided flow', 'Modification dans le flux guidé')
+const EDIT_TOAST: Bi = bi('Editing in the guided flow', 'Modification dans le flux guidé')
 
-export interface DetailActionConfig {
+interface DetailActionConfig {
   label: WorkspaceMessageKey
   toast: Bi
   tone: ToastTone

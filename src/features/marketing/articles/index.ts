@@ -11,7 +11,7 @@ export { BLOG_ARTICLES } from './blogArticles'
     registry uses to mint one indexable URL pair per article. */
 export const ALL_ARTICLES: readonly Article[] = [...GUIDE_ARTICLES, ...BLOG_ARTICLES]
 
-export function articlesIn(collection: ArticleCollection): readonly Article[] {
+function articlesIn(collection: ArticleCollection): readonly Article[] {
   return collection === 'guide' ? GUIDE_ARTICLES : BLOG_ARTICLES
 }
 

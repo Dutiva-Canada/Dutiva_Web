@@ -28,7 +28,3 @@ export function useMdUp(): boolean {
 export function useLgUp(): boolean {
   return useMediaQuery('(min-width: 1024px)')
 }
-
-export function useXlUp(): boolean {
-  return useMediaQuery('(min-width: 1280px)')
-}

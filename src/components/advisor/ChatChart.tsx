@@ -61,7 +61,7 @@ interface SeriesSpec {
   label?: string
 }
 
-export interface ChartSpec {
+interface ChartSpec {
   type?: 'bar' | 'hbar' | 'line' | 'area' | 'donut'
   title?: string
   note?: string

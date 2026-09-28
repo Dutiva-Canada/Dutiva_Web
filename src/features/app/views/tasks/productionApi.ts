@@ -27,7 +27,7 @@ export const PRODUCTION_TASK_PRIORITIES: readonly ProductionTaskPriority[] = [
 ]
 
 /** A user note on a task, stored in the row's jsonb metadata.notes. */
-export interface TaskNote {
+interface TaskNote {
   id: string
   text: string
   /** ISO timestamp. */

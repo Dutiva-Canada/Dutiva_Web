@@ -139,9 +139,9 @@ export async function listInboundEmails(
   return z.array(mailRowSchema).parse(data ?? [])
 }
 
-export type IntegrationAction = 'connect' | 'test' | 'disconnect'
+type IntegrationAction = 'connect' | 'test' | 'disconnect'
 
-export interface IntegrationActionResult {
+interface IntegrationActionResult {
   status: string
   account?: string
   providerStatus?: number

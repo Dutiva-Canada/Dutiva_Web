@@ -27,7 +27,7 @@ export interface ProductionCompensationRecord {
   note: string | null
 }
 
-export interface UpdateCompensationRecord {
+interface UpdateCompensationRecord {
   baseSalary: number
   band: string
   /** Empty string when the employer has no band midpoint to compare against. */
@@ -36,7 +36,7 @@ export interface UpdateCompensationRecord {
   note: string
 }
 
-export interface NewCompensationRecord {
+interface NewCompensationRecord {
   employeeId: string
   baseSalary: number
   band: string

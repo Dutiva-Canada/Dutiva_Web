@@ -48,7 +48,7 @@ const CALCULATOR_SLUGS = new Set([
   'severance-amount-ontario',
 ])
 
-export function isCalculatorFlow(flow: Flow): boolean {
+function isCalculatorFlow(flow: Flow): boolean {
   return CALCULATOR_SLUGS.has(flow.slug)
 }
 

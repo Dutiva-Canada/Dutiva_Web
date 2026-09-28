@@ -155,7 +155,7 @@ export function downloadFile(content: string, fileName: string, mimeType: string
 
 /* ---------- Export bundle ---------- */
 
-export interface ExportBundle {
+interface ExportBundle {
   fileName: string
   content: string
   mimeType: string

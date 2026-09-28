@@ -8,7 +8,7 @@ import type { DocRecipient, GeneratedDoc, OrgProfile, WorkspaceRole } from './da
  * this phase), and the editable org compliance profile that drives the
  * applicability engine live.
  */
-export interface DoclibContextValue {
+interface DoclibContextValue {
   /** null while the catalogue is loading (screens render skeletons). */
   data: DoclibData | null
   role: WorkspaceRole

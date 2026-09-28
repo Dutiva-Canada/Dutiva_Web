@@ -12,7 +12,7 @@ import {
   updateContentItem as updateContentItemApi,
 } from './contentItemsApi'
 
-export interface UseContentItemsResult {
+interface UseContentItemsResult {
   contentItems: CommsContentItem[]
   loading: boolean
   canWrite: boolean

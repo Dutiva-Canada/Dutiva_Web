@@ -10,7 +10,7 @@ import type { SupportCategory, SupportImpact, SupportUrgency } from '@/config/su
  * hidden `contact_fax` trap; real users leave it empty.
  */
 
-export type PublicSupportErrorCode = 'rate_limited' | 'captcha' | 'validation' | 'error'
+type PublicSupportErrorCode = 'rate_limited' | 'captcha' | 'validation' | 'error'
 
 export class PublicSupportError extends Error {
   constructor(public readonly code: PublicSupportErrorCode) {

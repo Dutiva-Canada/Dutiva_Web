@@ -10,9 +10,9 @@ import type { FinanceWorkspaceState } from './types'
  * overview reads as a to-do list rather than a dashboard of facts.
  */
 
-export type FinanceAttentionKind = 'capital_call' | 'commitment_call' | 'debt' | 'deal'
+type FinanceAttentionKind = 'capital_call' | 'commitment_call' | 'debt' | 'deal'
 
-export type FinanceAttentionSeverity = 'overdue' | 'due_soon' | 'upcoming'
+type FinanceAttentionSeverity = 'overdue' | 'due_soon' | 'upcoming'
 
 export interface FinanceAttentionItem {
   key: string
@@ -139,7 +139,12 @@ export function computeFinanceAttention(
   input: AttentionInput,
   today: string,
 ): FinanceAttentionItem[] {
-  return [...liveCalls(input, today), ...commitmentCalls(input, today), ...maturingDebts(input, today), ...dealsPastTarget(input, today)]
+  return [
+    ...liveCalls(input, today),
+    ...commitmentCalls(input, today),
+    ...maturingDebts(input, today),
+    ...dealsPastTarget(input, today),
+  ]
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 6)
 }

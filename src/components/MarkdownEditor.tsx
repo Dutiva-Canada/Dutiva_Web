@@ -174,7 +174,7 @@ export function MarkdownToolbar({ value, textareaRef, setValue, messages }: Mark
   )
 }
 
-export interface MarkdownEditorMessages {
+interface MarkdownEditorMessages {
   bold: Bi
   italic: Bi
   heading: Bi

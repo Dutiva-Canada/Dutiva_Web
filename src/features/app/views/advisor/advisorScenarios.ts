@@ -795,7 +795,7 @@ export const scenarioFollowupLabels: Record<string, Bi> = {
 }
 
 /** Advisor-home suggestion grid — the six demo starters (prototype `suggDefs`). */
-export interface ScenarioSuggestion {
+interface ScenarioSuggestion {
   scenarioId: ScenarioId
   label: Bi
   sub: Bi

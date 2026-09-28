@@ -339,5 +339,3 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
     closeWizard,
   }
 }
-
-export type ImportExportActions = ReturnType<typeof useImportExportActions>

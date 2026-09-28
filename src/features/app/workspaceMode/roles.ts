@@ -5,7 +5,7 @@
  * Pure module: rankings and predicates only, no data access.
  */
 
-export const ORG_MEMBER_ROLES = [
+const ORG_MEMBER_ROLES = [
   'viewer',
   'consultant',
   'member',

@@ -19,7 +19,7 @@ import { scrubRoutePattern } from './scrubRoute'
 export type ReportKind =
   'route-boundary' | 'window-error' | 'unhandled-rejection' | 'recoverable-error'
 
-export interface ReportInput {
+interface ReportInput {
   /** The thrown value (Error, string, rejection reason, …). */
   error: unknown
   kind: ReportKind
@@ -47,7 +47,7 @@ export interface ReportPayload {
   ua: string
 }
 
-export interface ReporterConfig {
+interface ReporterConfig {
   endpoint: string
   /** 'production' | 'preview'. */
   env: string

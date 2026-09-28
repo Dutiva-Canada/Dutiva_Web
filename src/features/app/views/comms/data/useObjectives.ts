@@ -10,7 +10,7 @@ import {
   updateObjective as updateObjectiveApi,
 } from './objectivesApi'
 
-export interface UseObjectivesResult {
+interface UseObjectivesResult {
   objectives: CommsObjective[]
   loading: boolean
   canWrite: boolean

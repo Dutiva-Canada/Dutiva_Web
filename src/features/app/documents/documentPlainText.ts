@@ -3,7 +3,7 @@ import { mergeSegments, splitBilingualBody, splitProseParagraphs } from './engin
 import type { PreviewBlock } from './data'
 import type { ProductionDocumentRecipient } from './signatureQueries'
 
-export interface PlainTextExport {
+interface PlainTextExport {
   paragraphs: string[]
   signatureImages: Array<{ afterParagraphIndex: number; dataUrl: string }>
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderApp } from '@/test/renderApp'
 import { landing } from '@/i18n/messages/landing'
+import { getPlanById } from '@/config/plans'
 import { Hero } from './Hero'
 
 describe('Hero', () => {
@@ -13,6 +14,13 @@ describe('Hero', () => {
   it('states who the product is not for below the disclaimer', () => {
     renderApp(<Hero />, { route: '/', path: '/' })
     expect(screen.getByText(landing.landing_hero_scope.en)).toBeInTheDocument()
+  })
+
+  it('anchors the entry price under the hero CTAs', () => {
+    renderApp(<Hero />, { route: '/', path: '/' })
+    const price = getPlanById('starter')!.monthlyPrice
+    expect(screen.getByText(`$${price}`, { exact: false })).toBeInTheDocument()
+    expect(landing.landing_hero_price.fr).toContain(`${price} $ CA`)
   })
 
   it('leads with relief and statute-grounded guidance in the hero subhead', () => {

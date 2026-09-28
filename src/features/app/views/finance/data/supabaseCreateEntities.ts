@@ -1,0 +1,294 @@
+import type {
+  FinanceBankAccount,
+  FinanceLedgerAccount,
+  FinanceLegalEntity,
+  FinanceParty,
+  FinanceSubscription,
+} from './types'
+import {
+  mapBankAccount,
+  mapBook,
+  mapEntity,
+  mapLedgerAccount,
+  mapParty,
+  mapSubscription,
+} from './supabaseMappers'
+import {
+  DEFAULT_BOOK,
+  DEFAULT_CATEGORY_RULES,
+  DEFAULT_ENTITY,
+  DEFAULT_LEDGER_ACCOUNTS,
+} from './defaultCategoryRules'
+import { insertCategoryRule } from './supabaseImports'
+import { TABLES, supabase } from './supabaseTables'
+
+/* ---------- Entity management ---------- */
+
+export async function addEntityInSupabase(
+  orgId: string,
+  item: Omit<FinanceLegalEntity, 'id'>,
+): Promise<FinanceLegalEntity | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.entities)
+    .insert({
+      organization_id: orgId,
+      legal_name: item.legalName,
+      legal_form: item.legalForm,
+      fiscal_year_start: item.fiscalYearStart,
+      functional_currency: item.functionalCurrency,
+      jurisdictions: item.jurisdictions,
+      accounting_source_id: item.accountingSourceId,
+      payroll_source_id: item.payrollSourceId,
+      parent_entity_id: item.parentEntityId || null,
+      ownership_pct: item.ownershipPct ? Number(item.ownershipPct) : null,
+      active: item.active,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapEntity(data as Record<string, unknown>)
+}
+
+export async function updateEntityInSupabase(
+  orgId: string,
+  id: string,
+  patch: Partial<Omit<FinanceLegalEntity, 'id'>>,
+): Promise<FinanceLegalEntity | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.entities)
+    .update({
+      legal_name: patch.legalName,
+      legal_form: patch.legalForm,
+      fiscal_year_start: patch.fiscalYearStart,
+      functional_currency: patch.functionalCurrency,
+      jurisdictions: patch.jurisdictions,
+      accounting_source_id: patch.accountingSourceId,
+      payroll_source_id: patch.payrollSourceId,
+      /* Partial-update contract: absent keys serialize as undefined and are
+         dropped from the payload; only write ownership when the caller
+         actually passed the fields ('' / undefined-clearing → null). */
+      ...(patch.parentEntityId !== undefined
+        ? { parent_entity_id: patch.parentEntityId || null }
+        : {}),
+      ...(patch.ownershipPct !== undefined
+        ? { ownership_pct: patch.ownershipPct ? Number(patch.ownershipPct) : null }
+        : {}),
+      active: patch.active,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('organization_id', orgId)
+    .eq('id', id)
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapEntity(data as Record<string, unknown>)
+}
+
+export async function deleteEntityInSupabase(orgId: string, id: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from(TABLES.entities)
+    .delete()
+    .eq('organization_id', orgId)
+    .eq('id', id)
+  if (error) throw error
+  return true
+}
+
+export async function addBankAccountInSupabase(
+  orgId: string,
+  item: Omit<FinanceBankAccount, 'id'>,
+): Promise<FinanceBankAccount | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.bankAccounts)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      label: item.label,
+      currency: item.currency,
+      last4: item.last4,
+      restricted: item.restricted,
+      earmarked_amount: item.earmarkedAmount ? Number(item.earmarkedAmount) : null,
+      maturity_date: item.maturityDate,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapBankAccount(data as Record<string, unknown>)
+}
+
+export async function addLedgerAccountInSupabase(
+  orgId: string,
+  item: Omit<FinanceLedgerAccount, 'id'>,
+): Promise<FinanceLedgerAccount | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.ledgerAccounts)
+    .insert({
+      organization_id: orgId,
+      book_id: item.bookId,
+      code: item.code,
+      name: item.name,
+      type: item.type,
+      sensitive: item.sensitive,
+      active: item.active,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapLedgerAccount(data as Record<string, unknown>)
+}
+
+export async function addPartyInSupabase(
+  orgId: string,
+  item: Omit<FinanceParty, 'id'>,
+): Promise<FinanceParty | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.parties)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      name: item.name,
+      type: item.type,
+      external_id: item.externalId,
+      banking_details_on_file: item.bankingDetailsOnFile,
+      contact_name: item.contactName ?? null,
+      contact_email: item.contactEmail ?? null,
+      contact_phone: item.contactPhone ?? null,
+      active: item.active,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapParty(data as Record<string, unknown>)
+}
+
+export async function addSubscriptionInSupabase(
+  orgId: string,
+  item: Omit<FinanceSubscription, 'id'>,
+): Promise<FinanceSubscription | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from(TABLES.subscriptions)
+    .insert({
+      organization_id: orgId,
+      entity_id: item.entityId,
+      label: item.label,
+      supplier_id: item.supplierId,
+      cost: Number(item.cost),
+      currency: item.currency,
+      renewal_term: item.renewalTerm,
+      next_renewal_date: item.nextRenewalDate,
+      notice_date: item.noticeDate,
+      owner: item.owner,
+      active: item.active,
+    })
+    .select('*')
+    .single()
+  if (error) throw error
+  return mapSubscription(data as Record<string, unknown>)
+}
+
+export async function seedDefaultCategoryRulesInSupabase(orgId: string): Promise<number> {
+  if (!supabase) return 0
+
+  let { data: entityRows, error: entityError } = await supabase
+    .from(TABLES.entities)
+    .select('*')
+    .eq('organization_id', orgId)
+    .limit(1)
+  if (entityError) throw entityError
+  let entity = entityRows?.[0] ? mapEntity(entityRows[0] as Record<string, unknown>) : null
+
+  if (!entity) {
+    const created = await addEntityInSupabase(orgId, DEFAULT_ENTITY)
+    if (!created) return 0
+    entity = created
+  }
+
+  let { data: bookRows, error: bookError } = await supabase
+    .from(TABLES.books)
+    .select('*')
+    .eq('organization_id', orgId)
+    .limit(1)
+  if (bookError) throw bookError
+  let book = bookRows?.[0] ? mapBook(bookRows[0] as Record<string, unknown>) : null
+
+  if (!book) {
+    const { data, error } = await supabase
+      .from(TABLES.books)
+      .insert({
+        organization_id: orgId,
+        entity_id: entity.id,
+        label: DEFAULT_BOOK.label,
+        basis: DEFAULT_BOOK.basis,
+        authoritative_source: DEFAULT_BOOK.authoritativeSource,
+        last_synced_at: DEFAULT_BOOK.lastSyncedAt,
+      })
+      .select('*')
+      .single()
+    if (error) throw error
+    book = mapBook(data as Record<string, unknown>)
+  }
+
+  const { data: ledgerRows, error: ledgerError } = await supabase
+    .from(TABLES.ledgerAccounts)
+    .select('*')
+    .eq('organization_id', orgId)
+  if (ledgerError) throw ledgerError
+  const existingAccounts: FinanceLedgerAccount[] = (ledgerRows ?? []).map(
+    (r: Record<string, unknown>) => mapLedgerAccount(r),
+  )
+  const accountsByCode = new Map(
+    existingAccounts.map((la) => [la.code, la] as [string, FinanceLedgerAccount]),
+  )
+
+  for (const defaultAccount of DEFAULT_LEDGER_ACCOUNTS) {
+    if (accountsByCode.has(defaultAccount.code)) continue
+    const created = await addLedgerAccountInSupabase(orgId, {
+      bookId: book.id,
+      code: defaultAccount.code,
+      name: defaultAccount.name,
+      type: defaultAccount.type,
+      sensitive: defaultAccount.sensitive ?? false,
+      active: true,
+    })
+    if (created) accountsByCode.set(created.code, created)
+  }
+
+  const { data: ruleRows, error: ruleError } = await supabase
+    .from(TABLES.categoryRules)
+    .select('*')
+    .eq('organization_id', orgId)
+    .eq('entity_id', entity.id)
+  if (ruleError) throw ruleError
+  const existingPatterns = new Set(
+    (ruleRows ?? []).map((r: Record<string, unknown>) => (r.pattern as string).toUpperCase()),
+  )
+
+  let addedRules = 0
+  for (const defaultRule of DEFAULT_CATEGORY_RULES) {
+    if (existingPatterns.has(defaultRule.pattern.toUpperCase())) continue
+    const account = accountsByCode.get(defaultRule.ledgerAccountCode)
+    if (!account) continue
+    const created = await insertCategoryRule(orgId, {
+      entityId: entity.id,
+      pattern: defaultRule.pattern,
+      matchType: defaultRule.matchType,
+      ledgerAccountId: account.id,
+      direction: defaultRule.direction,
+      priority: defaultRule.priority,
+      active: true,
+    })
+    if (created) {
+      existingPatterns.add(defaultRule.pattern.toUpperCase())
+      addedRules++
+    }
+  }
+
+  return addedRules
+}

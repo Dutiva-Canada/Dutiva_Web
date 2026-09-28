@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabaseClient'
  * taken=0 so the counter still renders honestly as "0 of N".
  */
 
-export interface BetaCohortStatus {
+interface BetaCohortStatus {
   taken: number
   limit: number
 }

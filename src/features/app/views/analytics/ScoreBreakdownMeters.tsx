@@ -10,7 +10,7 @@ import { sourceChipClass } from '@/components/chips'
  * component carries an explicit flag chip (icon + text, never colour alone).
  */
 
-export interface BreakdownMeterRow {
+interface BreakdownMeterRow {
   key: string
   label: string
   /** 0–100 meter fill. */

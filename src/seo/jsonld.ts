@@ -20,9 +20,9 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, ORG_SAME_AS, SITE_ORIGIN, absoluteUrl } 
 export type JsonLdNode = Record<string, unknown>
 
 export const ORG_ID = `${SITE_ORIGIN}/#organization`
-export const FOUNDER_ID = `${SITE_ORIGIN}/#founder`
-export const WEBSITE_ID = `${SITE_ORIGIN}/#website`
-export const SOFTWARE_ID = `${SITE_ORIGIN}/#software`
+const FOUNDER_ID = `${SITE_ORIGIN}/#founder`
+const WEBSITE_ID = `${SITE_ORIGIN}/#website`
+const SOFTWARE_ID = `${SITE_ORIGIN}/#software`
 
 const LOCALE_TAG: Record<Lang, string> = { en: 'en-CA', fr: 'fr-CA' }
 
@@ -89,7 +89,7 @@ export function webSiteNode(lang: Lang): JsonLdNode {
   }
 }
 
-export interface OfferInput {
+interface OfferInput {
   name: string
   /** Monthly price in CAD, as visibly rendered on the pricing page. */
   priceCad: number
@@ -126,7 +126,7 @@ export function webApplicationNode(lang: Lang, offers?: OfferInput[]): JsonLdNod
 
 export type WebPageType = 'WebPage' | 'AboutPage' | 'CollectionPage' | 'FAQPage'
 
-export interface WebPageInput {
+interface WebPageInput {
   lang: Lang
   /** Canonical pathname of the page. */
   path: string
@@ -190,7 +190,7 @@ export function faqPageEntities(entries: FaqEntry[]): JsonLdNode[] {
   }))
 }
 
-export interface ArticleNodeInput {
+interface ArticleNodeInput {
   lang: Lang
   path: string
   headline: string
@@ -222,12 +222,12 @@ export function articleNode(input: ArticleNodeInput): JsonLdNode {
   }
 }
 
-export interface HowToStepInput {
+interface HowToStepInput {
   name: string
   text: string
 }
 
-export interface HowToNodeInput {
+interface HowToNodeInput {
   lang: Lang
   path: string
   name: string

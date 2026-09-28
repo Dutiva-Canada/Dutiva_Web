@@ -10,7 +10,7 @@ import {
   updateInteraction as updateInteractionApi,
 } from './interactionsApi'
 
-export interface UseInteractionsResult {
+interface UseInteractionsResult {
   interactions: CommsInteraction[]
   loading: boolean
   canWrite: boolean

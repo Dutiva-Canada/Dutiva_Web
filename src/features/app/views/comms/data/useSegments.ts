@@ -13,7 +13,7 @@ import {
   updateSegment as updateSegmentApi,
 } from './segmentsApi'
 
-export interface UseSegmentsResult {
+interface UseSegmentsResult {
   segments: CommsSegment[]
   segmentMemberships: CommsSegmentMembership[]
   loading: boolean

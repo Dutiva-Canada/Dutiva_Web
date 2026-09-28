@@ -1,6 +1,4 @@
-import type { Bi } from '@/i18n/core'
-
-export interface ParsedFeedItem {
+interface ParsedFeedItem {
   title: string
   url?: string
   publishedDate?: string
@@ -70,22 +68,4 @@ export function parseFeedXml(xml: string, fallbackPublisher?: string): ParsedFee
   if (format === 'atom') return parseAtom(doc, fallbackPublisher)
   if (format === 'rss') return parseRss(doc, fallbackPublisher)
   return []
-}
-
-export function feedItemToSource(
-  item: ParsedFeedItem,
-  publisherLabel: Bi,
-  classificationLabel: Bi,
-  initiativeId?: string,
-) {
-  return {
-    sourceType: 'news' as const,
-    publisher: publisherLabel,
-    publishedDate: item.publishedDate ? item.publishedDate.slice(0, 10) : undefined,
-    retrievedAt: new Date().toISOString(),
-    url: item.url,
-    classification: classificationLabel,
-    supports: { en: item.title, fr: item.title } as Bi,
-    initiativeId,
-  }
 }

@@ -12,10 +12,8 @@ import { MARKETING_DEMO_ORG } from './demoOrgContext'
 /** Curated templates with strong “before you sign up” preview value. */
 export const FEATURED_TEMPLATE_TIDS = ['T01', 'T03', 'T21'] as const
 
-export type FeaturedTemplateTid = (typeof FEATURED_TEMPLATE_TIDS)[number]
-
 /** Sample wizard answers merged into marketing previews — fictional demo employee. */
-export const demoMergeFieldAnswers: Record<string, string> = {
+const demoMergeFieldAnswers: Record<string, string> = {
   employee_name: 'Jordan Mensah',
   employee_first_name: 'Jordan',
   employee_address_line_1: '42 Maple Street',

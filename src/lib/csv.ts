@@ -4,12 +4,12 @@
  * delimiter detection.
  */
 
-export type CSVOptions = {
+type CSVOptions = {
   delimiter?: ',' | ';' | '\t' | '|' | string
   hasHeader?: boolean
 }
 
-export interface ParsedCSV {
+interface ParsedCSV {
   /** Raw header row if one is detected. */
   headers: string[]
   /** Data rows, including the header row if `hasHeader` is false. */

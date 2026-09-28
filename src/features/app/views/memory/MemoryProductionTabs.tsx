@@ -49,7 +49,7 @@ const inputClass =
 
 /* --------------------------------------------------------------- Memories */
 
-export interface ProductionMemoriesTabProps {
+interface ProductionMemoriesTabProps {
   readonly loading: boolean
   readonly loadFailed: boolean
   readonly rows: readonly MemoryFact[]
@@ -501,7 +501,7 @@ export function ProductionActivityTab({
 
 /* --------------------------------------------------------------- Governance */
 
-export interface ProductionGovernanceTabProps {
+interface ProductionGovernanceTabProps {
   readonly memoryEnabled: boolean
   readonly setMemoryEnabled: (v: boolean) => void
   readonly onExport: () => void

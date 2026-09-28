@@ -12,7 +12,7 @@ export interface MemoryHighlightPhrase {
   title: string
 }
 
-export interface MemoryTextSegment {
+interface MemoryTextSegment {
   text: string
   factId?: string
   title?: string

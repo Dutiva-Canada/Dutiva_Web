@@ -9,7 +9,7 @@ import {
   removePolicyFile as removePolicyFileApi,
 } from './policyFilesApi'
 
-export interface UsePolicyFilesResult {
+interface UsePolicyFilesResult {
   policyFiles: CommsPolicyFile[]
   loading: boolean
   canWrite: boolean

@@ -163,7 +163,7 @@ export async function regrantDriveFolder(): Promise<DriveFolderState | null> {
   }
 }
 
-export interface DriveImportResult {
+interface DriveImportResult {
   /** repoId ('Xenova/whisper-tiny') → files imported for it. */
   repos: Record<string, number>
   skippedFiles: number

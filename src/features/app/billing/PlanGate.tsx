@@ -30,7 +30,7 @@ function meetsFeature(plan: PlanId, subscriptionStatus: string, feature: PlanFea
   return hasActiveSubscription(subscriptionStatus)
 }
 
-export type PlanGateProps = {
+type PlanGateProps = {
   readonly children: React.ReactNode
 } & (
   | { readonly required: PlanId; readonly feature?: never }

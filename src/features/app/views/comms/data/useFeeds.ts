@@ -12,7 +12,7 @@ import {
 } from './feedsApi'
 import type { FeedSyncResult } from './feedsApi'
 
-export interface UseFeedsResult {
+interface UseFeedsResult {
   feeds: CommsFeed[]
   loading: boolean
   canWrite: boolean

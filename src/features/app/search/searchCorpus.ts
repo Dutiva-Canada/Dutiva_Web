@@ -40,7 +40,7 @@ export const searchTabs: ReadonlyArray<{ key: SearchTabKey; label: Bi }> = [
 
 /* ---------------------------------------------------------------- entries */
 
-export type SearchEntryKind =
+type SearchEntryKind =
   | 'person'
   | 'case'
   | 'chat'
@@ -61,7 +61,7 @@ export type SearchEntryKind =
  * Where a result navigates. The overlay resolves these to react-router
  * routes (CONVENTIONS.md route table).
  */
-export type SearchNav =
+type SearchNav =
   | { kind: 'employee'; employeeId: string }
   | { kind: 'case'; caseId: string }
   | { kind: 'chat'; chatId: string }

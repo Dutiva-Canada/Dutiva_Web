@@ -1,5 +1,4 @@
 import type { Bi } from '@/i18n/core'
-import { financeMessages as M } from '@/i18n/messages/finance'
 import type {
   FinanceAssetClass,
   FinanceBankMatchStatus,
@@ -9,7 +8,6 @@ import type {
   FinanceDealKind,
   FinanceDealStage,
   FinanceDecisionKind,
-  FinanceExternalActionStatus,
   FinanceInvoiceStatus,
   FinanceJournalStatus,
   FinanceLegalForm,
@@ -127,17 +125,6 @@ export const OBLIGATION_STATUS_LABEL: Record<FinanceObligationStatus, Bi> = {
   withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
 }
 
-export const EXTERNAL_ACTION_STATUS_LABEL: Record<FinanceExternalActionStatus, Bi> = {
-  internal_approval: { en: 'Internal approval', fr: 'Approbation interne' },
-  export_prepared: { en: 'Export prepared', fr: 'Export préparé' },
-  provider_accepted: { en: 'Provider accepted', fr: 'Fournisseur a accepté' },
-  settled: { en: 'Settled', fr: 'Réglé' },
-  filing_accepted: { en: 'Filing accepted', fr: 'Dépôt accepté' },
-  failed: { en: 'Failed', fr: 'Échec' },
-  returned: { en: 'Returned', fr: 'Retourné' },
-  unknown: { en: 'Unknown', fr: 'Inconnu' },
-}
-
 export const CATEGORY_MATCH_TYPE_LABEL: Record<FinanceCategoryMatchType, Bi> = {
   contains: { en: 'Contains', fr: 'Contient' },
   exact: { en: 'Exact match', fr: 'Correspondance exacte' },
@@ -199,5 +186,3 @@ export const DEAL_STAGE_ORDER: readonly FinanceDealStage[] = [
   'closed',
   'passed',
 ]
-
-export { M as FINANCE_MESSAGES }

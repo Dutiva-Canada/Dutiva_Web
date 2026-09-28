@@ -60,7 +60,7 @@ export function resolveBlocks(template: DocTemplate, ctx: ClauseContext): Previe
 }
 
 /** Label/value lines in clause copy (e.g. T01 §1 employer table). */
-export interface ClauseFieldLine {
+interface ClauseFieldLine {
   label: string
   value: string
 }

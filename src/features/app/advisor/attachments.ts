@@ -20,7 +20,7 @@ import { extractTextFromFile } from '@/lib/fileTextExtraction'
  * with the server's, which re-validates everything anyway.
  */
 
-export type AdvisorAttachmentKind = 'image' | 'document'
+type AdvisorAttachmentKind = 'image' | 'document'
 
 export interface AdvisorAttachment {
   id: string
@@ -37,7 +37,7 @@ export interface AdvisorAttachment {
 }
 
 /** What `advisor-chat` expects on the wire. */
-export interface WireAttachment {
+interface WireAttachment {
   kind: AdvisorAttachmentKind
   name: string
   data_url?: string
@@ -59,7 +59,7 @@ export class AttachmentError extends Error {
 
 export const MAX_ATTACHMENTS = 4
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024
-export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
+const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024
 /** Below the server's 20k cap — the client truncates, the server re-checks. */
 export const MAX_DOCUMENT_TEXT_CHARS = 18_000
 

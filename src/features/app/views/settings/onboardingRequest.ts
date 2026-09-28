@@ -3,7 +3,7 @@ import type { ResponseMethod, SupportCategory } from '@/config/support'
 import type { Bi } from '@/i18n/core'
 
 /** Prefill for Growth/Pro onboarding request → Support form. */
-export interface OnboardingSupportPrefill {
+interface OnboardingSupportPrefill {
   category: SupportCategory
   responseMethod: ResponseMethod
   subject: Bi

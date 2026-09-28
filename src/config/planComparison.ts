@@ -13,7 +13,6 @@ import type { MarketingMessageKey } from '@/i18n/messages'
 import type { PlanId } from './plans'
 import { PLAN_FEATURE_GATES_ENABLED } from './plans'
 import {
-  ADVISOR_ADDONS,
   getPlanEntitlements,
   hasPlanFeature,
   isUnlimited,
@@ -29,12 +28,12 @@ import {
  */
 export type ComparisonCell = boolean | MarketingMessageKey
 
-export interface ComparisonRow {
+interface ComparisonRow {
   labelKey: MarketingMessageKey
   cells: Record<PlanId, ComparisonCell>
 }
 
-export interface ComparisonGroup {
+interface ComparisonGroup {
   headingKey: MarketingMessageKey
   rows: ComparisonRow[]
 }
@@ -420,13 +419,3 @@ export const PLAN_COMPARISON_ENTITLED: ComparisonGroup[] = [
 export const PLAN_COMPARISON: ComparisonGroup[] = PLAN_FEATURE_GATES_ENABLED
   ? PLAN_COMPARISON_ENTITLED
   : PLAN_COMPARISON_SUPPORT
-
-/** Pack/overage footnote numbers — must match ADVISOR_ADDONS. */
-export const PRICING_ADVISOR_ADDON_FOOTNOTE = {
-  pack50Replies: ADVISOR_ADDONS.pack50.replies,
-  pack50Price: ADVISOR_ADDONS.pack50.priceCad,
-  pack200Replies: ADVISOR_ADDONS.pack200.replies,
-  pack200Price: ADVISOR_ADDONS.pack200.priceCad,
-  overagePerReply: ADVISOR_ADDONS.overagePerReplyCad,
-  overageCap: ADVISOR_ADDONS.overageMonthlyCap,
-} as const

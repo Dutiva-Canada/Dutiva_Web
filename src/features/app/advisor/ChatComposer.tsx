@@ -48,7 +48,7 @@ import {
  * (LaMini). Nothing leaves the machine for these — failures toast via the
  * shared toasts context.
  */
-export interface ChatComposerProps {
+interface ChatComposerProps {
   readonly placeholder: string
   readonly onSend: (text: string, attachments?: AdvisorAttachment[]) => void
   readonly variant?: 'home' | 'chat' | 'rail'

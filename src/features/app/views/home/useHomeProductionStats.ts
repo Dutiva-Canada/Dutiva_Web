@@ -12,7 +12,7 @@ import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import { listDocuments } from '@/features/app/documents/productionApi'
 
-export interface HomeProductionData {
+interface HomeProductionData {
   employees: number
   cases: ProductionCase[]
   tasks: ProductionTask[]
@@ -24,7 +24,7 @@ export interface HomeProductionData {
   documents: number
 }
 
-export interface HomeDueItem {
+interface HomeDueItem {
   key: string
   kind: Bi
   title: string

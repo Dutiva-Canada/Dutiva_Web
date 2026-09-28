@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabaseClient'
  * without any AI assistance.
  */
 
-export interface TailorResumeRequest {
+interface TailorResumeRequest {
   resumeText: string
   jobTitle: string
   jobDescription: string
@@ -18,7 +18,7 @@ export interface TailorResumeResult {
   tailoredResume: string
 }
 
-export interface CoverLetterRequest {
+interface CoverLetterRequest {
   resumeText: string
   jobTitle: string
   jobDescription: string
@@ -30,7 +30,7 @@ export interface CoverLetterResult {
   coverLetter: string
 }
 
-export interface MatchScoreRequest {
+interface MatchScoreRequest {
   resumeText: string
   jobTitle: string
   jobDescription: string
@@ -42,7 +42,7 @@ export interface MatchScoreResult {
   suggestions: string[]
 }
 
-export interface InterviewPrepRequest {
+interface InterviewPrepRequest {
   jobTitle: string
   jobDescription: string
   requirements: string[]

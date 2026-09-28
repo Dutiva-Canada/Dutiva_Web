@@ -25,7 +25,7 @@ import type {
  * follows corrected demo facts; FR [self-authored].
  */
 
-export interface MemoryFactInputBase {
+interface MemoryFactInputBase {
   id: string
   scope: MemoryScope
   entityId: string
@@ -59,7 +59,7 @@ export interface MemoryFactInputBase {
 }
 
 /** Confirmed facts must not be seeded from Advisor inference alone. */
-export type MemoryFactInput =
+type MemoryFactInput =
   | (MemoryFactInputBase & {
       confidence: 'confirmed'
       source: { type: Exclude<MemorySourceType, 'inference'>; detail: Bi }

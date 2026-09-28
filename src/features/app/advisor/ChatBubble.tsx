@@ -12,7 +12,7 @@ import type { ReactNode } from 'react'
  *   opaque backdrop — sticky table headers, scroll fades — to the app-surface
  *   tokens, so light and dark both resolve without configuration.
  */
-export interface ChatBubbleProps {
+interface ChatBubbleProps {
   readonly author: 'user' | 'assistant'
   /** Rail sizing (smaller paddings/typography). */
   readonly compact?: boolean

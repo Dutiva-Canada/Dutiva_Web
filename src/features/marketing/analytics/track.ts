@@ -7,7 +7,7 @@
 
 import { hasAnalyticsConsent } from '@/lib/analyticsConsent'
 
-export type LandingEvent =
+type LandingEvent =
   | 'cta_click' // { cta: 'see_plans' | 'open_demo' | 'join_waitlist', location: string }
   | 'showcase_tab' // { tab: string }
   | 'demo_tour_stop' // { stop: string }

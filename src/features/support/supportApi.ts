@@ -16,7 +16,7 @@ import type { SupportDiagnostics } from './diagnostics'
  * so this only shapes the payload and validates the reply.
  */
 
-export interface SupportRequestInput {
+interface SupportRequestInput {
   category: SupportCategory
   subject: string
   description: string
@@ -37,7 +37,7 @@ const responseSchema = z.object({
   }),
 })
 
-export interface SupportTicketResult {
+interface SupportTicketResult {
   id: string
   publicReference: string
   status: string

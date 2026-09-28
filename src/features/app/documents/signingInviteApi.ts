@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import type { Lang } from '@/i18n/core'
 
-export interface SendSigningInviteInput {
+interface SendSigningInviteInput {
   organizationId: string
   documentId: string
   /** When omitted, emails every pending/sent/viewed recipient on the envelope. */
@@ -10,7 +10,7 @@ export interface SendSigningInviteInput {
   language: Lang
 }
 
-export interface SendSigningInviteResult {
+interface SendSigningInviteResult {
   ok: true
   sent: Array<{ recipientId: string; email: string }>
   failed: Array<{ recipientId: string; email: string; error: string }>

@@ -7,7 +7,7 @@ import { cx } from './cx'
  * `AppPageLead` rather than repeating the title.
  */
 
-export type AppPageWidth = 'narrow' | 'comfort' | 'default' | 'wide' | 'studio'
+type AppPageWidth = 'narrow' | 'comfort' | 'default' | 'wide' | 'studio'
 
 const WIDTH_CLASS: Record<AppPageWidth, string> = {
   narrow: 'max-w-[720px]',

@@ -35,9 +35,9 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
  *   run above the statutory floor.
  */
 
-export type CrossCheckVerdict = 'consistent' | 'mismatch' | 'unverifiable'
+type CrossCheckVerdict = 'consistent' | 'mismatch' | 'unverifiable'
 
-export interface NoticeCrossCheckResult {
+interface NoticeCrossCheckResult {
   verdict: CrossCheckVerdict
   /** Populated on mismatch: what the schedule says vs what the reply said
    *  (the claim nearest the expected value; `statedWeeks` is always a

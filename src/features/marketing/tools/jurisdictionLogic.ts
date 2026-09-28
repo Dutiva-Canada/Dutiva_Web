@@ -26,7 +26,7 @@ export type QuestionId =
   | 'qcLanguage' // Is French the predominant language of the workplace? (QC only)
 
 /** A single answer option. */
-export interface QuestionOption {
+interface QuestionOption {
   id: string
   label: Bi
 }
@@ -46,7 +46,7 @@ export interface Question {
 }
 
 /** The result of the questionnaire — which jurisdiction applies and why. */
-export interface JurisdictionResult {
+interface JurisdictionResult {
   jurisdiction: Jurisdiction
   /** The statute name, bilingual. */
   statute: Bi

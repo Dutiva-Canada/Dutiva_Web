@@ -26,8 +26,8 @@ export type HomeAction =
       The explicit flow key must ride along (the keyword router is EN-only). */
   | { kind: 'flow'; prompt: Bi; flowKey: FlowKeyOrFallback }
 
-export type PriorityTone = 'risk' | 'warning' | 'info'
-export type PrioritySeverity = 'High' | 'Medium' | 'Low'
+type PriorityTone = 'risk' | 'warning' | 'info'
+type PrioritySeverity = 'High' | 'Medium' | 'Low'
 
 /* --------------------------------------------------------- derived counts */
 
@@ -38,7 +38,7 @@ export const openCaseCount = cases.filter((c) => c.status.en !== 'Resolved').len
 export const openTaskCount = tasks.filter((t) => !t.done).length
 
 /** Prototype `buildWellbeingView().attention` — employees with sentiment < 55. */
-export const supportSignalCount = employees.filter((e) => {
+const supportSignalCount = employees.filter((e) => {
   const sentiment = employeeDetails[e.id]?.sentiment
   return sentiment != null && sentiment < 55
 }).length
@@ -224,7 +224,7 @@ export const watchingPriorities = homePriorities.filter((p) => p.severity === 'L
 
 /* ------------------------------------------------------------ metric chips */
 
-export interface HomeMetricChip {
+interface HomeMetricChip {
   value: string
   suffix: string
   label: Bi

@@ -33,7 +33,7 @@ import { memoryActions } from './memoryStore'
  * action menu. Status is never colour-only — a label + icon accompany every
  * state. Selecting the row (click or Enter) opens the details drawer.
  */
-export interface MemoryListRowProps {
+interface MemoryListRowProps {
   readonly fact: MemoryFact
   readonly subject: SubjectRef
   readonly todayISO: string

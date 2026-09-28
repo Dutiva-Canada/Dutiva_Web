@@ -17,7 +17,7 @@ import { OG_IMAGE, ORG, absoluteUrl } from './site'
  * deterministic replace-all — no duplicate or stale tags across navigations.
  */
 
-export interface HeadTag {
+interface HeadTag {
   tag: 'meta' | 'link'
   attrs: Record<string, string>
 }
@@ -30,7 +30,7 @@ export interface HeadData {
   jsonLd: string | null
 }
 
-export interface HeadInput {
+interface HeadInput {
   lang: Lang
   title: string
   description: string

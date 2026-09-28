@@ -18,10 +18,10 @@ import { z } from 'zod'
  */
 
 /** `route.responseMode` — the actual internal mode, drives the mode chip. */
-export const responseModeSchema = z.enum(['hr', 'escalation', 'supportive'])
+const responseModeSchema = z.enum(['hr', 'escalation', 'supportive'])
 export type ResponseMode = z.infer<typeof responseModeSchema>
 
-export const jurisdictionStatusSchema = z.enum([
+const jurisdictionStatusSchema = z.enum([
   'known',
   'assumed',
   'unknown',
@@ -30,17 +30,17 @@ export const jurisdictionStatusSchema = z.enum([
 ])
 export type JurisdictionStatus = z.infer<typeof jurisdictionStatusSchema>
 
-export const complianceRiskSchema = z.enum(['low', 'medium', 'high', 'critical'])
+const complianceRiskSchema = z.enum(['low', 'medium', 'high', 'critical'])
 export type ComplianceRisk = z.infer<typeof complianceRiskSchema>
 
-export const safetyRiskSchema = z.enum(['none', 'watch', 'urgent', 'critical'])
+const safetyRiskSchema = z.enum(['none', 'watch', 'urgent', 'critical'])
 export type SafetyRisk = z.infer<typeof safetyRiskSchema>
 
-export const professionalReviewTypeSchema = z.enum(['hr', 'legal', 'medical', 'union', 'emergency'])
+const professionalReviewTypeSchema = z.enum(['hr', 'legal', 'medical', 'union', 'emergency'])
 export type ProfessionalReviewType = z.infer<typeof professionalReviewTypeSchema>
 
 /** Web sources are ranked by authority — they are never legal citations. */
-export const webAuthoritySchema = z.enum([
+const webAuthoritySchema = z.enum([
   'legislation',
   'official',
   'regulator',
@@ -53,7 +53,7 @@ export type WebAuthority = z.infer<typeof webAuthoritySchema>
 /** `LText` boundary form: engine sends a string, fixtures send `{ en, fr }`. */
 const lTextSchema = z.union([z.string(), z.object({ en: z.string(), fr: z.string() })])
 
-export const advisorRouteSchema = z.object({
+const advisorRouteSchema = z.object({
   responseMode: responseModeSchema,
   /** Gate the whole structured payload. */
   workspaceAllowed: z.boolean(),
@@ -72,61 +72,54 @@ export const advisorRouteSchema = z.object({
    */
   actionsAllowed: z.boolean().optional(),
 })
-export type AdvisorRoute = z.infer<typeof advisorRouteSchema>
 
-export const jurisdictionReadSchema = z.object({
+const jurisdictionReadSchema = z.object({
   status: jurisdictionStatusSchema,
   value: lTextSchema,
   note: lTextSchema.optional(),
 })
-export type JurisdictionRead = z.infer<typeof jurisdictionReadSchema>
 
 /** Two independent ramps → the dual risk meters. */
-export const riskReadSchema = z.object({
+const riskReadSchema = z.object({
   compliance: complianceRiskSchema,
   safety: safetyRiskSchema,
 })
-export type RiskRead = z.infer<typeof riskReadSchema>
 
-export const professionalReviewSchema = z.object({
+const professionalReviewSchema = z.object({
   type: professionalReviewTypeSchema,
   label: lTextSchema,
   reason: lTextSchema,
 })
-export type ProfessionalReview = z.infer<typeof professionalReviewSchema>
 
 /** A statute section, each marked Valid or Needs-review (never raw). */
-export const legalBasisItemSchema = z.object({
+const legalBasisItemSchema = z.object({
   label: lTextSchema,
   valid: z.boolean(),
 })
-export type LegalBasisItem = z.infer<typeof legalBasisItemSchema>
 
-export const legalBasisReadSchema = z.object({
+const legalBasisReadSchema = z.object({
   items: z.array(legalBasisItemSchema),
   /** Operator-facing reason shown when `legalBasisAllowed` is false. */
   withheldReason: lTextSchema.optional(),
 })
-export type LegalBasisRead = z.infer<typeof legalBasisReadSchema>
 
-export const retrievalReadSchema = z.object({
+const retrievalReadSchema = z.object({
   /** Uppercase corpus tags (e.g. "Termination · ON"). */
   items: z.array(lTextSchema),
   note: lTextSchema.optional(),
   /** Operator-facing reason shown when `retrievalAllowed` is false. */
   withheldReason: lTextSchema.optional(),
 })
-export type RetrievalRead = z.infer<typeof retrievalReadSchema>
 
 /** Org memory facts injected into this turn (not statute). Optional for older payloads. */
-export const memoryUsedItemSchema = z.object({
+const memoryUsedItemSchema = z.object({
   label: lTextSchema,
   factId: z.string().optional(),
   /** When present, UI deep-links to the entity Memory surface. */
   scope: z.enum(['person', 'case', 'thread']).optional(),
   entityId: z.string().optional(),
 })
-export const memoryUsedReadSchema = z.object({
+const memoryUsedReadSchema = z.object({
   items: z.array(memoryUsedItemSchema),
   note: lTextSchema.optional(),
 })
@@ -141,28 +134,25 @@ export const memoryCreatedItemSchema = z.object({
 })
 export type MemoryCreatedItem = z.infer<typeof memoryCreatedItemSchema>
 
-export const webSourceSchema = z.object({
+const webSourceSchema = z.object({
   domain: z.string(),
   authority: webAuthoritySchema,
   title: lTextSchema,
 })
-export type WebSource = z.infer<typeof webSourceSchema>
 
 /** Present only on current-info turns; `null` hides the block entirely. */
-export const webSearchReadSchema = z.object({
+const webSearchReadSchema = z.object({
   sources: z.array(webSourceSchema),
   /** Shown when web search was requested but `webSearchAllowed` is false. */
   unavailableReason: lTextSchema.optional(),
 })
-export type WebSearchRead = z.infer<typeof webSearchReadSchema>
 
-export const confidenceReadSchema = z.object({
+const confidenceReadSchema = z.object({
   label: lTextSchema,
   /** 0–100 meter fill. */
   pct: z.number().min(0).max(100),
   note: lTextSchema.optional(),
 })
-export type ConfidenceRead = z.infer<typeof confidenceReadSchema>
 
 /**
  * An agent tool call the engine proposes for user confirmation — the wire
@@ -171,7 +161,7 @@ export type ConfidenceRead = z.infer<typeof confidenceReadSchema>
  * the user confirms on the card. The engine proposes; the registry decides
  * whether the call can run at all.
  */
-export const proposedActionSchema = z.object({
+const proposedActionSchema = z.object({
   toolId: z.string(),
   summary: lTextSchema,
   params: z.record(z.string(), z.unknown()),

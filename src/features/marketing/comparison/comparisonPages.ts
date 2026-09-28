@@ -12,19 +12,19 @@ import type { SeoRouteId } from '@/seo/routes'
  */
 export type ComparisonCompetitorId = 'hrdownloads' | 'sixfifty'
 
-export interface ComparisonDimension {
+interface ComparisonDimension {
   id: string
   label: Bi
   dutiva: Bi
   competitor: Bi
 }
 
-export interface ComparisonFaqItem {
+interface ComparisonFaqItem {
   question: Bi
   answer: Bi
 }
 
-export interface ComparisonPageConfig {
+interface ComparisonPageConfig {
   id: ComparisonCompetitorId
   seoRouteId: SeoRouteId
   competitorDisplayName: Bi

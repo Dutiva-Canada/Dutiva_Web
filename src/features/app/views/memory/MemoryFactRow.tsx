@@ -18,7 +18,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
  * actions (Confirm on inferred rows, Correct, Forget) + confidence badge.
  * The manager variant prepends a scope tag line.
  */
-export interface MemoryFactRowProps {
+interface MemoryFactRowProps {
   readonly fact: MemoryFact
   /** Demo fixtures pass the scenario reference day so "Today" stays deterministic. */
   readonly dateReferenceISO?: string

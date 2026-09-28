@@ -69,7 +69,7 @@ export async function listRoutes(): Promise<ModelRouteRow[]> {
   return z.array(routeRowSchema).parse(data ?? [])
 }
 
-export interface RegisterProviderInput {
+interface RegisterProviderInput {
   displayName: string
   baseUrl: string
   /** Env var NAME holding the API key on the edge runtime — blank for

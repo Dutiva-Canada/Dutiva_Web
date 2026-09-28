@@ -47,7 +47,7 @@ export interface ExportRequest {
   session: Session | null
 }
 
-export type ExportDenialScope = 'burst' | 'daily' | 'server'
+type ExportDenialScope = 'burst' | 'daily' | 'server'
 
 export type ExportDecision =
   | { allowed: true; stamp: ExportStamp; recordedRemotely: boolean; contentSha256: string }

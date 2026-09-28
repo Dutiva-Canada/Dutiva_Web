@@ -37,13 +37,13 @@ export function resetToolsForTest(): void {
 
 /* ── Provider-neutral model descriptors ──────────────────────────────────── */
 
-export interface ModelToolParamDescriptor {
+interface ModelToolParamDescriptor {
   readonly type: 'string' | 'number' | 'boolean'
   readonly description: string
   readonly enum?: readonly string[]
 }
 
-export interface ModelToolDescriptor {
+interface ModelToolDescriptor {
   readonly name: string
   readonly description: string
   readonly module: string

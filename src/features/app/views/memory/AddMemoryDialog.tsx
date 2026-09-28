@@ -25,7 +25,7 @@ import {
  * with sensible defaults. Warns when sensitive information may be unnecessary.
  * Accessible: focus on open, Escape to close, labelled controls.
  */
-export interface AddMemoryDialogProps {
+interface AddMemoryDialogProps {
   readonly open: boolean
   readonly onClose: () => void
 }

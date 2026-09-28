@@ -8,7 +8,7 @@ import {
   updateUsageControls as updateUsageControlsApi,
 } from './usageControlsApi'
 
-export interface UseUsageControlsResult {
+interface UseUsageControlsResult {
   usageControls: CommsUsageControls
   loading: boolean
   canWrite: boolean

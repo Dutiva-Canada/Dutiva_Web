@@ -8,7 +8,7 @@ import type { Lang } from '@/i18n/core'
  * specific document. This is not marketing mail; still no legal-compliance claims.
  */
 
-export interface SigningInviteEmailContext {
+interface SigningInviteEmailContext {
   language: Lang
   /** Recipient display name. */
   recipientName: string
@@ -26,7 +26,7 @@ export interface SigningInviteEmailContext {
   reminder?: boolean
 }
 
-export interface RenderedSigningInviteEmail {
+interface RenderedSigningInviteEmail {
   subject: string
   text: string
 }

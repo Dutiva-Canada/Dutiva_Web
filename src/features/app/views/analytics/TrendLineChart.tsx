@@ -22,7 +22,7 @@ import { intlLocale } from './format'
  * accent); an sr-only table twins the chart so no value is gated on hover.
  */
 
-export interface TrendChartPoint {
+interface TrendChartPoint {
   monthISO: string
   value: number
 }

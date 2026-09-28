@@ -9,7 +9,7 @@ import {
   removeApproval as removeApprovalApi,
 } from './approvalsApi'
 
-export interface UseApprovalsResult {
+interface UseApprovalsResult {
   approvals: CommsApproval[]
   loading: boolean
   canWrite: boolean

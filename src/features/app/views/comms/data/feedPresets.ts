@@ -2,7 +2,7 @@ import { bi } from '@/i18n/core'
 import type { CommsFeed } from './types'
 
 /** [FR self-authored] Curated Canadian monitoring feeds available as presets. */
-export interface CommsFeedPreset extends Omit<
+interface CommsFeedPreset extends Omit<
   CommsFeed,
   'id' | 'lastFetchedAt' | 'lastFetchStatus' | 'lastFetchMessage'
 > {

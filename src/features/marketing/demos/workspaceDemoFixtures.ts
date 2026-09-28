@@ -118,5 +118,3 @@ export const LANDING_WORKSPACE_FIXTURES = {
     ],
   },
 } as const
-
-export type LandingAttentionStatus = (typeof LANDING_WORKSPACE_FIXTURES.attention)[number]['status']

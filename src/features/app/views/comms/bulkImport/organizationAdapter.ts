@@ -3,7 +3,7 @@ import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import type { Bi } from '@/i18n/core'
 import type { CommsOrganization } from '../data/types'
 
-export interface OrganizationImportRow {
+interface OrganizationImportRow {
   name?: string
   type?: string
   jurisdiction?: string

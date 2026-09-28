@@ -3,7 +3,7 @@
  * DOM element, kept separate from the React UI so they can be unit-tested.
  */
 
-export interface SourceInfo {
+interface SourceInfo {
   /** Repo-relative path, e.g. 'src/features/app/views/cases/CasesView.tsx'. */
   file: string | null
   line: number | null

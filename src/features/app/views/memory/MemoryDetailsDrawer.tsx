@@ -46,7 +46,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
  * aria-modal, Escape to close, focus on open, labelled controls. Status is
  * never colour-only — every state carries a label.
  */
-export interface MemoryDetailsDrawerProps {
+interface MemoryDetailsDrawerProps {
   readonly fact: MemoryFact | null
   readonly subject: SubjectRef | null
   readonly todayISO: string

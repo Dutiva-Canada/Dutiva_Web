@@ -57,7 +57,7 @@ function validateCurrency(value: unknown): string | undefined {
   return undefined
 }
 
-export const entityBulkImportFields: BulkImportField<FinanceLegalEntity>[] = [
+const entityBulkImportFields: BulkImportField<FinanceLegalEntity>[] = [
   {
     key: 'legalName',
     label: M.finance_entity_legal_name,

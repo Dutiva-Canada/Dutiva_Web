@@ -120,7 +120,7 @@ export const inFlightWorkflows: readonly InFlightWorkflow[] = [
 
 /* ---------------------------------------------------------------- catalog */
 
-export interface WorkflowCatalogItem {
+interface WorkflowCatalogItem {
   key: string
   label: Bi
   sub: Bi
@@ -243,7 +243,7 @@ export const workflowCatalog: readonly WorkflowCatalogItem[] = catalogEntries.ma
 export type TerminationStageState =
   'done' | 'current' | 'partial' | 'waiting' | 'upcoming' | 'always'
 
-export interface TerminationStage {
+interface TerminationStage {
   n: number
   title: Bi
   sub: Bi

@@ -23,7 +23,7 @@ function parseDecimal(s: string): number {
 
 /* ---------- Deadline helpers ---------- */
 
-export type DeadlineState = 'none' | 'ok' | 'due_soon' | 'overdue'
+type DeadlineState = 'none' | 'ok' | 'due_soon' | 'overdue'
 
 export function deadlineState(dueDate: string | undefined, soonDays = 7): DeadlineState {
   if (!dueDate) return 'none'

@@ -15,7 +15,7 @@ import { recordDocumentExport } from './exportDocumentApi'
 import { buildSignedDocumentPdf } from './signedDocumentPdf'
 import { uploadDocumentExportPdf } from './exportStorageApi'
 
-export interface ExportSignedDocumentInput {
+interface ExportSignedDocumentInput {
   organizationId: string
   detail: ProductionDocumentDetail
   lang: Lang
@@ -24,7 +24,7 @@ export interface ExportSignedDocumentInput {
   session: Session | null
 }
 
-export type ExportSignedDocumentResult =
+type ExportSignedDocumentResult =
   | { ok: true; exportId: string }
   | { ok: false; reason: 'not_signed' | 'denied'; message?: ReturnType<typeof exportDenialMessage> }
 

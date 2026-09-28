@@ -10,7 +10,7 @@ import type { Json } from '@/lib/supabase/types'
  * one-row-one-fact.
  */
 
-export type TimelineSource = 'manual' | 'note' | 'system' | 'chat' | 'status' | 'memory'
+type TimelineSource = 'manual' | 'note' | 'system' | 'chat' | 'status' | 'memory'
 
 export interface BiLine {
   en: string
@@ -36,7 +36,7 @@ export interface CaseTimelineEvent {
   source: TimelineSource
 }
 
-export interface UpsertCaseNarrative {
+interface UpsertCaseNarrative {
   summaryEn: string
   summaryFr: string
   resumeSinceEn: string

@@ -102,7 +102,7 @@ export async function addFeed(
   return fromRow(data)
 }
 
-export async function updateFeed(
+async function updateFeed(
   workspaceOrgId: string,
   id: string,
   patch: Partial<CommsFeed>,

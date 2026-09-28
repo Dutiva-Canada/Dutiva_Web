@@ -12,7 +12,7 @@ import { readSheet } from 'read-excel-file/browser'
  * binary floating point, matching the rest of the finance data layer.
  */
 
-export interface ParsedStatementRow {
+interface ParsedStatementRow {
   date: string
   amount: string
   description: string
@@ -26,7 +26,7 @@ export interface ParsedStatementRow {
   rawDescription?: string
 }
 
-export interface StatementParseResult {
+interface StatementParseResult {
   rows: ParsedStatementRow[]
   totalRows: number
   errorRows: number
@@ -38,9 +38,9 @@ export interface StatementParseResult {
   errorDetails: StatementRowError[]
 }
 
-export interface StatementRowError extends FinanceImportRowError {}
+interface StatementRowError extends FinanceImportRowError {}
 
-export interface ColumnMap {
+interface ColumnMap {
   date: number
   amount: number
   /** Column index for description; -1 when the file has no usable description column. */
@@ -140,56 +140,6 @@ export function parseStatementCSV(text: string, _currency: FinanceCurrency): Sta
     delimiter,
     errorDetails,
   }
-}
-
-/**
- * Parse an Excel or CSV file into structured statement rows.
- * The bank-statement flow accepts the same formats as the generic
- * bulk-import wizard, but preserves Excel date cells and quoted CSV fields.
- */
-export function parseStatementFile(
-  file: File,
-  currency: FinanceCurrency,
-): Promise<StatementParseResult> {
-  const lower = file.name.toLowerCase()
-  if (lower.endsWith('.csv') || lower.endsWith('.tsv') || lower.endsWith('.txt')) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        try {
-          const text = String(reader.result ?? '')
-          resolve(parseStatementCSV(text, currency))
-        } catch (err) {
-          reject(err)
-        }
-      }
-      reader.onerror = () => reject(new Error('Failed to read file'))
-      reader.readAsText(file)
-    })
-  }
-
-  return readSheet(file).then((data) => {
-    const rows = (data as (string | number | boolean | Date | null)[][]).map((r) =>
-      (r ?? []).map((cell) => (cell == null ? '' : formatStatementCell(cell))),
-    )
-    const headers = rows[0] ?? []
-    const columnMap = detectColumns(headers)
-    const hasHeader = columnMap != null
-
-    const map: ColumnMap = hasHeader ? columnMap : { date: 0, amount: 1, description: 2 }
-    const dataRows = hasHeader ? rows.slice(1) : [headers, ...rows.slice(1)]
-
-    const { rows: parsedRows, errorDetails } = parseStatementRows(map, dataRows)
-
-    return {
-      rows: parsedRows,
-      totalRows: parsedRows.length,
-      errorRows: errorDetails.length,
-      columnMap: map,
-      delimiter: ',',
-      errorDetails,
-    }
-  })
 }
 
 function parseStatementRows(

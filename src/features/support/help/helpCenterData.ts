@@ -26,7 +26,7 @@ export type HelpCategoryId =
 export type HelpIcon =
   'rocket' | 'file-text' | 'sparkles' | 'credit-card' | 'shield-check' | 'life-buoy'
 
-export interface HelpCategory {
+interface HelpCategory {
   id: HelpCategoryId
   icon: HelpIcon
   title: Bi
@@ -162,7 +162,10 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     frSlug: 'votre-espace-vide',
     category: 'getting_started',
     updated: '2026-09-23',
-    title: bi('Your new workspace is empty — where to start', 'Votre espace est vide — par où commencer'),
+    title: bi(
+      'Your new workspace is empty — where to start',
+      'Votre espace est vide — par où commencer',
+    ),
     summary: bi(
       'A production workspace starts empty on purpose. The setup path on Home turns the blank page into a short, ordered plan.',
       'Un espace de production commence vide — c’est voulu. Le parcours de configuration sur Accueil transforme la page blanche en un court plan ordonné.',
@@ -339,17 +342,9 @@ export function helpArticlesByCategory(id: HelpCategoryId): HelpArticle[] {
   return HELP_ARTICLES.filter((a) => a.category === id)
 }
 
-export function helpArticleBySlug(slug: string): HelpArticle | undefined {
-  return HELP_ARTICLES.find((a) => a.slug === slug)
-}
-
-export function helpArticleByFrSlug(frSlug: string): HelpArticle | undefined {
-  return HELP_ARTICLES.find((a) => a.frSlug === frSlug)
-}
-
 // ── Block grouping (consecutive `li` → one semantic list) ───────────────────
 
-export type HelpBlockGroup = { kind: 'p'; text: Bi } | { kind: 'list'; items: Bi[] }
+type HelpBlockGroup = { kind: 'p'; text: Bi } | { kind: 'list'; items: Bi[] }
 
 export function groupHelpBlocks(blocks: HelpBlock[]): HelpBlockGroup[] {
   const groups: HelpBlockGroup[] = []

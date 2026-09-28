@@ -4,7 +4,7 @@ import { hiringMessages as M } from '@/i18n/messages/hiring'
 import { statusChipClass } from '@/components/chips'
 import { getPostingStatusLabel, getPostingStatusTone } from './postingStatus'
 
-export interface JobPostingCardProps {
+interface JobPostingCardProps {
   title: ReactNode
   department: ReactNode
   location: ReactNode

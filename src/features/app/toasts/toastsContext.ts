@@ -15,7 +15,7 @@ export interface Toast {
   action?: ToastAction
 }
 
-export interface ToastsContextValue {
+interface ToastsContextValue {
   toasts: Toast[]
   /** Show a bottom toast; auto-dismisses after ~3.6s (longer when an action is present). */
   showToast: (message: LText, tone?: ToastTone, action?: ToastAction) => void

@@ -15,10 +15,10 @@ export const REPOSITORY_PATH = '/app/documents'
 
 /* Simulated autosave cadence (prototype timing): change → unsaved,
    +800ms → saving, +650ms → saved. */
-export const SAVE_DEBOUNCE_MS = 800
-export const SAVE_SETTLE_MS = 650
+const SAVE_DEBOUNCE_MS = 800
+const SAVE_SETTLE_MS = 650
 
-export type SaveState = 'unsaved' | 'saving' | 'saved'
+type SaveState = 'unsaved' | 'saving' | 'saved'
 
 export interface WizardState {
   step: 0 | 1 | 2
@@ -175,13 +175,13 @@ export function QuestionField({
  * recommended amount. Common-law reasonable notice is routinely much higher.
  */
 /** Resolves the floor readout message for the verdict kind (below / meets / info). */
-export function floorMessage(kind: NoticeFloorVerdict['kind']) {
+function floorMessage(kind: NoticeFloorVerdict['kind']) {
   if (kind === 'below') return doclibMessages.doclib_gen_floor_below
   if (kind === 'meets') return doclibMessages.doclib_gen_floor_meets
   return doclibMessages.doclib_gen_floor_info
 }
 
-export function NoticeFloorNote({ verdict }: { readonly verdict: NoticeFloorVerdict }) {
+function NoticeFloorNote({ verdict }: { readonly verdict: NoticeFloorVerdict }) {
   const { t, x } = useI18n()
 
   if (verdict.kind === 'unknown-tenure') return null
@@ -257,7 +257,7 @@ export function wizardSubtitle(step: WizardState['step'], t: Translator): string
   return `${t('doclib_gen_step')} 2 ${t('doclib_gen_of')} 3 — ${t('doclib_gen_questions')}`
 }
 
-export function prefilledAnswers(
+function prefilledAnswers(
   answers: WizardState['answers'],
   employee: DocEmployee | undefined,
   nameQuestion: TemplateQuestion | undefined,

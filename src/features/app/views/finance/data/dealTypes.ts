@@ -9,21 +9,11 @@ import type { FinanceCurrency } from './types'
  */
 
 /** What kind of transaction the row tracks. */
-export type FinanceDealKind =
-  | 'acquisition'
-  | 'investment'
-  | 'divestiture'
-  | 'financing'
-  | 'other'
+export type FinanceDealKind = 'acquisition' | 'investment' | 'divestiture' | 'financing' | 'other'
 
 /** Pipeline lifecycle — progress record, not a settlement state. */
 export type FinanceDealStage =
-  | 'sourcing'
-  | 'diligence'
-  | 'negotiation'
-  | 'agreement'
-  | 'closed'
-  | 'passed'
+  'sourcing' | 'diligence' | 'negotiation' | 'agreement' | 'closed' | 'passed'
 
 export interface FinanceDeal {
   id: string

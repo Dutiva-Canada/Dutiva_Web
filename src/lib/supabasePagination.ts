@@ -12,7 +12,7 @@
 
 export const SUPABASE_PAGE_SIZE = 1000
 
-export interface PageResult<T> {
+interface PageResult<T> {
   data: T[] | null
   error: { code?: string; message?: string } | null
 }

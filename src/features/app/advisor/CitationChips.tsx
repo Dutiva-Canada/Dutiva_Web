@@ -7,7 +7,7 @@ import type { CardTone, Citation } from './types'
  * Citation pills (statute references under a reply/card): 11.5px text on the
  * translucent `--cite-bg` fill with the parent card's tone border/foreground.
  */
-export interface CitationChipsProps {
+interface CitationChipsProps {
   readonly citations: readonly Citation[]
   /** Tone of the surrounding card; standalone usage defaults to info. */
   readonly tone?: CardTone

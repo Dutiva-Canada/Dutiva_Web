@@ -53,7 +53,7 @@ export type SeoRouteId =
   | 'careers'
   | 'investors'
 
-export interface SeoRoute {
+interface SeoRoute {
   id: SeoRouteId
   /** Canonical pathname per locale (no trailing slash except `/`). */
   path: Record<Lang, string>

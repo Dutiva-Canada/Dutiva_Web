@@ -19,7 +19,7 @@ import type { ProductionMemoryAuditEntry } from './productionApi'
  * `_export` provenance manifest with invisible tag in the notice).
  */
 
-export type MemoryExportResult =
+type MemoryExportResult =
   { ok: true } | { ok: false; denial: ReturnType<typeof exportDenialMessage> }
 
 export async function exportMemoryRecord(input: {

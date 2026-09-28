@@ -5,7 +5,7 @@ import { pick } from '@/i18n/core'
 import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import type { MemoryFact, MemoryScope } from '@/data'
-import { memoryScenarioTodayISO } from '@/data'
+import { demoTodayISO } from '@/data'
 import { useMemoryStore, memoryActions } from './memoryStore'
 import {
   computeMetrics,
@@ -27,7 +27,7 @@ import { effectiveStatus, effectiveSensitivity } from './memoryModel'
  * toolbar, a high-density memory list, an accessible details drawer, and the
  * empty state. Uses the full content width (no second sidebar).
  */
-export interface MemoryMemoriesTabProps {
+interface MemoryMemoriesTabProps {
   readonly onAddMemory: () => void
   readonly onGoToReview?: () => void
   readonly onGoToGovernance?: () => void
@@ -74,7 +74,7 @@ export function MemoryMemoriesTab({
   const { x, lang } = useI18n()
   const { facts, audit, memoryEnabled } = useMemoryStore()
   const maps = useMemo(() => demoSubjectMaps(), [])
-  const todayISO = memoryScenarioTodayISO
+  const todayISO = demoTodayISO
 
   const [filter, setFilter] = useState<MemoryFilterState>(emptyMemoryFilter)
   const [openId, setOpenId] = useState<string | null>(null)

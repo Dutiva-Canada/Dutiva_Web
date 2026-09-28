@@ -18,12 +18,12 @@ import type { Lang } from '@/i18n/core'
  * that chunk by hundreds of kB for content almost never read.
  */
 
-export interface PolicyBlock {
+interface PolicyBlock {
   type: 'p' | 'li'
   text: string
 }
 
-export interface PolicySection {
+interface PolicySection {
   title: string
   blocks: PolicyBlock[]
 }
@@ -68,7 +68,7 @@ export function policyDoc(slug: string): PolicyDoc | undefined {
   return collection.get(slug)
 }
 
-export interface ResolvedPolicyEdition {
+interface ResolvedPolicyEdition {
   edition: PolicyEdition
   /** The language the edition is actually written in (≠ requested on fallback). */
   lang: Lang
@@ -111,7 +111,7 @@ export function policyEditionResource(
  * Consecutive `li` blocks grouped into one list so the page can render a
  * semantic `<ul>`; `p` blocks stay standalone paragraphs.
  */
-export type PolicyBlockGroup = { kind: 'p'; text: string } | { kind: 'list'; items: string[] }
+type PolicyBlockGroup = { kind: 'p'; text: string } | { kind: 'list'; items: string[] }
 
 export function groupPolicyBlocks(blocks: PolicyBlock[]): PolicyBlockGroup[] {
   const groups: PolicyBlockGroup[] = []

@@ -86,7 +86,7 @@ function loadCaptchaScript(provider: CaptchaProvider): Promise<CaptchaApi> {
   return load
 }
 
-export interface CaptchaFieldProps {
+interface CaptchaFieldProps {
   /** Called with the solved token, or `null` when it expires or errors. */
   readonly onToken: (token: string | null) => void
   /**

@@ -15,7 +15,7 @@ export interface LegalHubRow {
   descKey: LegalHubKey
 }
 
-export interface LegalHubGroup {
+interface LegalHubGroup {
   titleKey: LegalHubKey
   rows: LegalHubRow[]
 }

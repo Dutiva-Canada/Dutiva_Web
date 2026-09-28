@@ -22,7 +22,7 @@ const TABLES = {
   settings: 'finance_workspace_settings',
 } as const
 
-export interface AiImportAnalysisSummary {
+interface AiImportAnalysisSummary {
   itemsAnalysed: number
   itemsMatched: number
   itemsSuggested: number
@@ -194,7 +194,7 @@ export async function recordCategorizationFeedbackSupa(
   return mapCategorizationFeedback(data as Record<string, unknown>)
 }
 
-export async function getAiImportSettingsSupa(orgId: string): Promise<FinanceAiImportSettings> {
+async function getAiImportSettingsSupa(orgId: string): Promise<FinanceAiImportSettings> {
   if (!supabase) return { aiImportEnabled: false, aiImportMode: 'auto_high' }
   const { data, error } = await supabase
     .from(TABLES.settings)

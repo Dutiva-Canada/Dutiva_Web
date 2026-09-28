@@ -8,7 +8,7 @@ import { bi } from '@/i18n/core'
  * Add entries here when something ships; bump dates only for new posts.
  * `date` feeds visible labels and sitemap `lastmod` for `/changelog`.
  */
-export interface ChangelogEntry {
+interface ChangelogEntry {
   /** ISO date (YYYY-MM-DD), newest first in {@link CHANGELOG_ENTRIES}. */
   date: string
   title: Bi

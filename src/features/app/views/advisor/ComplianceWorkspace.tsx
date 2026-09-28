@@ -54,7 +54,7 @@ export type WorkspaceState =
   | { kind: 'running' }
   | { kind: 'ready'; response: AdvisorResponse; provincePrompt?: boolean }
 
-export interface ComplianceWorkspaceProps {
+interface ComplianceWorkspaceProps {
   readonly state: WorkspaceState
   /** Province chips inside the jurisdiction card (jurisdiction-unknown turns). */
   readonly onPickProvince?: (province: Bi) => void

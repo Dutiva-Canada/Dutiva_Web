@@ -10,7 +10,7 @@ import {
   updateInitiative as updateInitiativeApi,
 } from './initiativesApi'
 
-export interface UseInitiativesResult {
+interface UseInitiativesResult {
   initiatives: CommsInitiative[]
   loading: boolean
   canWrite: boolean

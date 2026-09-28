@@ -1,4 +1,3 @@
-import type { Bi } from '@/i18n/core'
 import type { CommsWorkspaceState } from './types'
 import { listInitiatives } from './initiativesApi'
 import { listContentItems } from './contentItemsApi'
@@ -40,10 +39,6 @@ export const emptyCommsState: CommsWorkspaceState = {
   executionEvents: [],
   segments: [],
   segmentMemberships: [],
-}
-
-export function noteToBi(note?: string): Bi | undefined {
-  return note ? { en: note, fr: note } : undefined
 }
 
 /**

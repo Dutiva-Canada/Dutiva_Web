@@ -4,7 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { pick, pickL } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import type { MemoryFact } from '@/data'
-import { memoryScenarioTodayISO } from '@/data'
+import { demoTodayISO } from '@/data'
 import { useMemoryStore, memoryActions } from './memoryStore'
 import { demoSubjectMaps, resolveSubject } from './memoryWorkspace'
 import { SENSITIVITY_META, SOURCE_META, effectiveSensitivity, effectiveStatus } from './memoryModel'
@@ -23,7 +23,7 @@ export function MemoryReviewTab() {
   const { x, lang } = useI18n()
   const { facts } = useMemoryStore()
   const maps = useMemo(() => demoSubjectMaps(), [])
-  const todayISO = memoryScenarioTodayISO
+  const todayISO = demoTodayISO
   const [editId, setEditId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [rejectFact, setRejectFact] = useState<MemoryFact | null>(null)

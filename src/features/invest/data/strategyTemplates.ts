@@ -88,7 +88,13 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     autonomy: 'suggest',
     assetClasses: ['equity', 'etf', 'crypto'],
     rules: [
-      { metric: 'unrealized_gain_pct', op: 'gt', value: 40, kind: 'insight', title: 'Up 40% vs cost' },
+      {
+        metric: 'unrealized_gain_pct',
+        op: 'gt',
+        value: 40,
+        kind: 'insight',
+        title: 'Up 40% vs cost',
+      },
     ],
   },
   {
@@ -102,7 +108,13 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     autonomy: 'suggest',
     assetClasses: ['cash'],
     rules: [
-      { metric: 'cash_above', op: 'gt', value: 5000, kind: 'insight', title: 'Cash above threshold' },
+      {
+        metric: 'cash_above',
+        op: 'gt',
+        value: 5000,
+        kind: 'insight',
+        title: 'Cash above threshold',
+      },
     ],
   },
   {
@@ -128,7 +140,3 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     ],
   },
 ]
-
-export function templateBySlug(slug: string): StrategyTemplate | undefined {
-  return STRATEGY_TEMPLATES.find((t) => t.slug === slug)
-}

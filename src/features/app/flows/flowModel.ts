@@ -33,7 +33,7 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
 export type FlowStepId = string
 
 /** A step's outgoing edge. `to` is the id of the next step, or null to end. */
-export interface FlowOption {
+interface FlowOption {
   id: string
   label: Bi
   /** Shown under the label when the choice needs a reason to pick it. */
@@ -89,7 +89,7 @@ export interface FlowChoiceStep extends FlowStepBase {
  * A step that instructs rather than asks. It has exactly one exit, and the
  * points are what the user is doing before they continue.
  */
-export interface FlowTaskStep extends FlowStepBase {
+interface FlowTaskStep extends FlowStepBase {
   kind: 'task'
   points: Bi[]
   to: FlowStepId | null
@@ -100,7 +100,7 @@ export interface FlowTaskStep extends FlowStepBase {
  * weekly wages) and routes to a destination via `resolve`. `destinations`
  * lists every id `resolve` may return so graph checks stay honest.
  */
-export interface FlowInputStep extends FlowStepBase {
+interface FlowInputStep extends FlowStepBase {
   kind: 'input'
   label: Bi
   /** Unit shown beside the field — "completed months", "CAD / week", etc. */
@@ -125,7 +125,7 @@ export interface FlowFormulaLine {
  * Static `title` / `body` stay bilingual hedges; live figures come from
  * `evaluate` so copy cannot invent a statutory ladder in the step list.
  */
-export interface FlowFormulaStep extends FlowStepBase {
+interface FlowFormulaStep extends FlowStepBase {
   kind: 'formula'
   tone: 'ok' | 'caution'
   documents?: string[]
@@ -136,7 +136,7 @@ export interface FlowFormulaStep extends FlowStepBase {
 }
 
 /** A terminal step reached by branching. Where the path led. */
-export interface FlowOutcomeStep extends FlowStepBase {
+interface FlowOutcomeStep extends FlowStepBase {
   kind: 'outcome'
   /** How the outcome reads — a settled result, or a stop-and-get-help. */
   tone: 'ok' | 'caution'

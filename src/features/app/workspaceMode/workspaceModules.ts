@@ -5,7 +5,7 @@
  * Missing keys in an organization's enabled_modules map default to enabled
  * for backward compatibility.
  */
-export const WORKSPACE_MODULE_KEYS = [
+const WORKSPACE_MODULE_KEYS = [
   'home',
   'advisor',
   'memory',
@@ -38,11 +38,7 @@ export type WorkspaceModuleKey = (typeof WORKSPACE_MODULE_KEYS)[number]
  * Modules that are always on and cannot be toggled off. They are platform
  * primitives, not optional capabilities.
  */
-export const ALWAYS_ENABLED_MODULES: readonly WorkspaceModuleKey[] = [
-  'home',
-  'advisor',
-  'analytics',
-]
+const ALWAYS_ENABLED_MODULES: readonly WorkspaceModuleKey[] = ['home', 'advisor', 'analytics']
 
 /**
  * Modules that can be disabled by org admins. Derived from the full list
@@ -51,14 +47,6 @@ export const ALWAYS_ENABLED_MODULES: readonly WorkspaceModuleKey[] = [
 export const TOGGLEABLE_MODULES: readonly WorkspaceModuleKey[] = WORKSPACE_MODULE_KEYS.filter(
   (key) => !ALWAYS_ENABLED_MODULES.includes(key as WorkspaceModuleKey),
 ) as WorkspaceModuleKey[]
-
-/** Default: every module is enabled. */
-export function defaultEnabledModules(): Record<WorkspaceModuleKey, boolean> {
-  return Object.fromEntries(WORKSPACE_MODULE_KEYS.map((key) => [key, true])) as Record<
-    WorkspaceModuleKey,
-    boolean
-  >
-}
 
 /** Resolve whether a module is enabled, defaulting to true if not set. */
 export function isModuleEnabled(

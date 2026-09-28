@@ -26,7 +26,7 @@ export interface ProductionPolicy {
   lastReviewed: string | null
 }
 
-export interface NewPolicy {
+interface NewPolicy {
   name: string
   status: ProductionPolicyStatus
   lastReviewed: string

@@ -1,12 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { bi } from '@/i18n/core'
 import type { Bi, LText } from '@/i18n/core'
-import {
-  memoryPrivacyConfig,
-  memoryRetentionSchedule,
-  memoryScenarioTodayISO,
-  seedMemoryFacts,
-} from '@/data'
+import { demoTodayISO, memoryPrivacyConfig, memoryRetentionSchedule, seedMemoryFacts } from '@/data'
 import type {
   MemoryFact,
   MemoryLegalHold,
@@ -71,7 +66,7 @@ export interface MemoryAuditEntry {
   sensitive: boolean
 }
 
-export interface MemoryStore {
+interface MemoryStore {
   facts: MemoryFact[]
   audit: MemoryAuditEntry[]
   memoryEnabled: boolean
@@ -80,7 +75,7 @@ export interface MemoryStore {
 }
 
 const ACTOR = 'Riley Summers'
-const TODAY_ISO = memoryScenarioTodayISO
+const TODAY_ISO = demoTodayISO
 
 let auditSeq = 0
 function nextAuditId(): string {
@@ -122,13 +117,6 @@ function subscribe(listener: () => void): () => void {
 
 export function useMemoryStore(): MemoryStore {
   return useSyncExternalStore(subscribe, () => store)
-}
-
-/** Active facts — excludes removed records from the working list. */
-export function activeFacts(facts: readonly MemoryFact[]): MemoryFact[] {
-  return facts.filter(
-    (f) => (f.status ?? (f.confidence === 'confirmed' ? 'confirmed' : 'proposed')) !== 'removed',
-  )
 }
 
 function subjectLabelFor(fact: MemoryFact): Bi | null {

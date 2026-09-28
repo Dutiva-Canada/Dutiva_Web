@@ -224,11 +224,11 @@ const logisticsInsertSchema = z.object({
   created_by: z.string().nullable(),
 })
 
-export type OperationsProjectInsert = z.input<typeof projectInsertSchema>
-export type OperationsVendorInsert = z.input<typeof vendorInsertSchema>
-export type OperationsQualityCheckInsert = z.input<typeof qualityInsertSchema>
-export type OperationsTechnologyInsert = z.input<typeof technologyInsertSchema>
-export type OperationsLogisticsInsert = z.input<typeof logisticsInsertSchema>
+type OperationsProjectInsert = z.input<typeof projectInsertSchema>
+type OperationsVendorInsert = z.input<typeof vendorInsertSchema>
+type OperationsQualityCheckInsert = z.input<typeof qualityInsertSchema>
+type OperationsTechnologyInsert = z.input<typeof technologyInsertSchema>
+type OperationsLogisticsInsert = z.input<typeof logisticsInsertSchema>
 
 export async function createOperationsProject(
   organizationId: string,
