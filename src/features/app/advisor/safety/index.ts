@@ -5,16 +5,4 @@
  * -figure gate (fail-safe-closed) — plus the grounded statutory-notice table.
  */
 export { detectCrisisSignal } from './crisisSignals'
-export { mentionsStatutoryFigure } from './statutoryFigures'
-export {
-  lookupStatutoryNoticeWeeks,
-  NOTICE_SCHEDULES,
-  type NoticeBand,
-  type StatutoryNoticeSchedule,
-} from './statutoryNotice'
-export {
-  applySafetyBackstop,
-  type SafetyAction,
-  type SafetyBackstopInput,
-  type SafetyBackstopResult,
-} from './safetyBackstop'
+export { applySafetyBackstop, type SafetyAction } from './safetyBackstop'

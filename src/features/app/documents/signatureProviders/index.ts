@@ -14,9 +14,4 @@ export function getSignatureProvider(id = DEFAULT_SIGNATURE_PROVIDER_ID): Signat
   return provider
 }
 
-export type {
-  CreateEnvelopeInput,
-  CreateEnvelopeResult,
-  EnvelopeRecipientInput,
-  SignatureProvider,
-} from './types'
+export type { EnvelopeRecipientInput } from './types'

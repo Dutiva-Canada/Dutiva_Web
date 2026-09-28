@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 /** Subscribe to a CSS media query — used where Tailwind breakpoints need JS gating (e.g. tests). */
-export function useMediaQuery(query: string): boolean {
+function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => readMediaQuery(query))
 
   useEffect(() => {

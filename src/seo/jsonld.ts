@@ -19,7 +19,7 @@ import { FOUNDER, ORG, ORG_DESCRIPTION, ORG_SAME_AS, SITE_ORIGIN, absoluteUrl } 
 
 export type JsonLdNode = Record<string, unknown>
 
-export const ORG_ID = `${SITE_ORIGIN}/#organization`
+const ORG_ID = `${SITE_ORIGIN}/#organization`
 const FOUNDER_ID = `${SITE_ORIGIN}/#founder`
 const WEBSITE_ID = `${SITE_ORIGIN}/#website`
 const SOFTWARE_ID = `${SITE_ORIGIN}/#software`
