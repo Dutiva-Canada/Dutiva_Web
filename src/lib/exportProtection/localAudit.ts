@@ -22,8 +22,8 @@
  * casual case, the server guard is the one a determined user has to beat.
  */
 
-export const EXPORT_SURFACES = ['docstudio', 'doclib', 'memory', 'advisor'] as const
-export const EXPORT_KINDS = ['pdf', 'word', 'link', 'json', 'text'] as const
+const EXPORT_SURFACES = ['docstudio', 'doclib', 'memory', 'advisor'] as const
+const EXPORT_KINDS = ['pdf', 'word', 'link', 'json', 'text'] as const
 
 export type ExportSurface = (typeof EXPORT_SURFACES)[number]
 export type ExportKind = (typeof EXPORT_KINDS)[number]
@@ -51,7 +51,7 @@ const STORE_KEY = 'dutiva-export-audit'
 const MAX_ENTRIES = 300
 const TITLE_CAP = 120
 
-export interface LocalGuardPolicy {
+interface LocalGuardPolicy {
   burstWindowSeconds: number
   burstLimit: number
   dailyLimit: number
@@ -66,7 +66,7 @@ export const LOCAL_GUARD_POLICY: LocalGuardPolicy = {
   dailyLimit: 100,
 }
 
-export type LocalGuardDecision =
+type LocalGuardDecision =
   { allowed: true } | { allowed: false; scope: 'burst' | 'daily'; retryAfterSeconds: number }
 
 function isEntry(value: unknown): value is ExportAuditEntry {

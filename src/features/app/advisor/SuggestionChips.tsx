@@ -10,12 +10,12 @@ import type { LText } from '@/i18n/core'
  * - `SuggestionChipGrid` — the two-column label+sub cards on the Advisor
  *   empty state ("Terminate an employee · Ontario, BC, federal & more").
  */
-export interface SuggestionChip {
+interface SuggestionChip {
   readonly label: LText
   readonly onClick: () => void
 }
 
-export interface SuggestionChipsProps {
+interface SuggestionChipsProps {
   readonly chips: readonly SuggestionChip[]
   readonly variant?: 'suggest' | 'followup'
 }
@@ -38,7 +38,7 @@ export function SuggestionChips({ chips, variant = 'suggest' }: SuggestionChipsP
   )
 }
 
-export interface SuggestionGridChip {
+interface SuggestionGridChip {
   readonly label: LText
   readonly sub: LText
   readonly onClick: () => void

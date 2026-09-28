@@ -51,12 +51,12 @@ export const PRODUCTION_DOCUMENT_STATUSES: readonly ProductionDocumentStatus[] =
 ]
 
 /** Snapshot stored on hr_document_versions.content_json. */
-export interface DocumentContentSnapshot {
+interface DocumentContentSnapshot {
   blocks: PreviewBlock[]
   values: Record<string, string>
 }
 
-export interface ProductionDocumentVersion {
+interface ProductionDocumentVersion {
   id: string
   versionNumber: number
   changeSummary: Bi
@@ -65,7 +65,7 @@ export interface ProductionDocumentVersion {
   createdAt: string
 }
 
-export interface ProductionDocumentAuditEvent {
+interface ProductionDocumentAuditEvent {
   id: string
   eventType: string
   actorLabel: string
@@ -102,7 +102,7 @@ export interface ProductionDocumentDetail extends ProductionDocument {
   recipients: ProductionDocumentRecipient[]
 }
 
-export interface NewGeneratedDocument {
+interface NewGeneratedDocument {
   title: Bi
   templateTid: string
   templateKey: string

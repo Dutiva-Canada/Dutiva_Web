@@ -9,7 +9,7 @@ import {
   removeIntegration as removeIntegrationApi,
 } from './integrationsApi'
 
-export interface UseIntegrationsResult {
+interface UseIntegrationsResult {
   integrations: CommsIntegration[]
   loading: boolean
   canWrite: boolean

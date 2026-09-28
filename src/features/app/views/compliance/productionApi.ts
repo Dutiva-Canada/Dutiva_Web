@@ -35,7 +35,7 @@ export interface ProductionFinding {
   resolved: boolean
 }
 
-export interface NewFinding {
+interface NewFinding {
   title: string
   severity: ProductionFindingSeverity
   description: string
@@ -162,7 +162,7 @@ export interface ProductionObligation {
   evidence: string | null
 }
 
-export interface NewObligation {
+interface NewObligation {
   title: string
   area: string
   jurisdiction: string

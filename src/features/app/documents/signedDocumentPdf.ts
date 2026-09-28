@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { wrapLine } from '@/lib/exportProtection/artifacts/textPdf'
 
-export interface SignedDocumentPdfInput {
+interface SignedDocumentPdfInput {
   title: string
   paragraphs: string[]
   /** PNG data URLs placed immediately after the indexed paragraph. */

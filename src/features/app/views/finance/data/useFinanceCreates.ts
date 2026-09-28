@@ -585,5 +585,3 @@ export function useFinanceCreates({
     addSubscription,
   }
 }
-
-export type FinanceCreates = ReturnType<typeof useFinanceCreates>

@@ -8,7 +8,7 @@
  * AudioContext (absent in jsdom).
  */
 
-export const VOICE_SAMPLE_RATE = 16_000
+const VOICE_SAMPLE_RATE = 16_000
 
 /** Average N channels into one. Shorter channels stop contributing early. */
 export function mixdownToMono(channels: readonly Float32Array[]): Float32Array {

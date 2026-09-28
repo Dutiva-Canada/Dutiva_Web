@@ -7,7 +7,7 @@
  * helpers that screens import (e.g. `getSubmissionDueStatus`).
  */
 
-export type SubmissionDueStatus = 'overdue' | 'due-soon' | 'ok'
+type SubmissionDueStatus = 'overdue' | 'due-soon' | 'ok'
 
 export function getSubmissionDueStatus(deadline?: string): SubmissionDueStatus {
   if (!deadline) return 'ok'

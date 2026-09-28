@@ -19,7 +19,7 @@ export interface WorkspaceContextState {
   meta: LText[]
 }
 
-export interface WorkspaceContextValue {
+interface WorkspaceContextValue {
   context: WorkspaceContextState | null
   setContext: (ctx: WorkspaceContextState | null) => void
   clearContext: () => void

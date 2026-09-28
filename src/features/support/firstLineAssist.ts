@@ -20,7 +20,7 @@ import type { HelpArticle } from './help/helpCenterData'
  */
 
 /** Categories that must reach a human — never an automated first-line answer. */
-export const HUMAN_ONLY_CATEGORIES: ReadonlySet<SupportCategory> = new Set<SupportCategory>([
+const HUMAN_ONLY_CATEGORIES: ReadonlySet<SupportCategory> = new Set<SupportCategory>([
   'privacy',
   'security',
   'accessibility',
@@ -33,7 +33,7 @@ export function requiresHumanFirstLine(category: SupportCategory | ''): boolean 
   return category !== '' && HUMAN_ONLY_CATEGORIES.has(category)
 }
 
-export interface FirstLineResult {
+interface FirstLineResult {
   /** True when the matter must go to a person; no suggestions are offered. */
   escalate: boolean
   /** Up to `limit` suggested Help Centre articles (empty when escalating). */

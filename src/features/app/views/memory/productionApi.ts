@@ -54,7 +54,7 @@ export interface ProductionMemoryAuditEntry {
   actorUserId: string | null
 }
 
-export interface NewMemoryFact {
+interface NewMemoryFact {
   scope: MemoryScope
   entityId: string
   category: MemoryCategory

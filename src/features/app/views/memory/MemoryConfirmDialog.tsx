@@ -8,7 +8,7 @@ import { memoryMessages as M } from '@/i18n/messages/memory'
  * legal hold). Focuses the first control on open, traps focus within the
  * dialog, closes on Escape, and renders over a scrim. Reduced-motion safe.
  */
-export interface MemoryConfirmDialogProps {
+interface MemoryConfirmDialogProps {
   readonly open: boolean
   readonly title: string
   readonly onClose: () => void

@@ -10,7 +10,7 @@ import {
   updateSubmission as updateSubmissionApi,
 } from './submissionsApi'
 
-export interface UseSubmissionsResult {
+interface UseSubmissionsResult {
   submissions: CommsSubmission[]
   loading: boolean
   canWrite: boolean

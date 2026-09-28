@@ -47,7 +47,7 @@ function parseUserAgent(ua: string): { browser: string; os: string } {
   return { browser, os }
 }
 
-export interface GatherDiagnosticsOptions {
+interface GatherDiagnosticsOptions {
   lang: Lang
   plan?: string | null
   feature?: string | null

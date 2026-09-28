@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabaseClient'
  * leave it empty.
  */
 
-export type BetaSignupErrorCode = 'rate_limited' | 'validation' | 'captcha' | 'error'
+type BetaSignupErrorCode = 'rate_limited' | 'validation' | 'captcha' | 'error'
 
 export class BetaSignupError extends Error {
   constructor(public readonly code: BetaSignupErrorCode) {
@@ -24,7 +24,7 @@ export class BetaSignupError extends Error {
 /** The jurisdictions the server accepts; anything else is stored as `other`. */
 export type BetaProvince = 'on' | 'qc' | 'fed' | 'other'
 
-export interface BetaSignupInput {
+interface BetaSignupInput {
   email: string
   company?: string
   /** Omitted when the visitor leaves the (optional) jurisdiction select blank. */
@@ -39,7 +39,7 @@ export interface BetaSignupInput {
   captchaToken?: string | null
 }
 
-export interface BetaSignupResult {
+interface BetaSignupResult {
   /**
    * True when the first beta cohort (BETA_COHORT_LIMIT signups) was already
    * full before this submission, so this signup joined the waiting list

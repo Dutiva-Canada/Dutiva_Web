@@ -8,7 +8,7 @@ import type { Bi } from '@/i18n/core'
  * ids (case1 = Jordan termination, case3 = Amara accommodation).
  */
 
-export interface CaseTimelineSession {
+interface CaseTimelineSession {
   kind: 'session'
   date: Bi
   label: Bi
@@ -16,19 +16,19 @@ export interface CaseTimelineSession {
   events: Bi[]
 }
 
-export interface CaseTimelineGap {
+interface CaseTimelineGap {
   kind: 'gap'
   label: Bi
 }
 
-export type CaseTimelineEntry = CaseTimelineSession | CaseTimelineGap
+type CaseTimelineEntry = CaseTimelineSession | CaseTimelineGap
 
 export interface MemoryCaseChip {
   tone: 'ok' | 'warn' | 'risk' | 'neutral'
   label: Bi
 }
 
-export interface MemoryCaseContent {
+interface MemoryCaseContent {
   chips: MemoryCaseChip[]
   resume: { last: Bi; ago: Bi; since: Bi }
   summary: Bi

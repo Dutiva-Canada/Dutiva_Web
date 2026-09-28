@@ -37,7 +37,7 @@ export type AnalyticsEventType =
   | 'ticket_status_changed'
   | 'web_vital'
 
-export interface AnalyticsEventInput {
+interface AnalyticsEventInput {
   event_type: AnalyticsEventType
   workspace_id?: string | null
   article_slug?: string | null

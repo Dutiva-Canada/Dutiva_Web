@@ -19,9 +19,7 @@ export const MAX_YEARS_EXPERIENCE = 60
  * integer in [0, MAX_YEARS_EXPERIENCE]. Returns null for empty/invalid input
  * so the column stays null rather than storing junk.
  */
-export function clampYearsExperience(
-  value: number | null | undefined,
-): number | null {
+export function clampYearsExperience(value: number | null | undefined): number | null {
   if (value === null || value === undefined || !Number.isFinite(value)) return null
   return Math.min(MAX_YEARS_EXPERIENCE, Math.max(0, Math.round(value)))
 }
@@ -46,7 +44,7 @@ export interface CandidateProfile {
   updatedAt: string
 }
 
-export interface CandidateProfileInput {
+interface CandidateProfileInput {
   name: string
   email: string
   phone?: string | null

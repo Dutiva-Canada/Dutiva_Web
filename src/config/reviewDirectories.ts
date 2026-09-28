@@ -12,7 +12,7 @@ import type { Bi } from '@/i18n/core'
  * appears on the homepage trust strip and pricing page once the aggregate
  * count reaches REVIEW_BADGE_MIN_COUNT.
  */
-export interface ReviewDirectory {
+interface ReviewDirectory {
   id: 'trustpilot' | 'g2' | 'capterra' | 'productHunt'
   label: Bi
   /** Public profile or review submission URL — null hides the link. */

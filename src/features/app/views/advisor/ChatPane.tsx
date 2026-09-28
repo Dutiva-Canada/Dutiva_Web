@@ -54,7 +54,7 @@ import { ThreadListOpenButton } from './ThreadList'
 
 const ENTRANCE = 'animate-[fadeInUp_.45s_cubic-bezier(.4,0,.2,1)]'
 
-export interface ChatPaneProps {
+interface ChatPaneProps {
   readonly messages: readonly ChatMessage[]
   readonly busy: boolean
   readonly jurisdiction: Bi

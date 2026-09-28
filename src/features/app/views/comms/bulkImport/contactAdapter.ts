@@ -12,7 +12,7 @@ const CONTACT_TYPES: CommsContactType[] = [
   'audience',
 ]
 
-export interface ContactImportRow {
+interface ContactImportRow {
   name?: string
   type?: CommsContactType
   organizationName?: string

@@ -10,7 +10,7 @@
  * if the signature itself is valid.
  */
 
-export interface SvixHeaders {
+interface SvixHeaders {
   /** `svix-id` */
   id: string
   /** `svix-timestamp` — unix seconds. */
@@ -19,13 +19,13 @@ export interface SvixHeaders {
   signature: string
 }
 
-export type SvixFailure =
+type SvixFailure =
   'missing_headers' | 'bad_timestamp' | 'stale_timestamp' | 'bad_secret' | 'no_match'
 
-export type SvixVerifyResult = { ok: true } | { ok: false; reason: SvixFailure }
+type SvixVerifyResult = { ok: true } | { ok: false; reason: SvixFailure }
 
 /** Reject anything older/newer than this — bounds replay. */
-export const SVIX_TOLERANCE_SECONDS = 5 * 60
+const SVIX_TOLERANCE_SECONDS = 5 * 60
 
 /** Length-independent compare; avoids leaking match position via timing. */
 function timingSafeEqual(a: string, b: string): boolean {

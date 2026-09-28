@@ -9,9 +9,9 @@ import type { NotificationKind } from './templates'
  * to send now or roll into a digest.
  */
 
-export type NotificationChannel = 'immediate' | 'digest'
+type NotificationChannel = 'immediate' | 'digest'
 
-export interface NotificationSpec {
+interface NotificationSpec {
   kind: NotificationKind
   audience: 'customer' | 'operator'
   channel: NotificationChannel

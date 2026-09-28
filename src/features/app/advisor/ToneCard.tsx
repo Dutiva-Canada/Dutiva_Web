@@ -12,7 +12,7 @@ import type { ToneCardData } from './types'
  * citation pills, an automatic trust note on risk/warning tones, and action
  * buttons (primary = white on the tone's dot colour, secondary = outline).
  */
-export interface ToneCardProps {
+interface ToneCardProps {
   readonly card: ToneCardData
 }
 

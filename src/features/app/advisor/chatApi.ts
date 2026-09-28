@@ -32,7 +32,7 @@ import { reportSafetyEvent } from './safetyTelemetry'
  */
 
 /** Which ceiling refused the turn; mirrors the edge function's `scope`. */
-export type AdvisorUsageScope = 'burst' | 'daily' | 'daily_tokens' | 'platform_daily' | 'commercial'
+type AdvisorUsageScope = 'burst' | 'daily' | 'daily_tokens' | 'platform_daily' | 'commercial'
 
 export class AdvisorUsageLimitError extends Error {
   constructor(

@@ -228,11 +228,11 @@ const vendorReviewInsertSchema = z.object({
   notes: z.string().nullable(),
 })
 
-export type SecurityAssetInsert = z.input<typeof assetInsertSchema>
-export type SecurityAccessReviewInsert = z.input<typeof accessReviewInsertSchema>
-export type SecurityIncidentInsert = z.input<typeof incidentInsertSchema>
-export type SecurityRiskInsert = z.input<typeof riskInsertSchema>
-export type SecurityVendorReviewInsert = z.input<typeof vendorReviewInsertSchema>
+type SecurityAssetInsert = z.input<typeof assetInsertSchema>
+type SecurityAccessReviewInsert = z.input<typeof accessReviewInsertSchema>
+type SecurityIncidentInsert = z.input<typeof incidentInsertSchema>
+type SecurityRiskInsert = z.input<typeof riskInsertSchema>
+type SecurityVendorReviewInsert = z.input<typeof vendorReviewInsertSchema>
 
 export async function createSecurityAsset(
   organizationId: string,

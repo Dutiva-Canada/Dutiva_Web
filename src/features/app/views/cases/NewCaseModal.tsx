@@ -19,7 +19,7 @@ import type { WorkspaceCase } from './caseModel'
  * employee and jurisdiction pickers plus an optional title; restricted case
  * types show the gold lock note. Escape / scrim / Cancel dismiss it.
  */
-export interface NewCaseModalProps {
+interface NewCaseModalProps {
   onClose: () => void
   onCreate: (created: WorkspaceCase) => void
 }

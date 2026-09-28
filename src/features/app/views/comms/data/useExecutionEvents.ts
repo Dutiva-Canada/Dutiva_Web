@@ -8,7 +8,7 @@ import {
   listExecutionEvents as listExecutionEventsApi,
 } from './executionEventsApi'
 
-export interface UseExecutionEventsResult {
+interface UseExecutionEventsResult {
   executionEvents: CommsExecutionEvent[]
   loading: boolean
   canWrite: boolean

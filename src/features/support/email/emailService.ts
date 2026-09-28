@@ -16,7 +16,7 @@ export interface EmailProvider {
   send(message: EmailMessage): Promise<void>
 }
 
-export interface DeliveryResult {
+interface DeliveryResult {
   delivered: boolean
 }
 

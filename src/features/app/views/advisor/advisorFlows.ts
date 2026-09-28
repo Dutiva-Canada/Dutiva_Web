@@ -116,7 +116,7 @@ export const fallbackChips: SuggestChipSpec[] = [
 
 /* ------------------------------------------------------- termination flow */
 
-export interface QuickFormFieldSpec {
+interface QuickFormFieldSpec {
   key: string
   label: Bi
   /** Selected option, tracked by its EN string (the stable key). */
@@ -335,69 +335,3 @@ export const genericAck: Bi = bi(
 )
 
 /* ------------------------------------------------------ home topic starters */
-
-export interface HomeSuggestionChip {
-  label: Bi
-  sub: Bi
-  flowKey: FlowKeyOrFallback
-  /** Seed user message the chip sends (prototype `suggestionChips`). */
-  seed: Bi
-}
-
-/** Advisor home suggestion grid (prototype `renderVals` suggestionChips). */
-export const homeSuggestionChips: HomeSuggestionChip[] = [
-  {
-    label: bi('Terminate an employee', 'Mettre fin à un emploi'),
-    sub: bi('Ontario, BC, federal & more', 'Ontario, C.-B., fédéral et plus'),
-    flowKey: 'termination',
-    seed: bi(
-      'I need to terminate an employee in Ontario.',
-      'Je dois mettre fin à l’emploi d’un salarié en Ontario.',
-    ),
-  },
-  {
-    label: bi('Draft an offer letter', 'Rédiger une lettre d’offre'),
-    sub: bi('Hiring & onboarding', 'Embauche et intégration'),
-    flowKey: 'hiring',
-    seed: bi(
-      'Draft an offer letter for a Senior Analyst role in Ontario.',
-      'Rédigez une lettre d’offre pour un poste d’analyste principal en Ontario.',
-    ),
-  },
-  {
-    label: bi('Set up onboarding', 'Configurer l’intégration'),
-    sub: bi('New hire checklist', 'Liste pour nouvel employé'),
-    flowKey: 'onboarding',
-    seed: bi(
-      'Set up onboarding for a new hire starting in Quebec.',
-      'Configurez l’intégration d’un nouvel employé qui débute au Québec.',
-    ),
-  },
-  {
-    label: bi('Handle a performance issue', 'Gérer un problème de rendement'),
-    sub: bi('PIP or warning', 'PAR ou avertissement'),
-    flowKey: 'performance',
-    seed: bi(
-      "One of my employees has ongoing attendance issues — what's the right way to handle this?",
-      'Un de mes employés a des problèmes d’assiduité persistants — quelle est la bonne façon de gérer cela?',
-    ),
-  },
-  {
-    label: bi('Manage an accommodation', 'Gérer un accommodement'),
-    sub: bi('Leave & disability', 'Congé et invalidité'),
-    flowKey: 'accommodation',
-    seed: bi(
-      'An employee disclosed a chronic illness and needs modified duties.',
-      'Un employé a divulgué une maladie chronique et a besoin de tâches modifiées.',
-    ),
-  },
-  {
-    label: bi('Build a policy', 'Créer une politique'),
-    sub: bi('Remote work, expenses…', 'Télétravail, dépenses…'),
-    flowKey: 'policy',
-    seed: bi(
-      'We need a remote work policy — what should it cover?',
-      'Nous avons besoin d’une politique de télétravail — que devrait-elle couvrir?',
-    ),
-  },
-]

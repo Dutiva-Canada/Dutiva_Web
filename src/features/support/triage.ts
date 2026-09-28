@@ -214,7 +214,7 @@ function startOfNextDay(date: Date): Date {
 }
 
 /** Advance to the next business day at 00:00 UTC (date granularity). */
-export function nextBusinessDay(from: Date): Date {
+function nextBusinessDay(from: Date): Date {
   let cursor = startOfNextDay(from)
   while (!isBusinessDay(cursor)) cursor = startOfNextDay(cursor)
   return cursor

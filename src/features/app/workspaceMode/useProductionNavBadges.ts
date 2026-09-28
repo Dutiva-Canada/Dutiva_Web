@@ -6,7 +6,7 @@ import { countOpenFindings } from '@/features/app/views/compliance/productionApi
 import type { NavBadgeTone } from '@/features/app/shell/navConfig'
 import { useWorkspaceMode } from './workspaceModeContext'
 
-export type ProductionNavBadges = Partial<Record<string, { value: string; tone: NavBadgeTone }>>
+type ProductionNavBadges = Partial<Record<string, { value: string; tone: NavBadgeTone }>>
 
 /**
  * Live nav badges for production mode — real open counts (server-side head

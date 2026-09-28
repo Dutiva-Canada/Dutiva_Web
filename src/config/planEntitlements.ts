@@ -21,9 +21,9 @@ import {
 /** Sentinel for unlimited numeric capacity. Never advertise as unlimited when a finite limit exists. */
 export const UNLIMITED = Number.POSITIVE_INFINITY
 
-export type SupportQueuePriority = 'standard' | 'paid' | 'priority' | 'highest'
+type SupportQueuePriority = 'standard' | 'paid' | 'priority' | 'highest'
 
-export type SupportResponseTarget = '2_business_days' | '1_business_day'
+type SupportResponseTarget = '2_business_days' | '1_business_day'
 
 export type OnboardingEntitlement = 'none' | 'walkthrough_on_request' | 'walkthrough_and_call'
 

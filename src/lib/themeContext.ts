@@ -3,7 +3,7 @@ import { writePref } from './prefs'
 
 export type Theme = 'light' | 'dark'
 
-export interface ThemeContextValue {
+interface ThemeContextValue {
   theme: Theme
   setTheme: (theme: Theme) => void
   toggleTheme: () => void

@@ -38,7 +38,7 @@ function parseDate(value: string): string | undefined {
   return undefined
 }
 
-export const employeeBulkImportFields: BulkImportField<NewEmployee>[] = [
+const employeeBulkImportFields: BulkImportField<NewEmployee>[] = [
   {
     key: 'name',
     label: B.bulk_field_employee_name,

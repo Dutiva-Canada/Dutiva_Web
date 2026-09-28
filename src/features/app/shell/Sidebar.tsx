@@ -21,7 +21,7 @@ import { SidebarSection } from './SidebarSection'
 import { useProductionWorkspaceEmpty } from './useProductionWorkspaceEmpty'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
-export type SidebarMode = 'expanded' | 'compact' | 'drawer'
+type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
 /* Collapsible section keys, positionally aligned with getNavGroups output:
    group i with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups

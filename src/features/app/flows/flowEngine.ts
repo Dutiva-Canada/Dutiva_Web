@@ -12,7 +12,7 @@ import { isScored, isTerminal } from './flowModel'
  * branch produced, and a cursor cannot tell you which those were.
  */
 
-export interface FlowAnswer {
+interface FlowAnswer {
   step: FlowStepId
   /** The chosen option id — absent on a `task` step, which has one exit. */
   option?: string
@@ -166,13 +166,13 @@ export function unreachableSteps(flow: Flow): FlowStepId[] {
  * and where it landed. This is what goes on the file — a flow decides, a
  * template documents.
  */
-export interface FlowRecordEntry {
+interface FlowRecordEntry {
   step: FlowStep
   /** The option chosen at this step, when it was a choice. */
   chosen?: { id: string; label: Bi }
 }
 
-export interface FlowRecord {
+interface FlowRecord {
   entries: FlowRecordEntry[]
   outcome: FlowStep | null
 }
@@ -214,13 +214,13 @@ export function inputValues(flow: Flow, run: FlowRun): Map<string, number> {
 
 /* ── Scoring ─────────────────────────────────────────────────────────────── */
 
-export interface FlowDomainScore {
+interface FlowDomainScore {
   domain: Bi
   total: number
   max: number
 }
 
-export interface FlowScore {
+interface FlowScore {
   total: number
   /** The most that was available on the questions actually answered. */
   max: number

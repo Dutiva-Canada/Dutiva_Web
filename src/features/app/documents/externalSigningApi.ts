@@ -11,7 +11,7 @@ import { DUTIVA_SIGNING_CONSENT_VERSION } from './signingConsent'
  * No org membership or Dutiva login required; access is scoped to one recipient.
  */
 
-export interface ExternalSigningRecipient {
+interface ExternalSigningRecipient {
   id: string
   name: string
   email: string

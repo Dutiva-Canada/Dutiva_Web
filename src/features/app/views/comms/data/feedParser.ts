@@ -1,4 +1,4 @@
-export interface ParsedFeedItem {
+interface ParsedFeedItem {
   title: string
   url?: string
   publishedDate?: string

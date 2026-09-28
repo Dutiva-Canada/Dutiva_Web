@@ -9,7 +9,7 @@ import {
   removeIssue as removeIssueApi,
 } from './issuesApi'
 
-export interface UseIssuesResult {
+interface UseIssuesResult {
   issues: CommsIssue[]
   loading: boolean
   canWrite: boolean

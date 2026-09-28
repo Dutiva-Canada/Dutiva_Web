@@ -50,7 +50,7 @@ export interface ProductionInitiative {
   note: string | null
 }
 
-export interface UpdateInitiative {
+interface UpdateInitiative {
   name: string
   kind: ProductionInitiativeKind
   status: ProductionInitiativeStatus
@@ -59,7 +59,7 @@ export interface UpdateInitiative {
   note: string
 }
 
-export interface NewInitiative {
+interface NewInitiative {
   name: string
   kind: ProductionInitiativeKind
   status: ProductionInitiativeStatus

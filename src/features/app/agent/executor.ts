@@ -99,7 +99,7 @@ function minRoleFor(tool: AgentTool) {
   return tool.minRole ?? (tool.tier === 'read' ? 'viewer' : 'member')
 }
 
-export interface AgentExecutionResult {
+interface AgentExecutionResult {
   readonly outcome: AgentToolOutcome
   readonly audit: AgentAuditRecord
 }

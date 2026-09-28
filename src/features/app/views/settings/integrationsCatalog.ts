@@ -22,10 +22,10 @@ import { integrationsMessages as M } from '@/i18n/messages/integrations'
  *   'planned' — catalogued, no working flow yet (OAuth or a supported API
  *               that doesn't exist, e.g. Signal)
  */
-export type IntegrationProviderKey =
+type IntegrationProviderKey =
   'github' | 'gitlab' | 'gmail' | 'outlook' | 'smtp_email' | 'inbound_webhook' | 'inbound_email'
 
-export type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'email' | 'planned'
+type IntegrationAuth = 'pat' | 'smtp' | 'webhook' | 'email' | 'planned'
 
 export type IntegrationConfigField = 'instance_url' | 'smtp_host' | 'smtp_port' | 'smtp_user'
 

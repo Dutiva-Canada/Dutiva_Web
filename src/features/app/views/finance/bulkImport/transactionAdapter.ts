@@ -41,7 +41,7 @@ function normalizeAmount(raw: string): string {
   return n.toFixed(2)
 }
 
-export const transactionBulkImportFields: BulkImportField<FinanceBankItem>[] = [
+const transactionBulkImportFields: BulkImportField<FinanceBankItem>[] = [
   {
     key: 'date',
     label: B.bulk_field_date,

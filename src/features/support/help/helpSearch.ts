@@ -53,12 +53,12 @@ function scoreTerm(entry: Indexed, term: string): number {
   return 0
 }
 
-export interface HelpSearchResult {
+interface HelpSearchResult {
   article: HelpArticle
   score: number
 }
 
-export interface SearchOptions {
+interface SearchOptions {
   /**
    * `'all'` (default) requires every term to match — right for the Help Centre
    * search box, where people type keywords. `'any'` includes an article if at

@@ -30,7 +30,7 @@ export interface AiCategorizationResult {
   pattern?: string
 }
 
-export interface AiImportAnalysisResult {
+interface AiImportAnalysisResult {
   categorizations: AiCategorizationResult[]
   ruleSuggestions: RuleSuggestion[]
 }
@@ -408,25 +408,5 @@ export async function analyzeImportWithAi(
     }
   } catch {
     return ruleBasedCategorizations(unmatched, ledgerAccounts, existingRules, mode)
-  }
-}
-
-// Helper used by the UI when a user edits an AI suggestion.
-export function generateCorrectionNote(
-  account: FinanceLedgerAccount,
-  reason: 'manual' | 'accepted' | 'rejected',
-): Bi {
-  if (reason === 'rejected') {
-    return { en: 'Marked for review.', fr: 'Marqué pour révision.' }
-  }
-  if (reason === 'accepted') {
-    return {
-      en: `Accepted: ${account.code} — ${account.name.en}.`,
-      fr: `Accepté : ${account.code} — ${account.name.fr}.`,
-    }
-  }
-  return {
-    en: `Manually changed to ${account.code} — ${account.name.en}.`,
-    fr: `Changé manuellement pour ${account.code} — ${account.name.fr}.`,
   }
 }

@@ -130,8 +130,8 @@ const invoiceUpdateSchema = z.object({
   notes: z.string().nullable(),
 })
 
-export type RevenueStreamInsert = z.input<typeof streamInsertSchema>
-export type RevenueInvoiceInsert = z.input<typeof invoiceInsertSchema>
+type RevenueStreamInsert = z.input<typeof streamInsertSchema>
+type RevenueInvoiceInsert = z.input<typeof invoiceInsertSchema>
 
 export async function createRevenueStream(
   organizationId: string,

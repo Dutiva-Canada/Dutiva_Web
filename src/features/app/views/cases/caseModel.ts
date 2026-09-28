@@ -218,7 +218,7 @@ const retentionThreeYears = bi(
   '3 ans après la fermeture du dossier',
 )
 
-export interface NewCaseInput {
+interface NewCaseInput {
   type: string
   typeLabel: Bi
   /** Employee, or null for a workplace-wide case. */

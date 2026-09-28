@@ -47,7 +47,7 @@ export interface ProductionCommunication {
   note: string | null
 }
 
-export interface UpdateCommunication {
+interface UpdateCommunication {
   title: string
   audience: string
   channel: ProductionCommunicationChannel

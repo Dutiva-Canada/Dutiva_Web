@@ -35,7 +35,7 @@ async function loadPipeline(spec: LocalModelSpec): Promise<PipelineFn> {
   return pending
 }
 
-export interface LocalRunInput {
+interface LocalRunInput {
   /** Text prompt (text tasks), image URL/data URL (image-to-text), or
    *  decoded mono audio samples (ASR). */
   input: string | Float32Array

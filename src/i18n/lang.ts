@@ -4,7 +4,7 @@ import { pick } from './core'
 import type { Bi, Lang } from './core'
 import type { MessageKey } from './messages'
 
-export const LANG_KEY = 'dutiva-lang'
+const LANG_KEY = 'dutiva-lang'
 
 /** BCP 47 tags for <html lang> — Canadian English / Canadian French. */
 export const HTML_LANG: Record<Lang, string> = { en: 'en-CA', fr: 'fr-CA' }

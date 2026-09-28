@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 
 /** Global search overlay (⌘K / topbar search) — tabbed results across entities. */
-export interface SearchContextValue {
+interface SearchContextValue {
   open: boolean
   openSearch: () => void
   closeSearch: () => void

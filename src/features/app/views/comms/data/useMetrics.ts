@@ -9,7 +9,7 @@ import {
   removeMetric as removeMetricApi,
 } from './metricsApi'
 
-export interface UseMetricsResult {
+interface UseMetricsResult {
   metrics: CommsMetric[]
   loading: boolean
   canWrite: boolean

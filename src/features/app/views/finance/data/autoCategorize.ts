@@ -8,7 +8,7 @@ import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from 
  * wins. Unmatched items are left as 'unmatched' for manual review.
  */
 
-export interface CategorizationSuggestion {
+interface CategorizationSuggestion {
   bankItemId: string
   /** The rule that matched, if any. */
   ruleId?: string

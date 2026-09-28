@@ -38,7 +38,7 @@ export interface ProductionCase {
   createdAt: string
 }
 
-export interface NewCase {
+interface NewCase {
   title: string
   caseType: ProductionCaseType
   employeeId: string

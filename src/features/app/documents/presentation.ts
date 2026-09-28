@@ -21,7 +21,7 @@ import type {
   TemplateCategory,
 } from './data'
 
-export type ReviewLevelId = DocRiskLevel
+type ReviewLevelId = DocRiskLevel
 
 /** Stable filter order for review-level select options. */
 export const REVIEW_LEVEL_ORDER: ReviewLevelId[] = ['low', 'medium', 'high']
@@ -34,9 +34,9 @@ export function reviewLevelInfo(level: DocRiskLevel): RiskLevelInfo {
   return riskLevelInfo[level]
 }
 
-export type PresentApplicabilityKind = 'required' | 'recommended' | 'available' | 'not_matched'
+type PresentApplicabilityKind = 'required' | 'recommended' | 'available' | 'not_matched'
 
-export interface PresentApplicability {
+interface PresentApplicability {
   kind: PresentApplicabilityKind
   /** Underlying engine kind when jurisdiction matched; null when overridden. */
   engineKind: ApplicabilityKind | null
@@ -230,7 +230,7 @@ export function filterTemplates(
   })
 }
 
-export interface TemplateCategoryGroup {
+interface TemplateCategoryGroup {
   category: TemplateCategory | null
   templates: DocTemplate[]
 }

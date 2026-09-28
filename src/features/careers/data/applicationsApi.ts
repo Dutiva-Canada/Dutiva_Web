@@ -51,7 +51,7 @@ export interface CandidateApplication {
   }
 }
 
-export interface NewApplication {
+interface NewApplication {
   jobPostingId: string
   coverLetter?: string | null
   submittedResume: string

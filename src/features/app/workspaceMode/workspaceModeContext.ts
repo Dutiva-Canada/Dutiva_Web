@@ -19,7 +19,7 @@ export interface WorkspaceIdentity {
   }
 }
 
-export interface WorkspaceOrganization {
+interface WorkspaceOrganization {
   id: string
   name: string
   industry: string | null

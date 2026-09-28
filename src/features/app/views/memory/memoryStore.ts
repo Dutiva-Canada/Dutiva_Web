@@ -66,7 +66,7 @@ export interface MemoryAuditEntry {
   sensitive: boolean
 }
 
-export interface MemoryStore {
+interface MemoryStore {
   facts: MemoryFact[]
   audit: MemoryAuditEntry[]
   memoryEnabled: boolean

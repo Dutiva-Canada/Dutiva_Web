@@ -25,7 +25,7 @@ export interface CaptionFallbackDeps {
   caption: (spec: LocalModelSpec, dataUrl: string) => Promise<string>
 }
 
-export const captionFallbackDeps: CaptionFallbackDeps = {
+const captionFallbackDeps: CaptionFallbackDeps = {
   isInstalled: isModelInstalled,
   caption: captionOnDevice,
 }

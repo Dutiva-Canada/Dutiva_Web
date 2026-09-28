@@ -19,7 +19,7 @@ export interface SubjectRef {
   readonly href: string | null
 }
 
-export interface SubjectMaps {
+interface SubjectMaps {
   /** person id → name */
   readonly personNames: Record<string, string>
   /** case id → title */
@@ -109,7 +109,7 @@ export function memoryMatchesQuery(
   return false
 }
 
-export interface MemoryMetrics {
+interface MemoryMetrics {
   readonly active: number
   readonly needsReview: number
   readonly expiringSoon: number

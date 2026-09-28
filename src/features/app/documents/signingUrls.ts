@@ -2,7 +2,7 @@ import type { Lang } from '@/i18n/core'
 import { buildExternalSigningUrl as buildSigningUrl } from './signingInviteEmail'
 
 /** Public signing link for an external counterparty (no Dutiva login). */
-export function externalSigningUrl(token: string, language: Lang = 'en'): string {
+function externalSigningUrl(token: string, language: Lang = 'en'): string {
   if (typeof window !== 'undefined') {
     return buildSigningUrl(window.location.origin, token, language)
   }

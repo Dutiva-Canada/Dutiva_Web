@@ -74,7 +74,7 @@ export function rankAttention<T extends { id: string; dueISO: string }>(
 
 /* ------------------------------------------------------------ score axis */
 
-export interface AxisWindow {
+interface AxisWindow {
   min: number
   max: number
   ticks: number[]
@@ -136,12 +136,12 @@ export function scoreDelta(
 
 /* ------------------------------------------------------------ case aging */
 
-export interface CaseAgingRow<T> {
+interface CaseAgingRow<T> {
   caseRow: T
   daysOpen: number
 }
 
-export interface CaseAging<T> {
+interface CaseAging<T> {
   openCount: number
   avgDays: number
   oldestDays: number
@@ -171,7 +171,7 @@ export function caseAging<T extends { openedISO: string }>(
 
 /* --------------------------------------------------------- expiry buckets */
 
-export interface ExpiryBuckets<T> {
+interface ExpiryBuckets<T> {
   expired: T[]
   /** Due within 30 days (inclusive), starting today. */
   within30: T[]
@@ -373,7 +373,7 @@ export function blendScore(components: readonly ScoreComponent[]): number | null
   return Math.round(present.reduce((sum, c) => sum + c.pct, 0) / present.length)
 }
 
-export interface CeilingResult {
+interface CeilingResult {
   score: number | null
   /** True only when the ceiling actually lowered the blend. */
   capped: boolean

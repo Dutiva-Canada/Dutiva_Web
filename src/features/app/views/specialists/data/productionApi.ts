@@ -108,8 +108,8 @@ const engagementInsertSchema = z.object({
   created_by: z.string().nullable(),
 })
 
-export type SpecialistInsert = z.input<typeof specialistInsertSchema>
-export type SpecialistEngagementInsert = z.input<typeof engagementInsertSchema>
+type SpecialistInsert = z.input<typeof specialistInsertSchema>
+type SpecialistEngagementInsert = z.input<typeof engagementInsertSchema>
 
 export async function createSpecialist(
   organizationId: string,

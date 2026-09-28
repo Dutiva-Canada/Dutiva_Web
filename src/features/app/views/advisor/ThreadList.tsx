@@ -34,13 +34,13 @@ import { useMdUp } from '@/lib/useMediaQuery'
  * opened from the chat/home chrome, with preference persisted in localStorage.
  */
 
-export interface ThreadListItem {
+interface ThreadListItem {
   id: string
   title: Bi
   pinned: boolean
 }
 
-export type ThreadGroupKey = 'pinned' | 'today' | 'week' | 'older'
+type ThreadGroupKey = 'pinned' | 'today' | 'week' | 'older'
 
 export interface ThreadGroup {
   key: ThreadGroupKey
@@ -49,7 +49,7 @@ export interface ThreadGroup {
   items: ThreadListItem[]
 }
 
-export interface ThreadListProps {
+interface ThreadListProps {
   readonly groups: ThreadGroup[]
   readonly activeChatId: string | null
   readonly onSelect: (chatId: string) => void

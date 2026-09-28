@@ -12,7 +12,7 @@ import type { EmailMessage, EmailProvider } from './emailService'
  * not imported by client code and tree-shakes out of the app bundle.
  */
 
-export interface ResendConfig {
+interface ResendConfig {
   apiKey: string
   /** Verified sender, e.g. `Dutiva Support <support@dutiva.ca>`. */
   from: string

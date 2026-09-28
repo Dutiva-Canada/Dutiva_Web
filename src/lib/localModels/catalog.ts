@@ -16,14 +16,14 @@ import type { Bi } from '@/i18n/core'
  * UI makes it one click.
  */
 
-export type LocalModelTask =
+type LocalModelTask =
   | 'text2text-generation'
   | 'text-generation'
   | 'image-to-text'
   | 'automatic-speech-recognition'
   | 'feature-extraction'
 
-export type LocalModelModality = 'text' | 'image' | 'audio'
+type LocalModelModality = 'text' | 'image' | 'audio'
 
 export interface LocalModelSpec {
   /** Stable id used in state maps and prefs. */

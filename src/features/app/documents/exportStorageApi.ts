@@ -2,15 +2,11 @@ import { supabase } from '@/lib/supabaseClient'
 
 const BUCKET = 'hr-document-exports'
 
-export function exportStoragePath(
-  organizationId: string,
-  documentId: string,
-  exportId: string,
-): string {
+function exportStoragePath(organizationId: string, documentId: string, exportId: string): string {
   return `${organizationId}/${documentId}/${exportId}.pdf`
 }
 
-export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes.buffer as ArrayBuffer)
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))

@@ -12,7 +12,7 @@ import { readSheet } from 'read-excel-file/browser'
  * binary floating point, matching the rest of the finance data layer.
  */
 
-export interface ParsedStatementRow {
+interface ParsedStatementRow {
   date: string
   amount: string
   description: string
@@ -26,7 +26,7 @@ export interface ParsedStatementRow {
   rawDescription?: string
 }
 
-export interface StatementParseResult {
+interface StatementParseResult {
   rows: ParsedStatementRow[]
   totalRows: number
   errorRows: number
@@ -38,9 +38,9 @@ export interface StatementParseResult {
   errorDetails: StatementRowError[]
 }
 
-export interface StatementRowError extends FinanceImportRowError {}
+interface StatementRowError extends FinanceImportRowError {}
 
-export interface ColumnMap {
+interface ColumnMap {
   date: number
   amount: number
   /** Column index for description; -1 when the file has no usable description column. */

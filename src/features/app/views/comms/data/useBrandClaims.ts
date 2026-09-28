@@ -9,7 +9,7 @@ import {
   removeBrandClaim as removeBrandClaimApi,
 } from './brandClaimsApi'
 
-export interface UseBrandClaimsResult {
+interface UseBrandClaimsResult {
   brandClaims: CommsBrandClaim[]
   loading: boolean
   canWrite: boolean

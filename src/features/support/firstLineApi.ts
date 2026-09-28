@@ -14,7 +14,7 @@ import type { HelpArticle } from './help/helpCenterData'
  * caller shouldn't offer the button for them anyway).
  */
 
-export type FirstLineAnswerCode = 'rate_limited' | 'unavailable' | 'error'
+type FirstLineAnswerCode = 'rate_limited' | 'unavailable' | 'error'
 
 export class FirstLineAnswerError extends Error {
   constructor(public readonly code: FirstLineAnswerCode) {
@@ -23,7 +23,7 @@ export class FirstLineAnswerError extends Error {
   }
 }
 
-export interface FirstLineAnswer {
+interface FirstLineAnswer {
   /** True when the server refused to auto-answer (sensitive category). */
   escalate: boolean
   /** The grounded answer text, or '' when there was nothing to answer from. */

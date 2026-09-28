@@ -24,7 +24,7 @@ export interface CrmContactFilter {
   companyId?: string
 }
 
-export interface CrmCompanyFilter {
+interface CrmCompanyFilter {
   /** Free-text match against name, domain and industry. */
   query: string
   /** undefined = any industry; otherwise an exact industry string. */

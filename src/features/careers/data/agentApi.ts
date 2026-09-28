@@ -39,38 +39,8 @@ export const DEFAULT_AGENT_SETTINGS: AgentSettings = {
   dailyApplyCap: 5,
 }
 
-export type DiscoveredJobStatus =
-  | 'discovered'
-  | 'needs_review'
-  | 'queued'
-  | 'submitted'
-  | 'manual_required'
-  | 'skipped'
-  | 'failed'
-
-export interface DiscoveredJob {
-  id: string
-  source: string
-  externalId: string
-  company: string
-  title: string
-  location: string
-  url: string
-  applyUrl: string | null
-  description: string
-  matchScore: number | null
-  status: DiscoveredJobStatus
-  error: string | null
-  discoveredAt: string
-}
-
 export type ExternalApplicationStatus =
-  | 'needs_review'
-  | 'queued'
-  | 'submitted'
-  | 'manual_required'
-  | 'skipped'
-  | 'failed'
+  'needs_review' | 'queued' | 'submitted' | 'manual_required' | 'skipped' | 'failed'
 
 export interface ExternalApplication {
   id: string
@@ -94,7 +64,7 @@ export interface ExternalApplication {
   }
 }
 
-export interface ScanSummary {
+interface ScanSummary {
   discovered: number
   scored: number
   prepared: number
@@ -108,10 +78,7 @@ export interface ScanSummary {
 export async function getAgentSettings(): Promise<AgentSettings | null> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client
-    .from('candidate_agent_settings')
-    .select('*')
-    .maybeSingle()
+  const { data, error } = await client.from('candidate_agent_settings').select('*').maybeSingle()
   if (error) throw error
   if (!data) return null
   return toSettings(data)
@@ -143,21 +110,6 @@ export async function saveAgentSettings(settings: AgentSettings): Promise<void> 
 
 /* ── Discovery + application log ─────────────────────────────────────────── */
 
-/** Discovered postings for the candidate, newest first. */
-export async function listDiscoveredJobs(): Promise<DiscoveredJob[]> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client
-    .from('candidate_discovered_jobs')
-    .select(
-      'id, source, external_id, company, title, location, url, apply_url, description, match_score, status, error, discovered_at',
-    )
-    .order('discovered_at', { ascending: false })
-    .limit(200)
-  if (error) throw error
-  return (data ?? []).map(toDiscoveredJob)
-}
-
 /** External applications with their posting details joined in. */
 export async function listExternalApplications(): Promise<ExternalApplication[]> {
   const client = supabase
@@ -174,17 +126,6 @@ export async function listExternalApplications(): Promise<ExternalApplication[]>
   return (data ?? []).map((row: any) =>
     toExternalApplication({ ...row, job: Array.isArray(row.job) ? row.job[0] : row.job }),
   )
-}
-
-/** Skip a discovered job or a prepared application the candidate doesn't want. */
-export async function skipDiscoveredJob(id: string): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client
-    .from('candidate_discovered_jobs')
-    .update({ status: 'skipped', updated_at: new Date().toISOString() })
-    .eq('id', id)
-  if (error) throw error
 }
 
 export async function skipExternalApplication(id: string): Promise<void> {
@@ -242,34 +183,11 @@ function toSettings(row: any): AgentSettings {
       ? row.boards.filter(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (b: any) =>
-            b &&
-            (b.ats === 'greenhouse' || b.ats === 'lever') &&
-            typeof b.slug === 'string',
+            b && (b.ats === 'greenhouse' || b.ats === 'lever') && typeof b.slug === 'string',
         )
       : [],
     dailyApplyCap:
-      typeof row.daily_apply_cap === 'number' && row.daily_apply_cap > 0
-        ? row.daily_apply_cap
-        : 5,
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toDiscoveredJob(row: any): DiscoveredJob {
-  return {
-    id: row.id,
-    source: row.source,
-    externalId: row.external_id,
-    company: row.company,
-    title: row.title,
-    location: row.location,
-    url: row.url,
-    applyUrl: row.apply_url ?? null,
-    description: row.description,
-    matchScore: row.match_score,
-    status: row.status,
-    error: row.error,
-    discoveredAt: row.discovered_at,
+      typeof row.daily_apply_cap === 'number' && row.daily_apply_cap > 0 ? row.daily_apply_cap : 5,
   }
 }
 

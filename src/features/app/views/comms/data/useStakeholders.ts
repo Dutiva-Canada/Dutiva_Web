@@ -14,7 +14,7 @@ import {
   updateOrganization as updateOrganizationApi,
 } from './stakeholdersApi'
 
-export interface UseStakeholdersResult {
+interface UseStakeholdersResult {
   contacts: CommsContact[]
   organizations: CommsOrganization[]
   loading: boolean

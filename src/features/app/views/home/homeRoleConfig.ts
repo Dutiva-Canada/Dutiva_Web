@@ -9,7 +9,7 @@ import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
  * role-specific stat tiles, queues, and module cards.
  */
 
-export interface HomeRoleProfile {
+interface HomeRoleProfile {
   /** The title shown in the production Home header. */
   title: Bi
   /** The subtitle under the title. */

@@ -63,10 +63,3 @@ export interface GovernanceShareholder {
   created_at: string
   updated_at: string
 }
-
-export interface GovernanceSummary {
-  records: GovernanceRecord[]
-  decisions: GovernanceDecision[]
-  officers: GovernanceOfficer[]
-  shareholders: GovernanceShareholder[]
-}

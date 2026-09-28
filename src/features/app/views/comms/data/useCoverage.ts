@@ -10,7 +10,7 @@ import {
   updateCoverageItem as updateCoverageItemApi,
 } from './coverageApi'
 
-export interface UseCoverageResult {
+interface UseCoverageResult {
   coverageItems: CommsCoverageItem[]
   loading: boolean
   canWrite: boolean

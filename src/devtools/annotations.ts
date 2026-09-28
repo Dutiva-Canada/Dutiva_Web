@@ -24,7 +24,7 @@ export interface Annotation {
 }
 
 export const NOTES_KEY = 'dutiva-dev-annotations'
-export const ENABLED_KEY = 'dutiva-dev-enabled'
+const ENABLED_KEY = 'dutiva-dev-enabled'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null

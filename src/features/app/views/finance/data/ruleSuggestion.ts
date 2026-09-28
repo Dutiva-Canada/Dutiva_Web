@@ -1,6 +1,6 @@
 import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from './types'
 
-export type RuleSuggestionConfidence = 'high' | 'medium' | 'low'
+type RuleSuggestionConfidence = 'high' | 'medium' | 'low'
 
 export interface RuleSuggestion {
   pattern: string

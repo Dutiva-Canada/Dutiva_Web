@@ -3,7 +3,7 @@
  * `pulseDot` keyframe with 0 / .15s / .3s delays. `md` matches the Advisor
  * view (5px dots), `sm` the rail (4px dots).
  */
-export interface TypingDotsProps {
+interface TypingDotsProps {
   /** Localized label, e.g. x(advisorCore.advisor_thinking). */
   readonly label: string
   readonly size?: 'md' | 'sm'

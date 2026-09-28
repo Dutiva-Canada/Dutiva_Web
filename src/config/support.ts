@@ -19,10 +19,9 @@ import type { Bi } from '@/i18n/core'
 
 // ── Channels ─────────────────────────────────────────────────────────────
 
-export type SupportChannelId =
-  'support' | 'privacy' | 'security' | 'accessibility' | 'billing' | 'sales'
+type SupportChannelId = 'support' | 'privacy' | 'security' | 'accessibility' | 'billing' | 'sales'
 
-export interface SupportChannel {
+interface SupportChannel {
   id: SupportChannelId
   /** The only place these addresses are defined — never inline them. */
   email: `${string}@dutiva.ca`
@@ -128,7 +127,7 @@ export const SUPPORT_HOURS = {
 
 export type SupportPriority = 'critical' | 'high' | 'standard' | 'low'
 
-export type ResponseTargetUnit = 'business_hours' | 'business_days'
+type ResponseTargetUnit = 'business_hours' | 'business_days'
 
 export interface ResponseTarget {
   priority: SupportPriority
@@ -223,7 +222,7 @@ export type SupportCategory =
   | 'sales'
   | 'other'
 
-export interface SupportCategoryDef {
+interface SupportCategoryDef {
   id: SupportCategory
   label: Bi
   /** Where this category routes for internal handling. */
@@ -334,48 +333,6 @@ export const URGENCY_LABELS: Record<SupportUrgency, Bi> = {
   whenever: bi('No particular deadline', 'Aucun échéancier particulier'),
 }
 
-// ── Escalation (scheduled phone/video only) ──────────────────────────────
-
-export type EscalationType = 'phone' | 'video' | 'none'
-
-export type EscalationReasonId =
-  | 'account_recovery'
-  | 'accessibility_accommodation'
-  | 'security_concern'
-  | 'billing_dispute'
-  | 'enterprise_onboarding'
-  | 'unresolvable_in_writing'
-  | 'sensitive_complaint'
-  | 'retention'
-
-/**
- * The narrow set of circumstances where a scheduled telephone/video
- * appointment may be offered — always after written triage, never a public
- * "call us now" flow.
- */
-export const ESCALATION_REASONS: Record<EscalationReasonId, Bi> = {
-  account_recovery: bi('Complex account recovery', 'Récupération de compte complexe'),
-  accessibility_accommodation: bi(
-    'Accessibility accommodation',
-    'Mesure d’adaptation en matière d’accessibilité',
-  ),
-  security_concern: bi('Serious security concern', 'Préoccupation de sécurité sérieuse'),
-  billing_dispute: bi('Escalated billing dispute', 'Différend de facturation escaladé'),
-  enterprise_onboarding: bi('Enterprise onboarding', 'Intégration pour entreprise'),
-  unresolvable_in_writing: bi(
-    'An issue that cannot reasonably be resolved in writing',
-    'Une situation qui ne peut raisonnablement être réglée par écrit',
-  ),
-  sensitive_complaint: bi(
-    'A sensitive complaint where written communication is unsuitable',
-    'Une plainte sensible pour laquelle la communication écrite ne convient pas',
-  ),
-  retention: bi(
-    'Exceptional customer-retention circumstances',
-    'Circonstances exceptionnelles de fidélisation',
-  ),
-}
-
 // ── Preferred response method ────────────────────────────────────────────
 
 export type ResponseMethod = 'email' | 'in_app' | 'scheduled_call'
@@ -388,7 +345,3 @@ export const RESPONSE_METHOD_LABELS: Record<ResponseMethod, Bi> = {
     'Demander un appel planifié (sous réserve d’examen)',
   ),
 }
-
-// ── Ticket sources ───────────────────────────────────────────────────────
-
-export type TicketSource = 'app_form' | 'public_form' | 'email' | 'ai_escalation'

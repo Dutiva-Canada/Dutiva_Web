@@ -18,7 +18,7 @@ import { fetchOnboardingMarks, saveOnboardingMarks } from './api'
  * See docs/EMPTY_WORKSPACE_ONBOARDING.md.
  */
 
-export type EmptyWorkspaceSessionProgress = {
+type EmptyWorkspaceSessionProgress = {
   studioVisited: boolean
   workflowVisited: boolean
 }
@@ -112,7 +112,10 @@ export async function hydrateEmptyWorkspaceOnboarding(
   }
   const dismissed = isSetupCardDismissed(organizationId) || remoteMarks.setupCardDismissed
 
-  if (merged.studioVisited !== local.studioVisited || merged.workflowVisited !== local.workflowVisited)
+  if (
+    merged.studioVisited !== local.studioVisited ||
+    merged.workflowVisited !== local.workflowVisited
+  )
     writeProgress(organizationId, merged)
   if (dismissed && !isSetupCardDismissed(organizationId))
     writePref(dismissedKey(organizationId), '1')

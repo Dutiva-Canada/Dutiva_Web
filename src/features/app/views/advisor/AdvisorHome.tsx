@@ -31,7 +31,7 @@ const productionPrompts = [
   M.advisorview_prod_prompt_comms,
 ] as const
 
-export interface AdvisorHomeProps {
+interface AdvisorHomeProps {
   /** Free-form send from the home composer (routes a response mode). */
   readonly onSend: (text: string) => void
   /** Suggestion-grid chip click — starts that demo response-mode scenario. */

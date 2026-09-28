@@ -16,7 +16,7 @@ import { createClient } from '@supabase/supabase-js'
  * the sitemap instead of failing.
  */
 
-export interface SitemapJobPosting {
+interface SitemapJobPosting {
   id: string
   title: string
   description: string

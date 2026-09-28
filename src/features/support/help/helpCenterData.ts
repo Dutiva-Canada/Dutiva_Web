@@ -26,7 +26,7 @@ export type HelpCategoryId =
 export type HelpIcon =
   'rocket' | 'file-text' | 'sparkles' | 'credit-card' | 'shield-check' | 'life-buoy'
 
-export interface HelpCategory {
+interface HelpCategory {
   id: HelpCategoryId
   icon: HelpIcon
   title: Bi
@@ -344,7 +344,7 @@ export function helpArticlesByCategory(id: HelpCategoryId): HelpArticle[] {
 
 // ── Block grouping (consecutive `li` → one semantic list) ───────────────────
 
-export type HelpBlockGroup = { kind: 'p'; text: Bi } | { kind: 'list'; items: Bi[] }
+type HelpBlockGroup = { kind: 'p'; text: Bi } | { kind: 'list'; items: Bi[] }
 
 export function groupHelpBlocks(blocks: HelpBlock[]): HelpBlockGroup[] {
   const groups: HelpBlockGroup[] = []

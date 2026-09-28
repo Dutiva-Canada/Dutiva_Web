@@ -21,7 +21,7 @@ const EMPTY_FORM = {
   status: 'draft' as string,
 }
 
-export interface JobPostingFormProps {
+interface JobPostingFormProps {
   /** Pre-fill the form when editing; omit for a fresh create form. */
   initial?: Partial<NewJobPosting>
   saving: boolean

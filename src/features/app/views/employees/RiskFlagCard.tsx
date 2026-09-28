@@ -10,13 +10,13 @@ import type { Tone } from '@/data'
  * title row, body, action buttons; no confidence/citations/trust note —
  * markup 1467–1473 and 1989–1997).
  */
-export interface RiskFlagAction {
+interface RiskFlagAction {
   label: LText
   primary?: boolean
   onClick: () => void
 }
 
-export interface RiskFlagCardProps {
+interface RiskFlagCardProps {
   readonly tone: Tone
   readonly title: LText
   readonly body: LText

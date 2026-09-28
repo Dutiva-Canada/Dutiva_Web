@@ -26,7 +26,7 @@ import type { MessageStatus } from './types'
  * Only assistant text goes through here. User messages stay plain text, so
  * nothing a user types is ever parsed as Markdown.
  */
-export interface StreamedTextProps {
+interface StreamedTextProps {
   readonly text: LText
   readonly status?: MessageStatus
   readonly streamedLen?: number

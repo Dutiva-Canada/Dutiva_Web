@@ -31,9 +31,9 @@ import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
  * anything a module's own UI refuses to do). Absence is the enforcement.
  */
 
-export type AgentRiskTier = 'read' | 'draft' | 'commit'
+type AgentRiskTier = 'read' | 'draft' | 'commit'
 
-export type AgentParamType = 'string' | 'number' | 'boolean' | 'date' | 'enum'
+type AgentParamType = 'string' | 'number' | 'boolean' | 'date' | 'enum'
 
 export interface AgentToolParam {
   readonly name: string

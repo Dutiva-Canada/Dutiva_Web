@@ -6,7 +6,7 @@ import type { WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
 import { isOrgMemberRole } from './roles'
 
-export interface AdminProfile {
+interface AdminProfile {
   companyName: string
   contactName: string
   province: string
@@ -90,7 +90,7 @@ const onboardingMarksSchema = z.object({
   setupCardDismissed: z.boolean().optional(),
 })
 
-export type OnboardingMarks = z.infer<typeof onboardingMarksSchema>
+type OnboardingMarks = z.infer<typeof onboardingMarksSchema>
 
 const onboardingMapSchema = z.record(z.string(), onboardingMarksSchema)
 
@@ -145,7 +145,7 @@ export async function saveOnboardingMarks(
   }
 }
 
-export interface OrganizationMembership {
+interface OrganizationMembership {
   organizationId: string
   /** Null when the row predates role reads or carries an unknown value. */
   role: OrgMemberRole | null
@@ -178,7 +178,7 @@ export async function fetchOrganizationMembership(
   }
 }
 
-export type OrganizationAdmissionResult =
+type OrganizationAdmissionResult =
   | { status: 'success'; organizationId: string; memberRole: OrgMemberRole }
   | { status: 'capacity' }
   | { status: 'waitlist' }
@@ -316,15 +316,18 @@ export async function listOrgMembers(organizationId: string): Promise<OrgDirecto
   try {
     const { data, error } = await supabase.rpc('org_member_directory', { p_org: organizationId })
     if (error || !data) return []
-    return z.array(directoryRowSchema).parse(data).map((row) => ({
-      memberId: row.member_id,
-      userId: row.user_id,
-      email: row.email ?? '',
-      displayName: row.display_name ?? '',
-      role: isOrgMemberRole(row.role) ? row.role : null,
-      status: row.status,
-      accessExpiresAt: row.access_expires_at,
-    }))
+    return z
+      .array(directoryRowSchema)
+      .parse(data)
+      .map((row) => ({
+        memberId: row.member_id,
+        userId: row.user_id,
+        email: row.email ?? '',
+        displayName: row.display_name ?? '',
+        role: isOrgMemberRole(row.role) ? row.role : null,
+        status: row.status,
+        accessExpiresAt: row.access_expires_at,
+      }))
   } catch {
     return []
   }
@@ -357,13 +360,16 @@ export async function listOrgInvitations(organizationId: string): Promise<OrgInv
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
     if (error || !data) return []
-    return z.array(invitationRowSchema).parse(data).map((row) => ({
-      id: row.id,
-      email: row.email,
-      role: isOrgMemberRole(row.role) ? row.role : null,
-      status: row.status,
-      expiresAt: row.expires_at,
-    }))
+    return z
+      .array(invitationRowSchema)
+      .parse(data)
+      .map((row) => ({
+        id: row.id,
+        email: row.email,
+        role: isOrgMemberRole(row.role) ? row.role : null,
+        status: row.status,
+        expiresAt: row.expires_at,
+      }))
   } catch {
     return []
   }
@@ -393,10 +399,9 @@ export async function inviteOrgMember(
 
     let emailed = false
     try {
-      const { data: fnData, error: fnError } = await supabase.functions.invoke(
-        'send-org-invite',
-        { body: { invitationId } },
-      )
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('send-org-invite', {
+        body: { invitationId },
+      })
       emailed = !fnError && (fnData as { emailed?: boolean } | null)?.emailed === true
     } catch {
       emailed = false

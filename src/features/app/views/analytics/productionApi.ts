@@ -23,7 +23,7 @@ export interface ScoreSnapshot {
   formulaVersion: number
 }
 
-export interface SnapshotComponent {
+interface SnapshotComponent {
   key: string
   done: number
   total: number

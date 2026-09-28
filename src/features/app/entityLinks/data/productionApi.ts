@@ -16,7 +16,7 @@ const entityLinkRowSchema = z.object({
   updated_at: z.string().nullable(),
 })
 
-export const entityLinkInsertSchema = z.object({
+const entityLinkInsertSchema = z.object({
   organization_id: z.string(),
   from_table: z.string().min(1),
   from_id: z.string().min(1),
@@ -35,7 +35,7 @@ function getClient() {
   return supabase
 }
 
-export interface EntityLinkFilters {
+interface EntityLinkFilters {
   fromTable?: string
   fromId?: string
   toTable?: string

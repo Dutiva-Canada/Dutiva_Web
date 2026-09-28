@@ -11,7 +11,7 @@ import type { DocMeta } from '@/data'
 export type DocExportKind = 'PDF' | 'Word' | 'link'
 export type DocRevisionKind = 'formal' | 'shorten' | 'compassionate'
 /** What the high-risk gate is guarding — an export kind or the e-signature send. */
-export type DocGateAction = DocExportKind | 'signature'
+type DocGateAction = DocExportKind | 'signature'
 
 export interface DocStudioState {
   open: boolean

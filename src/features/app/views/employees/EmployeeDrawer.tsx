@@ -24,7 +24,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
  * Controlled component: the prototype keeps the subject in state
  * (`openEmployeeDrawer(emp)`), so hosts own `employee` and `onClose`.
  */
-export interface EmployeeDrawerProps {
+interface EmployeeDrawerProps {
   readonly employee: Employee | null
   readonly onClose: () => void
 }

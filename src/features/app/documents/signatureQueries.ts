@@ -81,7 +81,7 @@ const recipientRowSchema = z.object({
 export const SIGNATURE_SELECT =
   'id, provider, external_envelope_id, status, sent_at, signed_at, content_hash'
 
-export const RECIPIENT_SELECT =
+const RECIPIENT_SELECT =
   'id, recipient_type, name, email, signing_order, status, signed_at, signed_name, signature_image, consent_at, decline_reason, signing_token, last_invite_sent_at, invite_delivery_status, invite_delivery_detail, invite_delivery_updated_at, token_expires_at, token_revoked_at'
 
 function toSignature(row: z.infer<typeof signatureRowSchema>): ProductionDocumentSignature {

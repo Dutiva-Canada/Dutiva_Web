@@ -39,7 +39,7 @@ import type { DocTemplate } from './data/types'
  * Labour Code/Civil Code split), not new legal territory.
  */
 
-export const tplT17: DocTemplate = {
+const tplT17: DocTemplate = {
   id: 'tpl_t17',
   tid: 'T17',
   key: 'full_final_release',
@@ -162,7 +162,7 @@ export const tplT17: DocTemplate = {
   subject: 'employee',
 }
 
-export const tplT18: DocTemplate = {
+const tplT18: DocTemplate = {
   id: 'tpl_t18',
   tid: 'T18',
   key: 'offboarding_checklist',
@@ -271,7 +271,7 @@ export const tplT18: DocTemplate = {
   subject: 'employee',
 }
 
-export const tplT19: DocTemplate = {
+const tplT19: DocTemplate = {
   id: 'tpl_t19',
   tid: 'T19',
   key: 'accommodation_documentation',
@@ -393,7 +393,7 @@ export const tplT19: DocTemplate = {
   subject: 'employee',
 }
 
-export const tplT20: DocTemplate = {
+const tplT20: DocTemplate = {
   id: 'tpl_t20',
   tid: 'T20',
   key: 'medical_information_request_letter',

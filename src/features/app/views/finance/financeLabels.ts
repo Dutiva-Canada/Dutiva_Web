@@ -1,5 +1,4 @@
 import type { Bi } from '@/i18n/core'
-import { financeMessages as M } from '@/i18n/messages/finance'
 import type {
   FinanceAssetClass,
   FinanceBankMatchStatus,
@@ -187,5 +186,3 @@ export const DEAL_STAGE_ORDER: readonly FinanceDealStage[] = [
   'closed',
   'passed',
 ]
-
-export { M as FINANCE_MESSAGES }

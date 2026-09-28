@@ -46,7 +46,7 @@ export function legalDocDescription(row: LegalHubRow, lang: Lang): string {
   return formatMetaDescription(`${title}: ${desc}`, lang, suffix)
 }
 
-export interface PublicPage {
+interface PublicPage {
   /** Registry route id, or `legalDoc:<slug>` for policy documents. */
   key: string
   path: Record<Lang, string>

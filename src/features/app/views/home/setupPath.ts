@@ -31,7 +31,7 @@ export interface SetupSignals {
 /** Signals a caller supplies; the workflow visit mark is read per-surface. */
 export type SetupDataSignals = Omit<SetupSignals, 'workflowVisited'>
 
-export type SetupStepKey = 'profile' | 'documents' | 'policies' | 'explore' | 'people'
+type SetupStepKey = 'profile' | 'documents' | 'policies' | 'explore' | 'people'
 
 export interface SetupStep {
   readonly key: SetupStepKey

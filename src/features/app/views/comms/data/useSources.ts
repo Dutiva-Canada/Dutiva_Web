@@ -9,7 +9,7 @@ import {
   removeSource as removeSourceApi,
 } from './sourcesApi'
 
-export interface UseSourcesResult {
+interface UseSourcesResult {
   sources: CommsSource[]
   loading: boolean
   canWrite: boolean

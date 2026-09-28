@@ -28,12 +28,12 @@ import {
  */
 export type ComparisonCell = boolean | MarketingMessageKey
 
-export interface ComparisonRow {
+interface ComparisonRow {
   labelKey: MarketingMessageKey
   cells: Record<PlanId, ComparisonCell>
 }
 
-export interface ComparisonGroup {
+interface ComparisonGroup {
   headingKey: MarketingMessageKey
   rows: ComparisonRow[]
 }

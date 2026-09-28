@@ -24,7 +24,7 @@ export const ATTACHMENT_ALLOWED_MIME: readonly string[] = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 ]
 
-export type AttachmentValidationError = 'too_large' | 'bad_type'
+type AttachmentValidationError = 'too_large' | 'bad_type'
 
 export function validateAttachment(file: {
   size: number
@@ -40,7 +40,7 @@ export function validateAttachment(file: {
  * `skipped` means the scan never established the file was safe — it is not a
  * synonym for `clean`, and the server refuses to sign it while scanning is on.
  */
-export type AttachmentScanStatus = 'pending' | 'clean' | 'flagged' | 'skipped'
+type AttachmentScanStatus = 'pending' | 'clean' | 'flagged' | 'skipped'
 
 export interface SupportAttachment {
   id: string
@@ -52,7 +52,7 @@ export interface SupportAttachment {
 }
 
 /** Why a download was refused, when the refusal was about the file itself. */
-export type AttachmentDownloadRefusal = 'infected' | 'unscanned'
+type AttachmentDownloadRefusal = 'infected' | 'unscanned'
 
 export class AttachmentBlockedError extends Error {
   constructor(public readonly reason: AttachmentDownloadRefusal) {

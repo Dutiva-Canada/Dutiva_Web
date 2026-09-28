@@ -24,7 +24,7 @@
 
 export type CaptchaProvider = 'turnstile' | 'hcaptcha'
 
-export const CAPTCHA_PROVIDERS: readonly CaptchaProvider[] = ['turnstile', 'hcaptcha'] as const
+const CAPTCHA_PROVIDERS: readonly CaptchaProvider[] = ['turnstile', 'hcaptcha'] as const
 
 /** Provider siteverify endpoints — the only network dependency. */
 export const CAPTCHA_VERIFY_ENDPOINTS: Record<CaptchaProvider, string> = {
@@ -38,7 +38,7 @@ export const CAPTCHA_SCRIPT_URLS: Record<CaptchaProvider, string> = {
   hcaptcha: 'https://js.hcaptcha.com/1/api.js?render=explicit',
 }
 
-export type CaptchaFailure =
+type CaptchaFailure =
   /** The caller sent no token (bot, or the widget never solved). */
   | 'missing_token'
   /** The provider rejected the token — forged, expired, or wrong site key. */
@@ -109,7 +109,7 @@ export function interpretSiteverify(payload: unknown): CaptchaResult {
   return { ok: false, reason: 'invalid_token' }
 }
 
-export interface VerifyCaptchaOptions {
+interface VerifyCaptchaOptions {
   provider: CaptchaProvider
   /** Server-side secret. Callers decide what an absent secret means. */
   secret: string

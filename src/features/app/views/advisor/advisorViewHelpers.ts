@@ -34,7 +34,7 @@ for (const chat of chats) {
 
 export const scenarioThreadId = (id: ScenarioId) => `scn-${id}`
 
-export const scenarioThreads = advisorScenarioList.map((scenario) => ({
+const scenarioThreads = advisorScenarioList.map((scenario) => ({
   id: scenarioThreadId(scenario.id),
   scenario,
 }))
@@ -157,7 +157,7 @@ export function isFluffThread(messages: { role: string; content: string }[]): bo
 const GREETING_ONLY =
   /^(hi|hello|hey|bonjour|salut|bonsoir|good\s*(morning|afternoon|evening)|thanks|thank you|merci|ok|okay|test|yo)[.!?…]*$/i
 
-export function isGreetingOnly(text: string): boolean {
+function isGreetingOnly(text: string): boolean {
   return text.length > 0 && GREETING_ONLY.test(text)
 }
 
@@ -241,7 +241,7 @@ export function scenarioExtras(turn: ScenarioTurn): MessageExtras {
   return extras
 }
 
-export interface AdvisorThreadListEntry {
+interface AdvisorThreadListEntry {
   id: string
   title: Bi
   pinned: boolean

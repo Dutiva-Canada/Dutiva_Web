@@ -86,50 +86,6 @@ export async function rejectFact(organizationId: string, factId: string): Promis
 }
 
 /**
- * Restore a forgotten fact (clears forgotten_at, derives status from confidence).
- * Audits.
- */
-export async function restoreFact(organizationId: string, factId: string): Promise<MemoryFact> {
-  if (!supabase) throw new Error('Supabase is not configured')
-  const actorUserId = await requireUserId()
-  const { data: existing, error: readError } = await supabase
-    .from('hr_advisor_memory_facts')
-    .select(SELECT_COLUMNS)
-    .eq('id', factId)
-    .eq('organization_id', organizationId)
-    .maybeSingle()
-  if (readError) throw readError
-  if (!existing) throw new Error('Memory fact not found')
-  const prior = factRowSchema.parse(existing)
-
-  const now = new Date().toISOString()
-  const restoredStatus = prior.confidence === 'confirmed' ? 'confirmed' : 'proposed'
-  const { data, error } = await supabase
-    .from('hr_advisor_memory_facts')
-    .update({
-      forgotten_at: null,
-      status: restoredStatus,
-      advisor_usable: true,
-      updated_by: actorUserId,
-      updated_at: now,
-    })
-    .eq('id', factId)
-    .eq('organization_id', organizationId)
-    .select(SELECT_COLUMNS)
-    .single()
-  if (error) throw error
-  await insertAudit({
-    organizationId,
-    factId,
-    actorUserId,
-    action: 'restored',
-    statementEn: prior.statement_en,
-    statementFr: prior.statement_fr,
-  })
-  return toFact(factRowSchema.parse(data))
-}
-
-/**
  * Add a legal hold to a fact (pauses scheduled expiration/deletion). Audits.
  */
 export async function addLegalHold(

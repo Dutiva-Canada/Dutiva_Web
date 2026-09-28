@@ -2,7 +2,7 @@ import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImpo
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import type { FinanceBankStatementImportResult } from '../data/types'
 
-export interface BankStatementImportRow {
+interface BankStatementImportRow {
   date?: string
   description?: string
   debit?: string
@@ -65,7 +65,7 @@ function normalizeAmount(raw: string): string {
   return n.toFixed(2)
 }
 
-export const bankStatementBulkImportFields: BulkImportField<BankStatementImportRow>[] = [
+const bankStatementBulkImportFields: BulkImportField<BankStatementImportRow>[] = [
   {
     key: 'date',
     label: B.bulk_field_date,

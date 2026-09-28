@@ -27,7 +27,7 @@ import { effectiveStatus, effectiveSensitivity } from './memoryModel'
  * toolbar, a high-density memory list, an accessible details drawer, and the
  * empty state. Uses the full content width (no second sidebar).
  */
-export interface MemoryMemoriesTabProps {
+interface MemoryMemoriesTabProps {
   readonly onAddMemory: () => void
   readonly onGoToReview?: () => void
   readonly onGoToGovernance?: () => void

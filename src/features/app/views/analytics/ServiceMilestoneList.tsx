@@ -10,7 +10,7 @@ import { fill } from './format'
  * been created yet, so no milestone date can pass unnoticed.
  */
 
-export interface ServiceMilestoneDisplayRow {
+interface ServiceMilestoneDisplayRow {
   key: string
   name: string
   /** "Role · jurisdiction". */

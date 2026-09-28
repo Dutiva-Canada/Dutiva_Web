@@ -186,10 +186,10 @@ const shareholderInsertSchema = z.object({
   viewer_visible: z.boolean(),
 })
 
-export type GovernanceRecordInsert = z.input<typeof recordInsertSchema>
-export type GovernanceDecisionInsert = z.input<typeof decisionInsertSchema>
-export type GovernanceOfficerInsert = z.input<typeof officerInsertSchema>
-export type GovernanceShareholderInsert = z.input<typeof shareholderInsertSchema>
+type GovernanceRecordInsert = z.input<typeof recordInsertSchema>
+type GovernanceDecisionInsert = z.input<typeof decisionInsertSchema>
+type GovernanceOfficerInsert = z.input<typeof officerInsertSchema>
+type GovernanceShareholderInsert = z.input<typeof shareholderInsertSchema>
 
 export async function createGovernanceRecord(
   organizationId: string,

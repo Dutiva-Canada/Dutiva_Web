@@ -30,7 +30,7 @@ export function MarketingPageShell({ children }: { readonly children: ReactNode 
   )
 }
 
-export interface BreadcrumbTrailItem {
+interface BreadcrumbTrailItem {
   name: string
   /** Locale-correct pathname; omit on the current page (last item). */
   path?: string

@@ -36,14 +36,14 @@ export interface InvestState {
   news: InvestNewsItem[]
 }
 
-export type InvestRole = 'client' | 'admin'
+type InvestRole = 'client' | 'admin'
 
 /**
  * The signed-in user's grant row, or null when the portal is not open to
  * them. `role` distinguishes invited clients from operators — an 'admin'
  * grant can, for example, invoke the run-all sweep with a user JWT.
  */
-export async function getInvestAccess(): Promise<{ role: InvestRole } | null> {
+async function getInvestAccess(): Promise<{ role: InvestRole } | null> {
   const client = supabase
   if (!client) return null
   const { data } = await client.from('invest_access').select('role').maybeSingle()
@@ -70,32 +70,27 @@ export async function loadInvestState(): Promise<InvestState> {
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
-      client
-        .from('invest_market_snapshots')
-        .select('*')
-        .order('as_of', { ascending: false }),
+      client.from('invest_market_snapshots').select('*').order('as_of', { ascending: false }),
       client.from('invest_strategies').select('*'),
       client
         .from('invest_signals')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(200),
-      client
-        .from('invest_orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200),
-      client
-        .from('invest_bot_runs')
-        .select('*')
-        .order('ran_at', { ascending: false })
-        .limit(50),
-      client
-        .from('invest_watchlist')
-        .select('*')
-        .order('created_at', { ascending: false }),
+      client.from('invest_orders').select('*').order('created_at', { ascending: false }).limit(200),
+      client.from('invest_bot_runs').select('*').order('ran_at', { ascending: false }).limit(50),
+      client.from('invest_watchlist').select('*').order('created_at', { ascending: false }),
     ])
-  for (const res of [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist]) {
+  for (const res of [
+    accounts,
+    positions,
+    snapshots,
+    strategies,
+    signals,
+    orders,
+    runs,
+    watchlist,
+  ]) {
     if (res.error) throw res.error
   }
 

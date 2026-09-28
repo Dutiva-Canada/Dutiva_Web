@@ -4,19 +4,6 @@ import type { Bi } from '@/i18n/core'
 import type { TablesInsert, TablesUpdate } from '@/lib/supabase/types'
 import type { CommsContact, CommsContactType, CommsOrganization } from './types'
 
-/**
- * Real persistence for comms stakeholders (contacts and organizations).
- *
- * Phase 2 of the comms module: the rest of the workspace still uses the
- * in-browser localStorage stub, but stakeholders are now org-scoped and
- * RLS-protected (migration 0133).
- */
-
-export interface ProductionCommsContact extends CommsContact {
-  /** Copied from the parent organization for display. */
-  organizationName?: string
-}
-
 function fromContactRow(row: {
   id: string
   comms_organization_id: string | null

@@ -7,7 +7,7 @@ import { ChevronRight } from 'lucide-react'
  * accent). Each row taps through to its case.
  */
 
-export interface OpenCaseRow {
+interface OpenCaseRow {
   key: string
   href: string
   typeLabel: string
@@ -17,7 +17,7 @@ export interface OpenCaseRow {
   daysLabel: string
 }
 
-export const CASE_AGE_ALERT_DAYS = 14
+const CASE_AGE_ALERT_DAYS = 14
 
 export function OpenCaseRows({ rows }: { readonly rows: readonly OpenCaseRow[] }) {
   return (

@@ -21,7 +21,7 @@ import type { AgentToolOutcome, AgentToolProposal } from './types'
 
 type CardState = 'idle' | 'executing' | 'done' | 'declined'
 
-export interface AgentActionCardProps {
+interface AgentActionCardProps {
   readonly proposal: AgentToolProposal
 }
 

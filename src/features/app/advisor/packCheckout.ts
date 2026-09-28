@@ -2,8 +2,7 @@ import { supabase } from '@/lib/supabaseClient'
 import { isAdvisorPackSize } from '@/config/advisorUsage'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
 
-export type AdvisorPackCheckoutResult =
-  { kind: 'url'; url: string } | { kind: 'bypass'; message: string }
+type AdvisorPackCheckoutResult = { kind: 'url'; url: string } | { kind: 'bypass'; message: string }
 
 /**
  * Starts Stripe Checkout for a prepaid Advisor reply pack. The caller must

@@ -1,7 +1,7 @@
 import { useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 
-export type HiringTab = 'candidates' | 'applications' | 'funnel' | 'postings'
+type HiringTab = 'candidates' | 'applications' | 'funnel' | 'postings'
 
 const VALID_TABS: ReadonlySet<string> = new Set([
   'candidates',

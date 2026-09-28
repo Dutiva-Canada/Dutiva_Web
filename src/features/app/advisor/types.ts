@@ -16,7 +16,7 @@ export type CardTone = 'risk' | 'warning' | 'suggestion' | 'info' | 'success'
 /** Assistant reply lifecycle (prototype `runMessageLifecycle`). */
 export type MessageStatus = 'thinking' | 'streaming' | 'done' | 'error'
 
-export interface ToneCardAction {
+interface ToneCardAction {
   label: LText
   primary?: boolean
   onClick: () => void

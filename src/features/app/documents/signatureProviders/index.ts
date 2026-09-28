@@ -6,7 +6,7 @@ const providers: Record<string, SignatureProvider> = {
 }
 
 /** Default until a workspace selects a vendor integration. */
-export const DEFAULT_SIGNATURE_PROVIDER_ID = dutivaEmbeddedProvider.id
+const DEFAULT_SIGNATURE_PROVIDER_ID = dutivaEmbeddedProvider.id
 
 export function getSignatureProvider(id = DEFAULT_SIGNATURE_PROVIDER_ID): SignatureProvider {
   const provider = providers[id]

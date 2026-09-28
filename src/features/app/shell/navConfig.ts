@@ -318,7 +318,7 @@ export function getNavGroups(
 }
 
 /** Curated sidebar for the indexable public demo — no settings or support admin. */
-export const PUBLIC_DEMO_NAV_KEYS = new Set([
+const PUBLIC_DEMO_NAV_KEYS = new Set([
   'home',
   'advisor',
   'workflows',

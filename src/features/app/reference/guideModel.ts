@@ -66,7 +66,7 @@ export const contrast = (instead: Bi, notThis: Bi): GuideBlock => ({
   notThis,
 })
 
-export type GuideBlockGroup =
+type GuideBlockGroup =
   | { kind: 'p'; text: Bi }
   | { kind: 'list'; items: Bi[] }
   | { kind: 'contrast'; instead: Bi; notThis: Bi }

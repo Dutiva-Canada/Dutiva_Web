@@ -6,7 +6,7 @@ import type { InvestState } from './api'
  * signed-in user; `refresh` re-reads after mutations. There is no demo mode
  * — the portal is auth- and access-gated.
  */
-export interface InvestDataContextValue {
+interface InvestDataContextValue {
   state: InvestState
   loading: boolean
   refresh: () => Promise<void>

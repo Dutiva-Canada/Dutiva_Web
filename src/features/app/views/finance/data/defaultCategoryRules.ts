@@ -6,14 +6,14 @@ import type {
   FinanceLegalEntity,
 } from './types'
 
-export interface DefaultLedgerAccountSeed {
+interface DefaultLedgerAccountSeed {
   code: string
   name: { en: string; fr: string }
   type: FinanceLedgerAccount['type']
   sensitive?: boolean
 }
 
-export interface DefaultCategoryRule {
+interface DefaultCategoryRule {
   pattern: string
   matchType: FinanceCategoryMatchType
   direction: 'debit' | 'credit'

@@ -34,7 +34,7 @@ export async function captionOnDevice(spec: LocalModelSpec, dataUrl: string) {
 
 /** LaMini is instruction-tuned on English; telling it to keep the draft's
  *  language stops it anglicizing French text. */
-export function rewritePromptFor(draft: string): string {
+function rewritePromptFor(draft: string): string {
   return `Rewrite the following draft clearly and professionally, in the same language it is written in:\n\n${draft}`
 }
 

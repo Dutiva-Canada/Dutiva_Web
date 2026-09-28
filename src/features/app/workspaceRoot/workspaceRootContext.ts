@@ -4,7 +4,7 @@ import type { NavigateOptions, To } from 'react-router-dom'
 
 export type WorkspaceRoot = '/app' | '/demo' | '/fr/demo'
 
-export interface WorkspaceRootContextValue {
+interface WorkspaceRootContextValue {
   root: WorkspaceRoot
   /** True on the indexable /demo surface — Northgate fixtures, no sign-in. */
   isPublicDemo: boolean

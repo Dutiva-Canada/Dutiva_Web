@@ -38,7 +38,7 @@ export interface ExportAuditFilters {
   to?: string
 }
 
-export interface ExportAuditPage {
+interface ExportAuditPage {
   rows: ExportEventRow[]
   total: number
   page: number
@@ -46,7 +46,7 @@ export interface ExportAuditPage {
   totalPages: number
 }
 
-export interface ExportAuditLookup {
+interface ExportAuditLookup {
   row: ExportEventRow
 }
 

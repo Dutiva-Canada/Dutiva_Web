@@ -10,7 +10,7 @@ import type {
   CommsInitiative,
 } from '../data/types'
 
-export interface ContentImportRow {
+interface ContentImportRow {
   title?: string
   body?: string
   language?: 'en' | 'fr' | 'bilingual'

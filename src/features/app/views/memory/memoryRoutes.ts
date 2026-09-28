@@ -1,6 +1,6 @@
 /** Canonical Memory entity routes (still under /app/settings/memory). */
 
-export type MemoryEntityScope = 'person' | 'case' | 'thread'
+type MemoryEntityScope = 'person' | 'case' | 'thread'
 
 export function memoryPathForEntity(scope: MemoryEntityScope, entityId: string): string {
   switch (scope) {

@@ -486,7 +486,7 @@ export async function addEmployeeNote(
 
 /* ── Performance reviews (0131) — goals, rating, next review date ───────── */
 
-export type PerformanceReviewRating = 'exceeds' | 'meets' | 'needs_improvement' | 'unrated'
+type PerformanceReviewRating = 'exceeds' | 'meets' | 'needs_improvement' | 'unrated'
 
 export interface ProductionPerformanceReview {
   id: string

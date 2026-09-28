@@ -11,7 +11,7 @@ import { analyticsMessages as M } from '@/i18n/messages/analytics'
  * sr-only table twins the chart.
  */
 
-export interface JurisdictionBarRow {
+interface JurisdictionBarRow {
   key: string
   label: string
   value: number

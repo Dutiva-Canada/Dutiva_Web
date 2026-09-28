@@ -255,7 +255,7 @@ const components: Components = {
  * Public component
  * ------------------------------------------------------------------ */
 
-export interface ChatMarkdownProps {
+interface ChatMarkdownProps {
   readonly children: string
   /** True while the reply is still arriving — suppresses half-built tables. */
   readonly streaming?: boolean
