@@ -14,17 +14,18 @@ import type { LandingMessageKey } from '../useLanding'
 /* Header nav entries. Most are landing-section anchors, resolved against the
    locale homepage ('/' or '/fr') so they work from subpages in either
    language; on the landing page itself the path is a no-op and the browser
-   jumps to the anchor. `route` entries (Pricing) link straight to a dedicated
-   page instead of a homepage section. */
+   jumps to the anchor. `route` entries (Guides, Careers) link straight to a
+   dedicated page instead of a homepage section. Pricing stays out of the nav:
+   the adjacent "See plans" button already routes there. */
 const NAV_ITEMS: { key: LandingMessageKey; hash?: string; route?: SeoRouteId }[] = [
   { hash: 'how', key: 'landing_nav_how' },
   { hash: 'workspace', key: 'landing_nav_workspace' },
-  { route: 'pricing', key: 'landing_nav_pricing' },
+  { hash: 'coverage', key: 'landing_nav_coverage' },
   { route: 'guides', key: 'landing_nav_guides' },
   { route: 'careers', key: 'landing_nav_careers' },
 ]
 
-/** A nav entry: a router link for `route` entries (Pricing → /pricing), or a
+/** A nav entry: a router link for `route` entries (Guides → /guides), or a
     homepage anchor otherwise. Shared by the desktop bar and the mobile drawer. */
 function NavLink({
   item,

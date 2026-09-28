@@ -1,4 +1,8 @@
+import { getPlanById } from '@/config/plans'
 import { defineMessages } from '../../core'
+
+/* Interpolated from the canonical plan catalogue — never hardcode the price. */
+const STARTER_PRICE = getPlanById('starter')!.monthlyPrice
 
 export const landingHero = defineMessages({
   /* Hero badge copy. [FR self-authored] */
@@ -49,6 +53,12 @@ export const landingHero = defineMessages({
   landing_cta_nocard: {
     en: 'See plans',
     fr: 'Voir les forfaits',
+  },
+  /* Price anchor under the hero CTAs (audit: no pricing above the fold).
+     [FR self-authored] */
+  landing_hero_price: {
+    en: `Paid plans start at $${STARTER_PRICE} CAD/month.`,
+    fr: `Les forfaits payants commencent à ${STARTER_PRICE} $ CA/mois.`,
   },
   landing_cta_seehow: {
     en: 'See how it works',

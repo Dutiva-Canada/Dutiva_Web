@@ -61,23 +61,25 @@ export function Hero() {
               {lt('landing_open_in_demo')}
             </Link>
           </div>
+          <p className="mt-3 text-sm text-text-3">{lt('landing_hero_price')}</p>
 
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text">
-            <ShieldCheck size={14} className="text-gold-strong" />
-            {lt('landing_hero_disclaimer')}
-          </div>
-
-          <p className="mt-3 max-w-[48ch] text-xs leading-normal text-text-3">
-            {lt('landing_hero_scope')}
-          </p>
-
-          <div className="mt-5 grid gap-2.5 text-[0.9375rem] text-text-2">
+          <div className="mt-6 grid gap-2.5 text-[0.9375rem] text-text-2">
             {CHECK_KEYS.map((key) => (
               <div key={key} className="flex items-start gap-2">
                 <CircleCheck size={16} className="mt-0.5 flex-none text-gold-strong" />
                 {lt(key)}
               </div>
             ))}
+          </div>
+
+          <div className="mt-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text">
+              <ShieldCheck size={14} className="text-gold-strong" />
+              {lt('landing_hero_disclaimer')}
+            </div>
+            <p className="mt-2 max-w-[48ch] text-xs leading-normal text-text-3">
+              {lt('landing_hero_scope')}
+            </p>
           </div>
         </div>
 

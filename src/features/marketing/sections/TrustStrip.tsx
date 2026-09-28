@@ -1,4 +1,4 @@
-import { Languages, Lock, MapPin, ShieldCheck } from 'lucide-react'
+import { Lock, MapPin, ShieldCheck } from 'lucide-react'
 import { useLanding } from '../useLanding'
 import { ReviewTrustSignals } from '../ReviewTrustSignals'
 
@@ -22,10 +22,6 @@ export function TrustStrip() {
         <span className="dutiva-pill">
           <ShieldCheck size={14} className="text-gold-strong" />
           {lt('landing_trust_law25')}
-        </span>
-        <span className="dutiva-pill">
-          <Languages size={14} className="text-gold-strong" />
-          {lt('landing_trust_bilingual')}
         </span>
       </div>
       <div className="mt-4 flex justify-center">
