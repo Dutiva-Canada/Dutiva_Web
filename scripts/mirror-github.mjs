@@ -18,7 +18,9 @@
  *      API writes while its email is unverified).
  *   4. Try an immediate squash merge; if branch protection still reports
  *      blocked (e.g. a fresh Devin Review posted unresolved threads), arm
- *      auto-merge instead and report what's holding it.
+ *      auto-merge instead and poll the PR — whichever path lands the merge,
+ *      verify github/main's resulting tree equals local main's before
+ *      reporting success.
  *
  * Signing is opt-in (`--sign`) and normally unnecessary: a squash merge
  * produces a single commit authored and signed by GitHub's web flow, which
@@ -244,27 +246,46 @@ try {
 // snapshot of our tree — if the merge-base already contains a head-side
 // change, git keeps the base side and the mirrored file silently diverges
 // (observed 2026-09-29: `export` dropped from localAudit.ts, breaking the
-// Vercel build). Compare trees after every merge.
-if (merged) {
+// Vercel build). Compare trees after every merge — including merges GitHub
+// completes later via auto-merge, which can otherwise publish a divergent
+// tree without this script noticing.
+function verifyMirror() {
   git('fetch', 'github', 'main')
   const ghTree = git('rev-parse', 'FETCH_HEAD^{tree}')
   const glTree = git('rev-parse', 'main^{tree}')
-  if (ghTree !== glTree) {
-    console.error('mirror verify FAILED — github/main tree differs from local main:')
-    try {
-      console.error(git('diff', '--stat', 'github/main', 'main'))
-    } catch {}
-    console.error(
-      'Recovery: commit a change on the divergent file(s) in GitLab so the ' +
-        'head-side diff is non-empty, re-run npm run mirror, and resolve ' +
-        'conflicts with `git merge -s ours github/main` on the mirror branch.',
-    )
-    process.exitCode = 1
-  } else {
+  if (ghTree === glTree) {
     console.log('verified: github/main tree == main tree')
+    return
   }
-} else {
-  console.log(
-    'NOTE: after the PR merges, verify with `git fetch github main && git diff github/main main`',
+  console.error('mirror verify FAILED — github/main tree differs from local main:')
+  try {
+    console.error(git('diff', '--stat', 'github/main', 'main'))
+  } catch {}
+  console.error(
+    'Recovery: commit a change on the divergent file(s) in GitLab so the ' +
+      'head-side diff is non-empty, re-run npm run mirror, and resolve ' +
+      'conflicts with `git merge -s ours github/main` on the mirror branch.',
   )
+  process.exitCode = 1
 }
+
+if (!merged) {
+  // Deferred merge — poll until GitHub completes it (bounded), then verify.
+  const deadline = Date.now() + 10 * 60_000
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 20_000))
+    const state = await api('GET', `pulls/${pr.number}`, undefined, token)
+    if (state.merged) {
+      merged = true
+      break
+    }
+    if (state.state === 'closed') break
+  }
+  if (!merged) {
+    console.error(
+      `mirror PR #${pr.number} still unmerged — re-run \`npm run mirror\` once it lands to verify the tree`,
+    )
+    process.exit(2)
+  }
+}
+verifyMirror()
