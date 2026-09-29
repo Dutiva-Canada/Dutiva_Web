@@ -52,9 +52,26 @@ function jobDescriptionText(posting: PublicJobPosting): string {
  *
  * During prerendering the posting arrives through PrerenderJobPostingContext
  * (entry-server injects the row it fetched for the manifest) so the static
- * HTML carries real content; in the browser the context is empty and the
- * page fetches in an effect.
+ * HTML carries real content; in the browser the context is empty — a
+ * prerendered page instead embeds the posting as an inert JSON script tag
+ * that readInlinePosting() picks up, so hydration shows the same content
+ * without a refetch. Anywhere else the page fetches in an effect.
  */
+
+/** The prerender-embedded posting payload (#dutiva-job-posting), matched to
+    the URL param so a stale tag can't seed the wrong page. */
+function readInlinePosting(key: string | undefined): PublicJobPosting | undefined {
+  if (typeof document === 'undefined' || !key) return undefined
+  const el = document.getElementById('dutiva-job-posting')
+  if (!el?.textContent) return undefined
+  try {
+    const row = JSON.parse(el.textContent) as PublicJobPosting
+    return row.slug === key || row.id === key ? row : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export function JobDetailPage() {
   const { x, L, lang } = useI18n()
   const paths = useCareersPath()
@@ -65,7 +82,7 @@ export function JobDetailPage() {
   const initial =
     prerenderPosting && (prerenderPosting.slug === postingKey || prerenderPosting.id === postingKey)
       ? prerenderPosting
-      : undefined
+      : readInlinePosting(postingKey)
   const [posting, setPosting] = useState<PublicJobPosting | null | undefined>(initial)
 
   useEffect(() => {
