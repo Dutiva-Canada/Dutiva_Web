@@ -40,7 +40,6 @@ const baseStrategy: Strategy = {
   rules: [],
   cadence: 'daily',
   last_evaluated_at: null,
-  notify_in_app: true,
 }
 
 const ctx: RunContext = { bookValue: 1000, cashTotal: 5000 }
@@ -176,6 +175,11 @@ describe('resolveQuantity', () => {
     expect(resolveQuantity(r, snap, position)).toBe(2.5) /* 25% of 10 */
     expect(resolveQuantity(r, snap, null)).toBeNull()
     expect(resolveQuantity(r, snap, { ...position, quantity: 0 })).toBeNull()
+  })
+
+  it('returns null for resolved quantities that round to zero', () => {
+    const r = proposalRule({ qty_unit: 'currency', qty: 0.00001 }) /* 1e-7 shares */
+    expect(resolveQuantity(r, snap, position)).toBeNull()
   })
 })
 
@@ -342,15 +346,28 @@ describe('planRun', () => {
     expect(planRun([due], [snap], [], new Set()).evaluated).toBe(1)
   })
 
-  it('suppresses signal rows when in-app delivery is off but still records hits', () => {
+  it('records diagnostics per strategy so same-title rules never mix', () => {
+    const a: Strategy = { ...baseStrategy, id: 's1', rules: [signalRule({ title: 'Shared' })] }
+    const b: Strategy = { ...baseStrategy, id: 's2', rules: [signalRule({ title: 'Shared' })] }
+    const plan = planRun([a, b], [snap], [position], new Set())
+    expect(plan.ruleHits).toEqual({ Shared: 2 })
+    expect(plan.perStrategy).toHaveLength(2)
+    expect(plan.perStrategy.map((s) => s.strategyId)).toEqual(['s1', 's2'])
+    for (const s of plan.perStrategy) {
+      expect(s.ruleHits).toEqual({ Shared: 1 })
+      expect(s.symbolsScanned).toEqual(['ACME'])
+      expect(s.signals).toBe(1)
+    }
+  })
+
+  it('dedupes same-title proposals within a single scan', () => {
     const strategy: Strategy = {
       ...baseStrategy,
-      notify_in_app: false,
-      rules: [signalRule()],
+      rules: [proposalRule({ title: 'Same' }), proposalRule({ title: 'Same' })],
     }
     const plan = planRun([strategy], [snap], [position], new Set())
-    expect(plan.signals).toHaveLength(0)
-    expect(plan.ruleHits).toEqual({ Dip: 1 })
+    expect(plan.proposals).toHaveLength(1)
+    expect(plan.ruleHits['Same']).toBe(2)
   })
 
   it('cash_above fires once per strategy, and only as a signal', () => {

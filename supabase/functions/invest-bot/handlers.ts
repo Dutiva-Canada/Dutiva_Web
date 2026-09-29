@@ -52,9 +52,6 @@ export interface Strategy {
   rules: StrategyRule[]
   cadence: StrategyCadence
   last_evaluated_at: string | null
-  /** Deliver the strategy's signals in-app (Signals tab). Hits are always
-      recorded in the run's rule_hits even when delivery is off. */
-  notify_in_app: boolean
 }
 
 export interface MarketSnapshot {
@@ -258,13 +255,13 @@ export function resolveQuantity(
       return rule.qty
     case 'currency': {
       if (snap.price <= 0) return null
-      const shares = rule.qty / snap.price
-      return shares > 0 ? Math.round(shares * 10000) / 10000 : null
+      const shares = Math.round((rule.qty / snap.price) * 10000) / 10000
+      return shares > 0 ? shares : null /* rounds to zero — can't satisfy a positive-qty insert */
     }
     case 'percent_of_position': {
       if (!position || position.quantity <= 0) return null
-      const shares = (position.quantity * rule.qty) / 100
-      return shares > 0 ? Math.round(shares * 10000) / 10000 : null
+      const shares = Math.round(((position.quantity * rule.qty) / 100) * 10000) / 10000
+      return shares > 0 ? shares : null
     }
   }
 }
@@ -291,8 +288,17 @@ export interface RunPlan {
   proposals: NewOrderProposal[]
   /** Distinct symbols that were actually scanned (scope ∩ snapshots). */
   symbolsScanned: string[]
-  /** Rule title → number of matches, counted before dedupe. */
+  /** Rule title → number of matches across all strategies, counted before dedupe. */
   ruleHits: Record<string, number>
+  /** Per-strategy diagnostics — run history is recorded per strategy so
+      rules sharing a title never mix across strategies. */
+  perStrategy: {
+    strategyId: string
+    ruleHits: Record<string, number>
+    symbolsScanned: string[]
+    signals: number
+    proposals: number
+  }[]
   /** Explanations for anything skipped (e.g. unresolvable quantity). */
   warnings: string[]
   evaluated: number
@@ -325,11 +331,12 @@ export function planRun(
     proposals: [],
     symbolsScanned: [],
     ruleHits: {},
+    perStrategy: [],
     warnings: [],
     evaluated: 0,
   }
   const now = opts.now ?? new Date()
-  const openDraftKeys = opts.openDraftKeys ?? new Set<string>()
+  const openDraftKeys = new Set(opts.openDraftKeys ?? [])
   const positionBySymbol = new Map<string, Position>()
   const priceBySymbol = new Map<string, number>()
   for (const p of positions) positionBySymbol.set(`${p.asset_class}:${p.symbol}`, p)
@@ -345,13 +352,23 @@ export function planRun(
   const ctx: RunContext = { bookValue, cashTotal: opts.cashTotal ?? 0 }
 
   const scanned = new Set<string>()
+  let stratDiag: RunPlan['perStrategy'][number] | null = null
   const hit = (rule: RuleBase, n = 1) => {
     plan.ruleHits[rule.title] = (plan.ruleHits[rule.title] ?? 0) + n
+    if (stratDiag) stratDiag.ruleHits[rule.title] = (stratDiag.ruleHits[rule.title] ?? 0) + n
   }
 
   for (const strategy of strategies) {
     if (!strategy.enabled || strategy.rules.length === 0) continue
     if (!opts.force && !strategyDue(strategy, now)) continue
+    stratDiag = {
+      strategyId: strategy.id,
+      ruleHits: {},
+      symbolsScanned: [],
+      signals: 0,
+      proposals: 0,
+    }
+    plan.perStrategy.push(stratDiag)
     const scope = new Set(strategy.scope_symbols.map((s) => s.toUpperCase()))
     const symbolRules = strategy.rules.filter((r) => !BOOK_METRICS.includes(r.metric))
     const bookRules = strategy.rules.filter((r) => BOOK_METRICS.includes(r.metric))
@@ -359,6 +376,7 @@ export function planRun(
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
       scanned.add(snap.symbol.toUpperCase())
+      stratDiag.symbolsScanned.push(snap.symbol.toUpperCase())
       plan.evaluated += 1
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
       for (const rule of symbolRules) {
@@ -366,7 +384,6 @@ export function planRun(
         hit(rule)
 
         if (rule.type === 'signal') {
-          if (!strategy.notify_in_app) continue /* delivery off — hit still recorded */
           const key = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
           if (existingKeys.has(key)) continue
           plan.signals.push({
@@ -379,11 +396,14 @@ export function planRun(
             body: buildSignalBody(rule, snap, position, ctx),
             score: scoreFor(rule, snap, position, ctx),
           })
+          if (stratDiag) stratDiag.signals += 1
           continue
         }
 
-        /* order_proposal — resolve quantity, dedupe against open drafts,
-           and only ever PLAN a draft; execution stays with the user. */
+        /* order_proposal — resolve quantity, dedupe against open drafts
+           (including drafts planned earlier in this same run — two rules
+           sharing a title must not produce two identical orders), and only
+           ever PLAN a draft; execution stays with the user. */
         const qty = resolveQuantity(rule, snap, position)
         if (qty === null) {
           plan.warnings.push(
@@ -393,6 +413,7 @@ export function planRun(
         }
         const key = `${strategy.id}:${snap.symbol}:${rule.title}`
         if (openDraftKeys.has(key)) continue
+        openDraftKeys.add(key)
         plan.proposals.push({
           strategy_id: strategy.id,
           rule_key: key,
@@ -404,6 +425,7 @@ export function planRun(
           requested_price: snap.price,
           note: `Order proposal — ${rule.title}`,
         })
+        if (stratDiag) stratDiag.proposals += 1
       }
     }
 
@@ -418,7 +440,6 @@ export function planRun(
         plan.warnings.push(`${rule.title}: order proposals need a symbol-level metric`)
         continue
       }
-      if (!strategy.notify_in_app) continue
       const key = `${strategy.id}::${rule.severity}:${rule.title}`
       if (existingKeys.has(key)) continue
       plan.signals.push({
@@ -431,6 +452,7 @@ export function planRun(
         body: `cash ${ctx.cashTotal.toFixed(2)}`,
         score: scoreFor(rule, EMPTY_SNAP, null, ctx),
       })
+      if (stratDiag) stratDiag.signals += 1
       plan.evaluated += 1
     }
   }
