@@ -43,9 +43,7 @@ function asAuth(status: AuthContextValue['status']): AuthContextValue {
   return {
     status,
     session:
-      status === 'signed-in'
-        ? ({ user: { id: 'u1', email: 'c@example.com' } } as never)
-        : null,
+      status === 'signed-in' ? ({ user: { id: 'u1', email: 'c@example.com' } } as never) : null,
     authorized: null,
     signInWithEmail: vi.fn().mockResolvedValue(undefined),
     verifyEmailCode: vi.fn().mockResolvedValue(undefined),
@@ -56,7 +54,14 @@ function asAuth(status: AuthContextValue['status']): AuthContextValue {
 
 const STATE: InvestState = {
   accounts: [
-    { id: 'acc1', name: 'Paper book', kind: 'paper', baseCurrency: 'CAD', cashBalance: 25000, status: 'active' },
+    {
+      id: 'acc1',
+      name: 'Paper book',
+      kind: 'paper',
+      baseCurrency: 'CAD',
+      cashBalance: 25000,
+      status: 'active',
+    },
   ],
   positions: [
     {
@@ -89,9 +94,18 @@ const STATE: InvestState = {
       id: 's1',
       name: 'Dip watcher',
       enabled: true,
-      assetClasses: ['equity'],
-      rules: [{ metric: 'day_change_pct', op: 'lt', value: -5, kind: 'alert', title: 'Dip', side: 'buy', qty: 5 }],
-      autonomy: 'suggest',
+      scope: { watchlist: true, symbols: [] },
+      rules: [
+        {
+          type: 'signal' as const,
+          metric: 'day_change_pct' as const,
+          op: 'lt' as const,
+          value: -5,
+          severity: 'alert' as const,
+          title: 'Dip',
+        },
+      ],
+      notify: { inApp: true, email: false },
       cadence: 'daily',
       template: '',
     },
@@ -139,10 +153,13 @@ const STATE: InvestState = {
     {
       id: 'r1',
       ranAt: '2026-01-20T07:45:00Z',
+      strategyId: null,
       signalsEmitted: 1,
-      ordersSuggested: 1,
-      ordersExecuted: 0,
-      summary: '1 snapshot(s) evaluated',
+      proposalsCreated: 1,
+      symbolsScanned: ['SHOP'],
+      ruleHits: { Dip: 1 },
+      durationMs: 1200,
+      summary: '1 symbol(s) scanned',
       status: 'ok',
     },
   ],

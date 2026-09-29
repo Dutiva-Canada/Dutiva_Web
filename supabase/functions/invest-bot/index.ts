@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   applyFill,
   CADENCES,
+  draftKey,
   parseRules,
   planRun,
   signalKey,
@@ -17,17 +18,23 @@ import { maybeEmitInsights } from './insights.ts'
 
 /**
  * Invest-bot edge function — evaluates each user's enabled strategies
- * against their market snapshots, emits signals, and (for paper_execute
- * strategies) fills paper orders at the snapshot price while updating
- * positions and the paper account's cash balance.
+ * against the symbols in each strategy's scope, emits signals, and turns
+ * order-proposal rules into DRAFT orders that wait in the Orders tab for
+ * explicit user approval. The bot never executes anything itself; the only
+ * fill path is the user-invoked execute-order action below.
  *
  * Actions (POST body):
- *   { action: 'run' }                          — invest-portal JWT; runs the
- *                                                caller's book once.
+ *   { action: 'run' }                          — invest-portal JWT; scans the
+ *                                                caller's strategies now
+ *                                                (manual scans ignore the
+ *                                                cadence window).
  *   { action: 'run-all' }                      — service key / trigger
  *                                                secret (nightly sweep), or
  *                                                a portal JWT whose grant is
- *                                                role 'admin'.
+ *                                                role 'admin'. Cadence-gated.
+ *   { action: 'test-scan', rules, symbols }    — invest-portal JWT; dry-run
+ *                                                diagnostics for a draft
+ *                                                strategy. Writes nothing.
  *   { action: 'execute-order', order_id }      — invest-portal JWT; executes a
  *                                                draft/queued paper order at
  *                                                the snapshot price, or
@@ -41,7 +48,8 @@ import { maybeEmitInsights } from './insights.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -115,37 +123,131 @@ async function authenticateInvestUser(
   return { userId: userData.user.id, adminClient }
 }
 
+interface StrategyRow {
+  id: string
+  enabled: boolean
+  rules: unknown
+  cadence: unknown
+  last_evaluated_at: unknown
+  scope?: unknown
+  notify?: unknown
+}
+
+/** Reads strategies with the 0184 columns when present; falls back to a
+    scope covering every known symbol when the migration hasn't landed yet,
+    so the bot keeps working through a code-before-schema deploy. */
+async function loadStrategies(
+  adminClient: SupabaseClient,
+  userId: string,
+  allSymbols: string[],
+): Promise<{ strategies: Strategy[]; scoped: boolean }> {
+  const select = 'id, enabled, rules, cadence, last_evaluated_at, scope, notify'
+  const res = await adminClient.from('invest_strategies').select(select).eq('user_id', userId)
+
+  let rows: StrategyRow[]
+  let scoped = true
+  if (res.error && /scope|notify/.test(res.error.message)) {
+    const fallback = await adminClient
+      .from('invest_strategies')
+      .select('id, enabled, rules, cadence, last_evaluated_at')
+      .eq('user_id', userId)
+    if (fallback.error) throw new Error(fallback.error.message)
+    rows = (fallback.data ?? []) as StrategyRow[]
+    scoped = false
+  } else {
+    if (res.error) throw new Error(res.error.message)
+    rows = (res.data ?? []) as StrategyRow[]
+  }
+
+  return {
+    scoped,
+    strategies: rows.map((r) => {
+      const scope = (r.scope ?? null) as { watchlist?: unknown; symbols?: unknown } | null
+      const notify = (r.notify ?? null) as { in_app?: unknown } | null
+      const scopeSymbols = scoped
+        ? [
+            ...(Array.isArray(scope?.symbols) ? (scope.symbols as string[]) : []),
+            ...(scope?.watchlist === true ? allSymbols : []),
+          ]
+        : allSymbols
+      return {
+        id: r.id as string,
+        enabled: r.enabled === true,
+        scope_symbols: [...new Set(scopeSymbols.map((s) => String(s).toUpperCase()))],
+        rules: parseRules(r.rules),
+        cadence: CADENCES.includes(r.cadence as string) ? (r.cadence as StrategyCadence) : 'daily',
+        last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
+        notify_in_app: notify?.in_app !== false,
+      }
+    }),
+  }
+}
+
 /* ── Org run ─────────────────────────────────────────────────────────────── */
 
 async function runUser(
   adminClient: SupabaseClient,
   userId: string,
+  opts: { force?: boolean } = {},
 ): Promise<Record<string, unknown>> {
-  const [strategiesRes, snapshotsRes, positionsRes, signalsRes, accountsRes] = await Promise.all([
-    adminClient.from('invest_strategies').select('id, enabled, asset_classes, rules, autonomy, cadence, last_evaluated_at').eq('user_id', userId),
-    adminClient.from('invest_market_snapshots').select('asset_class, symbol, price, day_change_pct, ma50, currency').eq('user_id', userId),
-    adminClient.from('invest_positions').select('id, account_id, asset_class, symbol, name, quantity, avg_cost').eq('user_id', userId),
-    adminClient.from('invest_signals').select('strategy_id, symbol, kind, title').eq('user_id', userId).eq('status', 'new'),
-    adminClient.from('invest_accounts').select('cash_balance').eq('user_id', userId).eq('status', 'active'),
-  ])
-
-  const strategies: Strategy[] = (strategiesRes.data ?? []).map((r) => ({
-    id: r.id as string,
-    enabled: r.enabled === true,
-    asset_classes: Array.isArray(r.asset_classes) ? (r.asset_classes as string[]) : [],
-    rules: parseRules(r.rules),
-    autonomy: r.autonomy === 'paper_execute' ? 'paper_execute' : 'suggest',
-    cadence: CADENCES.includes(r.cadence as string)
-      ? (r.cadence as StrategyCadence)
-      : 'daily',
-    last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
-  }))
-  const cashTotal = (accountsRes.data ?? []).reduce(
-    (sum, a) => sum + Number(a.cash_balance),
-    0,
+  const startedAt = Date.now()
+  const [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes, draftsRes] =
+    await Promise.all([
+      adminClient
+        .from('invest_market_snapshots')
+        .select('asset_class, symbol, price, day_change_pct, ma50, currency')
+        .eq('user_id', userId),
+      adminClient
+        .from('invest_positions')
+        .select('id, account_id, asset_class, symbol, name, quantity, avg_cost')
+        .eq('user_id', userId),
+      adminClient
+        .from('invest_signals')
+        .select('strategy_id, symbol, kind, title')
+        .eq('user_id', userId)
+        .eq('status', 'new'),
+      adminClient
+        .from('invest_accounts')
+        .select('cash_balance')
+        .eq('user_id', userId)
+        .eq('status', 'active'),
+      adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
+      adminClient
+        .from('invest_orders')
+        .select('strategy_id, symbol, note')
+        .eq('user_id', userId)
+        .eq('status', 'draft'),
+    ])
+  for (const res of [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes]) {
+    if (res.error) throw new Error(res.error.message)
+  }
+  /* draftsRes may 42703 on a pre-0184 schema (no strategy_id column) —
+     degrade to no proposal dedupe rather than failing the run. */
+  const openDraftKeys = new Set(
+    (draftsRes.error ? [] : (draftsRes.data ?? [])).map((o) =>
+      draftKey({
+        strategy_id: o.strategy_id as string | null,
+        symbol: o.symbol as string,
+        note: (o.note as string | null) ?? null,
+      }),
+    ),
   )
+
   const snapshots = (snapshotsRes.data ?? []) as MarketSnapshot[]
   const positions = (positionsRes.data ?? []) as (Position & { id: string; name: string })[]
+  /* Scope resolution universe: held symbols ∪ watched symbols — the set
+     market-sync keeps snapshots fresh for. */
+  const knownSymbols = [
+    ...new Set(
+      [
+        ...positions.map((p) => p.symbol),
+        ...(watchlistRes.data ?? []).map((w) => w.symbol as string),
+      ].map((s) => s.toUpperCase()),
+    ),
+  ]
+  const { strategies } = await loadStrategies(adminClient, userId, knownSymbols)
+
+  const cashTotal = (accountsRes.data ?? []).reduce((sum, a) => sum + Number(a.cash_balance), 0)
   const existingKeys = new Set(
     (signalsRes.data ?? []).map((s) =>
       signalKey({
@@ -157,13 +259,19 @@ async function runUser(
     ),
   )
 
-  const plan = planRun(strategies, snapshots, positions, existingKeys, { cashTotal })
+  const plan = planRun(strategies, snapshots, positions, existingKeys, {
+    cashTotal,
+    force: opts.force === true,
+    openDraftKeys,
+  })
 
   /* Stamp the evaluation clock on strategies that were actually due — a
      weekly strategy that ran today must not re-fire tomorrow even if it
-     emitted nothing. */
+     emitted nothing. Manual scans stamp too: cadence means "at most". */
   const evaluatedIds = strategies
-    .filter((s) => s.enabled && s.rules.length > 0 && strategyDue(s, new Date()))
+    .filter(
+      (s) => s.enabled && s.rules.length > 0 && (opts.force === true || strategyDue(s, new Date())),
+    )
     .map((s) => s.id)
   if (evaluatedIds.length > 0) {
     await adminClient
@@ -172,124 +280,62 @@ async function runUser(
       .in('id', evaluatedIds)
   }
 
-  /* Insert signals; keep a key→signal id map for order back-links. */
-  const signalIdByKey = new Map<string, string>()
+  /* Insert signals. */
+  let writesFailed = false
   for (const signal of plan.signals) {
-    const { data: row, error } = await adminClient
-      .from('invest_signals')
-      .insert({
-        user_id: userId,
-        strategy_id: signal.strategy_id,
-        asset_class: signal.asset_class,
-        symbol: signal.symbol,
-        name: signal.name,
-        kind: signal.kind,
-        title: signal.title,
-        body: signal.body,
-        score: signal.score,
-      })
-      .select('id')
-      .maybeSingle()
-    if (!error && row) signalIdByKey.set(signalKey(signal), row.id as string)
+    const { error } = await adminClient.from('invest_signals').insert({
+      user_id: userId,
+      strategy_id: signal.strategy_id,
+      asset_class: signal.asset_class,
+      symbol: signal.symbol,
+      name: signal.name,
+      kind: signal.kind,
+      title: signal.title,
+      body: signal.body,
+      score: signal.score,
+    })
+    if (error) writesFailed = true
   }
 
-  /* Paper orders: pick the first active paper account as the book. */
+  /* Order proposals → DRAFT orders on the first active paper account.
+     Nothing executes: approval happens in the Orders tab via
+     execute-order, and only ever at the user's request. */
   const { data: paperAccount } = await adminClient
     .from('invest_accounts')
-    .select('id, cash_balance')
+    .select('id')
     .eq('user_id', userId)
     .eq('kind', 'paper')
     .eq('status', 'active')
     .limit(1)
     .maybeSingle()
 
-  let ordersExecuted = 0
-  if (paperAccount && plan.orders.length > 0) {
-    const positionBySymbol = new Map<string, Position & { id: string }>()
-    for (const p of positions) {
-      positionBySymbol.set(`${p.asset_class}:${p.symbol}`, p)
-    }
-    let cash = Number(paperAccount.cash_balance)
-
-    for (const order of plan.orders) {
-      const cost = order.quantity * order.executed_price
-      if (order.side === 'buy' && cash < cost) continue /* insufficient paper cash */
-      const position = positionBySymbol.get(`${order.asset_class}:${order.symbol}`) ?? null
-      const fill = applyFill(position, order.side, order.quantity, order.executed_price)
-
-      const { data: orderRow } = await adminClient
-        .from('invest_orders')
-        .insert({
+  let proposalsCreated = 0
+  if (plan.proposals.length > 0) {
+    if (!paperAccount) {
+      plan.warnings.push('order proposals skipped — no active paper account')
+    } else {
+      for (const proposal of plan.proposals) {
+        const { error } = await adminClient.from('invest_orders').insert({
           user_id: userId,
           account_id: paperAccount.id,
-          signal_id: signalIdByKey.get(order.signal_key) ?? null,
-          asset_class: order.asset_class,
-          symbol: order.symbol,
-          name: order.name,
-          side: order.side,
-          quantity: order.quantity,
+          strategy_id: proposal.strategy_id,
+          asset_class: proposal.asset_class,
+          symbol: proposal.symbol,
+          name: proposal.name,
+          side: proposal.side,
+          quantity: proposal.quantity,
           order_type: 'market',
           mode: 'paper',
-          status: 'executed',
-          requested_price: order.executed_price,
-          executed_price: order.executed_price,
-          executed_at: new Date().toISOString(),
+          status: 'draft',
+          requested_price: proposal.requested_price,
+          note: proposal.note,
         })
-        .select('id')
-        .maybeSingle()
-      if (!orderRow) continue
-
-      cash += order.side === 'sell' ? cost : -cost
-      if (position) {
-        await adminClient
-          .from('invest_positions')
-          .update({
-            quantity: fill.quantity,
-            avg_cost: fill.avg_cost,
-            last_price: order.executed_price,
-            last_price_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', position.id)
-        position.quantity = fill.quantity
-        position.avg_cost = fill.avg_cost
-      } else if (order.side === 'buy') {
-        const { data: newPos } = await adminClient
-          .from('invest_positions')
-          .insert({
-            user_id: userId,
-            account_id: paperAccount.id,
-            asset_class: order.asset_class,
-            symbol: order.symbol,
-            name: order.name,
-            quantity: fill.quantity,
-            avg_cost: fill.avg_cost,
-            last_price: order.executed_price,
-            last_price_at: new Date().toISOString(),
-          })
-          .select('id')
-          .maybeSingle()
-        if (newPos) {
-          const p: Position & { id: string } = {
-            id: newPos.id as string,
-            account_id: paperAccount.id as string,
-            asset_class: order.asset_class,
-            symbol: order.symbol,
-            quantity: fill.quantity,
-            avg_cost: fill.avg_cost,
-          }
-          positionBySymbol.set(`${order.asset_class}:${order.symbol}`, p)
-          positions.push(p as Position & { id: string; name: string })
+        if (error) {
+          writesFailed = true
+          continue
         }
+        proposalsCreated += 1
       }
-      ordersExecuted += 1
-    }
-
-    if (ordersExecuted > 0) {
-      await adminClient
-        .from('invest_accounts')
-        .update({ cash_balance: cash, updated_at: new Date().toISOString() })
-        .eq('id', paperAccount.id)
     }
   }
 
@@ -300,7 +346,7 @@ async function runUser(
     positions,
     cashTotal,
     signalsEmitted: plan.signals.length,
-    ordersPlanned: plan.orders.length,
+    ordersPlanned: plan.proposals.length,
   })
   for (const insight of insights) {
     await adminClient.from('invest_signals').insert({
@@ -318,21 +364,97 @@ async function runUser(
     })
   }
 
-  await adminClient.from('invest_bot_runs').insert({
+  const runRow: Record<string, unknown> = {
     user_id: userId,
     signals_emitted: plan.signals.length + insights.length,
-    orders_suggested: plan.orders.length,
-    orders_executed: ordersExecuted,
-    summary: `${plan.evaluated} snapshot(s) evaluated`,
-    status: 'ok',
-  })
+    orders_suggested: proposalsCreated,
+    orders_executed: 0,
+    summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
+    status: writesFailed ? 'partial' : 'ok',
+    symbols_scanned: plan.symbolsScanned,
+    rule_hits: plan.ruleHits,
+    duration_ms: Date.now() - startedAt,
+  }
+  const runInsert = await adminClient.from('invest_bot_runs').insert(runRow)
+  if (runInsert.error && /symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)) {
+    /* Pre-0184 schema — record the run without the diagnostic columns. */
+    await adminClient.from('invest_bot_runs').insert({
+      user_id: userId,
+      signals_emitted: runRow.signals_emitted,
+      orders_suggested: runRow.orders_suggested,
+      orders_executed: 0,
+      summary: runRow.summary,
+      status: runRow.status,
+    })
+  }
 
   return {
-    evaluated: plan.evaluated,
+    scanned: plan.symbolsScanned,
     signals: plan.signals.length,
-    orders: plan.orders.length,
-    executed: ordersExecuted,
+    proposals: proposalsCreated,
+    ruleHits: plan.ruleHits,
+    warnings: plan.warnings,
+    durationMs: Date.now() - startedAt,
   }
+}
+
+/* ── Test scan (dry run — evaluates a draft strategy, writes nothing) ────── */
+
+async function testScan(
+  adminClient: SupabaseClient,
+  userId: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  const rules = parseRules(body['rules'])
+  const symbols = Array.isArray(body['symbols'])
+    ? (body['symbols'] as unknown[]).map((s) => String(s).toUpperCase()).filter(Boolean)
+    : []
+  if (rules.length === 0) return json({ error: 'No valid rules', code: 'no_rules' }, 400)
+  if (symbols.length === 0) return json({ error: 'No symbols in scope', code: 'no_scope' }, 400)
+
+  const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
+    adminClient
+      .from('invest_market_snapshots')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency')
+      .eq('user_id', userId),
+    adminClient
+      .from('invest_positions')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost')
+      .eq('user_id', userId),
+    adminClient
+      .from('invest_accounts')
+      .select('cash_balance')
+      .eq('user_id', userId)
+      .eq('status', 'active'),
+  ])
+  for (const res of [snapshotsRes, positionsRes, accountsRes]) {
+    if (res.error) return json({ error: res.error.message }, 500)
+  }
+
+  const cashTotal = (accountsRes.data ?? []).reduce((sum, a) => sum + Number(a.cash_balance), 0)
+  const draft: Strategy = {
+    id: 'test-scan',
+    enabled: true,
+    scope_symbols: symbols,
+    rules,
+    cadence: 'daily',
+    last_evaluated_at: null,
+    notify_in_app: true,
+  }
+  const plan = planRun(
+    [draft],
+    (snapshotsRes.data ?? []) as MarketSnapshot[],
+    (positionsRes.data ?? []) as Position[],
+    new Set(),
+    { cashTotal, force: true },
+  )
+  return json({
+    symbolsScanned: plan.symbolsScanned,
+    ruleHits: plan.ruleHits,
+    signals: plan.signals.length,
+    proposals: plan.proposals.length,
+    warnings: plan.warnings,
+  })
 }
 
 /* ── Manual order execution (paper fills + live confirmations) ────────────── */
@@ -384,7 +506,15 @@ async function executeOrder(
     .eq('symbol', order.symbol)
     .maybeSingle()
   const fill = applyFill(
-    position ? { account_id: '', asset_class: order.asset_class, symbol: order.symbol, quantity: Number(position.quantity), avg_cost: Number(position.avg_cost) } : null,
+    position
+      ? {
+          account_id: '',
+          asset_class: order.asset_class,
+          symbol: order.symbol,
+          quantity: Number(position.quantity),
+          avg_cost: Number(position.avg_cost),
+        }
+      : null,
     side,
     qty,
     price,
@@ -393,7 +523,13 @@ async function executeOrder(
   if (position) {
     await adminClient
       .from('invest_positions')
-      .update({ quantity: fill.quantity, avg_cost: fill.avg_cost, last_price: price, last_price_at: now, updated_at: now })
+      .update({
+        quantity: fill.quantity,
+        avg_cost: fill.avg_cost,
+        last_price: price,
+        last_price_at: now,
+        updated_at: now,
+      })
       .eq('id', position.id)
   } else if (side === 'buy') {
     await adminClient.from('invest_positions').insert({
@@ -483,7 +619,11 @@ Deno.serve(async (req: Request) => {
   const { userId, adminClient } = authed
 
   if (actionCheck.value === 'run') {
-    return json(await runUser(adminClient, userId))
+    return json(await runUser(adminClient, userId, { force: true }))
+  }
+
+  if (actionCheck.value === 'test-scan') {
+    return testScan(adminClient, userId, body)
   }
 
   /* execute-order */
@@ -491,8 +631,9 @@ Deno.serve(async (req: Request) => {
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) {
     return json({ error: 'order_id must be a uuid' }, 400)
   }
-  const fill = typeof body['fill_price'] === 'number' && body['fill_price'] > 0
-    ? (body['fill_price'] as number)
-    : null
+  const fill =
+    typeof body['fill_price'] === 'number' && body['fill_price'] > 0
+      ? (body['fill_price'] as number)
+      : null
   return executeOrder(adminClient, userId, orderId, fill)
 })

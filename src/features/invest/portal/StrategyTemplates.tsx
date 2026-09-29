@@ -1,18 +1,23 @@
-import { LayoutTemplate } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, ChevronUp, LayoutTemplate } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
+import { RULE_METRIC_LABELS, ruleSentence } from '@/features/invest/data/strategyRules'
 import { STRATEGY_TEMPLATES, type StrategyTemplate } from '@/features/invest/data/strategyTemplates'
-import type { InvestStrategy } from '@/features/invest/data/types'
+import type { InvestStrategy, StrategyCadence } from '@/features/invest/data/types'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
+const fieldClass =
+  'rounded-[7px] border border-border bg-bg px-[7px] py-[3px] text-[11px] text-text outline-none focus:border-navy'
 
-const cadenceLabel = {
+const cadenceLabel: Record<StrategyCadence, keyof typeof IM> = {
   daily: 'invest_cadence_daily',
   weekly: 'invest_cadence_weekly',
   monthly: 'invest_cadence_monthly',
-} as const
+}
 
-/** The template gallery — one click seeds the strategy form. */
+/** The template gallery — each card previews its rules and lets the user
+    tune the cadence before seeding the create form. */
 export function StrategyTemplates({
   disabled,
   onPick,
@@ -21,15 +26,19 @@ export function StrategyTemplates({
   onPick: (seed: Omit<InvestStrategy, 'id'>) => void
 }) {
   const { x } = useI18n()
+  const [openSlug, setOpenSlug] = useState<string | null>(null)
+  const [cadenceBySlug, setCadenceBySlug] = useState<Record<string, StrategyCadence>>({})
 
   const pick = (t: StrategyTemplate) =>
     onPick({
       name: x(t.name),
       enabled: false,
-      assetClasses: t.assetClasses,
+      /* Watchlist scope is the safe default — the user narrows it to
+         explicit symbols in the form before saving. */
+      scope: { watchlist: true, symbols: [] },
       rules: t.rules.map((r) => ({ ...r })),
-      autonomy: t.autonomy,
-      cadence: t.cadence,
+      notify: { inApp: true, email: false },
+      cadence: cadenceBySlug[t.slug] ?? t.cadence,
       template: `tpl:${t.slug}`,
     })
 
@@ -40,29 +49,82 @@ export function StrategyTemplates({
         {x(IM.invest_templates_title)}
       </h2>
       <p className="m-0 mt-[4px] text-[12px] text-text-muted">{x(IM.invest_templates_sub)}</p>
-      <ul className="m-0 mt-[12px] grid list-none grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-[10px] p-0">
-        {STRATEGY_TEMPLATES.map((t) => (
-          <li
-            key={t.slug}
-            className="flex flex-col gap-[8px] rounded-[10px] border border-border bg-inset p-[12px]"
-          >
-            <div className="flex items-start justify-between gap-[8px]">
-              <p className="m-0 text-[13px] font-semibold text-text">{x(t.name)}</p>
-              <span className="shrink-0 rounded-full border border-border px-[7px] py-[1px] text-[10px] font-semibold text-text-2">
-                {x(IM[cadenceLabel[t.cadence]])}
-              </span>
-            </div>
-            <p className="m-0 flex-1 text-[11.5px] leading-normal text-text-muted">{x(t.blurb)}</p>
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => pick(t)}
-              className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-[12px] font-semibold text-text-2 hover:bg-surface disabled:opacity-50"
+      <ul className="m-0 mt-[12px] grid list-none grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-[10px] p-0">
+        {STRATEGY_TEMPLATES.map((t) => {
+          const cadence = cadenceBySlug[t.slug] ?? t.cadence
+          const open = openSlug === t.slug
+          return (
+            <li
+              key={t.slug}
+              className="flex flex-col gap-[8px] rounded-[10px] border border-border bg-inset p-[12px]"
             >
-              {x(IM.invest_template_use)}
-            </button>
-          </li>
-        ))}
+              <div className="flex items-start justify-between gap-[8px]">
+                <p className="m-0 text-[13px] font-semibold text-text">{x(t.name)}</p>
+                <label className="flex shrink-0 items-center gap-[5px] text-[10px] font-semibold text-text-2">
+                  {x(IM.invest_cadence_label)}
+                  <select
+                    aria-label={x(IM.invest_cadence_label)}
+                    value={cadence}
+                    onChange={(e) =>
+                      setCadenceBySlug((prev) => ({
+                        ...prev,
+                        [t.slug]: e.target.value as StrategyCadence,
+                      }))
+                    }
+                    className={fieldClass}
+                  >
+                    {(['daily', 'weekly', 'monthly'] as const).map((c) => (
+                      <option key={c} value={c}>
+                        {x(IM[cadenceLabel[c]])}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <p className="m-0 flex-1 text-[11.5px] leading-normal text-text-muted">
+                {x(t.blurb)}
+              </p>
+              <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => setOpenSlug(open ? null : t.slug)}
+                className="inline-flex cursor-pointer items-center gap-[4px] self-start border-none bg-transparent p-0 text-[11px] font-semibold text-text-2 hover:text-text"
+              >
+                {open ? (
+                  <ChevronUp size={12} aria-hidden="true" />
+                ) : (
+                  <ChevronDown size={12} aria-hidden="true" />
+                )}
+                {x(IM.invest_template_preview)}
+              </button>
+              {open && (
+                <ul className="m-0 flex list-none flex-col gap-[4px] rounded-[8px] border border-border bg-surface p-[8px]">
+                  {t.rules.map((r, i) => (
+                    <li key={i} className="text-[11.5px] leading-normal text-text-2">
+                      {x(ruleSentence(r, (m) => IM[RULE_METRIC_LABELS[m] as keyof typeof IM]))}
+                      {r.type === 'order_proposal' &&
+                        ` — ${x(r.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)} ${r.qty} ${x(
+                          r.qtyUnit === 'shares'
+                            ? IM.invest_unit_shares
+                            : r.qtyUnit === 'percent_of_position'
+                              ? IM.invest_unit_pct
+                              : IM.invest_unit_currency,
+                        ).toLowerCase()}`}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => pick(t)}
+                className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-[12px] font-semibold text-text-2 hover:bg-surface disabled:opacity-50"
+              >
+                {x(IM.invest_template_use)}
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </section>
   )

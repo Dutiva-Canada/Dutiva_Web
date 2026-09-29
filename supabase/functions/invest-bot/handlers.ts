@@ -4,45 +4,57 @@
  * as candidate-ai/handlers.ts and candidate-job-agent/handlers.ts.
  *
  * The bot is deliberately deterministic: strategies are declarative rules
- * over the org's market snapshots and positions. It emits signals and, for
- * `paper_execute` strategies, simulated orders filled at the snapshot price.
- * It never touches a broker; live orders are recorded and confirmed
- * manually in the workspace.
+ * over the user's market snapshots and positions. Signal rules emit
+ * signals; order-proposal rules emit DRAFT orders that sit in the Orders
+ * tab until the user executes or cancels them. Nothing here ever executes
+ * a trade — the only fill path is the manual `execute-order` action in
+ * index.ts, and live orders are always bookkeeping a human confirms.
  */
 
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
 export type RuleMetric =
-  | 'day_change_pct'
-  | 'vs_ma50'
-  | 'value_floor'
-  | 'weight_pct'
-  | 'unrealized_gain_pct'
-  | 'cash_above'
+  'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
 export type RuleOp = 'lt' | 'gt'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
+export type SignalSeverity = 'insight' | 'alert'
 export type OrderSide = 'buy' | 'sell'
+export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
+export type RuleType = 'signal' | 'order_proposal'
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
 
-export interface StrategyRule {
+interface RuleBase {
   metric: RuleMetric
   op: RuleOp
   value: number
-  kind: SignalKind
   title: string
-  /** Present → the rule can also emit a paper order when the strategy's
-      autonomy is paper_execute. */
-  side?: OrderSide
-  qty?: number
 }
+
+export interface SignalRule extends RuleBase {
+  type: 'signal'
+  severity: SignalSeverity
+}
+
+export interface OrderProposalRule extends RuleBase {
+  type: 'order_proposal'
+  side: OrderSide
+  qty: number
+  qty_unit: QuantityUnit
+}
+
+export type StrategyRule = SignalRule | OrderProposalRule
 
 export interface Strategy {
   id: string
   enabled: boolean
-  asset_classes: string[]
+  /** Resolved, uppercased symbol universe — index.ts expands the stored
+      scope ({watchlist, symbols}) into this list before planning. */
+  scope_symbols: string[]
   rules: StrategyRule[]
-  autonomy: 'suggest' | 'paper_execute'
   cadence: StrategyCadence
   last_evaluated_at: string | null
+  /** Deliver the strategy's signals in-app (Signals tab). Hits are always
+      recorded in the run's rule_hits even when delivery is off. */
+  notify_in_app: boolean
 }
 
 export interface MarketSnapshot {
@@ -73,14 +85,19 @@ export interface NewSignal {
   score: number | null
 }
 
-export interface NewPaperOrder {
-  signal_key: string
+/** A draft order the user must approve in the Orders tab — never executed
+    by the bot. `quantity` is always resolved to shares at plan time. */
+export interface NewOrderProposal {
+  strategy_id: string
+  /** Dedupe key — an identical open draft suppresses a repeat proposal. */
+  rule_key: string
   asset_class: AssetClass
   symbol: string
   name: string
   side: OrderSide
   quantity: number
-  executed_price: number
+  requested_price: number
+  note: string
 }
 
 const METRICS: readonly string[] = [
@@ -93,16 +110,9 @@ const METRICS: readonly string[] = [
 ]
 export const CADENCES: readonly string[] = ['daily', 'weekly', 'monthly']
 const OPS: readonly string[] = ['lt', 'gt']
-const KINDS: readonly string[] = ['screen', 'insight', 'alert', 'thesis']
+const SEVERITIES: readonly string[] = ['insight', 'alert']
 const SIDES: readonly string[] = ['buy', 'sell']
-export const ASSET_CLASSES: readonly string[] = [
-  'equity',
-  'etf',
-  'crypto',
-  'bond',
-  'cash',
-  'other',
-]
+const QTY_UNITS: readonly string[] = ['shares', 'percent_of_position', 'currency']
 
 /* --- Rule parsing ---------------------------------------------------------- */
 
@@ -111,7 +121,15 @@ function num(v: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-/** Validates the `rules` jsonb column — malformed entries drop, not throw. */
+/**
+ * Validates the `rules` jsonb column — malformed entries drop, not throw.
+ *
+ * Accepts both shapes:
+ *   new:    {type:'signal', severity} | {type:'order_proposal', side, qty, qty_unit}
+ *   legacy: {kind, side?, qty?} — pre-0184 rows; side+qty ⇒ order_proposal
+ *           (qty_unit 'shares'), otherwise a signal whose severity maps from
+ *           kind ('alert' stays 'alert', everything else becomes 'insight').
+ */
 export function parseRules(raw: unknown): StrategyRule[] {
   if (!Array.isArray(raw)) return []
   const rules: StrategyRule[] = []
@@ -121,7 +139,6 @@ export function parseRules(raw: unknown): StrategyRule[] {
     const metric = o['metric']
     const op = o['op']
     const value = num(o['value'])
-    const kind = o['kind']
     const title = o['title']
     if (
       typeof metric !== 'string' ||
@@ -129,28 +146,45 @@ export function parseRules(raw: unknown): StrategyRule[] {
       typeof op !== 'string' ||
       !OPS.includes(op) ||
       value === null ||
-      typeof kind !== 'string' ||
-      !KINDS.includes(kind) ||
       typeof title !== 'string' ||
       title.trim() === ''
     ) {
       continue
     }
-    const rule: StrategyRule = {
+    const base: RuleBase = {
       metric: metric as RuleMetric,
       op: op as RuleOp,
       value,
-      kind: kind as SignalKind,
       title: title.trim(),
     }
-    if (typeof o['side'] === 'string' && SIDES.includes(o['side'])) {
+
+    const legacySide = typeof o['side'] === 'string' && SIDES.includes(o['side'])
+    const legacyQty = num(o['qty'])
+    const isProposal =
+      o['type'] === 'order_proposal' ||
+      (o['type'] !== 'signal' && legacySide && legacyQty !== null && legacyQty > 0)
+
+    if (isProposal) {
+      const side = o['side']
       const qty = num(o['qty'])
-      if (qty !== null && qty > 0) {
-        rule.side = o['side'] as OrderSide
-        rule.qty = qty
-      }
+      const unit =
+        typeof o['qty_unit'] === 'string' && QTY_UNITS.includes(o['qty_unit'])
+          ? (o['qty_unit'] as QuantityUnit)
+          : 'shares'
+      if (typeof side !== 'string' || !SIDES.includes(side) || qty === null || qty <= 0) continue
+      rules.push({ ...base, type: 'order_proposal', side: side as OrderSide, qty, qty_unit: unit })
+      continue
     }
-    rules.push(rule)
+
+    /* Signal rule — severity from the new field, else mapped from legacy
+       kind. Signal rules carry no order fields by construction. */
+    const severity: SignalSeverity =
+      typeof o['severity'] === 'string' && SEVERITIES.includes(o['severity'])
+        ? (o['severity'] as SignalSeverity)
+        : o['kind'] === 'alert'
+          ? 'alert'
+          : 'insight'
+    rules.push({ ...base, type: 'signal', severity })
   }
   return rules.slice(0, 20)
 }
@@ -170,6 +204,10 @@ export interface RunContext {
 /** Metrics that describe the whole book, not one symbol — evaluated once
     per strategy rather than once per snapshot. */
 export const BOOK_METRICS: readonly string[] = ['cash_above']
+
+/** Metrics tied to a single day's move — they can only fire meaningfully on
+    a daily scan; on slower cadences the UI suggests Daily. */
+export const DAILY_METRICS: readonly string[] = ['day_change_pct']
 
 function metricValue(
   metric: RuleMetric,
@@ -197,7 +235,7 @@ function metricValue(
 }
 
 export function ruleMatches(
-  rule: StrategyRule,
+  rule: RuleBase,
   snap: MarketSnapshot,
   position: Position | null,
   ctx: RunContext,
@@ -207,11 +245,38 @@ export function ruleMatches(
   return rule.op === 'lt' ? m < rule.value : m > rule.value
 }
 
+/** Resolves an order-proposal quantity to shares at the snapshot price.
+    Returns null when the unit can't resolve (no position for a percent-of-
+    position rule, no usable price for a currency amount). */
+export function resolveQuantity(
+  rule: OrderProposalRule,
+  snap: MarketSnapshot,
+  position: Position | null,
+): number | null {
+  switch (rule.qty_unit) {
+    case 'shares':
+      return rule.qty
+    case 'currency': {
+      if (snap.price <= 0) return null
+      const shares = rule.qty / snap.price
+      return shares > 0 ? Math.round(shares * 10000) / 10000 : null
+    }
+    case 'percent_of_position': {
+      if (!position || position.quantity <= 0) return null
+      const shares = (position.quantity * rule.qty) / 100
+      return shares > 0 ? Math.round(shares * 10000) / 10000 : null
+    }
+  }
+}
+
 /* --- Cadence ----------------------------------------------------------------- */
 
 /** Long-horizon strategies stay quiet between windows: weekly = 7d,
     monthly = 30d. A never-run strategy is always due. */
-export function strategyDue(strategy: Pick<Strategy, 'cadence' | 'last_evaluated_at'>, now: Date): boolean {
+export function strategyDue(
+  strategy: Pick<Strategy, 'cadence' | 'last_evaluated_at'>,
+  now: Date,
+): boolean {
   if (strategy.cadence === 'daily' || !strategy.last_evaluated_at) return true
   const last = new Date(strategy.last_evaluated_at).getTime()
   if (!Number.isFinite(last)) return true
@@ -223,25 +288,48 @@ export function strategyDue(strategy: Pick<Strategy, 'cadence' | 'last_evaluated
 
 export interface RunPlan {
   signals: NewSignal[]
-  orders: NewPaperOrder[]
+  proposals: NewOrderProposal[]
+  /** Distinct symbols that were actually scanned (scope ∩ snapshots). */
+  symbolsScanned: string[]
+  /** Rule title → number of matches, counted before dedupe. */
+  ruleHits: Record<string, number>
+  /** Explanations for anything skipped (e.g. unresolvable quantity). */
+  warnings: string[]
   evaluated: number
 }
 
 /**
- * Evaluate every enabled strategy against the snapshots. `existingKeys`
- * dedupes — a strategy won't re-emit a signal with the same (kind, symbol,
- * title) while an identical `new` signal is still open, so a daily cron
- * doesn't stack duplicates.
+ * Evaluate every strategy due this run against the snapshots. `existingKeys`
+ * dedupes signals — a strategy won't re-emit a signal with the same (kind,
+ * symbol, title) while an identical `new` signal is still open. `openDraftKeys`
+ * does the same for order proposals: a proposal is never re-created while an
+ * identical draft order is still awaiting approval.
+ *
+ * `opts.force` bypasses cadence gating — manual "Scan now" runs always
+ * evaluate; only the scheduled sweep respects the cadence window.
  */
 export function planRun(
   strategies: Strategy[],
   snapshots: MarketSnapshot[],
   positions: Position[],
   existingKeys: ReadonlySet<string>,
-  opts: { cashTotal?: number; now?: Date } = {},
+  opts: {
+    cashTotal?: number
+    now?: Date
+    force?: boolean
+    openDraftKeys?: ReadonlySet<string>
+  } = {},
 ): RunPlan {
-  const plan: RunPlan = { signals: [], orders: [], evaluated: 0 }
+  const plan: RunPlan = {
+    signals: [],
+    proposals: [],
+    symbolsScanned: [],
+    ruleHits: {},
+    warnings: [],
+    evaluated: 0,
+  }
   const now = opts.now ?? new Date()
+  const openDraftKeys = opts.openDraftKeys ?? new Set<string>()
   const positionBySymbol = new Map<string, Position>()
   const priceBySymbol = new Map<string, number>()
   for (const p of positions) positionBySymbol.set(`${p.asset_class}:${p.symbol}`, p)
@@ -256,66 +344,89 @@ export function planRun(
   }
   const ctx: RunContext = { bookValue, cashTotal: opts.cashTotal ?? 0 }
 
+  const scanned = new Set<string>()
+  const hit = (rule: RuleBase, n = 1) => {
+    plan.ruleHits[rule.title] = (plan.ruleHits[rule.title] ?? 0) + n
+  }
+
   for (const strategy of strategies) {
     if (!strategy.enabled || strategy.rules.length === 0) continue
-    if (!strategyDue(strategy, now)) continue
+    if (!opts.force && !strategyDue(strategy, now)) continue
+    const scope = new Set(strategy.scope_symbols.map((s) => s.toUpperCase()))
     const symbolRules = strategy.rules.filter((r) => !BOOK_METRICS.includes(r.metric))
     const bookRules = strategy.rules.filter((r) => BOOK_METRICS.includes(r.metric))
 
     for (const snap of snapshots) {
-      if (!strategy.asset_classes.includes(snap.asset_class)) continue
+      if (!scope.has(snap.symbol.toUpperCase())) continue
+      scanned.add(snap.symbol.toUpperCase())
       plan.evaluated += 1
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
       for (const rule of symbolRules) {
         if (!ruleMatches(rule, snap, position, ctx)) continue
+        hit(rule)
 
-        const key = `${strategy.id}:${snap.symbol}:${rule.kind}:${rule.title}`
-        if (existingKeys.has(key)) continue
-
-        const signal: NewSignal = {
-          strategy_id: strategy.id,
-          asset_class: snap.asset_class,
-          symbol: snap.symbol,
-          name: snap.symbol,
-          kind: rule.kind,
-          title: rule.title,
-          body: buildSignalBody(rule, snap, position, ctx),
-          score: scoreFor(rule, snap, position, ctx),
-        }
-        plan.signals.push(signal)
-
-        if (
-          strategy.autonomy === 'paper_execute' &&
-          rule.side !== undefined &&
-          rule.qty !== undefined &&
-          snap.price > 0
-        ) {
-          plan.orders.push({
-            signal_key: key,
+        if (rule.type === 'signal') {
+          if (!strategy.notify_in_app) continue /* delivery off — hit still recorded */
+          const key = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
+          if (existingKeys.has(key)) continue
+          plan.signals.push({
+            strategy_id: strategy.id,
             asset_class: snap.asset_class,
             symbol: snap.symbol,
             name: snap.symbol,
-            side: rule.side,
-            quantity: rule.qty,
-            executed_price: snap.price,
+            kind: rule.severity,
+            title: rule.title,
+            body: buildSignalBody(rule, snap, position, ctx),
+            score: scoreFor(rule, snap, position, ctx),
           })
+          continue
         }
+
+        /* order_proposal — resolve quantity, dedupe against open drafts,
+           and only ever PLAN a draft; execution stays with the user. */
+        const qty = resolveQuantity(rule, snap, position)
+        if (qty === null) {
+          plan.warnings.push(
+            `${rule.title}: quantity not resolvable for ${snap.symbol} (${rule.qty_unit})`,
+          )
+          continue
+        }
+        const key = `${strategy.id}:${snap.symbol}:${rule.title}`
+        if (openDraftKeys.has(key)) continue
+        plan.proposals.push({
+          strategy_id: strategy.id,
+          rule_key: key,
+          asset_class: snap.asset_class,
+          symbol: snap.symbol,
+          name: snap.symbol,
+          side: rule.side,
+          quantity: qty,
+          requested_price: snap.price,
+          note: `Order proposal — ${rule.title}`,
+        })
       }
     }
 
-    /* Book-level rules (cash_above) fire once per strategy — no symbol. */
+    /* Book-level rules (cash_above) fire once per strategy — no symbol, so
+       they can only ever produce signals, never order proposals. */
     for (const rule of bookRules) {
       const m = metricValue(rule.metric, EMPTY_SNAP, null, ctx)
       if (m === null) continue
       if (rule.op === 'lt' ? m >= rule.value : m <= rule.value) continue
-      const key = `${strategy.id}::${rule.kind}:${rule.title}`
+      hit(rule)
+      if (rule.type === 'order_proposal') {
+        plan.warnings.push(`${rule.title}: order proposals need a symbol-level metric`)
+        continue
+      }
+      if (!strategy.notify_in_app) continue
+      const key = `${strategy.id}::${rule.severity}:${rule.title}`
       if (existingKeys.has(key)) continue
       plan.signals.push({
         strategy_id: strategy.id,
         asset_class: 'cash',
         symbol: '',
         name: '',
-        kind: rule.kind,
+        kind: rule.severity,
         title: rule.title,
         body: `cash ${ctx.cashTotal.toFixed(2)}`,
         score: scoreFor(rule, EMPTY_SNAP, null, ctx),
@@ -323,6 +434,7 @@ export function planRun(
       plan.evaluated += 1
     }
   }
+  plan.symbolsScanned = [...scanned].sort()
   return plan
 }
 
@@ -335,12 +447,27 @@ const EMPTY_SNAP: MarketSnapshot = {
   currency: '',
 }
 
-export function signalKey(s: { strategy_id: string; symbol: string; kind: string; title: string }): string {
+export function signalKey(s: {
+  strategy_id: string
+  symbol: string
+  kind: string
+  title: string
+}): string {
   return `${s.strategy_id}:${s.symbol}:${s.kind}:${s.title}`
 }
 
+/** Dedupe key for a stored draft order row — matches planRun's rule_key. */
+export function draftKey(o: {
+  strategy_id: string | null
+  symbol: string
+  note: string | null
+}): string {
+  const title = (o.note ?? '').replace(/^Order proposal — /, '')
+  return `${o.strategy_id}:${o.symbol}:${title}`
+}
+
 function buildSignalBody(
-  rule: StrategyRule,
+  rule: RuleBase,
   snap: MarketSnapshot,
   position: Position | null,
   ctx: RunContext,
@@ -366,7 +493,7 @@ function buildSignalBody(
 
 /** Heuristic 0-100: distance past the threshold, saturating at 100. */
 function scoreFor(
-  rule: StrategyRule,
+  rule: RuleBase,
   snap: MarketSnapshot,
   position: Position | null,
   ctx: RunContext,
@@ -384,7 +511,8 @@ export interface PositionFill {
   avg_cost: number
 }
 
-/** Average-cost math for a paper fill against an existing position. */
+/** Average-cost math for a fill — used only by the manual execute-order
+    path; the bot itself never fills anything. */
 export function applyFill(
   position: Position | null,
   side: OrderSide,
@@ -404,10 +532,17 @@ export function applyFill(
 
 /* --- Request validation ------------------------------------------------------ */
 
-export type BotAction = 'run' | 'run-all' | 'execute-order'
+export type BotAction = 'run' | 'run-all' | 'execute-order' | 'test-scan'
 
-export function validateBotAction(action: unknown): { ok: true; value: BotAction } | { ok: false; error: string } {
-  if (action === 'run' || action === 'run-all' || action === 'execute-order') {
+export function validateBotAction(
+  action: unknown,
+): { ok: true; value: BotAction } | { ok: false; error: string } {
+  if (
+    action === 'run' ||
+    action === 'run-all' ||
+    action === 'execute-order' ||
+    action === 'test-scan'
+  ) {
     return { ok: true, value: action }
   }
   return { ok: false, error: `Unknown action: ${String(action)}` }

@@ -23,7 +23,6 @@ export type OrderMode = 'paper' | 'live'
 export type OrderStatus = 'draft' | 'queued' | 'executed' | 'cancelled' | 'failed'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
 export type SignalStatus = 'new' | 'acknowledged' | 'dismissed'
-export type StrategyAutonomy = 'suggest' | 'paper_execute'
 
 export interface InvestAccount {
   id: string
@@ -60,29 +59,54 @@ export interface MarketSnapshot {
 
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
 
-export interface StrategyRule {
-  metric:
-    | 'day_change_pct'
-    | 'vs_ma50'
-    | 'value_floor'
-    | 'weight_pct'
-    | 'unrealized_gain_pct'
-    | 'cash_above'
+export type RuleMetric =
+  'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
+export type SignalSeverity = 'insight' | 'alert'
+export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
+
+interface RuleBase {
+  metric: RuleMetric
   op: 'lt' | 'gt'
   value: number
-  kind: SignalKind
   title: string
-  side?: OrderSide
-  qty?: number
+}
+
+/** Notify-only rule — carries severity, never order fields. */
+export interface SignalRule extends RuleBase {
+  type: 'signal'
+  severity: SignalSeverity
+}
+
+/** Proposes a DRAFT order — carries side + quantity + unit, never severity.
+    The bot only ever creates drafts; approval stays with the user. */
+export interface OrderProposalRule extends RuleBase {
+  type: 'order_proposal'
+  side: OrderSide
+  qty: number
+  qtyUnit: QuantityUnit
+}
+
+export type StrategyRule = SignalRule | OrderProposalRule
+
+/** What a strategy scans: the whole watchlist and/or explicit symbols. */
+export interface StrategyScope {
+  watchlist: boolean
+  symbols: string[]
+}
+
+/** Where a strategy's signals are delivered. */
+export interface StrategyNotify {
+  inApp: boolean
+  email: boolean
 }
 
 export interface InvestStrategy {
   id: string
   name: string
   enabled: boolean
-  assetClasses: AssetClass[]
+  scope: StrategyScope
   rules: StrategyRule[]
-  autonomy: StrategyAutonomy
+  notify: StrategyNotify
   cadence: StrategyCadence
   /** Provenance: 'tpl:<slug>' from the gallery, 'ai-draft', '' = custom. */
   template: string
@@ -130,9 +154,15 @@ export interface InvestOrder {
 export interface InvestBotRun {
   id: string
   ranAt: string
+  /** Strategy a test scan targeted; null = full sweep. */
+  strategyId: string | null
   signalsEmitted: number
-  ordersSuggested: number
-  ordersExecuted: number
+  proposalsCreated: number
+  /** Distinct symbols evaluated this run (post-0184 runs; [] before). */
+  symbolsScanned: string[]
+  /** Rule title → number of matches, counted before dedupe. */
+  ruleHits: Record<string, number>
+  durationMs: number | null
   summary: string
   status: 'ok' | 'partial' | 'failed'
 }
