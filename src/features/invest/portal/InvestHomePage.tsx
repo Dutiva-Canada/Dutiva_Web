@@ -6,6 +6,7 @@ import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { useInvestHead } from './useInvestHead'
+import { InvestOnboarding } from './InvestOnboarding'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -127,6 +128,8 @@ export function InvestHomePage() {
           {syncNote}
         </p>
       )}
+
+      <InvestOnboarding />
 
       <div className="flex items-start gap-[8px] rounded-[12px] border border-border bg-surface px-[14px] py-[11px] text-[12px] leading-normal text-text-muted">
         <Info size={15} strokeWidth={1.7} className="mt-px shrink-0" aria-hidden="true" />
