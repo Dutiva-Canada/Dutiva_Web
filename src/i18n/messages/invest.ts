@@ -165,6 +165,10 @@ export const investMessages = defineMessages({
     fr: 'Configurations courantes préremplies — ajustez les seuils après ajout.',
   },
   invest_template_use: { en: 'Use template', fr: 'Utiliser' },
+  invest_template_busy: {
+    en: 'A save or scan is in progress — available when it finishes.',
+    fr: 'Enregistrement ou analyse en cours — disponible à la fin.',
+  },
   invest_template_badge: { en: 'Template', fr: 'Modèle' },
   invest_ai_title: { en: 'Describe it instead', fr: 'Décrire plutôt' },
   invest_ai_sub: {

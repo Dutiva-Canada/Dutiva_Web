@@ -140,14 +140,18 @@ export function StrategyTemplates({
                   ))}
                 </ul>
               )}
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => pick(t)}
-                className="inline-flex min-h-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-[12px] font-semibold text-text-2 hover:bg-surface disabled:opacity-50"
-              >
-                {x(IM.invest_template_use)}
-              </button>
+              {/* A disabled button can't take focus or hover, so the reason
+                  rides on the wrapper — screen readers get aria-disabled. */}
+              <span title={disabled ? x(IM.invest_template_busy) : undefined}>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => pick(t)}
+                  className="inline-flex min-h-[44px] w-full cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-[12px] font-semibold text-text-2 hover:bg-surface disabled:opacity-50"
+                >
+                  {x(IM.invest_template_use)}
+                </button>
+              </span>
             </li>
           )
         })}
