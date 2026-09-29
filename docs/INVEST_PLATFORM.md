@@ -36,7 +36,7 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 | `invest_market_snapshots` | Latest price per (user, class, symbol) — `source` records `manual` / `coingecko` / `stooq`                                                                                                                                                                                                                                                    |
 | `invest_strategies`       | Bot rule sets: `rules jsonb`, `enabled`, `cadence` (`daily` \| `weekly` \| `monthly`), `last_evaluated_at`, `template` (`tpl:*` / `ai-draft` / `''`), `scope` (`{watchlist, symbols[]}` — never empty, 0184), `notify` (`{in_app, email}`, 0184). `autonomy` is deprecated — per-rule `type` replaced it and all rows were reset to `suggest` |
 | `invest_signals`          | Bot output: `screen` \| `insight` \| `alert` \| `thesis`, triage status `new` → `acknowledged`/`dismissed`; `title_fr`/`body_fr` carry AI-authored bilingual insight text                                                                                                                                                                     |
-| `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`/`expired` (0185); `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                                             |
+| `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`/`expired` (0185); `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                            |
 | `invest_bot_runs`         | Run log: counts + summary per sweep + diagnostics (0184): `symbols_scanned[]`, `rule_hits` (title → count), `duration_ms`, `strategy_id` (targeted test scans)                                                                                                                                                                                |
 
 Two more tables came with `0183_invest_watchlist_news.sql`:
@@ -176,14 +176,43 @@ the `advisor_chat` route when no `invest_ai` row exists).
 
 ## UI
 
-`src/features/invest/` — `portal/` (layout, auth panel, five pages,
+`src/features/invest/` — `portal/` (layout, auth panel, eight pages,
 `StrategyForm.tsx` + `RuleCard.tsx` + `StrategyTemplates.tsx` +
 `StrategyAiDraft.tsx`) + `data/` (types, API, provider,
 `strategyTemplates.ts`, `strategyRules.ts` — the client mirror of the
 engine's rule model). Nav: Overview, Portfolios, Orders,
-Signals, Bot. Bilingual via `investMessages`; the language toggle rides
-in the header like the candidate portal. Mobile nav collapses to a menu
-under 820px.
+Signals, Bot — plus bell (Notifications) and gear (Settings) icons in the
+action row; the mobile menu lists all seven as text rows. Bilingual via
+`investMessages`; the language toggle rides in the header like the
+candidate portal. Mobile nav collapses to a menu under 820px.
+
+Supporting surfaces (2026-09-29 walkthrough round):
+
+- **Footer** (`InvestFooter.tsx`) — Terms/Privacy/Risk/Support links plus
+  the informational-only line; rendered on every authenticated route and
+  on the sign-in wall.
+- **Legal pages** (`/invest/legal/:slug` → `InvestLegalPage.tsx`) —
+  public routes _outside_ the gated layout (pathless sibling route) so
+  signed-out footer links resolve. Terms/Privacy/Support render the
+  shared marketing `policyContent` editions; `risk` renders the
+  invest-authored `investRiskDisclosure.ts` edition (same PolicyEdition
+  shape).
+- **Notifications** (`/invest/notifications`) — new-signal triage and a
+  draft-proposals roll-up (the header bell badges the same count), plus
+  `StrategyDeliveryCard`'s read view of each strategy's notify
+  destinations; editing stays in the strategy form.
+- **Settings** (`/invest/settings`) — language, delivery summary, tour
+  replay, and the account view (email, passwordless-code auth method,
+  sign out / sign out everywhere via `signOut({scope:'global'})`). No
+  danger zone — no delete/export backend exists.
+- **First-run tour** (`InvestOnboarding.tsx`) — four-step card on the
+  Overview while the book is empty; localStorage-dismissed, re-openable
+  from Settings. A first sign-in also gets one `paper` account
+  auto-provisioned by `InvestDataProvider` so the position form always
+  has somewhere to record.
+- **Per-route head** (`useInvestHead.ts`) — per-page title + description
+  - `noindex` (auth-gated) plus minimal OG tags; marketing meta is
+    untouched.
 
 The Strategies page offers three ways in: the AI drafter first (describe
 a goal → reviewable draft), then the bilingual template gallery with
