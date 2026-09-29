@@ -123,6 +123,11 @@ export const investMessages = defineMessages({
   /* Strategies / bot */
   invest_strategies_title: { en: 'Bot strategies', fr: 'Stratégies du robot' },
   invest_add_strategy: { en: 'New strategy', fr: 'Nouvelle stratégie' },
+  invest_create_sub: {
+    en: 'Describe it in words, pick a template, or start blank.',
+    fr: 'Décrivez-la en mots, choisissez un modèle ou partez de zéro.',
+  },
+  invest_create_blank: { en: 'Start blank', fr: 'Partir de zéro' },
   invest_strategy_name: { en: 'Strategy name', fr: 'Nom de la stratégie' },
   invest_strategy_rules: { en: 'Rules', fr: 'Règles' },
   invest_rule_when_matches: { en: 'When this rule matches', fr: 'Quand cette règle correspond' },

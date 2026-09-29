@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
-import { Loader2, Plus, ScanSearch, Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronDown, ChevronUp, Loader2, Plus, ScanSearch, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { RULE_METRIC_LABELS, ruleSentence } from '@/features/invest/data/strategyRules'
@@ -46,6 +46,10 @@ export function InvestStrategiesPage() {
   const [creating, setCreating] = useState(false)
   const [seed, setSeed] = useState<Omit<InvestStrategy, 'id'> | null>(null)
   const [drafted, setDrafted] = useState(false)
+  /* null = untouched: the create panel opens by itself only while the
+     strategy list is empty; once the user toggles it, their choice wins. */
+  const [createOpen, setCreateOpen] = useState<boolean | null>(null)
+  const showPickers = (createOpen ?? state.strategies.length === 0) && !creating && !editing
 
   const openSeededForm = (s: Omit<InvestStrategy, 'id'>, fromAi: boolean) => {
     setSeed(s)
@@ -107,12 +111,9 @@ export function InvestStrategiesPage() {
           </div>
           <button
             type="button"
-            onClick={() => {
-              setCreating(true)
-              setEditing(null)
-              setSeed(null)
-              setDrafted(false)
-            }}
+            aria-expanded={showPickers}
+            aria-controls="invest-create"
+            onClick={() => setCreateOpen((v) => !(v ?? state.strategies.length === 0))}
             className={ghostBtnClass}
           >
             <Plus size={13} aria-hidden="true" />
@@ -128,9 +129,45 @@ export function InvestStrategiesPage() {
 
       <p className="m-0 text-[12px] leading-normal text-text-muted">{x(IM.invest_info_note)}</p>
 
-      {/* Creation order: describe it in words first, templates second. */}
-      <StrategyAiDraft disabled={busy} onDraft={(s) => openSeededForm(s, true)} />
-      <StrategyTemplates disabled={busy} onPick={(s) => openSeededForm(s, false)} />
+      {/* Create paths collapse behind "New strategy" so the list stays
+          dominant. Order inside: describe it in words, templates, blank. */}
+      <section>
+        <button
+          type="button"
+          aria-expanded={showPickers}
+          aria-controls="invest-create"
+          onClick={() => setCreateOpen(!(createOpen ?? state.strategies.length === 0))}
+          className="flex w-full cursor-pointer items-center justify-between gap-[10px] border-none bg-transparent p-0 text-left"
+        >
+          <span className="text-[14px] font-semibold text-text">{x(IM.invest_add_strategy)}</span>
+          <span className="flex items-center gap-[8px] text-[11.5px] text-text-muted">
+            {x(IM.invest_create_sub)}
+            {showPickers ? (
+              <ChevronUp size={14} aria-hidden="true" />
+            ) : (
+              <ChevronDown size={14} aria-hidden="true" />
+            )}
+          </span>
+        </button>
+        {showPickers && (
+          <div id="invest-create" className="mt-[12px] flex flex-col gap-[16px]">
+            <StrategyAiDraft disabled={busy} onDraft={(s) => openSeededForm(s, true)} />
+            <StrategyTemplates disabled={busy} onPick={(s) => openSeededForm(s, false)} />
+            <button
+              type="button"
+              onClick={() => {
+                setCreating(true)
+                setEditing(null)
+                setSeed(null)
+                setDrafted(false)
+              }}
+              className={`${ghostBtnClass} self-start`}
+            >
+              {x(IM.invest_create_blank)}
+            </button>
+          </div>
+        )}
+      </section>
 
       {(creating || editing) && (
         <StrategyForm

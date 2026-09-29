@@ -388,3 +388,49 @@ describe('InvestPortfolioPage watchlist', () => {
     })
   })
 })
+
+describe('InvestStrategiesPage', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const renderPage = async (state: InvestState = STATE) => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(state)
+    const { InvestStrategiesPage } = await import('./InvestStrategiesPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestStrategiesPage />
+      </InvestDataProvider>,
+      '/invest',
+    )
+    return userEvent.setup()
+  }
+
+  it('keeps the create pickers collapsed once strategies exist', async () => {
+    const user = await renderPage()
+
+    /* List renders; pickers stay behind the New strategy disclosure. */
+    expect(await screen.findByText('Dip watcher')).toBeInTheDocument()
+    expect(screen.queryByText('Start from a template')).not.toBeInTheDocument()
+
+    const toggles = screen.getAllByRole('button', { name: /New strategy/i })
+    await user.click(toggles[0]!)
+    expect(await screen.findByText('Start from a template')).toBeInTheDocument()
+    expect(screen.getByText('Describe it instead')).toBeInTheDocument()
+
+    /* Starting blank hides the pickers and opens the form instead. */
+    await user.click(screen.getByRole('button', { name: 'Start blank' }))
+    expect(await screen.findByText('Strategy name')).toBeInTheDocument()
+    expect(screen.queryByText('Start from a template')).not.toBeInTheDocument()
+  })
+
+  it('opens the create pickers by itself while the list is empty', async () => {
+    await renderPage({ ...STATE, strategies: [] })
+
+    expect(await screen.findByText('Start from a template')).toBeInTheDocument()
+    expect(screen.getByText('Describe it instead')).toBeInTheDocument()
+  })
+})
