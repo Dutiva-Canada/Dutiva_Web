@@ -3,8 +3,7 @@
  *   All rights reserved.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { screen } from '@testing-library/react'
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -12,36 +11,34 @@ import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { PublicJobPosting } from './data/jobBoardApi'
+import { FIXTURE_POSTINGS, makePosting } from './postingFixtures'
 
-const MOCK_POSTINGS: PublicJobPosting[] = [
-  {
+const TWO_POSTINGS: PublicJobPosting[] = [
+  makePosting({
     id: 'jp-1',
-    organizationId: 'org-1',
-    organizationName: 'Northgate Logistics Inc.',
+    slug: 'senior-product-manager-jp-1',
     title: 'Senior Product Manager',
     department: 'Product',
     location: 'Toronto, ON',
     type: 'Full-time',
     description: 'Lead the product team.',
     requirements: ['5+ years PM experience', 'B2B SaaS background'],
-    status: 'active',
     postedDate: '2026-01-15',
     closingDate: '2026-03-01',
-  },
-  {
+  }),
+  makePosting({
     id: 'jp-2',
-    organizationId: 'org-1',
-    organizationName: 'Northgate Logistics Inc.',
+    slug: 'frontend-engineer-jp-2',
     title: 'Frontend Engineer',
     department: 'Engineering',
     location: 'Remote (Canada)',
     type: 'Full-time',
     description: 'Build the candidate portal.',
     requirements: ['React', 'TypeScript'],
-    status: 'active',
+    salaryMin: 110000,
+    salaryMax: 140000,
     postedDate: '2026-01-20',
-    closingDate: null,
-  },
+  }),
 ]
 
 vi.mock('./data/jobBoardApi', () => ({
@@ -74,8 +71,8 @@ describe('JobBoardPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders job postings from the API', async () => {
-    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+  it('renders job postings from the API, with slug detail links', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
     const { JobBoardPage } = await import('./JobBoardPage')
     renderCareers(<JobBoardPage />)
 
@@ -83,21 +80,19 @@ describe('JobBoardPage', () => {
     expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
     expect(screen.getByText('Frontend Engineer')).toBeInTheDocument()
 
-    // Departments and locations render
-    expect(screen.getByText('Product')).toBeInTheDocument()
-    expect(screen.getByText('Engineering')).toBeInTheDocument()
-    expect(screen.getByText('Toronto, ON')).toBeInTheDocument()
-    expect(screen.getByText('Remote (Canada)')).toBeInTheDocument()
+    // Departments and locations render (also present as facet options — hence All)
+    expect(screen.getAllByText('Product').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Engineering').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Toronto, ON').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Remote (Canada)').length).toBeGreaterThan(0)
 
-    // "View details" links point at the detail pages
-    const detailLinks = screen.getAllByRole('link', { name: /View details/i })
-    expect(detailLinks).toHaveLength(2)
-    expect(detailLinks[0]).toHaveAttribute('href', '/careers/jobs/jp-1')
-    expect(detailLinks[1]).toHaveAttribute('href', '/careers/jobs/jp-2')
+    // "View details" cards link to slug URLs
+    const detailLinks = screen.getAllByRole('link', { name: /Senior Product Manager/i })
+    expect(detailLinks[0]).toHaveAttribute('href', '/careers/jobs/senior-product-manager-jp-1')
   })
 
-  it('renders the employer name and the closing date when present', async () => {
-    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+  it('renders the employer name, closing date, and salary when present', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
     const { JobBoardPage } = await import('./JobBoardPage')
     renderCareers(<JobBoardPage />)
 
@@ -107,9 +102,13 @@ describe('JobBoardPage', () => {
     expect(screen.getAllByText('Northgate Logistics Inc.')).toHaveLength(2)
     // Closing date renders for jp-1 only (en-CA short format)
     expect(screen.getByText(/Mar 1, 2026/)).toBeInTheDocument()
+    // Salary renders for jp-2 only — never a placeholder for the other card
+    // (en-CA Intl formats CAD as "$", not "CA$")
+    expect(screen.getByText(/\$110,000/)).toBeInTheDocument()
+    expect(screen.getAllByText(/\$\d/)).toHaveLength(1)
   })
 
-  it('shows the loading state before data arrives', async () => {
+  it('shows skeleton cards while loading, then results', async () => {
     let resolveList: (value: PublicJobPosting[]) => void = () => {}
     vi.mocked(listActiveJobPostings).mockImplementation(
       () => new Promise((resolve) => void (resolveList = resolve)),
@@ -117,13 +116,10 @@ describe('JobBoardPage', () => {
     const { JobBoardPage } = await import('./JobBoardPage')
     renderCareers(<JobBoardPage />)
 
-    expect(screen.getByText(/Loading job openings/i)).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(/Loading job openings/i)
 
-    // Let the pending promise settle so afterEach cleanup is clean
-    resolveList([])
-    await vi.waitFor(() => {
-      expect(screen.queryByText(/Loading job openings/i)).not.toBeInTheDocument()
-    })
+    resolveList(TWO_POSTINGS)
+    expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
   })
 
   it('shows the error state when the API fails', async () => {
@@ -136,34 +132,84 @@ describe('JobBoardPage', () => {
     expect(await screen.findByText(/Could not load job openings/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
 
-    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
     await user.click(screen.getByRole('button', { name: /Try again/i }))
     expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
     expect(listActiveJobPostings).toHaveBeenCalledTimes(2)
   })
 
-  it('shows the empty state when the search has no matches', async () => {
-    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+  it('filters by the debounced search box and announces the count', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(FIXTURE_POSTINGS)
     const { JobBoardPage } = await import('./JobBoardPage')
     const { userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
     renderCareers(<JobBoardPage />)
 
-    // Wait for postings to load
-    await screen.findByText('Senior Product Manager')
-
-    // Type a query that matches nothing
+    await screen.findByText('Senior Recruiter')
     const search = screen.getByLabelText(/Search by title/i)
-    await user.type(search, 'zzzznope')
+    // Typing filters through the 300ms debounce — wait for a non-match to drop
+    await user.type(search, 'engineer')
+    await waitFor(() =>
+      expect(screen.queryByText('Senior Recruiter')).not.toBeInTheDocument(),
+    )
+    expect(screen.getByText('Frontend Engineer')).toBeInTheDocument()
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('2 role(s) found'),
+    )
+  })
+
+  it('reads ?q= from the URL and pre-fills the input', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(FIXTURE_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />, { route: '/careers?q=engineer' })
+
+    const search = screen.getByLabelText(/Search by title/i)
+    expect(search).toHaveValue('engineer')
+    expect(await screen.findByText('Frontend Engineer')).toBeInTheDocument()
+    expect(screen.queryByText('Senior Recruiter')).not.toBeInTheDocument()
+  })
+
+  it('facet filters compose and produce removable chips', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(FIXTURE_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Recruiter')
+
+    // Department facet
+    await user.selectOptions(screen.getByLabelText(/^Department$/i), 'Engineering')
+    expect(screen.getByText('Frontend Engineer')).toBeInTheDocument()
+    expect(screen.queryByText('Senior Recruiter')).not.toBeInTheDocument()
+    // The active facet shows as a chip
+    expect(screen.getByRole('button', { name: 'Remove filter: Engineering' })).toBeInTheDocument()
+
+    // Work arrangement facet composes
+    await user.selectOptions(screen.getByLabelText(/Work arrangement/i), 'remote')
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
+    expect(screen.queryByText('Payroll Supervisor')).not.toBeInTheDocument()
+
+    // Clear all restores the full list
+    await user.click(screen.getByRole('button', { name: /Clear all filters/i }))
+    expect(await screen.findByText('Senior Recruiter')).toBeInTheDocument()
+  })
+
+  it('shows a distinct empty state with a clear-search action when filters match nothing', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<JobBoardPage />, { route: '/careers?q=zzzznope' })
 
     expect(await screen.findByText(/No open positions match/i)).toBeInTheDocument()
 
-    // Clear search restores the listings
     await user.click(screen.getByRole('button', { name: /Clear search/i }))
     expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
   })
 
-  it('shows a distinct empty state with a profile CTA when no postings exist', async () => {
+  it('shows the genuinely-empty state with a profile CTA when no postings exist', async () => {
     vi.mocked(listActiveJobPostings).mockResolvedValue([])
     const { JobBoardPage } = await import('./JobBoardPage')
     renderCareers(<JobBoardPage />)
@@ -177,8 +223,32 @@ describe('JobBoardPage', () => {
     expect(cta).toHaveAttribute('href', '/careers/portal')
   })
 
+  it('paginates long lists behind Load more', async () => {
+    const many = Array.from({ length: 14 }, (_, i) =>
+      makePosting({
+        id: `jp-${i}`,
+        slug: `role-${i}-jp-${i}`,
+        title: `Role ${i}`,
+        postedDate: `2026-09-${String(i + 1).padStart(2, '0')}`,
+      }),
+    )
+    vi.mocked(listActiveJobPostings).mockResolvedValue(many)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<JobBoardPage />)
+
+    // Newest-first: Role 13 (latest date) on page one, Role 0 paginated out
+    await screen.findByText('Role 13')
+    expect(screen.queryByText('Role 0')).not.toBeInTheDocument()
+    expect(screen.getByText('Showing 12 of 14')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Load more/i }))
+    expect(await screen.findByText('Role 0')).toBeInTheDocument()
+  })
+
   it('renders the explainer as a headed bullet list', async () => {
-    vi.mocked(listActiveJobPostings).mockResolvedValue(MOCK_POSTINGS)
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
     const { JobBoardPage } = await import('./JobBoardPage')
     renderCareers(<JobBoardPage />)
 
@@ -187,5 +257,15 @@ describe('JobBoardPage', () => {
     expect(screen.getByText(/no account needed to look/i)).toBeInTheDocument()
     expect(screen.getByText(/reuse it for every application/i)).toBeInTheDocument()
     expect(screen.getByText(/tailor your resume/i)).toBeInTheDocument()
+  })
+
+  it('offers employers a door to post a role', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Product Manager')
+    const cta = screen.getByRole('link', { name: /Hiring\? Post a role/i })
+    expect(cta).toHaveAttribute('href', '/employer')
   })
 })

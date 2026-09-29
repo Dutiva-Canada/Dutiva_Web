@@ -222,6 +222,83 @@ export function articleNode(input: ArticleNodeInput): JsonLdNode {
   }
 }
 
+interface JobPostingInput {
+  lang: Lang
+  /** Canonical pathname of the job detail page. */
+  path: string
+  title: string
+  /** Complete plain-text description (composed from the rendered sections). */
+  description: string
+  /** Hiring employer's organization name — NOT Dutiva; the employer owns the role. */
+  organizationName: string
+  /** Free-text location as rendered ("Toronto, ON", "Remote (Canada)"). */
+  location: string
+  /** Derived arrangement: remote emits TELECOMMUTE + applicantLocationRequirements. */
+  workplace: 'remote' | 'hybrid' | 'onsite'
+  /** schema.org employmentType code when the free-text type classifies. */
+  employmentType?: string
+  salaryMin?: number | null
+  salaryMax?: number | null
+  salaryPeriod?: 'year' | 'hour'
+  /** Real posting dates (ISO 8601) only. */
+  datePosted?: string | null
+  validThrough?: string | null
+}
+
+/**
+ * schema.org JobPosting for a public careers detail page. Every field comes
+ * from the same posting row the page renders — no invented employer URLs,
+ * logos, or addresses beyond the visible location text.
+ */
+export function jobPostingNode(input: JobPostingInput): JsonLdNode {
+  const url = absoluteUrl(input.path)
+  const node: JsonLdNode = {
+    '@type': 'JobPosting',
+    '@id': `${url}#jobposting`,
+    title: input.title,
+    description: input.description,
+    url,
+    inLanguage: LOCALE_TAG[input.lang],
+    hiringOrganization: { '@type': 'Organization', name: input.organizationName },
+    mainEntityOfPage: { '@id': `${url}#webpage` },
+  }
+  if (input.workplace === 'remote') {
+    node.jobLocationType = 'TELECOMMUTE'
+    /* Google requires applicantLocationRequirements on remote postings.
+       Dutiva's board is Canada-scoped; the location text stays visible on
+       the page itself. */
+    node.applicantLocationRequirements = { '@type': 'Country', name: 'Canada' }
+  }
+  /* A free-text "City, Province" splits into PostalAddress fields; anything
+     else lands in addressLocality verbatim. Remote postings skip jobLocation
+     entirely (TELECOMMUTE covers it). */
+  if (input.workplace !== 'remote' && input.location.trim()) {
+    const [locality, region] = input.location.split(',').map((s) => s.trim())
+    node.jobLocation = {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: locality,
+        ...(region ? { addressRegion: region } : {}),
+        addressCountry: 'CA',
+      },
+    }
+  }
+  if (input.employmentType) node.employmentType = input.employmentType
+  if (input.salaryMin != null || input.salaryMax != null) {
+    const value: JsonLdNode = {
+      '@type': 'QuantitativeValue',
+      unitText: input.salaryPeriod === 'hour' ? 'HOUR' : 'YEAR',
+    }
+    if (input.salaryMin != null) value.minValue = input.salaryMin
+    if (input.salaryMax != null) value.maxValue = input.salaryMax
+    node.baseSalary = { '@type': 'MonetaryAmount', currency: 'CAD', value }
+  }
+  if (input.datePosted) node.datePosted = input.datePosted
+  if (input.validThrough) node.validThrough = input.validThrough
+  return node
+}
+
 interface HowToStepInput {
   name: string
   text: string

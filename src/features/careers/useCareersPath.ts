@@ -22,8 +22,9 @@ export function useCareersPath() {
     return {
       /** Job board index in the current locale. */
       board,
-      /** Job detail page in the current locale. */
-      jobDetail: (postingId: string) => `${board}/jobs/${postingId}`,
+      /** Job detail page in the current locale. Pass the posting's slug when
+          available — bare ids still resolve (they redirect to the slug). */
+      jobDetail: (postingKey: string) => `${board}/jobs/${postingKey}`,
       /** Candidate portal — no locale URL (preference-scoped language). */
       portal: '/careers/portal',
       /** Apply form — inside the portal, no locale URL. */

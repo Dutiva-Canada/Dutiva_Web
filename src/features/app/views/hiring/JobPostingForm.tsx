@@ -6,6 +6,10 @@ import type { NewJobPosting } from './productionApi'
 /**
  * Inline form for creating or editing a job posting. Follows the same
  * patterns as the candidate add form in HiringProductionView.
+ *
+ * The public-facing fields added by migration 0186 (salary, responsibilities,
+ * benefits, employer blurb) are all optional — leaving them blank stores
+ * null/empty and the public detail page simply hides those sections.
  */
 
 const inputClass =
@@ -18,7 +22,27 @@ const EMPTY_FORM = {
   location: '',
   type: '',
   description: '',
+  requirements: '',
+  responsibilities: '',
+  benefits: '',
+  salaryMin: '',
+  salaryMax: '',
+  salaryPeriod: 'year' as 'year' | 'hour',
+  employerBlurb: '',
   status: 'draft' as string,
+}
+
+/** Blank line-separated textarea text → trimmed string[] for the API. */
+function linesToList(text: string): string[] {
+  return text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+}
+
+function parseSalary(raw: string): number | null {
+  const n = Number(raw.trim())
+  return raw.trim() !== '' && Number.isFinite(n) && n >= 0 ? Math.round(n) : null
 }
 
 interface JobPostingFormProps {
@@ -37,6 +61,13 @@ export function JobPostingForm({ initial, saving, onSubmit, onCancel }: JobPosti
     location: initial?.location ?? EMPTY_FORM.location,
     type: initial?.type ?? EMPTY_FORM.type,
     description: initial?.description ?? EMPTY_FORM.description,
+    requirements: (initial?.requirements ?? []).join('\n'),
+    responsibilities: (initial?.responsibilities ?? []).join('\n'),
+    benefits: (initial?.benefits ?? []).join('\n'),
+    salaryMin: initial?.salaryMin != null ? String(initial.salaryMin) : EMPTY_FORM.salaryMin,
+    salaryMax: initial?.salaryMax != null ? String(initial.salaryMax) : EMPTY_FORM.salaryMax,
+    salaryPeriod: initial?.salaryPeriod ?? EMPTY_FORM.salaryPeriod,
+    employerBlurb: initial?.employerBlurb ?? EMPTY_FORM.employerBlurb,
     status: initial?.status ?? EMPTY_FORM.status,
   }))
 
@@ -49,6 +80,13 @@ export function JobPostingForm({ initial, saving, onSubmit, onCancel }: JobPosti
       location: form.location.trim(),
       type: form.type.trim(),
       description: form.description.trim(),
+      requirements: linesToList(form.requirements),
+      responsibilities: linesToList(form.responsibilities),
+      benefits: linesToList(form.benefits),
+      salaryMin: parseSalary(form.salaryMin),
+      salaryMax: parseSalary(form.salaryMax),
+      salaryPeriod: form.salaryPeriod,
+      employerBlurb: form.employerBlurb.trim() || null,
       status: form.status,
     })
   }
@@ -106,6 +144,48 @@ export function JobPostingForm({ initial, saving, onSubmit, onCancel }: JobPosti
           />
         </div>
         <div>
+          <label htmlFor="posting-salary-min" className={labelClass}>
+            {x(M.hiring_posting_salary_min)}
+          </label>
+          <input
+            id="posting-salary-min"
+            type="number"
+            min={0}
+            value={form.salaryMin}
+            onChange={(e) => setForm((f) => ({ ...f, salaryMin: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="posting-salary-max" className={labelClass}>
+            {x(M.hiring_posting_salary_max)}
+          </label>
+          <input
+            id="posting-salary-max"
+            type="number"
+            min={0}
+            value={form.salaryMax}
+            onChange={(e) => setForm((f) => ({ ...f, salaryMax: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="posting-salary-period" className={labelClass}>
+            {x(M.hiring_posting_salary_period)}
+          </label>
+          <select
+            id="posting-salary-period"
+            value={form.salaryPeriod}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, salaryPeriod: e.target.value as 'year' | 'hour' }))
+            }
+            className={inputClass}
+          >
+            <option value="year">{x(M.hiring_posting_salary_per_year)}</option>
+            <option value="hour">{x(M.hiring_posting_salary_per_hour)}</option>
+          </select>
+        </div>
+        <div>
           <label htmlFor="posting-status" className={labelClass}>
             {x(M.hiring_posting_status)}
           </label>
@@ -129,6 +209,57 @@ export function JobPostingForm({ initial, saving, onSubmit, onCancel }: JobPosti
             rows={4}
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label htmlFor="posting-responsibilities" className={labelClass}>
+            {x(M.hiring_posting_responsibilities_label)}
+          </label>
+          <textarea
+            id="posting-responsibilities"
+            rows={3}
+            value={form.responsibilities}
+            placeholder={x(M.hiring_posting_list_hint)}
+            onChange={(e) => setForm((f) => ({ ...f, responsibilities: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label htmlFor="posting-requirements" className={labelClass}>
+            {x(M.hiring_posting_requirements_label)}
+          </label>
+          <textarea
+            id="posting-requirements"
+            rows={3}
+            value={form.requirements}
+            placeholder={x(M.hiring_posting_list_hint)}
+            onChange={(e) => setForm((f) => ({ ...f, requirements: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label htmlFor="posting-benefits" className={labelClass}>
+            {x(M.hiring_posting_benefits_label)}
+          </label>
+          <textarea
+            id="posting-benefits"
+            rows={3}
+            value={form.benefits}
+            placeholder={x(M.hiring_posting_list_hint)}
+            onChange={(e) => setForm((f) => ({ ...f, benefits: e.target.value }))}
+            className={inputClass}
+          />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-3">
+          <label htmlFor="posting-employer-blurb" className={labelClass}>
+            {x(M.hiring_posting_employer_blurb)}
+          </label>
+          <textarea
+            id="posting-employer-blurb"
+            rows={2}
+            value={form.employerBlurb}
+            onChange={(e) => setForm((f) => ({ ...f, employerBlurb: e.target.value }))}
             className={inputClass}
           />
         </div>

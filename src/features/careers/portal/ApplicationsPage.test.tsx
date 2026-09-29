@@ -45,6 +45,7 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     updatedAt: '2026-01-20T00:00:00Z',
     jobPosting: {
       id: 'jp-1',
+      slug: 'senior-pm-jp-1',
       title: 'Senior PM',
       department: 'Product',
       location: 'Toronto',
@@ -64,6 +65,7 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     updatedAt: '2026-01-15T00:00:00Z',
     jobPosting: {
       id: 'jp-2',
+      slug: 'frontend-engineer-jp-2',
       title: 'Frontend Engineer',
       department: 'Engineering',
       location: 'Remote',

@@ -8,12 +8,20 @@ import type { TablesUpdate } from '@/lib/supabase/types'
 export interface ProductionJobPosting {
   id: string
   organizationId: string
+  /** Public slug (generated server-side, migration 0186). */
+  slug: string
   title: string
   department: string
   location: string
   type: string
   description: string
   requirements: string[]
+  responsibilities: string[]
+  benefits: string[]
+  salaryMin: number | null
+  salaryMax: number | null
+  salaryPeriod: 'year' | 'hour'
+  employerBlurb: string | null
   knockoutCriteria: string[]
   workSampleScenario: string
   status: string
@@ -24,12 +32,19 @@ export interface ProductionJobPosting {
 const jobPostingRowSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
+  slug: z.string().nullable().default(''),
   title: z.string(),
   department: z.string(),
   location: z.string(),
   type: z.string(),
   description: z.string(),
   requirements: z.array(z.string()),
+  responsibilities: z.array(z.string()).nullable(),
+  benefits: z.array(z.string()).nullable(),
+  salary_min: z.number().nullable().default(null),
+  salary_max: z.number().nullable().default(null),
+  salary_period: z.string().nullable().default('year'),
+  employer_blurb: z.string().nullable().default(null),
   knockout_criteria: z.array(z.string()),
   work_sample_scenario: z.string(),
   status: z.string(),
@@ -41,12 +56,19 @@ function toJobPosting(row: z.infer<typeof jobPostingRowSchema>): ProductionJobPo
   return {
     id: row.id,
     organizationId: row.organization_id,
+    slug: row.slug || row.id,
     title: row.title,
     department: row.department,
     location: row.location,
     type: row.type,
     description: row.description,
     requirements: row.requirements,
+    responsibilities: row.responsibilities ?? [],
+    benefits: row.benefits ?? [],
+    salaryMin: row.salary_min,
+    salaryMax: row.salary_max,
+    salaryPeriod: row.salary_period === 'hour' ? 'hour' : 'year',
+    employerBlurb: row.employer_blurb || null,
     knockoutCriteria: row.knockout_criteria,
     workSampleScenario: row.work_sample_scenario,
     status: row.status,
@@ -90,6 +112,12 @@ export interface NewJobPosting {
   description: string
   status: string
   requirements?: string[]
+  responsibilities?: string[]
+  benefits?: string[]
+  salaryMin?: number | null
+  salaryMax?: number | null
+  salaryPeriod?: 'year' | 'hour'
+  employerBlurb?: string | null
   knockoutCriteria?: string[]
   workSampleScenario?: string
   closingDate?: string | null
@@ -112,6 +140,12 @@ export async function createJobPosting(
       description: posting.description,
       status: posting.status,
       requirements: posting.requirements ?? [],
+      responsibilities: posting.responsibilities ?? [],
+      benefits: posting.benefits ?? [],
+      salary_min: posting.salaryMin ?? null,
+      salary_max: posting.salaryMax ?? null,
+      salary_period: posting.salaryPeriod ?? 'year',
+      employer_blurb: posting.employerBlurb ?? null,
       knockout_criteria: posting.knockoutCriteria ?? [],
       work_sample_scenario: posting.workSampleScenario ?? '',
       closing_date: posting.closingDate ?? null,
@@ -139,6 +173,12 @@ export async function updateJobPosting(
   if (patch.description !== undefined) row.description = patch.description
   if (patch.status !== undefined) row.status = patch.status
   if (patch.requirements !== undefined) row.requirements = patch.requirements
+  if (patch.responsibilities !== undefined) row.responsibilities = patch.responsibilities
+  if (patch.benefits !== undefined) row.benefits = patch.benefits
+  if (patch.salaryMin !== undefined) row.salary_min = patch.salaryMin
+  if (patch.salaryMax !== undefined) row.salary_max = patch.salaryMax
+  if (patch.salaryPeriod !== undefined) row.salary_period = patch.salaryPeriod
+  if (patch.employerBlurb !== undefined) row.employer_blurb = patch.employerBlurb
   if (patch.knockoutCriteria !== undefined) row.knockout_criteria = patch.knockoutCriteria
   if (patch.workSampleScenario !== undefined) row.work_sample_scenario = patch.workSampleScenario
   if (patch.closingDate !== undefined) row.closing_date = patch.closingDate

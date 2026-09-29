@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
@@ -68,6 +69,13 @@ export function CandidateProfilePage() {
   const { x } = useI18n()
   const { session } = useAuth()
   const { showToast } = useToasts()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  /* Apply flow sends candidates here to finish their profile, then expects
+     them back. Only internal portal paths are honoured — anything else is
+     ignored so `next` can't be an open redirect. */
+  const rawNext = searchParams.get('next') ?? ''
+  const next = rawNext.startsWith('/careers/portal/') ? rawNext : ''
 
   const [state, setState] = useState<LoadState>('loading')
   const [existing, setExisting] = useState<CandidateProfile | null>(null)
@@ -121,6 +129,12 @@ export function CandidateProfilePage() {
         await createCandidateProfile(input)
       }
       showToast(M.careers_profile_saved, 'ok')
+      /* Profile completion arrived from the apply flow — send the candidate
+         straight back to the posting they came from. */
+      if (next) {
+        navigate(next)
+        return
+      }
       void load()
     } catch {
       showToast(M.careers_profile_save_error, 'info')
@@ -157,6 +171,11 @@ export function CandidateProfilePage() {
 
   return (
     <div className="flex flex-col gap-[20px]">
+      {next && (
+        <p className="m-0 rounded-[10px] border border-gold-border bg-gold-bg px-[14px] py-[10px] text-[13px] text-gold-fg">
+          {x(M.careers_profile_next_notice)}
+        </p>
+      )}
       <CandidateProfileForm values={form} onChange={setForm} onSubmit={onSave} saving={saving} />
     </div>
   )

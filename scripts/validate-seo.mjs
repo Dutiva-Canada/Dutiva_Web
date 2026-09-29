@@ -466,6 +466,7 @@ for (const { route, file } of pages) {
     const target = m[1].split('?')[0].replace(/\/$/, '') || '/'
     if (target.startsWith('/app')) continue // client-rendered surface
     if (target.startsWith('/careers/portal') || target.startsWith('/fr/carrieres/portal')) continue // candidate portal (auth-gated, noindex)
+    if (target === '/employer' || target === '/fr/employeur') continue // employer sign-in door (auth-gated, noindex)
     if (target === '/invest' || target.startsWith('/invest/')) continue // invest portal (auth-gated, noindex)
     if (target.startsWith('/demo/') || target.startsWith('/fr/demo/')) continue // demo SPA subpaths
     if (target.startsWith('/assets') || target.startsWith('/brand')) {

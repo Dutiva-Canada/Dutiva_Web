@@ -2,9 +2,9 @@
  *   Copyright (c) 2026
  *   All rights reserved.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import {
   ArrowRight,
   Briefcase,
@@ -14,27 +14,95 @@ import {
   Search,
   Sparkles,
   UserRound,
+  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { Bi } from '@/i18n/core'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { Seo } from '@/seo/Seo'
 import { useCareersPath } from './useCareersPath'
 import { formatCareersDate } from './dates'
 import { listActiveJobPostings } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
+import {
+  boardFacets,
+  filterFromParams,
+  filterPostings,
+  filterToParams,
+  salaryLabel,
+} from './boardFilters'
+import type { BoardFilter, Workplace } from './boardFilters'
+
+const PAGE_SIZE = 12
+const SEARCH_DEBOUNCE_MS = 300
+
+const WORKPLACE_LABEL: Record<Workplace, Bi> = {
+  remote: M.careers_board_workplace_remote,
+  hybrid: M.careers_board_workplace_hybrid,
+  onsite: M.careers_board_workplace_onsite,
+}
+
+/** Interpolate a `{name}` placeholder the same way other careers pages do. */
+function fill(template: Bi, name: string, value: string): Bi {
+  return { en: template.en.replace(`{${name}}`, value), fr: template.fr.replace(`{${name}}`, value) }
+}
 
 /**
  * Public job board (/careers) — the B2C entry point. Lists every active job
- * posting with a client-side search filter. No auth required; the apply CTA
- * lives on the detail page, where the auth gate is visible.
+ * posting; keyword search, facet filters and sort all live in the URL query
+ * string (?q=&loc=&type=&org=&dept=&sort=) so views are shareable and the
+ * back button works. No auth required; the apply CTA lives on the detail
+ * page, where the auth gate is visible.
  */
 export function JobBoardPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const paths = useCareersPath()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [postings, setPostings] = useState<PublicJobPosting[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
-  const [filter, setFilter] = useState('')
   const [retryKey, setRetryKey] = useState(0)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+
+  const filter = useMemo(() => filterFromParams(searchParams), [searchParams])
+  const filterKey = searchParams.toString()
+
+  /* The input is debounced: queryInput is what's typed, filter.q is what's
+     committed to the URL ~300ms after the user stops. */
+  const [queryInput, setQueryInput] = useState(filter.q)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    /* External URL changes (back/forward nav, cleared chip) re-seed the
+       input. The debounce commit writes the same value the user just typed,
+       so this never clobbers in-progress input. */
+    setQueryInput((current) => (current === filter.q ? current : filter.q))
+  }, [filter.q])
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    },
+    [],
+  )
+
+  const commitFilter = (next: BoardFilter) => {
+    const params = filterToParams(next)
+    setSearchParams(params, { preventScrollReset: true })
+  }
+
+  const onQueryInput = (value: string) => {
+    setQueryInput(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      commitFilter({ ...filter, q: value })
+    }, SEARCH_DEBOUNCE_MS)
+  }
+
+  const clearAll = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setQueryInput('')
+    setSearchParams(new URLSearchParams(), { preventScrollReset: true })
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -51,17 +119,34 @@ export function JobBoardPage() {
     }
   }, [retryKey])
 
-  const q = filter.trim().toLowerCase()
-  const filtered = useMemo(() => {
-    if (!postings) return null
-    if (!q) return postings
-    return postings.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.department.toLowerCase().includes(q) ||
-        p.location.toLowerCase().includes(q),
-    )
-  }, [postings, q])
+  /* Reset the visible window whenever the URL filter state changes; the
+     list simply re-slices — scroll position is untouched. */
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [filterKey])
+
+  const filtered = useMemo(
+    () => (postings ? filterPostings(postings, filter) : null),
+    [postings, filter],
+  )
+  const facets = useMemo(
+    () => (postings ? boardFacets(postings, lang) : null),
+    [postings, lang],
+  )
+
+  /* Facet option sets derive from the *unfiltered* list so a selection never
+     hides the option that produced it. */
+  const activeChips = useMemo(() => {
+    const chips: { key: keyof BoardFilter; label: string }[] = []
+    if (filter.q.trim()) chips.push({ key: 'q', label: filter.q.trim() })
+    if (filter.location) chips.push({ key: 'location', label: filter.location })
+    if (filter.workplace) chips.push({ key: 'workplace', label: x(WORKPLACE_LABEL[filter.workplace]) })
+    if (filter.employer) chips.push({ key: 'employer', label: filter.employer })
+    if (filter.department) chips.push({ key: 'department', label: filter.department })
+    return chips
+  }, [filter, x])
+
+  const employerPath = lang === 'fr' ? '/fr/employeur' : '/employer'
 
   return (
     <div className="bg-bg text-text">
@@ -74,9 +159,16 @@ export function JobBoardPage() {
         <p className="mx-auto mt-3 max-w-[62ch] text-lg leading-[1.6] text-text-2">
           {x(M.careers_board_subtitle)}
         </p>
+        <Link
+          to={employerPath}
+          className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-gold-strong transition-opacity hover:opacity-80"
+        >
+          {x(M.careers_board_employer_cta)}
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
       </section>
 
-      {/* Search */}
+      {/* Search + filters */}
       <section className="mx-auto max-w-[1200px] px-4 pb-6 sm:px-6">
         <div className="relative mx-auto max-w-[520px]">
           <Search
@@ -86,17 +178,126 @@ export function JobBoardPage() {
             aria-hidden="true"
           />
           <input
-            value={filter}
-            onChange={(e: FormEvent<HTMLInputElement>) => setFilter(e.currentTarget.value)}
+            value={queryInput}
+            onChange={(e: FormEvent<HTMLInputElement>) => onQueryInput(e.currentTarget.value)}
             placeholder={x(M.careers_board_search_placeholder)}
             aria-label={x(M.careers_board_search_placeholder)}
-            className="w-full rounded-[10px] border border-border bg-surface py-2.5 pr-4 pl-10 font-sans text-sm text-text"
+            className="w-full rounded-[10px] border border-border bg-surface py-2.5 pr-4 pl-10 font-sans text-sm text-text transition-[border-color] focus:border-gold-border focus:outline-none"
           />
         </div>
+
+        {facets && postings !== null && postings.length > 0 && (
+          <fieldset className="mx-auto mt-4 flex max-w-[900px] flex-wrap items-end justify-center gap-3 border-0 p-0">
+            <legend className="sr-only">{x(M.careers_board_filters_label)}</legend>
+            {facets.locations.length > 1 && (
+              <FacetSelect
+                id="filter-location"
+                label={x(M.careers_board_filter_location)}
+                allLabel={x(M.careers_board_filter_location_all)}
+                value={filter.location}
+                options={facets.locations}
+                onChange={(v) => commitFilter({ ...filter, location: v })}
+              />
+            )}
+            {facets.workplaces.length > 1 && (
+              <FacetSelect
+                id="filter-workplace"
+                label={x(M.careers_board_filter_workplace)}
+                allLabel={x(M.careers_board_filter_workplace_all)}
+                value={filter.workplace}
+                options={facets.workplaces}
+                optionLabel={(w) => x(WORKPLACE_LABEL[w as Workplace])}
+                onChange={(v) => commitFilter({ ...filter, workplace: v as BoardFilter['workplace'] })}
+              />
+            )}
+            {facets.employers.length > 1 && (
+              <FacetSelect
+                id="filter-employer"
+                label={x(M.careers_board_filter_employer)}
+                allLabel={x(M.careers_board_filter_employer_all)}
+                value={filter.employer}
+                options={facets.employers}
+                onChange={(v) => commitFilter({ ...filter, employer: v })}
+              />
+            )}
+            {facets.departments.length > 1 && (
+              <FacetSelect
+                id="filter-department"
+                label={x(M.careers_board_filter_department)}
+                allLabel={x(M.careers_board_filter_department_all)}
+                value={filter.department}
+                options={facets.departments}
+                onChange={(v) => commitFilter({ ...filter, department: v })}
+              />
+            )}
+            <div className="flex flex-col">
+              <label htmlFor="board-sort" className="mb-1 text-xs font-semibold text-text-muted">
+                {x(M.careers_board_sort_label)}
+              </label>
+              <select
+                id="board-sort"
+                value={filter.sort}
+                onChange={(e) =>
+                  commitFilter({ ...filter, sort: e.currentTarget.value as BoardFilter['sort'] })
+                }
+                className="rounded-[10px] border border-border bg-surface px-3 py-2 text-sm text-text transition-[border-color] focus:border-gold-border focus:outline-none"
+              >
+                <option value="newest">{x(M.careers_board_sort_newest)}</option>
+                {filter.q.trim() && (
+                  <option value="relevance">{x(M.careers_board_sort_relevance)}</option>
+                )}
+              </select>
+            </div>
+          </fieldset>
+        )}
+
+        {/* Active-filter chips */}
+        {activeChips.length > 0 && (
+          <div className="mx-auto mt-4 flex max-w-[900px] flex-wrap items-center justify-center gap-2">
+            {activeChips.map((chip) => (
+              <button
+                key={chip.key}
+                type="button"
+                onClick={() => {
+                  const next = { ...filter, [chip.key]: '' } as BoardFilter
+                  if (chip.key === 'q') {
+                    if (debounceRef.current) clearTimeout(debounceRef.current)
+                    setQueryInput('')
+                    if (next.sort === 'relevance') next.sort = 'newest'
+                  }
+                  commitFilter(next)
+                }}
+                aria-label={x(fill(M.careers_board_chip_remove, 'label', chip.label))}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-gold-border bg-gold-bg px-3 py-1 text-xs font-semibold text-gold-fg transition-opacity hover:opacity-80"
+              >
+                {chip.label}
+                <X size={12} aria-hidden="true" />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={clearAll}
+              className="cursor-pointer rounded-full px-2 py-1 text-xs font-semibold text-text-2 underline-offset-2 transition-opacity hover:underline"
+            >
+              {x(M.careers_board_clear_all)}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Results */}
       <section className="mx-auto max-w-[1200px] px-4 pb-12 sm:px-6">
+        <p aria-live="polite" role="status" className="sr-only">
+          {filtered === null
+            ? x(M.careers_board_loading)
+            : x(
+                fill(
+                  M.careers_board_results_announce,
+                  'count',
+                  String(filtered.length),
+                ),
+              )}
+        </p>
         {loadFailed ? (
           <div className="rounded-[12px] border border-risk-border bg-risk-bg px-5 py-4 text-center">
             <p className="text-sm text-risk-fg">{x(M.careers_board_load_error)}</p>
@@ -113,7 +314,11 @@ export function JobBoardPage() {
             </button>
           </div>
         ) : postings === null ? (
-          <p className="py-12 text-center text-sm text-text-muted">{x(M.careers_board_loading)}</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+            {Array.from({ length: 6 }, (_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         ) : postings.length === 0 ? (
           <div className="mx-auto max-w-[480px] rounded-[12px] border border-border bg-surface px-6 py-10 text-center">
             <p className="font-semibold text-text">{x(M.careers_board_empty)}</p>
@@ -132,18 +337,45 @@ export function JobBoardPage() {
             <p className="mt-2 text-sm text-text-2">{x(M.careers_board_no_results_body)}</p>
             <button
               type="button"
-              onClick={() => setFilter('')}
+              onClick={clearAll}
               className="mt-5 inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-border bg-surface px-4 py-2 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
             >
               {x(M.careers_board_clear_search)}
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered?.map((posting) => (
-              <JobCard key={posting.id} posting={posting} />
-            ))}
-          </div>
+          <>
+            <p className="mb-4 text-center text-sm text-text-muted">
+              {x(
+                fill(
+                  fill(
+                    M.careers_board_showing,
+                    'shown',
+                    String(Math.min(visibleCount, filtered?.length ?? 0)),
+                  ),
+                  'total',
+                  String(filtered?.length ?? 0),
+                ),
+              )}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered?.slice(0, visibleCount).map((posting) => (
+                <JobCard key={posting.id} posting={posting} />
+              ))}
+            </div>
+            {filtered !== null && filtered.length > visibleCount && (
+              <div className="mt-8 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                  className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
+                >
+                  {x(M.careers_board_load_more)}
+                  <ArrowRight size={14} aria-hidden="true" />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -191,13 +423,73 @@ export function JobBoardPage() {
   )
 }
 
+function FacetSelect({
+  id,
+  label,
+  allLabel,
+  value,
+  options,
+  optionLabel,
+  onChange,
+}: {
+  readonly id: string
+  readonly label: string
+  readonly allLabel: string
+  readonly value: string
+  readonly options: readonly string[]
+  readonly optionLabel?: (option: string) => string
+  readonly onChange: (value: string) => void
+}) {
+  return (
+    <div className="flex flex-col">
+      <label htmlFor={id} className="mb-1 text-xs font-semibold text-text-muted">
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.currentTarget.value)}
+        className="max-w-[220px] rounded-[10px] border border-border bg-surface px-3 py-2 text-sm text-text transition-[border-color] focus:border-gold-border focus:outline-none"
+      >
+        <option value="">{allLabel}</option>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {optionLabel ? optionLabel(option) : option}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+/** Card-shaped placeholder while the posting list loads. */
+function SkeletonCard() {
+  return (
+    <div className="animate-pulse rounded-[12px] border border-border bg-surface p-5">
+      <div className="h-4 w-3/5 rounded bg-inset" />
+      <div className="mt-2 h-3 w-2/5 rounded bg-inset" />
+      <div className="mt-4 space-y-2">
+        <div className="h-3 w-1/2 rounded bg-inset" />
+        <div className="h-3 w-2/3 rounded bg-inset" />
+        <div className="h-3 w-1/3 rounded bg-inset" />
+      </div>
+      <div className="mt-4 h-3 w-1/4 rounded bg-inset" />
+    </div>
+  )
+}
+
 function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
   const { x, lang } = useI18n()
   const paths = useCareersPath()
+  const location = useLocation()
+  const salary = salaryLabel(posting, lang)
   return (
     <Link
-      to={paths.jobDetail(posting.id)}
-      className="flex flex-col rounded-[12px] border border-border bg-surface p-5 transition-[border-color] hover:border-gold-border"
+      to={paths.jobDetail(posting.slug)}
+      /* Carry the board's query string so the detail page's breadcrumb
+         returns to the same filtered view. */
+      state={{ boardSearch: location.search }}
+      className="flex flex-col rounded-[12px] border border-border bg-surface p-5 transition-[border-color] hover:border-gold-border focus-visible:border-gold-border focus-visible:outline-none"
     >
       <h2 className="text-base font-semibold text-text">{posting.title}</h2>
       <p className="mt-1 text-[13px] font-medium text-text-muted">{posting.organizationName}</p>
@@ -214,6 +506,7 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
           <Clock size={14} strokeWidth={1.7} className="text-text-muted" aria-hidden="true" />
           <span>{posting.type}</span>
         </div>
+        {salary && <div className="flex items-center gap-1.5 font-medium text-text">{salary}</div>}
         {posting.postedDate && (
           <div className="flex items-center gap-1.5 text-xs text-text-muted">
             <Calendar size={13} strokeWidth={1.7} aria-hidden="true" />

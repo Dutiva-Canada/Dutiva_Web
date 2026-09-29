@@ -281,6 +281,18 @@ export const hiringMessages = defineMessages({
   hiring_posting_edit: { en: 'Edit posting', fr: "Modifier l'offre" },
   hiring_posting_delete: { en: 'Delete posting', fr: "Supprimer l'offre" },
   hiring_posting_description: { en: 'Description', fr: 'Description' },
+  hiring_posting_responsibilities_label: { en: 'Responsibilities', fr: 'Responsabilités' },
+  hiring_posting_benefits_label: { en: 'Benefits', fr: 'Avantages' },
+  hiring_posting_list_hint: { en: 'One per line', fr: 'Un par ligne' },
+  hiring_posting_salary_min: { en: 'Salary min (CAD)', fr: 'Salaire min (CAD)' },
+  hiring_posting_salary_max: { en: 'Salary max (CAD)', fr: 'Salaire max (CAD)' },
+  hiring_posting_salary_period: { en: 'Salary period', fr: 'Période salariale' },
+  hiring_posting_salary_per_year: { en: 'Per year', fr: 'Par année' },
+  hiring_posting_salary_per_hour: { en: 'Per hour', fr: 'Par heure' },
+  hiring_posting_employer_blurb: {
+    en: 'About the employer (shown on the public posting)',
+    fr: "À propos de l'employeur (affiché sur l'offre publique)",
+  },
   hiring_posting_save: { en: 'Save posting', fr: "Enregistrer l'offre" },
   hiring_posting_cancel: { en: 'Cancel', fr: 'Annuler' },
   hiring_posting_delete_confirm: {

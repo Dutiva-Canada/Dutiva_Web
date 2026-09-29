@@ -13,21 +13,25 @@ import { AuthContext } from '@/features/app/auth/authContext'
 import type { AuthContextValue } from '@/features/app/auth/authContext'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { PublicJobPosting } from './data/jobBoardApi'
+import { makePosting } from './postingFixtures'
 
-const MOCK_POSTING: PublicJobPosting = {
+const MOCK_POSTING: PublicJobPosting = makePosting({
   id: 'jp-1',
-  organizationId: 'org-1',
-  organizationName: 'Northgate Logistics Inc.',
+  slug: 'senior-product-manager-jp-1',
   title: 'Senior Product Manager',
   department: 'Product',
   location: 'Toronto, ON',
   type: 'Full-time',
   description: 'Lead the product team and drive roadmap.',
   requirements: ['5+ years PM experience', 'B2B SaaS background'],
-  status: 'active',
+  responsibilities: ['Own the roadmap', 'Talk to customers'],
+  benefits: ['Health and dental', 'Four weeks vacation'],
+  salaryMin: 120000,
+  salaryMax: 150000,
+  employerBlurb: 'Northgate moves freight across Ontario and Quebec.',
   postedDate: '2026-01-15',
-  closingDate: null,
-}
+  closingDate: '2026-03-01',
+})
 
 vi.mock('./data/jobBoardApi', () => ({
   listActiveJobPostings: vi.fn(),
@@ -51,12 +55,14 @@ function renderCareers(
   ui: ReactElement,
   {
     path = '/careers/jobs/:postingId',
-    route = '/careers/jobs/jp-1',
+    route = '/careers/jobs/senior-product-manager-jp-1',
     auth,
+    state,
   }: {
     path?: string
     route?: string
     auth?: AuthContextValue
+    state?: unknown
   } = {},
 ) {
   return render(
@@ -65,7 +71,7 @@ function renderCareers(
         {auth ? (
           <AuthContext.Provider value={auth}>
             <ToastsProvider>
-              <MemoryRouter initialEntries={[route]}>
+              <MemoryRouter initialEntries={[{ pathname: route, state }]}>
                 <Routes>
                   <Route path={path} element={ui} />
                 </Routes>
@@ -75,7 +81,7 @@ function renderCareers(
         ) : (
           <AuthProvider>
             <ToastsProvider>
-              <MemoryRouter initialEntries={[route]}>
+              <MemoryRouter initialEntries={[{ pathname: route, state }]}>
                 <Routes>
                   <Route path={path} element={ui} />
                 </Routes>
@@ -93,7 +99,7 @@ describe('JobDetailPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders job details and the sign-in-to-apply CTA when signed out', async () => {
+  it('renders the full posting and the sign-in-to-apply CTA when signed out', async () => {
     vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
     const { JobDetailPage } = await import('./JobDetailPage')
     renderCareers(<JobDetailPage />)
@@ -103,19 +109,27 @@ describe('JobDetailPage', () => {
       await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' }),
     ).toBeInTheDocument()
 
-    // Metadata
+    // Metadata — labels and values
     expect(screen.getByText('Product')).toBeInTheDocument()
     expect(screen.getByText('Toronto, ON')).toBeInTheDocument()
     expect(screen.getByText('Full-time')).toBeInTheDocument()
+    expect(screen.getByText(/\$120,000–\$150,000\/yr/)).toBeInTheDocument()
 
-    // Description section
+    // All the posting sections render
     expect(screen.getByRole('heading', { name: /About the role/i })).toBeInTheDocument()
     expect(screen.getByText(/Lead the product team/i)).toBeInTheDocument()
-
-    // Requirements render as a list
+    expect(
+      screen.getByRole('heading', { name: /Responsibilities/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Talk to customers')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Requirements/i })).toBeInTheDocument()
-    expect(screen.getByText('5+ years PM experience')).toBeInTheDocument()
     expect(screen.getByText('B2B SaaS background')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /^Benefits$/i })).toBeInTheDocument()
+    expect(screen.getByText('Four weeks vacation')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /About Northgate Logistics Inc\./i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/freight across Ontario/i)).toBeInTheDocument()
 
     // Signed out → "Sign in to apply" CTA (not the apply button)
     expect(screen.getByRole('heading', { name: /Sign in to apply/i })).toBeInTheDocument()
@@ -128,17 +142,37 @@ describe('JobDetailPage', () => {
     )
   })
 
+  it('resolves a bare-uuid URL and canonicalizes to the slug', async () => {
+    vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
+    const { JobDetailPage } = await import('./JobDetailPage')
+    renderCareers(<JobDetailPage />, { route: '/careers/jobs/jp-1' })
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' }),
+    ).toBeInTheDocument()
+    expect(getPublicJobPosting).toHaveBeenCalledWith('jp-1')
+  })
+
   it('renders the apply button when the candidate is signed in', async () => {
     vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
     const { JobDetailPage } = await import('./JobDetailPage')
     renderCareers(<JobDetailPage />, { auth: SIGNED_IN_AUTH })
 
-    // Wait for the posting to load, then the apply CTA should be a direct link
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' }),
     ).toBeInTheDocument()
     const applyLink = await screen.findByRole('link', { name: /Apply to this role/i })
     expect(applyLink).toHaveAttribute('href', '/careers/portal/jobs/jp-1/apply')
+  })
+
+  it('back link preserves the board filter state from link state', async () => {
+    vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
+    const { JobDetailPage } = await import('./JobDetailPage')
+    renderCareers(<JobDetailPage />, { state: { boardSearch: '?q=engineer&loc=Toronto' } })
+
+    await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' })
+    const back = screen.getAllByRole('link', { name: /All jobs/i })[0]!
+    expect(back).toHaveAttribute('href', '/careers?q=engineer&loc=Toronto')
   })
 
   it('shows the not-found state when the posting does not exist', async () => {
@@ -148,5 +182,29 @@ describe('JobDetailPage', () => {
 
     expect(await screen.findByText(/no longer available/i)).toBeInTheDocument()
     expect(screen.getByText(/closed or filled/i)).toBeInTheDocument()
+  })
+
+  it('emits JobPosting JSON-LD with only rendered facts', async () => {
+    vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
+    const { JobDetailPage } = await import('./JobDetailPage')
+    renderCareers(<JobDetailPage />)
+
+    await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' })
+    const scripts = document.querySelectorAll('script[type="application/ld+json"]')
+    expect(scripts.length).toBeGreaterThan(0)
+    const doc = JSON.parse(scripts[scripts.length - 1]!.textContent!)
+    const job = doc['@graph'].find((n: { '@type'?: string }) => n['@type'] === 'JobPosting')
+    expect(job).toBeDefined()
+    expect(job.title).toBe('Senior Product Manager')
+    expect(job.hiringOrganization.name).toBe('Northgate Logistics Inc.')
+    expect(job.baseSalary.currency).toBe('CAD')
+    expect(job.baseSalary.value.minValue).toBe(120000)
+    expect(job.employmentType).toBe('FULL_TIME')
+    expect(job.jobLocation.address.addressLocality).toBe('Toronto')
+    expect(job.datePosted).toBe('2026-01-15')
+    expect(job.validThrough).toBe('2026-03-01')
+    // Internal screening fields must never leak into structured data
+    expect(JSON.stringify(job)).not.toContain('knockout')
+    expect(JSON.stringify(job)).not.toContain('workSample')
   })
 })
