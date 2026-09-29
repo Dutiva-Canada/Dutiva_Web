@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Globe, Loader2, LogOut, Menu, X } from 'lucide-react'
+import { Bell, Globe, Loader2, LogOut, Menu, Settings, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useAuth } from '@/features/app/auth/authContext'
 import { InvestDataProvider } from '@/features/invest/data/InvestDataProvider'
+import { InvestDataContext } from '@/features/invest/data/InvestDataContext'
 import { hasInvestAccess } from '@/features/invest/data/api'
 import { InvestAuthPanel } from './InvestAuthPanel'
+import { InvestFooter } from './InvestFooter'
 
 const NAV = [
   { to: '/invest', end: true, label: IM.invest_tab_overview },
@@ -15,6 +17,14 @@ const NAV = [
   { to: '/invest/orders', end: false, label: IM.invest_tab_orders },
   { to: '/invest/signals', end: false, label: IM.invest_tab_signals },
   { to: '/invest/strategies', end: false, label: IM.invest_tab_strategies },
+] as const
+
+/* Mobile menu shows the icon-nav destinations as text rows too — the
+   desktop pill nav stays at five pages, with notifications/settings in the
+   action row. */
+const MOBILE_EXTRA = [
+  { to: '/invest/notifications', label: IM.invest_tab_notifications },
+  { to: '/invest/settings', label: IM.invest_tab_settings },
 ] as const
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -85,122 +95,176 @@ export function InvestPortalLayout() {
             <InvestAuthPanel />
           </div>
         </main>
+        {/* Legal links on the wall too — the routes are public by design. */}
+        <InvestFooter />
       </div>
     )
   }
 
-  return (
+  /* The data provider wraps the whole shell — but only once the grant is
+     confirmed, so a user without access never fires invest_* queries (and
+     the header badge, which reads the same context, simply renders nothing
+     while the check runs). */
+  const shell = (
     <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
       <header className="sticky top-0 z-10 border-b border-border bg-surface">
-        <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
-          <div className="flex min-w-0 items-center gap-[24px]">
-            <NavLink
-              to="/invest"
-              className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
-            >
-              {x(IM.invest_portal_title)}
-            </NavLink>
-            <nav className="hidden items-center gap-[3px] rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
-              {NAV.map((item) => (
-                <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
-                  {x(item.label)}
-                </NavLink>
-              ))}
-            </nav>
-          </div>
-          <div className="hidden items-center gap-[8px] min-[820px]:flex">
-            <button
-              type="button"
-              onClick={() => setLang(other)}
-              className="inline-flex h-[34px] min-w-[34px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
-              aria-label={L('Toggle language', 'Changer de langue')}
-            >
-              <Globe size={13} aria-hidden="true" />
-              {label}
-            </button>
-            <button
-              type="button"
-              onClick={() => void signOut()}
-              className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
-            >
-              <LogOut size={14} strokeWidth={2} aria-hidden="true" />
-              {x(IM.invest_sign_out)}
-            </button>
-          </div>
-          <div className="flex items-center gap-[8px] min-[820px]:hidden">
-            <button
-              type="button"
-              onClick={() => setLang(other)}
-              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
-              aria-label={L('Toggle language', 'Changer de langue')}
-            >
-              <Globe size={13} aria-hidden="true" />
-              {label}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((open) => !open)}
-              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset"
-              aria-expanded={mobileMenuOpen}
-              aria-controls="invest-portal-mobile-nav"
-              aria-label={
-                mobileMenuOpen
-                  ? L('Close navigation', 'Fermer la navigation')
-                  : L('Open navigation', 'Ouvrir la navigation')
-              }
-            >
-              {mobileMenuOpen ? (
-                <X size={16} aria-hidden="true" />
-              ) : (
-                <Menu size={16} aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
-        {mobileMenuOpen && (
-          <nav
-            id="invest-portal-mobile-nav"
-            className="border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
-          >
-            <div className="flex flex-col gap-[4px]">
-              {NAV.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {x(item.label)}
-                </NavLink>
-              ))}
+          <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
+            <div className="flex min-w-0 items-center gap-[24px]">
+              <NavLink
+                to="/invest"
+                className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
+              >
+                {x(IM.invest_portal_title)}
+              </NavLink>
+              <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+                {NAV.map((item) => (
+                  <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+                    {x(item.label)}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
+            <div className="hidden items-center gap-[8px] min-[820px]:flex">
+              <button
+                type="button"
+                onClick={() => setLang(other)}
+                className="inline-flex h-[34px] min-w-[34px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
+                aria-label={L('Toggle language', 'Changer de langue')}
+              >
+                <Globe size={13} aria-hidden="true" />
+                {label}
+              </button>
+              <NavLink
+                to="/invest/notifications"
+                className="relative inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset"
+                aria-label={x(IM.invest_tab_notifications)}
+              >
+                <Bell size={14} strokeWidth={2} aria-hidden="true" />
+                <PendingBadge />
+              </NavLink>
+              <NavLink
+                to="/invest/settings"
+                className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset"
+                aria-label={x(IM.invest_tab_settings)}
+              >
+                <Settings size={14} strokeWidth={2} aria-hidden="true" />
+              </NavLink>
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] px-[12px] py-[7px] text-left text-[13px] font-semibold text-text-muted hover:bg-inset hover:text-text-2"
+                className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden="true" />
                 {x(IM.invest_sign_out)}
               </button>
             </div>
-          </nav>
-        )}
-      </header>
-
-      <main className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
-        {access === 'checking' ? (
-          <div className="flex items-center justify-center py-[80px]">
-            <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+            <div className="flex items-center gap-[8px] min-[820px]:hidden">
+              <button
+                type="button"
+                onClick={() => setLang(other)}
+                className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[8px] border border-border bg-transparent px-[10px] text-[12px] font-semibold text-text-2 transition-colors hover:bg-inset"
+                aria-label={L('Toggle language', 'Changer de langue')}
+              >
+                <Globe size={13} aria-hidden="true" />
+                {label}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((open) => !open)}
+                className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="invest-portal-mobile-nav"
+                aria-label={
+                  mobileMenuOpen
+                    ? L('Close navigation', 'Fermer la navigation')
+                    : L('Open navigation', 'Ouvrir la navigation')
+                }
+              >
+                {mobileMenuOpen ? (
+                  <X size={16} aria-hidden="true" />
+                ) : (
+                  <Menu size={16} aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
-        ) : access === 'no' ? (
-          <AccessRequired />
-        ) : (
-          <InvestDataProvider>
+          {mobileMenuOpen && (
+            <nav
+              id="invest-portal-mobile-nav"
+              className="border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
+            >
+              <div className="flex flex-col gap-[4px]">
+                {NAV.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {x(item.label)}
+                  </NavLink>
+                ))}
+                {MOBILE_EXTRA.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {x(item.label)}
+                  </NavLink>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => void signOut()}
+                  className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] px-[12px] py-[7px] text-left text-[13px] font-semibold text-text-muted hover:bg-inset hover:text-text-2"
+                >
+                  <LogOut size={14} strokeWidth={2} aria-hidden="true" />
+                  {x(IM.invest_sign_out)}
+                </button>
+              </div>
+            </nav>
+          )}
+        </header>
+
+        <main className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
+          {access === 'checking' ? (
+            <div className="flex items-center justify-center py-[80px]">
+              <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+            </div>
+          ) : access === 'no' ? (
+            <AccessRequired />
+          ) : (
             <Outlet />
-          </InvestDataProvider>
-        )}
-      </main>
-    </div>
+          )}
+        </main>
+        <InvestFooter />
+      </div>
+  )
+
+  return access === 'yes' ? <InvestDataProvider>{shell}</InvestDataProvider> : shell
+}
+
+/**
+ * Unseen-work count on the header bell: new signals + draft proposals.
+ * Reads the context directly — it is absent while the access check runs
+ * (and for users without a grant), in which case there is nothing to badge.
+ */
+function PendingBadge() {
+  const ctx = useContext(InvestDataContext)
+  const pending = ctx
+    ? ctx.state.signals.filter((s) => s.status === 'new').length +
+      ctx.state.orders.filter((o) => o.status === 'draft').length
+    : 0
+  if (pending === 0) return null
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute -top-[4px] -right-[4px] flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-gold-fg px-[4px] text-[9.5px] font-bold text-white"
+    >
+      {pending > 99 ? '99+' : pending}
+    </span>
   )
 }
 

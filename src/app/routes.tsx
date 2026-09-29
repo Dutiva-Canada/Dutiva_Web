@@ -72,6 +72,9 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestOrdersPage = lazy(() => import('@/features/invest/portal/InvestOrdersPage').then((m) => ({ default: m.InvestOrdersPage })))
 /* prettier-ignore */ const InvestSignalsPage = lazy(() => import('@/features/invest/portal/InvestSignalsPage').then((m) => ({ default: m.InvestSignalsPage })))
 /* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
+/* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
+/* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
+/* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -346,11 +349,20 @@ function routeTree(): RouteObject[] {
         </Suspense>
       ),
       children: [
-        { index: true, element: <InvestHomePage /> },
-        { path: 'portfolio', element: <InvestPortfolioPage /> },
-        { path: 'orders', element: <InvestOrdersPage /> },
-        { path: 'signals', element: <InvestSignalsPage /> },
-        { path: 'strategies', element: <InvestStrategiesPage /> },
+        /* Public legal pages — outside the gated layout so the sign-in
+           wall's footer links work for signed-out visitors. */
+        { path: 'legal/:slug', element: <InvestLegalPage /> },
+        {
+          element: <InvestPortalLayout />,
+          children: [
+            { index: true, element: <InvestHomePage /> },
+            { path: 'portfolio', element: <InvestPortfolioPage /> },
+            { path: 'orders', element: <InvestOrdersPage /> },
+            { path: 'signals', element: <InvestSignalsPage /> },
+            { path: 'strategies', element: <InvestStrategiesPage /> },
+            { path: 'settings', element: <InvestSettingsPage /> },
+          ],
+        },
       ],
     },
     { path: '*', element: <NotFoundRoute /> },

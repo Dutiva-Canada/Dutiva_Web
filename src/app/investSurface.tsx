@@ -1,4 +1,5 @@
-import { Suspense, lazy } from 'react'
+import { Suspense } from 'react'
+import { Outlet } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
@@ -9,21 +10,18 @@ import { ToastHost } from '@/features/app/toasts/ToastHost'
  * invest portal. Like the candidate portal: preference-scoped language
  * (auth-gated, not crawled), shared AuthProvider, its own shell — separate
  * from both the marketing chrome and the /app workspace sidebar.
+ *
+ * Renders the child route's element: the gated InvestPortalLayout for app
+ * pages, or the standalone InvestLegalPage for /invest/legal/* (public so
+ * the sign-in wall's footer links resolve for signed-out visitors).
  */
-const InvestPortalLayout = lazy(() =>
-  import('@/features/invest/portal/InvestPortalLayout').then((m) => ({
-    default: m.InvestPortalLayout,
-  })),
-)
-
-/** /invest — authenticated + invest_access-gated portal. */
 export function InvestPortalSurface() {
   return (
     <LangProvider>
       <AuthProvider>
         <ToastsProvider>
           <Suspense fallback={null}>
-            <InvestPortalLayout />
+            <Outlet />
           </Suspense>
           <ToastHost />
         </ToastsProvider>
