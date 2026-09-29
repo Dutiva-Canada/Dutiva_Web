@@ -17,6 +17,7 @@ const empty: BoardFilter = {
   workplace: '',
   employer: '',
   department: '',
+  salaryMin: 0,
   sort: 'newest',
 }
 
@@ -81,6 +82,24 @@ describe('filterPostings', () => {
     ).toHaveLength(3)
   })
 
+  it('salary floor filters on the annualized ceiling — hourly normalized', () => {
+    /* $100k+: Frontend (110–140k) and Backend ($85–105/hr ≈ $177–218k).
+       Payroll's 92k ceiling misses the band; undisclosed salaries drop out. */
+    expect(
+      filterPostings(FIXTURE_POSTINGS, { ...empty, salaryMin: 100000 }).map((p) => p.slug),
+    ).toEqual(['frontend-engineer-job-fe', 'backend-engineer-job-be'])
+
+    /* $50k+ also picks up HR (66k) and Payroll (92k) — but not Office Admin
+       at $24/hr ≈ $49,920/yr, just under the band. */
+    const at50 = filterPostings(FIXTURE_POSTINGS, { ...empty, salaryMin: 50000 }).map(
+      (p) => p.slug,
+    )
+    expect(at50).toContain('payroll-supervisor-job-pa')
+    expect(at50).toContain('hr-coordinator-job-hr')
+    expect(at50).not.toContain('office-administrator-job-oa')
+    expect(at50).not.toContain('senior-recruiter-job-re') /* no salary published */
+  })
+
   it('relevance sort ranks title hits first, then recency', () => {
     const out = filterPostings(FIXTURE_POSTINGS, { ...empty, q: 'engineer', sort: 'relevance' })
     /* Both are remote engineers: Frontend (Sep 22) outranks Backend (Sep 10). */
@@ -126,6 +145,7 @@ describe('URL params round-trip', () => {
       workplace: 'remote',
       employer: 'Northgate Logistics Inc.',
       department: 'Engineering',
+      salaryMin: 80000,
       sort: 'relevance',
     }
     const params = filterToParams(filter)
@@ -134,16 +154,18 @@ describe('URL params round-trip', () => {
     expect(params.get('type')).toBe('remote')
     expect(params.get('org')).toBe('Northgate Logistics Inc.')
     expect(params.get('dept')).toBe('Engineering')
+    expect(params.get('salary')).toBe('80000')
     expect(params.get('sort')).toBe('relevance')
     expect(filterFromParams(params)).toEqual(filter)
   })
 
   it('drops unknown/garbage values and an empty filter serializes to nothing', () => {
-    const params = new URLSearchParams('type=spaceship&sort=chaos&q=x')
+    const params = new URLSearchParams('type=spaceship&sort=chaos&q=x&salary=abc&salary=-5')
     const parsed = filterFromParams(params)
     expect(parsed.workplace).toBe('')
     expect(parsed.sort).toBe('newest')
     expect(parsed.q).toBe('x')
+    expect(parsed.salaryMin).toBe(0) /* garbage/negative floors drop */
     expect(filterToParams(empty).toString()).toBe('')
   })
 })

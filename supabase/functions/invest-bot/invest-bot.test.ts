@@ -249,6 +249,27 @@ describe('strategyDue', () => {
 })
 
 describe('planRun', () => {
+  it('scopes snapshots to the strategy asset_classes when set', () => {
+    /* Pre-0184 strategies restricted scans by asset class; the scope
+       backfill widened them to every watched/held symbol. The class filter
+       must keep an equity-only legacy strategy off crypto. */
+    const cryptoSnap: MarketSnapshot = { ...snap, asset_class: 'crypto', symbol: 'BTC' }
+    const strategy: Strategy = {
+      ...baseStrategy,
+      scope_symbols: ['ACME', 'BTC'],
+      asset_classes: ['equity'],
+      rules: [signalRule()],
+    }
+    const plan = planRun([strategy], [snap, cryptoSnap], [position], new Set())
+    expect(plan.symbolsScanned).toEqual(['ACME'])
+    expect(plan.signals.map((s) => s.symbol)).toEqual(['ACME'])
+
+    /* No restriction (empty set = unrestricted, post-0184 saves) sees both. */
+    const wide: Strategy = { ...strategy, asset_classes: [] }
+    const widePlan = planRun([wide], [snap, cryptoSnap], [position], new Set())
+    expect(widePlan.symbolsScanned).toEqual(['ACME', 'BTC'])
+  })
+
   it('emits a signal for each matching signal rule, deduped by open signals', () => {
     const strategy: Strategy = {
       ...baseStrategy,

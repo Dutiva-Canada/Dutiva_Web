@@ -9598,6 +9598,7 @@ export type Database = {
           id: string
           kind: string
           name: string
+          seeded: boolean
           status: string
           updated_at: string
           user_id: string
@@ -9609,6 +9610,7 @@ export type Database = {
           id?: string
           kind?: string
           name: string
+          seeded?: boolean
           status?: string
           updated_at?: string
           user_id: string
@@ -9620,6 +9622,7 @@ export type Database = {
           id?: string
           kind?: string
           name?: string
+          seeded?: boolean
           status?: string
           updated_at?: string
           user_id?: string

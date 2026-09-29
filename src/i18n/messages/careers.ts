@@ -93,6 +93,8 @@ export const careersMessages = defineMessages({
     en: 'All departments',
     fr: 'Tous les départements',
   },
+  careers_board_filter_salary: { en: 'Minimum salary', fr: 'Salaire minimum' },
+  careers_board_filter_salary_all: { en: 'Any salary', fr: 'Tous les salaires' },
   careers_board_workplace_remote: { en: 'Remote', fr: 'À distance' },
   careers_board_workplace_hybrid: { en: 'Hybrid', fr: 'Hybride' },
   careers_board_workplace_onsite: { en: 'On-site', fr: 'Sur place' },

@@ -369,16 +369,22 @@ Deno.serve(async (req: Request) => {
     const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
     /* Users who have anything invested/tracked/watched — cheaper than
        sweeping all. */
-    const [snapsUsers, positionsUsers, watchUsers] = await Promise.all([
+    const [snapsUsers, positionsUsers, watchUsers, stratUsers] = await Promise.all([
       adminClient.from('invest_market_snapshots').select('user_id'),
       adminClient.from('invest_positions').select('user_id'),
       adminClient.from('invest_watchlist').select('user_id'),
+      /* A user whose only footprint is an enabled strategy with explicit
+         scope symbols has no rows anywhere yet — without this branch the
+         sweep never visits them and their symbols never get a first
+         snapshot, so scheduled scans can never fire. */
+      adminClient.from('invest_strategies').select('user_id').eq('enabled', true),
     ])
     const userIds = [
       ...new Set([
         ...(snapsUsers.data ?? []).map((r) => r.user_id as string),
         ...(positionsUsers.data ?? []).map((r) => r.user_id as string),
         ...(watchUsers.data ?? []).map((r) => r.user_id as string),
+        ...(stratUsers.data ?? []).map((r) => r.user_id as string),
       ]),
     ]
     const results: Record<string, unknown>[] = []
