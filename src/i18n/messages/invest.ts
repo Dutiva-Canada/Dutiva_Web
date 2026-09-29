@@ -226,7 +226,18 @@ export const investMessages = defineMessages({
     en: 'Nothing watched yet — add a symbol to track its price and headlines.',
     fr: 'Aucun symbole surveillé — ajoutez-en un pour suivre son cours et ses nouvelles.',
   },
-  invest_news_title: { en: 'Market news', fr: 'Actualités du marché' },
+  invest_news_title: {
+    en: 'Market headlines (third-party)',
+    fr: 'Manchettes du marché (tiers)',
+  },
+  invest_news_note: {
+    en: 'Headlines come from third-party publishers — context, not recommendations.',
+    fr: 'Les manchettes proviennent de publications externes — un contexte, pas des recommandations.',
+  },
+  invest_news_external: {
+    en: 'Opens in a new tab — external site',
+    fr: 'S’ouvre dans un nouvel onglet — site externe',
+  },
   invest_news_empty: {
     en: 'No headlines yet — they arrive with the daily market sync and the Refresh prices button.',
     fr: 'Aucune manchette pour l’instant — elles arrivent avec la synchronisation quotidienne et le bouton Actualiser les cours.',

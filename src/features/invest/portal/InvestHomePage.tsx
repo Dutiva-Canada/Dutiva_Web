@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Info, Loader2, RefreshCw } from 'lucide-react'
+import { ExternalLink, Info, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
@@ -229,7 +229,12 @@ export function InvestHomePage() {
       </div>
 
       <section className={cardClass}>
+        {/* Third-party headlines, verbatim — label them as such so a publisher's
+            headline never reads as a Dutiva recommendation. */}
         <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_news_title)}</h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_news_note)}
+        </p>
         {state.news.length === 0 ? (
           <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">{x(IM.invest_news_empty)}</p>
         ) : (
@@ -240,9 +245,16 @@ export function InvestHomePage() {
                   href={n.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[13px] font-medium text-accent no-underline hover:underline"
+                  className="inline-flex items-start gap-[4px] text-[13px] font-medium text-accent no-underline hover:underline"
                 >
                   {n.title}
+                  <ExternalLink
+                    size={12}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                    className="mt-[3px] shrink-0 text-text-3"
+                  />
+                  <span className="sr-only">{x(IM.invest_news_external)}</span>
                 </a>
                 <p className="m-0 mt-[3px] text-[11.5px] text-text-muted">
                   {n.symbol && <span className="font-semibold uppercase">{n.symbol} · </span>}
