@@ -72,6 +72,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestOrdersPage = lazy(() => import('@/features/invest/portal/InvestOrdersPage').then((m) => ({ default: m.InvestOrdersPage })))
 /* prettier-ignore */ const InvestSignalsPage = lazy(() => import('@/features/invest/portal/InvestSignalsPage').then((m) => ({ default: m.InvestSignalsPage })))
 /* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
+/* prettier-ignore */ const InvestNotificationsPage = lazy(() => import('@/features/invest/portal/InvestNotificationsPage').then((m) => ({ default: m.InvestNotificationsPage })))
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
@@ -360,6 +361,7 @@ function routeTree(): RouteObject[] {
             { path: 'orders', element: <InvestOrdersPage /> },
             { path: 'signals', element: <InvestSignalsPage /> },
             { path: 'strategies', element: <InvestStrategiesPage /> },
+            { path: 'notifications', element: <InvestNotificationsPage /> },
             { path: 'settings', element: <InvestSettingsPage /> },
           ],
         },
