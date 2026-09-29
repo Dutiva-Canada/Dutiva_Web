@@ -31,13 +31,15 @@ import {
  *   { action: 'sync-all' }  — trigger secret / service key (the 07:20 UTC
  *                             pg_cron sweep), or an admin-role portal JWT.
  *
- * A user's universe is snapshot rows ∪ held positions ∪ watchlist symbols.
+ * A user's universe is snapshot rows ∪ held positions ∪ watchlist ∪
+ * symbols explicitly scoped into an enabled strategy.
  * Unknown tickers are skipped and reported, never fatal.
  */
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
@@ -117,7 +119,10 @@ function pause(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
-async function fetchText(url: string, headers: Record<string, string> = {}): Promise<string | null> {
+async function fetchText(
+  url: string,
+  headers: Record<string, string> = {},
+): Promise<string | null> {
   try {
     const res = await fetch(url, { headers, signal: AbortSignal.timeout(15_000) })
     if (!res.ok) return null
@@ -205,9 +210,7 @@ async function syncStooq(
   if (targets.length === 0) return
   const mapped = targets.map((t) => ({ target: t, ...stooqSymbol(t.symbol) }))
   const tickers = [...new Set(mapped.map((m) => m.ticker))]
-  const raw = await fetchText(
-    `https://stooq.com/q/l/?s=${tickers.join(',')}&f=sd2t2ohlcv&h&e=csv`,
-  )
+  const raw = await fetchText(`https://stooq.com/q/l/?s=${tickers.join(',')}&f=sd2t2ohlcv&h&e=csv`)
   const quotes = new Map((raw ? parseStooqQuotes(raw) : []).map((q) => [q.ticker, q]))
 
   let historyCalls = 0
@@ -238,12 +241,14 @@ async function syncStooq(
   }
 }
 
-/** One user's universe: snapshot rows ∪ held-position ∪ watchlist symbols. */
+/** One user's universe: snapshot rows ∪ held positions ∪ watchlist ∪
+    symbols explicitly scoped into an enabled strategy (0184). */
 async function syncUser(adminClient: SupabaseClient, userId: string) {
-  const [snapsRes, positionsRes, watchRes] = await Promise.all([
+  const [snapsRes, positionsRes, watchRes, stratRes] = await Promise.all([
     adminClient.from('invest_market_snapshots').select('asset_class, symbol').eq('user_id', userId),
     adminClient.from('invest_positions').select('asset_class, symbol, name').eq('user_id', userId),
     adminClient.from('invest_watchlist').select('asset_class, symbol, name').eq('user_id', userId),
+    adminClient.from('invest_strategies').select('scope').eq('user_id', userId).eq('enabled', true),
   ])
   const seen = new Set<string>()
   const targets: SyncTarget[] = []
@@ -263,8 +268,29 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
     })
   }
 
+  /* Strategy-scoped symbols (scope.symbols, 0184) are bare tickers —
+     default them to equity and skip any symbol a position/watchlist row
+     already covers under its real asset class. A pre-0184 project has no
+     `scope` column, so a query error is tolerated. */
+  const covered = new Set(targets.map((t) => t.symbol.toUpperCase()))
+  if (!stratRes.error) {
+    for (const row of stratRes.data ?? []) {
+      const scope = (row as { scope?: { symbols?: unknown } | null }).scope
+      if (!Array.isArray(scope?.symbols)) continue
+      for (const raw of scope.symbols) {
+        const symbol = String(raw).toUpperCase().trim()
+        if (!symbol || covered.has(symbol)) continue
+        covered.add(symbol)
+        seen.add(`equity:${symbol}`)
+        targets.push({ user_id: userId, asset_class: 'equity', symbol, name: '' })
+      }
+    }
+  }
+
   const crypto = targets.filter((t) => t.asset_class === 'crypto').slice(0, MAX_PER_CLASS)
-  const rest = targets.filter((t) => t.asset_class !== 'crypto' && t.asset_class !== 'cash').slice(0, MAX_PER_CLASS)
+  const rest = targets
+    .filter((t) => t.asset_class !== 'crypto' && t.asset_class !== 'cash')
+    .slice(0, MAX_PER_CLASS)
 
   const patches: SnapshotPatch[] = []
   const failed: string[] = []

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { normalizeRules } from './strategyRules'
 import type {
   AssetClass,
   InvestAccount,
@@ -299,13 +300,19 @@ export async function saveStrategy(
   strategy: Omit<InvestStrategy, 'id'> & { id?: string },
 ): Promise<void> {
   const { client, userId } = await requireUserId()
+  if (!strategy.scope.watchlist && strategy.scope.symbols.length === 0) {
+    throw new Error('Strategy needs a scope: the watchlist or at least one symbol')
+  }
   const payload = {
     user_id: userId,
     name: strategy.name,
     enabled: strategy.enabled,
-    asset_classes: strategy.assetClasses,
-    rules: strategy.rules as never,
-    autonomy: strategy.autonomy,
+    scope: {
+      watchlist: strategy.scope.watchlist,
+      symbols: strategy.scope.symbols.map((s) => s.toUpperCase()),
+    },
+    rules: rulesToWire(strategy.rules),
+    notify: { in_app: strategy.notify.inApp, email: strategy.notify.email },
     cadence: strategy.cadence,
     template: strategy.template,
     updated_at: new Date().toISOString(),
@@ -333,20 +340,76 @@ export async function deleteStrategy(id: string): Promise<void> {
   if (error) throw error
 }
 
-/** Run the bot for the caller's book on demand. */
-export async function runBot(): Promise<{
-  evaluated: number
+export interface ScanResult {
+  /** Distinct symbols that were evaluated. */
+  scanned: string[]
   signals: number
-  orders: number
-  executed: number
-}> {
+  /** Draft orders created — they await approval in the Orders tab. */
+  proposals: number
+  ruleHits: Record<string, number>
+  warnings: string[]
+  durationMs: number
+}
+
+/** Scan the caller's strategies on demand. Scanning never places orders —
+    order proposals become drafts awaiting approval in the Orders tab. */
+export async function scanNow(): Promise<ScanResult> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { data, error } = await client.functions.invoke('invest-bot', {
     body: { action: 'run' },
   })
   if (error) throw error
-  return data as { evaluated: number; signals: number; orders: number; executed: number }
+  return data as ScanResult
+}
+
+export interface TestScanResult {
+  symbolsScanned: string[]
+  ruleHits: Record<string, number>
+  signals: number
+  proposals: number
+  warnings: string[]
+}
+
+/** Dry-run a draft strategy's rules against current snapshots — diagnostic
+    only; writes no signals or orders server-side. */
+export async function testScan(input: {
+  rules: InvestStrategy['rules']
+  symbols: string[]
+}): Promise<TestScanResult> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-bot', {
+    body: { action: 'test-scan', rules: rulesToWire(input.rules), symbols: input.symbols },
+  })
+  if (error) throw error
+  return data as TestScanResult
+}
+
+/* Wire shape for the rules jsonb column and the edge function — snake_case
+   qty_unit; severity only on signals, order fields only on proposals. */
+function rulesToWire(rules: InvestStrategy['rules']) {
+  return rules.map((r) =>
+    r.type === 'signal'
+      ? {
+          type: 'signal' as const,
+          metric: r.metric,
+          op: r.op,
+          value: r.value,
+          title: r.title,
+          severity: r.severity,
+        }
+      : {
+          type: 'order_proposal' as const,
+          metric: r.metric,
+          op: r.op,
+          value: r.value,
+          title: r.title,
+          side: r.side,
+          qty: r.qty,
+          qty_unit: r.qtyUnit,
+        },
+  )
 }
 
 /** Refresh the caller's snapshots from the free feeds (CoinGecko/Stooq). */
@@ -362,8 +425,8 @@ export async function syncPrices(): Promise<{ symbols: number; synced: number; f
 
 /**
  * Ask the model to author a strategy draft from a plain-language goal.
- * Returns a disabled, 'suggest'-autonomy draft — the user reviews and
- * saves it before anything reaches the book.
+ * Returns a disabled draft — the user reviews, picks the scope, and saves
+ * before anything reaches the book.
  */
 export async function draftStrategy(
   goal: string,
@@ -377,12 +440,16 @@ export async function draftStrategy(
   if (error) throw error
   const d = (data as { draft?: Record<string, unknown> }).draft
   if (!d) throw new Error('No draft returned')
+  const scope = (d.scope ?? {}) as Record<string, unknown>
   return {
     name: String(d.name),
     enabled: false,
-    assetClasses: (Array.isArray(d.asset_classes) ? d.asset_classes : ['equity']) as AssetClass[],
-    rules: Array.isArray(d.rules) ? (d.rules as InvestStrategy['rules']) : [],
-    autonomy: 'suggest',
+    scope: {
+      watchlist: scope.watchlist !== false,
+      symbols: Array.isArray(scope.symbols) ? (scope.symbols as string[]) : [],
+    },
+    rules: normalizeRules(d.rules),
+    notify: { inApp: true, email: false },
     cadence: d.cadence === 'weekly' || d.cadence === 'monthly' ? d.cadence : 'daily',
     template: 'ai-draft',
   }
@@ -434,13 +501,20 @@ function toSnapshot(row: any): MarketSnapshot {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function toStrategy(row: any): InvestStrategy {
+  const scope = (row.scope ?? {}) as Record<string, unknown>
+  const notify = (row.notify ?? {}) as Record<string, unknown>
   return {
     id: row.id,
     name: row.name,
     enabled: row.enabled === true,
-    assetClasses: Array.isArray(row.asset_classes) ? row.asset_classes : [],
-    rules: Array.isArray(row.rules) ? row.rules : [],
-    autonomy: row.autonomy === 'paper_execute' ? 'paper_execute' : 'suggest',
+    scope: {
+      /* Rows pre-0184 scanned every tracked symbol — the same thing
+         watchlist:true means under the new model. */
+      watchlist: scope.watchlist !== false,
+      symbols: Array.isArray(scope.symbols) ? scope.symbols : [],
+    },
+    rules: normalizeRules(row.rules),
+    notify: { inApp: notify.in_app !== false, email: notify.email === true },
     cadence: row.cadence === 'weekly' || row.cadence === 'monthly' ? row.cadence : 'daily',
     template: typeof row.template === 'string' ? row.template : '',
   }
@@ -519,9 +593,15 @@ function toRun(row: any): InvestBotRun {
   return {
     id: row.id,
     ranAt: row.ran_at,
+    strategyId: row.strategy_id ?? null,
     signalsEmitted: row.signals_emitted,
-    ordersSuggested: row.orders_suggested,
-    ordersExecuted: row.orders_executed,
+    proposalsCreated: row.orders_suggested ?? 0,
+    symbolsScanned: Array.isArray(row.symbols_scanned) ? row.symbols_scanned : [],
+    ruleHits:
+      row.rule_hits && typeof row.rule_hits === 'object' && !Array.isArray(row.rule_hits)
+        ? (row.rule_hits as Record<string, number>)
+        : {},
+    durationMs: typeof row.duration_ms === 'number' ? row.duration_ms : null,
     summary: row.summary,
     status: row.status,
   }
