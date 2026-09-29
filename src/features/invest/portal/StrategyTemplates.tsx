@@ -83,35 +83,33 @@ export function StrategyTemplates({
               key={t.slug}
               className="flex flex-col gap-[8px] rounded-[10px] border border-border bg-inset p-[12px]"
             >
-              <div className="flex items-start justify-between gap-[8px]">
-                <p className="m-0 flex items-center gap-[7px] text-[13.5px] font-semibold text-text">
-                  <Icon size={14} className="shrink-0 text-gold-fg" aria-hidden="true" />
-                  {x(t.name)}
-                </p>
-                <label className="flex shrink-0 items-center gap-[5px] text-[10px] font-semibold text-text-2">
-                  {x(IM.invest_cadence_label)}
-                  <select
-                    aria-label={x(IM.invest_cadence_label)}
-                    value={cadence}
-                    onChange={(e) =>
-                      setCadenceBySlug((prev) => ({
-                        ...prev,
-                        [t.slug]: e.target.value as StrategyCadence,
-                      }))
-                    }
-                    className={fieldClass}
-                  >
-                    {(['daily', 'weekly', 'monthly'] as const).map((c) => (
-                      <option key={c} value={c}>
-                        {x(IM[cadenceLabel[c]])}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <p className="m-0 flex items-center gap-[7px] text-[13.5px] font-semibold text-text">
+                <Icon size={14} className="shrink-0 text-gold-fg" aria-hidden="true" />
+                {x(t.name)}
+              </p>
               <p className="m-0 flex-1 text-[11.5px] leading-normal text-text-muted">
                 {x(t.blurb)}
               </p>
+              <label className="flex items-center justify-between gap-[8px] text-[10.5px] font-semibold text-text-2">
+                {x(IM.invest_cadence_label)}
+                <select
+                  aria-label={x(IM.invest_cadence_label)}
+                  value={cadence}
+                  onChange={(e) =>
+                    setCadenceBySlug((prev) => ({
+                      ...prev,
+                      [t.slug]: e.target.value as StrategyCadence,
+                    }))
+                  }
+                  className={fieldClass}
+                >
+                  {(['daily', 'weekly', 'monthly'] as const).map((c) => (
+                    <option key={c} value={c}>
+                      {x(IM[cadenceLabel[c]])}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <button
                 type="button"
                 aria-expanded={open}
