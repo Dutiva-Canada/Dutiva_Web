@@ -13,6 +13,7 @@ import {
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
+import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
 
@@ -45,6 +46,7 @@ const statusLabel: Record<OrderStatus, keyof typeof IM> = {
 export function InvestOrdersPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
+  useInvestHead(IM.invest_seo_title_orders, IM.invest_seo_desc_orders)
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
