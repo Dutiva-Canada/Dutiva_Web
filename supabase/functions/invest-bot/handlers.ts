@@ -352,23 +352,22 @@ export function planRun(
   const ctx: RunContext = { bookValue, cashTotal: opts.cashTotal ?? 0 }
 
   const scanned = new Set<string>()
-  let stratDiag: RunPlan['perStrategy'][number] | null = null
-  const hit = (rule: RuleBase, n = 1) => {
+  const hit = (diag: RunPlan['perStrategy'][number], rule: RuleBase, n = 1) => {
     plan.ruleHits[rule.title] = (plan.ruleHits[rule.title] ?? 0) + n
-    if (stratDiag) stratDiag.ruleHits[rule.title] = (stratDiag.ruleHits[rule.title] ?? 0) + n
+    diag.ruleHits[rule.title] = (diag.ruleHits[rule.title] ?? 0) + n
   }
 
   for (const strategy of strategies) {
     if (!strategy.enabled || strategy.rules.length === 0) continue
     if (!opts.force && !strategyDue(strategy, now)) continue
-    stratDiag = {
+    const diag: RunPlan['perStrategy'][number] = {
       strategyId: strategy.id,
       ruleHits: {},
       symbolsScanned: [],
       signals: 0,
       proposals: 0,
     }
-    plan.perStrategy.push(stratDiag)
+    plan.perStrategy.push(diag)
     const scope = new Set(strategy.scope_symbols.map((s) => s.toUpperCase()))
     const symbolRules = strategy.rules.filter((r) => !BOOK_METRICS.includes(r.metric))
     const bookRules = strategy.rules.filter((r) => BOOK_METRICS.includes(r.metric))
@@ -376,12 +375,12 @@ export function planRun(
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
       scanned.add(snap.symbol.toUpperCase())
-      stratDiag.symbolsScanned.push(snap.symbol.toUpperCase())
+      diag.symbolsScanned.push(snap.symbol.toUpperCase())
       plan.evaluated += 1
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
       for (const rule of symbolRules) {
         if (!ruleMatches(rule, snap, position, ctx)) continue
-        hit(rule)
+        hit(diag, rule)
 
         if (rule.type === 'signal') {
           const key = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
@@ -396,7 +395,7 @@ export function planRun(
             body: buildSignalBody(rule, snap, position, ctx),
             score: scoreFor(rule, snap, position, ctx),
           })
-          if (stratDiag) stratDiag.signals += 1
+          diag.signals += 1
           continue
         }
 
@@ -425,7 +424,7 @@ export function planRun(
           requested_price: snap.price,
           note: `Order proposal — ${rule.title}`,
         })
-        if (stratDiag) stratDiag.proposals += 1
+        diag.proposals += 1
       }
     }
 
@@ -435,7 +434,7 @@ export function planRun(
       const m = metricValue(rule.metric, EMPTY_SNAP, null, ctx)
       if (m === null) continue
       if (rule.op === 'lt' ? m >= rule.value : m <= rule.value) continue
-      hit(rule)
+      hit(diag, rule)
       if (rule.type === 'order_proposal') {
         plan.warnings.push(`${rule.title}: order proposals need a symbol-level metric`)
         continue
@@ -452,7 +451,7 @@ export function planRun(
         body: `cash ${ctx.cashTotal.toFixed(2)}`,
         score: scoreFor(rule, EMPTY_SNAP, null, ctx),
       })
-      if (stratDiag) stratDiag.signals += 1
+      diag.signals += 1
       plan.evaluated += 1
     }
   }
