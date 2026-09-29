@@ -419,7 +419,7 @@ export function alternatePathFor(pathname: string, target: Lang): string | undef
      mount is /fr/carrieres, not /fr/careers. */
   const jobMatch = normalized.match(/^\/(?:fr\/carrieres|careers)\/jobs\/(.+)$/)
   if (jobMatch) {
-    const postingId = jobMatch[2]
+    const postingId = jobMatch[1]
     return target === 'fr' ? `/fr/carrieres/jobs/${postingId}` : `/careers/jobs/${postingId}`
   }
   return undefined
