@@ -145,15 +145,26 @@ export function StrategyForm({
   const submit = (e: FormEvent) => {
     e.preventDefault()
     if (!name.trim() || rules.length === 0) return
-    if (scopeIsEmpty(scope)) {
+    /* A symbol typed but never committed with Enter still counts — don't
+       drop it on Save. */
+    const pending = symbolInput.trim().toUpperCase()
+    const finalScope =
+      pending && !scope.symbols.includes(pending)
+        ? { ...scope, symbols: [...scope.symbols, pending] }
+        : scope
+    if (scopeIsEmpty(finalScope)) {
       setScopeError(true)
       return
+    }
+    if (finalScope !== scope) {
+      setScope(finalScope)
+      setSymbolInput('')
     }
     void onSave({
       id: initial?.id,
       name: name.trim(),
       enabled,
-      scope,
+      scope: finalScope,
       rules,
       notify,
       cadence,

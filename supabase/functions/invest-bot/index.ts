@@ -123,6 +123,10 @@ async function authenticateInvestUser(
   return { userId: userData.user.id, adminClient }
 }
 
+/** A test scan evaluates caller-supplied symbols — cap the request so a
+    draft strategy can't turn into an unbounded read. */
+const MAX_TEST_SYMBOLS = 64
+
 interface StrategyRow {
   id: string
   enabled: boolean
@@ -130,7 +134,6 @@ interface StrategyRow {
   cadence: unknown
   last_evaluated_at: unknown
   scope?: unknown
-  notify?: unknown
 }
 
 /** Reads strategies with the 0184 columns when present; falls back to a
@@ -141,12 +144,12 @@ async function loadStrategies(
   userId: string,
   allSymbols: string[],
 ): Promise<{ strategies: Strategy[]; scoped: boolean }> {
-  const select = 'id, enabled, rules, cadence, last_evaluated_at, scope, notify'
+  const select = 'id, enabled, rules, cadence, last_evaluated_at, scope'
   const res = await adminClient.from('invest_strategies').select(select).eq('user_id', userId)
 
   let rows: StrategyRow[]
   let scoped = true
-  if (res.error && /scope|notify/.test(res.error.message)) {
+  if (res.error && /scope/.test(res.error.message)) {
     const fallback = await adminClient
       .from('invest_strategies')
       .select('id, enabled, rules, cadence, last_evaluated_at')
@@ -163,7 +166,6 @@ async function loadStrategies(
     scoped,
     strategies: rows.map((r) => {
       const scope = (r.scope ?? null) as { watchlist?: unknown; symbols?: unknown } | null
-      const notify = (r.notify ?? null) as { in_app?: unknown } | null
       const scopeSymbols = scoped
         ? [
             ...(Array.isArray(scope?.symbols) ? (scope.symbols as string[]) : []),
@@ -177,7 +179,6 @@ async function loadStrategies(
         rules: parseRules(r.rules),
         cadence: CADENCES.includes(r.cadence as string) ? (r.cadence as StrategyCadence) : 'daily',
         last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
-        notify_in_app: notify?.in_app !== false,
       }
     }),
   }
@@ -310,6 +311,7 @@ async function runUser(
     .maybeSingle()
 
   let proposalsCreated = 0
+  const proposalsByStrategy = new Map<string, number>()
   if (plan.proposals.length > 0) {
     if (!paperAccount) {
       plan.warnings.push('order proposals skipped — no active paper account')
@@ -335,6 +337,10 @@ async function runUser(
           continue
         }
         proposalsCreated += 1
+        proposalsByStrategy.set(
+          proposal.strategy_id,
+          (proposalsByStrategy.get(proposal.strategy_id) ?? 0) + 1,
+        )
       }
     }
   }
@@ -364,27 +370,51 @@ async function runUser(
     })
   }
 
-  const runRow: Record<string, unknown> = {
-    user_id: userId,
-    signals_emitted: plan.signals.length + insights.length,
-    orders_suggested: proposalsCreated,
-    orders_executed: 0,
-    summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
-    status: writesFailed ? 'partial' : 'ok',
-    symbols_scanned: plan.symbolsScanned,
-    rule_hits: plan.ruleHits,
-    duration_ms: Date.now() - startedAt,
+  /* Run history is per strategy — one row for each strategy evaluated this
+     sweep, so rule_hits and symbols_scanned never mix across strategies
+     that share a rule title. Proposals count what was actually inserted. */
+  const durationMs = Date.now() - startedAt
+  const runRows: Record<string, unknown>[] = plan.perStrategy.map((s) => {
+    return {
+      user_id: userId,
+      strategy_id: s.strategyId,
+      signals_emitted: s.signals,
+      orders_suggested: proposalsByStrategy.get(s.strategyId) ?? 0,
+      orders_executed: 0,
+      summary: `${s.symbolsScanned.length} symbol(s) scanned`,
+      status: writesFailed ? 'partial' : 'ok',
+      symbols_scanned: s.symbolsScanned,
+      rule_hits: s.ruleHits,
+      duration_ms: durationMs,
+    }
+  })
+  if (insights.length > 0 || runRows.length === 0) {
+    runRows.push({
+      user_id: userId,
+      strategy_id: null,
+      signals_emitted: insights.length,
+      orders_suggested: 0,
+      orders_executed: 0,
+      summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
+      status: writesFailed ? 'partial' : 'ok',
+      symbols_scanned: plan.symbolsScanned,
+      rule_hits: {},
+      duration_ms: durationMs,
+    })
   }
-  const runInsert = await adminClient.from('invest_bot_runs').insert(runRow)
-  if (runInsert.error && /symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)) {
-    /* Pre-0184 schema — record the run without the diagnostic columns. */
+  const runInsert = await adminClient.from('invest_bot_runs').insert(runRows)
+  if (
+    runInsert.error &&
+    /strategy_id|symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)
+  ) {
+    /* Pre-0184 schema — record a single flat row without diagnostics. */
     await adminClient.from('invest_bot_runs').insert({
       user_id: userId,
-      signals_emitted: runRow.signals_emitted,
-      orders_suggested: runRow.orders_suggested,
+      signals_emitted: plan.signals.length + insights.length,
+      orders_suggested: proposalsCreated,
       orders_executed: 0,
-      summary: runRow.summary,
-      status: runRow.status,
+      summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
+      status: writesFailed ? 'partial' : 'ok',
     })
   }
 
@@ -407,10 +437,20 @@ async function testScan(
 ): Promise<Response> {
   const rules = parseRules(body['rules'])
   const symbols = Array.isArray(body['symbols'])
-    ? (body['symbols'] as unknown[]).map((s) => String(s).toUpperCase()).filter(Boolean)
+    ? [
+        ...new Set(
+          (body['symbols'] as unknown[]).map((s) => String(s).toUpperCase()).filter(Boolean),
+        ),
+      ]
     : []
   if (rules.length === 0) return json({ error: 'No valid rules', code: 'no_rules' }, 400)
   if (symbols.length === 0) return json({ error: 'No symbols in scope', code: 'no_scope' }, 400)
+  if (symbols.length > MAX_TEST_SYMBOLS) {
+    return json(
+      { error: `Too many symbols (max ${MAX_TEST_SYMBOLS})`, code: 'too_many_symbols' },
+      400,
+    )
+  }
 
   const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
     adminClient
@@ -439,7 +479,6 @@ async function testScan(
     rules,
     cadence: 'daily',
     last_evaluated_at: null,
-    notify_in_app: true,
   }
   const plan = planRun(
     [draft],

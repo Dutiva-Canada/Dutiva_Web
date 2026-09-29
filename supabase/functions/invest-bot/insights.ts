@@ -8,10 +8,7 @@
  * missing route, upstream error, malformed JSON — resolves to [] and the
  * run completes normally.
  */
-import {
-  postChatCompletion,
-  resolveApiKey,
-} from '../_shared/modelUpstream.ts'
+import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 import type { MarketSnapshot, Position } from './handlers.ts'
 
 export interface BookInsight {
@@ -49,10 +46,13 @@ export function buildInsightPrompt(ctx: InsightContext): string {
     const snap = priceBySymbol.get(`${p.asset_class}:${p.symbol}`)
     const px = snap?.price ?? 0
     const weight = bookValue > 0 ? ((p.quantity * px) / bookValue) * 100 : 0
-    const gain = p.avg_cost > 0 && px > 0 ? (((px - p.avg_cost) / p.avg_cost) * 100).toFixed(1) : null
+    const gain =
+      p.avg_cost > 0 && px > 0 ? (((px - p.avg_cost) / p.avg_cost) * 100).toFixed(1) : null
     lines.push(
       `- ${p.symbol} (${p.asset_class}): ${p.quantity} @ ${p.avg_cost.toFixed(2)}` +
-        (px > 0 ? `, last ${px.toFixed(2)} ${snap?.currency ?? ''}, weight ${weight.toFixed(1)}%` : '') +
+        (px > 0
+          ? `, last ${px.toFixed(2)} ${snap?.currency ?? ''}, weight ${weight.toFixed(1)}%`
+          : '') +
         (gain !== null ? `, unrealized ${gain}%` : ''),
     )
   }
@@ -61,7 +61,11 @@ export function buildInsightPrompt(ctx: InsightContext): string {
     .sort((a, b) => Math.abs(b.day_change_pct ?? 0) - Math.abs(a.day_change_pct ?? 0))
     .slice(0, 5)
   if (movers.length > 0) {
-    lines.push('Notable moves: ' + movers.map((s) => `${s.symbol} ${s.day_change_pct?.toFixed(1)}%`).join(', ') + '.')
+    lines.push(
+      'Notable moves: ' +
+        movers.map((s) => `${s.symbol} ${s.day_change_pct?.toFixed(1)}%`).join(', ') +
+        '.',
+    )
   }
   lines.push(`Rules fired: ${ctx.signalsEmitted} signal(s), ${ctx.ordersPlanned} paper order(s).`)
   return lines.join('\n')
@@ -79,7 +83,11 @@ same hedge strength. Max 2 items, empty array when nothing is noteworthy.`
 
 /** Extract the insights array from model output — tolerant of code fences. */
 export function parseInsights(raw: string): BookInsight[] {
-  const text = raw.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim()
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/, '')
+    .trim()
   const start = text.indexOf('[')
   const end = text.lastIndexOf(']')
   if (start === -1 || end <= start) return []
@@ -94,7 +102,8 @@ export function parseInsights(raw: string): BookInsight[] {
   for (const item of parsed) {
     if (item === null || typeof item !== 'object') continue
     const o = item as Record<string, unknown>
-    const t = (k: string) => (typeof o[k] === 'string' ? (o[k] as string).trim().slice(0, MAX_FIELD) : '')
+    const t = (k: string) =>
+      typeof o[k] === 'string' ? (o[k] as string).trim().slice(0, MAX_FIELD) : ''
     const insight = {
       title_en: t('title_en'),
       title_fr: t('title_fr'),
@@ -125,7 +134,9 @@ export async function maybeEmitInsights(
     for (const routeKey of ['invest_ai', 'advisor_chat']) {
       const { data } = await adminClient
         .from('ai_model_routes')
-        .select('id, model_name, config, provider:ai_model_providers(id, provider_key, base_url, secret_ref, status)')
+        .select(
+          'id, model_name, config, provider:ai_model_providers(id, provider_key, base_url, secret_ref, status)',
+        )
         .eq('route_key', routeKey)
         .eq('status', 'active')
         .order('priority', { ascending: true })

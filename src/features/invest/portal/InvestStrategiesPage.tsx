@@ -131,6 +131,7 @@ export function InvestStrategiesPage() {
 
       {(creating || editing) && (
         <StrategyForm
+          key={editing ? `edit:${editing.id}` : `seed:${JSON.stringify(seed)}`}
           initial={editing}
           seed={seed}
           drafted={drafted}
@@ -253,10 +254,16 @@ export function InvestStrategiesPage() {
           <ul className="m-0 mt-[8px] flex list-none flex-col divide-y divide-border p-0">
             {state.runs.map((r) => {
               const hitEntries = Object.entries(r.ruleHits)
+              const strategyName = r.strategyId
+                ? (state.strategies.find((s) => s.id === r.strategyId)?.name ?? null)
+                : null
               return (
                 <li key={r.id} className="flex flex-col gap-[3px] py-[9px] text-[12.5px]">
                   <div className="flex flex-wrap items-center justify-between gap-[12px]">
-                    <span className="text-text-2">{new Date(r.ranAt).toLocaleString()}</span>
+                    <span className="text-text-2">
+                      {new Date(r.ranAt).toLocaleString()}
+                      {strategyName && ` — ${strategyName}`}
+                    </span>
                     <span className="text-text-muted">
                       {x(IM.invest_run_summary)
                         .replace('{signals}', String(r.signalsEmitted))

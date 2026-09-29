@@ -73,13 +73,21 @@ Book-level metric: `cash_above` (fires once per strategy against total
 cash). Operators: `lt`/`gt`.
 
 **Rule types (0184)** — every rule carries `type`: `signal` (severity
-`insight` \| `alert` — emits a signal when `notify.in_app`) or
-`order_proposal` (`side` + `qty` + `qty_unit` =
-`shares` \| `percent_of_position` \| `currency` — resolved to shares at the
-snapshot price). A matching order proposal inserts a **draft** order on the
-user's first active paper account and dedupes against open drafts. **The
-bot never executes** — `paper_execute` autonomy was removed; approval is a
-human clicking execute in the Orders tab.
+`insight` \| `alert` — always emits a signal row; `notify` records channel
+intent for a future delivery layer) or `order_proposal` (`side` + `qty` +
+`qty_unit` = `shares` \| `percent_of_position` \| `currency` — resolved to
+shares at the snapshot price, skipped with a warning when the unit can't
+resolve). A matching order proposal inserts a **draft** order on the
+user's first active paper account and dedupes against open drafts —
+including drafts planned earlier in the same run. **The bot never
+executes** — `paper_execute` autonomy was removed; approval is a human
+clicking execute in the Orders tab.
+
+**Run history (0184)** — one `invest_bot_runs` row per evaluated strategy
+(`strategy_id`, `symbols_scanned`, per-rule `rule_hits`, `duration_ms`),
+plus an unattributed row when the sweep writes AI insights or evaluates
+nothing. Per-strategy rows keep same-title rules on different strategies
+from mixing, and show each strategy's own scanned set.
 
 **Cadence gating (0182)** — `strategyDue` skips a strategy whose
 `cadence` window hasn't elapsed since `last_evaluated_at` (weekly = 7d,
@@ -104,8 +112,10 @@ no insights, never a failed run.
   **07:20 UTC** — twenty minutes before the bot's 07:45 sweep, so
   strategies always evaluate fresh prices.
 - Only symbols the user actually references (snapshots ∪ positions ∪
-  watchlist) are fetched; unknown symbols land in `failed` and are
-  reported back.
+  watchlist ∪ explicit `scope.symbols` on enabled strategies, 0184) are
+  fetched; unknown symbols land in `failed` and are reported back.
+  Strategy-scoped tickers are bare symbols, so they sync as `equity` —
+  crypto tickers entered this way won't resolve.
 - **News refresh (0183)** — both actions also rebuild `invest_market_news`:
   `newsQueries` turns the synced universe into Google News RSS queries
   (one general CA-market feed + one per distinct symbol, company names
