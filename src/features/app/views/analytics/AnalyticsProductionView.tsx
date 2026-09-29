@@ -1,9 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { ChartNoAxesColumn } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
-import { casesMessages } from '@/i18n/messages/cases'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { usePlan } from '@/features/app/billing/planContext'
 import { analyticsCardVisible } from './cardVisibility'
@@ -19,8 +17,8 @@ import type {
   ProductionLeave,
 } from '@/features/app/views/employees/productionApi'
 import { listCases } from '@/features/app/views/cases/productionApi'
-import type { ProductionCase, ProductionCaseType } from '@/features/app/views/cases/productionApi'
-import { hasProbationReviewTask, listTasks } from '@/features/app/views/tasks/productionApi'
+import type { ProductionCase } from '@/features/app/views/cases/productionApi'
+import { listTasks } from '@/features/app/views/tasks/productionApi'
 import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
 import { listFindings, listObligations } from '@/features/app/views/compliance/productionApi'
 import type {
@@ -91,45 +89,50 @@ import { listSpecialists, listSpecialistEngagements } from './specialistsAnalyti
 import type { Specialist, SpecialistEngagement } from './specialistsAnalyticsApi'
 import { listScoreSnapshots, recordScoreSnapshot } from './productionApi'
 import type { ScoreSnapshot } from './productionApi'
-import { AnalyticsCard, CardEmpty, CardError, CardSkeleton } from './AnalyticsCard'
-import { AttentionList } from './AttentionList'
-import type { AttentionRow } from './AttentionList'
-import { DeltaChip } from './DeltaChip'
-import { ExpiryBucketsSection } from './ExpiryBucketsSection'
-import type { ExpiryDisplayRow } from './ExpiryBucketsSection'
-import { JurisdictionBars } from './JurisdictionBars'
-import { LeaveList } from './LeaveList'
-import type { LeaveDisplayRow } from './LeaveList'
-import { OpenCaseRows } from './OpenCaseRows'
-import { ServiceMilestoneList } from './ServiceMilestoneList'
-import { ScoreBreakdownMeters } from './ScoreBreakdownMeters'
-import { ScoreHero } from './ScoreHero'
-import { StatTile } from './StatTile'
-import { TrendLineChart } from './TrendLineChart'
+import { rowsOf, useModuleRows } from './moduleRows'
+import { AcknowledgmentsCard } from './AcknowledgmentsCard'
+import { AttentionCard } from './AttentionCard'
 import {
-  CRITICAL_SCORE_CEILING,
+  attentionRowsOf,
+  breakdownRowsOf,
+  headcountRowsOf,
+  leaveRowsOf,
+  serviceMilestoneRowsOf,
+  turnoverOf,
+} from './cardRows'
+import { ExpiryBucketsCard } from './ExpiryBucketsCard'
+import type { ExpiryDisplayRow } from './ExpiryBucketsSection'
+import { HeadcountCard } from './HeadcountCard'
+import { HeadcountTrendCard } from './HeadcountTrendCard'
+import { LeaveOverviewCard } from './LeaveOverviewCard'
+import { OpenCasesCard } from './OpenCasesCard'
+import { ScoreCard } from './ScoreCard'
+import { ServiceMilestonesCard } from './ServiceMilestonesCard'
+import { StatTilesCard } from './StatTilesCard'
+import {
+  commsTiles,
+  governanceTiles,
+  operationsTiles,
+  revenueTiles,
+  securityTiles,
+  specialistsTiles,
+} from './statTiles'
+import {
   FINDING_SEVERITY_WEIGHTS,
   SCORE_FORMULA_VERSION,
-  addDaysISO,
   applyCriticalCeiling,
   blendScore,
   caseAging,
   daysBetweenISO,
   expiryBuckets,
   flattenBuckets,
-  formatMonthISO,
   isProvenancedTask,
-  meanInWindow,
   monthStartISO,
-  rankAttention,
   scoreComponent,
   scoreDelta,
-  turnoverRatePct,
   weightedComponent,
 } from './aggregation'
-import { attentionChipLabel, attentionSecondary } from './attentionLabels'
-import { fill, formatCurrency } from '@/lib/format'
-import { formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
+import { formatDayISO, intlLocale } from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
@@ -147,74 +150,7 @@ import { AppPage } from '@/features/app/shell/AppPage'
  * plainly instead of hiding.
  */
 
-const ATTENTION_CAP = 5
 const HISTORY_WINDOW_MONTHS = 6
-
-const TYPE_LABEL: Record<ProductionCaseType, (typeof casesMessages)[keyof typeof casesMessages]> = {
-  Termination: casesMessages.cases_prod_type_termination,
-  Performance: casesMessages.cases_prod_type_performance,
-  Accommodation: casesMessages.cases_prod_type_accommodation,
-  Onboarding: casesMessages.cases_prod_type_onboarding,
-}
-
-type ModuleState<T> = { status: 'loading' } | { status: 'error' } | { status: 'ready'; rows: T[] }
-
-/** Per-module loader with its own retry, so cards stay independently alive. */
-function useModuleRows<T>(
-  organizationId: string | null,
-  list: (organizationId: string) => Promise<T[]>,
-): { state: ModuleState<T>; retry: () => void } {
-  const [state, setState] = useState<ModuleState<T>>({ status: 'loading' })
-  const [attempt, setAttempt] = useState(0)
-
-  useEffect(() => {
-    if (!organizationId) return
-    let cancelled = false
-    setState({ status: 'loading' })
-    list(organizationId)
-      .then((rows) => {
-        if (!cancelled) setState({ status: 'ready', rows })
-      })
-      .catch(() => {
-        if (!cancelled) setState({ status: 'error' })
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [organizationId, list, attempt])
-
-  const retry = useCallback(() => setAttempt((n) => n + 1), [])
-  return { state, retry }
-}
-
-/** Skeleton / error / ready gate over the modules a card depends on. */
-function CardData({
-  deps,
-  skeletonLines = 3,
-  children,
-}: {
-  readonly deps: readonly { state: ModuleState<unknown>; retry: () => void }[]
-  readonly skeletonLines?: number
-  readonly children: () => ReactNode
-}) {
-  if (deps.some((d) => d.state.status === 'error')) {
-    return (
-      <CardError
-        onRetry={() => {
-          for (const dep of deps) if (dep.state.status === 'error') dep.retry()
-        }}
-      />
-    )
-  }
-  if (deps.some((d) => d.state.status === 'loading')) {
-    return <CardSkeleton lines={skeletonLines} />
-  }
-  return <>{children()}</>
-}
-
-function rowsOf<T>(state: ModuleState<T>): T[] {
-  return state.status === 'ready' ? state.rows : []
-}
 
 export function AnalyticsProductionView() {
   const { x, lang } = useI18n()
@@ -525,32 +461,7 @@ export function AnalyticsProductionView() {
 
   /* ── Card data ─────────────────────────────────────────────────────────── */
   const scoreDeltaValue = scoreDelta(history)
-  const componentLabels: Record<string, string> = {
-    policies: x(M.analytics_comp_policies),
-    tasks: x(M.analytics_comp_tasks),
-    findings: x(M.analytics_comp_findings),
-    obligations: x(M.analytics_comp_obligations),
-    comms_issues: x(M.analytics_comp_comms_issues),
-    comms_submissions: x(M.analytics_comp_comms_submissions),
-    comms_brand_claims: x(M.analytics_comp_comms_brand_claims),
-    comms_policy_files: x(M.analytics_comp_comms_policy_files),
-    security: x(M.analytics_comp_security),
-    operations: x(M.analytics_comp_operations),
-    governance: x(M.analytics_comp_governance),
-    revenue: x(M.analytics_comp_revenue),
-    specialists: x(M.analytics_comp_specialists),
-  }
-  const presentPcts = components.filter((c) => c.pct !== null).map((c) => c.pct!)
-  const lowestPct = presentPcts.length >= 2 ? Math.min(...presentPcts) : null
-  const breakdownRows = components
-    .filter((c) => c.pct !== null)
-    .map((c) => ({
-      key: c.key,
-      label: componentLabels[c.key] ?? c.key,
-      pct: c.pct!,
-      valueText: fill(x(M.analytics_comp_value), { done: c.done, total: c.total }),
-      flagged: lowestPct !== null && c.pct === lowestPct,
-    }))
+  const breakdownRows = breakdownRowsOf(components, x)
 
   /* ── Expiry records: certification / document buckets ──────────────────── */
   const allRecords = rowsOf(expiryRecords.state).map((r) => ({ ...r, expiryISO: r.expiryDate }))
@@ -570,66 +481,20 @@ export function AnalyticsProductionView() {
     href: `/app/employees/${record.employeeId}`,
   })
 
-  const attentionPool = [
-    ...rowsOf(tasks.state)
-      .filter((t) => !t.done && t.dueDate !== null)
-      .map((t) => ({
-        id: `task-${t.id}`,
-        dueISO: t.dueDate!,
-        title: t.title,
-        secondary: x(M.analytics_attention_task_kind),
-        href: '/app/planning/tasks',
-      })),
-    ...rowsOf(hrCases.state)
-      .filter((c) => c.status !== 'resolved' && c.dueDate !== null)
-      .map((c) => ({
-        id: `case-${c.id}`,
-        dueISO: c.dueDate!,
-        title: c.title,
-        secondary: attentionSecondary(c.jurisdiction, undefined, x),
-        href: `/app/cases/${c.id}`,
-      })),
-    /* Obligations without evidence on file, once dated — the same pool the
-       demo card draws from. */
-    ...rowsOf(obligations.state)
-      .filter((o) => o.status !== 'ok' && o.dueOn !== null)
-      .map((o) => ({
-        id: `obligation-${o.id}`,
-        dueISO: o.dueOn!,
-        title: o.title,
-        secondary: attentionSecondary(o.jurisdiction ?? '', undefined, x),
-        href: '/app/compliance',
-      })),
-    /* Escalations: expired certifications; documents expired or ≤30 days —
-       an expiring work permit is a compliance event (zero silent expiries). */
-    ...[...certBuckets.expired, ...docBuckets.expired, ...docBuckets.within30].map((record) => ({
-      id: record.id,
-      dueISO: record.expiryISO,
-      title: record.employeeName ? `${record.name} — ${record.employeeName}` : record.name,
-      secondary: attentionSecondary(record.employeeJurisdiction ?? '', undefined, x),
-      href: `/app/employees/${record.employeeId}`,
-    })),
-  ]
-  const ranked = rankAttention(attentionPool, todayISO)
-  const attentionRows: AttentionRow[] = ranked.slice(0, ATTENTION_CAP).map((r) => ({
-    key: r.item.id,
-    title: r.item.title,
-    secondary: r.item.secondary,
-    status: r.status,
-    chipLabel: attentionChipLabel(r, x, locale),
-    href: r.item.href,
-  }))
+  const { rows: attentionRows, totalCount: attentionTotal } = attentionRowsOf(
+    {
+      tasks: rowsOf(tasks.state),
+      cases: rowsOf(hrCases.state),
+      obligations: rowsOf(obligations.state),
+      certBuckets,
+      docBuckets,
+    },
+    todayISO,
+    x,
+    locale,
+  )
 
-  const headcountCounts = new Map<string, number>()
-  for (const employee of activeEmployees) {
-    headcountCounts.set(
-      employee.jurisdiction,
-      (headcountCounts.get(employee.jurisdiction) ?? 0) + 1,
-    )
-  }
-  const headcountRows = [...headcountCounts.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([province, value]) => ({ key: province, label: province, value }))
+  const headcountRows = headcountRowsOf(activeEmployees)
 
   const openCases = rowsOf(hrCases.state).filter((c) => c.status !== 'resolved')
   const aging = caseAging(
@@ -637,91 +502,31 @@ export function AnalyticsProductionView() {
     todayISO,
   )
 
-  /* ── Service milestones due within 30 days ─────────────────────────────── */
-  const taskRows = rowsOf(tasks.state)
-  const anyProbationDates = rowsOf(employees.state).some((e) => e.probationEndDate !== null)
-  const serviceMilestoneRows = rowsOf(employees.state)
-    .filter((e) => e.status !== 'terminated' && e.probationEndDate !== null)
-    .map((e) => ({ employee: e, daysLeft: daysBetweenISO(todayISO, e.probationEndDate!) }))
-    .filter(({ daysLeft }) => daysLeft >= 0 && daysLeft <= 30)
-    .sort((a, b) => a.daysLeft - b.daysLeft)
-    .map(({ employee, daysLeft }) => ({
-      key: employee.id,
-      name: employee.name,
-      secondary: [employee.title, employee.jurisdiction].filter(Boolean).join(' · '),
-      endLabel: formatDayISO(employee.probationEndDate!, locale),
-      daysLeft,
-      reviewTaskCreated: hasProbationReviewTask(taskRows, employee.id),
-      href: `/app/employees/${employee.id}`,
-    }))
+  const { hasProbationDates: anyProbationDates, rows: serviceMilestoneRows } =
+    serviceMilestoneRowsOf(rowsOf(employees.state), rowsOf(tasks.state), todayISO, locale)
 
-  /* ── Leave overview — real leave records first, with a bare fallback row
-     for anyone whose roster status says on_leave but has no record yet. ── */
-  const currentLeaves = rowsOf(leaves.state).filter((l) => l.endedOn === null)
-  const coveredEmployeeIds = new Set(currentLeaves.map((l) => l.employeeId))
-  const bareOnLeave = activeEmployees.filter(
-    (e) => e.status === 'on_leave' && !coveredEmployeeIds.has(e.id),
+  const { rows: leaveRows, bareCount: bareOnLeaveCount } = leaveRowsOf(
+    rowsOf(leaves.state),
+    activeEmployees,
+    todayISO,
+    x,
+    locale,
   )
-  const leaveRows: LeaveDisplayRow[] = [
-    ...currentLeaves.map((leave) => {
-      const daysToReturn =
-        leave.expectedReturnDate === null
-          ? null
-          : daysBetweenISO(todayISO, leave.expectedReturnDate)
-      return {
-        key: leave.id,
-        name: leave.employeeName ?? leave.employeeId,
-        type: leave.leaveType,
-        protected: leave.isProtected,
-        returnLabel:
-          leave.expectedReturnDate !== null
-            ? fill(x(M.analytics_leave_returns), {
-                date: formatDayISO(leave.expectedReturnDate, locale),
-              })
-            : x(M.analytics_leave_on_now),
-        imminent: daysToReturn !== null && daysToReturn >= 0 && daysToReturn <= 14,
-        href: `/app/employees/${leave.employeeId}`,
-        sortKey: leave.expectedReturnDate ?? '9999-12-31',
-      }
-    }),
-    ...bareOnLeave.map((e) => ({
-      key: `bare-${e.id}`,
-      name: e.name,
-      type: e.title ?? e.jurisdiction,
-      protected: false,
-      returnLabel: x(M.analytics_leave_on_now),
-      imminent: false,
-      href: `/app/employees/${e.id}`,
-      sortKey: '9999-12-31',
-    })),
-  ].sort((a, b) => a.sortKey.localeCompare(b.sortKey))
 
-  /* ── Turnover — real once termination dates exist ───────────────────────── */
-  const terminationDates = rowsOf(employees.state)
-    .map((e) => e.terminationDate)
-    .filter((d): d is string => d !== null)
-  const priorWindowEndISO = addDaysISO(currentMonthISO, -1)
-  const currentAvgHeadcount =
-    meanInWindow(headcountTrend, addDaysISO(todayISO, -365), todayISO) ?? liveHeadcount
-  const priorAvgHeadcount = meanInWindow(
-    rowsOf(snapshots.state)
-      .filter((s) => s.headcount !== null)
-      .map((s) => ({ monthISO: s.monthISO, value: s.headcount! })),
-    addDaysISO(priorWindowEndISO, -365),
+  const {
+    now: turnoverNow,
+    delta: turnoverDelta,
     priorWindowEndISO,
+  } = turnoverOf(
+    {
+      employees: rowsOf(employees.state),
+      snapshots: rowsOf(snapshots.state),
+      headcountTrend,
+      liveHeadcount,
+    },
+    todayISO,
+    currentMonthISO,
   )
-  const turnoverNow =
-    terminationDates.length > 0
-      ? turnoverRatePct(terminationDates, todayISO, currentAvgHeadcount)
-      : null
-  const turnoverPrior =
-    turnoverNow !== null
-      ? turnoverRatePct(terminationDates, priorWindowEndISO, priorAvgHeadcount)
-      : null
-  const turnoverDelta =
-    turnoverNow !== null && turnoverPrior !== null
-      ? Math.round((turnoverNow - turnoverPrior) * 10) / 10
-      : null
 
   const show = (card: Parameters<typeof analyticsCardVisible>[0]) =>
     analyticsCardVisible(card, memberRole, isOrgAdmin, plan, {
@@ -734,815 +539,241 @@ export function AnalyticsProductionView() {
 
       <div className="grid grid-cols-1 gap-[14px] min-[900px]:grid-cols-2 min-[900px]:gap-[16px]">
         {/* Compliance score */}
-        <AnalyticsCard
-          title={x(M.analytics_score_title)}
-          className="min-[900px]:col-span-2"
+        <ScoreCard
           hidden={!show('score')}
-        >
-          <CardData deps={[policies, tasks, findings, obligations, snapshots]} skeletonLines={4}>
-            {() =>
-              liveScore === null ? (
-                <CardEmpty text={x(M.analytics_score_empty)} />
-              ) : (
-                <>
-                  <ScoreHero score={liveScore} delta={scoreDeltaValue} />
-                  {ceiling.capped && (
-                    <p className="mt-[8px] mb-0 text-[12.5px] font-medium text-risk-fg">
-                      {fill(x(M.analytics_score_capped_note), {
-                        ceiling: CRITICAL_SCORE_CEILING,
-                      })}
-                    </p>
-                  )}
-                  {history.length >= 2 ? (
-                    <div className="mt-[10px]">
-                      <TrendLineChart
-                        points={history.map((p) => ({ monthISO: p.monthISO, value: p.score }))}
-                        ariaLabel={x(M.analytics_score_chart_aria).replace(
-                          '{points}',
-                          history
-                            .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.score}`)
-                            .join(', '),
-                        )}
-                        valueHeader={x(M.analytics_score_table_score)}
-                        clampMax={100}
-                      />
-                    </div>
-                  ) : (
-                    <p className="mt-[10px] mb-0 text-[12.5px] text-text-muted">
-                      {x(M.analytics_score_first_point)}
-                    </p>
-                  )}
-                  {hasOlderFormulaPoints && (
-                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_score_formula_note)}
-                    </p>
-                  )}
-                  {breakdownRows.length > 0 && (
-                    <div className="mt-[14px] border-t border-border-soft pt-[14px]">
-                      <div className="mb-[10px] text-[11.5px] font-bold tracking-[0.04em] uppercase text-text-muted">
-                        {x(M.analytics_score_breakdown_title)}
-                      </div>
-                      <ScoreBreakdownMeters rows={breakdownRows} />
-                    </div>
-                  )}
-                </>
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[policies, tasks, findings, obligations, snapshots]}
+          liveScore={liveScore}
+          delta={scoreDeltaValue}
+          capped={ceiling.capped}
+          history={history}
+          hasOlderFormulaPoints={hasOlderFormulaPoints}
+          breakdownRows={breakdownRows}
+        />
 
         {/* Needs attention */}
-        <AnalyticsCard
-          title={x(M.analytics_attention_title)}
-          subtitle={x(M.analytics_attention_sub)}
+        <AttentionCard
           hidden={!show('attention')}
-        >
-          <CardData deps={[tasks, hrCases, obligations]} skeletonLines={4}>
-            {() =>
-              attentionRows.length === 0 ? (
-                <CardEmpty text={x(M.analytics_attention_empty)} />
-              ) : (
-                <AttentionList
-                  rows={attentionRows}
-                  viewAllHref="/app/planning/tasks"
-                  viewAllLabel={fill(x(M.analytics_attention_view_all), { n: ranked.length })}
-                />
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[tasks, hrCases, obligations]}
+          rows={attentionRows}
+          totalCount={attentionTotal}
+        />
 
         {/* Headcount by jurisdiction */}
-        <AnalyticsCard
-          title={x(M.analytics_headcount_title)}
-          subtitle={
-            activeEmployees.length > 0
-              ? fill(x(M.analytics_headcount_total), { n: activeEmployees.length })
-              : undefined
-          }
+        <HeadcountCard
           hidden={!show('headcount')}
-        >
-          <CardData deps={[employees]} skeletonLines={4}>
-            {() =>
-              headcountRows.length === 0 ? (
-                <CardEmpty text={x(M.analytics_headcount_empty)} />
-              ) : (
-                <>
-                  <JurisdictionBars rows={headcountRows} />
-                  <p className="mt-[10px] mb-0 text-[11.5px] text-text-faint">
-                    {x(M.analytics_headcount_footnote)}
-                  </p>
-                </>
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[employees]}
+          activeCount={activeEmployees.length}
+          rows={headcountRows}
+        />
 
         {/* Open cases */}
-        <AnalyticsCard title={x(M.analytics_cases_title)} hidden={!show('cases')}>
-          <CardData deps={[hrCases]} skeletonLines={4}>
-            {() =>
-              aging === null ? (
-                <CardEmpty text={x(M.analytics_cases_empty)} />
-              ) : (
-                <>
-                  <div className="mb-[12px] flex gap-[10px]">
-                    <StatTile
-                      value={String(aging.openCount)}
-                      label={x(M.analytics_cases_open_now)}
-                    />
-                    <StatTile value={String(aging.avgDays)} label={x(M.analytics_cases_avg_age)} />
-                    <StatTile
-                      value={String(aging.oldestDays)}
-                      label={x(M.analytics_cases_oldest)}
-                      alert={aging.oldestDays > 14}
-                    />
-                  </div>
-                  <OpenCaseRows
-                    rows={aging.rows.map(({ caseRow, daysOpen }) => ({
-                      key: caseRow.id,
-                      href: `/app/cases/${caseRow.id}`,
-                      typeLabel: x(TYPE_LABEL[caseRow.caseType]),
-                      jurisdiction: caseRow.jurisdiction,
-                      openedLabel: fill(x(M.analytics_cases_opened), {
-                        date: formatDayISO(caseRow.openedISO, locale),
-                      }),
-                      daysOpen,
-                      daysLabel:
-                        daysOpen === 1
-                          ? x(M.analytics_cases_day_one)
-                          : fill(x(M.analytics_cases_days), { n: daysOpen }),
-                    }))}
-                  />
-                </>
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+        <OpenCasesCard hidden={!show('cases')} deps={[hrCases]} aging={aging} />
 
         {/* Policy acknowledgments — no tracking data source in production
-              yet; the card states that plainly instead of hiding. */}
-        <AnalyticsCard title={x(M.analytics_ack_title)} hidden={!show('acks')}>
-          <CardEmpty text={x(M.analytics_ack_empty)} />
-        </AnalyticsCard>
+            yet; the card states that plainly instead of hiding. */}
+        <AcknowledgmentsCard hidden={!show('acks')} />
 
         {/* A · Certifications & training — from hr_expiry_records. */}
-        <AnalyticsCard
+        <ExpiryBucketsCard
           title={x(M.analytics_certs_title)}
           subtitle={x(M.analytics_certs_sub)}
           hidden={!show('certifications')}
-        >
-          <CardData deps={[expiryRecords]} skeletonLines={4}>
-            {() =>
-              certRecords.length === 0 ? (
-                <CardEmpty text={x(M.analytics_certs_prod_empty)} />
-              ) : flattenBuckets(certBuckets).length === 0 ? (
-                <CardEmpty text={x(M.analytics_certs_empty)} />
-              ) : (
-                <ExpiryBucketsSection
-                  counts={{
-                    expired: certBuckets.expired.length,
-                    within30: certBuckets.within30.length,
-                    within60: certBuckets.within60.length,
-                    within90: certBuckets.within90.length,
-                  }}
-                  rows={flattenBuckets(certBuckets).map(toExpiryRow)}
-                />
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[expiryRecords]}
+          hasRecords={certRecords.length > 0}
+          counts={{
+            expired: certBuckets.expired.length,
+            within30: certBuckets.within30.length,
+            within60: certBuckets.within60.length,
+            within90: certBuckets.within90.length,
+          }}
+          rows={flattenBuckets(certBuckets).map(toExpiryRow)}
+          prodEmptyText={x(M.analytics_certs_prod_empty)}
+          emptyText={x(M.analytics_certs_empty)}
+        />
 
         {/* C · Service milestones due — employees.probation_end_date,
-              with the review-task linkage checked exactly (task metadata). */}
-        <AnalyticsCard
-          title={x(M.analytics_service_milestone_title)}
-          subtitle={x(M.analytics_service_milestone_sub)}
+            with the review-task linkage checked exactly (task metadata). */}
+        <ServiceMilestonesCard
           hidden={!show('serviceMilestones')}
-        >
-          <CardData deps={[employees, tasks]} skeletonLines={3}>
-            {() =>
-              !anyProbationDates ? (
-                <CardEmpty text={x(M.analytics_service_milestone_prod_empty)} />
-              ) : serviceMilestoneRows.length === 0 ? (
-                <CardEmpty text={x(M.analytics_service_milestone_empty)} />
-              ) : (
-                <ServiceMilestoneList rows={serviceMilestoneRows} />
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[employees, tasks]}
+          hasProbationDates={anyProbationDates}
+          rows={serviceMilestoneRows}
+        />
 
         {/* D · Document expiries — from hr_expiry_records. */}
-        <AnalyticsCard
+        <ExpiryBucketsCard
           title={x(M.analytics_docs_title)}
           subtitle={x(M.analytics_docs_sub)}
           hidden={!show('documents')}
-        >
-          <CardData deps={[expiryRecords]} skeletonLines={4}>
-            {() =>
-              docRecords.length === 0 ? (
-                <CardEmpty text={x(M.analytics_docs_prod_empty)} />
-              ) : flattenBuckets(docBuckets).length === 0 ? (
-                <CardEmpty text={x(M.analytics_docs_empty)} />
-              ) : (
-                <ExpiryBucketsSection
-                  counts={{
-                    expired: docBuckets.expired.length,
-                    within30: docBuckets.within30.length,
-                    within60: docBuckets.within60.length,
-                    within90: docBuckets.within90.length,
-                  }}
-                  rows={flattenBuckets(docBuckets).map(toExpiryRow)}
-                />
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[expiryRecords]}
+          hasRecords={docRecords.length > 0}
+          counts={{
+            expired: docBuckets.expired.length,
+            within30: docBuckets.within30.length,
+            within60: docBuckets.within60.length,
+            within90: docBuckets.within90.length,
+          }}
+          rows={flattenBuckets(docBuckets).map(toExpiryRow)}
+          prodEmptyText={x(M.analytics_docs_prod_empty)}
+          emptyText={x(M.analytics_docs_empty)}
+        />
 
         {/* E · Leave overview — hr_leaves records, with a bare row for
-              anyone marked on_leave who has no record yet. */}
-        <AnalyticsCard
-          title={x(M.analytics_leave_title)}
-          subtitle={x(M.analytics_leave_sub)}
+            anyone marked on_leave who has no record yet. */}
+        <LeaveOverviewCard
           hidden={!show('leave')}
-        >
-          <CardData deps={[employees, leaves]} skeletonLines={3}>
-            {() =>
-              leaveRows.length === 0 ? (
-                <CardEmpty text={x(M.analytics_leave_empty)} />
-              ) : (
-                <>
-                  <LeaveList rows={leaveRows} />
-                  {bareOnLeave.length > 0 && (
-                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_leave_prod_note)}
-                    </p>
-                  )}
-                </>
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[employees, leaves]}
+          rows={leaveRows}
+          bareCount={bareOnLeaveCount}
+        />
 
         {/* F · Security posture */}
-        {(() => {
-          const assetRows = rowsOf(securityAssets.state)
-          const accessReviewRows = rowsOf(securityAccessReviews.state)
-          const incidentRows = rowsOf(securityIncidents.state)
-          const riskRows = rowsOf(securityRisks.state)
-          const vendorReviewRows = rowsOf(securityVendorReviews.state)
-          const hasSecurityData =
-            assetRows.length +
-              accessReviewRows.length +
-              incidentRows.length +
-              riskRows.length +
-              vendorReviewRows.length >
-            0
-
-          const today = new Date(todayISO)
-          const in7Days = new Date(today)
-          in7Days.setDate(today.getDate() + 7)
-          const in7ISO = in7Days.toISOString().slice(0, 10)
-
-          const atRisk = assetRows.filter((a) => a.status === 'at_risk').length
-          const criticalAssets = assetRows.filter((a) => a.criticality === 'critical').length
-          const openIncidents = incidentRows.filter(
-            (i) => i.status === 'open' || i.status === 'contained',
-          ).length
-          const criticalIncidents = incidentRows.filter(
-            (i) => (i.status === 'open' || i.status === 'contained') && i.severity === 'critical',
-          ).length
-          const openRisks = riskRows.filter((r) => r.status === 'open').length
-          const overdueReviews = accessReviewRows.filter(
-            (r) =>
-              (r.status === 'pending' || r.status === 'in_progress') &&
-              r.review_due_date !== null &&
-              r.review_due_date < todayISO,
-          ).length
-          const reviewsDueSoon = accessReviewRows.filter(
-            (r) =>
-              (r.status === 'pending' || r.status === 'in_progress') &&
-              r.review_due_date !== null &&
-              r.review_due_date >= todayISO &&
-              r.review_due_date <= in7ISO,
-          ).length
-          const vendorsDueSoon = vendorReviewRows.filter(
-            (v) =>
-              v.next_review_date !== null &&
-              v.next_review_date >= todayISO &&
-              v.next_review_date <= in7ISO,
-          ).length
-
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_security_title)}
-              subtitle={x(M.analytics_security_sub)}
-              hidden={!show('security')}
-            >
-              <CardData
-                deps={[
-                  securityAssets,
-                  securityAccessReviews,
-                  securityIncidents,
-                  securityRisks,
-                  securityVendorReviews,
-                ]}
-                skeletonLines={2}
-              >
-                {() =>
-                  !hasSecurityData ? (
-                    <CardEmpty text={x(M.analytics_security_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={String(atRisk)}
-                        label={x(M.analytics_security_assets_at_risk)}
-                        alert={atRisk > 0}
-                      />
-                      <StatTile
-                        value={String(criticalAssets)}
-                        label={x(M.analytics_security_title)}
-                        alert={criticalAssets > 0}
-                      />
-                      <StatTile
-                        value={String(openIncidents)}
-                        label={x(M.analytics_security_open_incidents)}
-                      />
-                      <StatTile
-                        value={String(criticalIncidents)}
-                        label={x(M.analytics_security_critical_incidents)}
-                        alert={criticalIncidents > 0}
-                      />
-                      <StatTile
-                        value={String(openRisks)}
-                        label={x(M.analytics_security_open_risks)}
-                      />
-                      <StatTile
-                        value={String(overdueReviews)}
-                        label={x(M.analytics_security_overdue_reviews)}
-                        alert={overdueReviews > 0}
-                      />
-                      <StatTile
-                        value={String(reviewsDueSoon)}
-                        label={x(M.analytics_security_reviews_due)}
-                      />
-                      <StatTile
-                        value={String(vendorsDueSoon)}
-                        label={x(M.analytics_security_vendors_due)}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_security_title)}
+          subtitle={x(M.analytics_security_sub)}
+          hidden={!show('security')}
+          deps={[
+            securityAssets,
+            securityAccessReviews,
+            securityIncidents,
+            securityRisks,
+            securityVendorReviews,
+          ]}
+          emptyText={x(M.analytics_security_empty)}
+          stats={securityTiles(
+            {
+              assets: rowsOf(securityAssets.state),
+              accessReviews: rowsOf(securityAccessReviews.state),
+              incidents: rowsOf(securityIncidents.state),
+              risks: rowsOf(securityRisks.state),
+              vendorReviews: rowsOf(securityVendorReviews.state),
+            },
+            todayISO,
+            x,
+          )}
+        />
 
         {/* G · Operations — projects, vendors, quality, technology, logistics */}
-        {(() => {
-          const projectRows = rowsOf(operationsProjects.state)
-          const vendorRows = rowsOf(operationsVendors.state)
-          const qualityRows = rowsOf(operationsQualityChecks.state)
-          const technologyRows = rowsOf(operationsTechnology.state)
-          const logisticsRows = rowsOf(operationsLogistics.state)
-          const hasOperationsData =
-            projectRows.length +
-              vendorRows.length +
-              qualityRows.length +
-              technologyRows.length +
-              logisticsRows.length >
-            0
-
-          const today = new Date(todayISO)
-          const in7Days = new Date(today)
-          in7Days.setDate(today.getDate() + 7)
-          const in7ISO = in7Days.toISOString().slice(0, 10)
-
-          const activeProjects = projectRows.filter((p) => p.status === 'active').length
-          const activeVendors = vendorRows.filter((v) => v.status === 'active').length
-          const overdueQuality = qualityRows.filter(
-            (q) =>
-              q.status === 'overdue' ||
-              (q.status === 'pending' && q.due_date !== null && q.due_date < todayISO),
-          ).length
-          const techRenewals = technologyRows.filter(
-            (t) =>
-              t.renewal_date !== null && t.renewal_date >= todayISO && t.renewal_date <= in7ISO,
-          ).length
-          const delayedLogistics = logisticsRows.filter((l) => l.status === 'delayed').length
-
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_operations_title)}
-              subtitle={x(M.analytics_operations_sub)}
-              hidden={!show('operations')}
-            >
-              <CardData
-                deps={[
-                  operationsProjects,
-                  operationsVendors,
-                  operationsQualityChecks,
-                  operationsTechnology,
-                  operationsLogistics,
-                ]}
-                skeletonLines={2}
-              >
-                {() =>
-                  !hasOperationsData ? (
-                    <CardEmpty text={x(M.analytics_operations_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={String(activeProjects)}
-                        label={x(M.analytics_operations_active_projects)}
-                      />
-                      <StatTile
-                        value={String(activeVendors)}
-                        label={x(M.analytics_operations_active_vendors)}
-                      />
-                      <StatTile
-                        value={String(overdueQuality)}
-                        label={x(M.analytics_operations_overdue_quality)}
-                        alert={overdueQuality > 0}
-                      />
-                      <StatTile
-                        value={String(techRenewals)}
-                        label={x(M.analytics_operations_tech_renewals)}
-                      />
-                      <StatTile
-                        value={String(delayedLogistics)}
-                        label={x(M.analytics_operations_delayed_logistics)}
-                        alert={delayedLogistics > 0}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_operations_title)}
+          subtitle={x(M.analytics_operations_sub)}
+          hidden={!show('operations')}
+          deps={[
+            operationsProjects,
+            operationsVendors,
+            operationsQualityChecks,
+            operationsTechnology,
+            operationsLogistics,
+          ]}
+          emptyText={x(M.analytics_operations_empty)}
+          stats={operationsTiles(
+            {
+              projects: rowsOf(operationsProjects.state),
+              vendors: rowsOf(operationsVendors.state),
+              qualityChecks: rowsOf(operationsQualityChecks.state),
+              technology: rowsOf(operationsTechnology.state),
+              logistics: rowsOf(operationsLogistics.state),
+            },
+            todayISO,
+            x,
+          )}
+        />
 
         {/* H · Governance — records, decisions, officers, shareholders */}
-        {(() => {
-          const recordRows = rowsOf(governanceRecords.state)
-          const decisionRows = rowsOf(governanceDecisions.state)
-          const officerRows = rowsOf(governanceOfficers.state)
-          const shareholderRows = rowsOf(governanceShareholders.state)
-          const hasGovernanceData =
-            recordRows.length + decisionRows.length + officerRows.length + shareholderRows.length >
-            0
-
-          const activeRecords = recordRows.filter((r) => r.status === 'active').length
-          const pendingRecords = recordRows.filter((r) => r.status === 'pending_review').length
-          const adoptedDecisions = decisionRows.filter((d) => d.status === 'adopted').length
-          const activeOfficers = officerRows.filter((o) => o.is_active).length
-          const totalShares = shareholderRows.reduce((sum, s) => sum + (s.shares_issued ?? 0), 0)
-
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_governance_title)}
-              subtitle={x(M.analytics_governance_sub)}
-              hidden={!show('governance')}
-            >
-              <CardData
-                deps={[
-                  governanceRecords,
-                  governanceDecisions,
-                  governanceOfficers,
-                  governanceShareholders,
-                ]}
-                skeletonLines={2}
-              >
-                {() =>
-                  !hasGovernanceData ? (
-                    <CardEmpty text={x(M.analytics_governance_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={String(activeRecords)}
-                        label={x(M.analytics_governance_active_records)}
-                      />
-                      <StatTile
-                        value={String(pendingRecords)}
-                        label={x(M.analytics_governance_pending_records)}
-                        alert={pendingRecords > 0}
-                      />
-                      <StatTile
-                        value={String(adoptedDecisions)}
-                        label={x(M.analytics_governance_adopted_decisions)}
-                      />
-                      <StatTile
-                        value={String(activeOfficers)}
-                        label={x(M.analytics_governance_active_officers)}
-                      />
-                      <StatTile
-                        value={String(totalShares)}
-                        label={x(M.analytics_governance_total_shares)}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_governance_title)}
+          subtitle={x(M.analytics_governance_sub)}
+          hidden={!show('governance')}
+          deps={[
+            governanceRecords,
+            governanceDecisions,
+            governanceOfficers,
+            governanceShareholders,
+          ]}
+          emptyText={x(M.analytics_governance_empty)}
+          stats={governanceTiles(
+            {
+              records: rowsOf(governanceRecords.state),
+              decisions: rowsOf(governanceDecisions.state),
+              officers: rowsOf(governanceOfficers.state),
+              shareholders: rowsOf(governanceShareholders.state),
+            },
+            x,
+          )}
+        />
 
         {/* I · Revenue — streams, invoices, and collections */}
-        {(() => {
-          const streamRows = rowsOf(revenueStreams.state)
-          const invoiceRows = rowsOf(revenueInvoices.state)
-          const hasRevenueData = streamRows.length + invoiceRows.length > 0
-
-          const mrr = Math.round(
-            streamRows
-              .filter((s) => s.status === 'active' && s.stream_type === 'recurring' && s.frequency)
-              .reduce((sum, s) => {
-                const divisor =
-                  s.frequency === 'annually' ? 12 : s.frequency === 'quarterly' ? 4 : 1
-                return sum + s.amount / divisor
-              }, 0),
-          )
-          const mrrCurrency =
-            streamRows.find(
-              (s) => s.status === 'active' && s.stream_type === 'recurring' && s.frequency,
-            )?.currency ?? 'CAD'
-
-          const openTotal = invoiceRows
-            .filter((i) => i.status === 'sent' || i.status === 'overdue')
-            .reduce((sum, i) => sum + i.amount, 0)
-          const openCurrency =
-            invoiceRows.find((i) => i.status === 'sent' || i.status === 'overdue')?.currency ??
-            'CAD'
-
-          const paid = invoiceRows
-            .filter(
-              (i) =>
-                i.status === 'paid' &&
-                i.paid_date &&
-                i.paid_date.slice(0, 4) === todayISO.slice(0, 4),
-            )
-            .reduce((sum, i) => sum + i.amount, 0)
-          const paidCurrency = invoiceRows.find((i) => i.status === 'paid')?.currency ?? 'CAD'
-
-          const overdue = invoiceRows.filter(
-            (i) =>
-              (i.status === 'sent' && i.due_date && i.due_date < todayISO) ||
-              i.status === 'overdue',
-          ).length
-
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_revenue_title)}
-              subtitle={x(M.analytics_revenue_sub)}
-              hidden={!show('revenue')}
-            >
-              <CardData deps={[revenueStreams, revenueInvoices]} skeletonLines={2}>
-                {() =>
-                  !hasRevenueData ? (
-                    <CardEmpty text={x(M.analytics_revenue_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={formatCurrency(mrr, mrrCurrency)}
-                        label={x(M.analytics_revenue_mrr)}
-                      />
-                      <StatTile
-                        value={formatCurrency(openTotal, openCurrency)}
-                        label={x(M.analytics_revenue_open_invoices)}
-                      />
-                      <StatTile
-                        value={formatCurrency(paid, paidCurrency)}
-                        label={x(M.analytics_revenue_paid_ytd)}
-                      />
-                      <StatTile
-                        value={String(overdue)}
-                        label={x(M.analytics_revenue_overdue)}
-                        alert={overdue > 0}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_revenue_title)}
+          subtitle={x(M.analytics_revenue_sub)}
+          hidden={!show('revenue')}
+          deps={[revenueStreams, revenueInvoices]}
+          emptyText={x(M.analytics_revenue_empty)}
+          stats={revenueTiles(
+            {
+              streams: rowsOf(revenueStreams.state),
+              invoices: rowsOf(revenueInvoices.state),
+            },
+            todayISO,
+            x,
+          )}
+        />
 
         {/* J · Specialists */}
-        {(() => {
-          const specialistRows = rowsOf(specialists.state)
-          const engagementRows = rowsOf(specialistEngagements.state)
-          const hasSpecialistsData = specialistRows.length + engagementRows.length > 0
-
-          const in7ISO = addDaysISO(todayISO, 7)
-          const currentMonth = todayISO.slice(0, 7)
-
-          const activeSpecialists = specialistRows.length
-          const activeWorkspaceAccess = specialistRows.filter((s) => s.workspace_access).length
-          const engagementsThisMonth = engagementRows.filter(
-            (e) => e.engagement_date !== null && e.engagement_date.startsWith(currentMonth),
-          ).length
-          const followUpsDue = engagementRows.filter(
-            (e) =>
-              e.follow_up_date !== null &&
-              e.follow_up_date >= todayISO &&
-              e.follow_up_date <= in7ISO,
-          ).length
-          const overdueFollowUps = engagementRows.filter(
-            (e) => e.follow_up_date !== null && e.follow_up_date < todayISO,
-          ).length
-
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_specialists_title)}
-              subtitle={x(M.analytics_specialists_sub)}
-              hidden={!show('specialists')}
-            >
-              <CardData deps={[specialists, specialistEngagements]} skeletonLines={2}>
-                {() =>
-                  !hasSpecialistsData ? (
-                    <CardEmpty text={x(M.analytics_specialists_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={String(activeSpecialists)}
-                        label={x(M.analytics_specialists_active)}
-                      />
-                      <StatTile
-                        value={String(activeWorkspaceAccess)}
-                        label={x(M.analytics_specialists_workspace_access)}
-                      />
-                      <StatTile
-                        value={String(engagementsThisMonth)}
-                        label={x(M.analytics_specialists_engagements_month)}
-                      />
-                      <StatTile
-                        value={String(followUpsDue)}
-                        label={x(M.analytics_specialists_followups_due)}
-                        alert={followUpsDue > 0}
-                      />
-                      <StatTile
-                        value={String(overdueFollowUps)}
-                        label={x(M.analytics_specialists_overdue_followups)}
-                        alert={overdueFollowUps > 0}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_specialists_title)}
+          subtitle={x(M.analytics_specialists_sub)}
+          hidden={!show('specialists')}
+          deps={[specialists, specialistEngagements]}
+          emptyText={x(M.analytics_specialists_empty)}
+          stats={specialistsTiles(
+            {
+              specialists: rowsOf(specialists.state),
+              engagements: rowsOf(specialistEngagements.state),
+            },
+            todayISO,
+            x,
+          )}
+        />
 
         {/* J · Comms & PR overview */}
-        {(() => {
-          const contentItemRows = rowsOf(commsContentItems.state)
-          const interactionRows = rowsOf(commsInteractions.state)
-          const issueRows = rowsOf(commsIssues.state)
-          const submissionRows = rowsOf(commsSubmissions.state)
-          const brandClaimRows = rowsOf(commsBrandClaims.state)
-          const policyFileRows = rowsOf(commsPolicyFiles.state)
-          const hasCommsData =
-            contentItemRows.length +
-              interactionRows.length +
-              issueRows.length +
-              submissionRows.length +
-              brandClaimRows.length +
-              policyFileRows.length >
-            0
-          return (
-            <AnalyticsCard
-              title={x(M.analytics_comms_title)}
-              subtitle={x(M.analytics_comms_sub)}
-              hidden={!show('comms')}
-            >
-              <CardData
-                deps={[
-                  commsContentItems,
-                  commsInteractions,
-                  commsIssues,
-                  commsSubmissions,
-                  commsBrandClaims,
-                  commsPolicyFiles,
-                ]}
-                skeletonLines={2}
-              >
-                {() =>
-                  !hasCommsData ? (
-                    <CardEmpty text={x(M.analytics_comms_empty)} />
-                  ) : (
-                    <div className="flex flex-wrap gap-[10px]">
-                      <StatTile
-                        value={String(contentItemRows.length)}
-                        label={x(M.analytics_comms_content_items)}
-                      />
-                      <StatTile
-                        value={String(
-                          contentItemRows.filter((c) => c.deliveryStatus === 'scheduled').length,
-                        )}
-                        label={x(M.analytics_comms_scheduled)}
-                      />
-                      <StatTile
-                        value={String(
-                          contentItemRows.filter((c) => c.deliveryStatus === 'confirmed').length,
-                        )}
-                        label={x(M.analytics_comms_confirmed)}
-                      />
-                      <StatTile
-                        value={String(
-                          issueRows.filter((i) => i.status === 'open' || i.status === 'monitoring')
-                            .length,
-                        )}
-                        label={x(M.analytics_comms_open_issues)}
-                      />
-                      <StatTile
-                        value={String(
-                          interactionRows.filter(
-                            (i) => i.status === 'open' || i.status === 'pending',
-                          ).length,
-                        )}
-                        label={x(M.analytics_comms_open_interactions)}
-                      />
-                      <StatTile
-                        value={String(brandClaimRows.filter((c) => c.status === 'active').length)}
-                        label={x(M.analytics_comms_active_brand_claims)}
-                      />
-                      <StatTile
-                        value={String(policyFileRows.length)}
-                        label={x(M.analytics_comms_policy_files)}
-                      />
-                    </div>
-                  )
-                }
-              </CardData>
-            </AnalyticsCard>
-          )
-        })()}
+        <StatTilesCard
+          title={x(M.analytics_comms_title)}
+          subtitle={x(M.analytics_comms_sub)}
+          hidden={!show('comms')}
+          deps={[
+            commsContentItems,
+            commsInteractions,
+            commsIssues,
+            commsSubmissions,
+            commsBrandClaims,
+            commsPolicyFiles,
+          ]}
+          emptyText={x(M.analytics_comms_empty)}
+          stats={commsTiles(
+            {
+              contentItems: rowsOf(commsContentItems.state),
+              interactions: rowsOf(commsInteractions.state),
+              issues: rowsOf(commsIssues.state),
+              submissions: rowsOf(commsSubmissions.state),
+              brandClaims: rowsOf(commsBrandClaims.state),
+              policyFiles: rowsOf(commsPolicyFiles.state),
+            },
+            x,
+          )}
+        />
 
-        {/* J · Headcount & turnover — headcount history accumulates via the
-              monthly snapshot; turnover awaits termination history. */}
-        <AnalyticsCard
-          title={x(M.analytics_trend_title)}
-          subtitle={x(M.analytics_trend_sub)}
-          className="min-[900px]:col-span-2"
+        {/* K · Headcount & turnover — headcount history accumulates via the
+            monthly snapshot; turnover awaits termination history. */}
+        <HeadcountTrendCard
           hidden={!show('trend')}
-        >
-          <CardData deps={[employees, snapshots]} skeletonLines={4}>
-            {() =>
-              liveHeadcount === null || liveHeadcount === 0 ? (
-                <CardEmpty text={x(M.analytics_trend_empty)} />
-              ) : (
-                <>
-                  {turnoverNow !== null && (
-                    <div className="mb-[12px] flex gap-[10px]">
-                      <div className="min-w-0 flex-1 rounded-[10px] border border-border-soft bg-surface-2 px-[12px] py-[10px]">
-                        <div className="flex flex-wrap items-center gap-x-[10px] gap-y-[4px]">
-                          <span className="font-display text-[22px] font-bold text-text">
-                            {formatPct(turnoverNow, locale)}
-                          </span>
-                          {turnoverDelta !== null && (
-                            <DeltaChip
-                              delta={turnoverDelta}
-                              goodWhenUp={false}
-                              label={fill(x(M.analytics_turnover_delta), {
-                                delta: formatSignedDecimal(turnoverDelta, locale),
-                                month: formatMonthISO(priorWindowEndISO, locale, 'long'),
-                              })}
-                            />
-                          )}
-                        </div>
-                        <div className="mt-[2px] text-[11.5px] text-text-muted">
-                          {x(M.analytics_turnover_label)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {headcountTrend.length >= 2 ? (
-                    <TrendLineChart
-                      points={headcountTrend}
-                      ariaLabel={x(M.analytics_trend_chart_aria).replace(
-                        '{points}',
-                        headcountTrend
-                          .map((p) => `${formatMonthISO(p.monthISO, locale, 'long')} ${p.value}`)
-                          .join(', '),
-                      )}
-                      valueHeader={x(M.analytics_trend_table_value)}
-                    />
-                  ) : (
-                    <p className="m-0 text-[12.5px] text-text-muted">
-                      {x(M.analytics_trend_first_point)}
-                    </p>
-                  )}
-                  {turnoverNow === null && (
-                    <p className="mt-[8px] mb-0 text-[11.5px] text-text-faint">
-                      {x(M.analytics_turnover_prod_note)}
-                    </p>
-                  )}
-                </>
-              )
-            }
-          </CardData>
-        </AnalyticsCard>
+          deps={[employees, snapshots]}
+          liveHeadcount={liveHeadcount}
+          turnoverNow={turnoverNow}
+          turnoverDelta={turnoverDelta}
+          priorWindowEndISO={priorWindowEndISO}
+          headcountTrend={headcountTrend}
+        />
       </div>
     </AppPage>
   )

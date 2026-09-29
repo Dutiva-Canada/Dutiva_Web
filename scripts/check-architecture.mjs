@@ -23,7 +23,6 @@ const MARKETING_DATA_ALLOW = /from ['"]@\/data\/documents['"]/
 const SIZE_ALLOWLIST = new Set([
   'src/lib/supabase/database.types.ts',
   'src/features/app/documents/data/documents.ts',
-  'src/features/app/views/analytics/AnalyticsProductionView.tsx',
 ])
 
 const MAX_SOURCE_LINES = 800
