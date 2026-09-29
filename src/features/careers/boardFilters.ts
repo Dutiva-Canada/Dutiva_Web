@@ -21,6 +21,8 @@ export interface BoardFilter {
   workplace: Workplace | ''
   employer: string
   department: string
+  /** Minimum annual-equivalent salary floor; 0 = any. */
+  salaryMin: number
   sort: BoardSort
 }
 
@@ -30,6 +32,7 @@ export const EMPTY_FILTER: BoardFilter = {
   workplace: '',
   employer: '',
   department: '',
+  salaryMin: 0,
   sort: 'newest',
 }
 
@@ -77,6 +80,11 @@ export function filterPostings(
     if (filter.employer && p.organizationName !== filter.employer) return false
     if (filter.department && p.department !== filter.department) return false
     if (filter.workplace && workplaceType(p) !== filter.workplace) return false
+    if (filter.salaryMin > 0) {
+      const ceiling = annualSalaryCeiling(p)
+      /* Undisclosed salary can't prove the floor — exclude, don't guess. */
+      if (ceiling === null || ceiling < filter.salaryMin) return false
+    }
     if (!q) return true
     return [p.title, p.department, p.location, p.organizationName, p.type].some((t) =>
       matches(t, q),
@@ -144,18 +152,20 @@ export function boardFacets(postings: PublicJobPosting[], lang: Lang): BoardFace
 
 /* ── URL params ────────────────────────────────────────────────────────── */
 
-const PARAM_KEYS: Record<Exclude<keyof BoardFilter, 'sort'>, string> & { sort: string } = {
+const PARAM_KEYS: Record<keyof BoardFilter, string> = {
   q: 'q',
   location: 'loc',
   workplace: 'type',
   employer: 'org',
   department: 'dept',
+  salaryMin: 'salary',
   sort: 'sort',
 }
 
 export function filterFromParams(params: URLSearchParams): BoardFilter {
   const workplace = params.get(PARAM_KEYS.workplace)
   const sort = params.get(PARAM_KEYS.sort)
+  const salary = Number.parseInt(params.get(PARAM_KEYS.salaryMin) ?? '', 10)
   return {
     q: params.get(PARAM_KEYS.q) ?? '',
     location: params.get(PARAM_KEYS.location) ?? '',
@@ -165,6 +175,7 @@ export function filterFromParams(params: URLSearchParams): BoardFilter {
         : '',
     employer: params.get(PARAM_KEYS.employer) ?? '',
     department: params.get(PARAM_KEYS.department) ?? '',
+    salaryMin: Number.isFinite(salary) && salary > 0 ? salary : 0,
     sort: sort === 'relevance' ? 'relevance' : 'newest',
   }
 }
@@ -173,8 +184,9 @@ export function filterToParams(filter: BoardFilter): URLSearchParams {
   const params = new URLSearchParams()
   for (const [key, param] of Object.entries(PARAM_KEYS) as [keyof BoardFilter, string][]) {
     const value = filter[key]
-    /* Defaults stay out of the URL — 'newest' is the implicit sort. */
-    if (value && !(key === 'sort' && value === 'newest')) params.set(param, value)
+    /* Defaults stay out of the URL — 'newest' sort and 0 salary floor are
+       implicit. */
+    if (value && !(key === 'sort' && value === 'newest')) params.set(param, String(value))
   }
   return params
 }
@@ -185,8 +197,36 @@ export function isFilterActive(filter: BoardFilter): boolean {
       filter.location ||
       filter.workplace ||
       filter.employer ||
-      filter.department,
+      filter.department ||
+      filter.salaryMin > 0,
   )
+}
+
+/* ── Salary ────────────────────────────────────────────────────────────── */
+
+/** Threshold bands offered by the salary facet. Filtered live to bands at
+    least one posting can actually meet, so no option dead-ends the user. */
+export const SALARY_BANDS = [50000, 80000, 100000, 125000] as const
+
+/** Annual-equivalent salary ceiling. Employers publish `salary_period` as
+    'year' or 'hour' (hr_job_postings) — hourly is normalized at 2,080 h/yr
+    for threshold comparisons only; the display label stays untouched. */
+export function annualSalaryCeiling(
+  posting: Pick<PublicJobPosting, 'salaryMin' | 'salaryMax' | 'salaryPeriod'>,
+): number | null {
+  const ceiling = posting.salaryMax ?? posting.salaryMin
+  if (ceiling == null) return null
+  return ceiling * (posting.salaryPeriod === 'hour' ? 2080 : 1)
+}
+
+/** "$80,000+" / "80 000 $ ou plus" — select option and chip label. */
+export function salaryBandLabel(band: number, lang: Lang): string {
+  const fmt = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    style: 'currency',
+    currency: 'CAD',
+    maximumFractionDigits: 0,
+  })
+  return lang === 'fr' ? `${fmt.format(band)} ou plus` : `${fmt.format(band)}+`
 }
 
 /** "CA$85,000–CA$95,000/yr" / "85 000 $–95 000 $/an" — range collapses

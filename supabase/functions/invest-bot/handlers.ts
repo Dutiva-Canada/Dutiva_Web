@@ -55,8 +55,14 @@ export interface Strategy {
   rules: StrategyRule[]
   cadence: StrategyCadence
   last_evaluated_at: string | null
+  /** Legacy 0180 column — strategies saved before scope existed restricted
+      scans to these classes. Empty/missing means unrestricted; saves made
+      through the scope UI write the full class list explicitly. */
+  asset_classes?: string[]
   /** notify.email — send one summary email per scan that produced hits. */
   notify_email?: boolean
+  /** notify.in_app — persist hits to the in-app signal feed. */
+  notify_in_app?: boolean
 }
 
 export interface MarketSnapshot {
@@ -381,11 +387,16 @@ export function planRun(
     }
     plan.perStrategy.push(diag)
     const scope = new Set(strategy.scope_symbols.map((s) => s.toUpperCase()))
+    /* Pre-0184 strategies restricted scans by asset class; the scope
+       backfill widened them to every watched/held symbol. Honor the legacy
+       restriction so an equity-only strategy never fires on crypto. */
+    const classes = new Set(strategy.asset_classes ?? [])
     const symbolRules = strategy.rules.filter((r) => !BOOK_METRICS.includes(r.metric))
     const bookRules = strategy.rules.filter((r) => BOOK_METRICS.includes(r.metric))
 
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
+      if (classes.size > 0 && !classes.has(snap.asset_class)) continue
       scanned.add(snap.symbol.toUpperCase())
       diag.symbolsScanned.push(snap.symbol.toUpperCase())
       plan.evaluated += 1

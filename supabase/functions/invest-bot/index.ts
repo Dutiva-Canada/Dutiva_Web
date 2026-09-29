@@ -139,6 +139,7 @@ interface StrategyRow {
   last_evaluated_at: unknown
   scope?: unknown
   notify?: unknown
+  asset_classes?: unknown
 }
 
 /** Reads strategies with the 0184 columns when present; falls back to a
@@ -149,7 +150,8 @@ async function loadStrategies(
   userId: string,
   allSymbols: string[],
 ): Promise<{ strategies: Strategy[]; scoped: boolean }> {
-  const select = 'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify'
+  const select =
+    'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify, asset_classes'
   const res = await adminClient.from('invest_strategies').select(select).eq('user_id', userId)
 
   let rows: StrategyRow[]
@@ -157,7 +159,7 @@ async function loadStrategies(
   if (res.error && /scope|notify/.test(res.error.message)) {
     const fallback = await adminClient
       .from('invest_strategies')
-      .select('id, name, enabled, rules, cadence, last_evaluated_at')
+      .select('id, name, enabled, rules, cadence, last_evaluated_at, asset_classes')
       .eq('user_id', userId)
     if (fallback.error) throw new Error(fallback.error.message)
     rows = (fallback.data ?? []) as StrategyRow[]
@@ -177,7 +179,7 @@ async function loadStrategies(
             ...(scope?.watchlist === true ? allSymbols : []),
           ]
         : allSymbols
-      const notify = (r.notify ?? null) as { email?: unknown } | null
+      const notify = (r.notify ?? null) as { email?: unknown; in_app?: unknown } | null
       return {
         id: r.id as string,
         name: typeof r.name === 'string' ? r.name : '',
@@ -186,7 +188,12 @@ async function loadStrategies(
         rules: parseRules(r.rules),
         cadence: CADENCES.includes(r.cadence as string) ? (r.cadence as StrategyCadence) : 'daily',
         last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
+        /* 0180 column — [] only when the column is absent (pre-0180 project). */
+        asset_classes: Array.isArray(r.asset_classes) ? (r.asset_classes as string[]) : [],
         notify_email: scoped && notify?.email === true,
+        /* In-app is the default surface — only an explicit `false` in a
+           scoped (post-0184) row opts a strategy out of the signal feed. */
+        notify_in_app: scoped ? notify?.in_app !== false : true,
       }
     }),
   }
@@ -290,24 +297,25 @@ async function runUser(
     openDraftKeys,
   })
 
-  /* Stamp the evaluation clock on strategies that were actually due — a
-     weekly strategy that ran today must not re-fire tomorrow even if it
-     emitted nothing. Manual scans stamp too: cadence means "at most". */
+  /* The evaluation clock is stamped after writes, below — a run whose
+     inserts failed is recorded 'partial' and must stay due so the next
+     scheduled sweep retries it (weekly/monthly windows would otherwise be
+     burned by a transient failure). Manual scans stamp too: cadence means
+     "at most". */
   const evaluatedIds = strategies
     .filter(
       (s) => s.enabled && s.rules.length > 0 && (opts.force === true || strategyDue(s, new Date())),
     )
     .map((s) => s.id)
-  if (evaluatedIds.length > 0) {
-    await adminClient
-      .from('invest_strategies')
-      .update({ last_evaluated_at: new Date().toISOString() })
-      .in('id', evaluatedIds)
-  }
 
-  /* Insert signals. */
+  /* Insert signals — strategies with notify.in_app === false stay out of the
+     in-app feed entirely; their hits still feed emails and run history. */
+  const inAppOff = new Set(
+    strategies.filter((s) => s.notify_in_app === false).map((s) => s.id),
+  )
   let writesFailed = false
   for (const signal of plan.signals) {
+    if (inAppOff.has(signal.strategy_id)) continue
     const { error } = await adminClient.from('invest_signals').insert({
       user_id: userId,
       strategy_id: signal.strategy_id,
@@ -367,6 +375,15 @@ async function runUser(
         )
       }
     }
+  }
+
+  /* Stamp the evaluation clock only when every write landed — see the
+     comment above evaluatedIds. */
+  if (evaluatedIds.length > 0 && !writesFailed) {
+    await adminClient
+      .from('invest_strategies')
+      .update({ last_evaluated_at: new Date().toISOString() })
+      .in('id', evaluatedIds)
   }
 
   /* AI insight pass — bilingual plain-language observations on the run.

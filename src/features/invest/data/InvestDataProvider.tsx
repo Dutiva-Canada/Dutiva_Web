@@ -20,12 +20,16 @@ export function InvestDataProvider({ children }: { children: ReactNode }) {
       if (next.accounts.length === 0 && !provisioned.current) {
         provisioned.current = true
         try {
-          await createAccount({ name: 'Paper book', kind: 'paper' })
-          next = await loadInvestState()
+          /* `seeded` carries a partial unique index (0188): a concurrent tab
+             seeding the same book hits 23505 instead of double-creating. */
+          await createAccount({ name: 'Paper book', kind: 'paper', seeded: true })
         } catch {
           /* Provisioning is best-effort — the Accounts form stays visible
              for a manual create, so a failed seed is not fatal. */
         }
+        /* Reload either way — on a seed race the winner's book shows up, on
+           success we get the row we just wrote. */
+        next = await loadInvestState()
       }
       setState(next)
     } finally {

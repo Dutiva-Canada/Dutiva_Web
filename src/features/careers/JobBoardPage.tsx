@@ -25,10 +25,13 @@ import { formatCareersDate } from './dates'
 import { listActiveJobPostings } from './data/jobBoardApi'
 import type { PublicJobPosting } from './data/jobBoardApi'
 import {
+  annualSalaryCeiling,
   boardFacets,
   filterFromParams,
   filterPostings,
   filterToParams,
+  SALARY_BANDS,
+  salaryBandLabel,
   salaryLabel,
 } from './boardFilters'
 import type { BoardFilter, Workplace } from './boardFilters'
@@ -61,10 +64,13 @@ export function JobBoardPage() {
   const [postings, setPostings] = useState<PublicJobPosting[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [retryKey, setRetryKey] = useState(0)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const filter = useMemo(() => filterFromParams(searchParams), [searchParams])
-  const filterKey = searchParams.toString()
+  /* Load-more depth lives in the URL too (?page=), so a shared link lands on
+     the same window. Not part of BoardFilter — any commitFilter rebuild drops
+     it, which is exactly the reset-on-filter-change behavior we want. */
+  const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '', 10) || 1)
+  const visibleCount = page * PAGE_SIZE
 
   /* The input is debounced: queryInput is what's typed, filter.q is what's
      committed to the URL ~300ms after the user stops. */
@@ -119,12 +125,6 @@ export function JobBoardPage() {
     }
   }, [retryKey])
 
-  /* Reset the visible window whenever the URL filter state changes; the
-     list simply re-slices — scroll position is untouched. */
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE)
-  }, [filterKey])
-
   const filtered = useMemo(
     () => (postings ? filterPostings(postings, filter) : null),
     [postings, filter],
@@ -132,6 +132,17 @@ export function JobBoardPage() {
   const facets = useMemo(
     () => (postings ? boardFacets(postings, lang) : null),
     [postings, lang],
+  )
+  /* Salary bands that at least one posting can actually meet — a band with
+     zero qualifying rows would just dead-end the user. */
+  const salaryBands = useMemo(
+    () =>
+      postings
+        ? SALARY_BANDS.filter((band) =>
+            postings.some((p) => (annualSalaryCeiling(p) ?? 0) >= band),
+          ).map(String)
+        : [],
+    [postings],
   )
 
   /* Facet option sets derive from the *unfiltered* list so a selection never
@@ -143,8 +154,10 @@ export function JobBoardPage() {
     if (filter.workplace) chips.push({ key: 'workplace', label: x(WORKPLACE_LABEL[filter.workplace]) })
     if (filter.employer) chips.push({ key: 'employer', label: filter.employer })
     if (filter.department) chips.push({ key: 'department', label: filter.department })
+    if (filter.salaryMin > 0)
+      chips.push({ key: 'salaryMin', label: salaryBandLabel(filter.salaryMin, lang) })
     return chips
-  }, [filter, x])
+  }, [filter, x, lang])
 
   const employerPath = lang === 'fr' ? '/fr/employeur' : '/employer'
 
@@ -228,6 +241,19 @@ export function JobBoardPage() {
                 value={filter.department}
                 options={facets.departments}
                 onChange={(v) => commitFilter({ ...filter, department: v })}
+              />
+            )}
+            {salaryBands.length > 0 && (
+              <FacetSelect
+                id="filter-salary"
+                label={x(M.careers_board_filter_salary)}
+                allLabel={x(M.careers_board_filter_salary_all)}
+                value={filter.salaryMin > 0 ? String(filter.salaryMin) : ''}
+                options={salaryBands}
+                optionLabel={(band) => salaryBandLabel(Number(band), lang)}
+                onChange={(v) =>
+                  commitFilter({ ...filter, salaryMin: Number.parseInt(v, 10) || 0 })
+                }
               />
             )}
             <div className="flex flex-col">
@@ -367,7 +393,11 @@ export function JobBoardPage() {
               <div className="mt-8 text-center">
                 <button
                   type="button"
-                  onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams)
+                    params.set('page', String(page + 1))
+                    setSearchParams(params, { preventScrollReset: true })
+                  }}
                   className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-border bg-surface px-5 py-2.5 text-sm font-semibold text-text transition-[border-color] hover:border-gold-border"
                 >
                   {x(M.careers_board_load_more)}

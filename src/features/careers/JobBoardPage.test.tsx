@@ -105,7 +105,8 @@ describe('JobBoardPage', () => {
     // Salary renders for jp-2 only — never a placeholder for the other card
     // (en-CA Intl formats CAD as "$", not "CA$")
     expect(screen.getByText(/\$110,000/)).toBeInTheDocument()
-    expect(screen.getAllByText(/\$\d/)).toHaveLength(1)
+    // Only one card shows a salary (facet band labels end in "+", not "/yr")
+    expect(screen.getAllByText(/\/yr/)).toHaveLength(1)
   })
 
   it('shows skeleton cards while loading, then results', async () => {
@@ -194,6 +195,37 @@ describe('JobBoardPage', () => {
     // Clear all restores the full list
     await user.click(screen.getByRole('button', { name: /Clear all filters/i }))
     expect(await screen.findByText('Senior Recruiter')).toBeInTheDocument()
+  })
+
+  it('salary facet filters to postings meeting the annualized floor', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(FIXTURE_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    const { userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Senior Recruiter')
+    await user.selectOptions(screen.getByLabelText(/Minimum salary/i), '100000')
+    // $100k+ — Frontend ($140k ceiling) and Backend ($105/hr ceiling ≈ $218k)
+    expect(screen.getByText('Frontend Engineer')).toBeInTheDocument()
+    expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
+    expect(screen.queryByText('Payroll Supervisor')).not.toBeInTheDocument()
+    // Active facet renders as a chip the user can remove
+    expect(screen.getByRole('button', { name: /Remove filter.*100,000/i })).toBeInTheDocument()
+  })
+
+  it('reads ?page= from the URL so a shared deep page keeps its window', async () => {
+    const many = Array.from({ length: 14 }, (_, i) =>
+      makePosting({ id: `jp-${i}`, slug: `role-${i}`, title: `Role ${i}` }),
+    )
+    vi.mocked(listActiveJobPostings).mockResolvedValue(many)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />, { route: '/careers?page=2' })
+
+    // page=2 → 24-deep window: every fixture row is visible without clicking
+    expect(await screen.findByText('Role 0')).toBeInTheDocument()
+    expect(screen.getByText('Role 13')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Load more/i })).not.toBeInTheDocument()
   })
 
   it('shows a distinct empty state with a clear-search action when filters match nothing', async () => {

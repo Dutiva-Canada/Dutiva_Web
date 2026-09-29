@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient'
 import { normalizeRules } from './strategyRules'
+import { ASSET_CLASSES } from './types'
 import type {
   AssetClass,
   InvestAccount,
@@ -169,6 +170,9 @@ export async function createAccount(input: {
   kind: InvestAccount['kind']
   baseCurrency?: string
   cashBalance?: number
+  /** Marks the auto-provisioned first-run book — one per user, enforced by
+      a partial unique index so concurrent tabs can't double-seed. */
+  seeded?: boolean
 }): Promise<void> {
   const { client, userId } = await requireUserId()
   const { error } = await client.from('invest_accounts').insert({
@@ -177,6 +181,7 @@ export async function createAccount(input: {
     kind: input.kind,
     base_currency: input.baseCurrency ?? 'CAD',
     cash_balance: input.cashBalance ?? 0,
+    ...(input.seeded === true ? { seeded: true } : {}),
   })
   if (error) throw error
 }
@@ -307,6 +312,11 @@ export async function saveStrategy(
     user_id: userId,
     name: strategy.name,
     enabled: strategy.enabled,
+    /* The scope UI replaced the legacy asset_classes restriction — writes
+       explicitly cover every class so a saved strategy is restricted only
+       by its scope symbols, while rows never touched post-0184 keep their
+       legacy class filter (enforced in invest-bot). */
+    asset_classes: [...ASSET_CLASSES],
     scope: {
       watchlist: strategy.scope.watchlist,
       symbols: strategy.scope.symbols.map((s) => s.toUpperCase()),
