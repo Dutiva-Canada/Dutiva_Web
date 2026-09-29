@@ -344,6 +344,10 @@ async function runUser(
 
   let proposalsCreated = 0
   const proposalsByStrategy = new Map<string, number>()
+  /* Only proposals that actually landed as drafts may be announced — the
+     email summary reads this set, not plan.proposals, so recipients are
+     never told about an order they cannot approve. */
+  const insertedProposals: typeof plan.proposals = []
   if (plan.proposals.length > 0) {
     if (!paperAccount) {
       plan.warnings.push('order proposals skipped — no active paper account')
@@ -369,6 +373,7 @@ async function runUser(
           continue
         }
         proposalsCreated += 1
+        insertedProposals.push(proposal)
         proposalsByStrategy.set(
           proposal.strategy_id,
           (proposalsByStrategy.get(proposal.strategy_id) ?? 0) + 1,
@@ -424,7 +429,7 @@ async function runUser(
       signals: plan.signals
         .filter((sig) => sig.strategy_id === s.id)
         .map((sig) => `${sig.title} (${sig.symbol})`),
-      proposals: plan.proposals
+      proposals: insertedProposals
         .filter((p) => p.strategy_id === s.id)
         .map((p) => `${p.side} ${p.quantity} ${p.symbol}`),
     }))

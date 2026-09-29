@@ -68,8 +68,10 @@ function escapeAttr(value) {
   return String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;')
 }
 
-/** Replaces the template's generic title/description with a page's head. */
-function composeDocument({ htmlLang, headHtml, bodyHtml }) {
+/** Replaces the template's generic title/description with a page's head.
+    `bodyEnd` appends non-root markup (e.g. inline JSON payloads) before
+    </body> — kept outside #root so hydration sees no foreign node. */
+function composeDocument({ htmlLang, headHtml, bodyHtml, bodyEnd = '' }) {
   let doc = template
   doc = doc.replace(/<html lang="[^"]*"/, `<html lang="${htmlLang}"`)
   doc = doc.replace(/<title>[\s\S]*?<\/title>\n?/, '')
@@ -77,6 +79,7 @@ function composeDocument({ htmlLang, headHtml, bodyHtml }) {
   const headBlock = [...verificationTags(), headHtml].filter(Boolean).join('\n    ')
   doc = doc.replace('</head>', `  ${headBlock}\n  </head>`)
   doc = doc.replace('<div id="root"></div>', `<div id="root">${bodyHtml}</div>`)
+  if (bodyEnd) doc = doc.replace('</body>', `  ${bodyEnd}\n  </body>`)
   return doc
 }
 
@@ -146,6 +149,14 @@ for (const entry of manifest) {
       htmlLang: entry.htmlLang,
       headHtml: serializeHead(head),
       bodyHtml: html,
+      /* Job detail pages embed the posting as inert JSON so the hydrating
+         client renders the same content the static HTML shipped — no
+         skeleton flash or refetch. Escaped for script-tag safety. */
+      bodyEnd: entry.jobPosting
+        ? `<script type="application/json" id="dutiva-job-posting">${JSON.stringify(
+            entry.jobPosting,
+          ).replace(/</g, '\\u003c')}</script>`
+        : '',
     }),
   )
 }
