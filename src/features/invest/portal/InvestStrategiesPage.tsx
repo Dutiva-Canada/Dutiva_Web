@@ -17,6 +17,7 @@ import {
 import { StrategyTemplates } from './StrategyTemplates'
 import { StrategyAiDraft } from './StrategyAiDraft'
 import { StrategyForm } from './StrategyForm'
+import { useInvestHead } from './useInvestHead'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const btnClass =
@@ -40,6 +41,7 @@ const unitLabel: Record<QuantityUnit, keyof typeof IM> = {
 export function InvestStrategiesPage() {
   const { x } = useI18n()
   const { state, loading, refresh } = useInvestData()
+  useInvestHead(IM.invest_seo_title_strategies, IM.invest_seo_desc_strategies)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [editing, setEditing] = useState<InvestStrategy | null>(null)

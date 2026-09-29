@@ -26,6 +26,177 @@ export const investMessages = defineMessages({
   invest_tab_orders: { en: 'Orders', fr: 'Ordres' },
   invest_tab_signals: { en: 'Signals', fr: 'Signaux' },
   invest_tab_strategies: { en: 'Bot', fr: 'Robot' },
+  invest_tab_notifications: { en: 'Notifications', fr: 'Notifications' },
+  invest_tab_settings: { en: 'Settings', fr: 'Paramètres' },
+
+  /* Per-route document head (auth-gated → noindex; titles are what the
+     browser tab and shared links actually show). */
+  invest_seo_title_overview: {
+    en: 'Dutiva Invest — Portfolio tracking and strategy bot',
+    fr: 'Dutiva Invest — Suivi de portefeuille et robot de stratégies',
+  },
+  invest_seo_desc_overview: {
+    en: 'Track manual positions and watchlist prices; scans surface signals and order drafts you review yourself.',
+    fr: 'Suivez positions saisies à la main et cours de la liste de suivi; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
+  },
+  invest_seo_title_portfolio: {
+    en: 'Dutiva Invest — Portfolios',
+    fr: 'Dutiva Invest — Portefeuilles',
+  },
+  invest_seo_desc_portfolio: {
+    en: 'Manual portfolio records — accounts, positions, and watchlist prices you enter and update yourself.',
+    fr: 'Relevés saisis à la main — comptes, positions et cours de la liste de suivi que vous entrez et mettez à jour.',
+  },
+  invest_seo_title_orders: { en: 'Dutiva Invest — Orders', fr: 'Dutiva Invest — Ordres' },
+  invest_seo_desc_orders: {
+    en: 'Bot-proposed order drafts and manual order intents — nothing executes without your approval.',
+    fr: 'Ébauches d’ordres proposées par le robot et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
+  },
+  invest_seo_title_signals: { en: 'Dutiva Invest — Signals', fr: 'Dutiva Invest — Signaux' },
+  invest_seo_desc_signals: {
+    en: 'Signal history from your enabled strategies — informational only.',
+    fr: 'Historique des signaux de vos stratégies activées — à titre informatif seulement.',
+  },
+  invest_seo_title_strategies: {
+    en: 'Dutiva Invest — Strategy bot',
+    fr: 'Dutiva Invest — Robot de stratégies',
+  },
+  invest_seo_desc_strategies: {
+    en: 'Describe or pick a strategy; scans create signals and draft proposals only — never placed orders.',
+    fr: 'Décrivez ou choisissez une stratégie; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
+  },
+  invest_seo_title_notifications: {
+    en: 'Dutiva Invest — Notifications',
+    fr: 'Dutiva Invest — Notifications',
+  },
+  invest_seo_desc_notifications: {
+    en: 'Signals and proposals that need your attention, plus where each strategy delivers them.',
+    fr: 'Signaux et propositions qui attendent votre attention, et où chaque stratégie les envoie.',
+  },
+  invest_seo_title_settings: {
+    en: 'Dutiva Invest — Settings',
+    fr: 'Dutiva Invest — Paramètres',
+  },
+  invest_seo_desc_settings: {
+    en: 'Language, notification delivery, and your sign-in session.',
+    fr: 'Langue, canaux de notification et votre session de connexion.',
+  },
+  invest_seo_title_terms: {
+    en: 'Dutiva Invest — Terms of Service',
+    fr: 'Dutiva Invest — Conditions d’utilisation',
+  },
+  invest_seo_desc_terms: {
+    en: 'The terms that govern your use of Dutiva Invest.',
+    fr: 'Les conditions qui encadrent votre utilisation de Dutiva Invest.',
+  },
+  invest_seo_title_privacy: {
+    en: 'Dutiva Invest — Privacy Policy',
+    fr: 'Dutiva Invest — Politique de confidentialité',
+  },
+  invest_seo_desc_privacy: {
+    en: 'How Dutiva collects, uses, and protects personal information.',
+    fr: 'Comment Dutiva collecte, utilise et protège les renseignements personnels.',
+  },
+  invest_seo_title_risk: {
+    en: 'Dutiva Invest — Risk disclosure',
+    fr: 'Dutiva Invest — Avertissement sur les risques',
+  },
+  invest_seo_desc_risk: {
+    en: 'Invest is informational and educational only — not investment advice. Nothing executes automatically.',
+    fr: 'Invest est informatif et éducatif seulement — pas un conseil en placement. Rien ne s’exécute automatiquement.',
+  },
+  invest_seo_title_support: {
+    en: 'Dutiva Invest — Support',
+    fr: 'Dutiva Invest — Assistance',
+  },
+  invest_seo_desc_support: {
+    en: 'How to reach Dutiva support and what to expect.',
+    fr: 'Comment joindre l’assistance Dutiva et à quoi vous attendre.',
+  },
+
+  /* Footer + legal pages */
+  invest_footer_nav: { en: 'Legal', fr: 'Mentions légales' },
+  invest_footer_terms: { en: 'Terms of Service', fr: 'Conditions d’utilisation' },
+  invest_footer_privacy: { en: 'Privacy Policy', fr: 'Politique de confidentialité' },
+  invest_footer_risk: { en: 'Risk disclosure', fr: 'Avertissement sur les risques' },
+  invest_footer_support: { en: 'Support', fr: 'Assistance' },
+  invest_legal_back: { en: 'Back to Invest', fr: 'Retour à Invest' },
+  invest_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
+  invest_legal_effective: { en: 'Effective:', fr: 'Entrée en vigueur :' },
+  invest_legal_contact: { en: 'Contact support', fr: 'Joindre l’assistance' },
+  invest_legal_hours: { en: 'Staffed', fr: 'Présence' },
+
+  /* Notifications */
+  invest_notif_title: { en: 'Notifications', fr: 'Notifications' },
+  invest_notif_attention: { en: 'Needs your attention', fr: 'À traiter' },
+  invest_notif_empty: {
+    en: 'Nothing waiting — new signals and draft proposals land here.',
+    fr: 'Rien en attente — les nouveaux signaux et ébauches arrivent ici.',
+  },
+  invest_notif_drafts: {
+    en: '{n} draft proposal(s) waiting in Orders',
+    fr: '{n} ébauche(s) d’ordre en attente dans Ordres',
+  },
+  invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
+  invest_delivery_title: { en: 'Delivery per strategy', fr: 'Envoi par stratégie' },
+  invest_delivery_note: {
+    en: 'Where each strategy sends what it finds. Change destinations on the Bot tab.',
+    fr: 'Où chaque stratégie envoie ses trouvailles. Les canaux se règlent dans l’onglet Robot.',
+  },
+  invest_delivery_empty: {
+    en: 'No strategies yet — delivery options appear once you create one.',
+    fr: 'Aucune stratégie — les canaux s’affichent dès que vous en créez une.',
+  },
+  invest_delivery_inapp: { en: 'In-app', fr: 'Dans l’app' },
+  invest_delivery_email: { en: 'Email', fr: 'Courriel' },
+  invest_delivery_off: { en: 'Off', fr: 'Désactivées' },
+  invest_delivery_edit: { en: 'Edit', fr: 'Modifier' },
+
+  /* Settings */
+  invest_settings_language: { en: 'Language', fr: 'Langue' },
+  invest_settings_tour: { en: 'Getting-started tour', fr: 'Visite de départ' },
+  invest_settings_tour_note: {
+    en: 'The four-step tour shows on the Overview until dismissed — replay it any time.',
+    fr: 'La visite en quatre étapes s’affiche dans l’Aperçu jusqu’à ce que vous la fermiez — rejouez-la quand vous voulez.',
+  },
+  invest_settings_tour_open: { en: 'Replay the tour', fr: 'Revoir la visite' },
+  invest_settings_account: { en: 'Account', fr: 'Compte' },
+  invest_settings_email: { en: 'Signed in as', fr: 'Connecté en tant que' },
+  invest_settings_method: { en: 'Sign-in method', fr: 'Mode de connexion' },
+  invest_settings_method_value: {
+    en: 'Passwordless email code',
+    fr: 'Code par courriel sans mot de passe',
+  },
+  invest_settings_signout_all: { en: 'Sign out everywhere', fr: 'Se déconnecter partout' },
+
+  /* First-run tour */
+  invest_tour_title: { en: 'Get set up in four steps', fr: 'Prêt en quatre étapes' },
+  invest_tour_step1_title: {
+    en: 'What Invest does — and doesn’t',
+    fr: 'Ce qu’Invest fait — et ne fait pas',
+  },
+  invest_tour_step1_body: {
+    en: 'Invest tracks positions you enter yourself and scans them for signals and order drafts. It never places orders — every proposal waits for your review.',
+    fr: 'Invest suit les positions que vous saisissez et les analyse pour produire signaux et ébauches d’ordres. Il ne place jamais d’ordre — chaque proposition attend votre revue.',
+  },
+  invest_tour_step2_title: { en: 'Your paper account', fr: 'Votre compte simulé' },
+  invest_tour_step2_body: {
+    en: 'A simulated account was opened for you. Add cash or a position under Portfolios to start tracking.',
+    fr: 'Un compte simulé a été ouvert pour vous. Ajoutez de l’encaisse ou une position dans Portefeuilles pour commencer le suivi.',
+  },
+  invest_tour_step3_title: { en: 'Watch a symbol', fr: 'Suivre un symbole' },
+  invest_tour_step3_body: {
+    en: 'Add a ticker to the watchlist on Portfolios — prices update on demand or on the daily sync.',
+    fr: 'Ajoutez un symbole à la liste de suivi dans Portefeuilles — les cours se mettent à jour sur demande ou à la synchro quotidienne.',
+  },
+  invest_tour_step4_title: { en: 'Turn on a strategy', fr: 'Activer une stratégie' },
+  invest_tour_step4_body: {
+    en: 'Pick a template on the Bot tab and run a scan. Scans create signals and draft proposals only — never orders.',
+    fr: 'Choisissez un modèle dans l’onglet Robot et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
+  },
+  invest_tour_dismiss: { en: 'Dismiss', fr: 'Fermer' },
+  invest_tour_cta_portfolio: { en: 'Open Portfolios', fr: 'Ouvrir Portefeuilles' },
+  invest_tour_cta_strategies: { en: 'Open the Bot tab', fr: 'Ouvrir l’onglet Robot' },
 
   /* Asset classes */
   invest_asset_equity: { en: 'Equity', fr: 'Action' },

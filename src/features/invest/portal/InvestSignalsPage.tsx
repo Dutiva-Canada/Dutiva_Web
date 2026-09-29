@@ -5,6 +5,7 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import type { SignalKind, SignalStatus } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { setSignalStatus } from '@/features/invest/data/api'
+import { useInvestHead } from './useInvestHead'
 
 const kindLabel: Record<SignalKind, keyof typeof IM> = {
   screen: 'invest_signal_kind_screen',
@@ -23,6 +24,7 @@ const statusLabel: Record<SignalStatus, keyof typeof IM> = {
 export function InvestSignalsPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
+  useInvestHead(IM.invest_seo_title_signals, IM.invest_seo_desc_signals)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | undefined>()
 

@@ -12,6 +12,7 @@ import {
   syncPrices,
   upsertSnapshot,
 } from '@/features/invest/data/api'
+import { useInvestHead } from './useInvestHead'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const fieldClass =
@@ -44,6 +45,7 @@ const kindHelp: Record<AccountKind, keyof typeof IM> = {
 export function InvestPortfolioPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
+  useInvestHead(IM.invest_seo_title_portfolio, IM.invest_seo_desc_portfolio)
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {

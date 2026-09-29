@@ -5,6 +5,7 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
+import { useInvestHead } from './useInvestHead'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -21,6 +22,7 @@ const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 export function InvestHomePage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
+  useInvestHead(IM.invest_seo_title_overview, IM.invest_seo_desc_overview)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
