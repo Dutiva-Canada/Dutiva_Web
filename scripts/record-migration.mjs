@@ -5,6 +5,7 @@
  *
  * Usage: node scripts/record-migration.mjs <version> <path/to/migration.sql>
  */
+import './lib/env.mjs'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 

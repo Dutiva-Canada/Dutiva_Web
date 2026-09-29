@@ -38,6 +38,7 @@ const statusLabel: Record<OrderStatus, keyof typeof IM> = {
   executed: 'invest_status_executed',
   cancelled: 'invest_status_cancelled',
   failed: 'invest_status_failed',
+  expired: 'invest_status_expired',
 }
 
 /** Orders tab — order log, manual order entry, execute/cancel actions. */
@@ -174,7 +175,7 @@ function OrderRow({
       </td>
       <td className="py-[9px] pr-[12px]">
         <StatusChip status={o.status} />
-        {o.status === 'draft' && relTimeLabel(o.createdAt, x) && (
+        {(o.status === 'draft' || o.status === 'expired') && relTimeLabel(o.createdAt, x) && (
           <p className="m-0 mt-[2px] text-[10.5px] text-text-muted">
             {fillSlots(x(IM.invest_order_proposed), { ago: relTimeLabel(o.createdAt, x) ?? '' })}
           </p>
@@ -228,7 +229,7 @@ function StatusChip({ status }: { status: OrderStatus }) {
   const tone =
     status === 'executed'
       ? 'bg-gold-bg text-gold-fg'
-      : status === 'failed' || status === 'cancelled'
+      : status === 'failed' || status === 'cancelled' || status === 'expired'
         ? 'bg-inset text-text-muted'
         : 'bg-surface text-text-2 border border-border'
   return (

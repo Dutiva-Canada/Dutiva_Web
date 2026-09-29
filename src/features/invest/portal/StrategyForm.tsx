@@ -379,8 +379,8 @@ export function StrategyForm({
             {x(IM.invest_notify_email)}
           </button>
         </div>
-        {/* Honest state: there is no email delivery path — the toggle is a
-            saved preference, not a live channel. */}
+        {/* invest-bot emails one bilingual summary per scan that produced
+            hits while this is on; the note states that contract. */}
         <p className="m-0 mt-[4px] text-[11px] text-text-muted">{x(IM.invest_notify_email_note)}</p>
       </div>
 

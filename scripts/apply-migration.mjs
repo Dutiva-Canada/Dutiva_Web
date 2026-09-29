@@ -6,6 +6,7 @@
  *
  * Usage: node scripts/apply-migration.mjs <migration-file.sql>
  */
+import './lib/env.mjs'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 

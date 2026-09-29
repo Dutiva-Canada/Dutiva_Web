@@ -96,6 +96,7 @@ export const investMessages = defineMessages({
   invest_status_executed: { en: 'Executed', fr: 'Exécuté' },
   invest_status_cancelled: { en: 'Cancelled', fr: 'Annulé' },
   invest_status_failed: { en: 'Failed', fr: 'Échoué' },
+  invest_status_expired: { en: 'Expired', fr: 'Expiré' },
   invest_mode_paper: { en: 'Paper', fr: 'Simulé' },
   invest_mode_live: { en: 'Live', fr: 'Réel' },
   invest_live_note: {
@@ -245,8 +246,8 @@ export const investMessages = defineMessages({
   invest_notify_in_app: { en: 'In-app', fr: 'Dans l’app' },
   invest_notify_email: { en: 'Email', fr: 'Courriel' },
   invest_notify_email_note: {
-    en: 'Email delivery isn’t available yet — this saves your preference for when it is.',
-    fr: 'La livraison par courriel n’est pas encore offerte — le réglage conserve votre préférence.',
+    en: 'You’ll get one email per scan that finds something.',
+    fr: 'Vous recevez un courriel à chaque analyse qui détecte quelque chose.',
   },
   invest_scan_now: { en: 'Scan now', fr: 'Analyser maintenant' },
   invest_scanning: { en: 'Scanning…', fr: 'Analyse…' },

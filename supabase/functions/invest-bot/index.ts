@@ -2,7 +2,9 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import {
   applyFill,
+  buildSignalEmail,
   CADENCES,
+  draftExpiryCutoff,
   draftKey,
   parseRules,
   planRun,
@@ -15,6 +17,7 @@ import {
   type StrategyCadence,
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
+import { resendSend } from '../_shared/resendSend.ts'
 
 /**
  * Invest-bot edge function — evaluates each user's enabled strategies
@@ -129,11 +132,13 @@ const MAX_TEST_SYMBOLS = 64
 
 interface StrategyRow {
   id: string
+  name?: unknown
   enabled: boolean
   rules: unknown
   cadence: unknown
   last_evaluated_at: unknown
   scope?: unknown
+  notify?: unknown
 }
 
 /** Reads strategies with the 0184 columns when present; falls back to a
@@ -144,15 +149,15 @@ async function loadStrategies(
   userId: string,
   allSymbols: string[],
 ): Promise<{ strategies: Strategy[]; scoped: boolean }> {
-  const select = 'id, enabled, rules, cadence, last_evaluated_at, scope'
+  const select = 'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify'
   const res = await adminClient.from('invest_strategies').select(select).eq('user_id', userId)
 
   let rows: StrategyRow[]
   let scoped = true
-  if (res.error && /scope/.test(res.error.message)) {
+  if (res.error && /scope|notify/.test(res.error.message)) {
     const fallback = await adminClient
       .from('invest_strategies')
-      .select('id, enabled, rules, cadence, last_evaluated_at')
+      .select('id, name, enabled, rules, cadence, last_evaluated_at')
       .eq('user_id', userId)
     if (fallback.error) throw new Error(fallback.error.message)
     rows = (fallback.data ?? []) as StrategyRow[]
@@ -172,13 +177,16 @@ async function loadStrategies(
             ...(scope?.watchlist === true ? allSymbols : []),
           ]
         : allSymbols
+      const notify = (r.notify ?? null) as { email?: unknown } | null
       return {
         id: r.id as string,
+        name: typeof r.name === 'string' ? r.name : '',
         enabled: r.enabled === true,
         scope_symbols: [...new Set(scopeSymbols.map((s) => String(s).toUpperCase()))],
         rules: parseRules(r.rules),
         cadence: CADENCES.includes(r.cadence as string) ? (r.cadence as StrategyCadence) : 'daily',
         last_evaluated_at: (r.last_evaluated_at as string | null) ?? null,
+        notify_email: scoped && notify?.email === true,
       }
     }),
   }
@@ -192,6 +200,22 @@ async function runUser(
   opts: { force?: boolean } = {},
 ): Promise<Record<string, unknown>> {
   const startedAt = Date.now()
+
+  /* Expire stale drafts first — an expired draft frees its dedupe slot, so
+     a rule that keeps firing proposes fresh evidence instead of staying
+     suppressed behind a week-old proposal nobody approved. Runs before the
+     draft read below so dedupe sees the post-sweep set. Tolerated on
+     pre-0185 schemas, where the check rejects 'expired'. */
+  const { error: expiryError } = await adminClient
+    .from('invest_orders')
+    .update({ status: 'expired', updated_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('status', 'draft')
+    .lt('created_at', draftExpiryCutoff())
+  if (expiryError && !/check|expired/i.test(expiryError.message)) {
+    throw new Error(expiryError.message)
+  }
+
   const [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes, draftsRes] =
     await Promise.all([
       adminClient
@@ -368,6 +392,59 @@ async function runUser(
       body_fr: insight.body_fr,
       score: null,
     })
+  }
+
+  /* Email alerts — notify.email strategies get one bilingual summary per
+     scan that produced hits. No provider key configured → nothing sends and
+     the preference stays inert; a send failure degrades to a run warning
+     rather than failing the scan. */
+  const resendKey =
+    Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY') ?? ''
+  const emailHits = strategies
+    .filter((s) => s.notify_email === true)
+    .map((s) => ({
+      name: s.name ?? 'Strategy',
+      signals: plan.signals
+        .filter((sig) => sig.strategy_id === s.id)
+        .map((sig) => `${sig.title} (${sig.symbol})`),
+      proposals: plan.proposals
+        .filter((p) => p.strategy_id === s.id)
+        .map((p) => `${p.side} ${p.quantity} ${p.symbol}`),
+    }))
+    .filter((e) => e.signals.length + e.proposals.length > 0)
+  if (resendKey !== '' && emailHits.length > 0) {
+    const { data: profile } = await adminClient
+      .from('profiles')
+      .select('account_email')
+      .eq('id', userId)
+      .maybeSingle()
+    let to = (profile?.account_email as string | null | undefined) ?? null
+    if (!to) {
+      const { data: userData } = await adminClient.auth.admin.getUserById(userId)
+      to = userData?.user?.email ?? null
+    }
+    if (to) {
+      const from =
+        Deno.env.get('INVEST_EMAIL_FROM') ??
+        Deno.env.get('SUPPORT_EMAIL_FROM') ??
+        'Dutiva Invest <invest@dutiva.ca>'
+      const portalUrl = `${Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'}/invest`
+      for (const hit of emailHits) {
+        const { subject, text } = buildSignalEmail({
+          strategyName: hit.name,
+          signals: hit.signals,
+          proposals: hit.proposals,
+          portalUrl,
+        })
+        try {
+          await resendSend(resendKey, from, { to, subject, text })
+        } catch (err) {
+          plan.warnings.push(
+            `email delivery failed for "${hit.name}": ${(err as Error).message.slice(0, 120)}`,
+          )
+        }
+      }
+    }
   }
 
   /* Run history is per strategy — one row for each strategy evaluated this

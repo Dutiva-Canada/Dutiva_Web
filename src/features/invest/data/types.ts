@@ -20,7 +20,7 @@ export type AccountKind = 'paper' | 'live' | 'external'
 export type OrderSide = 'buy' | 'sell'
 export type OrderType = 'market' | 'limit'
 export type OrderMode = 'paper' | 'live'
-export type OrderStatus = 'draft' | 'queued' | 'executed' | 'cancelled' | 'failed'
+export type OrderStatus = 'draft' | 'queued' | 'executed' | 'cancelled' | 'failed' | 'expired'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
 export type SignalStatus = 'new' | 'acknowledged' | 'dismissed'
 

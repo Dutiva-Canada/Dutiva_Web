@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyFill,
+  buildSignalEmail,
+  draftExpiryCutoff,
+  DRAFT_EXPIRY_DAYS,
   parseRules,
   planRun,
   resolveQuantity,
@@ -422,6 +425,44 @@ describe('applyFill', () => {
 
   it('opens a new position on buy', () => {
     expect(applyFill(null, 'buy', 3, 50)).toEqual({ quantity: 3, avg_cost: 50 })
+  })
+})
+
+describe('draftExpiryCutoff', () => {
+  it('returns an ISO timestamp DRAFT_EXPIRY_DAYS back', () => {
+    const now = new Date('2026-03-10T12:00:00Z')
+    const cutoff = new Date(draftExpiryCutoff(now))
+    expect(now.getTime() - cutoff.getTime()).toBe(DRAFT_EXPIRY_DAYS * 86_400_000)
+  })
+})
+
+describe('buildSignalEmail', () => {
+  const summary = {
+    strategyName: 'Dip watcher',
+    signals: ['ACME fell 6% in a day (ACME)'],
+    proposals: ['buy 10 ACME'],
+    portalUrl: 'https://dutiva.ca/invest',
+  }
+
+  it('subjects the email by strategy and lists hits in both languages', () => {
+    const { subject, text } = buildSignalEmail(summary)
+    expect(subject).toContain('Dip watcher')
+    expect(text).toContain('ACME fell 6% in a day (ACME)')
+    expect(text).toContain('buy 10 ACME')
+    expect(text).toContain('Signaux')
+    expect(text).toContain('https://dutiva.ca/invest')
+  })
+
+  it('labels proposals as drafts — the email can’t read as a fill', () => {
+    const { text } = buildSignalEmail(summary)
+    expect(text).toContain('drafts only')
+    expect(text).toContain('brouillons seulement')
+  })
+
+  it('omits empty sections instead of printing bare headings', () => {
+    const { text } = buildSignalEmail({ ...summary, proposals: [] })
+    expect(text).not.toContain('proposals')
+    expect(text).not.toContain('Propositions')
   })
 })
 
