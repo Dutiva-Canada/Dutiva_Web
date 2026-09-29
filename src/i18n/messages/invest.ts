@@ -54,6 +54,18 @@ export const investMessages = defineMessages({
   invest_kind_paper: { en: 'Paper', fr: 'Simulé' },
   invest_kind_live: { en: 'Live', fr: 'Réel' },
   invest_kind_external: { en: 'External', fr: 'Externe' },
+  invest_kind_help_paper: {
+    en: 'Simulated — test the workflow without real money.',
+    fr: 'Simulé — testez le fonctionnement sans argent réel.',
+  },
+  invest_kind_help_live: {
+    en: 'No broker connection — order intents are recorded for review and you confirm each fill manually.',
+    fr: 'Aucune connexion de courtier — les ordres sont enregistrés pour revue et vous confirmez chaque exécution à la main.',
+  },
+  invest_kind_help_external: {
+    en: 'A manual mirror of an account you hold elsewhere — nothing syncs.',
+    fr: 'Copie manuelle d’un compte détenu ailleurs — rien ne se synchronise.',
+  },
   invest_field_symbol: { en: 'Symbol', fr: 'Symbole' },
   invest_field_name: { en: 'Name', fr: 'Nom' },
   invest_field_quantity: { en: 'Quantity', fr: 'Quantité' },
