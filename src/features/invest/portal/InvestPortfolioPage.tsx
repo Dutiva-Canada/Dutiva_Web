@@ -154,12 +154,19 @@ export function InvestPortfolioPage() {
 
       <section className={cardClass}>
         <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_positions_title)}</h2>
-        {state.accounts.length > 0 && (
+        {/* Positions are manual tracking records — say so up front so the
+            section never reads as a brokerage sync. */}
+        <p className="m-0 mt-[4px] text-[12px] text-text-muted">{x(IM.invest_positions_manual)}</p>
+        {state.accounts.length > 0 ? (
           <PositionForm
             busy={busy}
             accounts={state.accounts}
             onCreate={(input) => run(() => createPosition(input))}
           />
+        ) : (
+          <p className="m-0 mt-[10px] text-[12.5px] text-text-2">
+            {x(IM.invest_positions_need_account)}
+          </p>
         )}
         {state.positions.length === 0 ? (
           <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">

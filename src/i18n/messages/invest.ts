@@ -66,6 +66,14 @@ export const investMessages = defineMessages({
     en: 'No positions yet — add one to start tracking.',
     fr: 'Aucune position — ajoutez-en une pour commencer le suivi.',
   },
+  invest_positions_manual: {
+    en: 'Positions you enter by hand — they’re not synced from any broker or account.',
+    fr: 'Positions saisies à la main — elles ne sont synchronisées avec aucun courtier ni compte.',
+  },
+  invest_positions_need_account: {
+    en: 'Create an account above first — positions record into one.',
+    fr: 'Créez d’abord un compte ci-dessus — les positions s’y enregistrent.',
+  },
   invest_accounts_empty: {
     en: 'No accounts yet — a paper account is created for you.',
     fr: 'Aucun compte — un compte simulé sera créé pour vous.',
