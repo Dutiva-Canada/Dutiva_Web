@@ -260,9 +260,10 @@ describe('InvestPortalLayout', () => {
     // Nav labels render
     expect(screen.getAllByText('Signals').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Bot').length).toBeGreaterThan(0)
-    // Market news renders on the overview
-    expect(screen.getByText('Market news')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Shopify beats estimates' })).toBeInTheDocument()
+    // Market news renders on the overview, labelled as third-party content
+    expect(screen.getByText('Market headlines (third-party)')).toBeInTheDocument()
+    // The link's accessible name carries the sr-only exit note too
+    expect(screen.getByRole('link', { name: /Shopify beats estimates/ })).toBeInTheDocument()
   })
 })
 
