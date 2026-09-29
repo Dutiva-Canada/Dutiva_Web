@@ -34,6 +34,11 @@ const kindLabel: Record<AccountKind, keyof typeof IM> = {
   live: 'invest_kind_live',
   external: 'invest_kind_external',
 }
+const kindHelp: Record<AccountKind, keyof typeof IM> = {
+  paper: 'invest_kind_help_paper',
+  live: 'invest_kind_help_live',
+  external: 'invest_kind_help_external',
+}
 
 /** Portfolios tab — accounts, positions, manual price updates. */
 export function InvestPortfolioPage() {
@@ -399,6 +404,7 @@ function AccountForm({
           value={kind}
           onChange={(e) => setKind(e.target.value as AccountKind)}
           className={fieldClass}
+          aria-describedby="inv-acc-kind-help"
         >
           {(['paper', 'live', 'external'] as const).map((k) => (
             <option key={k} value={k}>
@@ -407,6 +413,13 @@ function AccountForm({
           ))}
         </select>
       </div>
+      <p
+        id="inv-acc-kind-help"
+        aria-live="polite"
+        className="m-0 w-full text-[12px] leading-normal text-text-muted"
+      >
+        {x(IM[kindHelp[kind]])}
+      </p>
       <div className="w-[120px]">
         <label className={labelClass} htmlFor="inv-acc-cash">
           {x(IM.invest_ov_cash)}
