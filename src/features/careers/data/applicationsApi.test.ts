@@ -57,6 +57,7 @@ const ROW = {
 
 const POSTING = {
   id: 'jp-1',
+  slug: 'senior-pm-jp-1',
   title: 'Senior PM',
   department: 'Product',
   location: 'Toronto',

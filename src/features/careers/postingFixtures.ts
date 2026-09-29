@@ -1,0 +1,128 @@
+import type { PublicJobPosting } from './data/jobBoardApi'
+
+/**
+ * Shared postings fixture for careers tests — eight jobs spanning
+ * departments, locations, work arrangements, employers, and salary presence
+ * so filter/facet/sort tests exercise real combinations instead of a single
+ * uniform row.
+ */
+
+export function makePosting(overrides: Partial<PublicJobPosting> = {}): PublicJobPosting {
+  const id = overrides.id ?? '00000000-0000-4000-8000-000000000001'
+  const title = overrides.title ?? 'HR Coordinator'
+  return {
+    id,
+    organizationId: 'org-1',
+    organizationName: 'Northgate Logistics Inc.',
+    slug: overrides.slug ?? `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${id.slice(0, 6)}`,
+    title,
+    department: 'Human Resources',
+    location: 'Toronto, ON',
+    type: 'Full-time',
+    description: `${title} at ${overrides.organizationName ?? 'Northgate Logistics Inc.'}.`,
+    requirements: ['Bilingual EN/FR'],
+    responsibilities: ['Coordinate onboarding'],
+    benefits: ['Health benefits'],
+    salaryMin: null,
+    salaryMax: null,
+    salaryPeriod: 'year',
+    employerBlurb: null,
+    status: 'active',
+    postedDate: '2026-09-01',
+    closingDate: null,
+    ...overrides,
+  }
+}
+
+export const FIXTURE_POSTINGS: PublicJobPosting[] = [
+  makePosting({
+    id: 'job-payroll-supervisor',
+    slug: 'payroll-supervisor-job-pa',
+    title: 'Payroll Supervisor',
+    department: 'Finance',
+    location: 'Montréal, QC',
+    type: 'Full-time',
+    salaryMin: 78000,
+    salaryMax: 92000,
+    employerBlurb: 'Northgate runs freight corridors across Ontario and Quebec.',
+    postedDate: '2026-09-20',
+    closingDate: '2026-10-15',
+  }),
+  makePosting({
+    id: 'job-hr-coordinator',
+    slug: 'hr-coordinator-job-hr',
+    title: 'HR Coordinator',
+    department: 'Human Resources',
+    location: 'Toronto, ON',
+    type: 'Full-time',
+    salaryMin: 58000,
+    salaryMax: 66000,
+    postedDate: '2026-09-18',
+  }),
+  makePosting({
+    id: 'job-frontend-engineer',
+    slug: 'frontend-engineer-job-fe',
+    title: 'Frontend Engineer',
+    department: 'Engineering',
+    location: 'Remote (Canada)',
+    type: 'Full-time',
+    salaryMin: 110000,
+    salaryMax: 140000,
+    postedDate: '2026-09-22',
+  }),
+  makePosting({
+    id: 'job-backend-engineer',
+    slug: 'backend-engineer-job-be',
+    title: 'Backend Engineer',
+    department: 'Engineering',
+    location: 'Remote (Canada)',
+    type: 'Contract',
+    salaryMin: 85,
+    salaryMax: 105,
+    salaryPeriod: 'hour',
+    postedDate: '2026-09-10',
+  }),
+  makePosting({
+    id: 'job-recruiter',
+    slug: 'senior-recruiter-job-re',
+    title: 'Senior Recruiter',
+    department: 'Human Resources',
+    location: 'Ottawa, ON',
+    type: 'Hybrid',
+    organizationName: 'Meridian Health Group',
+    organizationId: 'org-2',
+    postedDate: '2026-09-15',
+  }),
+  makePosting({
+    id: 'job-warehouse-lead',
+    slug: 'warehouse-lead-job-wl',
+    title: 'Warehouse Lead',
+    department: 'Operations',
+    location: 'Mississauga, ON',
+    type: 'Full-time',
+    organizationName: 'Meridian Health Group',
+    organizationId: 'org-2',
+    postedDate: '2026-09-05',
+  }),
+  makePosting({
+    id: 'job-office-admin',
+    slug: 'office-administrator-job-oa',
+    title: 'Office Administrator',
+    department: 'Operations',
+    location: 'Québec City, QC',
+    type: 'Part-time',
+    salaryMin: 24,
+    salaryMax: 24,
+    salaryPeriod: 'hour',
+    postedDate: '2026-09-12',
+  }),
+  makePosting({
+    id: 'job-safety-officer',
+    slug: 'safety-officer-job-so',
+    title: 'Safety Officer',
+    department: 'Operations',
+    location: 'Calgary, AB',
+    type: 'On-site',
+    postedDate: null,
+  }),
+]

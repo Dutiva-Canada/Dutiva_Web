@@ -130,7 +130,9 @@ const manifest = await buildPrerenderManifest()
 const problems = []
 
 for (const entry of manifest) {
-  const { html, head } = await renderPage(entry.path)
+  /* Careers job pages carry their posting row so the detail render emits
+     real content rather than the client-side loading state. */
+  const { html, head } = await renderPage(entry.path, 0, entry.jobPosting ?? null)
   if (!head) {
     problems.push(`${entry.path}: page rendered no <Seo> metadata`)
     continue

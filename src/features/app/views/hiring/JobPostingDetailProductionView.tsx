@@ -99,7 +99,7 @@ export function JobPostingDetailProductionView() {
             </span>
             {posting.status === 'active' && (
               <Link
-                to={`${seoRoute('careers').path[lang]}/jobs/${posting.id}`}
+                to={`${seoRoute('careers').path[lang]}/jobs/${posting.slug}`}
                 className="inline-flex items-center gap-1.5 rounded-[8px] border border-border bg-surface px-3 py-1.5 text-[13px] font-semibold text-text-2 transition-[border-color] hover:border-gold-border"
               >
                 <ExternalLink size={13} strokeWidth={2} aria-hidden="true" />

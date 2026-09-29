@@ -153,7 +153,7 @@ export function ApplicationsPage() {
                   <div className="min-w-0 flex-1">
                     {app.jobPosting ? (
                       <Link
-                        to={paths.jobDetail(app.jobPostingId)}
+                        to={paths.jobDetail(app.jobPosting.slug || app.jobPostingId)}
                         aria-label={x(M.careers_applications_view_job)}
                         className="text-[15px] font-semibold text-text hover:underline"
                       >

@@ -72,6 +72,29 @@ const ROUTE_PATTERNS: readonly string[] = [
   // Public external signing (token in path — scrub to pattern)
   '/sign/:token',
   '/fr/sign/:token',
+  // Public careers board + employer door (slug segment is a public posting key)
+  '/careers',
+  '/careers/jobs/:slug',
+  '/fr/carrieres',
+  '/fr/carrieres/jobs/:slug',
+  '/employer',
+  '/fr/employeur',
+  // Candidate portal (authed, no locale URLs)
+  '/careers/portal',
+  '/careers/portal/profile',
+  '/careers/portal/applications',
+  '/careers/portal/ai-tools',
+  '/careers/portal/settings',
+  '/careers/portal/jobs/:slug/apply',
+  // Invest portal (invite-only)
+  '/invest',
+  '/invest/legal/:slug',
+  '/invest/portfolio',
+  '/invest/orders',
+  '/invest/signals',
+  '/invest/strategies',
+  '/invest/notifications',
+  '/invest/settings',
   // App surface — entry + shell
   '/app/welcome',
   '/app/auth/confirm',

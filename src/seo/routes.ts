@@ -412,10 +412,12 @@ export function alternatePathFor(pathname: string, target: Lang): string | undef
   for (const path of ALL_PUBLIC_PATHS) {
     if (path.en === normalized || path.fr === normalized) return path[target]
   }
-  /* Careers job detail pages are dynamic (/careers/jobs/:postingId) and not
-     in the static registry. Map the locale prefix directly so the language
-     toggle on a job detail page cross-references its EN/FR counterpart. */
-  const jobMatch = normalized.match(/^\/(fr\/)?careers\/jobs\/(.+)$/)
+  /* Careers job detail pages are dynamic (/careers/jobs/:postingKey, where
+     the key is the posting's slug — legacy bare-uuid URLs still resolve)
+     and not in the static registry. Map the locale prefix directly so the
+     language toggle cross-references the EN/FR counterpart. Note the FR
+     mount is /fr/carrieres, not /fr/careers. */
+  const jobMatch = normalized.match(/^\/(?:fr\/carrieres|careers)\/jobs\/(.+)$/)
   if (jobMatch) {
     const postingId = jobMatch[2]
     return target === 'fr' ? `/fr/carrieres/jobs/${postingId}` : `/careers/jobs/${postingId}`

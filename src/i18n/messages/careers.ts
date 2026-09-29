@@ -58,7 +58,7 @@ export const careersMessages = defineMessages({
   },
   careers_board_how_lead: {
     en: 'Dutiva Careers is the public job board for employers hiring through Dutiva — candidates see the same active postings the hiring team publishes.',
-    fr: "Dutiva Carrières est le tableau d'offres public des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
+    fr: "Dutiva Carrières est le tableau public d'offres d'emploi des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
   },
   careers_board_how_1: {
     en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
@@ -73,6 +73,47 @@ export const careersMessages = defineMessages({
     fr: 'Des outils IA optionnels peuvent adapter votre CV, rédiger une lettre de motivation et vous préparer aux entretiens.',
   },
 
+  /* ── Board filters / sort / pagination ───────────────────────────────── */
+  careers_board_employer_cta: {
+    en: 'Hiring? Post a role',
+    fr: 'Vous embauchez ? Publiez une offre',
+  },
+  careers_board_filters_label: {
+    en: 'Filter open roles',
+    fr: 'Filtrer les postes ouverts',
+  },
+  careers_board_filter_location: { en: 'Location', fr: 'Lieu' },
+  careers_board_filter_location_all: { en: 'All locations', fr: 'Tous les lieux' },
+  careers_board_filter_workplace: { en: 'Work arrangement', fr: 'Mode de travail' },
+  careers_board_filter_workplace_all: { en: 'All arrangements', fr: 'Tous les modes' },
+  careers_board_filter_employer: { en: 'Employer', fr: 'Employeur' },
+  careers_board_filter_employer_all: { en: 'All employers', fr: 'Tous les employeurs' },
+  careers_board_filter_department: { en: 'Department', fr: 'Département' },
+  careers_board_filter_department_all: {
+    en: 'All departments',
+    fr: 'Tous les départements',
+  },
+  careers_board_workplace_remote: { en: 'Remote', fr: 'À distance' },
+  careers_board_workplace_hybrid: { en: 'Hybrid', fr: 'Hybride' },
+  careers_board_workplace_onsite: { en: 'On-site', fr: 'Sur place' },
+  careers_board_sort_label: { en: 'Sort by', fr: 'Trier par' },
+  careers_board_sort_newest: { en: 'Newest first', fr: "Plus récents d'abord" },
+  careers_board_sort_relevance: { en: 'Best match', fr: 'Pertinence' },
+  careers_board_chip_remove: {
+    en: 'Remove filter: {label}',
+    fr: 'Retirer le filtre : {label}',
+  },
+  careers_board_clear_all: { en: 'Clear all filters', fr: 'Effacer tous les filtres' },
+  careers_board_results_announce: {
+    en: '{count} role(s) found',
+    fr: '{count} poste(s) trouvé(s)',
+  },
+  careers_board_showing: {
+    en: 'Showing {shown} of {total}',
+    fr: '{shown} sur {total}',
+  },
+  careers_board_load_more: { en: 'Load more roles', fr: 'Afficher plus de postes' },
+
   /* ── Job detail page ──────────────────────────────────────────────────── */
   careers_detail_back: { en: 'All jobs', fr: 'Tous les emplois' },
   careers_detail_not_found: {
@@ -84,6 +125,10 @@ export const careersMessages = defineMessages({
     fr: 'Il a peut-être été fermé ou pourvu. Parcourez les autres postes ouverts.',
   },
   careers_detail_requirements: { en: 'Requirements', fr: 'Exigences' },
+  careers_detail_responsibilities: { en: 'Responsibilities', fr: 'Responsabilités' },
+  careers_detail_benefits: { en: 'Benefits', fr: 'Avantages' },
+  careers_detail_about_employer: { en: 'About {employer}', fr: 'À propos de {employer}' },
+  careers_detail_salary: { en: 'Salary', fr: 'Salaire' },
   careers_detail_department: { en: 'Department', fr: 'Département' },
   careers_detail_location: { en: 'Location', fr: 'Lieu' },
   careers_detail_type: { en: 'Employment type', fr: "Type d'emploi" },
@@ -479,9 +524,41 @@ export const careersMessages = defineMessages({
     en: "You've already applied to this role.",
     fr: 'Vous avez déjà postulé à ce poste.',
   },
+  careers_apply_confirm_title: { en: 'Review and submit', fr: 'Vérifiez et envoyez' },
+  careers_apply_confirm_body: {
+    en: 'Your profile, resume, and any cover letter go to {employer} as one application.',
+    fr: 'Votre profil, votre CV et votre lettre de motivation sont envoyés à {employer} en une seule candidature.',
+  },
+  careers_apply_confirm_resume: { en: 'Your resume', fr: 'Votre CV' },
+  careers_apply_confirm_cover_included: {
+    en: 'Cover letter included',
+    fr: 'Lettre de motivation jointe',
+  },
+  careers_apply_confirm_cover_skipped: {
+    en: 'No cover letter',
+    fr: 'Aucune lettre de motivation',
+  },
+  careers_apply_confirm_score_included: {
+    en: 'AI match score included (visible to the employer)',
+    fr: "Score de correspondance IA joint (visible par l'employeur)",
+  },
+  careers_apply_confirm_submit: { en: 'Confirm and submit', fr: 'Confirmer et envoyer' },
+  careers_apply_confirm_edit: { en: 'Back to edit', fr: 'Retour à la modification' },
+  careers_apply_submitted_body: {
+    en: 'Your application went to {employer}. Track its status in your applications.',
+    fr: 'Votre candidature a été envoyée à {employer}. Suivez son état dans vos candidatures.',
+  },
   careers_apply_profile_required: {
     en: 'Complete your profile before applying.',
     fr: 'Complétez votre profil avant de postuler.',
+  },
+  careers_apply_profile_next_body: {
+    en: 'Save your profile, then you\u2019ll come back to \u201C{job}\u201D to finish applying.',
+    fr: 'Enregistrez votre profil, puis vous reviendrez à « {job} » pour terminer votre candidature.',
+  },
+  careers_profile_next_notice: {
+    en: 'Save your profile to continue your application.',
+    fr: 'Enregistrez votre profil pour poursuivre votre candidature.',
   },
   careers_apply_profile_required_cta: {
     en: 'Go to profile',

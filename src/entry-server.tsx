@@ -18,6 +18,8 @@ import { allPublicPages } from '@/seo/publicPages'
 import { langOfPath } from '@/seo/routes'
 import { seoRoute } from '@/seo/routes'
 import { getActiveJobPostingsForSitemap } from '@/seo/careersSitemap'
+import type { SitemapJobPosting } from '@/seo/careersSitemap'
+import { PrerenderJobPostingContext } from '@/features/careers/prerenderJobPosting'
 import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, FOUNDER } from '@/seo/site'
 import { ThemeProvider } from '@/lib/theme'
 
@@ -42,7 +44,11 @@ export interface RenderedPage {
 
 const MAX_REDIRECTS = 3
 
-export async function renderPage(pathname: string, redirectCount = 0): Promise<RenderedPage> {
+export async function renderPage(
+  pathname: string,
+  redirectCount = 0,
+  jobPosting: SitemapJobPosting | null = null,
+): Promise<RenderedPage> {
   if (redirectCount > MAX_REDIRECTS) {
     throw new Error(`Too many redirects while prerendering ${pathname}`)
   }
@@ -66,7 +72,12 @@ export async function renderPage(pathname: string, redirectCount = 0): Promise<R
   const { prelude } = await prerender(
     <ThemeProvider>
       <HeadSinkContext value={sink}>
-        <StaticRouterProvider router={router} context={context} />
+        {/* Careers job detail pages get their posting injected so the static
+            render emits real content — the client fetch path never runs in a
+            static render. */}
+        <PrerenderJobPostingContext value={jobPosting}>
+          <StaticRouterProvider router={router} context={context} />
+        </PrerenderJobPostingContext>
       </HeadSinkContext>
     </ThemeProvider>,
   )
@@ -99,6 +110,9 @@ export interface ManifestEntry {
   description: string
   /** ISO 8601, only where the content carries a real authored date. */
   lastmod?: string
+  /** Careers job detail pages carry their posting so renderPage can emit
+      the rendered content (and head) instead of the client loading state. */
+  jobPosting?: SitemapJobPosting
 }
 
 /**
@@ -129,12 +143,14 @@ export async function buildPrerenderManifest(): Promise<ManifestEntry[]> {
     }
   }
 
-  /* Dynamic careers job detail pages — one EN/FR pair per active posting. */
+  /* Dynamic careers job detail pages — one EN/FR pair per active posting,
+     addressed by the posting's slug (0186). Closed postings never reach the
+     view, so filled roles drop out of the sitemap on the next build. */
   const careersRoute = seoRoute('careers')
   const jobPostings = await getActiveJobPostingsForSitemap()
   for (const posting of jobPostings) {
-    const enPath = `${careersRoute.path.en}/jobs/${posting.id}`
-    const frPath = `${careersRoute.path.fr}/jobs/${posting.id}`
+    const enPath = `${careersRoute.path.en}/jobs/${posting.slug}`
+    const frPath = `${careersRoute.path.fr}/jobs/${posting.slug}`
     const title = {
       en: `${posting.title} | Dutiva Careers`,
       fr: `${posting.title} | Carrières Dutiva`,
@@ -155,6 +171,7 @@ export async function buildPrerenderManifest(): Promise<ManifestEntry[]> {
         title: title[lang],
         description: description[lang],
         lastmod,
+        jobPosting: posting,
       })
     }
   }

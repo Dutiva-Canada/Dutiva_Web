@@ -44,6 +44,8 @@ export interface CandidateApplication {
   /** Joined job posting data (selected via the FK). */
   jobPosting?: {
     id: string
+    /** Public slug (0186) — preferred over the id for detail links. */
+    slug: string | null
     title: string
     department: string
     location: string
@@ -62,6 +64,7 @@ interface NewApplication {
 // View rows lose NOT NULL at the type level; the base columns are required.
 const postingRowSchema = z.object({
   id: z.string(),
+  slug: z.string().nullable(),
   title: z.string(),
   department: z.string(),
   location: z.string(),
@@ -92,7 +95,7 @@ export async function listMyApplications(): Promise<CandidateApplication[]> {
   if (postingIds.length > 0) {
     const { data: postingRows, error: postingError } = await client
       .from('public_job_postings')
-      .select('id, title, department, location, type')
+      .select('id, slug, title, department, location, type')
       .in('id', postingIds)
     if (postingError) throw postingError
     for (const posting of z.array(postingRowSchema).parse(postingRows ?? [])) {
@@ -188,6 +191,7 @@ function toApplication(row: any): CandidateApplication {
     jobPosting: row.job_posting
       ? {
           id: row.job_posting.id,
+          slug: row.job_posting.slug ?? null,
           title: row.job_posting.title,
           department: row.job_posting.department,
           location: row.job_posting.location,

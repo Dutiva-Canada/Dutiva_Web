@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { CandidateProfile } from '@/features/careers/data/candidateApi'
+import { makePosting } from '@/features/careers/postingFixtures'
 
 vi.mock('@/features/careers/data/candidateApi', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/careers/data/candidateApi')>()),
@@ -118,23 +119,32 @@ describe('PortalAiToolsPage', () => {
         aiSuggestions: null,
         appliedAt: '2026-01-20T00:00:00Z',
         updatedAt: '2026-01-20T00:00:00Z',
-        jobPosting: { id: 'jp-1', title: 'Senior PM', department: 'P', location: 'T', type: 'FT' },
+        jobPosting: {
+          id: 'jp-1',
+          slug: 'senior-pm-jp-1',
+          title: 'Senior PM',
+          department: 'P',
+          location: 'T',
+          type: 'FT',
+        },
       },
     ])
-    vi.mocked(getPublicJobPosting).mockResolvedValue({
-      id: 'jp-1',
-      organizationId: 'o1',
-      organizationName: 'Acme',
-      title: 'Senior PM',
-      department: 'Product',
-      location: 'Toronto',
-      type: 'Full-time',
-      description: 'Lead the roadmap.',
-      requirements: ['5+ years'],
-      status: 'active',
-      postedDate: null,
-      closingDate: null,
-    })
+    vi.mocked(getPublicJobPosting).mockResolvedValue(
+      makePosting({
+        id: 'jp-1',
+        slug: 'senior-pm-jp-1',
+        organizationId: 'o1',
+        organizationName: 'Acme',
+        title: 'Senior PM',
+        department: 'Product',
+        location: 'Toronto',
+        type: 'Full-time',
+        description: 'Lead the roadmap.',
+        requirements: ['5+ years'],
+        postedDate: null,
+        closingDate: null,
+      }),
+    )
     const { PortalAiToolsPage } = await import('./PortalAiToolsPage')
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()

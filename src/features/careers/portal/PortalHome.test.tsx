@@ -63,6 +63,7 @@ const MOCK_APPLICATIONS: CandidateApplication[] = [
     updatedAt: '2026-01-20T00:00:00Z',
     jobPosting: {
       id: 'jp-1',
+      slug: 'senior-pm-jp-1',
       title: 'Senior PM',
       department: 'Product',
       location: 'Toronto',
