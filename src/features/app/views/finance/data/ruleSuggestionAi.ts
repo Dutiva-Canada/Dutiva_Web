@@ -1,3 +1,4 @@
+import { hasMatchingPattern } from './ruleSuggestion'
 import type { RuleSuggestion } from './ruleSuggestion'
 import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from './types'
 import {
@@ -53,14 +54,6 @@ export async function suggestCategoryRulesWithAi(
 
   const existingPatterns = new Set(existingRules.map((r) => r.pattern.toLowerCase()))
 
-  function patternExists(pattern: string): boolean {
-    const p = pattern.toLowerCase()
-    for (const existing of existingPatterns) {
-      if (p === existing || p.includes(existing) || existing.includes(p)) return true
-    }
-    return false
-  }
-
   const suggestions: RuleSuggestion[] = []
 
   for (const cluster of clusters) {
@@ -72,7 +65,7 @@ export async function suggestCategoryRulesWithAi(
       .map((t) => t.toUpperCase())
       .join(' ')
 
-    if (patternExists(pattern)) continue
+    if (hasMatchingPattern(existingPatterns, pattern)) continue
 
     const clusterEmbedding = meanEmbedding(cluster.map((i) => descEmbeddings[i]!))
 

@@ -3,10 +3,10 @@ import type { SubmitEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { ArrowLeft, Check, MessageCircle, Sparkle } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Bi } from '@/i18n/core'
 import { tasksMessages as M } from '@/i18n/messages/tasks'
-import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
-import type { Task, Tone } from '@/data'
+import { taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
+import type { Tone } from '@/data'
+import { linkedFor } from './taskLinkedFor'
 import { statusChipClass } from '@/components/chips'
 import { ChatMarkdown } from '@/components/advisor/ChatMarkdown'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -33,13 +33,6 @@ function loadNotes(): Record<string, DemoNote[]> {
   } catch {
     return {}
   }
-}
-
-function linkedFor(task: Task): Bi | null {
-  const linkedCase = cases.find((c) => c.chatId === task.chatId)
-  if (linkedCase) return linkedCase.title
-  const linkedChat = chats.find((c) => c.id === task.chatId)
-  return linkedChat ? linkedChat.title : null
 }
 
 /** Northgate task detail — fixture plan + per-device notes. `/demo` and demo mode. */
@@ -143,9 +136,7 @@ export function TaskDetailDemoView() {
           {x(task.due)} · {x(M.tasks_owner)}: {task.owner} · {x(task.jur)}
         </div>
         {task.blocked && (
-          <div className="mt-[6px] text-[12.5px] font-semibold text-warn-fg">
-            {x(task.blocked)}
-          </div>
+          <div className="mt-[6px] text-[12.5px] font-semibold text-warn-fg">{x(task.blocked)}</div>
         )}
         {task.evidence && (
           <div className="mt-[6px] text-[12.5px] text-ok-fg">{x(task.evidence)}</div>

@@ -13,7 +13,6 @@ import {
   insertSpendRequest as insertSpendRequestSupa,
   insertTaxObligation as insertTaxObligationSupa,
   insertTaxScenario as insertTaxScenarioSupa,
-  isJournalBalanced as isJournalBalancedSupa,
   loadFinanceStateFromSupabase,
   settlePayrollLiabilityInSupabase,
   markTaxScenarioStaleInSupabase,
@@ -38,6 +37,7 @@ import {
   seedDefaultCategoryRulesInSupabase,
   runAutoCategorizeInSupabase,
 } from './supabaseApi'
+import { isJournalBalanced as isJournalBalancedSupa } from './journalChecks'
 import {
   analyseImportWithAiSupa,
   recordCategorizationFeedbackSupa,

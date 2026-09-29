@@ -25,23 +25,16 @@
  * one surface to reach into another's internals.
  */
 
-const CONSENT_KEY = 'dutiva.analytics.consent'
+import { safeLocalStorage } from './safeStorage'
 
-function defaultStorage(): Storage | null {
-  try {
-    if (typeof window === 'undefined') return null
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
+const CONSENT_KEY = 'dutiva.analytics.consent'
 
 /**
  * Whether the visitor has granted consent for optional analytics. Returns
  * `false` when storage is unavailable or no consent has been recorded — the
  * off-by-default posture the tracking gates depend on.
  */
-export function hasAnalyticsConsent(storage: Storage | null = defaultStorage()): boolean {
+export function hasAnalyticsConsent(storage: Storage | null = safeLocalStorage()): boolean {
   if (!storage) return false
   try {
     return storage.getItem(CONSENT_KEY) === 'true'
@@ -53,7 +46,7 @@ export function hasAnalyticsConsent(storage: Storage | null = defaultStorage()):
 /** Record the visitor's consent choice. Called by the consent banner. */
 export function setAnalyticsConsent(
   granted: boolean,
-  storage: Storage | null = defaultStorage(),
+  storage: Storage | null = safeLocalStorage(),
 ): void {
   if (!storage) return
   try {
@@ -68,7 +61,7 @@ export function setAnalyticsConsent(
  * "declined" (a recorded `false`) from "not yet asked" (no value), so the
  * banner shows on the first visit and stays hidden once a choice exists.
  */
-export function hasConsentResponse(storage: Storage | null = defaultStorage()): boolean {
+export function hasConsentResponse(storage: Storage | null = safeLocalStorage()): boolean {
   if (!storage) return false
   try {
     return storage.getItem(CONSENT_KEY) !== null

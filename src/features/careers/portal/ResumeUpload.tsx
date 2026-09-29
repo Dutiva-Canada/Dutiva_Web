@@ -3,28 +3,11 @@ import { FileText, Loader2, Upload, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { extractTextFromFile, ResumeExtractionError } from '@/lib/fileTextExtraction'
+import { errorMessageForReason } from './fileErrorMessage'
 import { parseResumeText } from './resumeParser'
 import type { CandidateProfileFormValues } from './CandidateProfileForm'
-import type { ExtractionErrorReason } from '@/lib/fileTextExtraction'
 
 type UploadState = 'idle' | 'reading' | 'parsing' | 'done' | 'error'
-
-function errorMessageForReason(reason: ExtractionErrorReason) {
-  switch (reason) {
-    case 'unsupported_type':
-      return M.careers_file_error_unsupported_type
-    case 'empty_file':
-      return M.careers_file_error_empty_file
-    case 'too_large':
-      return M.careers_file_error_too_large
-    case 'corrupt':
-      return M.careers_file_error_corrupt
-    case 'read_failed':
-      return M.careers_file_error_read_failed
-    default:
-      return M.careers_file_error_generic
-  }
-}
 
 interface ResumeUploadProps {
   values: CandidateProfileFormValues

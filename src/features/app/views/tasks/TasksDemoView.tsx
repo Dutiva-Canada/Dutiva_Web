@@ -1,23 +1,16 @@
 import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Bi } from '@/i18n/core'
 import { tasksMessages as M } from '@/i18n/messages/tasks'
-import { cases, chats, taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
+import { taskPriorityLabels, taskPriorityTones, tasks } from '@/data'
 import type { Task, Tone } from '@/data'
+import { linkedFor } from './taskLinkedFor'
 import { statusChipClass } from '@/components/chips'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { bindModuleContext } from '@/features/app/agent/runtime'
 import type { TasksAgentContext } from './agentTools'
 import { taskDetailPath } from './paths'
-
-function linkedFor(task: Task): Bi | null {
-  const linkedCase = cases.find((c) => c.chatId === task.chatId)
-  if (linkedCase) return linkedCase.title
-  const linkedChat = chats.find((c) => c.id === task.chatId)
-  return linkedChat ? linkedChat.title : null
-}
 
 /** Northgate task checklist — demo workspace and public `/demo` only. */
 export function TasksDemoView() {

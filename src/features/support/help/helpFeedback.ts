@@ -13,6 +13,8 @@
  * just can't remember the vote across visits.
  */
 
+import { safeLocalStorage } from '@/lib/safeStorage'
+
 export type Helpfulness = 'yes' | 'no'
 
 const STORAGE_PREFIX = 'dutiva.help.feedback.'
@@ -22,14 +24,6 @@ export function feedbackStorageKey(slug: string): string {
 }
 
 /** The browser's localStorage, or null when it's unavailable/inaccessible. */
-function defaultStorage(): Storage | null {
-  try {
-    if (typeof window === 'undefined') return null
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
 
 function isHelpfulness(value: unknown): value is Helpfulness {
   return value === 'yes' || value === 'no'
@@ -38,7 +32,7 @@ function isHelpfulness(value: unknown): value is Helpfulness {
 /** Any prior vote for this article, or null if none / storage unavailable. */
 export function readHelpfulness(
   slug: string,
-  storage: Storage | null = defaultStorage(),
+  storage: Storage | null = safeLocalStorage(),
 ): Helpfulness | null {
   if (!storage) return null
   try {
@@ -56,7 +50,7 @@ export function readHelpfulness(
 export function recordHelpfulness(
   slug: string,
   value: Helpfulness,
-  storage: Storage | null = defaultStorage(),
+  storage: Storage | null = safeLocalStorage(),
 ): Helpfulness {
   if (storage) {
     try {

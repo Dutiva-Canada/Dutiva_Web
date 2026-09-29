@@ -3,7 +3,6 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 
 import { Pause, Play, Plus, X } from 'lucide-react'
 import { statusChipClass } from '@/components/chips'
-import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 
@@ -22,6 +21,7 @@ import {
   INITIATIVE_TYPE_LABEL,
   RISK_LABEL,
 } from '../commsLabels'
+import { biInput } from '../biInput'
 
 const DOMAINS: CommsDomain[] = [
   'pr',
@@ -47,14 +47,6 @@ const RISKS: CommsRiskLevel[] = ['low', 'medium', 'high', 'critical']
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
-
-function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
-}
 
 function InitiativeForm({
   editing,

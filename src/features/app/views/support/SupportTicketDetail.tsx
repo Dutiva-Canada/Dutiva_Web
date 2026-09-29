@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
+import { formatDateTime } from './supportDates'
 import { STATUS_LABELS, supportCategory } from '@/config/support'
 import {
   confirmScheduledCall,
@@ -26,13 +27,6 @@ type State =
   | { kind: 'error' }
   | { kind: 'not_found' }
   | { kind: 'ready'; ticket: SupportTicketThread }
-
-function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
-  return new Date(iso).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
 
 /** Display label for a message author: you / Dutiva / system. */
 function authorLabelForRole(
