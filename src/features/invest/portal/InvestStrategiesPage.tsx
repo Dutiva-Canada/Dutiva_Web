@@ -136,17 +136,19 @@ export function InvestStrategiesPage() {
           type="button"
           aria-expanded={showPickers}
           aria-controls="invest-create"
+          aria-label={x(IM.invest_add_strategy)}
           onClick={() => setCreateOpen(!(createOpen ?? state.strategies.length === 0))}
           className="flex w-full cursor-pointer items-center justify-between gap-[10px] border-none bg-transparent p-0 text-left"
         >
-          <span className="text-[14px] font-semibold text-text">{x(IM.invest_add_strategy)}</span>
-          <span className="flex items-center gap-[8px] text-[11.5px] text-text-muted">
+          <span aria-hidden="true" className="text-[14px] font-semibold text-text">
+            {x(IM.invest_add_strategy)}
+          </span>
+          <span
+            aria-hidden="true"
+            className="flex items-center gap-[8px] text-[11.5px] text-text-muted"
+          >
             {x(IM.invest_create_sub)}
-            {showPickers ? (
-              <ChevronUp size={14} aria-hidden="true" />
-            ) : (
-              <ChevronDown size={14} aria-hidden="true" />
-            )}
+            {showPickers ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </span>
         </button>
         {showPickers && (
