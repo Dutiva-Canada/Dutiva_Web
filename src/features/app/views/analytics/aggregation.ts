@@ -171,7 +171,7 @@ export function caseAging<T extends { openedISO: string }>(
 
 /* --------------------------------------------------------- expiry buckets */
 
-interface ExpiryBuckets<T> {
+export interface ExpiryBuckets<T> {
   expired: T[]
   /** Due within 30 days (inclusive), starting today. */
   within30: T[]
