@@ -132,6 +132,17 @@ describe('SEO route registry', () => {
     expect(alternatePathFor('/nope', 'fr')).toBeUndefined()
   })
 
+  it('maps careers job detail pages between locales, keeping the slug', () => {
+    // Dynamic routes live outside the static registry — the slug must
+    // survive the hop, and the FR mount is /fr/carrieres, not /fr/careers.
+    expect(alternatePathFor('/careers/jobs/senior-pm-jp-1', 'fr')).toBe(
+      '/fr/carrieres/jobs/senior-pm-jp-1',
+    )
+    expect(alternatePathFor('/fr/carrieres/jobs/senior-pm-jp-1', 'en')).toBe(
+      '/careers/jobs/senior-pm-jp-1',
+    )
+  })
+
   it('derives locale from the URL prefix', () => {
     expect(langOfPath('/')).toBe('en')
     expect(langOfPath('/legal/terms')).toBe('en')
