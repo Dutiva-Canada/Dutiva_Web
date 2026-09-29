@@ -1,8 +1,11 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import { Loader2, Plus, ScanSearch, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { RULE_METRIC_LABELS, ruleSentence } from '@/features/invest/data/strategyRules'
+import { relTimeLabel } from './relTime'
+import { fill } from '@/lib/format'
 import type { InvestStrategy, QuantityUnit, StrategyCadence } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import {
@@ -255,23 +258,36 @@ export function InvestStrategiesPage() {
             {state.runs.map((r) => {
               const hitEntries = Object.entries(r.ruleHits)
               const strategyName = r.strategyId
-                ? (state.strategies.find((s) => s.id === r.strategyId)?.name ?? null)
-                : null
+                ? (state.strategies.find((s) => s.id === r.strategyId)?.name ??
+                  x(IM.invest_run_deleted_strategy))
+                : x(IM.invest_run_sweep)
+              const when = relTimeLabel(r.ranAt, x) ?? new Date(r.ranAt).toLocaleDateString()
               return (
                 <li key={r.id} className="flex flex-col gap-[3px] py-[9px] text-[12.5px]">
                   <div className="flex flex-wrap items-center justify-between gap-[12px]">
-                    <span className="text-text-2">
-                      {new Date(r.ranAt).toLocaleString()}
-                      {strategyName && ` — ${strategyName}`}
+                    <span className="text-text-2" title={new Date(r.ranAt).toLocaleString()}>
+                      {when} — {strategyName}
                     </span>
                     <span className="text-text-muted">
-                      {x(IM.invest_run_summary)
-                        .replace('{signals}', String(r.signalsEmitted))
-                        .replace('{proposals}', String(r.proposalsCreated))}
+                      {fill(x(IM.invest_run_summary), {
+                        signals: r.signalsEmitted,
+                        proposals: r.proposalsCreated,
+                      })}
                       {r.symbolsScanned.length > 0 &&
-                        ` · ${x(IM.invest_run_scanned).replace('{count}', String(r.symbolsScanned.length))}`}
+                        ` · ${fill(x(IM.invest_run_scanned), { count: r.symbolsScanned.length })}`}
                       {r.durationMs !== null &&
-                        ` · ${x(IM.invest_run_duration).replace('{seconds}', (r.durationMs / 1000).toFixed(1))}`}
+                        ` · ${fill(x(IM.invest_run_duration), { seconds: (r.durationMs / 1000).toFixed(1) })}`}
+                      {r.proposalsCreated > 0 && (
+                        <>
+                          {' · '}
+                          <Link
+                            to="/invest/orders"
+                            className="font-semibold text-navy underline underline-offset-2 hover:text-text"
+                          >
+                            {x(IM.invest_run_view_orders)}
+                          </Link>
+                        </>
+                      )}
                     </span>
                     <span
                       className={`rounded-full px-[8px] py-[2px] text-[10.5px] font-semibold ${

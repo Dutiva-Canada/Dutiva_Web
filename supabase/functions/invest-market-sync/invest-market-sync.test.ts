@@ -9,6 +9,7 @@ import {
   parseRssItems,
   parseStooqCloses,
   parseStooqQuotes,
+  scopeAssetClass,
   stooqSymbol,
   validateSyncAction,
 } from './handlers'
@@ -18,6 +19,16 @@ describe('coingeckoId', () => {
     expect(coingeckoId('BTC')).toBe('bitcoin')
     expect(coingeckoId(' eth ')).toBe('ethereum')
     expect(coingeckoId('PEPE')).toBe('pepe')
+  })
+})
+
+describe('scopeAssetClass', () => {
+  it('routes CoinGecko-known tickers to crypto, everything else to equity', () => {
+    expect(scopeAssetClass('BTC')).toBe('crypto')
+    expect(scopeAssetClass(' eth ')).toBe('crypto')
+    expect(scopeAssetClass('SHOP')).toBe('equity')
+    /* Explicit exchanges stay equity even on a name collision. */
+    expect(scopeAssetClass('LINK.TO')).toBe('equity')
   })
 })
 
@@ -49,7 +60,8 @@ describe('parseStooqQuotes', () => {
 describe('parseStooqCloses / computeMa', () => {
   it('extracts closes oldest-first and averages the tail', () => {
     const rows = ['Date,Open,High,Low,Close,Volume']
-    for (let i = 1; i <= 60; i++) rows.push(`2026-08-${String(i % 28 + 1).padStart(2, '0')},0,0,0,${100 + i},0`)
+    for (let i = 1; i <= 60; i++)
+      rows.push(`2026-08-${String((i % 28) + 1).padStart(2, '0')},0,0,0,${100 + i},0`)
     const closes = parseStooqCloses(rows.join('\n'))
     expect(closes).toHaveLength(60)
     /* last 50 closes: 111..160 → mean 135.5 */

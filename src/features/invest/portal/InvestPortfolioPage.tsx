@@ -130,7 +130,9 @@ export function InvestPortfolioPage() {
         </div>
         <AccountForm busy={busy} onCreate={(input) => run(() => createAccount(input))} />
         {state.accounts.length === 0 ? (
-          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">{x(IM.invest_accounts_empty)}</p>
+          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
+            {x(IM.invest_accounts_empty)}
+          </p>
         ) : (
           <ul className="m-0 mt-[12px] flex list-none flex-wrap gap-[10px] p-0">
             {state.accounts.map((a) => (
@@ -186,7 +188,9 @@ export function InvestPortfolioPage() {
                         <span className="font-semibold text-text">{p.symbol}</span>
                         <span className="ml-[6px] text-text-muted">{p.name}</span>
                       </td>
-                      <td className="py-[9px] pr-[12px] text-text-2">{x(IM[assetLabel[p.assetClass]])}</td>
+                      <td className="py-[9px] pr-[12px] text-text-2">
+                        {x(IM[assetLabel[p.assetClass]])}
+                      </td>
                       <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
                         {p.quantity}
                       </td>
@@ -238,9 +242,13 @@ export function InvestPortfolioPage() {
                 className="flex items-center gap-[8px] rounded-full border border-border bg-inset py-[4px] pr-[6px] pl-[12px]"
               >
                 <span className="text-[12.5px] font-semibold text-text">{w.symbol}</span>
-                <span className="text-[11px] text-text-muted">{x(IM[assetLabel[w.assetClass]])}</span>
+                <span className="text-[11px] text-text-muted">
+                  {x(IM[assetLabel[w.assetClass]])}
+                </span>
                 {w.name && w.name !== w.symbol && (
-                  <span className="max-w-[140px] truncate text-[11px] text-text-muted">{w.name}</span>
+                  <span className="max-w-[140px] truncate text-[11px] text-text-muted">
+                    {w.name}
+                  </span>
                 )}
                 <button
                   type="button"
@@ -553,7 +561,13 @@ function PositionForm({
   )
 }
 
-function PriceEditor({ busy, onSave }: { busy: boolean; onSave: (price: number) => Promise<void> }) {
+function PriceEditor({
+  busy,
+  onSave,
+}: {
+  busy: boolean
+  onSave: (price: number) => Promise<void>
+}) {
   const { x } = useI18n()
   const [open, setOpen] = useState(false)
   const [price, setPrice] = useState('')

@@ -149,7 +149,7 @@ export const investMessages = defineMessages({
   invest_rule_metric_weight: { en: 'Book weight %', fr: 'Poids dans le portefeuille %' },
   invest_rule_metric_gain: { en: 'Gain vs cost %', fr: 'Gain vs coût %' },
   invest_rule_metric_cash: { en: 'Cash balance', fr: 'Solde de l’encaisse' },
-  invest_cadence_label: { en: 'Runs', fr: 'Fréquence' },
+  invest_cadence_label: { en: 'Scan cadence', fr: 'Fréquence d’analyse' },
   invest_cadence_daily: { en: 'Daily', fr: 'Quotidienne' },
   invest_cadence_weekly: { en: 'Weekly', fr: 'Hebdomadaire' },
   invest_cadence_monthly: { en: 'Monthly', fr: 'Mensuelle' },
@@ -239,6 +239,10 @@ export const investMessages = defineMessages({
   invest_notify_via: { en: 'Notify me via', fr: 'M’avertir par' },
   invest_notify_in_app: { en: 'In-app', fr: 'Dans l’app' },
   invest_notify_email: { en: 'Email', fr: 'Courriel' },
+  invest_notify_email_note: {
+    en: 'Email delivery isn’t available yet — this saves your preference for when it is.',
+    fr: 'La livraison par courriel n’est pas encore offerte — le réglage conserve votre préférence.',
+  },
   invest_scan_now: { en: 'Scan now', fr: 'Analyser maintenant' },
   invest_scanning: { en: 'Scanning…', fr: 'Analyse…' },
   invest_scan_caption: {
@@ -255,6 +259,14 @@ export const investMessages = defineMessages({
     fr: 'Pas encore d’historique de déclenchement',
   },
   invest_health_warnings: { en: 'Warnings', fr: 'Avertissements' },
+  invest_health_no_price: {
+    en: '{symbols}: no price data yet — prices sync daily.',
+    fr: '{symbols} : aucun cours — synchronisation quotidienne.',
+  },
+  invest_health_stale_price: {
+    en: '{symbols}: price is over 48 h old — check Refresh prices.',
+    fr: '{symbols} : cours vieux de plus de 48 h — essayez Actualiser les cours.',
+  },
   invest_test_scan: { en: 'Test scan', fr: 'Analyse d’essai' },
   invest_test_scan_result: {
     en: '{symbols} symbol(s) scanned · {signals} signal(s) · {proposals} proposal(s)',
@@ -262,6 +274,14 @@ export const investMessages = defineMessages({
   },
   invest_run_scanned: { en: '{count} symbol(s) scanned', fr: '{count} symbole(s) analysé(s)' },
   invest_run_duration: { en: '{seconds}s', fr: '{seconds} s' },
+  invest_run_sweep: { en: 'Bot sweep', fr: 'Balayage général' },
+  invest_run_deleted_strategy: { en: 'deleted strategy', fr: 'stratégie supprimée' },
+  invest_run_view_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
+  invest_time_now: { en: 'just now', fr: 'à l’instant' },
+  invest_time_min_ago: { en: '{count} min ago', fr: 'il y a {count} min' },
+  invest_time_hr_ago: { en: '{count} h ago', fr: 'il y a {count} h' },
+  invest_time_day_ago: { en: '{count} d ago', fr: 'il y a {count} j' },
+  invest_order_proposed: { en: 'proposed {ago}', fr: 'proposé {ago}' },
   invest_runs_title: { en: 'Run history', fr: 'Historique d’exécution' },
   invest_run_summary: {
     en: '{signals} signal(s) · {proposals} proposal(s)',

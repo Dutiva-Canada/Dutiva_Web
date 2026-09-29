@@ -10,6 +10,7 @@ import {
   parseRssItems,
   parseStooqCloses,
   parseStooqQuotes,
+  scopeAssetClass,
   stooqSymbol,
   validateSyncAction,
   type SyncTarget,
@@ -269,9 +270,10 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
   }
 
   /* Strategy-scoped symbols (scope.symbols, 0184) are bare tickers —
-     default them to equity and skip any symbol a position/watchlist row
-     already covers under its real asset class. A pre-0184 project has no
-     `scope` column, so a query error is tolerated. */
+     route a ticker CoinGecko knows to the crypto feed, default the rest
+     to equity, and skip any symbol a position/watchlist row already
+     covers under its real asset class. A pre-0184 project has no `scope`
+     column, so a query error is tolerated. */
   const covered = new Set(targets.map((t) => t.symbol.toUpperCase()))
   if (!stratRes.error) {
     for (const row of stratRes.data ?? []) {
@@ -281,8 +283,9 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
         const symbol = String(raw).toUpperCase().trim()
         if (!symbol || covered.has(symbol)) continue
         covered.add(symbol)
-        seen.add(`equity:${symbol}`)
-        targets.push({ user_id: userId, asset_class: 'equity', symbol, name: '' })
+        const assetClass = scopeAssetClass(symbol)
+        seen.add(`${assetClass}:${symbol}`)
+        targets.push({ user_id: userId, asset_class: assetClass, symbol, name: '' })
       }
     }
   }
