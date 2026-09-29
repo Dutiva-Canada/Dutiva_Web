@@ -2,7 +2,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 import { ClipboardX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
-import { fill } from './format'
+import { fill } from '@/lib/format'
 
 /**
  * Service milestones due within 30 days: name, role, jurisdiction, end

@@ -6,6 +6,7 @@ export function fill(template: string, values: Record<string, string | number>):
   )
 }
 
+/** Currency amount, whole units. */
 export function formatCurrency(value: number, currency: string): string {
   return new Intl.NumberFormat('en-CA', {
     style: 'currency',

@@ -16,7 +16,7 @@ import { EntityLinksPanel } from '@/features/app/entityLinks/EntityLinksPanel'
 import type { LinkCandidate } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
 import type { RevenueInvoice, RevenueInvoiceStatus, RevenueCurrency } from '../data/types'
-import { formatCurrency } from '../data/format'
+import { formatCurrency } from '@/lib/format'
 
 const STATUSES: RevenueInvoiceStatus[] = ['draft', 'sent', 'paid', 'overdue', 'cancelled']
 const CURRENCIES: RevenueCurrency[] = ['CAD', 'USD', 'EUR', 'GBP']

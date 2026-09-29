@@ -29,7 +29,7 @@ import { listEntityLinks } from '@/features/app/entityLinks/data/productionApi'
 import { entityLinks as fixtureLinks } from '@/features/app/entityLinks/data/fixtures'
 import type { EntityLink } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
-import { fill, formatCurrency } from '../data/format'
+import { fill, formatCurrency } from '@/lib/format'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const STAGE_ORDER = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'] as const

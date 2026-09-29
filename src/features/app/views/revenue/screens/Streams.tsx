@@ -22,7 +22,7 @@ import type {
   RevenueStreamFrequency,
   RevenueCurrency,
 } from '../data/types'
-import { formatCurrency } from '../data/format'
+import { formatCurrency } from '@/lib/format'
 
 const STATUSES: RevenueStreamStatus[] = ['active', 'paused', 'completed', 'cancelled']
 const TYPES: RevenueStreamType[] = ['recurring', 'one_time']

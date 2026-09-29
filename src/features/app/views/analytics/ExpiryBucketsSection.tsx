@@ -5,7 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import { statusChipClass } from '@/components/chips'
 import { StatTile } from './StatTile'
-import { fill } from './format'
+import { fill } from '@/lib/format'
 
 /**
  * Shared body for the certification/training and document-expiry cards:

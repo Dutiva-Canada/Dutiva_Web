@@ -128,14 +128,8 @@ import {
   weightedComponent,
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
-import {
-  fill,
-  formatCurrency,
-  formatDayISO,
-  formatPct,
-  formatSignedDecimal,
-  intlLocale,
-} from './format'
+import { fill, formatCurrency } from '@/lib/format'
+import { formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**

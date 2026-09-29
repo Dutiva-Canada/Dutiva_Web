@@ -4,15 +4,16 @@ import { useMdUp } from '@/lib/useMediaQuery'
 import { supportMessages as M } from '@/i18n/messages/support'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
 import { listExportEvents, lookupExport } from '@/features/support/exportAuditApi'
-import type {
-  ExportAuditFilters,
-  ExportEventRow,
-  ExportSurface,
-  ExportKind,
-} from '@/features/support/exportAuditApi'
+import type { ExportAuditFilters, ExportEventRow } from '@/features/support/exportAuditApi'
+import {
+  EXPORT_KINDS,
+  EXPORT_SURFACES,
+  type ExportKind,
+  type ExportSurface,
+} from '@/lib/exportProtection/localAudit'
 
-const SURFACES: readonly ExportSurface[] = ['docstudio', 'doclib', 'memory', 'advisor']
-const KINDS: readonly ExportKind[] = ['pdf', 'word', 'link', 'json', 'text']
+const SURFACES = EXPORT_SURFACES
+const KINDS = EXPORT_KINDS
 const PER_PAGE = 50
 
 const selectClass =

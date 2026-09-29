@@ -45,7 +45,8 @@ import {
   scoreDelta,
 } from './aggregation'
 import { attentionChipLabel, attentionSecondary } from './attentionLabels'
-import { fill, formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
+import { fill } from '@/lib/format'
+import { formatDayISO, formatPct, formatSignedDecimal, intlLocale } from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
 
 /**
