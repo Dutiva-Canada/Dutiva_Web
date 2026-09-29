@@ -39,6 +39,7 @@
  * as a repository variable) plus the project URL.
  */
 
+import './lib/env.mjs'
 import { appendFile } from 'node:fs/promises'
 import { cleanSecret, describeSecret } from './lib/secrets.mjs'
 

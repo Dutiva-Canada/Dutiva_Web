@@ -45,6 +45,9 @@ export type StrategyRule = SignalRule | OrderProposalRule
 
 export interface Strategy {
   id: string
+  /** Display name for alert emails; optional so loaders on pre-0184
+      schemas (and test fixtures) still typecheck. */
+  name?: string
   enabled: boolean
   /** Resolved, uppercased symbol universe — index.ts expands the stored
       scope ({watchlist, symbols}) into this list before planning. */
@@ -52,6 +55,8 @@ export interface Strategy {
   rules: StrategyRule[]
   cadence: StrategyCadence
   last_evaluated_at: string | null
+  /** notify.email — send one summary email per scan that produced hits. */
+  notify_email?: boolean
 }
 
 export interface MarketSnapshot {
@@ -106,6 +111,13 @@ const METRICS: readonly string[] = [
   'cash_above',
 ]
 export const CADENCES: readonly string[] = ['daily', 'weekly', 'monthly']
+
+/** A draft proposal's evidence is the snapshot that fired it — stale within
+    days. Runs sweep drafts older than this to 'expired' (migration 0185). */
+export const DRAFT_EXPIRY_DAYS = 7
+export function draftExpiryCutoff(now: Date = new Date()): string {
+  return new Date(now.getTime() - DRAFT_EXPIRY_DAYS * 86_400_000).toISOString()
+}
 const OPS: readonly string[] = ['lt', 'gt']
 const SEVERITIES: readonly string[] = ['insight', 'alert']
 const SIDES: readonly string[] = ['buy', 'sell']
@@ -567,4 +579,56 @@ export function validateBotAction(
     return { ok: true, value: action }
   }
   return { ok: false, error: `Unknown action: ${String(action)}` }
+}
+
+/* --- Email summaries --------------------------------------------------------- */
+
+export interface SignalEmailSummary {
+  strategyName: string
+  /** Human-readable signal lines, e.g. "SHOP fell 6% in a day (SHOP)". */
+  signals: string[]
+  /** Human-readable proposal lines, e.g. "buy 10 SHOP". */
+  proposals: string[]
+  /** Portal URL the review link points at (…/invest). */
+  portalUrl: string
+}
+
+/** Bilingual plain-text summary for a scan that produced hits. One email per
+    strategy per run — never per hit. Proposals are labelled drafts so the
+    email can't read as a trade confirmation. */
+export function buildSignalEmail(s: SignalEmailSummary): { subject: string; text: string } {
+  const total = s.signals.length + s.proposals.length
+  const lines = (items: string[]) => items.map((i) => `— ${i}`).join('\n')
+  const en = [
+    `"${s.strategyName}" produced ${total} hit(s) in its latest scan.`,
+    '',
+    ...(s.signals.length > 0 ? ['Signals', lines(s.signals), ''] : []),
+    ...(s.proposals.length > 0
+      ? [
+          'Order proposals — drafts only; nothing executes without your approval.',
+          lines(s.proposals),
+          '',
+        ]
+      : []),
+    `Review: ${s.portalUrl}`,
+    'You’re receiving this because email alerts are on for this strategy.',
+  ].join('\n')
+  const fr = [
+    `« ${s.strategyName} » a produit ${total} déclenchement(s) dans sa dernière analyse.`,
+    '',
+    ...(s.signals.length > 0 ? ['Signaux', lines(s.signals), ''] : []),
+    ...(s.proposals.length > 0
+      ? [
+          'Propositions d’ordre — brouillons seulement; rien ne s’exécute sans votre approbation.',
+          lines(s.proposals),
+          '',
+        ]
+      : []),
+    `Révision : ${s.portalUrl}`,
+    'Vous recevez ce courriel parce que les alertes par courriel sont activées pour cette stratégie.',
+  ].join('\n')
+  return {
+    subject: `Dutiva Invest — ${s.strategyName}`,
+    text: `${en}\n\n—\n\n${fr}`,
+  }
 }

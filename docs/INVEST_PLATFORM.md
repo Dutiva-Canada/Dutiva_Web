@@ -36,7 +36,7 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 | `invest_market_snapshots` | Latest price per (user, class, symbol) — `source` records `manual` / `coingecko` / `stooq`                                                                                                                                                                                                                                                    |
 | `invest_strategies`       | Bot rule sets: `rules jsonb`, `enabled`, `cadence` (`daily` \| `weekly` \| `monthly`), `last_evaluated_at`, `template` (`tpl:*` / `ai-draft` / `''`), `scope` (`{watchlist, symbols[]}` — never empty, 0184), `notify` (`{in_app, email}`, 0184). `autonomy` is deprecated — per-rule `type` replaced it and all rows were reset to `suggest` |
 | `invest_signals`          | Bot output: `screen` \| `insight` \| `alert` \| `thesis`, triage status `new` → `acknowledged`/`dismissed`; `title_fr`/`body_fr` carry AI-authored bilingual insight text                                                                                                                                                                     |
-| `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`; `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                                             |
+| `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`/`expired` (0185); `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                                             |
 | `invest_bot_runs`         | Run log: counts + summary per sweep + diagnostics (0184): `symbols_scanned[]`, `rule_hits` (title → count), `duration_ms`, `strategy_id` (targeted test scans)                                                                                                                                                                                |
 
 Two more tables came with `0183_invest_watchlist_news.sql`:
@@ -82,6 +82,22 @@ user's first active paper account and dedupes against open drafts —
 including drafts planned earlier in the same run. **The bot never
 executes** — `paper_execute` autonomy was removed; approval is a human
 clicking execute in the Orders tab.
+
+**Draft expiry (0185)** — a proposal's evidence is the snapshot that fired
+it, which goes stale within days. Every `run`/`run-all` first sweeps the
+caller's drafts older than `DRAFT_EXPIRY_DAYS` (7) to `expired` — a
+terminal, non-actionable status that frees the dedupe slot so a re-firing
+rule proposes fresh evidence. The Orders tab renders `expired` as a muted
+chip with its proposed age.
+
+**Email alerts (0185)** — a strategy with `notify.email` gets one bilingual
+(EN + FR) plain-text summary per scan that produced hits: signal lines,
+proposal lines labelled drafts-only, and a portal link. Sent via
+`RESEND_API_KEY` through `_shared/resendSend.ts` to `profiles.account_email`
+(falling back to the auth email); sender is `INVEST_EMAIL_FROM`, falling
+back to the already-configured `SUPPORT_EMAIL_FROM`. No key configured →
+nothing sends;
+a send failure becomes a run warning, never a failed scan.
 
 **Run history (0184)** — one `invest_bot_runs` row per evaluated strategy
 (`strategy_id`, `symbols_scanned`, per-rule `rule_hits`, `duration_ms`),
