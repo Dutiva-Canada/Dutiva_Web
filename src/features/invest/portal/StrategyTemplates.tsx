@@ -1,5 +1,17 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, LayoutTemplate } from 'lucide-react'
+import {
+  CalendarPlus,
+  ChevronDown,
+  ChevronUp,
+  Coins,
+  LayoutTemplate,
+  LineChart,
+  PieChart,
+  Scale,
+  TrendingDown,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { RULE_METRIC_LABELS, ruleSentence } from '@/features/invest/data/strategyRules'
@@ -14,6 +26,18 @@ const cadenceLabel: Record<StrategyCadence, keyof typeof IM> = {
   daily: 'invest_cadence_daily',
   weekly: 'invest_cadence_weekly',
   monthly: 'invest_cadence_monthly',
+}
+
+/** Visual anchor per template — keyed by slug so the data file stays
+    icon-free. */
+const TEMPLATE_ICONS: Record<string, LucideIcon> = {
+  'rebalance-drift': Scale,
+  'concentration-cap': PieChart,
+  'buy-the-dip': TrendingDown,
+  'momentum-guard': LineChart,
+  'trim-winners': TrendingUp,
+  'cash-sweep': Coins,
+  'monthly-accumulate': CalendarPlus,
 }
 
 /** The template gallery — each card previews its rules and lets the user
@@ -53,13 +77,17 @@ export function StrategyTemplates({
         {STRATEGY_TEMPLATES.map((t) => {
           const cadence = cadenceBySlug[t.slug] ?? t.cadence
           const open = openSlug === t.slug
+          const Icon = TEMPLATE_ICONS[t.slug] ?? LayoutTemplate
           return (
             <li
               key={t.slug}
               className="flex flex-col gap-[8px] rounded-[10px] border border-border bg-inset p-[12px]"
             >
               <div className="flex items-start justify-between gap-[8px]">
-                <p className="m-0 text-[13px] font-semibold text-text">{x(t.name)}</p>
+                <p className="m-0 flex items-center gap-[7px] text-[13.5px] font-semibold text-text">
+                  <Icon size={14} className="shrink-0 text-gold-fg" aria-hidden="true" />
+                  {x(t.name)}
+                </p>
                 <label className="flex shrink-0 items-center gap-[5px] text-[10px] font-semibold text-text-2">
                   {x(IM.invest_cadence_label)}
                   <select

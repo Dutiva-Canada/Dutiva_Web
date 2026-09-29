@@ -6,8 +6,9 @@ import {
   ruleFireCount,
   ruleSentence,
   scopeIsEmpty,
+  staleScopeSymbols,
 } from './strategyRules'
-import type { InvestBotRun, InvestSignal, StrategyRule } from './types'
+import type { InvestBotRun, InvestSignal, MarketSnapshot, StrategyRule } from './types'
 
 const en = (m: string) => ({ en: m, fr: m })
 
@@ -186,5 +187,35 @@ describe('ruleFireCount / estimateFrequency', () => {
     expect(f).not.toBeNull()
     expect(f!.perWeek).toBeCloseTo(0.2) /* 3 hits / (90/7 weeks) ≈ 0.2 */
     expect(estimateFrequency([rule], null, runs, signals, now)).toBeNull()
+  })
+})
+
+describe('staleScopeSymbols', () => {
+  const now = new Date('2026-03-01T12:00:00Z')
+  const snap = (symbol: string, asOf: string): MarketSnapshot => ({
+    assetClass: 'equity',
+    symbol,
+    price: 100,
+    dayChangePct: 0,
+    ma50: 95,
+    currency: 'CAD',
+    source: 'stooq',
+    asOf,
+  })
+
+  it('flags missing snapshots and prices older than 48 h', () => {
+    const r = staleScopeSymbols(
+      ['FRESH', 'OLD', 'NONE'],
+      [snap('FRESH', '2026-03-01T00:00:00Z'), snap('OLD', '2026-02-26T00:00:00Z')],
+      now,
+    )
+    expect(r.missing).toEqual(['NONE'])
+    expect(r.stale).toEqual(['OLD'])
+  })
+
+  it('matches symbols case-insensitively and tolerates bad timestamps', () => {
+    const r = staleScopeSymbols(['shop'], [snap('SHOP', 'not-a-date')], now)
+    expect(r.missing).toEqual([])
+    expect(r.stale).toEqual([])
   })
 })

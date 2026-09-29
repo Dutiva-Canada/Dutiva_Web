@@ -85,7 +85,11 @@ export function InvestAuthPanel() {
               onChange={(e) => setCode(e.target.value)}
               className={`${fieldClass} text-center text-[18px] tracking-[0.4em]`}
             />
-            <button type="submit" disabled={verifying || code.trim().length === 0} className={primaryBtnClass}>
+            <button
+              type="submit"
+              disabled={verifying || code.trim().length === 0}
+              className={primaryBtnClass}
+            >
               {verifying && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
               {x(IM.invest_signin_verify)}
             </button>

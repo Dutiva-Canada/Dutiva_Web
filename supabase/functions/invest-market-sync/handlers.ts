@@ -41,15 +41,24 @@ export function coingeckoId(symbol: string): string {
   return COINGECKO_IDS[sym] ?? sym.toLowerCase()
 }
 
+/** Asset class for a bare scope symbol: crypto iff the ticker has an
+    explicit CoinGecko id, else equity. Deliberately conservative — an
+    unknown ticker is a Stooq attempt, not a CoinGecko guess. */
+export function scopeAssetClass(symbol: string): 'crypto' | 'equity' {
+  return symbol.trim().toUpperCase() in COINGECKO_IDS ? 'crypto' : 'equity'
+}
+
 /**
  * Portal symbol → Stooq ticker. Explicit exchanges keep their suffix
  * (lowercased); bare symbols default to the US listing.
  */
 export function stooqSymbol(symbol: string): { ticker: string; currency: string } {
   const sym = symbol.trim().toUpperCase()
-  if (sym.endsWith('.TO')) return { ticker: `${sym.slice(0, -3).toLowerCase()}.to`, currency: 'CAD' }
+  if (sym.endsWith('.TO'))
+    return { ticker: `${sym.slice(0, -3).toLowerCase()}.to`, currency: 'CAD' }
   if (sym.endsWith('.V')) return { ticker: `${sym.slice(0, -2).toLowerCase()}.v`, currency: 'CAD' }
-  if (sym.endsWith('.US')) return { ticker: `${sym.slice(0, -3).toLowerCase()}.us`, currency: 'USD' }
+  if (sym.endsWith('.US'))
+    return { ticker: `${sym.slice(0, -3).toLowerCase()}.us`, currency: 'USD' }
   return { ticker: `${sym.toLowerCase()}.us`, currency: 'USD' }
 }
 
@@ -108,10 +117,18 @@ export function parseCoingeckoSimple(
     const usd = Number(o['usd'])
     if (Number.isFinite(cad) && cad > 0) {
       const chg = Number(o['cad_24h_change'])
-      out.set(id, { price: cad, currency: 'CAD', day_change_pct: Number.isFinite(chg) ? chg : null })
+      out.set(id, {
+        price: cad,
+        currency: 'CAD',
+        day_change_pct: Number.isFinite(chg) ? chg : null,
+      })
     } else if (Number.isFinite(usd) && usd > 0) {
       const chg = Number(o['usd_24h_change'])
-      out.set(id, { price: usd, currency: 'USD', day_change_pct: Number.isFinite(chg) ? chg : null })
+      out.set(id, {
+        price: usd,
+        currency: 'USD',
+        day_change_pct: Number.isFinite(chg) ? chg : null,
+      })
     }
   }
   return out

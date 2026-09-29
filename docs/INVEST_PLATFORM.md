@@ -114,8 +114,9 @@ no insights, never a failed run.
 - Only symbols the user actually references (snapshots ∪ positions ∪
   watchlist ∪ explicit `scope.symbols` on enabled strategies, 0184) are
   fetched; unknown symbols land in `failed` and are reported back.
-  Strategy-scoped tickers are bare symbols, so they sync as `equity` —
-  crypto tickers entered this way won't resolve.
+  Strategy-scoped tickers are bare symbols: a ticker CoinGecko knows
+  (`COINGECKO_IDS`) routes to the crypto feed, everything else syncs as
+  `equity`.
 - **News refresh (0183)** — both actions also rebuild `invest_market_news`:
   `newsQueries` turns the synced universe into Google News RSS queries
   (one general CA-market feed + one per distinct symbol, company names

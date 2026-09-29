@@ -10,6 +10,7 @@ import {
   estimateFrequency,
   ruleFireCount,
   scopeIsEmpty,
+  staleScopeSymbols,
 } from '@/features/invest/data/strategyRules'
 import type { InvestStrategy, StrategyCadence, StrategyRule } from '@/features/invest/data/types'
 import { RuleCard } from './RuleCard'
@@ -106,8 +107,17 @@ export function StrategyForm({
           `${r.title || r.metric}: ${x(IM.invest_cadence_mismatch).replace('{cadence}', x(IM[cadenceLabel[cadence]]).toLowerCase())}`,
         )
     }
+    /* A rule can't fire on a symbol with no snapshot — and a stale one is
+       silently evaluated against old prices. Surface both. */
+    const priceHealth = staleScopeSymbols(resolvedSymbols, state.snapshots, now)
+    if (priceHealth.missing.length > 0) {
+      w.push(x(IM.invest_health_no_price).replace('{symbols}', priceHealth.missing.join(', ')))
+    }
+    if (priceHealth.stale.length > 0) {
+      w.push(x(IM.invest_health_stale_price).replace('{symbols}', priceHealth.stale.join(', ')))
+    }
     return w
-  }, [scope, rules, cadence, x])
+  }, [scope, rules, cadence, resolvedSymbols, state.snapshots, now, x])
 
   const frequency = useMemo(
     () => estimateFrequency(rules, initial?.id ?? null, state.runs, state.signals, now),
@@ -283,6 +293,42 @@ export function StrategyForm({
         )}
       </div>
 
+      {/* Health — estimated firing, warnings, dry-run scan. Sits above the
+          rules so warnings are read before the rules that cause them. */}
+      <div className="rounded-[10px] border border-border bg-inset p-[12px]">
+        <p className="m-0 text-[12px] font-semibold text-text">{x(IM.invest_health_title)}</p>
+        <p className="m-0 mt-[4px] text-[11.5px] text-text-2">
+          {frequency === null
+            ? x(IM.invest_health_no_history)
+            : x(IM.invest_health_frequency).replace('{count}', String(frequency.perWeek))}
+        </p>
+        {warnings.length > 0 && (
+          <ul className="m-0 mt-[6px] flex list-none flex-col gap-[3px] p-0">
+            {warnings.map((w, i) => (
+              <li
+                key={i}
+                className="flex items-center gap-[5px] text-[11.5px] font-semibold text-risk-fg"
+              >
+                <TriangleAlert size={12} aria-hidden="true" />
+                {w}
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
+          <button
+            type="button"
+            disabled={busy || testing || scopeIsEmpty(scope)}
+            onClick={() => void runTestScan()}
+            className={ghostBtnClass}
+          >
+            <FlaskConical size={13} aria-hidden="true" />
+            {x(IM.invest_test_scan)}
+          </button>
+          {testResult && <p className="m-0 text-[11.5px] text-text-2">{testResult}</p>}
+        </div>
+      </div>
+
       {/* Rules — stacked cards, each one reads as a sentence. */}
       <div>
         <span className={labelClass}>{x(IM.invest_strategy_rules)}</span>
@@ -333,41 +379,9 @@ export function StrategyForm({
             {x(IM.invest_notify_email)}
           </button>
         </div>
-      </div>
-
-      {/* Health — estimated firing, warnings, dry-run scan. */}
-      <div className="rounded-[10px] border border-border bg-inset p-[12px]">
-        <p className="m-0 text-[12px] font-semibold text-text">{x(IM.invest_health_title)}</p>
-        <p className="m-0 mt-[4px] text-[11.5px] text-text-2">
-          {frequency === null
-            ? x(IM.invest_health_no_history)
-            : x(IM.invest_health_frequency).replace('{count}', String(frequency.perWeek))}
-        </p>
-        {warnings.length > 0 && (
-          <ul className="m-0 mt-[6px] flex list-none flex-col gap-[3px] p-0">
-            {warnings.map((w, i) => (
-              <li
-                key={i}
-                className="flex items-center gap-[5px] text-[11.5px] font-semibold text-risk-fg"
-              >
-                <TriangleAlert size={12} aria-hidden="true" />
-                {w}
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="mt-[8px] flex flex-wrap items-center gap-[8px]">
-          <button
-            type="button"
-            disabled={busy || testing || scopeIsEmpty(scope)}
-            onClick={() => void runTestScan()}
-            className={ghostBtnClass}
-          >
-            <FlaskConical size={13} aria-hidden="true" />
-            {x(IM.invest_test_scan)}
-          </button>
-          {testResult && <p className="m-0 text-[11.5px] text-text-2">{testResult}</p>}
-        </div>
+        {/* Honest state: there is no email delivery path — the toggle is a
+            saved preference, not a live channel. */}
+        <p className="m-0 mt-[4px] text-[11px] text-text-muted">{x(IM.invest_notify_email_note)}</p>
       </div>
 
       <label className="flex items-center gap-[8px] text-[12.5px] font-semibold text-text-2">

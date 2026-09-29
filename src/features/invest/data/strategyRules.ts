@@ -9,6 +9,7 @@ import type {
   InvestBotRun,
   InvestSignal,
   InvestStrategy,
+  MarketSnapshot,
   OrderProposalRule,
   QuantityUnit,
   RuleMetric,
@@ -189,6 +190,32 @@ export function ruleFireCount(
     sawLegacySignal = true
   }
   return sawLegacySignal ? legacy : null
+}
+
+/** Scope symbols whose price feed is missing or stale — the health panel
+    surfaces these because a rule can't fire on a symbol with no snapshot,
+    and a stale one is silently evaluated against old prices. Snapshots
+    refresh daily (07:20 UTC); 48 h covers one missed run plus weekends. */
+export function staleScopeSymbols(
+  symbols: string[],
+  snapshots: MarketSnapshot[],
+  now: Date,
+  staleMs = 48 * 60 * 60 * 1000,
+): { missing: string[]; stale: string[] } {
+  const bySymbol = new Map<string, MarketSnapshot>()
+  for (const s of snapshots) bySymbol.set(s.symbol.toUpperCase(), s)
+  const missing: string[] = []
+  const stale: string[] = []
+  for (const sym of symbols) {
+    const snap = bySymbol.get(sym.toUpperCase())
+    if (!snap) {
+      missing.push(sym.toUpperCase())
+      continue
+    }
+    const t = new Date(snap.asOf).getTime()
+    if (Number.isFinite(t) && now.getTime() - t > staleMs) stale.push(sym.toUpperCase())
+  }
+  return { missing, stale }
 }
 
 /** Estimated firing frequency for the health panel, from the same history

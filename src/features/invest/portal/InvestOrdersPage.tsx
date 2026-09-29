@@ -13,6 +13,8 @@ import {
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
+import { relTimeLabel } from './relTime'
+import { fill as fillSlots } from '@/lib/format'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const fieldClass =
@@ -172,7 +174,14 @@ function OrderRow({
       </td>
       <td className="py-[9px] pr-[12px]">
         <StatusChip status={o.status} />
-        {o.error && <p className="m-0 mt-[2px] max-w-[180px] text-[10.5px] text-risk-fg">{o.error}</p>}
+        {o.status === 'draft' && relTimeLabel(o.createdAt, x) && (
+          <p className="m-0 mt-[2px] text-[10.5px] text-text-muted">
+            {fillSlots(x(IM.invest_order_proposed), { ago: relTimeLabel(o.createdAt, x) ?? '' })}
+          </p>
+        )}
+        {o.error && (
+          <p className="m-0 mt-[2px] max-w-[180px] text-[10.5px] text-risk-fg">{o.error}</p>
+        )}
       </td>
       <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
         {o.executedPrice !== null ? fmt.format(o.executedPrice) : '—'}
@@ -223,7 +232,9 @@ function StatusChip({ status }: { status: OrderStatus }) {
         ? 'bg-inset text-text-muted'
         : 'bg-surface text-text-2 border border-border'
   return (
-    <span className={`inline-block rounded-full px-[8px] py-[2px] text-[10.5px] font-semibold ${tone}`}>
+    <span
+      className={`inline-block rounded-full px-[8px] py-[2px] text-[10.5px] font-semibold ${tone}`}
+    >
       {x(IM[statusLabel[status]])}
     </span>
   )
@@ -398,7 +409,11 @@ function OrderForm({
           <option value="live">{x(IM.invest_mode_live)}</option>
         </select>
       </div>
-      <button type="submit" disabled={busy || !accountId || !symbol.trim() || !quantity} className={btnClass}>
+      <button
+        type="submit"
+        disabled={busy || !accountId || !symbol.trim() || !quantity}
+        className={btnClass}
+      >
         <Plus size={14} aria-hidden="true" />
         {x(IM.invest_new_order)}
       </button>

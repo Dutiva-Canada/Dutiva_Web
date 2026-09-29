@@ -64,10 +64,7 @@ export function InvestSignalsPage() {
       ) : (
         <ul className="m-0 flex list-none flex-col gap-[10px] p-0">
           {state.signals.map((s) => (
-            <li
-              key={s.id}
-              className="rounded-[14px] border border-border bg-surface p-[16px]"
-            >
+            <li key={s.id} className="rounded-[14px] border border-border bg-surface p-[16px]">
               <div className="flex flex-col gap-[12px] min-[640px]:flex-row min-[640px]:items-start min-[640px]:justify-between">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-[8px]">

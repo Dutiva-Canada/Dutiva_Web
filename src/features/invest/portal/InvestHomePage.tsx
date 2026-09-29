@@ -199,7 +199,9 @@ export function InvestHomePage() {
         </section>
 
         <section className={cardClass}>
-          <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_ov_recent_signals)}</h2>
+          <h2 className="m-0 text-[14px] font-semibold text-text">
+            {x(IM.invest_ov_recent_signals)}
+          </h2>
           {state.signals.length === 0 ? (
             <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
               {x(IM.invest_signals_empty)}
