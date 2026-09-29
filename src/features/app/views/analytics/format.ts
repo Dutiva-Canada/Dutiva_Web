@@ -1,25 +1,8 @@
 import { parseISODate } from './aggregation'
 
-/** Fill `{placeholder}` slots in a catalogue string. */
-export function fill(template: string, values: Record<string, string | number>): string {
-  return Object.entries(values).reduce(
-    (out, [key, value]) => out.replaceAll(`{${key}}`, String(value)),
-    template,
-  )
-}
-
 /** Locale for Intl formatting from the app language. */
 export function intlLocale(lang: string): string {
   return lang === 'fr' ? 'fr-CA' : 'en-CA'
-}
-
-/** Currency amount, whole units. */
-export function formatCurrency(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-CA', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(value)
 }
 
 /** Short day-of-month date off a YYYY-MM-DD string ('Jul 25' / '25 juill.'). */

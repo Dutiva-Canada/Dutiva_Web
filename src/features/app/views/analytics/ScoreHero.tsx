@@ -3,7 +3,8 @@ import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import type { ScoreDelta } from './aggregation'
 import { formatMonthISO } from './aggregation'
 import { DeltaChip } from './DeltaChip'
-import { fill, formatSignedDelta, intlLocale } from './format'
+import { fill } from '@/lib/format'
+import { formatSignedDelta, intlLocale } from './format'
 
 /**
  * The score card's hero figure: score out of 100 plus the signed delta vs

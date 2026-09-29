@@ -4,7 +4,7 @@ import { specialistsMessages as M } from '@/i18n/messages/specialists'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSpecialistsData } from '../SpecialistsDataContext'
-import { fill } from '@/features/app/views/analytics/format'
+import { fill } from '@/lib/format'
 import type { SpecialistSpecialty } from '../data/types'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 

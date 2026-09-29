@@ -23,9 +23,6 @@ const MARKETING_DATA_ALLOW = /from ['"]@\/data\/documents['"]/
 const SIZE_ALLOWLIST = new Set([
   'src/lib/supabase/database.types.ts',
   'src/features/app/documents/data/documents.ts',
-  'src/data/chats.ts',
-  'src/data/employees.ts',
-  'src/features/app/views/advisor/advisorScenarios.ts',
   'src/features/app/views/analytics/AnalyticsProductionView.tsx',
 ])
 

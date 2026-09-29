@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import type { ExportKind, ExportSurface } from '@/lib/exportProtection/localAudit'
 
 /**
  * Admin read-only API for the export audit trail (`export_events`).
@@ -13,8 +14,7 @@ import { supabase } from '@/lib/supabaseClient'
  * fingerprint channels this trail resolves.
  */
 
-export type ExportSurface = 'docstudio' | 'doclib' | 'memory' | 'advisor'
-export type ExportKind = 'pdf' | 'word' | 'link' | 'json' | 'text'
+export type { ExportKind, ExportSurface }
 
 export interface ExportEventRow {
   id: string

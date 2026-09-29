@@ -1,7 +1,8 @@
 import type { Bi } from '@/i18n/core'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import type { RankedAttention } from './aggregation'
-import { fill, formatDayISO } from './format'
+import { fill } from '@/lib/format'
+import { formatDayISO } from './format'
 
 /**
  * Chip copy for a ranked attention item: "Overdue" (red), "Due today" /

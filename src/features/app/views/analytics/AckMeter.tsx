@@ -4,7 +4,7 @@ import { ProgressFill } from '@/components/ProgressFill'
 import { useI18n } from '@/i18n/context'
 import { analyticsMessages as M } from '@/i18n/messages/analytics'
 import type { AckProgress } from './aggregation'
-import { fill } from './format'
+import { fill } from '@/lib/format'
 
 /**
  * Policy-acknowledgment progress: "X / Y signed" over a meter, plus a
