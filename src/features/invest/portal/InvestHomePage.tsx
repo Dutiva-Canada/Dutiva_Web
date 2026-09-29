@@ -216,7 +216,9 @@ export function InvestHomePage() {
               {state.signals.slice(0, 5).map((s) => (
                 <li key={s.id} className="flex items-start justify-between gap-[12px] py-[10px]">
                   <div className="min-w-0">
-                    <p className="m-0 truncate text-[13px] font-semibold text-text">{s.title}</p>
+                    <p className="m-0 truncate text-[13px] font-semibold text-text">
+                      {lang === 'fr' && s.titleFr ? s.titleFr : s.title}
+                    </p>
                     <p className="m-0 mt-[2px] text-[11.5px] text-text-muted">
                       {s.symbol} · {new Date(s.createdAt).toLocaleDateString()}
                     </p>
