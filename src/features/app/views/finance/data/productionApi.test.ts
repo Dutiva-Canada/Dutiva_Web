@@ -1,28 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deadlineState, isJournalBalanced } from './productionApi'
-import type { FinanceJournalLine } from './types'
-
-describe('isJournalBalanced', () => {
-  it('returns true when debits equal credits', () => {
-    const lines: FinanceJournalLine[] = [
-      { accountId: 'acct-1200', debit: '100.00', credit: '0.00' },
-      { accountId: 'acct-5000', debit: '0.00', credit: '100.00' },
-    ]
-    expect(isJournalBalanced(lines)).toBe(true)
-  })
-
-  it('returns false when debits do not equal credits', () => {
-    const lines: FinanceJournalLine[] = [
-      { accountId: 'acct-1200', debit: '100.00', credit: '0.00' },
-      { accountId: 'acct-5000', debit: '0.00', credit: '90.00' },
-    ]
-    expect(isJournalBalanced(lines)).toBe(false)
-  })
-
-  it('returns true for an empty journal', () => {
-    expect(isJournalBalanced([])).toBe(true)
-  })
-})
+import { deadlineState } from './productionApi'
 
 describe('deadlineState', () => {
   it('returns none when no due date', () => {

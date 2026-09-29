@@ -1,5 +1,6 @@
 import type { Bi } from '@/i18n/core'
 import { financeMessages as M } from '@/i18n/messages/finance'
+import { hasMatchingPattern } from './ruleSuggestion'
 import type { RuleSuggestion } from './ruleSuggestion'
 import type {
   FinanceAiBankItemSuggestion,
@@ -270,14 +271,6 @@ export async function analyzeImportWithAi(
 
     const existingPatterns = new Set(existingRules.map((r) => r.pattern.toLowerCase()))
 
-    function patternExists(pattern: string): boolean {
-      const p = pattern.toLowerCase()
-      for (const existing of existingPatterns) {
-        if (p === existing || p.includes(existing) || existing.includes(p)) return true
-      }
-      return false
-    }
-
     // Build rule suggestions from clusters
     const ruleSuggestions: RuleSuggestion[] = []
     const ruleForPattern = new Map<string, RuleSuggestion>()
@@ -291,7 +284,7 @@ export async function analyzeImportWithAi(
         .map((t) => t.toUpperCase())
         .join(' ')
 
-      if (patternExists(pattern)) continue
+      if (hasMatchingPattern(existingPatterns, pattern)) continue
 
       const clusterEmbedding = meanEmbedding(cluster.map((i) => descEmbeddings[i]!))
       const best = findBestAccount(clusterEmbedding, accountEmbeddings, ledgerAccounts)

@@ -6,6 +6,7 @@ import { ChevronLeft, Plus, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
+import { formatDateTime } from './supportDates'
 import { PRIORITY_LABELS, STATUS_LABELS, STATUS_ORDER, supportCategory } from '@/config/support'
 import type { SupportPriority, SupportStatus } from '@/config/support'
 import {
@@ -24,13 +25,6 @@ import { trackEvent } from '@/features/support/analytics/supportAnalytics'
 
 const PRIORITIES: SupportPriority[] = ['critical', 'high', 'standard', 'low']
 const MAX_CALL_SLOTS = 3
-
-function formatDateTime(iso: string, lang: 'en' | 'fr'): string {
-  return new Date(iso).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
-}
 
 /** One-line call status: confirmed (with time) or proposed. */
 function callStatusLine(

@@ -13,17 +13,10 @@
  * doesn't carry a visitor id.
  */
 
+import { safeLocalStorage } from '@/lib/safeStorage'
+
 const STORAGE_KEY = 'dutiva.analytics.visitor'
 const DATE_KEY = 'dutiva.analytics.visitor.date'
-
-function defaultStorage(): Storage | null {
-  try {
-    if (typeof window === 'undefined') return null
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10) // YYYY-MM-DD
@@ -42,7 +35,7 @@ function randomId(): string {
  * The current daily visitor id, creating one if none exists or the stored one
  * is from a previous day. Returns `null` when localStorage is unavailable.
  */
-export function getVisitorId(storage: Storage | null = defaultStorage()): string | null {
+export function getVisitorId(storage: Storage | null = safeLocalStorage()): string | null {
   if (!storage) return null
   try {
     const storedDate = storage.getItem(DATE_KEY)

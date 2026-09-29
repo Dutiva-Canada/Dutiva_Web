@@ -9,6 +9,7 @@ import { useStakeholders } from '../data/useStakeholders'
 import { useSegments } from '../data/useSegments'
 import type { CommsContact, CommsSegment, CommsSegmentMembership } from '../data/types'
 import { CONTACT_TYPE_LABEL } from '../commsLabels'
+import { biInput } from '../biInput'
 
 /**
  * Segments screen — groups of contacts used for targeted outreach.
@@ -19,14 +20,6 @@ import { CONTACT_TYPE_LABEL } from '../commsLabels'
  */
 
 type SegmentDraft = { name: Bi; description?: Bi }
-
-function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
-}
 
 function SegmentForm({
   initial,

@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import { FileUp, Plus, X } from 'lucide-react'
-import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
@@ -10,6 +9,7 @@ import type { CommsContact, CommsContactType, CommsOrganization, CommsSegment } 
 import { CONTACT_TYPE_LABEL } from '../commsLabels'
 import { createContactBulkImportAdapter } from '../bulkImport/contactAdapter'
 import { createOrganizationBulkImportAdapter } from '../bulkImport/organizationAdapter'
+import { biInput } from '../biInput'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -24,14 +24,6 @@ const CONTACT_TYPES: CommsContactType[] = [
   'creator',
   'audience',
 ]
-
-function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
-}
 
 function ContactForm({
   onCancel,

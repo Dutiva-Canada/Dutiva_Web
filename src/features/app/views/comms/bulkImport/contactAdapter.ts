@@ -1,8 +1,8 @@
 import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImport/types'
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import { commsMessages as C } from '@/i18n/messages/comms'
-import type { Bi } from '@/i18n/core'
 import type { CommsContact, CommsContactType, CommsOrganization } from '../data/types'
+import { biInput } from '../biInput'
 
 const CONTACT_TYPES: CommsContactType[] = [
   'media',
@@ -37,14 +37,6 @@ function parseActive(value: string): boolean | undefined {
   if (['yes', 'y', 'true', '1', 'active'].includes(v)) return true
   if (['no', 'n', 'false', '0', 'inactive'].includes(v)) return false
   return undefined
-}
-
-function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
 }
 
 export function createContactBulkImportAdapter(
@@ -150,10 +142,10 @@ export function createContactBulkImportAdapter(
             name,
             type: row.type,
             organizationId: org?.id,
-            role: biFromString(row.role ?? '', lang),
-            purpose: biFromString(row.purpose ?? '', lang),
-            channelPreference: biFromString(row.preferredChannel ?? '', lang),
-            source: biFromString(row.source ?? '', lang),
+            role: biInput(row.role ?? '', lang),
+            purpose: biInput(row.purpose ?? '', lang),
+            channelPreference: biInput(row.preferredChannel ?? '', lang),
+            source: biInput(row.source ?? '', lang),
             active,
           })
           if (ok) created++

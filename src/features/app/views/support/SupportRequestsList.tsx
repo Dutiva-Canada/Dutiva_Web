@@ -3,6 +3,7 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
+import { formatDate } from './supportDates'
 import { STATUS_LABELS, supportCategory } from '@/config/support'
 import { listMySupportTickets } from '@/features/support/supportApi'
 import type { SupportTicketSummary } from '@/features/support/supportApi'
@@ -10,14 +11,6 @@ import { SupportSectionNav } from './SupportSectionNav'
 
 type State =
   { kind: 'loading' } | { kind: 'error' } | { kind: 'ready'; tickets: SupportTicketSummary[] }
-
-function formatDate(iso: string, lang: 'en' | 'fr'): string {
-  return new Date(iso).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
 
 /** /app/support/requests — the caller's own tickets (RLS-scoped read). */
 export function SupportRequestsList() {

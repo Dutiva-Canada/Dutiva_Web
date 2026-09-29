@@ -1,7 +1,6 @@
 import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImport/types'
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
 import { commsMessages as C } from '@/i18n/messages/comms'
-import type { Bi } from '@/i18n/core'
 import type {
   CommsChannel,
   CommsContentItem,
@@ -9,6 +8,7 @@ import type {
   CommsDeliveryStatus,
   CommsInitiative,
 } from '../data/types'
+import { biInput } from '../biInput'
 
 interface ContentImportRow {
   title?: string
@@ -55,14 +55,6 @@ const DELIVERY_STATUSES: CommsDeliveryStatus[] = [
   'unknown',
   'cancelled',
 ]
-
-function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
-}
 
 function parseDate(value: string): string | undefined {
   const trimmed = value.trim()
@@ -287,8 +279,8 @@ export function createContentBulkImportAdapter(
           }
           const result = await addContentItem({
             initiativeId: initiative.id,
-            title: biFromString(title, lang) ?? { en: title, fr: `[FR review] ${title}` },
-            body: biFromString(row.body ?? '', lang),
+            title: biInput(title, lang) ?? { en: title, fr: `[FR review] ${title}` },
+            body: biInput(row.body ?? '', lang),
             language,
             channel,
             status,

@@ -1,5 +1,17 @@
 import type { FinanceBankItem, FinanceCategoryRule, FinanceLedgerAccount } from './types'
 
+/** True when a pattern matches or overlaps an existing rule pattern (case-insensitive). */
+export function hasMatchingPattern(
+  existingPatterns: ReadonlySet<string>,
+  pattern: string,
+): boolean {
+  const p = pattern.toLowerCase()
+  for (const existing of existingPatterns) {
+    if (p === existing || p.includes(existing) || existing.includes(p)) return true
+  }
+  return false
+}
+
 type RuleSuggestionConfidence = 'high' | 'medium' | 'low'
 
 export interface RuleSuggestion {
@@ -362,14 +374,6 @@ export function suggestCategoryRules(
 
   const existingPatterns = new Set(existingRules.map((r) => r.pattern.toLowerCase()))
 
-  function patternExists(pattern: string): boolean {
-    const p = pattern.toLowerCase()
-    for (const existing of existingPatterns) {
-      if (p === existing || p.includes(existing) || existing.includes(p)) return true
-    }
-    return false
-  }
-
   const suggestions: RuleSuggestion[] = []
 
   for (const cluster of clusters) {
@@ -381,7 +385,7 @@ export function suggestCategoryRules(
       .map((t) => t.toUpperCase())
       .join(' ')
 
-    if (patternExists(pattern)) continue
+    if (hasMatchingPattern(existingPatterns, pattern)) continue
 
     const patternTokens = tokenize(pattern)
     const clusterTokens = clusterItems.flatMap((bi) => tokenize(bi.description))

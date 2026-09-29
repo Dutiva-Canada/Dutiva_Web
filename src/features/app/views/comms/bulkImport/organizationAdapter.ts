@@ -1,21 +1,13 @@
 import type { BulkImportAdapter, BulkImportField } from '@/features/app/bulkImport/types'
 import { bulkImportMessages as B } from '@/i18n/messages/bulkImport'
-import type { Bi } from '@/i18n/core'
 import type { CommsOrganization } from '../data/types'
+import { biInput } from '../biInput'
 
 interface OrganizationImportRow {
   name?: string
   type?: string
   jurisdiction?: string
   notes?: string
-}
-
-function biFromString(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
 }
 
 export function createOrganizationBulkImportAdapter(
@@ -89,9 +81,9 @@ export function createOrganizationBulkImportAdapter(
           }
           const ok = await addOrganization({
             name,
-            type: biFromString(type, lang) ?? { en: type, fr: `[FR review] ${type}` },
-            jurisdiction: biFromString(row.jurisdiction ?? '', lang),
-            notes: biFromString(row.notes ?? '', lang),
+            type: biInput(type, lang) ?? { en: type, fr: `[FR review] ${type}` },
+            jurisdiction: biInput(row.jurisdiction ?? '', lang),
+            notes: biInput(row.notes ?? '', lang),
           })
           if (ok) created++
           else failed++

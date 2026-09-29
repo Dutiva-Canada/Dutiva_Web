@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
-import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { useMetrics } from '../data/useMetrics'
@@ -8,20 +7,13 @@ import { useCoverage } from '../data/useCoverage'
 import { useInitiatives } from '../data/useInitiatives'
 import type { CommsInitiative, CommsMetric } from '../data/types'
 import { SENTIMENT_LABEL } from '../commsLabels'
+import { biInput } from '../biInput'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
 const labelClass = 'mb-[4px] block text-[12px] font-semibold text-text-3'
 
 const PROVENANCES: CommsMetric['provenance'][] = ['manual', 'provider', 'ai_estimate']
-
-function biInput(value: string, lang: 'en' | 'fr'): Bi | undefined {
-  const text = value.trim()
-  if (!text) return undefined
-  return lang === 'fr'
-    ? { en: `[EN review] ${text}`, fr: text }
-    : { en: text, fr: `[FR review] ${text}` }
-}
 
 function numberValue(value: string): number | undefined {
   const n = Number(value)
