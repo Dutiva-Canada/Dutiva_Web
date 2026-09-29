@@ -22,8 +22,8 @@
  * casual case, the server guard is the one a determined user has to beat.
  */
 
-const EXPORT_SURFACES = ['docstudio', 'doclib', 'memory', 'advisor'] as const
-const EXPORT_KINDS = ['pdf', 'word', 'link', 'json', 'text'] as const
+export const EXPORT_KINDS = ['pdf', 'word', 'link', 'json', 'text'] as const
+export const EXPORT_SURFACES = ['docstudio', 'doclib', 'memory', 'advisor'] as const
 
 export type ExportSurface = (typeof EXPORT_SURFACES)[number]
 export type ExportKind = (typeof EXPORT_KINDS)[number]
