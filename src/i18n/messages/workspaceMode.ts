@@ -34,6 +34,21 @@ export const workspaceModeMessages = defineMessages({
     fr: 'Vous êtes à jour — aucune notification.',
   },
 
+  /* ── Workspace resolution gate (RequireAdminSession) ───────────────────── */
+  wsmode_loading_a11y: {
+    en: 'Loading your workspace',
+    fr: 'Chargement de votre espace de travail',
+  },
+  wsmode_load_error_title: {
+    en: 'We couldn’t load your workspace',
+    fr: 'Impossible de charger votre espace de travail',
+  },
+  wsmode_load_error_body: {
+    en: 'A connection or server hiccup kept us from resolving your workspace. Try again — nothing was changed.',
+    fr: 'Un problème de connexion ou de serveur a empêché le chargement de votre espace de travail. Réessayez — rien n’a été modifié.', // [FR self-authored]
+  },
+  wsmode_load_retry: { en: 'Try again', fr: 'Réessayer' },
+
   /* ── Advisor home (production) ─────────────────────────────────────────── */
   wsmode_advisor_greeting: { en: 'How can I help?', fr: 'Comment puis-je vous aider ?' },
   wsmode_advisor_sub: {

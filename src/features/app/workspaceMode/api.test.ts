@@ -17,10 +17,11 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.checkIsAdmin()).toBe(false)
-    expect(await api.fetchStoredMode('u1')).toBe('demo')
+    /* Identity reads report failure — a missing client is not "no org". */
+    expect(await api.checkIsAdmin()).toEqual({ ok: false })
+    expect(await api.fetchStoredMode('u1')).toEqual({ ok: false })
     expect(await api.saveStoredMode('u1', 'production')).toBe(false)
-    expect(await api.fetchAdminProfile('u1')).toBeNull()
+    expect(await api.fetchAdminProfile('u1')).toEqual({ ok: false })
   })
 
   it('degrades safely rather than throwing when the client is missing a method', async () => {
@@ -28,10 +29,10 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    await expect(api.checkIsAdmin()).resolves.toBe(false)
-    await expect(api.fetchStoredMode('u1')).resolves.toBe('demo')
+    await expect(api.checkIsAdmin()).resolves.toEqual({ ok: false })
+    await expect(api.fetchStoredMode('u1')).resolves.toEqual({ ok: false })
     await expect(api.saveStoredMode('u1', 'production')).resolves.toBe(false)
-    await expect(api.fetchAdminProfile('u1')).resolves.toBeNull()
+    await expect(api.fetchAdminProfile('u1')).resolves.toEqual({ ok: false })
   })
 
   it('checkIsAdmin resolves true only when is_admin_user() returns true with no error', async () => {
@@ -46,7 +47,7 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.checkIsAdmin()).toBe(true)
+    expect(await api.checkIsAdmin()).toEqual({ ok: true, value: true })
   })
 
   it('checkIsAdmin resolves true for @dutiva.ca session email without the RPC', async () => {
@@ -64,11 +65,11 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.checkIsAdmin()).toBe(true)
+    expect(await api.checkIsAdmin()).toEqual({ ok: true, value: true })
     expect(rpc).not.toHaveBeenCalled()
   })
 
-  it('checkIsAdmin resolves false when the RPC errors', async () => {
+  it('checkIsAdmin reports failure when the RPC errors', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
@@ -80,7 +81,8 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.checkIsAdmin()).toBe(false)
+    /* A failed read is not a confirmed "not admin" — callers retry. */
+    expect(await api.checkIsAdmin()).toEqual({ ok: false })
   })
 
   it('fetchStoredMode reads the stored mode from workspace_preferences', async () => {
@@ -93,7 +95,7 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.fetchStoredMode('u1')).toBe('production')
+    expect(await api.fetchStoredMode('u1')).toEqual({ ok: true, value: 'production' })
   })
 
   it('fetchStoredMode falls back to demo when no row exists', async () => {
@@ -106,7 +108,7 @@ describe('workspaceMode api', () => {
     vi.resetModules()
     const api = await import('./api')
 
-    expect(await api.fetchStoredMode('u1')).toBe('demo')
+    expect(await api.fetchStoredMode('u1')).toEqual({ ok: true, value: 'demo' })
   })
 
   it('fetchAdminProfile falls back to Dutiva Canada Inc. defaults for null fields', async () => {
@@ -129,10 +131,13 @@ describe('workspaceMode api', () => {
     const api = await import('./api')
 
     expect(await api.fetchAdminProfile('u1')).toEqual({
-      companyName: 'Dutiva Canada Inc.',
-      contactName: 'Martin Constantineau',
-      province: 'Ontario',
-      city: 'Ottawa',
+      ok: true,
+      value: {
+        companyName: 'Dutiva Canada Inc.',
+        contactName: 'Martin Constantineau',
+        province: 'Ontario',
+        city: 'Ottawa',
+      },
     })
   })
 

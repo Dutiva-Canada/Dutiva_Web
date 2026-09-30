@@ -17,7 +17,15 @@ describe('WorkspaceModeProvider', () => {
     const { useWorkspaceMode } = await import('./workspaceModeContext')
 
     function Probe() {
-      const { mode, isAdmin, canUseProduction, identity, organizationId } = useWorkspaceMode()
+      const {
+        mode,
+        isAdmin,
+        canUseProduction,
+        identity,
+        organizationId,
+        resolving,
+        resolutionFailed,
+      } = useWorkspaceMode()
       return (
         <div>
           <span data-testid="mode">{mode}</span>
@@ -26,11 +34,13 @@ describe('WorkspaceModeProvider', () => {
           <span data-testid="company">{identity.companyName}</span>
           <span data-testid="user-name">{identity.user.name}</span>
           <span data-testid="org-id">{organizationId ?? 'none'}</span>
+          <span data-testid="resolving">{String(resolving)}</span>
+          <span data-testid="resolution-failed">{String(resolutionFailed ?? false)}</span>
         </div>
       )
     }
 
-    renderApp(<Probe />)
+    return renderApp(<Probe />)
   }
 
   function mockSupabase({
@@ -41,6 +51,8 @@ describe('WorkspaceModeProvider', () => {
     membershipOrgId,
     memberRole,
     claimedInvites = 0,
+    claimFailures = 0,
+    storedModeFailures = 0,
   }: {
     session: { user: { id: string; email: string } } | null
     isAdmin?: boolean
@@ -57,22 +69,33 @@ describe('WorkspaceModeProvider', () => {
     memberRole?: string
     /** Count returned by claim_org_invitations(). */
     claimedInvites?: number
+    /** First N claim_org_invitations calls error (transient backend failure). */
+    claimFailures?: number
+    /** First N workspace_preferences reads error (transient backend failure). */
+    storedModeFailures?: number
   }) {
     const createOrganization = vi.fn().mockResolvedValue({
       data: { id: 'org-created' },
       error: null,
     })
     const saveMode = vi.fn().mockResolvedValue({ error: null })
+    let claimCalls = 0
+    let storedModeCalls = 0
     const from = vi.fn((table: string) => {
       if (table === 'workspace_preferences') {
         return {
           select: () => ({
             eq: () => ({
-              maybeSingle: () =>
-                Promise.resolve({
+              maybeSingle: () => {
+                storedModeCalls += 1
+                if (storedModeCalls <= storedModeFailures) {
+                  return Promise.resolve({ data: null, error: new Error('read failed') })
+                }
+                return Promise.resolve({
                   data: storedMode ? { mode: storedMode } : null,
                   error: null,
-                }),
+                })
+              },
             }),
           }),
           upsert: saveMode,
@@ -143,6 +166,10 @@ describe('WorkspaceModeProvider', () => {
           if (fn === 'is_admin_user')
             return Promise.resolve({ data: isAdmin ?? false, error: null })
           if (fn === 'claim_org_invitations') {
+            claimCalls += 1
+            if (claimCalls <= claimFailures) {
+              return Promise.resolve({ data: null, error: new Error('claim failed') })
+            }
             return Promise.resolve({ data: claimedInvites, error: null })
           }
           if (fn === 'current_user_is_workspace_member') {
@@ -285,5 +312,72 @@ describe('WorkspaceModeProvider', () => {
     expect(saveMode).toHaveBeenCalledWith(
       expect.objectContaining({ user_id: 'u4', mode: 'production' }),
     )
+  })
+
+  it('flags resolutionFailed instead of committing the demo identity when reads keep failing', async () => {
+    /* The flicker bug: a failed read used to be indistinguishable from "no
+       production workspace", so a signed-in member's identity flipped to the
+       Northgate demo persona for a whole session. Now persistent failure is
+       marked — RequireAdminSession shows a retry surface, never fixtures. */
+    mockSupabase({
+      session: { user: { id: 'u5', email: 'owner@employer.ca' } },
+      isAdmin: false,
+      storedMode: 'production',
+      membershipOrgId: 'org-5',
+      claimFailures: 99,
+    })
+    await renderProbe()
+
+    await waitFor(
+      () => expect(screen.getByTestId('resolution-failed')).toHaveTextContent('true'),
+      { timeout: 5000 },
+    )
+    expect(screen.getByTestId('resolving')).toHaveTextContent('false')
+  })
+
+  it('retries a transient read failure and still resolves production', async () => {
+    mockSupabase({
+      session: { user: { id: 'u6', email: 'owner@employer.ca' } },
+      isAdmin: false,
+      storedMode: 'production',
+      membershipOrgId: 'org-6',
+      memberRole: 'owner',
+      storedModeFailures: 1,
+    })
+    await renderProbe()
+
+    await waitFor(
+      () => expect(screen.getByTestId('mode')).toHaveTextContent('production'),
+      { timeout: 5000 },
+    )
+    expect(screen.getByTestId('resolution-failed')).toHaveTextContent('false')
+    expect(screen.getByTestId('company')).toHaveTextContent('Member Org Inc.')
+  })
+
+  it('keeps one stable identity across five remounts (the reload acceptance)', async () => {
+    const identities: string[] = []
+    for (let i = 0; i < 5; i += 1) {
+      mockSupabase({
+        session: { user: { id: 'u7', email: 'owner@employer.ca' } },
+        isAdmin: false,
+        storedMode: 'production',
+        membershipOrgId: 'org-7',
+        memberRole: 'owner',
+      })
+      const result = await renderProbe()
+
+      await waitFor(() => expect(screen.getByTestId('mode')).toHaveTextContent('production'))
+      identities.push(
+        `${screen.getByTestId('company').textContent}|${screen.getByTestId('user-name').textContent}`,
+      )
+      result.unmount()
+      vi.doUnmock('@/lib/supabaseClient')
+    }
+
+    /* Every reload-equivalent mount resolves the same org + user — no
+       unprompted switch to the Northgate demo persona. */
+    expect(new Set(identities).size).toBe(1)
+    expect(identities[0]).toContain('Member Org Inc.')
+    expect(identities[0]).not.toContain('Northgate')
   })
 })

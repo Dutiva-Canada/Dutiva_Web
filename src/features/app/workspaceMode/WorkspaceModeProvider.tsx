@@ -57,6 +57,8 @@ interface AdminState {
   isAdmin: boolean
   /** False until the signed-in resolution pass finishes — see `resolving`. */
   resolved: boolean
+  /** True when the resolution reads kept failing after every retry. */
+  resolutionFailed: boolean
   storedMode: WorkspaceMode
   identity: WorkspaceIdentity | null
   organizationId: string | null
@@ -68,6 +70,7 @@ interface AdminState {
 const SIGNED_OUT_STATE: AdminState = {
   isAdmin: false,
   resolved: false,
+  resolutionFailed: false,
   storedMode: 'demo',
   identity: null,
   organizationId: null,
@@ -87,6 +90,14 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   const { status, session } = useAuth()
   const { isPublicDemo } = useWorkspaceRoot()
   const [admin, setAdmin] = useState<AdminState>(SIGNED_OUT_STATE)
+  /* Bumped by retryResolution() so the effect re-runs the full resolution
+     pass — the only way out of `resolutionFailed` without a reload. */
+  const [resolutionNonce, setResolutionNonce] = useState(0)
+
+  const retryResolution = useCallback(() => {
+    setAdmin((prev) => ({ ...prev, resolved: false, resolutionFailed: false }))
+    setResolutionNonce((n) => n + 1)
+  }, [])
 
   useEffect(() => {
     if (status !== 'signed-in' || !session) {
@@ -101,20 +112,48 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         : null
     let cancelled = false
 
-    async function load() {
+    /* Identity-shaping reads distinguish "call failed" from "row absent" via
+       ReadResult — a transient failure must never commit the demo persona
+       for a signed-in user (that was the identity flicker). Bounded retries
+       cover the transient case; a persistent failure commits
+       `resolutionFailed`, and RequireAdminSession renders a retry surface
+       instead of the wrong workspace. */
+    const MAX_ATTEMPTS = 3
+
+    async function load(attempt: number) {
+      const retry = () => {
+        if (cancelled) return
+        if (attempt < MAX_ATTEMPTS) {
+          setTimeout(() => {
+            if (!cancelled) void load(attempt + 1)
+          }, 350 * attempt)
+        } else {
+          setAdmin({ ...SIGNED_OUT_STATE, resolved: true, resolutionFailed: true })
+        }
+      }
+
       /* Convert pending invitations addressed to this email into memberships
          before resolving — an invited teammate's first sign-in must already
          see the org they were invited to (migration 0168). */
       const claimed = await claimOrgInvitations()
       if (cancelled) return
+      if (!claimed.ok) return retry()
+      const claimedCount = claimed.value
 
-      const [isAdmin, storedMode0, profile, membership] = await Promise.all([
+      const [isAdminRes, storedModeRes, profileRes, membershipRes] = await Promise.all([
         checkIsAdmin(),
         fetchStoredMode(userId),
         fetchAdminProfile(userId),
         fetchOrganizationMembership(userId),
       ])
       if (cancelled) return
+      if (!isAdminRes.ok || !storedModeRes.ok || !membershipRes.ok || !profileRes.ok) {
+        return retry()
+      }
+      const isAdmin = isAdminRes.value
+      const storedMode0 = storedModeRes.value
+      const profile = profileRes.value
+      const membership = membershipRes.value
 
       /* Production is for platform admins and org members. Everyone else
          stays in demo — a non-member can still create an org via the
@@ -128,7 +167,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       /* A freshly claimed invite implies intent to work in the real org —
          flip a default 'demo' preference to production so they land there. */
       let storedMode = storedMode0
-      if (claimed > 0 && storedMode === 'demo' && membership !== null) {
+      if (claimedCount > 0 && storedMode === 'demo' && membership !== null) {
         const saved = await saveStoredMode(userId, 'production')
         if (cancelled) return
         if (saved) storedMode = 'production'
@@ -184,6 +223,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       setAdmin({
         isAdmin,
         resolved: true,
+        resolutionFailed: false,
         storedMode,
         organizationId,
         organization,
@@ -203,11 +243,11 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       })
     }
 
-    void load()
+    void load(1)
     return () => {
       cancelled = true
     }
-  }, [status, session])
+  }, [status, session, resolutionNonce])
 
   const setMode = useCallback(
     async (next: WorkspaceMode) => {
@@ -293,8 +333,9 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
 
   const refreshIdentity = useCallback(async () => {
     if (!session || (!admin.isAdmin && admin.organizationId === null)) return
-    const profile = await fetchAdminProfile(session.user.id)
-    if (!profile) return
+    const res = await fetchAdminProfile(session.user.id)
+    if (!res.ok || !res.value) return
+    const profile = res.value
     const email = session.user.email ?? ''
     const authFullName =
       typeof session.user.user_metadata?.full_name === 'string'
@@ -327,6 +368,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       return {
         mode: 'demo' as const,
         resolving: false,
+        resolutionFailed: false,
+        retryResolution: () => {},
         isAdmin: false,
         canUseProduction: false,
         identity: DEMO_IDENTITY,
@@ -356,6 +399,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
          fall back to demo content — RequireAdminSession holds the surface
          blank until this clears. */
       resolving: status === 'signed-in' && !admin.resolved,
+      resolutionFailed: admin.resolutionFailed,
+      retryResolution,
       isAdmin: admin.isAdmin,
       /* Platform admin or any org member — the mode switch and production
          surfaces render for either; RLS still scopes what each can write. */
@@ -379,6 +424,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     refreshIdentity,
     refreshOrganization,
     clearAdmissionStatus,
+    retryResolution,
     isPublicDemo,
     status,
   ])

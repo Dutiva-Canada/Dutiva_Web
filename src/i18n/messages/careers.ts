@@ -305,6 +305,11 @@ export const careersMessages = defineMessages({
     en: 'You’ve been added to the waitlist — we’ll email you when a spot opens.',
     fr: 'Vous êtes sur la liste d’attente — nous vous écrirons quand une place se libérera.', // [FR self-authored]
   },
+  careers_employer_load_error: {
+    en: 'Couldn’t check your workspace. Try again.',
+    fr: 'Impossible de vérifier votre espace de travail. Réessayez.', // [FR self-authored]
+  },
+  careers_employer_load_retry: { en: 'Try again', fr: 'Réessayer' }, // [FR self-authored]
 
   /* ── Candidate profile ────────────────────────────────────────────────── */
   careers_profile_title: { en: 'Your profile', fr: 'Votre profil' },

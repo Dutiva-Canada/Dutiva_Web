@@ -174,6 +174,13 @@ export async function addCandidate(
   return toCandidate(candidateRowSchema.parse(data))
 }
 
+export async function deleteCandidate(id: string): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('hr_candidates').delete().eq('id', id)
+  if (error) throw error
+}
+
 export async function updateCandidateStatus(
   id: string,
   status: ProductionCandidateStatus,

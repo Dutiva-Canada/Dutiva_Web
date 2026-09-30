@@ -232,10 +232,31 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
                   maybeSingle: () => Promise.resolve({ data: { mode: storedMode }, error: null }),
                 }),
               }),
-              upsert: (row: { mode: 'demo' | 'production' }) => {
-                storedMode = row.mode
+              upsert: (row: { mode?: 'demo' | 'production' }) => {
+                /* saveOnboardingMarks also upserts this table with only an
+                   `onboarding` payload — don't let that clobber storedMode. */
+                if (row.mode !== undefined) storedMode = row.mode
                 return upsert(row)
               },
+            }
+          }
+          /* No membership row — a platform admin bootstraps the org via
+             create_organization on the first switch to production. The
+             boundary walks eq().eq().order().limit(); returning data:null
+             at the end is a valid "absent" read, not a failure. */
+          if (table === 'organization_members') {
+            return {
+              select: () => ({
+                eq: () => ({
+                  eq: () => ({
+                    order: () => ({
+                      limit: () => ({
+                        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+                      }),
+                    }),
+                  }),
+                }),
+              }),
             }
           }
           return {

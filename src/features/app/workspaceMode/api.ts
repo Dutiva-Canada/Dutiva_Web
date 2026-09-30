@@ -24,11 +24,26 @@ const profileRowSchema = z.object({
 })
 
 /**
- * Real backend reads behind the workspace mode toggle. Every function
- * degrades to the safe "demo"/non-admin answer when Supabase isn't
- * configured, the call fails, or the client doesn't implement a method
- * (e.g. a test double stubbing only the auth surface) — this feature must
- * never throw and strand the app, so each call is wrapped defensively.
+ * Result of a resolution read: `ok: false` means the backend call failed —
+ * distinct from a confirmed absent row, so the provider can retry instead of
+ * committing a degraded identity. (A failed membership/mode read must never
+ * silently downgrade a signed-in user to the demo persona.)
+ */
+export type ReadResult<T> = { ok: true; value: T } | { ok: false }
+
+const ok = <T>(value: T): ReadResult<T> => ({ ok: true, value })
+const READ_FAILED: ReadResult<never> = { ok: false }
+
+/**
+ * Real backend reads behind the workspace mode toggle. Identity-shaping
+ * reads (session mode, membership, admin flag, profile, invite claims)
+ * return `ReadResult` so a failed call is distinguishable from "row does
+ * not exist" — callers retry failures rather than committing the wrong
+ * workspace. Other helpers still degrade to the safe "demo"/empty answer
+ * when Supabase isn't configured, the call fails, or the client doesn't
+ * implement a method (e.g. a test double stubbing only the auth surface) —
+ * this feature must never throw and strand the app, so each call is
+ * wrapped defensively.
  */
 
 /**
@@ -37,32 +52,34 @@ const profileRowSchema = z.object({
  * row; the `is_admin_user` RPC (JWT role, admin_users, and the same domain)
  * remains the server source of truth for RLS.
  */
-export async function checkIsAdmin(): Promise<boolean> {
-  if (!supabase) return false
+export async function checkIsAdmin(): Promise<ReadResult<boolean>> {
+  if (!supabase) return READ_FAILED
   try {
     const {
       data: { session },
     } = await supabase.auth.getSession()
-    if (isInternalDutivaAccount(session?.user?.email)) return true
+    if (isInternalDutivaAccount(session?.user?.email)) return ok(true)
     const { data, error } = await supabase.rpc('is_admin_user')
-    return !error && data === true
+    if (error) return READ_FAILED
+    return ok(data === true)
   } catch {
-    return false
+    return READ_FAILED
   }
 }
 
-export async function fetchStoredMode(userId: string): Promise<WorkspaceMode> {
-  if (!supabase) return 'demo'
+export async function fetchStoredMode(userId: string): Promise<ReadResult<WorkspaceMode>> {
+  if (!supabase) return READ_FAILED
   try {
     const { data, error } = await supabase
       .from('workspace_preferences')
       .select('mode')
       .eq('user_id', userId)
       .maybeSingle()
-    if (error || !data) return 'demo'
-    return preferenceRowSchema.parse(data).mode
+    if (error) return READ_FAILED
+    if (!data) return ok('demo')
+    return ok(preferenceRowSchema.parse(data).mode)
   } catch {
-    return 'demo'
+    return READ_FAILED
   }
 }
 
@@ -154,8 +171,8 @@ interface OrganizationMembership {
 /** The user's active organization membership, if one has been provisioned. */
 export async function fetchOrganizationMembership(
   userId: string,
-): Promise<OrganizationMembership | null> {
-  if (!supabase) return null
+): Promise<ReadResult<OrganizationMembership | null>> {
+  if (!supabase) return READ_FAILED
   try {
     const { data, error } = await supabase
       .from('organization_members')
@@ -165,16 +182,17 @@ export async function fetchOrganizationMembership(
       .order('created_at', { referencedTable: 'organizations', ascending: false })
       .limit(1)
       .maybeSingle()
-    if (error || !data) return null
+    if (error) return READ_FAILED
+    if (!data) return ok(null)
     const row = z
       .object({ organization_id: z.string(), role: z.string().nullable().optional() })
       .parse(data)
-    return {
+    return ok({
       organizationId: row.organization_id,
       role: isOrgMemberRole(row.role) ? row.role : null,
-    }
+    })
   } catch {
-    return null
+    return READ_FAILED
   }
 }
 
@@ -279,14 +297,17 @@ function orgSettingsFromRow(
  * signed-in load before membership resolution so an invited teammate lands
  * in production on first sign-in. Returns the number of invites claimed.
  */
-export async function claimOrgInvitations(): Promise<number> {
-  if (!supabase) return 0
+export async function claimOrgInvitations(): Promise<ReadResult<number>> {
+  if (!supabase) return READ_FAILED
   try {
     const { data, error } = await supabase.rpc('claim_org_invitations')
-    if (error || typeof data !== 'number') return 0
-    return data
+    /* A hard error is a failed read (callers retry); a null/empty payload is
+       "nothing to claim" — invite claiming is a best-effort first pass and
+       the membership read below is what actually decides identity. */
+    if (error) return READ_FAILED
+    return ok(typeof data === 'number' ? data : 0)
   } catch {
-    return 0
+    return READ_FAILED
   }
 }
 
@@ -508,18 +529,21 @@ function profileFromRow(row: z.infer<typeof profileRowSchema>): AdminProfile {
   }
 }
 
-export async function fetchAdminProfile(userId: string): Promise<AdminProfile | null> {
-  if (!supabase) return null
+export async function fetchAdminProfile(
+  userId: string,
+): Promise<ReadResult<AdminProfile | null>> {
+  if (!supabase) return READ_FAILED
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select('legal_name, company_name, primary_contact, province, city')
       .eq('id', userId)
       .maybeSingle()
-    if (error || !data) return null
-    return profileFromRow(profileRowSchema.parse(data))
+    if (error) return READ_FAILED
+    if (!data) return ok(null)
+    return ok(profileFromRow(profileRowSchema.parse(data)))
   } catch {
-    return null
+    return READ_FAILED
   }
 }
 

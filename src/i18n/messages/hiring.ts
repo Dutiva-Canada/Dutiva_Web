@@ -369,6 +369,16 @@ export const hiringMessages = defineMessages({
     en: "Couldn't assign candidate.",
     fr: "Impossible d'assigner le candidat.",
   },
+  hiring_candidate_delete: { en: 'Delete candidate', fr: 'Supprimer le candidat' },
+  hiring_candidate_delete_confirm: {
+    en: "Delete this candidate? This can't be undone.",
+    fr: 'Supprimer ce candidat? Cette action est irréversible.',
+  },
+  hiring_candidate_deleted: { en: 'Candidate deleted.', fr: 'Candidat supprimé.' },
+  hiring_candidate_delete_error: {
+    en: "Couldn't delete candidate.",
+    fr: 'Impossible de supprimer le candidat.',
+  },
 
   hiring_action_confirm: { en: 'Confirm', fr: 'Confirmer' },
   hiring_action_cancel: { en: 'Cancel', fr: 'Annuler' },

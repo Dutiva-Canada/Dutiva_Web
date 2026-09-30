@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen } from '@testing-library/react'
 import { useLocation } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
-import { listChain } from '@/test/productionWorkspace'
+import { listChain, mockProductionWorkspace } from '@/test/productionWorkspace'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { HomeView } from './HomeView'
 import { HomeCompliancePanel } from './HomeCompliancePanel'
@@ -109,51 +109,11 @@ describe('HomeView in production mode', () => {
   })
 
   it('renders the real empty state instead of the Northgate fixtures', async () => {
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: {
-        auth: {
-          getSession: () =>
-            Promise.resolve({
-              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
-            }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
-        },
-        rpc: vi.fn((fn: string) => {
-          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
-          if (fn === 'create_organization')
-            return Promise.resolve({ data: { id: 'org-1' }, error: null })
-          return Promise.resolve({ data: null, error: null })
-        }),
-        from: vi.fn((table: string) => {
-          if (table === 'workspace_preferences') {
-            return {
-              select: () => ({
-                eq: () => ({
-                  maybeSingle: () => Promise.resolve({ data: { mode: 'production' }, error: null }),
-                }),
-              }),
-            }
-          }
-          return {
-            select: () => ({
-              eq: () => ({
-                maybeSingle: () =>
-                  Promise.resolve({
-                    data: {
-                      legal_name: 'Dutiva Canada Inc.',
-                      company_name: null,
-                      primary_contact: 'Martin Constantineau',
-                      province: 'Ontario',
-                      city: 'Ottawa',
-                    },
-                    error: null,
-                  }),
-              }),
-            }),
-          }
-        }),
-      },
-    }))
+    /* Shared preamble — the membership read needs the full
+       eq().eq().order().limit() chain; a hand-rolled catch-all that only
+       stubs one .eq() now fails the resolution pass (ReadResult), which is
+       exactly the behavior under test. */
+    mockProductionWorkspace({ tables: {} })
     vi.resetModules()
 
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')

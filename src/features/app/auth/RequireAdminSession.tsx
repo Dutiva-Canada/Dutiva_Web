@@ -3,8 +3,11 @@ import { useContext } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { isVercelPreview } from '@/lib/deployEnv'
+import { useI18n } from '@/i18n/context'
+import { workspaceModeMessages as M } from '@/i18n/messages/workspaceMode'
 import { useAuth } from './authContext'
 import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
+import { AppBootSkeleton } from '@/features/app/shell/AppBootSkeleton'
 
 /**
  * Gates the whole /app workspace behind a signed-in, invited session — any
@@ -35,6 +38,7 @@ import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceMode
 export function RequireAdminSession({ children }: { readonly children: ReactNode }) {
   const location = useLocation()
   const { status, authorized } = useAuth()
+  const { x } = useI18n()
   /* Raw context, not the throwing hook — this gate also mounts standalone
      (tests, preview shells) where no WorkspaceModeProvider exists; absent
      the provider there is no mode window to hold for. */
@@ -47,16 +51,45 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
 
   /* `authorized` is null both while signed out and while the membership
      check is still in flight right after signing in — only the latter
-     should stay blank rather than bouncing to /app/welcome. */
-  /* `resolving` keeps the surface blank until WorkspaceModeProvider commits
+     should stay on the skeleton rather than bouncing to /app/welcome. */
+  /* `resolving` keeps the skeleton up until WorkspaceModeProvider commits
      a mode + identity — without it, a signed-in production user renders the
      demo persona/fixtures for the whole async resolution window (and can
-     navigate fixture ids into production routes before the flip). */
+     navigate fixture ids into production routes before the flip). The
+     skeleton keeps the wait legible instead of painting an empty page. */
   if (
     status === 'loading' ||
     (status === 'signed-in' && (authorized === null || resolving))
   ) {
-    return <div className="h-screen bg-bg" aria-hidden="true" />
+    return (
+      <div role="status" aria-label={x(M.wsmode_loading_a11y)}>
+        <AppBootSkeleton />
+      </div>
+    )
+  }
+
+  /* The resolution pass exhausted its retries — paint an honest retry
+     surface rather than the demo persona the degraded reads would imply.
+     A signed-in user in this state never sees Northgate fixtures as if
+     they were their own workspace. */
+  if (status === 'signed-in' && workspace?.resolutionFailed) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-[10px] bg-bg px-[24px] text-center">
+        <p role="alert" className="m-0 text-[15px] font-semibold text-text">
+          {x(M.wsmode_load_error_title)}
+        </p>
+        <p className="m-0 max-w-[380px] text-[13px] leading-[1.6] text-text-muted">
+          {x(M.wsmode_load_error_body)}
+        </p>
+        <button
+          type="button"
+          onClick={() => workspace.retryResolution?.()}
+          className="mt-[10px] cursor-pointer rounded-[10px] border-none bg-navy px-[18px] py-[10px] font-sans text-[13.5px] font-semibold text-white hover:opacity-[.92]"
+        >
+          {x(M.wsmode_load_retry)}
+        </button>
+      </div>
+    )
   }
 
   if (status === 'signed-in' && authorized) {

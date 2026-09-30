@@ -18407,9 +18407,7 @@ CREATE POLICY "Members can view workflow metrics" ON "public"."workflow_metrics_
 
 
 
-CREATE POLICY "Org admins can delete candidates" ON "public"."hr_candidates" FOR DELETE USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
-   FROM "public"."organization_members"
-  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+CREATE POLICY "Org admins can delete candidates" ON "public"."hr_candidates" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18649,9 +18647,7 @@ CREATE POLICY "Org admins can delete workspace_integrations" ON "public"."worksp
 
 
 
-CREATE POLICY "Org admins can insert candidates" ON "public"."hr_candidates" FOR INSERT WITH CHECK (("organization_id" IN ( SELECT "organization_members"."organization_id"
-   FROM "public"."organization_members"
-  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+CREATE POLICY "Org admins can insert candidates" ON "public"."hr_candidates" FOR INSERT WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18913,9 +18909,9 @@ CREATE POLICY "Org admins can manage approvals" ON "public"."comms_approvals" US
 
 CREATE POLICY "Org admins can manage authenticity scores" ON "public"."hr_authenticity_scores" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
    FROM "public"."hr_candidates"
-  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
-           FROM "public"."organization_members"
-          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid")))));
 
 
 
@@ -18949,9 +18945,9 @@ CREATE POLICY "Org admins can manage coverage items" ON "public"."comms_coverage
 
 CREATE POLICY "Org admins can manage evidence screening" ON "public"."hr_evidence_screening" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
    FROM "public"."hr_candidates"
-  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
-           FROM "public"."organization_members"
-          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid")))));
 
 
 
@@ -18981,9 +18977,9 @@ CREATE POLICY "Org admins can manage interactions" ON "public"."comms_interactio
 
 CREATE POLICY "Org admins can manage interviews" ON "public"."hr_defense_interviews" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
    FROM "public"."hr_candidates"
-  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
-           FROM "public"."organization_members"
-          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid")))));
 
 
 
@@ -18995,9 +18991,7 @@ CREATE POLICY "Org admins can manage issues" ON "public"."comms_issues" USING ("
 
 
 
-CREATE POLICY "Org admins can manage job postings" ON "public"."hr_job_postings" USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
-   FROM "public"."organization_members"
-  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+CREATE POLICY "Org admins can manage job postings" ON "public"."hr_job_postings" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19031,15 +19025,13 @@ CREATE POLICY "Org admins can manage usage controls" ON "public"."comms_usage_co
 
 CREATE POLICY "Org admins can manage work samples" ON "public"."hr_work_samples" USING (("candidate_id" IN ( SELECT "hr_candidates"."id"
    FROM "public"."hr_candidates"
-  WHERE ("hr_candidates"."organization_id" IN ( SELECT "organization_members"."organization_id"
-           FROM "public"."organization_members"
-          WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))))));
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "hr_candidates"."id"
+   FROM "public"."hr_candidates"
+  WHERE "public"."is_org_admin"("hr_candidates"."organization_id", ( SELECT "auth"."uid"() AS "uid")))));
 
 
 
-CREATE POLICY "Org admins can update candidates" ON "public"."hr_candidates" FOR UPDATE USING (("organization_id" IN ( SELECT "organization_members"."organization_id"
-   FROM "public"."organization_members"
-  WHERE (("organization_members"."user_id" = "auth"."uid"()) AND ("organization_members"."role" = 'admin'::"text")))));
+CREATE POLICY "Org admins can update candidates" ON "public"."hr_candidates" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 

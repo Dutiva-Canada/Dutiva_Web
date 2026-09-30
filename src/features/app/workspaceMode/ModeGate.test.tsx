@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { screen } from '@testing-library/react'
+import { mockProductionWorkspace } from '@/test/productionWorkspace'
 
 /**
  * Same fresh-import pattern as WorkspaceModeProvider.test.tsx: mock the
@@ -27,34 +28,9 @@ describe('ModeGate', () => {
   })
 
   it('renders the module-titled empty state instead of the view in production mode', async () => {
-    vi.doMock('@/lib/supabaseClient', () => ({
-      supabase: {
-        auth: {
-          getSession: () =>
-            Promise.resolve({
-              data: { session: { user: { id: 'u1', email: 'martin.constantineau@dutiva.ca' } } },
-            }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
-        },
-        rpc: vi.fn((fn: string) => {
-          if (fn === 'is_admin_user') return Promise.resolve({ data: true, error: null })
-          if (fn === 'create_organization')
-            return Promise.resolve({ data: { id: 'org-1' }, error: null })
-          return Promise.resolve({ data: null, error: null })
-        }),
-        from: vi.fn((table: string) => ({
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () =>
-                Promise.resolve({
-                  data: table === 'workspace_preferences' ? { mode: 'production' } : null,
-                  error: null,
-                }),
-            }),
-          }),
-        })),
-      },
-    }))
+    /* Shared preamble — the membership read walks eq().eq().order().limit();
+       a one-.eq catch-all now fails the resolution pass (ReadResult). */
+    mockProductionWorkspace({ tables: {} })
     vi.resetModules()
 
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
