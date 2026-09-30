@@ -1,199 +1,13 @@
 {
-  "suiteVersion": "2026-09-04.v1",
-  "ranAt": "2026-09-30T02:46:48.150Z",
+  "suiteVersion": "2026-09-30.v1",
+  "ranAt": "2026-09-30T03:21:41.728Z",
   "summary": {
     "total": 64,
-    "pass": 34,
+    "pass": 64,
     "fail": 0,
-    "gap": 30,
+    "gap": 0,
     "failedChecks": [],
-    "coverageGaps": [
-      {
-        "caseId": "ON-NOTICE-4YR",
-        "name": "citation.grounded.ON_ESA:54",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-NOTICE-4YR",
-        "name": "citation.grounded.ON_ESA:57",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-NOTICE-4YR",
-        "name": "citation.expected.ON_ESA:60",
-        "detail": "expected section-level citation absent from grounding chunk"
-      },
-      {
-        "caseId": "ON-NOTICE-8YR",
-        "name": "citation.grounded.ON_ESA:54",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-NOTICE-8YR",
-        "name": "citation.grounded.ON_ESA:57",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-NOTICE-NEW-HIRE",
-        "name": "citation.grounded.ON_ESA:54",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-MASS-TERMINATION",
-        "name": "citation.grounded.ON_ESA:58",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-SEVERANCE",
-        "name": "citation.grounded.ON_ESA:63-64",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-JUST-CAUSE",
-        "name": "citation.grounded.ON_ESA:56",
-        "detail": "registry marks this section corpus-cited but the grounding chunk does not name it"
-      },
-      {
-        "caseId": "ON-OVERTIME",
-        "name": "citation.grounded.ON_ESA:22",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-HOURS",
-        "name": "citation.grounded.ON_ESA:17-20",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-MIN-WAGE",
-        "name": "citation.grounded.ON_ESA:23.1",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-VACATION",
-        "name": "citation.grounded.ON_ESA:33-41",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-HOLIDAYS",
-        "name": "citation.grounded.ON_ESA:24-32",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-SICK-LEAVE",
-        "name": "citation.grounded.ON_ESA:50",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-PARENTAL-LEAVE",
-        "name": "citation.grounded.ON_ESA:46",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-PARENTAL-LEAVE",
-        "name": "citation.grounded.ON_ESA:48",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-BEREAVEMENT",
-        "name": "citation.grounded.ON_ESA:50.0.2",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-FAMILY-RESP-LEAVE",
-        "name": "citation.grounded.ON_ESA:50.0.1",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-FAMILY-VIOLENCE-LEAVE",
-        "name": "citation.grounded.ON_ESA:49.7",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-ACCOMMODATION",
-        "name": "citation.grounded.ON_HRC:5",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-ACCOMMODATION",
-        "name": "citation.grounded.ON_HRC:17",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-PROBATION",
-        "name": "citation.grounded.ON_ESA:54",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "ON-NOTICE-WRONG-FIGURE",
-        "name": "citation.grounded.ON_ESA:57",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-SEVERANCE-NONE",
-        "name": "citation.expected.QC_LNT:82",
-        "detail": "expected section-level citation absent from grounding chunk"
-      },
-      {
-        "caseId": "QC-SEVERANCE-NONE",
-        "name": "citation.expected.QC_LNT:83",
-        "detail": "expected section-level citation absent from grounding chunk"
-      },
-      {
-        "caseId": "QC-OVERTIME",
-        "name": "citation.grounded.QC_LNT:52",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-OVERTIME",
-        "name": "citation.grounded.QC_LNT:54",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-HOURS",
-        "name": "citation.grounded.QC_LNT:52",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-MIN-WAGE",
-        "name": "citation.grounded.QC_LNT:40",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-HOLIDAYS",
-        "name": "citation.grounded.QC_LNT:60",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "QC-SICK-LEAVE",
-        "name": "citation.grounded.QC_LNT:79.7",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "FED-SEVERANCE",
-        "name": "citation.grounded.FED_CLC:235",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "FED-OVERTIME",
-        "name": "citation.grounded.FED_CLC:169-171",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "FED-VACATION",
-        "name": "citation.grounded.FED_CLC:184-185",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "FED-MEDICAL-LEAVE",
-        "name": "citation.grounded.FED_CLC:239",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      },
-      {
-        "caseId": "FED-BEREAVEMENT",
-        "name": "citation.grounded.FED_CLC:210",
-        "detail": "chunk cites at statute level only — section-level citation unavailable"
-      }
-    ],
+    "coverageGaps": [],
     "accuracy": 1
   },
   "cases": [
@@ -201,7 +15,7 @@
       "caseId": "ON-NOTICE-4YR",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -230,8 +44,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:54",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.registry.ON_ESA:57",
@@ -240,13 +54,13 @@
         },
         {
           "name": "citation.grounded.ON_ESA:57",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
-          "name": "citation.expected.ON_ESA:60",
-          "status": "gap",
-          "detail": "expected section-level citation absent from grounding chunk"
+          "name": "citation.expected.ON_ESA:61",
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "figure.verdict",
@@ -317,7 +131,7 @@
       "caseId": "ON-NOTICE-8YR",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -341,8 +155,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:54",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.registry.ON_ESA:57",
@@ -351,8 +165,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:57",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "figure.verdict",
@@ -423,7 +237,7 @@
       "caseId": "ON-NOTICE-NEW-HIRE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -447,8 +261,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:54",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -514,7 +328,7 @@
       "caseId": "ON-MASS-TERMINATION",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -543,8 +357,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:58",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -620,7 +434,7 @@
       "caseId": "ON-SEVERANCE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -654,8 +468,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:63-64",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -729,9 +543,9 @@
     },
     {
       "caseId": "ON-JUST-CAUSE",
-      "v": 1,
-      "kind": "gap",
-      "status": "gap",
+      "v": 2,
+      "kind": "answer",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -744,14 +558,19 @@
           "detail": "1 ON/termination_notice chunk(s)"
         },
         {
+          "name": "grounding.proposition.0",
+          "status": "pass",
+          "detail": "\"wilful misconduct\""
+        },
+        {
           "name": "citation.registry.ON_ESA:56",
           "status": "pass",
           "detail": "Employment Standards Act, 2000, s. 56"
         },
         {
           "name": "citation.grounded.ON_ESA:56",
-          "status": "gap",
-          "detail": "registry marks this section corpus-cited but the grounding chunk does not name it"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1029,7 +848,7 @@
       "caseId": "ON-OVERTIME",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1058,8 +877,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:22",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1125,7 +944,7 @@
       "caseId": "ON-HOURS",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1154,8 +973,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:17-20",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1221,7 +1040,7 @@
       "caseId": "ON-MIN-WAGE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1250,8 +1069,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:23.1",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1317,7 +1136,7 @@
       "caseId": "ON-VACATION",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1346,8 +1165,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:33-41",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1413,7 +1232,7 @@
       "caseId": "ON-HOLIDAYS",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1437,8 +1256,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:24-32",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1504,7 +1323,7 @@
       "caseId": "ON-SICK-LEAVE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1533,8 +1352,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:50",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1600,7 +1419,7 @@
       "caseId": "ON-PARENTAL-LEAVE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1634,8 +1453,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:46",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.registry.ON_ESA:48",
@@ -1644,8 +1463,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:48",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1711,7 +1530,7 @@
       "caseId": "ON-BEREAVEMENT",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1735,8 +1554,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:50.0.2",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1802,7 +1621,7 @@
       "caseId": "ON-FAMILY-RESP-LEAVE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1831,8 +1650,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:50.0.1",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1896,9 +1715,9 @@
     },
     {
       "caseId": "ON-FAMILY-VIOLENCE-LEAVE",
-      "v": 1,
-      "kind": "gap",
-      "status": "gap",
+      "v": 2,
+      "kind": "answer",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -1911,14 +1730,24 @@
           "detail": "1 ON/leaves chunk(s)"
         },
         {
+          "name": "grounding.proposition.0",
+          "status": "pass",
+          "detail": "\"domestic or sexual violence\""
+        },
+        {
+          "name": "grounding.proposition.1",
+          "status": "pass",
+          "detail": "\"15 weeks\""
+        },
+        {
           "name": "citation.registry.ON_ESA:49.7",
           "status": "pass",
           "detail": "Employment Standards Act, 2000, s. 49.7"
         },
         {
           "name": "citation.grounded.ON_ESA:49.7",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -1994,7 +1823,7 @@
       "caseId": "ON-ACCOMMODATION",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -2023,8 +1852,8 @@
         },
         {
           "name": "citation.grounded.ON_HRC:5",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.registry.ON_HRC:17",
@@ -2033,8 +1862,8 @@
         },
         {
           "name": "citation.grounded.ON_HRC:17",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -2398,7 +2227,7 @@
       "caseId": "ON-PROBATION",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -2422,8 +2251,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:54",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -2489,7 +2318,7 @@
       "caseId": "ON-NOTICE-WRONG-FIGURE",
       "v": 1,
       "kind": "adversarial",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -2513,8 +2342,8 @@
         },
         {
           "name": "citation.grounded.ON_ESA:57",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "figure.verdict",
@@ -3024,7 +2853,7 @@
       "caseId": "QC-SEVERANCE-NONE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3043,13 +2872,13 @@
         },
         {
           "name": "citation.expected.QC_LNT:82",
-          "status": "gap",
-          "detail": "expected section-level citation absent from grounding chunk"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.expected.QC_LNT:83",
-          "status": "gap",
-          "detail": "expected section-level citation absent from grounding chunk"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -3125,7 +2954,7 @@
       "caseId": "QC-OVERTIME",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3154,18 +2983,18 @@
         },
         {
           "name": "citation.grounded.QC_LNT:52",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
-        },
-        {
-          "name": "citation.registry.QC_LNT:54",
           "status": "pass",
-          "detail": "Act respecting labour standards, s. 54"
+          "detail": "named by the grounding chunk"
         },
         {
-          "name": "citation.grounded.QC_LNT:54",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "name": "citation.registry.QC_LNT:55",
+          "status": "pass",
+          "detail": "Act respecting labour standards, s. 55"
+        },
+        {
+          "name": "citation.grounded.QC_LNT:55",
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -3231,7 +3060,7 @@
       "caseId": "QC-HOURS",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3260,8 +3089,8 @@
         },
         {
           "name": "citation.grounded.QC_LNT:52",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -3327,7 +3156,7 @@
       "caseId": "QC-MIN-WAGE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3356,8 +3185,8 @@
         },
         {
           "name": "citation.grounded.QC_LNT:40",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -3519,7 +3348,7 @@
       "caseId": "QC-HOLIDAYS",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3548,8 +3377,8 @@
         },
         {
           "name": "citation.grounded.QC_LNT:60",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         },
         {
           "name": "citation.registry.QC_FETE:*",
@@ -3625,7 +3454,7 @@
       "caseId": "QC-SICK-LEAVE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -3648,14 +3477,14 @@
           "detail": "\"12 months\""
         },
         {
-          "name": "citation.registry.QC_LNT:79.7",
+          "name": "citation.registry.QC_LNT:79.1",
           "status": "pass",
-          "detail": "Act respecting labour standards, s. 79.7"
+          "detail": "Act respecting labour standards, s. 79.1"
         },
         {
-          "name": "citation.grounded.QC_LNT:79.7",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "name": "citation.grounded.QC_LNT:79.1",
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -4600,7 +4429,7 @@
       "caseId": "FED-SEVERANCE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -4634,8 +4463,8 @@
         },
         {
           "name": "citation.grounded.FED_CLC:235",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -4918,7 +4747,7 @@
       "caseId": "FED-OVERTIME",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -4941,14 +4770,14 @@
           "detail": "\"1.5 times\""
         },
         {
-          "name": "citation.registry.FED_CLC:169-171",
+          "name": "citation.registry.FED_CLC:169-174",
           "status": "pass",
-          "detail": "Canada Labour Code, ss. 169–171"
+          "detail": "Canada Labour Code, ss. 169–174"
         },
         {
-          "name": "citation.grounded.FED_CLC:169-171",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "name": "citation.grounded.FED_CLC:169-174",
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -5110,7 +4939,7 @@
       "caseId": "FED-VACATION",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -5139,8 +4968,8 @@
         },
         {
           "name": "citation.grounded.FED_CLC:184-185",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -5302,7 +5131,7 @@
       "caseId": "FED-MEDICAL-LEAVE",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -5331,8 +5160,8 @@
         },
         {
           "name": "citation.grounded.FED_CLC:239",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
@@ -5398,7 +5227,7 @@
       "caseId": "FED-BEREAVEMENT",
       "v": 1,
       "kind": "answer",
-      "status": "gap",
+      "status": "pass",
       "checks": [
         {
           "name": "jurisdiction.detect",
@@ -5427,8 +5256,8 @@
         },
         {
           "name": "citation.grounded.FED_CLC:210",
-          "status": "gap",
-          "detail": "chunk cites at statute level only — section-level citation unavailable"
+          "status": "pass",
+          "detail": "named by the grounding chunk"
         }
       ],
       "payload": {
