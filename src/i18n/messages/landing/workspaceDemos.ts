@@ -50,8 +50,8 @@ export const landingWorkspaceDemos = defineMessages({
     fr: 'Dossiers de cessation et de discipline avec contexte du Conseiller.',
   },
   landing_ws_demo_comms_title: {
-    en: 'Communications',
-    fr: 'Communications',
+    en: 'Comms planner',
+    fr: 'Planification des communications',
   },
   landing_ws_demo_comms_sub: {
     en: 'Plan initiatives, draft content, and track contacts — with bulk import.',

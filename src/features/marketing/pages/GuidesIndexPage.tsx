@@ -5,6 +5,7 @@ import { Seo } from '@/seo/Seo'
 import { maxIsoDate } from '@/seo/dates'
 import { usePublicPath } from '@/seo/usePublicPath'
 import { GUIDE_ARTICLES, articlePath } from '../articles'
+import { ArticlePublishedLabel } from '../articles/ArticlePublishedLabel'
 import { MarketingPageShell, PageAside, PageCta, PageHero, PageSection } from './MarketingPage'
 import { guidesIndexMessages } from '@/i18n/messages/guidesIndex'
 import { tmplGuideMessages } from '@/i18n/messages/templateUsage'
@@ -61,7 +62,12 @@ function GuidesIndexPageInner() {
                 <BookOpen size={16} className="mt-0.5 flex-none text-gold-strong" />
                 <div>
                   <div className="text-xs font-medium text-gold-strong">
-                    {x(guide.topic)} ·{' '}
+                    <ArticlePublishedLabel
+                      iso={guide.updated}
+                      lang={lang}
+                      template={t('guidesIdx_published')}
+                    />{' '}
+                    · {x(guide.topic)} ·{' '}
                     {x({
                       en: `${guide.readingMinutes} min read`,
                       fr: `${guide.readingMinutes} min de lecture`,

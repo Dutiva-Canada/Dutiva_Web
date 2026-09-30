@@ -25,12 +25,12 @@ import type { Bi, Lang } from '@/i18n/core'
  *     for how long, which leaves exist. The reader is orienting, not drafting.
  *
  * Ask "is this about a document they are writing, or about a rule they are
- * under?" and the answer places the article. Blog articles display a
+ * under?" and the answer places the article. Both collections display a
  * month-year date derived from `updated` (cards and article pages) so
  * crawlers and readers can see freshness; bump `updated` only on
- * substantive edits — the same rule that feeds sitemap `lastmod`. Guides
- * stay undated in the UI: a stale timestamp on a compliance how-to is worse
- * than none. There is still no publishing cadence to promise.
+ * substantive edits — the same rule that feeds sitemap `lastmod`. Guide
+ * pages additionally carry the site's founder byline. There is still no
+ * publishing cadence to promise.
  *
  * Keeping the collections disjoint is *also* an SEO constraint, and the
  * stricter of the two: both indexes once listed the same six titles, and a

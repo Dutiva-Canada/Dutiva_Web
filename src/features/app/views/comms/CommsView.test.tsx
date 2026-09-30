@@ -34,7 +34,7 @@ describe('CommsView', () => {
   it('renders the workspace shell with all navigation tabs', () => {
     renderAt('/app/comms/overview')
 
-    expect(screen.getByRole('heading', { name: 'Communications' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Comms planner' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Initiatives' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Content & calendar' })).toBeInTheDocument()

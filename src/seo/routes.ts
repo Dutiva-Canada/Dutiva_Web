@@ -249,8 +249,8 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     id: 'vsHrdownloads',
     path: { en: '/vs/hrdownloads', fr: '/fr/vs/hrdownloads' },
     title: {
-      en: 'Dutiva vs HRdownloads: Canadian HR compliance comparison',
-      fr: 'Dutiva vs HRdownloads : comparaison de conformité RH au Canada',
+      en: 'Dutiva vs Citation Canada (formerly HRdownloads): Canadian HR compliance comparison',
+      fr: 'Dutiva vs Citation Canada (anciennement HRdownloads) : comparaison de conformité RH au Canada',
     },
     description: {
       en: 'Compare Dutiva and Citation Canada (HRdownloads) on pricing transparency, AI risk flags, bilingual EN/FR, statute specificity, and self-serve access.',

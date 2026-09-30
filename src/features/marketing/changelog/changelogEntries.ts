@@ -17,6 +17,17 @@ interface ChangelogEntry {
 
 export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
   {
+    date: '2026-09-03',
+    title: bi(
+      'Free-seat cohort narrowed to 5 seats',
+      'La cohorte de places gratuites passe à 5 places',
+    ),
+    body: bi(
+      'The free-seat cohort is now 5 seats, down from 15. Accounts already admitted keep their access. New free signups join the waitlist until a seat opens; a paid plan remains the immediate way in.',
+      'La cohorte de places gratuites passe de 15 à 5 places. Les comptes déjà admis conservent leur accès. Les nouvelles inscriptions gratuites rejoignent la liste d’attente jusqu’à l’ouverture d’une place; un forfait payant reste la voie immédiate.',
+    ),
+  },
+  {
     date: '2026-08-27',
     title: bi(
       'Public demo — explore the workspace without signing in',

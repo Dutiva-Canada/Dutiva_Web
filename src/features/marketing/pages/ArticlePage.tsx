@@ -18,6 +18,7 @@ import { ArticlePublishedLabel } from '@/features/marketing/articles/ArticlePubl
 import { articleSections } from '@/features/marketing/articles/content'
 import { Breadcrumbs, MarketingPageShell } from './MarketingPage'
 import { blogMessages } from '@/i18n/messages/blog'
+import { guidesIndexMessages } from '@/i18n/messages/guidesIndex'
 import { LangScope } from '@/i18n/LangScope'
 
 /**
@@ -29,7 +30,7 @@ import { LangScope } from '@/i18n/LangScope'
  * PolicyPage and HelpArticlePage. `/guides/template-usage` is a separate
  * static route and is matched ahead of this one by the router's ranking.
  */
-const SCOPE = blogMessages
+const SCOPE = { ...blogMessages, ...guidesIndexMessages }
 
 export function ArticlePage(props: { readonly collection: ArticleCollection }) {
   return (
@@ -110,17 +111,12 @@ function ArticlePageInner({ collection }: { readonly collection: ArticleCollecti
         </Link>
 
         <p className="mt-6 text-xs font-semibold tracking-[0.14em] text-text-3 uppercase">
-          {collection === 'blog' && (
-            <>
-              <ArticlePublishedLabel
-                iso={article.updated}
-                lang={lang}
-                template={t('blog_published')}
-              />{' '}
-              ·{' '}
-            </>
-          )}
-          {x(article.topic)} ·{' '}
+          <ArticlePublishedLabel
+            iso={article.updated}
+            lang={lang}
+            template={t(collection === 'guide' ? 'guidesIdx_published' : 'blog_published')}
+          />{' '}
+          · {x(article.topic)} ·{' '}
           {x({
             en: `${article.readingMinutes} min read`,
             fr: `${article.readingMinutes} min de lecture`,
@@ -129,6 +125,9 @@ function ArticlePageInner({ collection }: { readonly collection: ArticleCollecti
         <h1 className="mt-2 font-display text-[clamp(1.625rem,3vw,2.25rem)] leading-[1.14] font-semibold tracking-[-0.02em] text-text">
           {x(article.title)}
         </h1>
+        {collection === 'guide' && (
+          <p className="mt-3 text-sm font-medium text-text-3">{t('guidesIdx_byline')}</p>
+        )}
         <p className="mt-3.5 text-lg leading-[1.6] text-text-2">{x(article.summary)}</p>
 
         {articleSections(collection, article.slug).map((section, sectionIndex) => (

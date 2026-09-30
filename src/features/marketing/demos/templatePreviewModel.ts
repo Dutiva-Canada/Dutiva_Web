@@ -2,8 +2,9 @@ import { allTemplates } from '@/features/app/documents/catalogue'
 import type { DocTemplate } from '@/features/app/documents/data'
 import {
   answerLabels,
-  bilingualMergeValues,
   computedTokens,
+  formatTodayLabel,
+  mergeFieldValues,
   resolveBlocks,
 } from '@/features/app/documents/engine'
 import type { Lang } from '@/i18n/core'
@@ -60,6 +61,42 @@ const demoMergeFieldAnswers: Record<string, string> = {
   notice_period: '8 weeks',
 }
 
+/**
+ * French overrides for the free-text answers — select/radio values stay
+ * canonical (`answerLabels` localizes them through the question options) and
+ * `date` answers format themselves per language. Without these, a French
+ * preview renders French clauses around English job titles, pay terms and
+ * the Schedule A body.
+ */
+const demoMergeFieldAnswersFr: Record<string, string> = {
+  employee_address_line_1: '42, rue Maple',
+  employee_address_line_2: 'Toronto (Ont.)  M5V 1A1',
+  position_title: 'Coordonnateur des opérations',
+  department: 'Opérations',
+  manager_title: 'Directrice des opérations',
+  work_location: 'Toronto (Ont.) — hybride (3 jours sur place)',
+  regular_hours: 'du lundi au vendredi, de 9 h à 17 h',
+  annual_base_salary: '68 000 $',
+  pay_frequency: 'aux deux semaines',
+  pay_period: 'aux deux semaines',
+  pay_day: 'un vendredi sur deux',
+  variable_comp_plan_name: 'un régime de boni de rendement annuel',
+  variable_comp_target: '10 % du salaire de base',
+  benefits_plan_name: 'Northgate',
+  employer_address: '1200, promenade Industrial, Mississauga (Ont.)  L5T 2H8',
+  job_responsibilities:
+    'Coordonner les expéditions entrantes et sortantes, entretenir les relations avec les transporteurs et appuyer la planification des horaires d’entrepôt.',
+  required_qualifications:
+    'Diplôme d’études postsecondaires en logistique ou en chaîne d’approvisionnement; au moins deux ans d’expérience en coordination du transport.',
+  role_requirements: 'Déplacements occasionnels au centre de distribution de Mississauga.',
+  employer_signer_title: 'Directeur des ressources humaines',
+  notice_period: '8 semaines',
+}
+
+function demoAnswersFor(lang: Lang): Record<string, string> {
+  return lang === 'fr' ? { ...demoMergeFieldAnswers, ...demoMergeFieldAnswersFr } : demoMergeFieldAnswers
+}
+
 export function templateByTid(tid: string): DocTemplate | undefined {
   return allTemplates.find((candidate) => candidate.tid === tid)
 }
@@ -67,20 +104,34 @@ export function templateByTid(tid: string): DocTemplate | undefined {
 export function buildTemplatePreview(tid: string, lang: Lang) {
   const template = templateByTid(tid)
   if (!template) return null
-  const ctx = { ...MARKETING_DEMO_ORG, answers: demoMergeFieldAnswers }
+  const answers = demoAnswersFor(lang)
+  const ctx = { ...MARKETING_DEMO_ORG, answers }
   const blocks = resolveBlocks(template, ctx)
-  const today = new Date().toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const today = formatTodayLabel(lang)
+  /* Each half of a bilingual template gets its own locale's answers — the EN
+     half must not inherit the FR free-text overrides and vice versa. */
   const valuesByLang =
     template.delivery === 'bilingual'
-      ? bilingualMergeValues(template, demoMergeFieldAnswers, MARKETING_DEMO_ORG.jurisdiction)
+      ? {
+          en: mergeFieldValues(
+            template,
+            demoAnswersFor('en'),
+            MARKETING_DEMO_ORG.jurisdiction,
+            'en',
+            formatTodayLabel('en'),
+          ),
+          fr: mergeFieldValues(
+            template,
+            demoAnswersFor('fr'),
+            MARKETING_DEMO_ORG.jurisdiction,
+            'fr',
+            formatTodayLabel('fr'),
+          ),
+        }
       : undefined
-  const values = valuesByLang?.en ?? {
+  const values = valuesByLang?.[lang] ?? {
     ...computedTokens(MARKETING_DEMO_ORG.jurisdiction, lang, today),
-    ...answerLabels(template, demoMergeFieldAnswers, lang),
+    ...answerLabels(template, answers, lang),
   }
   return { template, blocks, values, valuesByLang, bilingual: template.delivery === 'bilingual' }
 }
@@ -101,6 +152,7 @@ export function compactDocPaperProps(
 /** Resolved demo answer for a wizard field — dates and selects match document output. */
 export function demoAnswerDisplay(tid: string, fieldId: string, lang: Lang): string | undefined {
   const template = templateByTid(tid)
-  if (!template) return demoMergeFieldAnswers[fieldId]
-  return answerLabels(template, demoMergeFieldAnswers, lang)[fieldId]
+  const answers = demoAnswersFor(lang)
+  if (!template) return answers[fieldId]
+  return answerLabels(template, answers, lang)[fieldId]
 }

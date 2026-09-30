@@ -4,6 +4,7 @@ import type { LucideIcon } from 'lucide-react'
 import { advisorScenarios } from '@/features/app/views/advisor/advisorScenarios'
 import type { AdvisorScenario, ScenarioId } from '@/features/app/views/advisor/advisorScenarios'
 import { documentTemplatesByKey } from '@/data/documents'
+import { followupReplies } from '@/data/followupReplies'
 import { useI18n } from '@/i18n/context'
 import { LANDING_ADVISOR_SCENARIO_IDS } from './landingAdvisorScenarios'
 import { useLanding } from '../useLanding'
@@ -175,7 +176,15 @@ function ScenarioTranscript({
 
       <div className="flex items-end gap-2.5 rounded-[14px] border border-border bg-bg-elevated p-2 pl-4 shadow-[0_10px_30px_-16px_rgba(0,0,0,0.35)]">
         <span className="flex-1 py-2 text-sm text-text-3">
-          {turn.followups?.[0] ?? lt('landing_adv_followup')}
+          {/* Follow-up keys resolve to their bilingual chip label — the raw key
+              is the EN string and leaked untranslated onto /fr. */}
+          {(() => {
+            const key = turn.followups?.[0]
+            const label = key ? followupReplies[key]?.label : undefined
+            if (label) return x(label)
+            if (key) return key
+            return lt('landing_adv_followup')
+          })()}
         </span>
         <span className="grid h-8.5 w-8.5 flex-none place-items-center rounded-[9px] bg-navy">
           <ArrowUp size={15} className="text-white" />
