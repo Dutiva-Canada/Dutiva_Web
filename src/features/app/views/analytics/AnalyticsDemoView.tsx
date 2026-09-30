@@ -263,7 +263,14 @@ export function AnalyticsDemoView() {
         {/* Headcount by jurisdiction */}
         <AnalyticsCard
           title={x(M.analytics_headcount_title)}
-          subtitle={fill(x(M.analytics_headcount_total), { n: headcountTotal })}
+          subtitle={fill(
+            x(
+              headcountTotal === 1
+                ? M.analytics_headcount_total_one
+                : M.analytics_headcount_total_many,
+            ),
+            { n: headcountTotal },
+          )}
         >
           <JurisdictionBars
             rows={headcountByJurisdiction.map((row) => ({

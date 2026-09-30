@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import type { DocRecipient, RecipientType } from '../data'
 
 interface SignatureModalProps {
@@ -64,6 +65,10 @@ export function SignatureModal({
       ),
     [recipients],
   )
+
+  /* Plain <dialog> (not showModal()) — Escape needs the shared stack to
+     reach the close handler. */
+  useEscapeToClose(isOpen, onClose)
 
   if (!isOpen) return null
 

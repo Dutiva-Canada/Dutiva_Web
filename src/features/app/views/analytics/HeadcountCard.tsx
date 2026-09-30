@@ -24,7 +24,16 @@ export function HeadcountCard({
     <AnalyticsCard
       title={x(M.analytics_headcount_title)}
       subtitle={
-        activeCount > 0 ? fill(x(M.analytics_headcount_total), { n: activeCount }) : undefined
+        activeCount > 0
+          ? fill(
+              x(
+                activeCount === 1
+                  ? M.analytics_headcount_total_one
+                  : M.analytics_headcount_total_many,
+              ),
+              { n: activeCount },
+            )
+          : undefined
       }
       hidden={hidden}
     >

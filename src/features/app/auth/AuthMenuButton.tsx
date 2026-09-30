@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { authMessages as M } from '@/i18n/messages/auth'
 import { useAuth } from './authContext'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import { AuthSignInForm } from './AuthSignInForm'
 
 /**
@@ -16,11 +17,26 @@ export function AuthMenuButton({ compact = false }: { readonly compact?: boolean
   const { x } = useI18n()
   const { status, signOut } = useAuth()
   const [open, setOpen] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  /* The popover is a plain <dialog>, not showModal() — without this,
+     Escape does nothing and the only way out is a scrim click or reload. */
+  useEscapeToClose(open, () => setOpen(false))
+  /* Closing unmounts the dialog; if focus lived inside it, the browser drops
+     it on <body>. Put it back on the trigger so keyboard users don't lose
+     their place. */
+  const wasOpenRef = useRef(false)
+  useEffect(() => {
+    if (wasOpenRef.current && !open && document.activeElement === document.body) {
+      triggerRef.current?.focus()
+    }
+    wasOpenRef.current = open
+  }, [open])
 
   return (
     <div className="relative">
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen((next) => !next)}
         aria-label={x(M.auth_menu_title)}
         aria-expanded={open}

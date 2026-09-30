@@ -43,6 +43,7 @@ function Opener() {
    export behavior is tested independently of plan gating (see PlanGate.test). */
 const DEMO_MODE_CTX: WorkspaceModeContextValue = {
   mode: 'demo',
+  resolving: false,
   isAdmin: false,
   canUseProduction: false,
   identity: {

@@ -41,7 +41,9 @@ export function useProductionNavBadges(): ProductionNavBadges {
         if (findings > 0) next.compliance = { value: String(findings), tone: 'warn' }
         setBadges(next)
       } catch {
-        if (!cancelled) setBadges({})
+        /* A transient count failure keeps the last good badges rather than
+           blanking the rail — counts must be stable for unchanged data; a
+           real drop still lands via the next successful fetch. */
       }
     }
 

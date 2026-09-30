@@ -25,7 +25,9 @@ export function SidebarSection({
 }: SidebarSectionProps) {
   const { x } = useI18n()
   const panelId = `${id}-panel`
-  const countLabel = x(M.shell_section_item_count).replace('{n}', String(itemCount))
+  const countLabel = x(
+    itemCount === 1 ? M.shell_section_item_count_one : M.shell_section_item_count_many,
+  ).replace('{n}', String(itemCount))
   const toggleLabel = open ? heading : `${heading}, ${countLabel}`
 
   return (

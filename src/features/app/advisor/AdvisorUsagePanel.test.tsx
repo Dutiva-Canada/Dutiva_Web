@@ -17,6 +17,7 @@ const fetchMock = vi.mocked(fetchAdvisorUsageSummary)
 
 const MODE: WorkspaceModeContextValue = {
   mode: 'production',
+  resolving: false,
   isAdmin: true,
   canUseProduction: true,
   identity: {

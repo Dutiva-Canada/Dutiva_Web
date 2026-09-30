@@ -163,4 +163,60 @@ describe('RequireAdminSession', () => {
     resolveRpc?.({ data: true, error: null })
     expect(await screen.findByText('workspace')).toBeInTheDocument()
   })
+
+  it('holds the surface blank while the workspace pass is still resolving', async () => {
+    /* Identity-flicker regression: a signed-in production user must never see
+       demo identity/fixtures — the gate stays on the blank screen until
+       WorkspaceModeProvider commits mode + identity. */
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+      },
+    }))
+    vi.resetModules()
+
+    const { RequireAdminSession } = await import('./RequireAdminSession')
+    const { AuthProvider } = await import('./AuthProvider')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+    const { WorkspaceModeContext } = await import(
+      '@/features/app/workspaceMode/workspaceModeContext'
+    )
+    const resolving = { resolving: true } as Parameters<
+      typeof WorkspaceModeContext.Provider
+    >[0]['value']
+
+    render(
+      <LangProvider>
+        <MemoryRouter initialEntries={['/app']}>
+          <AuthProvider>
+            <Routes>
+              <Route
+                path="/app"
+                element={
+                  <WorkspaceModeContext.Provider value={resolving}>
+                    <RequireAdminSession>
+                      <div>workspace</div>
+                    </RequireAdminSession>
+                  </WorkspaceModeContext.Provider>
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </MemoryRouter>
+      </LangProvider>,
+    )
+
+    /* Session + membership resolve fine — only the workspace pass is pending.
+       Wait for the session to settle before asserting. */
+    await waitFor(() => expect(screen.queryByText('welcome')).toBeNull())
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.queryByText('workspace')).toBeNull()
+  })
 })
