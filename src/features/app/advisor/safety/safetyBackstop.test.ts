@@ -109,16 +109,17 @@ describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
     })
     expect(actions).toContain('figure-mismatch')
     for (const code of ['QC', 'FED'] as const) {
-      /* Known label, unencoded schedule → recognized but unverifiable. */
-      expect(
-        applySafetyBackstop({
-          userMessage: 'An employee with 4 years of service.',
-          reply: 'The minimum is 2 weeks of notice.',
-          response: baseResponse({
-            jurisdiction: { status: 'known', value: JURISDICTION_VALUE[code] },
-          }),
-        }).actions,
-      ).toEqual([])
+      /* Known label, unencoded schedule → the figure cannot be checked, so
+         the turn must warn rather than sit confident (§2d decline-to-guess). */
+      const { actions, response } = applySafetyBackstop({
+        userMessage: 'An employee with 4 years of service.',
+        reply: 'The minimum is 2 weeks of notice.',
+        response: baseResponse({
+          jurisdiction: { status: 'known', value: JURISDICTION_VALUE[code] },
+        }),
+      })
+      expect(actions).toContain('figure-unverified')
+      expect(response.warnings.length).toBeGreaterThan(0)
     }
   })
 
@@ -153,7 +154,7 @@ describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
     expect(result.response).toBe(response)
   })
 
-  it('stays silent when tenure is unknown or the schedule is unencoded', () => {
+  it('stays silent when tenure is unknown, and warns on an unencoded schedule', () => {
     expect(
       applySafetyBackstop({
         userMessage: 'How much notice do I owe in Ontario?',
@@ -163,15 +164,22 @@ describe('applySafetyBackstop — notice-figure cross-check (§5.2b)', () => {
         }),
       }).actions,
     ).toEqual([])
-    expect(
-      applySafetyBackstop({
-        userMessage: 'An employee with 4 years of service in Quebec.',
-        reply: 'The LNT requires 2 weeks of notice.',
-        response: baseResponse({
-          jurisdiction: { status: 'known', value: 'Quebec · Provincially regulated' },
-        }),
-      }).actions,
-    ).toEqual([])
+    /* A specific figure for a specific tenure where no schedule is encoded
+       cannot be verified — the reply must say so rather than sit confident. */
+    const qc = applySafetyBackstop({
+      userMessage: 'An employee with 4 years of service in Quebec.',
+      reply: 'The LNT requires 2 weeks of notice.',
+      response: baseResponse({
+        jurisdiction: { status: 'known', value: 'Quebec · Provincially regulated' },
+      }),
+    })
+    expect(qc.actions).toContain('figure-unverified')
+    const qcWarning = qc.response.warnings.at(-1)
+    expect(typeof qcWarning === 'string' ? qcWarning : (qcWarning?.en ?? '')).toContain(
+      'could not be checked',
+    )
+    /* Warning only — the corpus citation stays visible for verification. */
+    expect(qc.response.route.legalBasisAllowed).toBe(true)
   })
 })
 

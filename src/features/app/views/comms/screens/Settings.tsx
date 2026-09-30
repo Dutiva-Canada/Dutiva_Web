@@ -363,7 +363,7 @@ function UsageControls() {
             />
           </div>
         </div>
-        {canWrite && (
+        {canWrite ? (
           <div className="mt-[14px] flex gap-[8px]">
             <button
               type="submit"
@@ -372,6 +372,10 @@ function UsageControls() {
               {x(M.comms_usage_update)}
             </button>
           </div>
+        ) : (
+          <p className="mt-[12px] text-[12.5px] text-text-muted">
+            {x(M.comms_usage_read_only_hint)}
+          </p>
         )}
       </form>
     </section>

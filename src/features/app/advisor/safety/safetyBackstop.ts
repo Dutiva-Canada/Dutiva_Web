@@ -18,7 +18,11 @@ import { mentionsStatutoryFigure } from './statutoryFigures'
  * its braces ("the client gates too").
  */
 
-export type SafetyAction = 'crisis-intercept' | 'legal-basis-withheld' | 'figure-mismatch'
+export type SafetyAction =
+  | 'crisis-intercept'
+  | 'legal-basis-withheld'
+  | 'figure-mismatch'
+  | 'figure-unverified'
 
 export interface SafetyBackstopInput {
   /** The user's message this turn — the crisis pre-classifier reads it. */
@@ -68,6 +72,18 @@ function mismatchWarning(expectedWeeks: number, statedWeeks: number): Bi {
     en: `A notice figure in this reply (${statedWeeks} weeks) disagrees with the encoded statutory schedule (${expectedWeeks} weeks for the stated tenure). Verify against the official source before relying on either.`,
     fr: `Un chiffre de préavis dans cette réponse (${statedWeeks} semaines) contredit le barème légal encodé (${expectedWeeks} semaines pour l’ancienneté indiquée). Vérifiez auprès de la source officielle avant de vous fier à l’un ou l’autre.`,
   }
+}
+
+/* §2d — the "decline to guess" half. Québec and federal schedules are
+   deliberately unencoded pending legal review (docs/notice-bands-decision.md),
+   so a reply asserting a specific notice figure for a specific tenure there
+   states something no encoded rule vouches for. The figure may be right — the
+   corpus often grounds it — but "cannot verify" must be said out loud rather
+   than left confident. Warning only: the corpus citation stays visible, it is
+   exactly where the reader should verify. */
+const UNVERIFIED_WARNING: Bi = {
+  en: 'A notice figure in this reply could not be checked against the encoded statutory schedule for this jurisdiction — verify it against the official source before relying on it.',
+  fr: 'Un chiffre de préavis dans cette réponse n’a pas pu être vérifié contre le barème légal encodé pour cette compétence — vérifiez-le auprès de la source officielle avant de vous y fier.',
 }
 
 /**
@@ -147,6 +163,9 @@ export function applySafetyBackstop(input: SafetyBackstopInput): SafetyBackstopR
           },
           warnings: [...next.warnings, mismatchWarning(check.expectedWeeks, check.statedWeeks)],
         }
+      } else if (check.verdict === 'unverifiable' && check.reason === 'no-schedule') {
+        actions.push('figure-unverified')
+        next = { ...next, warnings: [...next.warnings, UNVERIFIED_WARNING] }
       }
     }
   }
