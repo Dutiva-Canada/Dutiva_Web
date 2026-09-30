@@ -86,7 +86,7 @@ export interface GoldenRunResult {
 
 /** Chunks the corpus offers for a case — jurisdiction + topic, active rows
     only (the snapshot mirrors the live table, which serves active rows). */
-export function groundingChunksFor(c: GoldenCase): CorpusSnapshotRow[] {
+function groundingChunksFor(c: GoldenCase): CorpusSnapshotRow[] {
   if (!c.jurisdiction || !c.topic) return []
   return ADVISOR_CORPUS_SNAPSHOT.filter(
     (row) =>
@@ -104,7 +104,7 @@ function chunkText(chunks: readonly GuidanceChunk[]): string {
 
 /* ----------------------------------------------------------- one case run */
 
-export function runGoldenCase(c: GoldenCase): GoldenCaseResult {
+function runGoldenCase(c: GoldenCase): GoldenCaseResult {
   const checks: GoldenCheck[] = []
   const pass = (name: string, detail = ''): void => {
     checks.push({ name, status: 'pass', detail })

@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -367,5 +366,3 @@ export function MemoryGovernanceTab() {
     </div>
   )
 }
-
-export { type Bi }

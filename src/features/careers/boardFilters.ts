@@ -27,16 +27,6 @@ export interface BoardFilter {
   sort: BoardSort
 }
 
-export const EMPTY_FILTER: BoardFilter = {
-  q: '',
-  location: '',
-  workplace: '',
-  employer: '',
-  department: '',
-  salaryMin: 0,
-  sort: 'newest',
-}
-
 /**
  * Derived work arrangement. `type`/`location` are employer free text, so the
  * facet classifies by keyword rather than trusting a fixed vocabulary:
@@ -100,7 +90,7 @@ export function filterPostings(
  * break ties, then recency. Only meaningful when a query is active — the UI
  * hides the option otherwise (there is nothing to be relevant *to*).
  */
-export function relevanceScore(p: PublicJobPosting, q: string): number {
+function relevanceScore(p: PublicJobPosting, q: string): number {
   const needle = q.trim()
   if (!needle) return 0
   let score = 0
@@ -117,7 +107,7 @@ function timeOf(p: PublicJobPosting): number {
   return Number.isNaN(t) ? 0 : t
 }
 
-export function sortPostings(postings: PublicJobPosting[], filter: BoardFilter): PublicJobPosting[] {
+function sortPostings(postings: PublicJobPosting[], filter: BoardFilter): PublicJobPosting[] {
   const out = [...postings]
   if (filter.sort === 'relevance' && filter.q.trim()) {
     const q = filter.q
@@ -190,17 +180,6 @@ export function filterToParams(filter: BoardFilter): URLSearchParams {
     if (value && !(key === 'sort' && value === 'newest')) params.set(param, String(value))
   }
   return params
-}
-
-export function isFilterActive(filter: BoardFilter): boolean {
-  return Boolean(
-    filter.q.trim() ||
-      filter.location ||
-      filter.workplace ||
-      filter.employer ||
-      filter.department ||
-      filter.salaryMin > 0,
-  )
 }
 
 /* ── Salary ────────────────────────────────────────────────────────────── */

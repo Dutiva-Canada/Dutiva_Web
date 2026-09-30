@@ -10,9 +10,7 @@ import {
   Trash2,
   X,
   AlertTriangle,
-  FileText,
   Scale,
-  UserRoundPen,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick, pickL } from '@/i18n/core'
@@ -488,5 +486,3 @@ export function MemoryDetailsDrawer({
   )
 }
 
-/** Re-exported for the inline edit affordance used by the Memories list. */
-export { FileText, UserRoundPen }

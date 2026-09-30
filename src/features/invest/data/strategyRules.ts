@@ -10,7 +10,6 @@ import type {
   InvestSignal,
   InvestStrategy,
   MarketSnapshot,
-  OrderProposalRule,
   QuantityUnit,
   RuleMetric,
   SignalSeverity,
@@ -125,8 +124,6 @@ export function cadenceMismatch(
   return null
 }
 
-export const DEFAULT_NOTIFY: InvestStrategy['notify'] = { inApp: true, email: false }
-
 export function defaultSignalRule(): StrategyRule {
   return {
     type: 'signal',
@@ -134,19 +131,6 @@ export function defaultSignalRule(): StrategyRule {
     op: 'lt',
     value: -5,
     severity: 'insight',
-    title: '',
-  }
-}
-
-export function defaultProposalRule(): OrderProposalRule {
-  return {
-    type: 'order_proposal',
-    metric: 'day_change_pct',
-    op: 'lt',
-    value: -5,
-    side: 'buy',
-    qty: 1,
-    qtyUnit: 'shares',
     title: '',
   }
 }

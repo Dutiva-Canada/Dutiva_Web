@@ -6,7 +6,7 @@ export function isJournalBalanced(lines: FinanceJournalLine[]): boolean {
   return Math.abs(debit - credit) < 0.005
 }
 
-export function parseDecimal(s: string): number {
+function parseDecimal(s: string): number {
   const n = Number.parseFloat(s)
   return Number.isFinite(n) ? n : 0
 }
