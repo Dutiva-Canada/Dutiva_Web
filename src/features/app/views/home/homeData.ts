@@ -32,7 +32,7 @@ type PrioritySeverity = 'High' | 'Medium' | 'Low'
 /* --------------------------------------------------------- derived counts */
 
 /** Prototype: `s.cases.filter(c => c.status !== 'Resolved').length`. */
-export const openCaseCount = cases.filter((c) => c.status.en !== 'Resolved').length
+const openCaseCount = cases.filter((c) => c.status.en !== 'Resolved').length
 
 /** Prototype: `s.tasks.filter(t => !t.done).length`. */
 export const openTaskCount = tasks.filter((t) => !t.done).length

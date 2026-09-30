@@ -170,7 +170,7 @@ export async function loadSignatureBundle(
   }
 }
 
-export { signatureRowSchema, recipientRowSchema, toSignature, toRecipient }
+export { signatureRowSchema, toSignature }
 
 export function toDocRecipient(r: ProductionDocumentRecipient): DocRecipient {
   return {

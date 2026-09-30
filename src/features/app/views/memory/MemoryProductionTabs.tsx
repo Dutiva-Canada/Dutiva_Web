@@ -690,5 +690,3 @@ export function ProductionGovernanceTab({
     </div>
   )
 }
-
-export { type Bi }

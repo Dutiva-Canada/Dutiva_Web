@@ -1,0 +1,27 @@
+# Statute-drift cadence — re-verifies that every section the Advisor
+# registry and corpus cite still exists in the official consolidated texts
+# (e-Laws, LégisQuébec, laws-lois). Statutes amend without notice; this is
+# the early-warning layer between corpus refreshes.
+#
+# Fires on Woodpecker `cron` events and `manual` runs only — deliberately
+# not on push/PR: the check depends on live government sites that
+# rate-limit and interstitial bots, so it would flake as a merge gate.
+# Register a cron in Woodpecker server settings pointing at this repo and
+# branch (weekly is the right cadence; nothing here needs secrets — the
+# statute texts are public).
+
+when:
+  - event: cron
+  - event: manual
+
+steps:
+  install:
+    image: node:22
+    commands:
+      - npm ci
+
+  statute-drift:
+    image: node:22
+    depends_on: [install]
+    commands:
+      - npm run check:statute-drift

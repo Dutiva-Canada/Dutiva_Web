@@ -10,7 +10,6 @@ import {
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick, pickL } from '@/i18n/core'
-import type { Lang } from '@/i18n/core'
 import { memoryMessages as M } from '@/i18n/messages/memory'
 import type { MemoryFact } from '@/data'
 import {
@@ -247,5 +246,3 @@ export function MemoryInlineEdit({
     </div>
   )
 }
-
-export { type Lang }

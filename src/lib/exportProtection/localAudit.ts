@@ -60,7 +60,7 @@ interface LocalGuardPolicy {
 /** Client-side ceilings — mirrored (tighter) by the server policy in
  * supabase/functions/_shared/exportGuard.ts; keep the two in sight of each
  * other when tuning. */
-export const LOCAL_GUARD_POLICY: LocalGuardPolicy = {
+const LOCAL_GUARD_POLICY: LocalGuardPolicy = {
   burstWindowSeconds: 300,
   burstLimit: 12,
   dailyLimit: 100,

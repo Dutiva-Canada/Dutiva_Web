@@ -1,0 +1,725 @@
+{
+  "generatedAt": "2026-09-30T06:44:28.137Z",
+  "sources": [
+    {
+      "url": "https://www.ontario.ca/laws/statute/00e41",
+      "status": "fetched",
+      "bytes": 767221
+    },
+    {
+      "url": "https://www.ontario.ca/laws/statute/90h19",
+      "status": "fetched",
+      "bytes": 193354
+    },
+    {
+      "url": "https://www.ontario.ca/laws/statute/97w16a",
+      "status": "fetched",
+      "bytes": 568303
+    },
+    {
+      "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/N-1.1",
+      "status": "fetched",
+      "bytes": 828123
+    },
+    {
+      "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/C-12",
+      "status": "fetched",
+      "bytes": 317006
+    },
+    {
+      "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/A-3.001",
+      "status": "fetched",
+      "bytes": 1572186
+    },
+    {
+      "url": "https://www.legisquebec.gouv.qc.ca/en/document/rc/N-1.1,%20r.%206",
+      "status": "fetched",
+      "bytes": 44360
+    },
+    {
+      "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/F-1.1",
+      "status": "fetched",
+      "bytes": 59761
+    },
+    {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/L-2/",
+      "status": "fetched",
+      "bytes": 1301331
+    },
+    {
+      "url": "https://laws-lois.justice.gc.ca/eng/regulations/C.R.C.,_c._986/",
+      "status": "fetched",
+      "bytes": 312270
+    },
+    {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/H-6/",
+      "status": "fetched",
+      "bytes": 195782
+    },
+    {
+      "url": "https://laws-lois.justice.gc.ca/eng/acts/G-5/",
+      "status": "fetched",
+      "bytes": 51212
+    },
+    {
+      "url": "https://www.ontario.ca/laws/regulation/010288",
+      "status": "fetched",
+      "bytes": 19661
+    }
+  ],
+  "entries": [
+    {
+      "ref": "ON_ESA:54",
+      "section": "54",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:57",
+      "section": "57",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:56",
+      "section": "56",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:58",
+      "section": "58",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:61",
+      "section": "61",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:63-64",
+      "section": "63-64",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:22",
+      "section": "22",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:17-20",
+      "section": "17-20",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:11-13",
+      "section": "11-13",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:15-16",
+      "section": "15-16",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:24-32",
+      "section": "24-32",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:33-41",
+      "section": "33-41",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:46",
+      "section": "46",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:48",
+      "section": "48",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:50",
+      "section": "50",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:50.0.1",
+      "section": "50.0.1",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:50.0.2",
+      "section": "50.0.2",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:49.7",
+      "section": "49.7",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_ESA:23.1",
+      "section": "23.1",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_HRC:5",
+      "section": "5",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_HRC:17",
+      "section": "17",
+      "status": "ok"
+    },
+    {
+      "ref": "ON_WSIA:*",
+      "section": null,
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:82",
+      "section": "82",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:83",
+      "section": "83",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:124",
+      "section": "124",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:52",
+      "section": "52",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:55",
+      "section": "55",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:60",
+      "section": "60",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:66-77",
+      "section": "66-77",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:79.1",
+      "section": "79.1",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:40",
+      "section": "40",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:43-51",
+      "section": "43-51",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LNT:parental",
+      "section": null,
+      "status": "ok"
+    },
+    {
+      "ref": "QC_CHARTER:10-16",
+      "section": "10-16",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_LATMP:*",
+      "section": null,
+      "status": "ok"
+    },
+    {
+      "ref": "QC_N11R6:2",
+      "section": "2",
+      "status": "ok"
+    },
+    {
+      "ref": "QC_FETE:*",
+      "section": null,
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:230",
+      "section": "230",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:235",
+      "section": "235",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:240",
+      "section": "240",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:239",
+      "section": "239",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:210",
+      "section": "210",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:184-185",
+      "section": "184-185",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:holidays",
+      "section": null,
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:178.1",
+      "section": "178.1",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:169-174",
+      "section": "169-174",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:254",
+      "section": "254",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:252-253.2",
+      "section": "252-253.2",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLC:247.5",
+      "section": "247.5(1.1)",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CLSR:30",
+      "section": "30",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_CHRA:7-15",
+      "section": "7-15",
+      "status": "ok"
+    },
+    {
+      "ref": "FED_GECA:*",
+      "section": null,
+      "status": "ok"
+    }
+  ],
+  "corpusCites": [
+    {
+      "ref": "FED/constructive_dismissal Canada Labour Code s.240",
+      "section": "240",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/layoffs_recall Canada Labour Standards Regulations s.30",
+      "section": "30",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/leaves s.198",
+      "section": "198",
+      "status": "unverified",
+      "detail": "no act named before the cite"
+    },
+    {
+      "ref": "FED/leaves Canada Labour Code s.247.5",
+      "section": "247.5",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/leaves Canada Labour Code s.247.5",
+      "section": "247.5",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/leaves Canada Labour Code s.239",
+      "section": "239",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/leaves Canada Labour Code s.210",
+      "section": "210",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/minimum_wage Canada Labour Code s.178.1",
+      "section": "178.1",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/minimum_wage Canada Labour Code s.178.1",
+      "section": "178.1",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/overtime Canada Labour Code s.169",
+      "section": "169",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/overtime Canada Labour Code s.171",
+      "section": "171",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/overtime Canada Labour Code s.174",
+      "section": "174",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/pay_deductions Canada Labour Code s.254",
+      "section": "254",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/pay_deductions Canada Labour Code s.254.1",
+      "section": "254.1",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/records_retention Canada Labour Code s.252",
+      "section": "252",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/records_retention Canada Labour Code s.253.2",
+      "section": "253.2",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/records_retention Canada Labour Standards Regulations s.24",
+      "section": "24",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/severance Canada Labour Code s.235",
+      "section": "235",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/vacation Canada Labour Code s.184",
+      "section": "184",
+      "status": "ok"
+    },
+    {
+      "ref": "FED/vacation Canada Labour Code s.185",
+      "section": "185",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/accommodation_basics s.8",
+      "section": "8",
+      "status": "unverified",
+      "detail": "no act named before the cite"
+    },
+    {
+      "ref": "ON/accommodation_basics s.9",
+      "section": "9",
+      "status": "unverified",
+      "detail": "no act named before the cite"
+    },
+    {
+      "ref": "ON/accommodation_basics Ontario Human Rights Code s.5",
+      "section": "5",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/accommodation_basics Ontario Human Rights Code s.17",
+      "section": "17",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/constructive_dismissal Employment Standards Act s.56",
+      "section": "56",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/hours_of_work Employment Standards Act s.17",
+      "section": "17",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/hours_of_work Employment Standards Act s.20",
+      "section": "20",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/layoffs_recall Employment Standards Act s.56",
+      "section": "56",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.46",
+      "section": "46",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.48",
+      "section": "48",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.49.3",
+      "section": "49.3",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.49.7",
+      "section": "49.7",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.50",
+      "section": "50",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.50.0.1",
+      "section": "50.0.1",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/leaves Employment Standards Act s.50.0.2",
+      "section": "50.0.2",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/minimum_wage Employment Standards Act s.23.1",
+      "section": "23.1",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/overtime Employment Standards Act s.22",
+      "section": "22",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/pay_deductions Employment Standards Act s.11",
+      "section": "11",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/pay_deductions Employment Standards Act s.13",
+      "section": "13",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/public_holidays Employment Standards Act s.24",
+      "section": "24",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/public_holidays Employment Standards Act s.32",
+      "section": "32",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/records_retention Employment Standards Act s.15",
+      "section": "15",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/records_retention Employment Standards Act s.16",
+      "section": "16",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/severance Employment Standards Act s.63",
+      "section": "63",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/severance Employment Standards Act s.64",
+      "section": "64",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/severance Employment Standards Act s.65",
+      "section": "65",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice Employment Standards Act s.54",
+      "section": "54",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice Employment Standards Act s.56",
+      "section": "56",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice Employment Standards Act s.57",
+      "section": "57",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice Employment Standards Act s.58",
+      "section": "58",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice Employment Standards Act s.61",
+      "section": "61",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice O. Reg. 288/01 s.2",
+      "section": "2",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/termination_notice O. Reg. 288/01 s.3",
+      "section": "3",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/vacation Employment Standards Act s.33",
+      "section": "33",
+      "status": "ok"
+    },
+    {
+      "ref": "ON/vacation Employment Standards Act s.41",
+      "section": "41",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/constructive_dismissal Act respecting labour standards s.124",
+      "section": "124",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/constructive_dismissal Act respecting labour standards s.135",
+      "section": "135",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/hours_of_work Act respecting labour standards s.52",
+      "section": "52",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/hours_of_work Act respecting labour standards s.55",
+      "section": "55",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/layoffs_recall Act respecting labour standards s.82",
+      "section": "82",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/layoffs_recall Act respecting labour standards s.84",
+      "section": "84",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/leaves Act respecting labour standards s.79.1",
+      "section": "79.1",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/leaves Act respecting labour standards s.79.7",
+      "section": "79.7",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/leaves Act respecting labour standards s.79.8",
+      "section": "79.8",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/minimum_wage Act respecting labour standards s.40",
+      "section": "40",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/overtime Act respecting labour standards s.52",
+      "section": "52",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/overtime Act respecting labour standards s.55",
+      "section": "55",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/pay_deductions Act respecting labour standards s.43",
+      "section": "43",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/pay_deductions Act respecting labour standards s.51",
+      "section": "51",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/public_holidays Act respecting labour standards s.60",
+      "section": "60",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/records_retention N-1.1, r. 6 s.2",
+      "section": "2",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/severance Act respecting labour standards s.82",
+      "section": "82",
+      "status": "ok"
+    },
+    {
+      "ref": "QC/severance Act respecting labour standards s.83",
+      "section": "83",
+      "status": "ok"
+    }
+  ],
+  "findings": [
+    {
+      "kind": "cite-unattributed",
+      "row": "FED/leaves",
+      "detail": "s.198 — cannot attribute to an act"
+    },
+    {
+      "kind": "cite-unattributed",
+      "row": "ON/accommodation_basics",
+      "detail": "s.8 — cannot attribute to an act"
+    },
+    {
+      "kind": "cite-unattributed",
+      "row": "ON/accommodation_basics",
+      "detail": "s.9 — cannot attribute to an act"
+    }
+  ],
+  "summary": {
+    "checked": 125,
+    "ok": 122,
+    "drift": 0,
+    "unverified": 3
+  }
+}

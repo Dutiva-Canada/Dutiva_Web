@@ -52,14 +52,14 @@ import type {
 
 /* ---------- Shared helpers ---------- */
 
-export function bi(value: unknown): Bi {
+function bi(value: unknown): Bi {
   if (typeof value === 'object' && value !== null && 'en' in value && 'fr' in value) {
     return value as Bi
   }
   return { en: String(value ?? ''), fr: String(value ?? '') }
 }
 
-export function num(value: unknown): string {
+function num(value: unknown): string {
   if (value === null || value === undefined) return '0.00'
   return String(value)
 }

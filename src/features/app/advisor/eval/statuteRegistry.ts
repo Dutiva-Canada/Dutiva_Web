@@ -51,7 +51,7 @@ const LEGIS_CHARTER = 'https://www.legisquebec.gouv.qc.ca/en/document/cs/C-12'
 const LEGIS_LATMP = 'https://www.legisquebec.gouv.qc.ca/en/document/cs/A-3.001'
 const ELAWS_WSIA = 'https://www.ontario.ca/laws/statute/97w16a'
 const LEGIS_N11R6 = 'https://www.legisquebec.gouv.qc.ca/en/document/rc/N-1.1,%20r.%206'
-const JUSTICE_CLSR = 'https://laws-lois.justice.gc.ca/eng/regulations/SOR-71-57/'
+const JUSTICE_CLSR = 'https://laws-lois.justice.gc.ca/eng/regulations/C.R.C.,_c._986/'
 const JUSTICE_GECA = 'https://laws-lois.justice.gc.ca/eng/acts/G-5/'
 const LEGIS_FETE = 'https://www.legisquebec.gouv.qc.ca/en/document/cs/F-1.1'
 

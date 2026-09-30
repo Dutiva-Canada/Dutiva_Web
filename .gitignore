@@ -47,6 +47,7 @@ e2e/.auth
 .playwright-mcp
 
 # Advisor golden-eval run history — timestamped per-run records stay local;
-# eval-results/golden-latest.json is committed as the audit evidence.
+# eval-results/*-latest.json are committed as the audit evidence.
 eval-results/*
 !eval-results/golden-latest.json
+!eval-results/statute-drift-latest.json

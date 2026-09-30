@@ -586,7 +586,11 @@ flips a row to `reviewed`, and that gate has never been exercised.
 per-chunk figures to verify, source URLs, priority order (minimum wage
 first: it expires Oct 1, 2026), and the per-chunk sign-off SQL, which also
 clears the 0071 source-change flag. Working through it is deliberately an
-owner/reviewer act, not an agent one.
+owner/reviewer act, not an agent one. Section-level citations were enriched
+into every chunk's `effective_note` on 2026-09-30 (all 30 golden-eval
+coverage gaps closed) — `npm run check:statute-drift` re-verifies each cited
+section against the live consolidated texts and runs on the
+`.woodpecker/statute-drift.yml` cron pipeline.
 
 **L6 — Québec and Federal notice bands: deferred — hard hedges remain.**
 _Decision (2026-08-23)._ Qualified legal sign-off has not been obtained.
