@@ -80,7 +80,7 @@ export const GOLDEN_CASES_QC: readonly GoldenCase[] = [
     question: 'When do overtime premiums start for a Quebec employee under the LNT?',
     jurisdiction: 'QC',
     topic: 'overtime',
-    requiredCitations: ['QC_LNT:52', 'QC_LNT:54'],
+    requiredCitations: ['QC_LNT:52', 'QC_LNT:55'],
     expectedPropositions: ['40', 'time and a half'],
   }),
   C({
@@ -130,7 +130,7 @@ export const GOLDEN_CASES_QC: readonly GoldenCase[] = [
     question: 'A Quebec employee needs a long absence for a non-work illness — what does the LNT protect?',
     jurisdiction: 'QC',
     topic: 'leaves',
-    requiredCitations: ['QC_LNT:79.7'],
+    requiredCitations: ['QC_LNT:79.1'],
     expectedPropositions: ['26 weeks', '12 months'],
   }),
   C({

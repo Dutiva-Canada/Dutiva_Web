@@ -79,7 +79,7 @@ export const GOLDEN_CASES_FED: readonly GoldenCase[] = [
     question: 'When do federally regulated employees earn overtime pay under the Canada Labour Code?',
     jurisdiction: 'FED',
     topic: 'overtime',
-    requiredCitations: ['FED_CLC:169-171'],
+    requiredCitations: ['FED_CLC:169-174'],
     expectedPropositions: ['40 hours', '1.5 times'],
   }),
   C({

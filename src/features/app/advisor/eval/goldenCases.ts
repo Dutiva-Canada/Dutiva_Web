@@ -98,4 +98,4 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
   ...GOLDEN_CASES_X,
 ]
 
-export const GOLDEN_SET_VERSION = '2026-09-04.v1'
+export const GOLDEN_SET_VERSION = '2026-09-30.v1'

@@ -71,7 +71,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'No employer shall terminate without written notice once the employee has the required service.',
     aliases: ['s. 54', 's.54', 'art. 54', 'section 54'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -84,7 +84,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Individual termination notice ladder: 1 week (<1 yr, ≥3 mo) rising to 8 weeks at 8+ years.',
     aliases: ['s. 57', 's.57', 'art. 57', 'section 57'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -110,20 +110,20 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Mass-termination notice when 50+ employees are let go at an establishment within four weeks: 8/12/16 weeks.',
     aliases: ['s. 58', 's.58', 'art. 58'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
-    ref: 'ON_ESA:60',
+    ref: 'ON_ESA:61',
     statute: 'ON_ESA',
-    section: '60',
+    section: '61',
     citation: {
-      en: 'Employment Standards Act, 2000, s. 60',
-      fr: 'Loi de 2000 sur les normes d’emploi, art. 60',
+      en: 'Employment Standards Act, 2000, s. 61',
+      fr: 'Loi de 2000 sur les normes d’emploi, art. 61',
     },
-    rule: 'Termination pay in lieu of notice — lump-sum regular wages plus accruing vacation pay.',
-    aliases: ['s. 60', 's.60', 'art. 60'],
-    confidence: 'canonical',
+    rule: 'Pay instead of notice — lump-sum termination pay equal to notice-period wages, plus maintained benefit-plan contributions.',
+    aliases: ['s. 61', 's.61', 'art. 61', 'section 61'],
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -136,7 +136,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Severance pay: 5+ years AND payroll ≥ $2.5M or 50+ severed on closure; one week per year up to 26.',
     aliases: ['s. 63', 's.63', 'ss. 63', 'art. 63', 's. 64', 's.64'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -149,7 +149,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Overtime begins after 44 hours in a work week at 1.5× the regular rate.',
     aliases: ['s. 22', 's.22', 'art. 22'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -162,7 +162,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Daily/weekly hour limits (8/day, 48/week) and the 30-minute eating period per 5 hours.',
     aliases: ['s. 17', 's.17', 's. 20', 's.20', 'ss. 17', 'art. 17'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -201,7 +201,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Nine public holidays with public-holiday-pay rules.',
     aliases: ['s. 24', 's.24', 'part x', 'art. 24'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -214,7 +214,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Annual vacation: 2 weeks < 5 years, 3 weeks at 5+; vacation pay 4%/6% of gross wages.',
     aliases: ['s. 33', 's.33', 'part xi', 'art. 33'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -227,7 +227,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Pregnancy leave — up to 17 weeks of job-protected leave.',
     aliases: ['s. 46', 's.46', 'art. 46'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -240,7 +240,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Parental leave — up to 61 weeks (63 when no pregnancy leave taken).',
     aliases: ['s. 48', 's.48', 'art. 48'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -253,7 +253,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Sick leave — 3 unpaid days per calendar year after 2 weeks’ employment; no medical note required.',
     aliases: ['s. 50', 's.50', 'art. 50'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -266,7 +266,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Family responsibility leave — 3 unpaid days per year.',
     aliases: ['s. 50.0.1', 's.50.0.1'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -279,7 +279,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Bereavement leave — 2 unpaid days per year.',
     aliases: ['s. 50.0.2', 's.50.0.2'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -292,7 +292,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Domestic or sexual violence leave — job-protected leave for the employee or their child.',
     aliases: ['s. 49.7', 's.49.7'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
   entry({
@@ -305,7 +305,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Minimum wage reviewed annually and indexed; rate set by regulation.',
     aliases: ['s. 23.1', 's.23.1', 'part ix'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_ESA,
   }),
 
@@ -317,7 +317,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Ontario Human Rights Code, s. 5', fr: 'Code des droits de la personne de l’Ontario, art. 5' },
     rule: 'Freedom from discrimination in employment on protected grounds.',
     aliases: ['s. 5', 's.5', 'art. 5'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_HRC,
   }),
   entry({
@@ -327,7 +327,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Ontario Human Rights Code, s. 17', fr: 'Code des droits de la personne de l’Ontario, art. 17' },
     rule: 'Duty to accommodate to the point of undue hardship.',
     aliases: ['s. 17', 's.17', 'art. 17'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: ELAWS_HRC,
   }),
 
@@ -384,17 +384,17 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Act respecting labour standards, s. 52', fr: 'Loi sur les normes du travail, art. 52' },
     rule: 'Standard work week is 40 hours for most workers.',
     aliases: ['s. 52', 's.52', 'art. 52'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
   entry({
-    ref: 'QC_LNT:54',
+    ref: 'QC_LNT:55',
     statute: 'QC_LNT',
-    section: '54',
-    citation: { en: 'Act respecting labour standards, s. 54', fr: 'Loi sur les normes du travail, art. 54' },
-    rule: 'Overtime paid at time and a half (50% premium) beyond the standard week.',
-    aliases: ['s. 54', 's.54', 'art. 54'],
-    confidence: 'canonical',
+    section: '55',
+    citation: { en: 'Act respecting labour standards, s. 55', fr: 'Loi sur les normes du travail, art. 55' },
+    rule: 'Work beyond the regular workweek carries a 50% premium; replaceable by equivalent paid leave.',
+    aliases: ['s. 55', 's.55', 'art. 55'],
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
   entry({
@@ -404,7 +404,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Act respecting labour standards, s. 60', fr: 'Loi sur les normes du travail, art. 60' },
     rule: 'Eight paid statutory holidays under the LNT and the National Holiday Act.',
     aliases: ['s. 60', 's.60', 'art. 60'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
   entry({
@@ -418,13 +418,13 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     sourceUrl: LEGIS_LNT,
   }),
   entry({
-    ref: 'QC_LNT:79.7',
+    ref: 'QC_LNT:79.1',
     statute: 'QC_LNT',
-    section: '79.7',
-    citation: { en: 'Act respecting labour standards, s. 79.7', fr: 'Loi sur les normes du travail, art. 79.7' },
-    rule: 'Job-protected absence for non-work sickness or accident — up to 26 weeks over 12 months.',
-    aliases: ['s. 79.7', 's.79.7', 'art. 79.7'],
-    confidence: 'canonical',
+    section: '79.1',
+    citation: { en: 'Act respecting labour standards, s. 79.1', fr: 'Loi sur les normes du travail, art. 79.1' },
+    rule: 'Job-protected absence for non-work sickness, organ/tissue donation, accident or domestic/sexual violence — up to 26 weeks over 12 months.',
+    aliases: ['s. 79.1', 's.79.1', 'art. 79.1'],
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
   entry({
@@ -434,7 +434,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Act respecting labour standards, s. 40', fr: 'Loi sur les normes du travail, art. 40' },
     rule: 'General minimum wage set by regulation; $16.60/hour since 2026-05-01.',
     aliases: ['s. 40', 's.40', 'art. 40'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
   entry({
@@ -457,7 +457,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: 'Maternity (18 wks), paternity (5 wks) and parental (up to 65 wks shared) job-protected leaves.',
     aliases: ['maternity', 'paternity', 'parental', 'maternite', 'paternite'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: LEGIS_LNT,
   }),
 
@@ -520,7 +520,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Canada Labour Code, s. 230', fr: 'Code canadien du travail, art. 230' },
     rule: 'Individual termination: 2 weeks’ written notice minimum; 1 week per completed year at 3+ years, max 8.',
     aliases: ['s. 230', 's.230', 's.230(1)', 'part iii'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -530,7 +530,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Canada Labour Code, s. 235', fr: 'Code canadien du travail, art. 235' },
     rule: 'Severance pay at 12+ months: greater of 2 days’ wages per completed year or 5 days’ wages.',
     aliases: ['s. 235', 's.235'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -550,7 +550,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Canada Labour Code, s. 239', fr: 'Code canadien du travail, art. 239' },
     rule: 'Paid medical leave — up to 10 days per year (in force 2022-12-01); unpaid medical leave up to 27 weeks.',
     aliases: ['s. 239', 's.239'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -560,7 +560,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Canada Labour Code, s. 210', fr: 'Code canadien du travail, art. 210' },
     rule: 'Bereavement leave — 10 days, first 3 paid after 3 months’ employment.',
     aliases: ['s. 210', 's.210'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -570,7 +570,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     citation: { en: 'Canada Labour Code, ss. 184–185', fr: 'Code canadien du travail, art. 184-185' },
     rule: 'Annual vacation: 2 wks after 1 yr, 3 wks after 5 yrs, 4 wks after 10 yrs.',
     aliases: ['s. 184', 's.184', 's. 185', 's.185'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -583,7 +583,7 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     },
     rule: '10 paid general holidays incl. National Day for Truth and Reconciliation and Boxing Day.',
     aliases: ['general holidays', 'jours feries'],
-    confidence: 'canonical',
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
@@ -597,13 +597,13 @@ export const STATUTE_REGISTRY: readonly StatuteEntry[] = [
     sourceUrl: JUSTICE_CLC,
   }),
   entry({
-    ref: 'FED_CLC:169-171',
+    ref: 'FED_CLC:169-174',
     statute: 'FED_CLC',
-    section: '169-171',
-    citation: { en: 'Canada Labour Code, ss. 169–171', fr: 'Code canadien du travail, art. 169-171' },
-    rule: 'Standard hours 8/day and 40/week; overtime at 1.5× (48/wk maximum in most cases).',
-    aliases: ['s. 169', 's.169', 's. 171', 's.171'],
-    confidence: 'canonical',
+    section: '169-174',
+    citation: { en: 'Canada Labour Code, ss. 169–174', fr: 'Code canadien du travail, art. 169-174' },
+    rule: 'Standard hours 8/day and 40/week (s.169); 48/wk maximum in most cases (s.171); overtime premium at 1.5× (s.174).',
+    aliases: ['s. 169', 's.169', 's. 171', 's.171', 's. 174', 's.174'],
+    confidence: 'corpus-cited',
     sourceUrl: JUSTICE_CLC,
   }),
   entry({

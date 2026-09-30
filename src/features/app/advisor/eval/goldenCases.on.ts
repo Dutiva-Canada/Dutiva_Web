@@ -28,7 +28,7 @@ export const GOLDEN_CASES_ON: readonly GoldenCase[] = [
       tenureMonths: 48,
       expectedWeeks: 4,
     },
-    expectedCitations: ['ON_ESA:60'],
+    expectedCitations: ['ON_ESA:61'],
   }),
   C({
     id: 'ON-NOTICE-8YR',
@@ -78,17 +78,13 @@ export const GOLDEN_CASES_ON: readonly GoldenCase[] = [
   }),
   C({
     id: 'ON-JUST-CAUSE',
-    v: 1,
-    kind: 'gap',
+    v: 2,
+    kind: 'answer',
     question: 'Can we dismiss an Ontario employee without notice for just cause under the ESA?',
     jurisdiction: 'ON',
     topic: 'termination_notice',
     requiredCitations: ['ON_ESA:56'],
-    expectedPropositions: [],
-    gapReason:
-      'Corpus has no chunk on the ESA wilful-misconduct / disobedience / wilful-neglect exemption ' +
-      '(O. Reg. 288/01 s. 2 sets a stricter bar than generic just cause) — an answer today is ' +
-      'ungrounded. Queued as a corpus seed task.',
+    expectedPropositions: ['wilful misconduct'],
   }),
   C({
     id: 'ON-CONSTRUCTIVE-DISMISSAL',
@@ -202,17 +198,13 @@ export const GOLDEN_CASES_ON: readonly GoldenCase[] = [
   }),
   C({
     id: 'ON-FAMILY-VIOLENCE-LEAVE',
-    v: 1,
-    kind: 'gap',
+    v: 2,
+    kind: 'answer',
     question: 'Is an Ontario employee experiencing domestic violence entitled to job-protected leave?',
     jurisdiction: 'ON',
     topic: 'leaves',
     requiredCitations: ['ON_ESA:49.7'],
-    expectedPropositions: [],
-    gapReason:
-      'ESA s. 49.7 domestic or sexual violence leave is real law but absent from the ON/leaves ' +
-      'chunk (sick, family responsibility, bereavement, caregiver, pregnancy and parental only). ' +
-      'Queued as a corpus seed task.',
+    expectedPropositions: ['domestic or sexual violence', '15 weeks'],
   }),
   C({
     id: 'ON-ACCOMMODATION',
