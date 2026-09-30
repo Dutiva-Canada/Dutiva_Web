@@ -37,6 +37,13 @@ import type { Jurisdiction } from '@/features/app/documents/data/types'
 
 type CrossCheckVerdict = 'consistent' | 'mismatch' | 'unverifiable'
 
+/** Why a turn is unverifiable — the backstop only warns on 'no-schedule':
+    a reply that asserts a notice figure for a known tenure in a jurisdiction
+    whose schedule is pending legal review (QC/FED) is a confident claim no
+    encoded rule vouches for; the reader must be told to verify. 'no-claim'
+    and 'no-tenure' mean the turn never asserted a checkable figure. */
+export type UnverifiableReason = 'no-claim' | 'no-tenure' | 'no-schedule'
+
 interface NoticeCrossCheckResult {
   verdict: CrossCheckVerdict
   /** Populated on mismatch: what the schedule says vs what the reply said
@@ -44,6 +51,8 @@ interface NoticeCrossCheckResult {
    *  number the reply actually offered). */
   expectedWeeks?: number
   statedWeeks?: number
+  /** Populated on unverifiable: which precondition failed. */
+  reason?: UnverifiableReason
 }
 
 /* Tenure context that must appear within a short window of the duration —
@@ -161,13 +170,13 @@ export function crossCheckNoticeFigure(input: {
   reply: string
 }): NoticeCrossCheckResult {
   const claims = extractNoticeWeeksClaims(input.reply)
-  if (claims.length === 0) return { verdict: 'unverifiable' }
+  if (claims.length === 0) return { verdict: 'unverifiable', reason: 'no-claim' }
 
   const tenureMonths = extractTenureMonths(input.userMessage, input.reply)
-  if (tenureMonths === null) return { verdict: 'unverifiable' }
+  if (tenureMonths === null) return { verdict: 'unverifiable', reason: 'no-tenure' }
 
   const expectedWeeks = lookupStatutoryNoticeWeeks(input.jurisdiction, tenureMonths)
-  if (expectedWeeks === null) return { verdict: 'unverifiable' }
+  if (expectedWeeks === null) return { verdict: 'unverifiable', reason: 'no-schedule' }
 
   /* Consistent when ANY claim covers the expected value: replies often state
      both the statutory floor and a common-law range above it, and the floor

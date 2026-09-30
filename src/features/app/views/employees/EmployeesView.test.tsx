@@ -242,6 +242,45 @@ describe('EmployeesView in production mode', () => {
     )
     expect(screen.getByText('1 employee')).toBeInTheDocument()
   })
+
+  /* Reference create flow (hardening spec 5a): validate → persist → render
+     in list → survive a remount → link to the persisted detail route. */
+  it('keeps a created employee across a remount and links to its detail route', async () => {
+    mockProductionClient([])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    const first = renderAppFresh(<EmployeesViewFresh />, {
+      route: '/app/employees',
+      path: '/app/employees',
+    })
+    expect(await screen.findByText('No employees yet')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Ana Souza' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    first.unmount()
+
+    /* The "reload": a fresh mount re-queries the employees table — the row
+       must come back from the backend, not from surviving component state. */
+    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    const link = await screen.findByRole('link', { name: /Ana Souza/ })
+    expect(link).toHaveAttribute('href', '/app/employees/emp-1')
+  })
+
+  it('does not insert when the required name is blank', async () => {
+    const { insert } = mockProductionClient([])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    expect(await screen.findByText('No employees yet')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: '   ' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))
+    expect(insert).not.toHaveBeenCalled()
+    expect(screen.queryByText('1 employee')).not.toBeInTheDocument()
+  })
 })
 
 describe('EmployeeProfileView in production mode', () => {

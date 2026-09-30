@@ -600,6 +600,12 @@ export const commsMessages = defineMessages({
     en: 'Demo workspace: changes are not persisted.',
     fr: 'Espace de travail de démonstration : les modifications ne sont pas conservées.',
   },
+  /* Local hint under the usage-controls form — the layout banner explains the
+     mode globally; this says why these specific fields are inert (§3d). */
+  comms_usage_read_only_hint: {
+    en: 'Read-only in the demo workspace — switch to production to set limits.',
+    fr: 'Lecture seule dans l’espace de démonstration — passez en mode production pour définir les limites.',
+  },
   comms_production_synced: {
     en: 'Production mode syncs with your workspace database.',
     fr: 'Le mode production se synchronise avec la base de données de votre espace de travail.',
