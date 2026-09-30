@@ -172,8 +172,8 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
     seoRouteId: 'vsHrdownloads',
     competitorDisplayName: bi('Citation Canada (HRdownloads)', 'Citation Canada (HRdownloads)'),
     h1: bi(
-      'Dutiva vs HRdownloads: Canadian HR compliance comparison',
-      'Dutiva vs HRdownloads : comparaison de conformité RH au Canada',
+      'Dutiva vs Citation Canada (formerly HRdownloads): Canadian HR compliance comparison',
+      'Dutiva vs Citation Canada (anciennement HRdownloads) : comparaison de conformité RH au Canada',
     ),
     intro: bi(
       'A side-by-side look at Dutiva and Citation Canada (formerly HRdownloads) for Canadian employers who need jurisdiction-aware HR guidance and review-ready documents. Competitor details summarize public positioning on citationcanada.com — confirm specifics with them before you decide.',

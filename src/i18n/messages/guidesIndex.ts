@@ -33,6 +33,18 @@ export const guidesIndexMessages = defineMessages({
     en: 'All guides',
     fr: 'Tous les guides',
   },
+  /* Visible on guide cards and guide pages. {date} is month-year, sourced
+     from each guide's `updated` (same value as sitemap lastmod). */
+  guidesIdx_published: {
+    en: 'Published {date}',
+    fr: 'Publié en {date}',
+  }, // [FR self-authored]
+  /* Guide-page byline — the site's named-author convention, same person as
+     the changelog byline. */
+  guidesIdx_byline: {
+    en: 'Written by Martin Constantineau, Founder & CEO',
+    fr: 'Rédigé par Martin Constantineau, fondateur et chef de la direction',
+  }, // [FR self-authored]
   guidesIdx_toBlog_t: {
     en: 'Not sure which rules apply to you?',
     fr: 'Vous ne savez pas quelles règles s’appliquent ?',

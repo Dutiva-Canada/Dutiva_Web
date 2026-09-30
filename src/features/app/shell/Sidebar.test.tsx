@@ -49,7 +49,7 @@ describe('Sidebar', () => {
       '/app/revenue',
     )
     expect(within(nav).getByRole('link', { name: 'CRM' })).toHaveAttribute('href', '/app/crm')
-    expect(within(nav).getByRole('link', { name: /Communications$/ })).toHaveAttribute(
+    expect(within(nav).getByRole('link', { name: 'Comms planner' })).toHaveAttribute(
       'href',
       '/app/comms/overview',
     )

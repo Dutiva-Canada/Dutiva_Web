@@ -27,11 +27,11 @@ export const landingFooter = defineMessages({
   },
   landing_foot_vs_hrdownloads: {
     en: 'Dutiva vs Citation Canada',
-    fr: 'Dutiva vs Citation Canada',
+    fr: 'Dutiva face à Citation Canada',
   },
   landing_foot_vs_sixfifty: {
     en: 'Dutiva vs SixFifty',
-    fr: 'Dutiva vs SixFifty',
+    fr: 'Dutiva face à SixFifty',
   },
   landing_foot_company: {
     en: 'Company',

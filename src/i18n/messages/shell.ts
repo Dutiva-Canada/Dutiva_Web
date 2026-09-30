@@ -214,7 +214,7 @@ export const shellMessages = defineMessages({
   shell_v_settings: { en: 'Settings', fr: 'Paramètres' },
   shell_v_compensation: { en: 'Compensation', fr: 'Rémunération' },
   shell_v_wellbeing: { en: 'Wellbeing', fr: 'Bien-être' },
-  shell_v_communications: { en: 'Communications', fr: 'Communications' },
+  shell_v_communications: { en: 'Message log', fr: 'Journal des messages' },
   shell_v_crm: { en: 'CRM', fr: 'CRM' },
   shell_v_revenue: { en: 'Revenue', fr: 'Revenus' },
   shell_v_governance: { en: 'Governance', fr: 'Gouvernance' },
@@ -279,7 +279,7 @@ export const shellMessages = defineMessages({
     en: 'I’ll keep guidance supportive and non-diagnostic.',
     fr: 'Je garderai des conseils bienveillants et non diagnostiques.',
   },
-  shell_mod_communications: { en: 'Communications', fr: 'Communications' },
+  shell_mod_communications: { en: 'Message log', fr: 'Journal des messages' },
   shell_mod_communications_note: {
     en: 'I’ll check jurisdiction and tone before anything goes out.',
     fr: 'Je vérifierai la compétence et le ton avant tout envoi.',

@@ -8,7 +8,7 @@ import { defineMessages } from '../core'
  */
 export const commsMessages = defineMessages({
   /* Shell */
-  comms_title: { en: 'Communications', fr: 'Communications' },
+  comms_title: { en: 'Comms planner', fr: 'Planification des communications' },
   comms_subtitle: {
     en: 'Plan, review, and coordinate what your organization communicates.',
     fr: 'Planifiez, révisez et coordonnez ce que votre organisation communique.',

@@ -14,7 +14,7 @@ describe('ComparisonPage', () => {
     expect(
       main.getByRole('columnheader', { name: 'Citation Canada (HRdownloads)' }),
     ).toBeInTheDocument()
-    expect(main.getByText(/Citation Canada \(formerly HRdownloads\)/)).toBeInTheDocument()
+    expect(main.getByText(/A side-by-side look at Dutiva and Citation Canada/)).toBeInTheDocument()
     expect(main.getByText('Pricing transparency')).toBeInTheDocument()
     expect(main.getByText('AI risk flagging')).toBeInTheDocument()
     for (const item of page.faq) {

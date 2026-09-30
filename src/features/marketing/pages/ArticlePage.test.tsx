@@ -42,7 +42,7 @@ describe('ArticlePage', () => {
     expect(main.getByText(/Publié en/)).toBeInTheDocument()
   })
 
-  it('shows a published date on blog articles and not on guides', () => {
+  it('shows a published date on blog articles, and date plus byline on guides', () => {
     const post = firstPost!
     const blog = renderApp(<BlogArticlePage />, {
       route: articlePath(post, 'en'),
@@ -56,7 +56,9 @@ describe('ArticlePage', () => {
       route: articlePath(guide, 'en'),
       path: '/guides/:slug',
     })
-    expect(within(guideView.getByRole('main')).queryByText(/Published/)).not.toBeInTheDocument()
+    const guideMain = within(guideView.getByRole('main'))
+    expect(guideMain.getByText(/Published/)).toBeInTheDocument()
+    expect(guideMain.getByText(/Written by Martin Constantineau/)).toBeInTheDocument()
   })
 
   it('resolves a slug from the other locale rather than dropping the page', () => {
