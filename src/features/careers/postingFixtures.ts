@@ -1,7 +1,7 @@
 import type { PublicJobPosting } from './data/jobBoardApi'
 
 /**
- * Shared postings fixture for careers tests — eight jobs spanning
+ * Shared postings fixture for careers tests — ten jobs spanning
  * departments, locations, work arrangements, employers, and salary presence
  * so filter/facet/sort tests exercise real combinations instead of a single
  * uniform row.
@@ -124,5 +124,28 @@ export const FIXTURE_POSTINGS: PublicJobPosting[] = [
     location: 'Calgary, AB',
     type: 'On-site',
     postedDate: null,
+  }),
+  makePosting({
+    id: 'job-design-intern',
+    slug: 'product-design-intern-job-di',
+    title: 'Product Design Intern',
+    department: 'Product',
+    location: 'Hybrid — Toronto, ON',
+    type: 'Internship',
+    salaryMin: 22,
+    salaryMax: 22,
+    salaryPeriod: 'hour',
+    postedDate: '2026-09-24',
+  }),
+  makePosting({
+    id: 'job-cs-specialist',
+    slug: 'customer-success-specialist-job-cs',
+    title: 'Customer Success Specialist',
+    department: 'Customer Success',
+    location: 'Remote (Canada)',
+    type: 'Part-time',
+    organizationName: 'Atrium Advisory',
+    organizationId: 'org-3',
+    postedDate: '2026-09-08',
   }),
 ]

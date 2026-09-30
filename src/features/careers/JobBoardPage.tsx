@@ -53,7 +53,8 @@ function fill(template: Bi, name: string, value: string): Bi {
 /**
  * Public job board (/careers) — the B2C entry point. Lists every active job
  * posting; keyword search, facet filters and sort all live in the URL query
- * string (?q=&loc=&type=&org=&dept=&sort=) so views are shareable and the
+ * string (?q=&location=&type=&employer=&department=&salary=&sort=) so views
+ * are shareable and the
  * back button works. No auth required; the apply CTA lives on the detail
  * page, where the auth gate is visible.
  */
@@ -316,13 +317,17 @@ export function JobBoardPage() {
         <p aria-live="polite" role="status" className="sr-only">
           {filtered === null
             ? x(M.careers_board_loading)
-            : x(
-                fill(
-                  M.careers_board_results_announce,
-                  'count',
-                  String(filtered.length),
-                ),
-              )}
+            : filtered.length === 0
+              ? x(M.careers_board_results_announce_none)
+              : x(
+                  fill(
+                    filtered.length === 1
+                      ? M.careers_board_results_announce_one
+                      : M.careers_board_results_announce_many,
+                    'count',
+                    String(filtered.length),
+                  ),
+                )}
         </p>
         {loadFailed ? (
           <div className="rounded-[12px] border border-risk-border bg-risk-bg px-5 py-4 text-center">

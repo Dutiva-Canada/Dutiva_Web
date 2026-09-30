@@ -8,8 +8,9 @@ import type { PublicJobPosting } from './data/jobBoardApi'
 /**
  * Pure job-board filtering — extracted from the page so the search, facet,
  * and sort semantics are unit-testable without rendering. URL params are the
- * source of truth: the board serializes this state into `?q=&loc=&type=&org=&dept=&sort=`
- * and back so every view is shareable.
+ * source of truth: the board serializes this state into
+ * `?q=&location=&type=&employer=&department=&salary=&sort=` and back so
+ * every view is shareable.
  */
 
 export type Workplace = 'remote' | 'hybrid' | 'onsite'
@@ -154,10 +155,10 @@ export function boardFacets(postings: PublicJobPosting[], lang: Lang): BoardFace
 
 const PARAM_KEYS: Record<keyof BoardFilter, string> = {
   q: 'q',
-  location: 'loc',
+  location: 'location',
   workplace: 'type',
-  employer: 'org',
-  department: 'dept',
+  employer: 'employer',
+  department: 'department',
   salaryMin: 'salary',
   sort: 'sort',
 }
