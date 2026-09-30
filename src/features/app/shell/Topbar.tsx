@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Bell, PanelLeftClose, PanelLeftOpen, Search, Sparkle } from 'lucide-react'
 import { notifications as demoNotificationFixtures } from '@/data/notifications'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useSearch } from '@/features/app/search/searchContext'
+import { useEscapeToClose } from '@/lib/escapeStack'
 import {
   useAskAdvisorBriefing,
   railViewKeyFromPathname,
@@ -49,6 +50,22 @@ export function Topbar({
   const [demoNotifications, setDemoNotifications] = useState(demoNotificationFixtures)
   const [prodNotifications, setProdNotifications] = useState<WorkspaceNotification[]>([])
   const [notifOpen, setNotifOpen] = useState(false)
+  const notifTriggerRef = useRef<HTMLButtonElement>(null)
+  /* Same plain-<dialog> gap as the account menu — Escape must dismiss. */
+  useEscapeToClose(notifOpen, () => setNotifOpen(false))
+  /* Unmounting the popover while focused inside drops focus on <body>;
+     restore it to the bell so keyboard users keep their place. */
+  const notifWasOpenRef = useRef(false)
+  useEffect(() => {
+    if (
+      notifWasOpenRef.current &&
+      !notifOpen &&
+      document.activeElement === document.body
+    ) {
+      notifTriggerRef.current?.focus()
+    }
+    notifWasOpenRef.current = notifOpen
+  }, [notifOpen])
 
   useEffect(() => {
     if (mode !== 'production') return
@@ -116,7 +133,7 @@ export function Topbar({
           <button
             type="button"
             onClick={onToggleSidebar}
-            aria-label={x(sidebarExpanded ? M.shell_collapse_sidebar : M.shell_expand_sidebar)}
+            aria-label={x(M.shell_toggle_sidebar)}
             aria-expanded={sidebarExpanded}
             className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-text-3 hover:bg-inset"
           >
@@ -157,6 +174,7 @@ export function Topbar({
         <div className="relative">
           <button
             type="button"
+            ref={notifTriggerRef}
             onClick={() => setNotifOpen((open) => !open)}
             aria-label={x(M.shell_notifications)}
             aria-expanded={notifOpen}

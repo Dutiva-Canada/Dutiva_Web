@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
+import { useContext } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { isVercelPreview } from '@/lib/deployEnv'
 import { useAuth } from './authContext'
+import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceModeContext'
 
 /**
  * Gates the whole /app workspace behind a signed-in, invited session — any
@@ -33,6 +35,11 @@ import { useAuth } from './authContext'
 export function RequireAdminSession({ children }: { readonly children: ReactNode }) {
   const location = useLocation()
   const { status, authorized } = useAuth()
+  /* Raw context, not the throwing hook — this gate also mounts standalone
+     (tests, preview shells) where no WorkspaceModeProvider exists; absent
+     the provider there is no mode window to hold for. */
+  const workspace = useContext(WorkspaceModeContext)
+  const resolving = workspace?.resolving ?? false
 
   if (!supabase) return children
 
@@ -41,7 +48,14 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
   /* `authorized` is null both while signed out and while the membership
      check is still in flight right after signing in — only the latter
      should stay blank rather than bouncing to /app/welcome. */
-  if (status === 'loading' || (status === 'signed-in' && authorized === null)) {
+  /* `resolving` keeps the surface blank until WorkspaceModeProvider commits
+     a mode + identity — without it, a signed-in production user renders the
+     demo persona/fixtures for the whole async resolution window (and can
+     navigate fixture ids into production routes before the flip). */
+  if (
+    status === 'loading' ||
+    (status === 'signed-in' && (authorized === null || resolving))
+  ) {
     return <div className="h-screen bg-bg" aria-hidden="true" />
   }
 

@@ -246,9 +246,15 @@ const CreateMenuPanel = forwardRef<HTMLDivElement, CreateMenuPanelProps>(functio
           </button>
         )
       })}
-      <div id={unavailableDescId} className="sr-only">
-        {x(M.shell_create_unavailable_desc)}
-      </div>
+      {/* Rendered only while an item is actually disabled — the node sits
+          inside the menu's DOM, so an always-present hidden "not yet
+          available" description makes text extraction report every item
+          as unavailable. */}
+      {actions.some((a) => a.disabled) && (
+        <div id={unavailableDescId} className="sr-only">
+          {x(M.shell_create_unavailable_desc)}
+        </div>
+      )}
     </div>
   )
 })

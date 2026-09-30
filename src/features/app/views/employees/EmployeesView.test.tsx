@@ -514,6 +514,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
       <WorkspaceModeContext.Provider
         value={{
           mode: 'production',
+          resolving: false,
           isAdmin: false,
           canUseProduction: true,
           identity: {

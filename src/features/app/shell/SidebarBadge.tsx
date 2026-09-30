@@ -9,16 +9,17 @@ const BADGE_CLASSES: Record<NavBadgeTone, string> = {
   warn: 'rounded-[9px] bg-warn-bg border border-warn-border px-[6px] py-[1px] text-[10.5px] font-bold text-warn-fg',
 }
 
-function ariaTemplateForKey(key: string) {
+function ariaTemplateForKey(key: string, count: number) {
+  const one = count === 1
   switch (key) {
     case 'workflows':
-      return M.shell_badge_workflows_aria
+      return one ? M.shell_badge_workflows_aria_one : M.shell_badge_workflows_aria_many
     case 'cases':
-      return M.shell_badge_cases_aria
+      return one ? M.shell_badge_cases_aria_one : M.shell_badge_cases_aria_many
     case 'compliance':
-      return M.shell_badge_compliance_aria
+      return one ? M.shell_badge_compliance_aria_one : M.shell_badge_compliance_aria_many
     case 'wellbeing':
-      return M.shell_badge_wellbeing_aria
+      return one ? M.shell_badge_wellbeing_aria_one : M.shell_badge_wellbeing_aria_many
     default:
       return null
   }
@@ -32,7 +33,8 @@ interface SidebarBadgeProps {
 
 export function SidebarBadge({ itemKey, value, tone }: SidebarBadgeProps) {
   const { lang } = useI18n()
-  const template = ariaTemplateForKey(itemKey)
+  const count = Number.parseInt(value, 10)
+  const template = ariaTemplateForKey(itemKey, count)
   const rawTemplate = template ? template[lang] : null
   const ariaLabel = rawTemplate ? rawTemplate.replace('{count}', value) : undefined
 

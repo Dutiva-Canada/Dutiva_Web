@@ -32,6 +32,14 @@ interface WorkspaceOrganization {
 
 export interface WorkspaceModeContextValue {
   mode: WorkspaceMode
+  /**
+   * True while a signed-in session's workspace state (mode, identity,
+   * organization) is still resolving. Callers must not render demo content
+   * in this window — demo identity/fixtures surfacing for a real signed-in
+   * user reads as an identity leak. Signed-out sessions and the public
+   * demo never resolve, so this stays false for them.
+   */
+  resolving: boolean
   /** True for platform admins (`@dutiva.ca` or `is_admin_user()`). */
   isAdmin: boolean
   /**

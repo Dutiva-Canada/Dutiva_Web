@@ -81,24 +81,43 @@ export const shellMessages = defineMessages({
   /* Sidebar toggle / tooltips */
   shell_collapse_sidebar: { en: 'Collapse', fr: 'Réduire' }, // [FR self-authored]
   shell_expand_sidebar: { en: 'Expand', fr: 'Développer' }, // [FR self-authored]
+  /* Topbar icon-only toggle — distinct accessible name from the sidebar's own
+     collapse button so the two controls don't read as duplicates. */
+  shell_toggle_sidebar: { en: 'Toggle sidebar', fr: 'Basculer le panneau' }, // [FR self-authored]
   shell_user_profile_aria: { en: 'Current user profile', fr: 'Profil de l’utilisateur actuel' }, // [FR self-authored]
 
   /* Badge accessible descriptions — {count} is replaced at runtime */
-  shell_badge_workflows_aria: {
+  shell_badge_workflows_aria_one: {
+    en: '1 active workflow',
+    fr: '1 processus actif',
+  }, // [FR self-authored]
+  shell_badge_workflows_aria_many: {
     en: '{count} active workflows',
     fr: '{count} processus actifs',
   }, // [FR self-authored]
-  shell_badge_cases_aria: {
+  shell_badge_cases_aria_one: {
+    en: '1 open case requiring review',
+    fr: '1 dossier ouvert nécessitant un examen',
+  }, // [FR self-authored]
+  shell_badge_cases_aria_many: {
     en: '{count} open cases requiring review',
     fr: '{count} dossiers ouverts nécessitant un examen',
   }, // [FR self-authored]
-  shell_badge_compliance_aria: {
+  shell_badge_compliance_aria_one: {
+    en: '1 unresolved compliance issue',
+    fr: '1 problème de conformité non résolu',
+  }, // [FR self-authored]
+  shell_badge_compliance_aria_many: {
     en: '{count} unresolved compliance issues',
     fr: '{count} problèmes de conformité non résolus',
   }, // [FR self-authored]
-  shell_badge_wellbeing_aria: {
-    en: '{count} wellbeing follow-up',
-    fr: '{count} suivi de bien-être',
+  shell_badge_wellbeing_aria_one: {
+    en: '1 wellbeing follow-up',
+    fr: '1 suivi de bien-être',
+  }, // [FR self-authored]
+  shell_badge_wellbeing_aria_many: {
+    en: '{count} wellbeing follow-ups',
+    fr: '{count} suivis de bien-être',
   }, // [FR self-authored]
 
   /* Nav labels (buildI18n nav_*) */
@@ -135,10 +154,14 @@ export const shellMessages = defineMessages({
     en: 'Opens People with a blank record',
     fr: 'Ouvre Personnes avec une fiche vide',
   }, // [FR self-authored]
-  shell_section_item_count: {
+  shell_section_item_count_one: {
+    en: '1 item',
+    fr: '1 élément',
+  }, // [FR self-authored] — collapsed Records/Programs heading meta
+  shell_section_item_count_many: {
     en: '{n} items',
     fr: '{n} éléments',
-  }, // [FR self-authored] — collapsed Records/Programs heading meta
+  }, // [FR self-authored]
   /* Settings section tab labels (General + Memory) */
   shell_settings_general: { en: 'General', fr: 'Général' }, // [FR self-authored]
   shell_nav_analytics: { en: 'Analytics', fr: 'Analytique' },

@@ -55,6 +55,8 @@ function memberRoleLabel(role: OrgMemberRole | null, isAdmin: boolean) {
 
 interface AdminState {
   isAdmin: boolean
+  /** False until the signed-in resolution pass finishes — see `resolving`. */
+  resolved: boolean
   storedMode: WorkspaceMode
   identity: WorkspaceIdentity | null
   organizationId: string | null
@@ -65,6 +67,7 @@ interface AdminState {
 
 const SIGNED_OUT_STATE: AdminState = {
   isAdmin: false,
+  resolved: false,
   storedMode: 'demo',
   identity: null,
   organizationId: null,
@@ -118,7 +121,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
          /employer onboarding door (create_organization is self-serve). */
       const canUseProduction = isAdmin || membership !== null
       if (!canUseProduction) {
-        setAdmin(SIGNED_OUT_STATE)
+        setAdmin({ ...SIGNED_OUT_STATE, resolved: true })
         return
       }
 
@@ -180,6 +183,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       })
       setAdmin({
         isAdmin,
+        resolved: true,
         storedMode,
         organizationId,
         organization,
@@ -322,6 +326,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     if (isPublicDemo) {
       return {
         mode: 'demo' as const,
+        resolving: false,
         isAdmin: false,
         canUseProduction: false,
         identity: DEMO_IDENTITY,
@@ -347,6 +352,10 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     const memberRole = mode === 'production' ? admin.memberRole : null
     return {
       mode,
+      /* A signed-in session whose workspace pass hasn't finished must not
+         fall back to demo content — RequireAdminSession holds the surface
+         blank until this clears. */
+      resolving: status === 'signed-in' && !admin.resolved,
       isAdmin: admin.isAdmin,
       /* Platform admin or any org member — the mode switch and production
          surfaces render for either; RLS still scopes what each can write. */
@@ -364,7 +373,15 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       admissionStatus: admin.admissionStatus,
       clearAdmissionStatus,
     }
-  }, [admin, setMode, refreshIdentity, refreshOrganization, clearAdmissionStatus, isPublicDemo])
+  }, [
+    admin,
+    setMode,
+    refreshIdentity,
+    refreshOrganization,
+    clearAdmissionStatus,
+    isPublicDemo,
+    status,
+  ])
 
   return <WorkspaceModeContext.Provider value={value}>{children}</WorkspaceModeContext.Provider>
 }

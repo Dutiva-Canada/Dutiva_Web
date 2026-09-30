@@ -31,7 +31,7 @@ export const communicationsMessages = defineMessages({
   comms_dim_tone: { en: 'Tone', fr: 'Ton' },
   comms_dim_legal: { en: 'Legal', fr: 'Juridique' },
   comms_dim_clarity: { en: 'Clarity', fr: 'Clarté' },
-  comms_dim_policy: { en: 'Policy', fr: 'Politiques' },
+  comms_dim_policy: { en: 'Policy', fr: 'Politique' },
   comms_dim_ok_suffix: { en: ' · OK', fr: ' · OK' },
   comms_dim_review_suffix: { en: ' · Review', fr: ' · À revoir' },
 

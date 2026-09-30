@@ -13,6 +13,7 @@ import type { AgentTool, AgentToolProposal } from './types'
 
 const workspaceStub: WorkspaceModeContextValue = {
   mode: 'demo',
+  resolving: false,
   isAdmin: false,
   canUseProduction: false,
   identity: {

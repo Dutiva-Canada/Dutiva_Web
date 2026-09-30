@@ -128,7 +128,8 @@ export const analyticsMessages = defineMessages({
 
   /* ── Headcount card ────────────────────────────────────────────────────── */
   analytics_headcount_title: { en: 'Headcount by jurisdiction', fr: 'Effectif par juridiction' },
-  analytics_headcount_total: { en: '{n} employees total', fr: '{n} employés au total' },
+  analytics_headcount_total_one: { en: '1 employee total', fr: '1 employé au total' },
+  analytics_headcount_total_many: { en: '{n} employees total', fr: '{n} employés au total' },
   analytics_headcount_footnote: {
     en: 'Federal = federally regulated roles under the Canada Labour Code.',
     fr: 'Fédéral = postes sous réglementation fédérale régis par le Code canadien du travail.',

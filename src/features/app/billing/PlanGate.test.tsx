@@ -34,6 +34,7 @@ import type { PlanFeature } from '@/config/planEntitlements'
 
 const DEMO_MODE: WorkspaceModeContextValue = {
   mode: 'demo',
+  resolving: false,
   isAdmin: false,
   canUseProduction: false,
   identity: {
@@ -60,6 +61,7 @@ const DEMO_MODE: WorkspaceModeContextValue = {
 const PROD_MODE: WorkspaceModeContextValue = {
   ...DEMO_MODE,
   mode: 'production',
+  resolving: false,
 }
 
 function makePlanCtx(overrides: Partial<PlanContextValue> = {}): PlanContextValue {
