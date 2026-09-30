@@ -15,6 +15,7 @@ import { UpgradeNudge } from '@/features/app/billing/PlanGate'
 import { canAccessWorkflow } from '@/features/app/billing/planAccess'
 import { PLAN_FEATURE_GATES_ENABLED } from '@/config/plans'
 import { WorkflowsDemoFixtures } from './WorkflowsDemoFixtures'
+import { WorkflowCatalogGrid } from './WorkflowCatalogGrid'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**
@@ -24,9 +25,11 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
  * prototype `wfMapOpen: true`), and the start-a-workflow catalog grid.
  *
  * Since the guided flows landed (`src/features/app/flows/`) this view handles
- * both workspace modes itself rather than being route-gated: the flow list is
- * real content and a production workspace needs to reach it, while everything
- * from the prototype stays demo-only.
+ * both workspace modes itself rather than being route-gated: the flow list and
+ * the start-a-workflow catalog are real entry points (guided-flow routes and
+ * seeded Advisor conversations) so both ship in production; only the
+ * Northgate sample rows — in-flight list, termination map, flagship CTA —
+ * stay demo-only in `WorkflowsDemoFixtures`.
  *
  * When PLAN_FEATURE_GATES_ENABLED is on, Free may open only FREE_WORKFLOW_IDS
  * (statutory-notice-*); other cards show an upgrade nudge to Starter.
@@ -147,6 +150,7 @@ export function WorkflowsView() {
         </p>
       )}
       <GuidedProcesses gateWorkflows={gateWorkflows} />
+      {!showFixtures && <WorkflowCatalogGrid />}
       {showFixtures && <WorkflowsDemoFixtures />}
       <Disclaimer className="mt-[18px]" />
     </AppPage>

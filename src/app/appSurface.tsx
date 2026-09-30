@@ -4,6 +4,7 @@
  */
 import { Suspense, lazy } from 'react'
 import { LangProvider } from '@/i18n/LangProvider'
+import { AppBootSkeleton } from '@/features/app/shell/AppBootSkeleton'
 import { ForcedWorkspaceLangProvider } from '@/i18n/ForcedWorkspaceLangProvider'
 import type { Lang } from '@/i18n/core'
 import { AppProviders } from '@/features/app/AppProviders'
@@ -50,7 +51,7 @@ export function AppWelcome() {
   return (
     <LangProvider>
       <AppProviders>
-        <Suspense fallback={null}>
+        <Suspense fallback={<AppBootSkeleton />}>
           <EntryStage />
         </Suspense>
       </AppProviders>
@@ -64,7 +65,7 @@ export function Workspace() {
   return (
     <LangProvider>
       <AppProviders>
-        <Suspense fallback={null}>
+        <Suspense fallback={<AppBootSkeleton />}>
           <RequireAdminSession>
             <AppShell />
           </RequireAdminSession>

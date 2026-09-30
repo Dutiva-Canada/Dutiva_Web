@@ -319,6 +319,7 @@ export function useAdvisorViewController() {
 
   const { startFlow } = createAdvisorFlowHandlers({
     authStatus,
+    workspaceMode,
     organizationId,
     pushUser,
     pushAdvisor,

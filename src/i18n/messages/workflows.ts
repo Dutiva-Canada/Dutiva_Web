@@ -12,8 +12,8 @@ export const workflowsMessages = defineMessages({
     fr: 'Trois façons d’avancer : demandez au Conseiller pour le jugement, lancez un processus guidé ou un calculateur ici, ou créez la lettre à partir des Modèles.', // [FR self-authored]
   },
   workflows_prod_intro: {
-    en: 'Calculators and process guides above are live in production. The in-flight list, termination map, and start-a-workflow catalogue are Northgate demo fixtures — switch to Demo in Settings to explore them.',
-    fr: 'Les calculateurs et guides ci-dessus sont actifs en production. La liste en cours, la carte de cessation et le catalogue de démarrage sont des données d’exemple Northgate — passez en mode Démo dans les paramètres pour les explorer.', // [FR self-authored]
+    en: 'Calculators, process guides, and the starter catalogue below are live in your workspace — each one opens a guided flow or a seeded Advisor conversation. The in-flight list and termination map are Northgate sample data in Demo mode.',
+    fr: 'Les calculateurs, les guides et le catalogue de démarrage ci-dessous sont actifs dans votre espace — chacun ouvre un processus guidé ou une conversation Conseiller préparée. La liste en cours et la carte de cessation sont des données d’exemple Northgate en mode Démo.', // [FR self-authored]
   },
   workflows_upgrade_starter: {
     en: 'Included on Starter and above.',

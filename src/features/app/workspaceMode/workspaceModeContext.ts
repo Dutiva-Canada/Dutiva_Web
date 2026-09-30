@@ -40,6 +40,16 @@ export interface WorkspaceModeContextValue {
    * demo never resolve, so this stays false for them.
    */
   resolving: boolean
+  /**
+   * True when the signed-in resolution pass exhausted its retries — the
+   * backend reads kept failing, so no identity could be committed. The gate
+   * renders a retry surface in this state rather than silently painting the
+   * demo persona. Optional: standalone mounts (tests, preview shells)
+   * without a provider resolve it to false.
+   */
+  resolutionFailed?: boolean
+  /** Re-run the resolution pass after a `resolutionFailed` state. */
+  retryResolution?: () => void
   /** True for platform admins (`@dutiva.ca` or `is_admin_user()`). */
   isAdmin: boolean
   /**

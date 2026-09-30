@@ -15,6 +15,8 @@ import { hasPlanFeature } from '@/features/app/billing/planAccess'
 import { PLAN_FEATURE_GATES_ENABLED, hasActiveSubscription } from '@/config/plans'
 import { HomeProductionEmptyState } from './HomeProductionEmptyState'
 import { HomeSetupCard } from './HomeSetupCard'
+import { HomeWorkflowCatalog } from './HomeWorkflowCatalog'
+import { useHomeActions } from './useHomeActions'
 import { computeSetupSteps, remainingSetupSteps, type SetupStep } from './setupPath'
 import {
   dismissSetupCard,
@@ -52,6 +54,10 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
      keep the full dashboard (parity with PLAN_FEATURE_GATES_ENABLED = false). */
   const planCtx = useContext(PlanContext)
   const { data, loadFailed, reload, stats, dueItems, totalRecords } = useHomeProductionStats()
+  /* Start-a-workflow launcher — the catalog tiles are real entry points
+     (guided-flow routes / seeded Advisor conversations), not fixtures, so
+     production Home gets the same launcher demo does. */
+  const runAction = useHomeActions()
 
   /* Setup path — the same signals feed the empty Home checklist and the
      Keep-going card that survives graduation until setup is done or the
@@ -297,6 +303,12 @@ export function HomeProductionView({ onSend }: { readonly onSend: (text: string)
           </span>
         </Link>
       )}
+
+      {/* Start a workflow — same catalog as demo; every tile lands on a real
+          guided flow or a seeded Advisor conversation. */}
+      <div className="mb-[20px]">
+        <HomeWorkflowCatalog onAction={runAction} />
+      </div>
 
       {/* Composer */}
       <div className="mx-auto mt-[26px] max-w-[760px]">

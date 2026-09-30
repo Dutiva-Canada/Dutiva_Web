@@ -14,7 +14,7 @@ import {
 } from '@/features/app/workspaceMode/api'
 import { CandidateAuthPanel } from './CandidateAuthPanel'
 
-type MembershipState = 'loading' | 'member' | 'none'
+type MembershipState = 'loading' | 'member' | 'none' | 'error'
 
 const cardClass =
   'rounded-[18px] border border-border bg-surface p-[28px] shadow-[0_20px_50px_-24px_rgba(13,27,42,0.35)] min-[640px]:p-[32px]'
@@ -49,9 +49,19 @@ export function EmployerDoorPage() {
     setMembership('loading')
     /* Claim first — an invited teammate's pending invite becomes a membership
        here, so they see "open your workspace" rather than the create form. */
-    await claimOrgInvitations()
+    /* A failed read must not show the create form — offering org creation to
+       a member whose membership just failed to load is the wrong surface. */
+    const claimed = await claimOrgInvitations()
+    if (!claimed.ok) {
+      setMembership('error')
+      return
+    }
     const m = await fetchOrganizationMembership(session.user.id)
-    setMembership(m ? 'member' : 'none')
+    if (!m.ok) {
+      setMembership('error')
+      return
+    }
+    setMembership(m.value ? 'member' : 'none')
   }, [status, session])
 
   useEffect(() => {
@@ -116,6 +126,19 @@ export function EmployerDoorPage() {
         <div className="flex items-center gap-[8px] text-[14px] text-text-muted">
           <Loader2 size={16} className="animate-spin" aria-hidden="true" />
           {x(M.careers_loading)}
+        </div>
+      ) : membership === 'error' ? (
+        <div className={`${cardClass} w-full max-w-[420px] text-center`}>
+          <p role="alert" className="m-0 text-[14px] leading-[1.55] text-risk-fg">
+            {x(M.careers_employer_load_error)}
+          </p>
+          <button
+            type="button"
+            onClick={() => void resolve()}
+            className={`${primaryBtnClass} mt-[18px]`}
+          >
+            {x(M.careers_employer_load_retry)}
+          </button>
         </div>
       ) : membership === 'member' ? (
         <div className={`${cardClass} w-full max-w-[420px] text-center`}>

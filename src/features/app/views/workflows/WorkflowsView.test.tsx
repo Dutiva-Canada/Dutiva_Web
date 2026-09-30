@@ -168,7 +168,7 @@ describe('WorkflowsView in production mode', () => {
     vi.resetModules()
   })
 
-  it('shows guided processes and the prod intro, hiding demo fixtures', async () => {
+  it('shows guided processes, the start catalog, and honest copy — hiding only sample data', async () => {
     mockProductionWorkspace({ tables: {} })
     vi.resetModules()
     const { renderApp: renderFresh } = await import('@/test/renderApp')
@@ -176,11 +176,46 @@ describe('WorkflowsView in production mode', () => {
 
     renderFresh(<View />, { route: '/app/workflows', path: '/app/workflows' })
 
-    expect(await screen.findByText(/Calculators ·/)).toBeInTheDocument()
-    expect(await screen.findByText(/Process guides ·/)).toBeInTheDocument()
-    expect(await screen.findByText(/Northgate demo fixtures/)).toBeInTheDocument()
+    /* Anchor on the production-only copy first: the workspace-resolution
+       pass swaps the demo fixtures for the production view async, and under
+       suite load the swap can outlast a single findByText budget. */
+    expect(await screen.findByText(/sample data in Demo mode/)).toBeInTheDocument()
+
+    expect(screen.getByText(/Calculators ·/)).toBeInTheDocument()
+    expect(screen.getByText(/Process guides ·/)).toBeInTheDocument()
+    /* The catalog is a real entry-point grid (guided-flow routes + seeded
+       Advisor conversations), not Northgate sample data — it ships in
+       production. Only the in-flight list / termination map stay demo-only. */
+    expect(screen.getByText('Start a workflow')).toBeInTheDocument()
+    expect(screen.getByText('Policy update')).toBeInTheDocument()
     expect(screen.queryByText(/In flight/)).not.toBeInTheDocument()
     expect(screen.queryByText('Termination — Jordan Mensah')).not.toBeInTheDocument()
-    expect(screen.queryByText('Start a workflow')).not.toBeInTheDocument()
+  })
+
+  it('routes a production catalog tile to its real surface', async () => {
+    mockProductionWorkspace({ tables: {} })
+    vi.resetModules()
+    const { renderApp: renderFresh } = await import('@/test/renderApp')
+    const { WorkflowsView: View } = await import('./WorkflowsView')
+    const { default: user } = await import('@testing-library/user-event')
+
+    renderFresh(
+      <>
+        <View />
+        <LocationProbe />
+      </>,
+      /* '*' keeps the probe mounted after the tile navigates away from
+         /app/workflows — an exact path would unmount it mid-assertion. */
+      { route: '/app/workflows', path: '*' },
+    )
+
+    /* Wait for the production pass to settle first — grabbing the tile while
+       the demo tree is still mounted leaves a detached node the click can't
+       reach (demo → production swap remounts the grid). */
+    await screen.findByText(/sample data in Demo mode/)
+
+    /* Leave carries a flowSlug — the real guided-flow runner. */
+    await user.setup().click(screen.getByRole('button', { name: /^Leave/ }))
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/leave-of-absence')
   })
 })

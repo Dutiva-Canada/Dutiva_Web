@@ -27,6 +27,9 @@ import { applyRealChatResult } from './advisorProductionChat'
 
 interface FlowHandlersOptions {
   authStatus: AuthStatus
+  /** 'production' workspaces never get scripted fixture turns — every seeded
+     prompt goes to the real backend conversation instead. */
+  workspaceMode: 'demo' | 'production'
   organizationId: string | null
   pushUser: (text: LText, chips?: LText[]) => string
   pushAdvisor: (spec: AdvisorTurnSpec) => string
@@ -52,6 +55,7 @@ interface FlowHandlersOptions {
 export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
   const {
     authStatus,
+    workspaceMode,
     organizationId,
     pushUser,
     pushAdvisor,
@@ -93,6 +97,35 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
       return
     }
 
+    const sendReal = () => {
+      setSendingReal(true)
+      void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
+        .then((result) =>
+          applyRealChatResult({
+            result,
+            threadId: id,
+            userText: userTextString,
+            pushAdvisor,
+            patchResponseState,
+            setProdThreads,
+            updateExtras,
+            bindBackendConversationId,
+            showToast,
+          }),
+        )
+        .catch(handleRealChatFailure)
+        .finally(() => setSendingReal(false))
+    }
+
+    /* A real production workspace must never receive scripted fixture turns
+       (quick forms, canned light-flow replies that fabricate org facts like
+       "your policy hasn't been reviewed in 14 months"). Every seeded
+       workflow prompt opens a genuine backend conversation. */
+    if (workspaceMode === 'production' && authStatus === 'signed-in') {
+      sendReal()
+      return
+    }
+
     if (flowKey === 'termination') {
       const turnId = pushAdvisor({
         text: terminationIntro.text,
@@ -104,23 +137,7 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
 
     if (flowKey === 'fallback') {
       if (authStatus === 'signed-in') {
-        setSendingReal(true)
-        void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
-          .then((result) =>
-            applyRealChatResult({
-              result,
-              threadId: id,
-              userText: userTextString,
-              pushAdvisor,
-              patchResponseState,
-              setProdThreads,
-              updateExtras,
-              bindBackendConversationId,
-              showToast,
-            }),
-          )
-          .catch(handleRealChatFailure)
-          .finally(() => setSendingReal(false))
+        sendReal()
         return
       }
       const turnId = pushAdvisor({ text: fallbackIntro })

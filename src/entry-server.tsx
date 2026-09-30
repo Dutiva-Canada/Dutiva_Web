@@ -22,6 +22,7 @@ import type { SitemapJobPosting } from '@/seo/careersSitemap'
 import { PrerenderJobPostingContext } from '@/features/careers/prerenderJobPosting'
 import { ORG, ORG_DESCRIPTION, SITE_ORIGIN, FOUNDER } from '@/seo/site'
 import { ThemeProvider } from '@/lib/theme'
+import { AppBootSkeleton } from '@/features/app/shell/AppBootSkeleton'
 
 /**
  * Build-time prerender entry (scripts/prerender.mjs). Renders a public URL
@@ -95,6 +96,21 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
     html += decoder.decode(value, { stream: true })
   }
   return html + decoder.decode()
+}
+
+/**
+ * Static boot skeleton for dist/app.html — painted instantly by the HTML
+ * itself while the client bundle downloads, so the signed-in shell never
+ * shows a blank white first paint. Same component RequireAdminSession
+ * renders during the resolution window, so boot → gate is seamless.
+ */
+export async function renderAppBootHtml(): Promise<string> {
+  const { prelude } = await prerender(
+    <div role="status" aria-label="Loading your workspace · Chargement de votre espace de travail">
+      <AppBootSkeleton />
+    </div>,
+  )
+  return readStream(prelude)
 }
 
 export interface ManifestEntry {

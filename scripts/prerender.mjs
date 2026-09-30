@@ -33,6 +33,7 @@ const entryUrl = pathToFileURL(path.join(root, 'dist-ssr', 'entry-server.js')).h
 
 const {
   renderPage,
+  renderAppBootHtml,
   buildPrerenderManifest,
   serializeHead,
   SITE_ORIGIN,
@@ -171,7 +172,11 @@ const appHead = [
 ].join('\n    ')
 await writeFile(
   path.join(dist, 'app.html'),
-  stripTrustedSite(composeDocument({ htmlLang: 'en-CA', headHtml: appHead, bodyHtml: '' })),
+  stripTrustedSite(
+    /* The boot skeleton paints from the HTML itself while the bundle
+       downloads — the signed-in shell never shows a blank first paint. */
+    composeDocument({ htmlLang: 'en-CA', headHtml: appHead, bodyHtml: await renderAppBootHtml() }),
+  ),
 )
 
 /* ------------------------------------------------------------------ */

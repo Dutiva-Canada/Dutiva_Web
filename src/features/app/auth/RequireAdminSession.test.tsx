@@ -219,4 +219,121 @@ describe('RequireAdminSession', () => {
     await new Promise((r) => setTimeout(r, 50))
     expect(screen.queryByText('workspace')).toBeNull()
   })
+
+  it('paints a skeleton — never a blank page — during the pending windows', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+      },
+    }))
+    vi.resetModules()
+
+    const { RequireAdminSession } = await import('./RequireAdminSession')
+    const { AuthProvider } = await import('./AuthProvider')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+    const { WorkspaceModeContext } = await import(
+      '@/features/app/workspaceMode/workspaceModeContext'
+    )
+    const resolving = { resolving: true } as Parameters<
+      typeof WorkspaceModeContext.Provider
+    >[0]['value']
+
+    render(
+      <LangProvider>
+        <MemoryRouter initialEntries={['/app']}>
+          <AuthProvider>
+            <Routes>
+              <Route
+                path="/app"
+                element={
+                  <WorkspaceModeContext.Provider value={resolving}>
+                    <RequireAdminSession>
+                      <div>workspace</div>
+                    </RequireAdminSession>
+                  </WorkspaceModeContext.Provider>
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </MemoryRouter>
+      </LangProvider>,
+    )
+
+    /* The gate's pending surface is the shell-shaped skeleton with an
+       accessible status node — a visible first paint, not an empty div. */
+    await waitFor(() => expect(screen.queryByText('welcome')).toBeNull())
+    await new Promise((r) => setTimeout(r, 50))
+    expect(screen.queryByText('workspace')).toBeNull()
+    const status = screen.getByRole('status')
+    expect(status).toHaveAccessibleName(/loading your workspace/i)
+    /* Shell-shaped skeleton content — visible paint, not an empty div. */
+    expect(status.firstElementChild).not.toBeNull()
+    expect(status.firstElementChild?.childElementCount).toBeGreaterThan(0)
+  })
+
+  it('shows a localized retry surface when workspace resolution fails', async () => {
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        auth: {
+          getSession: () =>
+            Promise.resolve({
+              data: { session: { user: { email: 'martin.constantineau@dutiva.ca' } } },
+            }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        },
+        rpc: vi.fn(() => Promise.resolve({ data: true, error: null })),
+      },
+    }))
+    vi.resetModules()
+
+    const { RequireAdminSession } = await import('./RequireAdminSession')
+    const { AuthProvider } = await import('./AuthProvider')
+    const { LangProvider } = await import('@/i18n/LangProvider')
+    const { WorkspaceModeContext } = await import(
+      '@/features/app/workspaceMode/workspaceModeContext'
+    )
+    const retryResolution = vi.fn()
+    const failed = { resolving: false, resolutionFailed: true, retryResolution } as unknown as Parameters<
+      typeof WorkspaceModeContext.Provider
+    >[0]['value']
+
+    render(
+      <LangProvider>
+        <MemoryRouter initialEntries={['/app']}>
+          <AuthProvider>
+            <Routes>
+              <Route
+                path="/app"
+                element={
+                  <WorkspaceModeContext.Provider value={failed}>
+                    <RequireAdminSession>
+                      <div>workspace</div>
+                    </RequireAdminSession>
+                  </WorkspaceModeContext.Provider>
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </MemoryRouter>
+      </LangProvider>,
+    )
+
+    /* A signed-in session whose resolution failed gets an honest error +
+       retry — never the demo workspace the degraded reads would imply. */
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(/load your workspace/i)
+    expect(screen.queryByText('workspace')).toBeNull()
+    expect(screen.queryByText('welcome')).toBeNull()
+
+    const { default: userEvent } = await import('@testing-library/user-event')
+    await userEvent.setup().click(screen.getByRole('button', { name: /Try again/i }))
+    expect(retryResolution).toHaveBeenCalledTimes(1)
+  })
 })

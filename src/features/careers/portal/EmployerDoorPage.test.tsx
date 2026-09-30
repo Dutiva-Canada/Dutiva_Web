@@ -10,8 +10,8 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 
 vi.mock('@/features/app/workspaceMode/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/app/workspaceMode/api')>()),
-  claimOrgInvitations: vi.fn(async () => 0),
-  fetchOrganizationMembership: vi.fn(async () => null),
+  claimOrgInvitations: vi.fn(async () => ({ ok: true as const, value: 0 })),
+  fetchOrganizationMembership: vi.fn(async () => ({ ok: true as const, value: null })),
   bootstrapOrganization: vi.fn(async () => ({
     status: 'success',
     organizationId: 'org-new',
@@ -73,8 +73,8 @@ describe('EmployerDoorPage', () => {
 
   it('offers "open your workspace" to a signed-in org member', async () => {
     vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({
-      organizationId: 'org-1',
-      role: 'member',
+      ok: true,
+      value: { organizationId: 'org-1', role: 'member' },
     })
     const { EmployerDoorPage } = await import('./EmployerDoorPage')
     renderDoor(<EmployerDoorPage />, SIGNED_IN)
@@ -88,7 +88,7 @@ describe('EmployerDoorPage', () => {
   })
 
   it('offers org creation to a signed-in non-member and provisions via the RPC', async () => {
-    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue(null)
+    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({ ok: true, value: null })
     const { EmployerDoorPage } = await import('./EmployerDoorPage')
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
@@ -108,7 +108,7 @@ describe('EmployerDoorPage', () => {
   })
 
   it('surfaces the capacity message when the RPC declines', async () => {
-    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue(null)
+    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({ ok: true, value: null })
     vi.mocked(api.bootstrapOrganization).mockResolvedValue({ status: 'capacity' })
     const { EmployerDoorPage } = await import('./EmployerDoorPage')
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -119,5 +119,27 @@ describe('EmployerDoorPage', () => {
     await user.click(screen.getByRole('button', { name: /Create workspace/i }))
 
     expect(await screen.findByText(/at capacity/i)).toBeInTheDocument()
+  })
+
+  it('shows a retry surface — not the create form — when the membership read fails', async () => {
+    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({ ok: false })
+    const { EmployerDoorPage } = await import('./EmployerDoorPage')
+    renderDoor(<EmployerDoorPage />, SIGNED_IN)
+
+    /* A member whose read failed must never land on "create your
+       organization" — that surface would invite a duplicate tenant. */
+    expect(await screen.findByRole('alert')).toHaveTextContent(/check your workspace/i)
+    expect(screen.queryByLabelText(/Organization name/i)).not.toBeInTheDocument()
+
+    /* Retry re-runs the read; a successful one shows the member card. */
+    vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({
+      ok: true,
+      value: { organizationId: 'org-1', role: 'owner' },
+    })
+    const { default: userEvent } = await import('@testing-library/user-event')
+    await userEvent.setup().click(screen.getByRole('button', { name: /Try again/i }))
+    expect(
+      await screen.findByRole('button', { name: /Open your workspace/i }),
+    ).toBeInTheDocument()
   })
 })

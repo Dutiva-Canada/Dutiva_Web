@@ -8,12 +8,14 @@ import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeCont
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { FunnelAnalytics } from './FunnelAnalytics'
 import { JobPostingCard } from './JobPostingCard'
 import { JobPostingForm } from './JobPostingForm'
 import { useHiringTab } from './useHiringTab'
 import {
   addCandidate,
   createJobPosting,
+  deleteCandidate,
   deleteJobPosting,
   getFunnelMetrics,
   listCandidates,
@@ -41,15 +43,6 @@ import { candidateStatusLabel, candidateStatusTone } from './hiringStatusHelpers
  */
 
 type Tab = 'candidates' | 'applications' | 'funnel' | 'postings'
-
-const STAGES: { key: keyof ProductionFunnelMetrics; label: keyof typeof M }[] = [
-  { key: 'totalApplications', label: 'hiring_funnel_applications' },
-  { key: 'basicQualified', label: 'hiring_funnel_basic_qualified' },
-  { key: 'evidenceQualified', label: 'hiring_funnel_evidence_qualified' },
-  { key: 'workSamples', label: 'hiring_funnel_work_samples' },
-  { key: 'interviews', label: 'hiring_funnel_interviews' },
-  { key: 'hires', label: 'hiring_funnel_hires' },
-]
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -212,6 +205,20 @@ export function HiringProductionView() {
       void load()
     } catch {
       showToast(M.hiring_candidate_status_error, 'info')
+    } finally {
+      setStatusUpdatingId(null)
+    }
+  }
+
+  const onDeleteCandidate = async (candidate: ProductionCandidate) => {
+    if (!organizationId || statusUpdatingId) return
+    setStatusUpdatingId(candidate.id)
+    try {
+      await deleteCandidate(candidate.id)
+      showToast(M.hiring_candidate_deleted, 'ok')
+      void load()
+    } catch {
+      showToast(M.hiring_candidate_delete_error, 'info')
     } finally {
       setStatusUpdatingId(null)
     }
@@ -551,6 +558,21 @@ export function HiringProductionView() {
                           {x(M.hiring_candidate_advance)}
                         </button>
                       )}
+                      {isOrgAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(x(M.hiring_candidate_delete_confirm))) {
+                              void onDeleteCandidate(candidate)
+                            }
+                          }}
+                          disabled={statusUpdatingId === candidate.id}
+                          aria-label={x(M.hiring_candidate_delete)}
+                          className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-surface text-risk disabled:opacity-60"
+                        >
+                          <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => openCandidate(candidate.id)}
@@ -566,37 +588,53 @@ export function HiringProductionView() {
 
               <div className="flex flex-col gap-[10px] md:hidden">
                 {filteredCandidates.map((candidate) => (
-                  <button
-                    key={candidate.id}
-                    type="button"
-                    onClick={() => openCandidate(candidate.id)}
-                    className="flex w-full cursor-pointer flex-col gap-[10px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans hover:border-(--accent-soft-border)"
-                  >
-                    <div className="flex items-center justify-between gap-[10px]">
-                      <div className="min-w-0 flex-1">
-                        <div className="text-[14.5px] font-semibold text-text">
-                          {candidate.name}
+                  <div key={candidate.id} className="flex items-start gap-[8px]">
+                    <button
+                      type="button"
+                      onClick={() => openCandidate(candidate.id)}
+                      className="flex min-w-0 flex-1 cursor-pointer flex-col gap-[10px] rounded-[12px] border border-border bg-surface p-[14px] text-left font-sans hover:border-(--accent-soft-border)"
+                    >
+                      <div className="flex items-center justify-between gap-[10px]">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[14.5px] font-semibold text-text">
+                            {candidate.name}
+                          </div>
+                          <div className="mt-[2px] text-[12px] text-text-muted">
+                            {candidate.position}
+                          </div>
                         </div>
-                        <div className="mt-[2px] text-[12px] text-text-muted">
-                          {candidate.position}
-                        </div>
+                        <span className={statusChipClass(candidateStatusTone(candidate.status))}>
+                          {x(candidateStatusLabel(candidate.status))}
+                        </span>
                       </div>
-                      <span className={statusChipClass(candidateStatusTone(candidate.status))}>
-                        {x(candidateStatusLabel(candidate.status))}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-[8px] text-[12px] text-text-muted">
-                      <span>{candidate.location}</span>
-                      <span>·</span>
-                      <span>{candidate.appliedDate}</span>
-                      {candidate.assignedTo && (
-                        <>
-                          <span>·</span>
-                          <span>{candidate.assignedTo}</span>
-                        </>
-                      )}
-                    </div>
-                  </button>
+                      <div className="flex flex-wrap items-center gap-[8px] text-[12px] text-text-muted">
+                        <span>{candidate.location}</span>
+                        <span>·</span>
+                        <span>{candidate.appliedDate}</span>
+                        {candidate.assignedTo && (
+                          <>
+                            <span>·</span>
+                            <span>{candidate.assignedTo}</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                    {isOrgAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(x(M.hiring_candidate_delete_confirm))) {
+                            void onDeleteCandidate(candidate)
+                          }
+                        }}
+                        disabled={statusUpdatingId === candidate.id}
+                        aria-label={x(M.hiring_candidate_delete)}
+                        className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-[8px] border border-border bg-surface text-risk disabled:opacity-60"
+                      >
+                        <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -707,48 +745,6 @@ export function HiringProductionView() {
         </div>
       )}
     </AppPage>
-  )
-}
-
-function FunnelAnalytics({ funnel }: { funnel: ProductionFunnelMetrics }) {
-  const { x } = useI18n()
-
-  return (
-    <div className="flex flex-col gap-[20px]">
-      <div className="rounded-[12px] border border-border bg-surface p-[20px]">
-        <h2 className="mb-[16px] text-[16px] font-bold text-text">{x(M.hiring_funnel_title)}</h2>
-        <p className="mb-[20px] text-[13px] text-text-muted">{x(M.hiring_funnel_description)}</p>
-
-        <div className="space-y-[8px]">
-          {STAGES.map((stage, index) => {
-            const count = funnel[stage.key]
-            const width =
-              funnel.totalApplications > 0
-                ? Math.round((count / funnel.totalApplications) * 100)
-                : 0
-            return (
-              <div key={stage.key} className="flex items-center gap-[12px]">
-                <div className="w-[140px] shrink-0 text-[13px] text-text-2">
-                  {x(M[stage.label])}
-                </div>
-                <div className="flex-1">
-                  <div className="mb-[4px] flex items-center justify-between text-[12px]">
-                    <span className="font-semibold text-text">{count}</span>
-                    <span className="text-text-muted">{width}%</span>
-                  </div>
-                  <div className="h-[24px] overflow-hidden rounded-[6px] bg-inset">
-                    <div
-                      className="h-full rounded-[6px] bg-navy transition-all"
-                      style={{ width: `${index === 0 ? 100 : width}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
   )
 }
 
