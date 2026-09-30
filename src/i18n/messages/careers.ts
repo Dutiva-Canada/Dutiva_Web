@@ -106,9 +106,17 @@ export const careersMessages = defineMessages({
     fr: 'Retirer le filtre : {label}',
   },
   careers_board_clear_all: { en: 'Clear all filters', fr: 'Effacer tous les filtres' },
-  careers_board_results_announce: {
-    en: '{count} role(s) found',
-    fr: '{count} poste(s) trouvé(s)',
+  careers_board_results_announce_none: {
+    en: 'No roles found',
+    fr: 'Aucun poste trouvé',
+  },
+  careers_board_results_announce_one: {
+    en: '{count} role found',
+    fr: '{count} poste trouvé',
+  },
+  careers_board_results_announce_many: {
+    en: '{count} roles found',
+    fr: '{count} postes trouvés',
   },
   careers_board_showing: {
     en: 'Showing {shown} of {total}',
@@ -653,9 +661,13 @@ export const careersMessages = defineMessages({
   careers_agent_saved: { en: 'Agent settings saved', fr: 'Paramètres de l’agent enregistrés' },
   careers_agent_run_now: { en: 'Run a search now', fr: 'Lancer une recherche' },
   careers_agent_running: { en: 'Searching…', fr: 'Recherche en cours…' },
-  careers_agent_scan_done: {
-    en: 'Search finished — {count} new posting(s) found.',
-    fr: 'Recherche terminée — {count} nouvelle(s) offre(s) trouvée(s).',
+  careers_agent_scan_done_one: {
+    en: 'Search finished — {count} new posting found.',
+    fr: 'Recherche terminée — {count} nouvelle offre trouvée.',
+  },
+  careers_agent_scan_done_many: {
+    en: 'Search finished — {count} new postings found.',
+    fr: 'Recherche terminée — {count} nouvelles offres trouvées.',
   },
   careers_agent_scan_none: {
     en: 'Search finished — nothing new this time.',

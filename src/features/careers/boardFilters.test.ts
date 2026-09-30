@@ -47,7 +47,7 @@ describe('filterPostings', () => {
   it('returns everything for an empty filter, newest first', () => {
     const out = filterPostings(FIXTURE_POSTINGS, empty)
     expect(out).toHaveLength(FIXTURE_POSTINGS.length)
-    expect(out[0]!.slug).toBe('frontend-engineer-job-fe') // 2026-09-22
+    expect(out[0]!.slug).toBe('product-design-intern-job-di') // 2026-09-24
     expect(out[out.length - 1]!.slug).toBe('safety-officer-job-so') // null postedDate sorts last
   })
 
@@ -119,6 +119,7 @@ describe('boardFacets', () => {
     const facets = boardFacets(FIXTURE_POSTINGS, 'en')
     expect(facets.locations).toEqual([
       'Calgary, AB',
+      'Hybrid — Toronto, ON',
       'Mississauga, ON',
       'Montréal, QC',
       'Ottawa, ON',
@@ -126,12 +127,18 @@ describe('boardFacets', () => {
       'Remote (Canada)',
       'Toronto, ON',
     ])
-    expect(facets.employers).toEqual(['Meridian Health Group', 'Northgate Logistics Inc.'])
+    expect(facets.employers).toEqual([
+      'Atrium Advisory',
+      'Meridian Health Group',
+      'Northgate Logistics Inc.',
+    ])
     expect(facets.departments).toEqual([
+      'Customer Success',
       'Engineering',
       'Finance',
       'Human Resources',
       'Operations',
+      'Product',
     ])
     expect(facets.workplaces).toEqual(['remote', 'hybrid', 'onsite'])
   })
@@ -150,10 +157,10 @@ describe('URL params round-trip', () => {
     }
     const params = filterToParams(filter)
     expect(params.get('q')).toBe('engineer')
-    expect(params.get('loc')).toBe('Remote (Canada)')
+    expect(params.get('location')).toBe('Remote (Canada)')
     expect(params.get('type')).toBe('remote')
-    expect(params.get('org')).toBe('Northgate Logistics Inc.')
-    expect(params.get('dept')).toBe('Engineering')
+    expect(params.get('employer')).toBe('Northgate Logistics Inc.')
+    expect(params.get('department')).toBe('Engineering')
     expect(params.get('salary')).toBe('80000')
     expect(params.get('sort')).toBe('relevance')
     expect(filterFromParams(params)).toEqual(filter)

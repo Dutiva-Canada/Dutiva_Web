@@ -113,7 +113,12 @@ export function AgentSettingsCard() {
     setScanning(true)
     try {
       const summary = await runAgentScan()
-      const tpl = summary.discovered > 0 ? M.careers_agent_scan_done : M.careers_agent_scan_none
+      const tpl =
+        summary.discovered === 0
+          ? M.careers_agent_scan_none
+          : summary.discovered === 1
+            ? M.careers_agent_scan_done_one
+            : M.careers_agent_scan_done_many
       showToast(
         {
           en: tpl.en.replace('{count}', String(summary.discovered)),

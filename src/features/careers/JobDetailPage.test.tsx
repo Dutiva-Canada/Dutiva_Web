@@ -168,11 +168,11 @@ describe('JobDetailPage', () => {
   it('back link preserves the board filter state from link state', async () => {
     vi.mocked(getPublicJobPosting).mockResolvedValue(MOCK_POSTING)
     const { JobDetailPage } = await import('./JobDetailPage')
-    renderCareers(<JobDetailPage />, { state: { boardSearch: '?q=engineer&loc=Toronto' } })
+    renderCareers(<JobDetailPage />, { state: { boardSearch: '?q=engineer&location=Toronto' } })
 
     await screen.findByRole('heading', { level: 1, name: 'Senior Product Manager' })
     const back = screen.getAllByRole('link', { name: /All jobs/i })[0]!
-    expect(back).toHaveAttribute('href', '/careers?q=engineer&loc=Toronto')
+    expect(back).toHaveAttribute('href', '/careers?q=engineer&location=Toronto')
   })
 
   it('shows the not-found state when the posting does not exist', async () => {

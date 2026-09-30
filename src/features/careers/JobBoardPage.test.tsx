@@ -12,6 +12,7 @@ import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { PublicJobPosting } from './data/jobBoardApi'
 import { FIXTURE_POSTINGS, makePosting } from './postingFixtures'
+import { careersMessages } from '@/i18n/messages/careers'
 
 const TWO_POSTINGS: PublicJobPosting[] = [
   makePosting({
@@ -69,6 +70,13 @@ function renderCareers(ui: ReactElement, { path = '/careers', route = '/careers'
 describe('JobBoardPage', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  it('the careers catalogue carries no "(s)" plural hedges', () => {
+    for (const [key, msg] of Object.entries(careersMessages)) {
+      expect(msg.en, `careers.${key}.en`).not.toContain('(s)')
+      expect(msg.fr, `careers.${key}.fr`).not.toContain('(s)')
+    }
   })
 
   it('renders job postings from the API, with slug detail links', async () => {
@@ -156,8 +164,43 @@ describe('JobBoardPage', () => {
     expect(screen.getByText('Frontend Engineer')).toBeInTheDocument()
     expect(screen.getByText('Backend Engineer')).toBeInTheDocument()
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('2 role(s) found'),
+      expect(screen.getByRole('status')).toHaveTextContent('2 roles found'),
     )
+  })
+
+  it('announces the singular count properly — never "(s)"', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue([
+      makePosting({ id: 'jp-solo', slug: 'only-role', title: 'Only Role' }),
+    ])
+    const { JobBoardPage } = await import('./JobBoardPage')
+    renderCareers(<JobBoardPage />)
+
+    await screen.findByText('Only Role')
+    expect(screen.getByRole('status')).toHaveTextContent('1 role found')
+  })
+
+  it('announces plural counts in French', async () => {
+    vi.mocked(listActiveJobPostings).mockResolvedValue(TWO_POSTINGS)
+    const { JobBoardPage } = await import('./JobBoardPage')
+    const { ForcedLangProvider } = await import('@/i18n/ForcedLangProvider')
+    render(
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/fr/carrieres']}>
+          <ForcedLangProvider lang="fr">
+            <AuthProvider>
+              <ToastsProvider>
+                <Routes>
+                  <Route path="/fr/carrieres" element={<JobBoardPage />} />
+                </Routes>
+              </ToastsProvider>
+            </AuthProvider>
+          </ForcedLangProvider>
+        </MemoryRouter>
+      </ThemeProvider>,
+    )
+
+    await screen.findByText('Senior Product Manager')
+    expect(screen.getByRole('status')).toHaveTextContent('2 postes trouvés')
   })
 
   it('reads ?q= from the URL and pre-fills the input', async () => {
@@ -236,6 +279,8 @@ describe('JobBoardPage', () => {
     renderCareers(<JobBoardPage />, { route: '/careers?q=zzzznope' })
 
     expect(await screen.findByText(/No open positions match/i)).toBeInTheDocument()
+    // Zero announces as "No roles found" — never "0 role(s) found"
+    expect(screen.getByRole('status')).toHaveTextContent('No roles found')
 
     await user.click(screen.getByRole('button', { name: /Clear search/i }))
     expect(await screen.findByText('Senior Product Manager')).toBeInTheDocument()
