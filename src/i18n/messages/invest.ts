@@ -423,6 +423,11 @@ export const investMessages = defineMessages({
     en: 'Show fewer',
     fr: 'Réduire la liste',
   },
+  /* [FR self-authored] */
+  invest_news_count: {
+    en: '{count} headlines',
+    fr: '{count} manchettes',
+  },
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

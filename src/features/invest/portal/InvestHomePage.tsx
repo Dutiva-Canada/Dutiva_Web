@@ -267,45 +267,54 @@ export function InvestHomePage() {
       <section className={cardClass}>
         {/* Third-party headlines, verbatim — label them as such so a publisher's
             headline never reads as a Dutiva recommendation. */}
-        <h2 className="m-0 flex items-center gap-[8px] text-[14px] font-semibold text-text">
-          <span
-            aria-hidden="true"
-            className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] bg-accent-soft text-accent"
-          >
-            <Newspaper size={13} strokeWidth={2} />
-          </span>
-          {x(IM.invest_news_title)}
-        </h2>
-        <p className="m-0 ml-[32px] mt-[2px] text-[12px] leading-normal text-text-muted">
-          {x(IM.invest_news_note)}
-        </p>
+        <div className="flex items-start justify-between gap-[12px]">
+          <div>
+            <h2 className="m-0 flex items-center gap-[8px] text-[14px] font-semibold text-text">
+              <span
+                aria-hidden="true"
+                className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] bg-accent-soft text-accent"
+              >
+                <Newspaper size={13} strokeWidth={2} />
+              </span>
+              {x(IM.invest_news_title)}
+            </h2>
+            <p className="m-0 ml-[32px] mt-[2px] text-[12px] leading-normal text-text-muted">
+              {x(IM.invest_news_note)}
+            </p>
+          </div>
+          {headlines.length > 12 && (
+            <span className="mt-[3px] shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
+              {x(IM.invest_news_count).replace('{count}', String(headlines.length))}
+            </span>
+          )}
+        </div>
         {state.news.length === 0 ? (
           <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">{x(IM.invest_news_empty)}</p>
         ) : (
           <>
-          <ul className="m-0 mt-[12px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
-            {visibleHeadlines.map((n) => (
-              <li key={n.id}>
+          <ul className="m-0 mt-[14px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
+            {visibleHeadlines.map((n, i) => (
+              <li key={n.id} className={i === 0 ? 'min-[980px]:col-span-2' : undefined}>
                 <a
                   href={n.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex h-full items-start gap-[11px] rounded-[12px] border border-border bg-surface p-[11px] no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm"
+                  className={`group flex h-full items-center gap-[11px] rounded-[12px] border border-border bg-surface no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${i === 0 ? 'p-[13px]' : 'p-[11px]'}`}
                 >
                   <span
                     aria-hidden="true"
-                    className={`flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] text-[11.5px] font-bold uppercase ${sourceTint(n.source)}`}
+                    className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold uppercase ${i === 0 ? 'h-[34px] w-[34px] text-[13px]' : 'h-[30px] w-[30px] text-[11.5px]'} ${sourceTint(n.source)}`}
                   >
                     {(n.source || '?').trim().charAt(0)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 block text-[13px] font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent">
+                    <span className={`line-clamp-2 block font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent ${i === 0 ? 'text-[14px]' : 'text-[13px]'}`}>
                       {n.title}
                     </span>
                     <span className="mt-[5px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
                       <span className="truncate">{n.source}</span>
                       {n.symbol && (
-                        <span className="shrink-0 rounded-[6px] border border-border bg-inset px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-text-2">
+                        <span className="shrink-0 rounded-[6px] bg-accent-soft px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-accent">
                           {n.symbol}
                         </span>
                       )}
@@ -320,7 +329,7 @@ export function InvestHomePage() {
                     size={14}
                     strokeWidth={2}
                     aria-hidden="true"
-                    className="mt-[3px] shrink-0 text-text-3 transition-transform duration-150 group-hover:-translate-y-[1px] group-hover:translate-x-[1px] group-hover:text-accent"
+                    className="mt-[3px] shrink-0 self-start text-text-3 transition-transform duration-150 group-hover:-translate-y-[1px] group-hover:translate-x-[1px] group-hover:text-accent"
                   />
                   <span className="sr-only">{x(IM.invest_news_external)}</span>
                 </a>
@@ -331,7 +340,7 @@ export function InvestHomePage() {
             <button
               type="button"
               onClick={() => setNewsExpanded((v) => !v)}
-              className="mx-auto mt-[12px] flex min-h-[34px] w-auto cursor-pointer items-center justify-center gap-[6px] rounded-full border border-border bg-transparent px-[18px] text-[12.5px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:bg-inset"
+              className="mx-auto mt-[12px] flex min-h-[34px] w-auto cursor-pointer items-center justify-center gap-[6px] rounded-full border border-border bg-transparent px-[18px] text-[12.5px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:bg-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
             >
               {newsExpanded
                 ? x(IM.invest_news_less)
