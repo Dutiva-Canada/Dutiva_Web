@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ExternalLink, Info, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, Info, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
@@ -247,27 +247,39 @@ export function InvestHomePage() {
         ) : (
           <ul className="m-0 mt-[12px] flex list-none flex-col divide-y divide-border p-0">
             {state.news.slice(0, 12).map((n) => (
-              <li key={n.id} className="py-[10px]">
+              <li key={n.id}>
                 <a
                   href={n.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-start gap-[4px] text-[13px] font-medium text-accent no-underline hover:underline"
+                  className="group -mx-[8px] flex items-start gap-[10px] rounded-[10px] px-[8px] py-[9px] no-underline transition-colors hover:bg-inset"
                 >
-                  {n.title}
-                  <ExternalLink
-                    size={12}
-                    strokeWidth={1.8}
+                  <span
                     aria-hidden="true"
-                    className="mt-[3px] shrink-0 text-text-3"
+                    className="mt-[1px] flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] border border-border bg-bg-elevated text-[11px] font-bold uppercase text-text-2"
+                  >
+                    {(n.source || '?').trim().charAt(0)}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[13px] font-medium leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent">
+                      {n.title}
+                    </span>
+                    <span className="mt-[3px] block text-[11.5px] text-text-muted">
+                      {n.source}
+                      {n.symbol && <> · <span className="font-semibold uppercase">{n.symbol}</span></>}
+                      {n.publishedAt && (
+                        <> · {new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }).format(new Date(n.publishedAt))}</>
+                      )}
+                    </span>
+                  </span>
+                  <ArrowUpRight
+                    size={14}
+                    strokeWidth={2}
+                    aria-hidden="true"
+                    className="mt-[4px] shrink-0 text-text-3 transition-transform duration-150 group-hover:-translate-y-[1px] group-hover:translate-x-[1px] group-hover:text-accent"
                   />
                   <span className="sr-only">{x(IM.invest_news_external)}</span>
                 </a>
-                <p className="m-0 mt-[3px] text-[11.5px] text-text-muted">
-                  {n.symbol && <span className="font-semibold uppercase">{n.symbol} · </span>}
-                  {n.source}
-                  {n.publishedAt && <> · {new Date(n.publishedAt).toLocaleDateString()}</>}
-                </p>
               </li>
             ))}
           </ul>
