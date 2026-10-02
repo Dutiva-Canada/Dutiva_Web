@@ -2,13 +2,24 @@ import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { readPref, writePref } from './prefs'
 import { THEME_KEY, ThemeContext } from './themeContext'
-import type { Theme } from './themeContext'
+import type { Theme, ThemePref } from './themeContext'
 
-function readTheme(): Theme {
+function readThemePref(): ThemePref {
   const storedTheme = readPref(THEME_KEY, '')
-  if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme
+  if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'auto') {
+    return storedTheme
+  }
+  /* Nothing stored — the bootstrap script resolves via the OS, which is
+     exactly what an explicit 'auto' preference does. */
+  return 'auto'
+}
 
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+function resolveTheme(pref: ThemePref): Theme {
+  if (pref !== 'auto') return pref
+  return typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light'
 }
 
 /** Safari's status/toolbar tint per theme. Mirrors the `<meta name="theme-color">
@@ -38,18 +49,39 @@ function applyThemeToDocument(next: Theme): void {
  * script read the same preference), so nothing flashes.
  */
 export function ThemeProvider({ children }: { readonly children: ReactNode }) {
+  const [themePref, setThemePref] = useState<ThemePref>('auto')
   const [theme, setTheme] = useState<Theme>('dark')
 
   useEffect(() => {
-    const stored = readTheme()
-    applyThemeToDocument(stored)
-    setTheme(stored)
+    const pref = readThemePref()
+    const resolved = resolveTheme(pref)
+    applyThemeToDocument(resolved)
+    setThemePref(pref)
+    setTheme(resolved)
   }, [])
 
-  const applyTheme = useCallback((next: Theme) => {
-    applyThemeToDocument(next)
+  /* 'auto' follows the OS live: re-resolve (and re-stamp) on every
+     prefers-color-scheme change while the preference stays auto. The
+     addEventListener guard also covers jsdom, where matchMedia is stubbed
+     without listener support. */
+  useEffect(() => {
+    if (themePref !== 'auto' || typeof window === 'undefined') return
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)')
+    if (!mq?.addEventListener) return
+    const onChange = () => {
+      const resolved = mq.matches ? 'dark' : 'light'
+      applyThemeToDocument(resolved)
+      setTheme(resolved)
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [themePref])
+
+  const applyTheme = useCallback((next: ThemePref) => {
+    applyThemeToDocument(resolveTheme(next))
     writePref(THEME_KEY, next)
-    setTheme(next)
+    setThemePref(next)
+    setTheme(resolveTheme(next))
   }, [])
 
   const toggleTheme = useCallback(() => {
@@ -57,11 +89,14 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
       const next = prev === 'dark' ? 'light' : 'dark'
       applyThemeToDocument(next)
       writePref(THEME_KEY, next)
+      setThemePref(next)
       return next
     })
   }, [])
 
   return (
-    <ThemeContext value={{ theme, setTheme: applyTheme, toggleTheme }}>{children}</ThemeContext>
+    <ThemeContext value={{ theme, themePref, setTheme: applyTheme, toggleTheme }}>
+      {children}
+    </ThemeContext>
   )
 }

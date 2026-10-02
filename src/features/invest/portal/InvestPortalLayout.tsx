@@ -1,9 +1,12 @@
 import { useContext, useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Bell, Globe, Loader2, LogOut, Menu, Settings, X } from 'lucide-react'
+import { Bell, Contrast, Globe, Loader2, LogOut, Menu, Moon, Settings, Sun, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Lang } from '@/i18n/core'
+import type { Bi, Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
+import { useTheme } from '@/lib/themeContext'
+import type { ThemePref } from '@/lib/themeContext'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useAuth } from '@/features/app/auth/authContext'
 import { InvestDataProvider } from '@/features/invest/data/InvestDataProvider'
 import { InvestDataContext } from '@/features/invest/data/InvestDataContext'
@@ -26,6 +29,41 @@ const MOBILE_EXTRA = [
   { to: '/invest/notifications', label: IM.invest_tab_notifications },
   { to: '/invest/settings', label: IM.invest_tab_settings },
 ] as const
+
+/* Header theme control — the prototype's Auto → Light → Dark cycle, with a
+   toast naming the new scheme in the current language. Auto follows the OS
+   via ThemeProvider's matchMedia listener. */
+const THEME_CYCLE: Record<ThemePref, ThemePref> = { auto: 'light', light: 'dark', dark: 'auto' }
+const THEME_NAME: Record<ThemePref, Bi> = {
+  auto: IM.invest_sb_theme_auto,
+  light: IM.invest_sb_theme_light,
+  dark: IM.invest_sb_theme_dark,
+}
+const THEME_ICON = { auto: Contrast, light: Sun, dark: Moon } as const
+
+export function ThemeCycleButton({ className }: { className: string }) {
+  const { themePref, setTheme } = useTheme()
+  const { x } = useI18n()
+  const { showToast } = useToasts()
+  const Icon = THEME_ICON[themePref]
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const next = THEME_CYCLE[themePref]
+        setTheme(next)
+        showToast({
+          en: `${IM.invest_sb_theme_label.en} — ${THEME_NAME[next].en}`,
+          fr: `${IM.invest_sb_theme_label.fr} — ${THEME_NAME[next].fr}`,
+        })
+      }}
+      aria-label={`${x(IM.invest_sb_theme_label)} — ${x(THEME_NAME[themePref])}`}
+      className={className}
+    >
+      <Icon size={15} strokeWidth={1.8} aria-hidden="true" />
+    </button>
+  )
+}
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
@@ -79,15 +117,18 @@ export function InvestPortalLayout() {
                 {x(IM.invest_portal_title)}
               </span>
             </span>
-            <button
-              type="button"
-              onClick={() => setLang(other)}
-              className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border"
-              aria-label={L('Toggle language', 'Changer de langue')}
-            >
-              <Globe size={15} aria-hidden="true" />
-              {label}
-            </button>
+            <div className="flex items-center gap-[8px]">
+              <ThemeCycleButton className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[10px] border border-control-border bg-bg-elevated px-3 text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border" />
+              <button
+                type="button"
+                onClick={() => setLang(other)}
+                className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-[10px] border border-control-border bg-bg-elevated px-3 font-sans text-[0.8125rem] font-semibold text-text transition-[border-color] duration-[160ms] ease-in-out hover:border-gold-border"
+                aria-label={L('Toggle language', 'Changer de langue')}
+              >
+                <Globe size={15} aria-hidden="true" />
+                {label}
+              </button>
+            </div>
           </div>
         </header>
         <main className="flex flex-1 items-center justify-center px-[20px] py-[40px]">
@@ -125,6 +166,7 @@ export function InvestPortalLayout() {
               </nav>
             </div>
             <div className="hidden items-center gap-[8px] min-[820px]:flex">
+              <ThemeCycleButton className="inline-flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset" />
               <button
                 type="button"
                 onClick={() => setLang(other)}
@@ -159,6 +201,7 @@ export function InvestPortalLayout() {
               </button>
             </div>
             <div className="flex items-center gap-[8px] min-[820px]:hidden">
+              <ThemeCycleButton className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset" />
               <button
                 type="button"
                 onClick={() => setLang(other)}

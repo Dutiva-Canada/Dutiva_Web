@@ -9975,6 +9975,7 @@ export type Database = {
           enabled: boolean
           id: string
           last_evaluated_at: string | null
+          multi_match: string
           name: string
           notify: Json
           rules: Json
@@ -9991,6 +9992,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           last_evaluated_at?: string | null
+          multi_match?: string
           name: string
           notify?: Json
           rules?: Json
@@ -10007,6 +10009,7 @@ export type Database = {
           enabled?: boolean
           id?: string
           last_evaluated_at?: string | null
+          multi_match?: string
           name?: string
           notify?: Json
           rules?: Json

@@ -100,6 +100,12 @@ export interface StrategyNotify {
   email: boolean
 }
 
+/** How a scan that matches several rules notifies: 'each' emits one
+    in-app signal per hit; 'summary' collapses them into a single signal
+    listing every match. Order proposals always stay per-rule — each one
+    needs its own approval. (0190 column; 'each' is the legacy behavior.) */
+export type MultiMatch = 'each' | 'summary'
+
 export interface InvestStrategy {
   id: string
   name: string
@@ -108,6 +114,7 @@ export interface InvestStrategy {
   rules: StrategyRule[]
   notify: StrategyNotify
   cadence: StrategyCadence
+  multiMatch: MultiMatch
   /** Provenance: 'tpl:<slug>' from the gallery, 'ai-draft', '' = custom. */
   template: string
 }
@@ -149,6 +156,19 @@ export interface InvestOrder {
   note: string | null
   error: string | null
   createdAt: string
+}
+
+/** One rule×symbol match from a test-scan dry run — mirrors RuleMatch in
+    supabase/functions/invest-bot/handlers.ts. `symbol` is '' for
+    book-level metrics (cash). */
+export interface TestScanMatch {
+  ruleIndex: number
+  ruleTitle: string
+  symbol: string
+  metricValue: number
+  outcome:
+    | { kind: 'signal'; severity: SignalSeverity }
+    | { kind: 'order'; side: OrderSide; quantity: number | null }
 }
 
 export interface InvestBotRun {

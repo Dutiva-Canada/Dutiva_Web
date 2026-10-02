@@ -140,26 +140,42 @@ interface StrategyRow {
   scope?: unknown
   notify?: unknown
   asset_classes?: unknown
+  multi_match?: unknown
 }
 
-/** Reads strategies with the 0184 columns when present; falls back to a
-    scope covering every known symbol when the migration hasn't landed yet,
-    so the bot keeps working through a code-before-schema deploy. */
+const STRATEGY_COLS_FULL =
+  'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify, asset_classes, multi_match'
+const STRATEGY_COLS_0184 =
+  'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify, asset_classes'
+const STRATEGY_COLS_BASE = 'id, name, enabled, rules, cadence, last_evaluated_at, asset_classes'
+
+/** Reads strategies with the newest columns when present; falls back
+    column-set by column-set so a code-before-schema deploy keeps working —
+    0190's multi_match degrades to 'each', and pre-0184 schemas get the
+    legacy all-symbols scope. */
 async function loadStrategies(
   adminClient: SupabaseClient,
   userId: string,
   allSymbols: string[],
 ): Promise<{ strategies: Strategy[]; scoped: boolean }> {
-  const select =
-    'id, name, enabled, rules, cadence, last_evaluated_at, scope, notify, asset_classes'
-  const res = await adminClient.from('invest_strategies').select(select).eq('user_id', userId)
+  let res = await adminClient
+    .from('invest_strategies')
+    .select(STRATEGY_COLS_FULL)
+    .eq('user_id', userId)
+
+  if (res.error && /multi_match/.test(res.error.message)) {
+    res = await adminClient
+      .from('invest_strategies')
+      .select(STRATEGY_COLS_0184)
+      .eq('user_id', userId)
+  }
 
   let rows: StrategyRow[]
   let scoped = true
   if (res.error && /scope|notify/.test(res.error.message)) {
     const fallback = await adminClient
       .from('invest_strategies')
-      .select('id, name, enabled, rules, cadence, last_evaluated_at, asset_classes')
+      .select(STRATEGY_COLS_BASE)
       .eq('user_id', userId)
     if (fallback.error) throw new Error(fallback.error.message)
     rows = (fallback.data ?? []) as StrategyRow[]
@@ -194,6 +210,7 @@ async function loadStrategies(
         /* In-app is the default surface — only an explicit `false` in a
            scoped (post-0184) row opts a strategy out of the signal feed. */
         notify_in_app: scoped ? notify?.in_app !== false : true,
+        multi_match: r.multi_match === 'summary' ? 'summary' : 'each',
       }
     }),
   }
@@ -324,7 +341,9 @@ async function runUser(
       name: signal.name,
       kind: signal.kind,
       title: signal.title,
+      title_fr: signal.title_fr ?? null,
       body: signal.body,
+      body_fr: signal.body_fr ?? null,
       score: signal.score,
     })
     if (error) writesFailed = true
@@ -534,6 +553,16 @@ async function testScan(
   userId: string,
   body: Record<string, unknown>,
 ): Promise<Response> {
+  /* The caller generates the correlation id and we echo it on every
+     response — errors included — so the UI can surface "request <id>" and
+     support can line it up with function logs. */
+  const requestId =
+    typeof body['request_id'] === 'string' && body['request_id'].length <= 80
+      ? body['request_id']
+      : crypto.randomUUID()
+  const err = (error: string, status: number, code?: string) =>
+    json({ error, ...(code ? { code } : {}), request_id: requestId }, status)
+
   const rules = parseRules(body['rules'])
   const symbols = Array.isArray(body['symbols'])
     ? [
@@ -542,13 +571,10 @@ async function testScan(
         ),
       ]
     : []
-  if (rules.length === 0) return json({ error: 'No valid rules', code: 'no_rules' }, 400)
-  if (symbols.length === 0) return json({ error: 'No symbols in scope', code: 'no_scope' }, 400)
+  if (rules.length === 0) return err('No valid rules', 400, 'no_rules')
+  if (symbols.length === 0) return err('No symbols in scope', 400, 'no_scope')
   if (symbols.length > MAX_TEST_SYMBOLS) {
-    return json(
-      { error: `Too many symbols (max ${MAX_TEST_SYMBOLS})`, code: 'too_many_symbols' },
-      400,
-    )
+    return err(`Too many symbols (max ${MAX_TEST_SYMBOLS})`, 400, 'too_many_symbols')
   }
 
   const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
@@ -567,7 +593,7 @@ async function testScan(
       .eq('status', 'active'),
   ])
   for (const res of [snapshotsRes, positionsRes, accountsRes]) {
-    if (res.error) return json({ error: res.error.message }, 500)
+    if (res.error) return err(res.error.message, 500)
   }
 
   const cashTotal = (accountsRes.data ?? []).reduce((sum, a) => sum + Number(a.cash_balance), 0)
@@ -578,20 +604,26 @@ async function testScan(
     rules,
     cadence: 'daily',
     last_evaluated_at: null,
+    /* multi_match flows through so the reported signal count reflects the
+       mode the strategy will actually run in — 'summary' collapses hits
+       into one signal here just like a real run. */
+    multi_match: body['multi_match'] === 'summary' ? 'summary' : 'each',
   }
   const plan = planRun(
     [draft],
     (snapshotsRes.data ?? []) as MarketSnapshot[],
     (positionsRes.data ?? []) as Position[],
     new Set(),
-    { cashTotal, force: true },
+    { cashTotal, force: true, collectMatches: true },
   )
   return json({
+    request_id: requestId,
     symbolsScanned: plan.symbolsScanned,
     ruleHits: plan.ruleHits,
     signals: plan.signals.length,
     proposals: plan.proposals.length,
     warnings: plan.warnings,
+    matches: plan.matches,
   })
 }
 

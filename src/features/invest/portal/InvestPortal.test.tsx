@@ -107,6 +107,7 @@ const STATE: InvestState = {
       ],
       notify: { inApp: true, email: false },
       cadence: 'daily',
+      multiMatch: 'each',
       template: '',
     },
   ],
@@ -410,28 +411,31 @@ describe('InvestStrategiesPage', () => {
     return userEvent.setup()
   }
 
-  it('keeps the create pickers collapsed once strategies exist', async () => {
+  it('lists strategies and opens the wizard from New strategy', async () => {
     const user = await renderPage()
 
-    /* List renders; pickers stay behind the New strategy disclosure. */
+    /* List renders with the strategy card and its Enabled pill. */
     expect(await screen.findByText('Dip watcher')).toBeInTheDocument()
-    expect(screen.queryByText('Start from a template')).not.toBeInTheDocument()
+    expect(screen.getByText('Enabled')).toBeInTheDocument()
 
-    const toggles = screen.getAllByRole('button', { name: /New strategy/i })
-    await user.click(toggles[0]!)
-    expect(await screen.findByText('Start from a template')).toBeInTheDocument()
-    expect(screen.getByText('Describe it instead')).toBeInTheDocument()
+    /* New strategy opens the three-step wizard at Describe. */
+    await user.click(screen.getByRole('button', { name: /New strategy/i }))
+    expect(await screen.findByText('Describe your strategy')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Strategies' })).toBeInTheDocument()
 
-    /* Starting blank hides the pickers and opens the form instead. */
-    await user.click(screen.getByRole('button', { name: 'Start blank' }))
-    expect(await screen.findByText('Strategy name')).toBeInTheDocument()
-    expect(screen.queryByText('Start from a template')).not.toBeInTheDocument()
+    /* Cancel returns to the list. */
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(await screen.findByText('Dip watcher')).toBeInTheDocument()
   })
 
-  it('opens the create pickers by itself while the list is empty', async () => {
-    await renderPage({ ...STATE, strategies: [] })
+  it('opens the editor when a strategy card is clicked', async () => {
+    const user = await renderPage()
 
-    expect(await screen.findByText('Start from a template')).toBeInTheDocument()
-    expect(screen.getByText('Describe it instead')).toBeInTheDocument()
+    await user.click(await screen.findByText('Dip watcher'))
+    expect(await screen.findByRole('heading', { name: 'Strategy' })).toBeInTheDocument()
+    expect(screen.getByText('Strategy health')).toBeInTheDocument()
+    expect(screen.getByText('Run history')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Discard' })).toBeDisabled()
   })
 })
