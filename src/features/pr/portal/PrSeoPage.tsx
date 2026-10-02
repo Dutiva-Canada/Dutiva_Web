@@ -156,7 +156,7 @@ export function PrSeoPage() {
                   const delta = rankDelta(kw)
                   return (
                     <tr key={kw.id}>
-                      <td>
+                      <td style={{ minWidth: 170 }}>
                         <div style={{ fontWeight: 600 }}>{kw.keyword}</div>
                         <div style={{ fontSize: 12, color: 'var(--sb-muted)' }}>
                           {kw.checkedAt

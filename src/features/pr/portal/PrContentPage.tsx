@@ -288,17 +288,8 @@ export function PrContentPage() {
         ) : (
           <div>
             {state.contentItems.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 12,
-                  padding: '14px 0',
-                  borderBottom: '1px solid var(--sb-line)',
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
+              <div key={item.id} className="prx-item">
+                <div className="prx-item-main">
                   <div
                     style={{
                       display: 'flex',
@@ -363,7 +354,7 @@ export function PrContentPage() {
                       : fmtDateTime(item.createdAt, lang)}
                   </p>
                 </div>
-                <div className="sb-row-actions" style={{ flexShrink: 0 }}>
+                <div className="prx-item-actions">
                   <button
                     type="button"
                     className="sb-btn sb-btn-secondary sb-btn-sm"

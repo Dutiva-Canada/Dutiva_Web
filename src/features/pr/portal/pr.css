@@ -87,11 +87,43 @@
   color: var(--sb-muted);
 }
 
+/* Desk rows (content items) — on phones the actions drop under the copy so
+   titles keep their full width; on tablets+ they sit flush-right. */
+.prx-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--sb-line);
+}
+.prx-item:last-child {
+  border-bottom: none;
+}
+.prx-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.prx-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (min-width: 720px) {
+  .prx-item {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .prx-item-actions {
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+}
+
 /* Mention rows — coverage entries read like a clipped-headlines list. */
 .prx-mention {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 10px;
   padding: 14px 0;
   border-bottom: 1px solid var(--sb-line);
 }
@@ -129,8 +161,21 @@
 }
 .prx-mention-side {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   flex-shrink: 0;
+}
+@media (min-width: 720px) {
+  .prx-mention {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .prx-mention-side {
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+  }
 }

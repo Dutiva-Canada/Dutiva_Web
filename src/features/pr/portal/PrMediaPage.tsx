@@ -179,9 +179,9 @@ export function PrMediaPage() {
               <tbody>
                 {state.contacts.map((c) => (
                   <tr key={c.id}>
-                    <td style={{ fontWeight: 600 }}>{c.name}</td>
-                    <td>{c.outlet || '—'}</td>
-                    <td>{c.beat || '—'}</td>
+                    <td style={{ fontWeight: 600, minWidth: 130 }}>{c.name}</td>
+                    <td style={{ minWidth: 110 }}>{c.outlet || '—'}</td>
+                    <td style={{ minWidth: 110 }}>{c.beat || '—'}</td>
                     <td>
                       {c.email ? (
                         <a

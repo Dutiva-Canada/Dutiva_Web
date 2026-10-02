@@ -274,7 +274,7 @@ export function PrCampaignsPage() {
               <tbody>
                 {state.campaigns.map((c) => (
                   <tr key={c.id}>
-                    <td>
+                    <td style={{ minWidth: 150 }}>
                       <div style={{ fontWeight: 600 }}>{c.name}</div>
                       {c.objective && (
                         <div style={{ fontSize: 12.5, color: 'var(--sb-muted)' }}>
