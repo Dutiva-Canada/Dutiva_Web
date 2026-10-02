@@ -50,6 +50,13 @@ export function isCurrencyMetric(metric: RuleMetric): boolean {
   return CURRENCY_METRICS.includes(metric)
 }
 
+/** Percent threshold with its unit on the value — "−8%" / "−8 %"
+    (typographic minus; FR keeps the thin space before %). */
+export function fmtPct(lang: Lang, n: number): string {
+  const s = fmtNum(lang, n).replace('-', '−')
+  return lang === 'fr' ? `${s} %` : `${s}%`
+}
+
 function metricLabel(lang: Lang, metric: RuleMetric): string {
   const key = RULE_METRIC_LABELS[metric] as keyof typeof IM
   return pick(IM[key], lang)
@@ -58,15 +65,15 @@ function metricLabel(lang: Lang, metric: RuleMetric): string {
 /**
  * The auto-generated rule title — always derived from metric + condition +
  * threshold (fix #11: the generated title is primary; the user's 60-char
- * label renders beneath it). e.g. "Price vs 50-day avg % is below -12",
- * "Cash balance is above $500 CAD".
+ * label renders beneath it). e.g. "Price vs 50-day average falls below −12%",
+ * "Cash balance rises above $500 CAD".
  */
 export function ruleTitle(lang: Lang, rule: StrategyRule): string {
   const verb = pick(rule.op === 'lt' ? IM.invest_sb_verb_below : IM.invest_sb_verb_above, lang)
   const threshold = isCurrencyMetric(rule.metric)
     ? fmtCad(lang, rule.value)
     : Number.isFinite(rule.value)
-      ? fmtNum(lang, rule.value)
+      ? fmtPct(lang, rule.value)
       : ''
   return `${metricLabel(lang, rule.metric)} ${verb} ${threshold}`
 }
@@ -222,7 +229,7 @@ export function runLine(lang: Lang, run: InvestBotRun, strategyName?: string): s
 function matchReading(lang: Lang, match: TestScanMatch, rule: StrategyRule | undefined): string {
   const v = isCurrencyMetric(rule?.metric ?? 'cash_above')
     ? fmtCad(lang, match.metricValue)
-    : fmtNum(lang, match.metricValue)
+    : fmtPct(lang, match.metricValue)
   const label = rule ? metricLabel(lang, rule.metric) : match.ruleTitle
   return rule && isCurrencyMetric(rule.metric)
     ? fill(pick(IM.invest_sb_balance_at, lang), { value: v })

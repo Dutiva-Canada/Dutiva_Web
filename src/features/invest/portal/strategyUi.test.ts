@@ -60,9 +60,10 @@ describe('fmtCad / ruleTitle', () => {
   })
 
   it('generates titles from metric + condition + threshold', () => {
-    expect(ruleTitle('en', signal)).toContain('below')
-    expect(ruleTitle('en', signal)).toContain('-12')
+    expect(ruleTitle('en', signal)).toContain('falls below')
+    expect(ruleTitle('en', signal)).toContain('−12%')
     expect(ruleTitle('fr', signal)).toContain('sous')
+    expect(ruleTitle('fr', signal)).toContain('−12 %')
     const cash: SignalRule = { ...signal, metric: 'cash_above', op: 'gt', value: 500 }
     expect(ruleTitle('en', cash)).toContain('$500 CAD')
     expect(ruleTitle('fr', cash)).toContain('500 $ CAD')

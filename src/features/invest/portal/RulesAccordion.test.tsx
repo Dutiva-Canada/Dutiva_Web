@@ -59,8 +59,8 @@ describe('RulesAccordion', () => {
     render(<Host initial={toDrafts([r1])} />)
     const remove = screen.getByRole('button', { name: 'Remove rule' })
     await user.click(remove)
-    expect(screen.getByRole('button', { name: 'Tap again to confirm' })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Tap again to confirm' }))
+    expect(screen.getByRole('button', { name: 'Click again to confirm' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     expect(screen.queryByText('First')).not.toBeInTheDocument()
   })
 

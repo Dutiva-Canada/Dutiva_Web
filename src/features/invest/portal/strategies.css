@@ -603,6 +603,13 @@ select.sb-input {
   border-radius: 0;
   min-width: 0;
 }
+/* Suffix-only wraps (the % input) keep their leading radius. */
+.sb-cur-wrap .sb-input:first-child {
+  border-radius: 12px 0 0 12px;
+}
+.sb-cur-wrap .sb-input:last-child {
+  border-radius: 0 12px 12px 0;
+}
 .sb-qty-row {
   display: grid;
   grid-template-columns: 1.1fr 1fr;

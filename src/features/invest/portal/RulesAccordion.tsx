@@ -224,22 +224,25 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                         <span className="sb-suf">CAD</span>
                       </div>
                     ) : (
-                      <input
-                        className="sb-input"
-                        type="number"
-                        value={Number.isFinite(r.value) ? r.value : 0}
-                        step="any"
-                        inputMode="decimal"
-                        aria-label={x(IM.invest_sb_threshold)}
-                        onChange={(e) =>
-                          patch(draft.id, {
-                            ...r,
-                            value: Number.isNaN(e.target.valueAsNumber)
-                              ? 0
-                              : e.target.valueAsNumber,
-                          })
-                        }
-                      />
+                      <div className="sb-cur-wrap">
+                        <input
+                          className="sb-input"
+                          type="number"
+                          value={Number.isFinite(r.value) ? r.value : 0}
+                          step="any"
+                          inputMode="decimal"
+                          aria-label={x(IM.invest_sb_threshold)}
+                          onChange={(e) =>
+                            patch(draft.id, {
+                              ...r,
+                              value: Number.isNaN(e.target.valueAsNumber)
+                                ? 0
+                                : e.target.valueAsNumber,
+                            })
+                          }
+                        />
+                        <span className="sb-suf">%</span>
+                      </div>
                     )}
                   </div>
                 </div>
