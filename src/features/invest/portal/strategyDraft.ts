@@ -41,8 +41,9 @@ export function cloneDraft(d: StrategyDraft): StrategyDraft {
 }
 
 /** Draft → save payload. Empty rule labels persist as the generated EN
-    title (the engine's dedupe keys need a non-empty title), and rule array
-    order is evaluation priority — persisted verbatim. */
+    title (the engine's dedupe keys need a non-empty title), rule array
+    order is evaluation priority — persisted verbatim — and a cleared
+    number input (NaN in draft) clamps to 0 rather than serializing null. */
 export function toWire(d: StrategyDraft): Omit<InvestStrategy, 'id'> & { id?: string } {
   return {
     ...(d.id ? { id: d.id } : {}),
@@ -53,7 +54,12 @@ export function toWire(d: StrategyDraft): Omit<InvestStrategy, 'id'> & { id?: st
       watchlist: d.scope.watchlist,
       symbols: d.scope.symbols.map((s) => s.toUpperCase()),
     },
-    rules: d.rules.map((r) => ({ ...r.rule, title: storedRuleTitle(r.rule) })),
+    rules: d.rules.map((r) => ({
+      ...r.rule,
+      value: Number.isFinite(r.rule.value) ? r.rule.value : 0,
+      ...(r.rule.type === 'order_proposal' && !Number.isFinite(r.rule.qty) ? { qty: 0 } : {}),
+      title: storedRuleTitle(r.rule),
+    })),
     notify: { ...d.notify },
     multiMatch: d.multiMatch,
     template: d.template,

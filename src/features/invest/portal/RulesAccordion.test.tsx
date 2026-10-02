@@ -68,7 +68,7 @@ describe('RulesAccordion', () => {
     const user = userEvent.setup()
     render(<Host initial={toDrafts([])} />)
     await user.click(screen.getByRole('button', { name: /Add rule/i }))
-    const label = screen.getByLabelText(/Rule label/i)
+    const label = screen.getByLabelText(/label/i)
     expect(screen.getByText(/0 \/ 60/)).toBeInTheDocument()
     await user.type(label, 'x'.repeat(70))
     expect((label as HTMLInputElement).value).toHaveLength(60)

@@ -75,7 +75,7 @@ export function ruleTitle(lang: Lang, rule: StrategyRule): string {
     : Number.isFinite(rule.value)
       ? fmtPct(lang, rule.value)
       : ''
-  return `${metricLabel(lang, rule.metric)} ${verb} ${threshold}`
+  return `${metricLabel(lang, rule.metric)} ${verb} ${threshold}`.trimEnd()
 }
 
 /** Title persisted on the wire — the user's label when present, else the

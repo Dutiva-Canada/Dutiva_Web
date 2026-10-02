@@ -15,7 +15,7 @@
  *   bottom, so the reorder controls write through as-is.
  */
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -208,7 +208,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                         <input
                           className="sb-input"
                           type="number"
-                          value={Number.isFinite(r.value) ? r.value : 0}
+                          value={Number.isFinite(r.value) ? r.value : ''}
                           step="any"
                           inputMode="decimal"
                           aria-label={x(IM.invest_sb_threshold_cad)}
@@ -216,7 +216,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                             patch(draft.id, {
                               ...r,
                               value: Number.isNaN(e.target.valueAsNumber)
-                                ? 0
+                                ? NaN
                                 : e.target.valueAsNumber,
                             })
                           }
@@ -228,7 +228,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                         <input
                           className="sb-input"
                           type="number"
-                          value={Number.isFinite(r.value) ? r.value : 0}
+                          value={Number.isFinite(r.value) ? r.value : ''}
                           step="any"
                           inputMode="decimal"
                           aria-label={x(IM.invest_sb_threshold)}
@@ -236,7 +236,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                             patch(draft.id, {
                               ...r,
                               value: Number.isNaN(e.target.valueAsNumber)
-                                ? 0
+                                ? NaN
                                 : e.target.valueAsNumber,
                             })
                           }
@@ -264,6 +264,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                     id={`${idPrefix}-label-${draft.id}`}
                     value={label}
                     maxLength={RULE_LABEL_MAX}
+                    placeholder={x(IM.invest_sb_rule_label_ph)}
                     onChange={(e) =>
                       patch(draft.id, { ...r, title: e.target.value.slice(0, RULE_LABEL_MAX) })
                     }
@@ -351,7 +352,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                         <input
                           className="sb-input"
                           type="number"
-                          value={Number.isFinite(r.qty) ? r.qty : 0}
+                          value={Number.isFinite(r.qty) ? r.qty : ''}
                           min="0"
                           step="any"
                           inputMode="decimal"
@@ -360,7 +361,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                             patch(draft.id, {
                               ...r,
                               qty: Number.isNaN(e.target.valueAsNumber)
-                                ? 0
+                                ? NaN
                                 : e.target.valueAsNumber,
                             })
                           }
@@ -399,6 +400,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                     className={`sb-btn sb-btn-danger${confirmId === draft.id ? ' sb-armed' : ''}`}
                     onClick={() => remove(draft.id)}
                   >
+                    <Trash2 size={15} strokeWidth={2.2} aria-hidden="true" />
                     {x(confirmId === draft.id ? IM.invest_sb_tap_confirm : IM.invest_sb_remove_rule)}
                   </button>
                 </div>

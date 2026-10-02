@@ -751,7 +751,16 @@ export const investMessages = defineMessages({
   invest_sb_verb_above: { en: 'rises above', fr: 'dépasse' },
   invest_sb_threshold: { en: 'Threshold', fr: 'Seuil' },
   invest_sb_threshold_cad: { en: 'Threshold in CAD', fr: 'Seuil en CAD' },
-  invest_sb_rule_label: { en: 'Rule label', fr: 'Étiquette de la règle' },
+  invest_sb_rule_label: {
+    en: 'Custom label (optional)',
+    fr: 'Étiquette personnalisée (facultatif)',
+  },
+  /* [FR self-authored] Placeholder example inside the label input — a
+     concrete short name is worth more than "optional" alone. */
+  invest_sb_rule_label_ph: {
+    en: 'e.g. Down 8% today',
+    fr: 'p. ex. Baisse de 8 % aujourd’hui',
+  },
   invest_sb_when_match: {
     en: 'When this rule matches',
     fr: 'Quand cette règle se déclenche',
@@ -762,8 +771,8 @@ export const investMessages = defineMessages({
   invest_sb_insight: { en: 'Insight', fr: 'Aperçu' },
   invest_sb_alert: { en: 'Alert', fr: 'Alerte' },
   invest_sb_severity_help: {
-    en: 'Alerts stand out; Insights stay quiet.',
-    fr: 'Les alertes ressortent; les aperçus restent discrets.',
+    en: 'Alerts are highlighted in Signals; Insights stay quiet.',
+    fr: 'Les alertes sont mises en évidence dans Signaux; les aperçus restent discrets.',
   },
   invest_sb_side: { en: 'Side', fr: 'Sens' },
   invest_sb_buy: { en: 'Buy', fr: 'Achat' },
@@ -883,8 +892,8 @@ export const investMessages = defineMessages({
   },
   invest_sb_wiz_step2_t: { en: 'Review draft rules', fr: 'Revoir les règles provisoires' },
   invest_sb_wiz_step2_sub: {
-    en: 'The agent drafted these from your description. Expand a rule to review it — you can fine-tune everything in the editor after creating.',
-    fr: 'L’agent les a rédigées à partir de votre description. Développez une règle pour la revoir — vous pourrez tout peaufiner dans l’éditeur après la création.',
+    en: 'The agent drafted these from your description — expand a rule to review it. Everything can be fine-tuned in the editor after creating.',
+    fr: 'L’agent les a rédigées à partir de votre description — développez une règle pour la revoir. Vous pourrez tout peaufiner dans l’éditeur après la création.',
   },
   invest_sb_wiz_step2_blank: {
     en: 'No rules yet — add one, or go back and describe the strategy.',
