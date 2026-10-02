@@ -21,8 +21,8 @@ export const investorsMessages = defineMessages({
   },
   investors_f2_t: { en: 'Signals from your own rules', fr: 'Des signaux selon vos propres règles' },
   investors_f2_b: {
-    en: 'Define simple rules — a day move past a threshold, a dip below an average — and the bot evaluates them daily and on demand, logging what it found and why.',
-    fr: 'Définissez des règles simples — un mouvement quotidien au-delà d’un seuil, un repli sous une moyenne — et le robot les évalue chaque jour et sur demande, en consignant ses constats.',
+    en: 'Define simple rules — a day move past a threshold, a dip below an average — and the agent evaluates them daily and on demand, logging what it found and why.',
+    fr: 'Définissez des règles simples — un mouvement quotidien au-delà d’un seuil, un repli sous une moyenne — et l’agent les évalue chaque jour et sur demande, en consignant ses constats.',
   },
   investors_f3_t: { en: 'Paper trades before real ones', fr: 'Des transactions simulées avant les vraies' },
   investors_f3_b: {

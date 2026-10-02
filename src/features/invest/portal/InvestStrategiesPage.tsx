@@ -2,7 +2,7 @@
  * /invest/strategies — the rebuilt strategy builder. Three views inside
  * one route, matching the approved prototype:
  *
- *   list    — "Bot strategies" + Scan now / New strategy + strategy cards
+ *   list    — "Agent strategies" + Scan now / New strategy + strategy cards
  *   editor  — settings, rules accordion, health (real test scan), run
  *             history, sticky save/discard bar
  *   wizard  — Describe → Review rules → Schedule & notifications

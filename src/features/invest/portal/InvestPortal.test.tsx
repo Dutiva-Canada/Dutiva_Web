@@ -260,7 +260,7 @@ describe('InvestPortalLayout', () => {
     expect(screen.getByText('Open signals')).toBeInTheDocument()
     // Nav labels render
     expect(screen.getAllByText('Signals').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Bot').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Agent').length).toBeGreaterThan(0)
     // Market news renders on the overview, labelled as third-party content
     expect(screen.getByText('Market headlines (third-party)')).toBeInTheDocument()
     // The link's accessible name carries the sr-only exit note too

@@ -25,15 +25,15 @@ export const investMessages = defineMessages({
   invest_tab_portfolios: { en: 'Portfolios', fr: 'Portefeuilles' },
   invest_tab_orders: { en: 'Orders', fr: 'Ordres' },
   invest_tab_signals: { en: 'Signals', fr: 'Signaux' },
-  invest_tab_strategies: { en: 'Bot', fr: 'Robot' },
+  invest_tab_strategies: { en: 'Agent', fr: 'Agent' },
   invest_tab_notifications: { en: 'Notifications', fr: 'Notifications' },
   invest_tab_settings: { en: 'Settings', fr: 'Paramètres' },
 
   /* Per-route document head (auth-gated → noindex; titles are what the
      browser tab and shared links actually show). */
   invest_seo_title_overview: {
-    en: 'Dutiva Invest — Portfolio tracking and strategy bot',
-    fr: 'Dutiva Invest — Suivi de portefeuille et robot de stratégies',
+    en: 'Dutiva Invest — Portfolio tracking and strategy agent',
+    fr: 'Dutiva Invest — Suivi de portefeuille et agent de stratégies',
   },
   invest_seo_desc_overview: {
     en: 'Track manual positions and watchlist prices; scans surface signals and order drafts you review yourself.',
@@ -49,8 +49,8 @@ export const investMessages = defineMessages({
   },
   invest_seo_title_orders: { en: 'Dutiva Invest — Orders', fr: 'Dutiva Invest — Ordres' },
   invest_seo_desc_orders: {
-    en: 'Bot-proposed order drafts and manual order intents — nothing executes without your approval.',
-    fr: 'Ébauches d’ordres proposées par le robot et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
+    en: 'Agent-proposed order drafts and manual order intents — nothing executes without your approval.',
+    fr: 'Ébauches d’ordres proposées par l’agent et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
   },
   invest_seo_title_signals: { en: 'Dutiva Invest — Signals', fr: 'Dutiva Invest — Signaux' },
   invest_seo_desc_signals: {
@@ -58,8 +58,8 @@ export const investMessages = defineMessages({
     fr: 'Historique des signaux de vos stratégies activées — à titre informatif seulement.',
   },
   invest_seo_title_strategies: {
-    en: 'Dutiva Invest — Strategy bot',
-    fr: 'Dutiva Invest — Robot de stratégies',
+    en: 'Dutiva Invest — Strategy agent',
+    fr: 'Dutiva Invest — Agent de stratégies',
   },
   invest_seo_desc_strategies: {
     en: 'Describe or pick a strategy; scans create signals and draft proposals only — never placed orders.',
@@ -140,8 +140,8 @@ export const investMessages = defineMessages({
   invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   invest_delivery_title: { en: 'Delivery per strategy', fr: 'Envoi par stratégie' },
   invest_delivery_note: {
-    en: 'Where each strategy sends what it finds. Change destinations on the Bot tab.',
-    fr: 'Où chaque stratégie envoie ses trouvailles. Les canaux se règlent dans l’onglet Robot.',
+    en: 'Where each strategy sends what it finds. Change destinations on the Agent tab.',
+    fr: 'Où chaque stratégie envoie ses trouvailles. Les canaux se règlent dans l’onglet Agent.',
   },
   invest_delivery_empty: {
     en: 'No strategies yet — delivery options appear once you create one.',
@@ -191,12 +191,12 @@ export const investMessages = defineMessages({
   },
   invest_tour_step4_title: { en: 'Turn on a strategy', fr: 'Activer une stratégie' },
   invest_tour_step4_body: {
-    en: 'Pick a template on the Bot tab and run a scan. Scans create signals and draft proposals only — never orders.',
-    fr: 'Choisissez un modèle dans l’onglet Robot et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
+    en: 'Pick a template on the Agent tab and run a scan. Scans create signals and draft proposals only — never orders.',
+    fr: 'Choisissez un modèle dans l’onglet Agent et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
   },
   invest_tour_dismiss: { en: 'Dismiss', fr: 'Fermer' },
   invest_tour_cta_portfolio: { en: 'Open Portfolios', fr: 'Ouvrir Portefeuilles' },
-  invest_tour_cta_strategies: { en: 'Open the Bot tab', fr: 'Ouvrir l’onglet Robot' },
+  invest_tour_cta_strategies: { en: 'Open the Agent tab', fr: 'Ouvrir l’onglet Agent' },
 
   /* Asset classes */
   invest_asset_equity: { en: 'Equity', fr: 'Action' },
@@ -210,7 +210,7 @@ export const investMessages = defineMessages({
   invest_ov_total_value: { en: 'Portfolio value', fr: 'Valeur du portefeuille' },
   invest_ov_cash: { en: 'Cash', fr: 'Encaisse' },
   invest_ov_open_signals: { en: 'Open signals', fr: 'Signaux ouverts' },
-  invest_ov_last_run: { en: 'Last bot run', fr: 'Dernière exécution du robot' },
+  invest_ov_last_run: { en: 'Last agent run', fr: 'Dernière exécution de l’agent' },
   invest_ov_allocation: { en: 'Allocation by asset class', fr: 'Répartition par classe d’actifs' },
   invest_ov_recent_signals: { en: 'Latest signals', fr: 'Derniers signaux' },
   invest_ov_never_run: { en: 'Not run yet', fr: 'Jamais exécuté' },
@@ -307,13 +307,13 @@ export const investMessages = defineMessages({
   invest_acknowledge: { en: 'Acknowledge', fr: 'Accuser réception' },
   invest_dismiss: { en: 'Dismiss', fr: 'Écarter' },
   invest_signals_empty: {
-    en: 'No signals yet — enable a strategy and run the bot.',
-    fr: 'Aucun signal — activez une stratégie et lancez le robot.',
+    en: 'No signals yet — enable a strategy and run the agent.',
+    fr: 'Aucun signal — activez une stratégie et lancez l’agent.',
   },
   invest_score: { en: 'Score', fr: 'Score' },
 
-  /* Strategies / bot */
-  invest_strategies_title: { en: 'Bot strategies', fr: 'Stratégies du robot' },
+  /* Strategies / agent */
+  invest_strategies_title: { en: 'Agent strategies', fr: 'Stratégies de l’agent' },
   invest_add_strategy: { en: 'New strategy', fr: 'Nouvelle stratégie' },
   invest_create_sub: {
     en: 'Describe it in words, pick a template, or start blank.',
@@ -326,8 +326,8 @@ export const investMessages = defineMessages({
   invest_rule_notify: { en: 'Notify me', fr: 'M’avertir' },
   invest_rule_propose: { en: 'Propose an order', fr: 'Proposer un ordre' },
   invest_proposal_guarantee: {
-    en: 'Order proposals always require your approval. The bot never trades on its own.',
-    fr: 'Les propositions d’ordre exigent toujours votre approbation. Le robot ne transige jamais seul.',
+    en: 'Order proposals always require your approval. The agent never trades on its own.',
+    fr: 'Les propositions d’ordre exigent toujours votre approbation. L’agent ne transige jamais seul.',
   },
   invest_rule_severity: { en: 'Severity', fr: 'Importance' },
   invest_strategy_enabled: { en: 'Enabled', fr: 'Activée' },
@@ -336,8 +336,8 @@ export const investMessages = defineMessages({
   invest_strategy_disable: { en: 'Disable', fr: 'Désactiver' },
   invest_edit: { en: 'Edit', fr: 'Modifier' },
   invest_enabled_hint: {
-    en: 'Enabled — the bot evaluates this strategy on its schedule',
-    fr: 'Activée — le robot évalue cette stratégie selon son calendrier',
+    en: 'Enabled — the agent evaluates this strategy on its schedule',
+    fr: 'Activée — l’agent évalue cette stratégie selon son calendrier',
   },
   invest_rule_metric: { en: 'Metric', fr: 'Mesure' },
   invest_rule_metric_day_change: { en: 'Day change %', fr: 'Variation du jour %' },
@@ -501,7 +501,7 @@ export const investMessages = defineMessages({
   },
   invest_run_scanned: { en: '{count} symbol(s) scanned', fr: '{count} symbole(s) analysé(s)' },
   invest_run_duration: { en: '{seconds}s', fr: '{seconds} s' },
-  invest_run_sweep: { en: 'Bot sweep', fr: 'Balayage général' },
+  invest_run_sweep: { en: 'Agent sweep', fr: 'Balayage général' },
   invest_run_deleted_strategy: { en: 'deleted strategy', fr: 'stratégie supprimée' },
   invest_run_view_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   invest_time_now: { en: 'just now', fr: 'à l’instant' },
@@ -522,8 +522,8 @@ export const investMessages = defineMessages({
   },
   invest_scope_summary_watchlist: { en: 'All tracked symbols', fr: 'Tous les symboles suivis' },
   invest_strategies_empty: {
-    en: 'No strategies yet — the bot evaluates enabled strategies each day.',
-    fr: 'Aucune stratégie — le robot évalue chaque jour les stratégies activées.',
+    en: 'No strategies yet — the agent evaluates enabled strategies each day.',
+    fr: 'Aucune stratégie — l’agent évalue chaque jour les stratégies activées.',
   },
 
   /* Portal chrome */
@@ -600,8 +600,8 @@ export const investMessages = defineMessages({
 
   /* List view */
   invest_sb_list_sub: {
-    en: 'Rules the bot watches for you, on a schedule.',
-    fr: 'Des règles que le bot surveille pour vous, selon un horaire.',
+    en: 'Rules the agent watches for you, on a schedule.',
+    fr: 'Des règles que l’agent surveille pour vous, selon un horaire.',
   },
   invest_sb_scan_caption: {
     en: 'Scanning never places orders.',
@@ -610,8 +610,8 @@ export const investMessages = defineMessages({
   invest_sb_scan_started: { en: 'Scan started…', fr: 'Balayage commencé…' },
   invest_sb_scan_complete: { en: 'Scan complete', fr: 'Balayage terminé' },
   invest_sb_empty_hint: {
-    en: 'No strategies yet — create one and the bot starts watching on schedule.',
-    fr: 'Aucune stratégie — créez-en une et le bot commence la surveillance selon l’horaire.',
+    en: 'No strategies yet — create one and the agent starts watching on schedule.',
+    fr: 'Aucune stratégie — créez-en une et l’agent commence la surveillance selon l’horaire.',
   },
   /* [FR self-authored] */
   invest_sb_last_run: { en: 'Last run {time}', fr: 'Dernier balayage {time}' },
@@ -722,12 +722,12 @@ export const investMessages = defineMessages({
     fr: 'Une notification distincte pour chaque règle déclenchée lors d’un balayage.',
   },
   invest_sb_enabled_help: {
-    en: 'The bot evaluates this strategy on its schedule.',
-    fr: 'Le bot évalue cette stratégie selon sa fréquence.',
+    en: 'The agent evaluates this strategy on its schedule.',
+    fr: 'L’agent évalue cette stratégie selon sa fréquence.',
   },
   invest_sb_safety: {
-    en: 'Order proposals always require your approval. The bot never trades on its own.',
-    fr: 'Les propositions d’ordres exigent toujours votre approbation. Le bot ne négocie jamais seul.',
+    en: 'Order proposals always require your approval. The agent never trades on its own.',
+    fr: 'Les propositions d’ordres exigent toujours votre approbation. L’agent ne négocie jamais seul.',
   },
 
   /* Rules accordion */
@@ -845,7 +845,7 @@ export const investMessages = defineMessages({
 
   /* Run history */
   invest_sb_runs_h: { en: 'Run history', fr: 'Historique des balayages' },
-  invest_sb_sweep: { en: 'Bot sweep', fr: 'Balayage du bot' },
+  invest_sb_sweep: { en: 'Agent sweep', fr: 'Balayage de l’agent' },
   invest_sb_runs_foot: {
     en: 'Showing last 10 runs · Sweeps run on schedule even with no enabled strategies.',
     fr: 'Affichage des 10 derniers balayages · Les balayages suivent l’horaire même sans stratégie activée.',
@@ -864,21 +864,21 @@ export const investMessages = defineMessages({
   invest_sb_wiz_schedule: { en: 'Schedule', fr: 'Horaire' },
   invest_sb_wiz_step1_t: { en: 'Describe your strategy', fr: 'Décrivez votre stratégie' },
   invest_sb_wiz_what: {
-    en: 'What should the bot watch for?',
-    fr: 'Que doit surveiller le bot ?',
+    en: 'What should the agent watch for?',
+    fr: 'Que doit surveiller l’agent ?',
   },
   invest_sb_wiz_placeholder: {
     en: 'e.g. Alert me when tech stocks dip hard, and propose a small buy if the dip is deep.',
     fr: 'p. ex. Alertez-moi quand les technos chutent fortement, et proposez un petit achat si le creux est profond.',
   },
   invest_sb_wiz_helper: {
-    en: 'Pick a template or write your own — the bot will turn it into draft rules.',
-    fr: 'Choisissez un modèle ou rédigez le vôtre — le bot le transformera en règles provisoires.',
+    en: 'Pick a template or write your own — the agent will turn it into draft rules.',
+    fr: 'Choisissez un modèle ou rédigez le vôtre — l’agent le transformera en règles provisoires.',
   },
   invest_sb_wiz_step2_t: { en: 'Review draft rules', fr: 'Revoir les règles provisoires' },
   invest_sb_wiz_step2_sub: {
-    en: 'The bot drafted these from your description. Expand a rule to review it — you can fine-tune everything in the editor after creating.',
-    fr: 'Le bot les a rédigées à partir de votre description. Développez une règle pour la revoir — vous pourrez tout peaufiner dans l’éditeur après la création.',
+    en: 'The agent drafted these from your description. Expand a rule to review it — you can fine-tune everything in the editor after creating.',
+    fr: 'L’agent les a rédigées à partir de votre description. Développez une règle pour la revoir — vous pourrez tout peaufiner dans l’éditeur après la création.',
   },
   invest_sb_wiz_step2_blank: {
     en: 'No rules yet — add one, or go back and describe the strategy.',

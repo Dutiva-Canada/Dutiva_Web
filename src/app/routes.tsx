@@ -195,8 +195,8 @@ function NotFoundRoute() {
  *                           gated by an invest_access grant (invite-only)
  *   /invest/portfolio       accounts + positions + price updates
  *   /invest/orders          order log — record, execute, cancel
- *   /invest/signals         bot-emitted signals with acknowledge/dismiss
- *   /invest/strategies      rules-based bot strategies + run history
+ *   /invest/signals         agent-emitted signals with acknowledge/dismiss
+ *   /invest/strategies      rules-based agent strategies + run history
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
