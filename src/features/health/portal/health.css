@@ -1,0 +1,307 @@
+/* Dutiva Health portal styles — sits on top of the shared `.sb` design
+   system (invest/portal/strategies.css, imported by each page). `.hb`
+   overrides only the token palette: a calmer sage/forest accent instead of
+   the invest gold, same surfaces and components. Pages mount `.hb` beside
+   `.sb` on their root element so every existing component just inherits it. */
+
+.sb.hb {
+  --sb-accent: #3d7a5e;
+  --sb-accent-ink: #2b5f47;
+  --sb-accent-soft: #d9e8dd;
+  --sb-primary: #2b5f47;
+  --sb-primary-text: #f4f8f3;
+  --sb-ok: #3d7a5e;
+  --sb-ok-soft: #dcece1;
+  --sb-ink: #234036;
+  --sb-ink-soft: #4c6a5c;
+  --sb-card-deep: #e3e0cf;
+  --sb-shadow: 0 1px 2px rgba(35, 64, 54, 0.07), 0 4px 14px rgba(35, 64, 54, 0.07);
+}
+
+[data-theme='dark'] .sb.hb {
+  --sb-accent: #7fc4a2;
+  --sb-accent-ink: #9fd6ba;
+  --sb-accent-soft: #22372c;
+  --sb-primary: #7fc4a2;
+  --sb-primary-text: #18211c;
+  --sb-ok: #7fc4a2;
+  --sb-ok-soft: #1e3026;
+  --sb-ink: #e6ecdf;
+  --sb-ink-soft: #b9c9bb;
+  --sb-card-deep: #22312a;
+  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Mood / energy pickers — a row of five labelled buttons. */
+.hb-scale {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.hb-scale-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px 10px;
+  border: 1.5px solid var(--sb-line);
+  border-radius: 12px;
+  background: var(--sb-input);
+  color: var(--sb-muted);
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.hb-scale-btn:hover {
+  border-color: var(--sb-accent);
+}
+.hb-scale-btn:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+.hb-scale-btn.is-on {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+}
+.hb-scale-num {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1;
+}
+.hb-scale-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+/* Check-in / journal history rows. */
+.hb-rows {
+  display: flex;
+  flex-direction: column;
+}
+.hb-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--sb-line);
+}
+.hb-row:last-child {
+  border-bottom: none;
+}
+.hb-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hb-row-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sb-ink);
+}
+.hb-row-body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--sb-body);
+  white-space: pre-wrap;
+}
+.hb-row-meta {
+  font-size: 12px;
+  color: var(--sb-muted);
+  font-variant-numeric: tabular-nums;
+}
+.hb-row-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hb-mood-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sb-accent-ink);
+}
+.hb-mood-dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sb-accent);
+}
+.hb-mood-dot[data-low] {
+  color: var(--sb-danger);
+}
+.hb-mood-dot[data-low]::before {
+  background: var(--sb-danger);
+}
+
+/* 14-day mood chart — per-day vertical bars, accent height by score. */
+.hb-chart {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 6px;
+  align-items: end;
+  height: 120px;
+  padding-top: 8px;
+}
+.hb-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  min-width: 0;
+}
+.hb-bar-fill {
+  width: 100%;
+  border-radius: 5px 5px 2px 2px;
+  background: var(--sb-accent);
+  min-height: 4px;
+}
+.hb-bar-fill[data-empty] {
+  background: var(--sb-line);
+  min-height: 4px;
+}
+.hb-bar-day {
+  font-size: 10px;
+  color: var(--sb-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Crisis banner — rendered on Overview and the top of Resources. Uses the
+   shared danger token so it reads urgent in both themes without going red-
+   alert for a routine screen. */
+.hb-crisis {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1.5px solid var(--sb-danger);
+  border-radius: var(--sb-radius);
+  background: var(--sb-card);
+  padding: 14px 16px;
+}
+.hb-crisis-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--sb-danger);
+  color: var(--sb-primary-text);
+}
+.hb-crisis-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--sb-ink);
+}
+.hb-crisis-body {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--sb-body);
+}
+.hb-crisis a {
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+}
+
+/* Resource cards. */
+.hb-res {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hb-res-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--sb-line);
+  border-radius: 12px;
+  background: var(--sb-input);
+}
+.hb-res-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+}
+.hb-res-name {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--sb-ink);
+}
+.hb-res-body {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--sb-body);
+}
+.hb-res-item a {
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.hb-res-item a:hover {
+  text-decoration: underline;
+}
+
+/* Journal editor textarea. */
+.hb-textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1.5px solid var(--sb-line);
+  border-radius: 12px;
+  background: var(--sb-input);
+  color: var(--sb-body);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.hb-textarea:focus {
+  outline: none;
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+.hb-textarea::placeholder {
+  color: var(--sb-muted);
+}
+
+@media (max-width: 560px) {
+  .hb-scale {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .hb-scale-btn {
+    padding: 9px 4px 8px;
+  }
+  .hb-scale-num {
+    font-size: 16px;
+  }
+  .hb-scale-label {
+    font-size: 9.5px;
+  }
+}

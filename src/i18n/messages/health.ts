@@ -1,0 +1,273 @@
+import { defineMessages } from '../core'
+
+/**
+ * Dutiva Health portal chrome — the standalone, invite-only mental-wellness
+ * surface under `/health`: daily check-ins, a private journal, gentle trend
+ * views, and a curated list of real support resources.
+ *
+ * Positioning is strict because Dutiva is not a licensed provider: this is a
+ * self-tracking and reflection tool. Nothing here is diagnosis, treatment,
+ * therapy, or crisis response — and the copy must never drift there. Trends
+ * are framed as observations the user can bring to a professional, not
+ * assessments. Crisis copy points at real services (9-8-8, 911, established
+ * helplines); Dutiva itself never presents as support.
+ *
+ * [FR self-authored — not from a design handoff; hedge strength matched.]
+ */
+export const healthMessages = defineMessages({
+  health_title: { en: 'Health', fr: 'Santé' },
+  health_portal_title: { en: 'HEALTH', fr: 'SANTÉ' },
+  health_subtitle: {
+    en: 'A private space to check in with yourself, keep a journal, and notice patterns over time.',
+    fr: 'Un espace privé pour faire le point avec vous-même, tenir un journal et repérer des tendances au fil du temps.',
+  },
+  health_info_note: {
+    en: 'Dutiva Health is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment — and it is not a crisis service.',
+    fr: 'Dutiva Santé est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement — et ce n’est pas un service de crise.',
+  },
+  health_crisis_note: {
+    en: 'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
+    fr: 'En crise ou si vous pensez au suicide? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
+  },
+
+  /* Tabs */
+  health_tab_overview: { en: 'Overview', fr: 'Aperçu' },
+  health_tab_checkin: { en: 'Check-in', fr: 'Point du jour' },
+  health_tab_journal: { en: 'Journal', fr: 'Journal' },
+  health_tab_insights: { en: 'Insights', fr: 'Tendances' },
+  health_tab_resources: { en: 'Resources', fr: 'Ressources' },
+
+  /* Sign-in wall + access gate */
+  health_signin_title: { en: 'Sign in to Dutiva Health', fr: 'Se connecter à Dutiva Santé' },
+  health_signin_body: {
+    en: 'Enter your email and we’ll send you a one-time sign-in code. No password needed.',
+    fr: 'Entrez votre courriel et nous vous enverrons un code de connexion à usage unique. Aucun mot de passe requis.',
+  },
+  health_signin_email: { en: 'Email', fr: 'Courriel' },
+  health_signin_send: { en: 'Send code', fr: 'Envoyer le code' },
+  health_signin_sent: {
+    en: 'We sent a sign-in code to {email}. It expires shortly — check your spam folder if it doesn’t arrive.',
+    fr: 'Nous avons envoyé un code de connexion à {email}. Il expire bientôt — vérifiez vos courriers indésirables s’il n’arrive pas.',
+  },
+  health_signin_code: { en: 'Sign-in code', fr: 'Code de connexion' },
+  health_signin_verify: { en: 'Sign in', fr: 'Se connecter' },
+  health_signin_error: {
+    en: 'Something went wrong. Check the code and try again.',
+    fr: 'Une erreur s’est produite. Vérifiez le code et réessayez.',
+  },
+  health_access_title: { en: 'Access required', fr: 'Accès requis' },
+  health_access_body: {
+    en: 'Dutiva Health is invite-only while it’s in early access. Your account doesn’t have a Health grant yet — contact support to request one.',
+    fr: 'Dutiva Santé est sur invitation pendant son accès anticipé. Votre compte n’a pas encore d’accès Santé — contactez le soutien pour en faire la demande.',
+  },
+  health_access_contact: { en: 'Contact support', fr: 'Contacter le soutien' },
+  health_back_site: { en: 'Back to dutiva.ca', fr: 'Retour à dutiva.ca' },
+
+  /* Overview */
+  health_ov_title: { en: 'Overview', fr: 'Aperçu' },
+  health_ov_sub: {
+    en: 'A quiet summary of your recent check-ins and journal entries.',
+    fr: 'Un résumé discret de vos points du jour et de vos entrées de journal récentes.',
+  },
+  health_ov_today: { en: 'Today’s check-in', fr: 'Point d’aujourd’hui' },
+  health_ov_today_done: { en: 'Done — you checked in today.', fr: 'Fait — vous avez pris le point aujourd’hui.' },
+  health_ov_today_none: { en: 'Not yet — take a minute for a quick check-in.', fr: 'Pas encore — prenez une minute pour faire le point.' },
+  health_ov_mood_7d: { en: 'Average mood (7 days)', fr: 'Humeur moyenne (7 jours)' },
+  health_ov_streak: { en: 'Check-in streak', fr: 'Jours de suite' },
+  health_ov_streak_days: { en: '{count} days', fr: '{count} jours' },
+  health_ov_streak_day: { en: '1 day', fr: '1 jour' },
+  health_ov_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
+  health_ov_recent: { en: 'Recent check-ins', fr: 'Points récents' },
+  health_ov_latest_entry: { en: 'Latest journal entry', fr: 'Dernière entrée de journal' },
+  health_ov_new_checkin: { en: 'New check-in', fr: 'Nouveau point' },
+  health_ov_new_entry: { en: 'New journal entry', fr: 'Nouvelle entrée' },
+  health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat?' },
+  health_ov_crisis_body: {
+    en: 'Call or text 9-8-8 — Canada’s suicide crisis helpline, free and available 24/7. If you’re in immediate danger, call 911.',
+    fr: 'Appelez ou textez le 9-8-8 — la ligne d’aide en cas de crise suicide au Canada, gratuite et ouverte 24/7. En cas de danger immédiat, appelez le 911.',
+  },
+  health_ov_crisis_link: { en: 'See all resources', fr: 'Voir toutes les ressources' },
+  health_ov_empty: {
+    en: 'No check-ins yet. Your first one takes about a minute.',
+    fr: 'Aucun point pour l’instant. Le premier prend environ une minute.',
+  },
+
+  /* Check-in */
+  health_checkin_title: { en: 'Daily check-in', fr: 'Point du jour' },
+  health_checkin_sub: {
+    en: 'A minute to note how things actually are — mood, energy, and anything worth remembering.',
+    fr: 'Une minute pour noter comment ça va vraiment — humeur, énergie et tout ce qui vaut la peine d’être retenu.',
+  },
+  health_checkin_mood: { en: 'How are you feeling?', fr: 'Comment vous sentez-vous?' },
+  health_checkin_energy: { en: 'Energy level', fr: 'Niveau d’énergie' },
+  health_checkin_note: { en: 'Anything on your mind? (optional)', fr: 'Quelque chose en tête? (facultatif)' },
+  health_checkin_note_ph: {
+    en: 'A sentence or two is plenty.',
+    fr: 'Une phrase ou deux suffisent.',
+  },
+  health_checkin_submit: { en: 'Save check-in', fr: 'Enregistrer le point' },
+  health_checkin_saved: { en: 'Check-in saved.', fr: 'Point enregistré.' },
+  health_checkin_history: { en: 'History', fr: 'Historique' },
+  health_checkin_delete: { en: 'Delete', fr: 'Supprimer' },
+  health_checkin_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_checkin_empty: {
+    en: 'Nothing yet — your check-ins will appear here.',
+    fr: 'Rien pour l’instant — vos points apparaîtront ici.',
+  },
+  health_mood_1: { en: 'Rough', fr: 'Difficile' },
+  health_mood_2: { en: 'Low', fr: 'Bas' },
+  health_mood_3: { en: 'Okay', fr: 'Correct' },
+  health_mood_4: { en: 'Good', fr: 'Bien' },
+  health_mood_5: { en: 'Great', fr: 'Excellent' },
+  health_energy_1: { en: 'Drained', fr: 'Vidé' },
+  health_energy_2: { en: 'Low', fr: 'Faible' },
+  health_energy_3: { en: 'Steady', fr: 'Stable' },
+  health_energy_4: { en: 'Energized', fr: 'Énergique' },
+  health_energy_5: { en: 'Charged', fr: 'Plein d’énergie' },
+  health_checkin_mood_short: { en: 'Mood', fr: 'Humeur' },
+  health_checkin_energy_short: { en: 'Energy', fr: 'Énergie' },
+
+  /* Journal */
+  health_journal_title: { en: 'Journal', fr: 'Journal' },
+  health_journal_sub: {
+    en: 'A private place to write things out. Only you can read what’s here.',
+    fr: 'Un endroit privé pour écrire ce que vous avez sur le cœur. Vous êtes la seule personne à pouvoir le lire.',
+  },
+  health_journal_new: { en: 'New entry', fr: 'Nouvelle entrée' },
+  health_journal_entry_title: { en: 'Title (optional)', fr: 'Titre (facultatif)' },
+  health_journal_title_ph: { en: 'Give it a name if you like.', fr: 'Donnez-lui un titre si vous voulez.' },
+  health_journal_body: { en: 'Entry', fr: 'Entrée' },
+  health_journal_body_ph: {
+    en: 'Write freely — this stays private.',
+    fr: 'Écrivez librement — tout cela reste privé.',
+  },
+  health_journal_save: { en: 'Save entry', fr: 'Enregistrer' },
+  health_journal_saved: { en: 'Entry saved.', fr: 'Entrée enregistrée.' },
+  health_journal_edit: { en: 'Edit', fr: 'Modifier' },
+  health_journal_cancel: { en: 'Cancel', fr: 'Annuler' },
+  health_journal_delete: { en: 'Delete', fr: 'Supprimer' },
+  health_journal_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_journal_empty: {
+    en: 'No entries yet. Writing a few lines is a good place to start.',
+    fr: 'Aucune entrée pour l’instant. Écrire quelques lignes est un bon point de départ.',
+  },
+  health_journal_untitled: { en: 'Untitled', fr: 'Sans titre' },
+  health_journal_edited: { en: 'Edited {date}', fr: 'Modifiée le {date}' },
+  health_journal_body_required: { en: 'Write a few words first.', fr: 'Écrivez d’abord quelques mots.' },
+
+  /* Insights — observations, not assessments */
+  health_insights_title: { en: 'Insights', fr: 'Tendances' },
+  health_insights_sub: {
+    en: 'Patterns from your own check-ins — observations, not assessments.',
+    fr: 'Des tendances tirées de vos propres points du jour — des observations, pas une évaluation.',
+  },
+  health_ins_mood_14d: { en: 'Mood over the last 14 days', fr: 'Humeur des 14 derniers jours' },
+  health_ins_avg_mood: { en: 'Average mood', fr: 'Humeur moyenne' },
+  health_ins_avg_energy: { en: 'Average energy', fr: 'Énergie moyenne' },
+  health_ins_total: { en: 'Check-ins', fr: 'Points du jour' },
+  health_ins_streak: { en: 'Current streak', fr: 'Jours de suite' },
+  health_ins_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
+  health_ins_note: {
+    en: 'These are simple counts and averages of what you recorded — they describe your inputs, not your health. If a trend concerns you, bring it to a qualified professional.',
+    fr: 'Ce sont de simples décomptes et moyennes de ce que vous avez noté — ils décrivent vos saisies, pas votre santé. Si une tendance vous préoccupe, parlez-en à un professionnel qualifié.',
+  },
+  health_ins_no_data: {
+    en: 'Nothing to chart yet. A few check-ins will start to show a pattern.',
+    fr: 'Rien à afficher pour l’instant. Quelques points du jour commenceront à dessiner une tendance.',
+  },
+  health_ins_low_day: { en: 'Toughest day this week', fr: 'Journée la plus difficile cette semaine' },
+  health_ins_best_day: { en: 'Best day this week', fr: 'Meilleure journée cette semaine' },
+
+  /* Resources — real services only; Dutiva never presents as one */
+  health_res_title: { en: 'Resources', fr: 'Ressources' },
+  health_res_sub: {
+    en: 'Real places to reach people. Dutiva Health is a reflection tool, not a support service — these are.',
+    fr: 'De vrais endroits pour joindre des gens. Dutiva Santé est un outil de réflexion, pas un service de soutien — eux le sont.',
+  },
+  health_res_crisis_title: { en: 'If you’re in crisis right now', fr: 'Si vous êtes en crise en ce moment' },
+  health_res_988_name: { en: '9-8-8: Suicide Crisis Helpline', fr: '9-8-8 : Ligne d’aide en cas de crise suicide' },
+  health_res_988_body: {
+    en: 'Call or text 9-8-8. Free, confidential, bilingual, 24/7, anywhere in Canada.',
+    fr: 'Appelez ou textez le 9-8-8. Gratuit, confidentiel, bilingue, 24/7, partout au Canada.',
+  },
+  health_res_911_name: { en: '911 — immediate danger', fr: '911 — danger immédiat' },
+  health_res_911_body: {
+    en: 'If you or someone near you is in immediate danger, call 911 now.',
+    fr: 'Si vous ou une personne près de vous êtes en danger immédiat, appelez le 911 maintenant.',
+  },
+  health_res_talk_title: { en: 'Talk to someone', fr: 'Parler à quelqu’un' },
+  health_res_khp_name: { en: 'Kids Help Phone (up to age 29)', fr: 'Jeunesse, J’écoute (29 ans et moins)' },
+  health_res_khp_body: {
+    en: 'Call 1-800-668-6868 or text CONNECT to 686868. Free, 24/7.',
+    fr: 'Appelez le 1-800-668-6868 ou textez PARLER au 686868. Gratuit, 24/7.',
+  },
+  health_res_hope_name: { en: 'Hope for Wellness Helpline', fr: 'Ligne d’écoute d’espoir pour le mieux-être' },
+  health_res_hope_body: {
+    en: 'Support for Indigenous peoples across Canada. Call 1-855-242-3310, 24/7.',
+    fr: 'Soutien pour les peuples autochtones partout au Canada. Appelez le 1-855-242-3310, 24/7.',
+  },
+  health_res_qc_name: { en: 'Suicide.ca (Quebec)', fr: 'Suicide.ca (Québec)' },
+  health_res_qc_body: {
+    en: 'Call 1-866-277-3553, 24/7, or chat online at suicide.ca.',
+    fr: 'Appelez le 1-866-277-3553, 24/7, ou clavardez sur suicide.ca.',
+  },
+  health_res_prof_title: { en: 'Find ongoing support', fr: 'Trouver un soutien continu' },
+  health_res_prof_body: {
+    en: 'A good starting point is your family doctor or nurse practitioner — they can refer you to the right professional. Many employers offer an employee assistance program (EAP) with free short-term counselling. You can also search the register of your province’s college of psychologists or the Canadian Mental Health Association’s local branches.',
+    fr: 'Un bon point de départ est votre médecin de famille ou votre infirmière praticienne — ils peuvent vous orienter vers le bon professionnel. Plusieurs employeurs offrent un programme d’aide aux employés (PAE) avec du counselling gratuit à court terme. Vous pouvez aussi consulter le répertoire de l’ordre des psychologues de votre province ou les filiales locales de l’Association canadienne pour la santé mentale.',
+  },
+  health_res_811_name: { en: '811 — health information', fr: '811 — info-santé' },
+  health_res_811_body: {
+    en: 'In most provinces, dialling 8-1-1 reaches a nurse line that can point you to local mental-health services.',
+    fr: 'Dans la plupart des provinces, le 8-1-1 vous met en contact avec une infirmière qui peut vous orienter vers des services de santé mentale locaux.',
+  },
+  health_res_note: {
+    en: 'Dutiva Health isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
+    fr: 'Dutiva Santé n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
+  },
+
+  /* Layout chrome */
+  health_loading: { en: 'Loading…', fr: 'Chargement…' },
+  health_load_error: {
+    en: 'Couldn’t load your data. Check your connection and try again.',
+    fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
+  },
+  health_retry: { en: 'Try again', fr: 'Réessayer' },
+  health_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
+  health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
+
+  /* Footer + legal */
+  health_footer_nav: { en: 'Dutiva Health links', fr: 'Liens Dutiva Santé' },
+  health_footer_terms: { en: 'Terms', fr: 'Conditions' },
+  health_footer_privacy: { en: 'Privacy', fr: 'Confidentialité' },
+  health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de bien-être' },
+  health_footer_support: { en: 'Support', fr: 'Soutien' },
+  health_legal_back: { en: 'Back to Health', fr: 'Retour à Santé' },
+  health_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
+  health_legal_effective: { en: 'Effective:', fr: 'En vigueur :' },
+  health_legal_contact: { en: 'Contact', fr: 'Nous joindre' },
+  health_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
+
+  /* SEO/head titles */
+  health_seo_title: { en: 'Dutiva Health', fr: 'Dutiva Santé' },
+  health_seo_title_terms: { en: 'Terms — Dutiva Health', fr: 'Conditions — Dutiva Santé' },
+  health_seo_title_privacy: { en: 'Privacy — Dutiva Health', fr: 'Confidentialité — Dutiva Santé' },
+  health_seo_title_support: { en: 'Support — Dutiva Health', fr: 'Soutien — Dutiva Santé' },
+  health_seo_title_wellness: { en: 'Wellness notice — Dutiva Health', fr: 'Avis de bien-être — Dutiva Santé' },
+  health_seo_desc_terms: {
+    en: 'Terms of use for Dutiva Health.',
+    fr: 'Conditions d’utilisation de Dutiva Santé.',
+  },
+  health_seo_desc_privacy: {
+    en: 'How Dutiva Health handles your data.',
+    fr: 'Comment Dutiva Santé traite vos données.',
+  },
+  health_seo_desc_support: {
+    en: 'How to reach Dutiva support.',
+    fr: 'Comment joindre le soutien Dutiva.',
+  },
+  health_seo_desc_wellness: {
+    en: 'What Dutiva Health is and is not — a reflection tool, not medical care.',
+    fr: 'Ce qu’est et n’est pas Dutiva Santé — un outil de réflexion, pas des soins médicaux.',
+  },
+})

@@ -43,6 +43,7 @@ import { revenueMessages } from './revenue'
 import { entityLinksMessages } from './entityLinks'
 import { careersMessages } from './careers'
 import { investMessages } from './invest'
+import { healthMessages } from './health'
 import { agentMessages } from './agent'
 import { sharedMessages } from './shared'
 
@@ -99,6 +100,7 @@ export const workspaceMessages = {
   ...entityLinksMessages,
   ...careersMessages,
   ...investMessages,
+  ...healthMessages,
   ...agentMessages,
   ...sharedMessages,
 } as const

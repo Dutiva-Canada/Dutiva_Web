@@ -7522,6 +7522,81 @@ export type Database = {
         }
         Relationships: []
       }
+      health_access: {
+        Row: {
+          granted_at: string
+          granted_by: string
+          note: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_checkins: {
+        Row: {
+          created_at: string
+          energy: number | null
+          id: string
+          mood: number
+          note: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy?: number | null
+          id?: string
+          mood: number
+          note?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy?: number | null
+          id?: string
+          mood?: number
+          note?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      health_journal_entries: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hr_advisor_case_narratives: {
         Row: {
           case_id: string

@@ -76,6 +76,15 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
+/* Health surface — standalone invite-only wellness portal (/health), see healthSurface.tsx. */
+/* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
+/* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
+/* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))
+/* prettier-ignore */ const HealthJournalPage = lazy(() => import('@/features/health/portal/HealthJournalPage').then((m) => ({ default: m.HealthJournalPage })))
+/* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
+/* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
+/* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
+/* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -197,6 +206,13 @@ function NotFoundRoute() {
  *   /invest/orders          order log — record, execute, cancel
  *   /invest/signals         agent-emitted signals with acknowledge/dismiss
  *   /invest/strategies      rules-based agent strategies + run history
+ *   /health                 health portal — standalone shell, shared auth,
+ *                           gated by a health_access grant (invite-only);
+ *                           non-clinical self-tracking + journal
+ *   /health/check-in        daily mood/energy check-in + history
+ *   /health/journal         private journal entries
+ *   /health/insights        trends derived from the user's own check-ins
+ *   /health/resources       crisis + support resources (real services)
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
@@ -363,6 +379,32 @@ function routeTree(): RouteObject[] {
             { path: 'strategies', element: <InvestStrategiesPage /> },
             { path: 'notifications', element: <InvestNotificationsPage /> },
             { path: 'settings', element: <InvestSettingsPage /> },
+          ],
+        },
+      ],
+    },
+    /* Standalone health portal — shared auth + health_access grant, own
+       shell. Invite-only; a self-tracking/reflection tool, not a clinical
+       or crisis service (see the wellness notice legal doc). */
+    {
+      path: '/health',
+      element: (
+        <Suspense fallback={null}>
+          <HealthPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        /* Public legal pages — outside the gated layout so the sign-in
+           wall's footer links work for signed-out visitors. */
+        { path: 'legal/:slug', element: <HealthLegalPage /> },
+        {
+          element: <HealthPortalLayout />,
+          children: [
+            { index: true, element: <HealthHomePage /> },
+            { path: 'check-in', element: <HealthCheckInPage /> },
+            { path: 'journal', element: <HealthJournalPage /> },
+            { path: 'insights', element: <HealthInsightsPage /> },
+            { path: 'resources', element: <HealthResourcesPage /> },
           ],
         },
       ],
