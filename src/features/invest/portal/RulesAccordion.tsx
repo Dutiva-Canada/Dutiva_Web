@@ -15,8 +15,9 @@
  *   bottom, so the reorder controls write through as-is.
  */
 import { useEffect, useState } from 'react'
-import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { pick } from '@/i18n/core'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { BOOK_METRICS, RULE_METRICS } from '../data/strategyRules'
@@ -83,6 +84,23 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
     setOpenId(draft.id)
     setConfirmId(null)
     onChange([...drafts, draft])
+  }
+
+  /* Duplication gets a distinct label so the stored title differs — the
+     engine dedupes signals/proposals on title, and an identical title would
+     silently merge the copy's matches into the original's. */
+  const duplicate = (draft: RuleDraft) => {
+    const base = draft.rule.title.trim() || ruleTitle(lang, draft.rule)
+    const copy: RuleDraft = {
+      id: `r${Date.now()}`,
+      rule: {
+        ...draft.rule,
+        title: `${base} (${pick(IM.invest_sb_copy_suffix, lang)})`.slice(0, RULE_LABEL_MAX),
+      },
+    }
+    setOpenId(copy.id)
+    setConfirmId(null)
+    onChange([...drafts, copy])
   }
 
   /* Toggling the action re-shapes the rule — the union type swaps which
@@ -195,55 +213,56 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                       className="sb-input"
                       aria-label={x(IM.invest_sb_condition)}
                       value={r.op}
-                      onChange={(e) =>
-                        patch(draft.id, { ...r, op: e.target.value === 'lt' ? 'lt' : 'gt' })
-                      }
+                      onChange={(e) => {
+                        const op = e.target.value as StrategyRule['op']
+                        patch(draft.id, {
+                          ...r,
+                          op,
+                          ...(op === 'between' && !Number.isFinite(r.value2)
+                            ? { value2: Number.isFinite(r.value) ? r.value + 5 : 5 }
+                            : {}),
+                        })
+                      }}
                     >
                       <option value="lt">{x(IM.invest_sb_cond_below)}</option>
                       <option value="gt">{x(IM.invest_sb_cond_above)}</option>
+                      <option value="between">{x(IM.invest_sb_cond_between)}</option>
                     </select>
-                    {isCurrencyMetric(r.metric) ? (
-                      <div className="sb-cur-wrap">
-                        <span className="sb-pre">$</span>
+                    <div className="sb-bounds">
+                    {(['value', ...(r.op === 'between' ? (['value2'] as const) : [])] as
+                      ('value' | 'value2')[]
+                    ).map((key, i) => (
+                      <div className="sb-cur-wrap" key={key}>
+                        {i > 0 && (
+                          <span className="sb-and-join">{x(IM.invest_sb_and)}</span>
+                        )}
+                        {isCurrencyMetric(r.metric) && <span className="sb-pre">$</span>}
                         <input
                           className="sb-input"
                           type="number"
-                          value={Number.isFinite(r.value) ? r.value : ''}
+                          value={Number.isFinite(r[key]) ? r[key] : ''}
                           step="any"
                           inputMode="decimal"
-                          aria-label={x(IM.invest_sb_threshold_cad)}
+                          aria-label={
+                            i === 0
+                              ? x(isCurrencyMetric(r.metric) ? IM.invest_sb_threshold_cad : IM.invest_sb_threshold)
+                              : `${x(IM.invest_sb_threshold)} 2`
+                          }
                           onChange={(e) =>
                             patch(draft.id, {
                               ...r,
-                              value: Number.isNaN(e.target.valueAsNumber)
+                              [key]: Number.isNaN(e.target.valueAsNumber)
                                 ? NaN
                                 : e.target.valueAsNumber,
                             })
                           }
                         />
-                        <span className="sb-suf">CAD</span>
+                        <span className="sb-suf">
+                          {isCurrencyMetric(r.metric) ? 'CAD' : '%'}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="sb-cur-wrap">
-                        <input
-                          className="sb-input"
-                          type="number"
-                          value={Number.isFinite(r.value) ? r.value : ''}
-                          step="any"
-                          inputMode="decimal"
-                          aria-label={x(IM.invest_sb_threshold)}
-                          onChange={(e) =>
-                            patch(draft.id, {
-                              ...r,
-                              value: Number.isNaN(e.target.valueAsNumber)
-                                ? NaN
-                                : e.target.valueAsNumber,
-                            })
-                          }
-                        />
-                        <span className="sb-suf">%</span>
-                      </div>
-                    )}
+                    ))}
+                    </div>
                   </div>
                 </div>
                 <div className="sb-field">
@@ -394,7 +413,15 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                 {fired === null && fireCount && (
                   <p className="sb-fire-note">{x(IM.invest_rule_no_history)}</p>
                 )}
-                <div className="sb-remove-wrap">
+                <div className="sb-remove-wrap sb-remove-row">
+                  <button
+                    type="button"
+                    className="sb-btn sb-btn-secondary"
+                    onClick={() => duplicate(draft)}
+                  >
+                    <Copy size={15} strokeWidth={2.2} aria-hidden="true" />
+                    {x(IM.invest_sb_duplicate_rule)}
+                  </button>
                   <button
                     type="button"
                     className={`sb-btn sb-btn-danger${confirmId === draft.id ? ' sb-armed' : ''}`}

@@ -69,6 +69,12 @@ describe('fmtCad / ruleTitle', () => {
     expect(ruleTitle('fr', cash)).toContain('500 $ CAD')
   })
 
+  it('renders between titles with normalized bounds', () => {
+    const range: SignalRule = { ...signal, op: 'between', value: -3, value2: -10 }
+    expect(ruleTitle('en', range)).toBe('Day change is between −10% and −3%')
+    expect(ruleTitle('fr', range)).toBe('Variation du jour est entre −10 % et −3 %')
+  })
+
   it('falls back to the EN generated title when the label is blank', () => {
     expect(storedRuleTitle(signal)).toBe(ruleTitle('en', signal))
     expect(storedRuleTitle({ ...signal, title: ' Dip ' })).toBe('Dip')

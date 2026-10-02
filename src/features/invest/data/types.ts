@@ -66,8 +66,10 @@ export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
 
 interface RuleBase {
   metric: RuleMetric
-  op: 'lt' | 'gt'
+  op: 'lt' | 'gt' | 'between'
   value: number
+  /** Second bound — required when op is 'between', ignored otherwise. */
+  value2?: number
   title: string
 }
 

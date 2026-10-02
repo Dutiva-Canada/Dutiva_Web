@@ -483,6 +483,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           metric: r.metric,
           op: r.op,
           value: r.value,
+          ...(r.op === 'between' ? { value2: r.value2 } : {}),
           title: r.title,
           severity: r.severity,
         }
@@ -491,6 +492,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           metric: r.metric,
           op: r.op,
           value: r.value,
+          ...(r.op === 'between' ? { value2: r.value2 } : {}),
           title: r.title,
           side: r.side,
           qty: r.qty,

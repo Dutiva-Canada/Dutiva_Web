@@ -14,7 +14,7 @@
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
 export type RuleMetric =
   'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
-export type RuleOp = 'lt' | 'gt'
+export type RuleOp = 'lt' | 'gt' | 'between'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
 export type SignalSeverity = 'insight' | 'alert'
 export type OrderSide = 'buy' | 'sell'
@@ -28,6 +28,8 @@ interface RuleBase {
   metric: RuleMetric
   op: RuleOp
   value: number
+  /** Second bound for 'between' — required then, ignored otherwise. */
+  value2?: number
   title: string
 }
 
@@ -134,7 +136,7 @@ export const DRAFT_EXPIRY_DAYS = 7
 export function draftExpiryCutoff(now: Date = new Date()): string {
   return new Date(now.getTime() - DRAFT_EXPIRY_DAYS * 86_400_000).toISOString()
 }
-const OPS: readonly string[] = ['lt', 'gt']
+const OPS: readonly string[] = ['lt', 'gt', 'between']
 const SEVERITIES: readonly string[] = ['insight', 'alert']
 const SIDES: readonly string[] = ['buy', 'sell']
 const QTY_UNITS: readonly string[] = ['shares', 'percent_of_position', 'currency']
@@ -164,6 +166,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
     const metric = o['metric']
     const op = o['op']
     const value = num(o['value'])
+    const value2 = num(o['value2'])
     const title = o['title']
     if (
       typeof metric !== 'string' ||
@@ -171,6 +174,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
       typeof op !== 'string' ||
       !OPS.includes(op) ||
       value === null ||
+      (op === 'between' && value2 === null) ||
       typeof title !== 'string' ||
       title.trim() === ''
     ) {
@@ -180,6 +184,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
       metric: metric as RuleMetric,
       op: op as RuleOp,
       value,
+      ...(value2 !== null ? { value2 } : {}),
       title: title.trim(),
     }
 
@@ -259,6 +264,23 @@ function metricValue(
   }
 }
 
+/** Single point of truth for the op comparison — 'between' is inclusive
+    and order-agnostic (bounds normalize to min/max at eval time). */
+export function opMatches(rule: RuleBase, m: number): boolean {
+  switch (rule.op) {
+    case 'lt':
+      return m < rule.value
+    case 'gt':
+      return m > rule.value
+    case 'between': {
+      if (rule.value2 === undefined) return false
+      const lo = Math.min(rule.value, rule.value2)
+      const hi = Math.max(rule.value, rule.value2)
+      return m >= lo && m <= hi
+    }
+  }
+}
+
 export function ruleMatches(
   rule: RuleBase,
   snap: MarketSnapshot,
@@ -267,7 +289,7 @@ export function ruleMatches(
 ): boolean {
   const m = metricValue(rule.metric, snap, position, ctx)
   if (m === null) return false
-  return rule.op === 'lt' ? m < rule.value : m > rule.value
+  return opMatches(rule, m)
 }
 
 /** Resolves an order-proposal quantity to shares at the snapshot price.
@@ -447,7 +469,7 @@ export function planRun(
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
       for (const [ruleIndex, rule] of symbolRules) {
         const m = metricValue(rule.metric, snap, position, ctx)
-        if (m === null || (rule.op === 'lt' ? m >= rule.value : m <= rule.value)) continue
+        if (m === null || !opMatches(rule, m)) continue
         hit(diag, rule)
 
         if (rule.type === 'signal') {
@@ -523,7 +545,7 @@ export function planRun(
     for (const [ruleIndex, rule] of bookRules) {
       const m = metricValue(rule.metric, EMPTY_SNAP, null, ctx)
       if (m === null) continue
-      if (rule.op === 'lt' ? m >= rule.value : m <= rule.value) continue
+      if (!opMatches(rule, m)) continue
       hit(diag, rule)
       if (collect) {
         plan.matches.push({

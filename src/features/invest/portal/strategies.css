@@ -574,6 +574,23 @@ select.sb-input {
   grid-template-columns: 1fr 1.2fr;
   gap: 10px;
 }
+/* 'between' renders two bound inputs side by side with an "and" joiner. */
+.sb-bounds {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.sb-bounds .sb-cur-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.sb-and-join {
+  color: var(--sb-muted);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .sb-cur-wrap {
   position: relative;
   display: flex;
@@ -641,6 +658,13 @@ select.sb-input {
 }
 .sb-remove-wrap .sb-btn {
   width: 100%;
+}
+.sb-remove-row {
+  display: flex;
+  gap: 10px;
+}
+.sb-remove-row .sb-btn {
+  flex: 1;
 }
 .sb-fire-note {
   color: var(--sb-muted);

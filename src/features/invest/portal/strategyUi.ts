@@ -69,13 +69,19 @@ function metricLabel(lang: Lang, metric: RuleMetric): string {
  * "Cash balance rises above $500 CAD".
  */
 export function ruleTitle(lang: Lang, rule: StrategyRule): string {
+  const fmt = (n: number) =>
+    isCurrencyMetric(rule.metric)
+      ? fmtCad(lang, n)
+      : Number.isFinite(n)
+        ? fmtPct(lang, n)
+        : ''
+  if (rule.op === 'between') {
+    const lo = Math.min(rule.value, rule.value2 ?? rule.value)
+    const hi = Math.max(rule.value, rule.value2 ?? rule.value)
+    return `${metricLabel(lang, rule.metric)} ${pick(IM.invest_sb_verb_between, lang)} ${fmt(lo)} ${pick(IM.invest_sb_and, lang)} ${fmt(hi)}`.trimEnd()
+  }
   const verb = pick(rule.op === 'lt' ? IM.invest_sb_verb_below : IM.invest_sb_verb_above, lang)
-  const threshold = isCurrencyMetric(rule.metric)
-    ? fmtCad(lang, rule.value)
-    : Number.isFinite(rule.value)
-      ? fmtPct(lang, rule.value)
-      : ''
-  return `${metricLabel(lang, rule.metric)} ${verb} ${threshold}`.trimEnd()
+  return `${metricLabel(lang, rule.metric)} ${verb} ${fmt(rule.value)}`.trimEnd()
 }
 
 /** Title persisted on the wire — the user's label when present, else the

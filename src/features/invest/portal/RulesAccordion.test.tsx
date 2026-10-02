@@ -64,6 +64,25 @@ describe('RulesAccordion', () => {
     expect(screen.queryByText('First')).not.toBeInTheDocument()
   })
 
+  it('duplicates a rule with a distinct label', async () => {
+    const user = userEvent.setup()
+    render(<Host initial={toDrafts([r1])} />)
+    await user.click(screen.getByRole('button', { name: 'Duplicate rule' }))
+    expect(screen.getByText('First (copy)')).toBeInTheDocument()
+    /* Both rows exist — the copy is open, the original collapsed. */
+    expect(screen.getAllByRole('button', { name: 'Collapse rule' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: 'Expand rule' })).toHaveLength(1)
+  })
+
+  it('between shows two bounds and normalizes them in the title', async () => {
+    const user = userEvent.setup()
+    render(<Host initial={toDrafts([r1])} />)
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Condition' }), 'between')
+    const bounds = screen.getAllByRole('spinbutton')
+    expect(bounds).toHaveLength(2)
+    expect(screen.getByText(/is between −5% and 0%/)).toBeInTheDocument()
+  })
+
   it('adds a blank rule and caps the label at 60 chars with a live counter', async () => {
     const user = userEvent.setup()
     render(<Host initial={toDrafts([])} />)

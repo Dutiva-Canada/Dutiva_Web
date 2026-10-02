@@ -747,8 +747,19 @@ export const investMessages = defineMessages({
   invest_sb_condition: { en: 'Condition', fr: 'Condition' },
   invest_sb_cond_below: { en: 'below', fr: 'en dessous de' },
   invest_sb_cond_above: { en: 'above', fr: 'au-dessus de' },
+  /* [FR self-authored] */
+  invest_sb_cond_between: { en: 'between', fr: 'entre' },
   invest_sb_verb_below: { en: 'falls below', fr: 'passe sous' },
   invest_sb_verb_above: { en: 'rises above', fr: 'dépasse' },
+  /* [FR self-authored] */
+  invest_sb_verb_between: { en: 'is between', fr: 'est entre' },
+  /* [FR self-authored] */
+  invest_sb_and: { en: 'and', fr: 'et' },
+  /* [FR self-authored] */
+  invest_sb_duplicate_rule: { en: 'Duplicate rule', fr: 'Dupliquer la règle' },
+  /* [FR self-authored] Suffix appended to a duplicated rule's label so its
+     stored title stays distinct — the engine dedupes on title. */
+  invest_sb_copy_suffix: { en: 'copy', fr: 'copie' },
   invest_sb_threshold: { en: 'Threshold', fr: 'Seuil' },
   invest_sb_threshold_cad: { en: 'Threshold in CAD', fr: 'Seuil en CAD' },
   invest_sb_rule_label: {
