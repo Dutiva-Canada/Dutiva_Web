@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
@@ -267,8 +267,16 @@ export function InvestHomePage() {
       <section className={cardClass}>
         {/* Third-party headlines, verbatim — label them as such so a publisher's
             headline never reads as a Dutiva recommendation. */}
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_news_title)}</h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <h2 className="m-0 flex items-center gap-[8px] text-[14px] font-semibold text-text">
+          <span
+            aria-hidden="true"
+            className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] bg-accent-soft text-accent"
+          >
+            <Newspaper size={13} strokeWidth={2} />
+          </span>
+          {x(IM.invest_news_title)}
+        </h2>
+        <p className="m-0 ml-[32px] mt-[2px] text-[12px] leading-normal text-text-muted">
           {x(IM.invest_news_note)}
         </p>
         {state.news.length === 0 ? (
@@ -291,10 +299,10 @@ export function InvestHomePage() {
                     {(n.source || '?').trim().charAt(0)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="line-clamp-2 block text-[13px] font-medium leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent">
+                    <span className="line-clamp-2 block text-[13px] font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent">
                       {n.title}
                     </span>
-                    <span className="mt-[6px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
+                    <span className="mt-[5px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
                       <span className="truncate">{n.source}</span>
                       {n.symbol && (
                         <span className="shrink-0 rounded-[6px] border border-border bg-inset px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-text-2">
@@ -323,7 +331,7 @@ export function InvestHomePage() {
             <button
               type="button"
               onClick={() => setNewsExpanded((v) => !v)}
-              className="mt-[10px] flex min-h-[36px] w-full cursor-pointer items-center justify-center gap-[6px] rounded-[10px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 transition-colors hover:bg-inset"
+              className="mx-auto mt-[12px] flex min-h-[34px] w-auto cursor-pointer items-center justify-center gap-[6px] rounded-full border border-border bg-transparent px-[18px] text-[12.5px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:bg-inset"
             >
               {newsExpanded
                 ? x(IM.invest_news_less)
