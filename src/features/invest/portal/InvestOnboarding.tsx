@@ -38,7 +38,7 @@ export function InvestOnboarding() {
   return (
     <section
       aria-label={x(IM.invest_tour_title)}
-      className="relative rounded-[14px] border border-gold-border bg-gold-bg p-[18px]"
+      className="relative mt-[16px] rounded-[14px] border border-gold-border bg-gold-bg p-[18px]"
     >
       <button
         type="button"
