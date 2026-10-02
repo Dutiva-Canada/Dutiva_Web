@@ -1,3 +1,4 @@
+import './strategies.css'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Loader2, Plus, RefreshCw, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -14,12 +15,10 @@ import {
 } from '@/features/invest/data/api'
 import { useInvestHead } from './useInvestHead'
 
-const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
-const fieldClass =
-  'h-[38px] w-full rounded-[9px] border border-border bg-bg px-[11px] text-[13px] text-text outline-none focus:border-navy'
-const labelClass = 'mb-[4px] block text-[11.5px] font-semibold text-text-2'
-const btnClass =
-  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+const cardClass = 'sb-card sb-card-pad'
+const fieldClass = 'sb-input'
+const labelClass = 'sb-flabel'
+const btnClass = 'sb-btn sb-btn-primary'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -94,76 +93,65 @@ export function InvestPortfolioPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-[24px]">
-      <div className="flex flex-wrap items-center justify-between gap-[12px]">
-        <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
-          {x(IM.invest_tab_portfolios)}
-        </h1>
+    <div className="sb sb-page">
+      <div className="sb-head-row">
+        <h1>{x(IM.invest_tab_portfolios)}</h1>
         <button
           type="button"
           disabled={busy}
           onClick={() => void syncNow()}
-          className="inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+          className="sb-btn sb-btn-secondary sb-btn-sm"
         >
           {busy ? (
-            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
           ) : (
-            <RefreshCw size={13} aria-hidden="true" />
+            <RefreshCw size={14} aria-hidden="true" />
           )}
           {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
         </button>
       </div>
       {error && (
-        <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+        <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}
         </p>
       )}
       {syncNote && !error && (
-        <p role="status" className="m-0 text-[12.5px] text-text-2">
+        <p role="status" className="sb-helper">
           {syncNote}
         </p>
       )}
 
-      <section className={cardClass}>
-        <div className="flex items-center justify-between gap-[12px]">
-          <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_accounts_title)}</h2>
-        </div>
+      <section className={cardClass} style={{ marginTop: 18 }}>
+        <h2 style={{ margin: '0 0 14px' }}>{x(IM.invest_accounts_title)}</h2>
         <AccountForm busy={busy} onCreate={(input) => run(() => createAccount(input))} />
         {state.accounts.length === 0 ? (
-          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
-            {x(IM.invest_accounts_empty)}
-          </p>
+          <p className="sb-empty">{x(IM.invest_accounts_empty)}</p>
         ) : (
-          <ul className="m-0 mt-[12px] flex list-none flex-wrap gap-[10px] p-0">
+          <ul className="sb-tiles">
             {state.accounts.map((a) => (
-              <li
-                key={a.id}
-                className="flex items-center gap-[10px] rounded-[10px] border border-border bg-inset px-[12px] py-[9px]"
-              >
-                <div>
-                  <p className="m-0 text-[13px] font-semibold text-text">{a.name}</p>
-                  <p className="m-0 text-[11px] text-text-muted">
-                    {x(IM[kindLabel[a.kind]])} · {fmt.format(a.cashBalance)}
-                  </p>
-                </div>
+              <li key={a.id} className="sb-tile">
+                <p className="t-name" style={{ margin: 0 }}>{a.name}</p>
+                <p className="t-sub" style={{ margin: '3px 0 0' }}>
+                  {x(IM[kindLabel[a.kind]])} · {fmt.format(a.cashBalance)}
+                </p>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_positions_title)}</h2>
+      <section className={cardClass} style={{ marginTop: 16 }}>
+        <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
         {/* Positions are manual tracking records — say so up front so the
             section never reads as a brokerage sync. */}
-        <p className="m-0 mt-[4px] text-[12px] text-text-muted">{x(IM.invest_positions_manual)}</p>
+        <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_positions_manual)}</p>
         {state.accounts.length > 0 ? (
           <PositionForm
             busy={busy}
@@ -171,53 +159,41 @@ export function InvestPortfolioPage() {
             onCreate={(input) => run(() => createPosition(input))}
           />
         ) : (
-          <p className="m-0 mt-[10px] text-[12.5px] text-text-2">
+          <p className="sb-helper" style={{ marginTop: 10 }}>
             {x(IM.invest_positions_need_account)}
           </p>
         )}
         {state.positions.length === 0 ? (
-          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
-            {x(IM.invest_positions_empty)}
-          </p>
+          <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
         ) : (
-          <div className="mt-[14px] overflow-x-auto">
-            <table className="w-full min-w-[640px] border-collapse text-left text-[12.5px]">
+          <div className="sb-table-wrap" style={{ marginTop: 14 }}>
+            <table className="sb-table">
               <thead>
-                <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-[0.05em] text-text-muted">
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_field_symbol)}</th>
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_field_asset_class)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_field_quantity)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_field_avg_cost)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_field_last_price)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_field_value)}</th>
-                  <th className="py-[8px]">{x(IM.invest_field_last_price)}</th>
+                <tr>
+                  <th>{x(IM.invest_field_symbol)}</th>
+                  <th>{x(IM.invest_field_asset_class)}</th>
+                  <th className="num">{x(IM.invest_field_quantity)}</th>
+                  <th className="num">{x(IM.invest_field_avg_cost)}</th>
+                  <th className="num">{x(IM.invest_field_last_price)}</th>
+                  <th className="num">{x(IM.invest_field_value)}</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
                 {state.positions.map((p) => {
                   const px = snapshotPrice(p.assetClass, p.symbol) ?? p.lastPrice ?? p.avgCost
                   return (
-                    <tr key={p.id} className="border-b border-border/60">
-                      <td className="py-[9px] pr-[12px]">
-                        <span className="font-semibold text-text">{p.symbol}</span>
-                        <span className="ml-[6px] text-text-muted">{p.name}</span>
+                    <tr key={p.id}>
+                      <td>
+                        <span className="strong">{p.symbol}</span>
+                        <span className="dim" style={{ marginLeft: 6 }}>{p.name}</span>
                       </td>
-                      <td className="py-[9px] pr-[12px] text-text-2">
-                        {x(IM[assetLabel[p.assetClass]])}
-                      </td>
-                      <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
-                        {p.quantity}
-                      </td>
-                      <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
-                        {fmt.format(p.avgCost)}
-                      </td>
-                      <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
-                        {fmt.format(px)}
-                      </td>
-                      <td className="py-[9px] pr-[12px] text-right tabular-nums font-semibold text-text">
-                        {fmt.format(p.quantity * px)}
-                      </td>
-                      <td className="py-[9px]">
+                      <td>{x(IM[assetLabel[p.assetClass]])}</td>
+                      <td className="num">{p.quantity}</td>
+                      <td className="num">{fmt.format(p.avgCost)}</td>
+                      <td className="num">{fmt.format(px)}</td>
+                      <td className="num strong">{fmt.format(p.quantity * px)}</td>
+                      <td>
                         <PriceEditor
                           busy={busy}
                           onSave={(price) =>
@@ -240,27 +216,19 @@ export function InvestPortfolioPage() {
         )}
       </section>
 
-      <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_watchlist_title)}</h2>
-        <p className="m-0 mt-[4px] text-[12px] text-text-muted">{x(IM.invest_watchlist_sub)}</p>
+      <section className={cardClass} style={{ marginTop: 16 }}>
+        <h2 style={{ margin: 0 }}>{x(IM.invest_watchlist_title)}</h2>
+        <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_watchlist_sub)}</p>
         <WatchForm busy={busy} onAdd={(input) => run(() => addWatchSymbol(input))} />
         {state.watchlist.length === 0 ? (
-          <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">
-            {x(IM.invest_watchlist_empty)}
-          </p>
+          <p className="sb-empty">{x(IM.invest_watchlist_empty)}</p>
         ) : (
-          <ul className="m-0 mt-[12px] flex list-none flex-wrap gap-[8px] p-0">
+          <ul className="sb-chips">
             {state.watchlist.map((w) => (
-              <li
-                key={w.id}
-                className="flex items-center gap-[8px] rounded-full border border-border bg-inset py-[4px] pr-[6px] pl-[12px]"
-              >
-                <span className="text-[12.5px] font-semibold text-text">{w.symbol}</span>
-                <span className="text-[11px] text-text-muted">
-                  {x(IM[assetLabel[w.assetClass]])}
-                </span>
+              <li key={w.id} className="sb-chip-sym">
+                {w.symbol}
                 {w.name && w.name !== w.symbol && (
-                  <span className="max-w-[140px] truncate text-[11px] text-text-muted">
+                  <span className="dim" style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {w.name}
                   </span>
                 )}
@@ -269,9 +237,8 @@ export function InvestPortfolioPage() {
                   disabled={busy}
                   onClick={() => void run(() => removeWatchSymbol(w.id))}
                   aria-label={`${x(IM.invest_rule_remove)} ${w.symbol}`}
-                  className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full text-text-muted hover:text-risk-fg disabled:opacity-50"
                 >
-                  <X size={13} aria-hidden="true" />
+                  <X size={14} aria-hidden="true" />
                 </button>
               </li>
             ))}
@@ -308,8 +275,8 @@ function WatchForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-[14px] flex flex-wrap items-end gap-[10px]">
-      <div className="w-[130px]">
+    <form onSubmit={submit} className="sb-form-grid">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-watch-class">
           {x(IM.invest_field_asset_class)}
         </label>
@@ -326,7 +293,7 @@ function WatchForm({
           ))}
         </select>
       </div>
-      <div className="w-[110px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-watch-symbol">
           {x(IM.invest_field_symbol)}
         </label>
@@ -339,7 +306,7 @@ function WatchForm({
           required
         />
       </div>
-      <div className="min-w-[140px] flex-1">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-watch-name">
           {x(IM.invest_field_name)}
         </label>
@@ -350,10 +317,12 @@ function WatchForm({
           className={fieldClass}
         />
       </div>
-      <button type="submit" disabled={busy || !symbol.trim()} className={btnClass}>
-        <Plus size={14} aria-hidden="true" />
-        {x(IM.invest_watchlist_add)}
-      </button>
+      <div className="sb-form-actions">
+        <button type="submit" disabled={busy || !symbol.trim()} className={btnClass}>
+          <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          {x(IM.invest_watchlist_add)}
+        </button>
+      </div>
     </form>
   )
 }
@@ -384,8 +353,8 @@ function AccountForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-[14px] flex flex-wrap items-end gap-[10px]">
-      <div className="min-w-[160px] flex-1">
+    <form onSubmit={submit} className="sb-form-grid">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-acc-name">
           {x(IM.invest_account_name)}
         </label>
@@ -397,7 +366,7 @@ function AccountForm({
           required
         />
       </div>
-      <div className="w-[140px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-acc-kind">
           {x(IM.invest_account_kind)}
         </label>
@@ -415,14 +384,7 @@ function AccountForm({
           ))}
         </select>
       </div>
-      <p
-        id="inv-acc-kind-help"
-        aria-live="polite"
-        className="m-0 w-full text-[12px] leading-normal text-text-muted"
-      >
-        {x(IM[kindHelp[kind]])}
-      </p>
-      <div className="w-[120px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-acc-cash">
           {x(IM.invest_ov_cash)}
         </label>
@@ -436,10 +398,20 @@ function AccountForm({
           className={fieldClass}
         />
       </div>
-      <button type="submit" disabled={busy || !name.trim()} className={btnClass}>
-        <Plus size={14} aria-hidden="true" />
-        {x(IM.invest_add_account)}
-      </button>
+      <div className="sb-form-actions">
+        <button type="submit" disabled={busy || !name.trim()} className={btnClass}>
+          <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          {x(IM.invest_add_account)}
+        </button>
+      </div>
+      <p
+        id="inv-acc-kind-help"
+        aria-live="polite"
+        className="sb-helper"
+        style={{ gridColumn: '1 / -1', margin: 0 }}
+      >
+        {x(IM[kindHelp[kind]])}
+      </p>
     </form>
   )
 }
@@ -487,8 +459,8 @@ function PositionForm({
   }
 
   return (
-    <form onSubmit={submit} className="mt-[14px] flex flex-wrap items-end gap-[10px]">
-      <div className="min-w-[140px]">
+    <form onSubmit={submit} className="sb-form-grid">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-acc">
           {x(IM.invest_accounts_title)}
         </label>
@@ -505,7 +477,7 @@ function PositionForm({
           ))}
         </select>
       </div>
-      <div className="w-[130px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-class">
           {x(IM.invest_field_asset_class)}
         </label>
@@ -522,7 +494,7 @@ function PositionForm({
           ))}
         </select>
       </div>
-      <div className="w-[100px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-symbol">
           {x(IM.invest_field_symbol)}
         </label>
@@ -534,7 +506,7 @@ function PositionForm({
           required
         />
       </div>
-      <div className="min-w-[120px] flex-1">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-name">
           {x(IM.invest_field_name)}
         </label>
@@ -545,7 +517,7 @@ function PositionForm({
           className={fieldClass}
         />
       </div>
-      <div className="w-[90px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-qty">
           {x(IM.invest_field_quantity)}
         </label>
@@ -560,7 +532,7 @@ function PositionForm({
           required
         />
       </div>
-      <div className="w-[110px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-cost">
           {x(IM.invest_field_avg_cost)}
         </label>
@@ -575,10 +547,12 @@ function PositionForm({
           required
         />
       </div>
-      <button type="submit" disabled={busy || !accountId || !symbol.trim()} className={btnClass}>
-        <Plus size={14} aria-hidden="true" />
-        {x(IM.invest_add_position)}
-      </button>
+      <div className="sb-form-actions">
+        <button type="submit" disabled={busy || !accountId || !symbol.trim()} className={btnClass}>
+          <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          {x(IM.invest_add_position)}
+        </button>
+      </div>
     </form>
   )
 }
@@ -599,21 +573,21 @@ function PriceEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-[44px] cursor-pointer rounded-[7px] border border-border bg-transparent px-[12px] text-[12px] font-semibold text-text-2 hover:bg-inset"
+        className="sb-btn sb-btn-secondary sb-btn-sm"
       >
-        {x(IM.invest_field_last_price)}
+        {x(IM.invest_edit)}
       </button>
     )
   }
   return (
-    <span className="flex items-center gap-[6px]">
+    <span className="sb-row-actions">
       <input
         type="number"
         min="0"
         step="any"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
-        className="h-[38px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
+        className="sb-input sb-input-sm"
         aria-label={x(IM.invest_field_last_price)}
       />
       <button
@@ -625,7 +599,7 @@ function PriceEditor({
             setPrice('')
           })
         }
-        className="min-h-[44px] cursor-pointer rounded-[7px] border-none bg-navy px-[12px] text-[12px] font-semibold text-white disabled:opacity-50"
+        className="sb-btn sb-btn-primary sb-btn-sm"
       >
         {x(IM.invest_save)}
       </button>
