@@ -218,6 +218,19 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
           {head(x(IM.invest_sb_wiz_step3_t))}
           <div className="sb-card sb-settings">
             <div className="sb-field">
+              <label className="sb-flabel" htmlFor="sb-wz-name">
+                {x(IM.invest_sb_name)}
+              </label>
+              <input
+                className="sb-input"
+                id="sb-wz-name"
+                value={name}
+                maxLength={80}
+                placeholder={x(IM.invest_sb_name_ph)}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="sb-field">
               <label className="sb-flabel" htmlFor="sb-wz-cad">
                 {x(IM.invest_sb_cadence)}
               </label>
@@ -255,6 +268,12 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
                   {x(IM.invest_sb_scope_specific)}
                 </button>
               </div>
+              {scope === 'all' && trackedSymbols.length === 0 && (
+                <p className="sb-helper">{x(IM.invest_sb_scope_none_tracked)}</p>
+              )}
+              {scope === 'specific' && symbols.length === 0 && (
+                <p className="sb-helper">{x(IM.invest_sb_scope_need_sym)}</p>
+              )}
               {scope === 'specific' && (
                 <div style={{ marginTop: 12 }}>
                   <label className="sb-flabel" htmlFor="sb-wz-addsym" style={{ fontSize: 15 }}>
@@ -336,7 +355,16 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
             </button>
           </div>
           <p className="sb-helper" style={{ textAlign: 'center' }}>
-            {pl(lang, trackedSymbols.length, IM.invest_sb_tracked_one, IM.invest_sb_tracked_many)}
+            {[
+              name.trim() || x(IM.invest_sb_untitled),
+              pl(lang, rules.length, IM.invest_sb_rule_one, IM.invest_sb_rule_many),
+              pl(
+                lang,
+                scope === 'all' ? trackedSymbols.length : symbols.length,
+                IM.invest_sb_tracked_one,
+                IM.invest_sb_tracked_many,
+              ),
+            ].join(' · ')}
           </p>
         </>
       )}

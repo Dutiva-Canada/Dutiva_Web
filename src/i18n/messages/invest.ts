@@ -690,6 +690,22 @@ export const investMessages = defineMessages({
   invest_sb_scope: { en: 'Symbol scope', fr: 'Portée des symboles' },
   invest_sb_scope_all: { en: 'All tracked symbols', fr: 'Tous les symboles suivis' },
   invest_sb_scope_specific: { en: 'Specific symbols', fr: 'Symboles précis' },
+  /* [FR self-authored] */
+  invest_sb_scope_need_sym: {
+    en: 'Add at least one symbol to continue.',
+    fr: 'Ajoutez au moins un symbole pour continuer.',
+  },
+  /* [FR self-authored] Shown when "all tracked" is picked but nothing is
+     held or watched — the strategy would scan an empty universe. */
+  invest_sb_scope_none_tracked: {
+    en: 'Nothing is tracked yet — this strategy won’t match anything until you hold or watch a symbol.',
+    fr: 'Aucun symbole suivi — cette stratégie ne déclenchera rien tant que vous n’en détenez ou n’en surveillez un.',
+  },
+  /* [FR self-authored] */
+  invest_sb_name_ph: {
+    en: 'e.g. Buy the dip',
+    fr: 'p. ex. Achat en creux',
+  },
   invest_sb_manage: { en: 'Manage', fr: 'Gérer' },
   invest_sb_add_symbol: { en: 'Add symbol', fr: 'Ajouter un symbole' },
   invest_sb_sym_placeholder: { en: 'e.g. SHOP.TO', fr: 'p. ex. SHOP.TO' },
