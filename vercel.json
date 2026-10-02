@@ -19,6 +19,8 @@
     { "source": "/invest/:path+", "destination": "/index.html" },
     { "source": "/health", "destination": "/index.html" },
     { "source": "/health/:path+", "destination": "/index.html" },
+    { "source": "/pr", "destination": "/index.html" },
+    { "source": "/pr/:path+", "destination": "/index.html" },
     { "source": "/employer", "destination": "/index.html" },
     { "source": "/fr/employeur", "destination": "/index.html" },
     { "source": "/sign/:path+", "destination": "/index.html" },

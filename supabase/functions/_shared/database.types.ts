@@ -11769,6 +11769,238 @@ export type Database = {
           },
         ]
       }
+      pr_access: {
+        Row: {
+          granted_at: string
+          granted_by: string
+          note: string
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string
+          note?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pr_campaigns: {
+        Row: {
+          budget_cad: number | null
+          channel: string
+          created_at: string
+          ends_on: string | null
+          id: string
+          name: string
+          objective: string
+          starts_on: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_cad?: number | null
+          channel?: string
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          name: string
+          objective?: string
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_cad?: number | null
+          channel?: string
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          name?: string
+          objective?: string
+          starts_on?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pr_content_items: {
+        Row: {
+          body: string
+          campaign_id: string | null
+          channel: string
+          created_at: string
+          id: string
+          kind: string
+          scheduled_for: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          campaign_id?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          scheduled_for?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          campaign_id?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          scheduled_for?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pr_content_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "pr_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pr_keywords: {
+        Row: {
+          checked_at: string | null
+          created_at: string
+          id: string
+          keyword: string
+          position: number | null
+          previous_position: number | null
+          target_url: string
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          keyword: string
+          position?: number | null
+          previous_position?: number | null
+          target_url?: string
+          user_id: string
+        }
+        Update: {
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          position?: number | null
+          previous_position?: number | null
+          target_url?: string
+          user_id?: string
+        }
+        Update: {
+          checked_at?: string | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          position?: number | null
+          previous_position?: number | null
+          target_url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pr_media_contacts: {
+        Row: {
+          beat: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          note: string
+          outlet: string
+          user_id: string
+        }
+        Insert: {
+          beat?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name: string
+          note?: string
+          outlet?: string
+          user_id: string
+        }
+        Update: {
+          beat?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          note?: string
+          outlet?: string
+          user_id?: string
+        }
+        Update: {
+          beat?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          note?: string
+          outlet?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pr_mentions: {
+        Row: {
+          created_at: string
+          id: string
+          published_at: string
+          sentiment: string
+          source: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          published_at?: string
+          sentiment?: string
+          source?: string
+          title: string
+          url?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          published_at?: string
+          sentiment?: string
+          source?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_email: string | null

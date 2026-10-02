@@ -1,0 +1,295 @@
+import { defineMessages } from '../core'
+
+/**
+ * Dutiva PR portal chrome — the standalone, invite-only communications
+ * surface under `/pr`: campaigns, a content desk, a media-contact list,
+ * keyword tracking, and a coverage log for one communications function.
+ *
+ * Positioning: this is a planning and tracking desk. It records intent —
+ * drafts, schedules, contacts, positions — and it never publishes, posts,
+ * or sends anything itself. A "scheduled" item is a reminder of when the
+ * user means to publish it by hand; no automation acts on it.
+ *
+ * [FR self-authored — not from a design handoff; hedge strength matched.]
+ */
+export const prMessages = defineMessages({
+  pr_title: { en: 'PR', fr: 'RP' },
+  pr_portal_title: { en: 'PR', fr: 'RP' },
+  pr_subtitle: {
+    en: 'One desk for campaigns, content, media, search, and coverage.',
+    fr: 'Un seul bureau pour les campagnes, le contenu, les médias, le référencement et les retombées.',
+  },
+  pr_note: {
+    en: 'Dutiva PR is a planning and tracking desk. It records what you intend to publish — it never posts, sends, or publishes anything on its own.',
+    fr: 'Dutiva RP est un bureau de planification et de suivi. Il consigne ce que vous comptez publier — il ne publie, n’envoie ni ne diffuse rien lui-même.',
+  },
+
+  /* Tabs */
+  pr_tab_overview: { en: 'Overview', fr: 'Aperçu' },
+  pr_tab_campaigns: { en: 'Campaigns', fr: 'Campagnes' },
+  pr_tab_content: { en: 'Content', fr: 'Contenu' },
+  pr_tab_media: { en: 'Media', fr: 'Médias' },
+  pr_tab_seo: { en: 'SEO', fr: 'SEO' },
+  pr_tab_mentions: { en: 'Coverage', fr: 'Retombées' },
+
+  /* Sign-in wall + access gate */
+  pr_signin_title: { en: 'Sign in to Dutiva PR', fr: 'Se connecter à Dutiva RP' },
+  pr_signin_body: {
+    en: 'Enter your email and we’ll send you a one-time sign-in code. No password needed.',
+    fr: 'Entrez votre courriel et nous vous enverrons un code de connexion à usage unique. Aucun mot de passe requis.',
+  },
+  pr_signin_email: { en: 'Email', fr: 'Courriel' },
+  pr_signin_send: { en: 'Send code', fr: 'Envoyer le code' },
+  pr_signin_sent: {
+    en: 'We sent a sign-in code to {email}. It expires shortly — check your spam folder if it doesn’t arrive.',
+    fr: 'Nous avons envoyé un code de connexion à {email}. Il expire bientôt — vérifiez vos courriers indésirables s’il n’arrive pas.',
+  },
+  pr_signin_code: { en: 'Sign-in code', fr: 'Code de connexion' },
+  pr_signin_verify: { en: 'Sign in', fr: 'Se connecter' },
+  pr_signin_error: {
+    en: 'Something went wrong. Check the code and try again.',
+    fr: 'Une erreur s’est produite. Vérifiez le code et réessayez.',
+  },
+  pr_access_title: { en: 'Access required', fr: 'Accès requis' },
+  pr_access_body: {
+    en: 'Dutiva PR is invite-only while it’s in early access. Your account doesn’t have a PR grant yet — contact support to request one.',
+    fr: 'Dutiva RP est sur invitation pendant son accès anticipé. Votre compte n’a pas encore d’accès RP — contactez le soutien pour en faire la demande.',
+  },
+  pr_access_contact: { en: 'Contact support', fr: 'Contacter le soutien' },
+
+  /* Overview */
+  pr_ov_title: { en: 'Overview', fr: 'Aperçu' },
+  pr_ov_sub: {
+    en: 'What’s planned, what’s scheduled, and what people are saying.',
+    fr: 'Ce qui est prévu, ce qui est programmé et ce qu’on en dit.',
+  },
+  pr_ov_active: { en: 'Active campaigns', fr: 'Campagnes actives' },
+  pr_ov_scheduled: { en: 'Scheduled content', fr: 'Contenu programmé' },
+  pr_ov_contacts: { en: 'Media contacts', fr: 'Contacts médias' },
+  pr_ov_mentions_30d: { en: 'Coverage (30 days)', fr: 'Retombées (30 jours)' },
+  pr_ov_upcoming: { en: 'Coming up', fr: 'À venir' },
+  pr_ov_latest_mentions: { en: 'Latest coverage', fr: 'Dernières retombées' },
+  pr_ov_new_campaign: { en: 'New campaign', fr: 'Nouvelle campagne' },
+  pr_ov_new_content: { en: 'Draft content', fr: 'Rédiger du contenu' },
+  pr_ov_empty_mentions: {
+    en: 'No coverage logged yet. Add the first mention.',
+    fr: 'Aucune retombée consignée pour l’instant. Ajoutez la première mention.',
+  },
+  pr_ov_empty_upcoming: {
+    en: 'Nothing scheduled. Draft content and pick a date to see it here.',
+    fr: 'Rien de programmé. Rédigez du contenu et choisissez une date pour le voir ici.',
+  },
+
+  /* Campaigns */
+  pr_camp_title: { en: 'Campaigns', fr: 'Campagnes' },
+  pr_camp_sub: {
+    en: 'The pushes you’re running — across social, search, press, and anywhere else you show up.',
+    fr: 'Les actions que vous menez — sur les réseaux sociaux, les moteurs de recherche, la presse et partout où vous êtes présent.',
+  },
+  pr_camp_new: { en: 'New campaign', fr: 'Nouvelle campagne' },
+  pr_camp_name: { en: 'Name', fr: 'Nom' },
+  pr_camp_name_ph: { en: 'e.g. Fall launch push', fr: 'p. ex. Lancement d’automne' },
+  pr_camp_channel: { en: 'Channel', fr: 'Canal' },
+  pr_camp_status: { en: 'Status', fr: 'Statut' },
+  pr_camp_objective: { en: 'Objective', fr: 'Objectif' },
+  pr_camp_objective_ph: {
+    en: 'What should this campaign change?',
+    fr: 'Que doit changer cette campagne?',
+  },
+  pr_camp_budget: { en: 'Budget', fr: 'Budget' },
+  pr_camp_start: { en: 'Starts', fr: 'Début' },
+  pr_camp_end: { en: 'Ends', fr: 'Fin' },
+  pr_camp_save: { en: 'Save campaign', fr: 'Enregistrer la campagne' },
+  pr_camp_saved: { en: 'Campaign saved.', fr: 'Campagne enregistrée.' },
+  pr_camp_edit: { en: 'Edit', fr: 'Modifier' },
+  pr_camp_cancel: { en: 'Cancel', fr: 'Annuler' },
+  pr_camp_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_camp_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_camp_empty: {
+    en: 'No campaigns yet. Create one to start planning a push.',
+    fr: 'Aucune campagne pour l’instant. Créez-en une pour planifier une action.',
+  },
+  pr_camp_items: { en: '{count} items', fr: '{count} éléments' },
+
+  /* Channel + status vocabularies (campaigns, content) */
+  pr_chan_mixed: { en: 'Mixed', fr: 'Mixte' },
+  pr_chan_social: { en: 'Social', fr: 'Réseaux sociaux' },
+  pr_chan_search: { en: 'Search', fr: 'Recherche' },
+  pr_chan_display: { en: 'Display', fr: 'Affichage' },
+  pr_chan_email: { en: 'Email', fr: 'Courriel' },
+  pr_chan_press: { en: 'Press', fr: 'Presse' },
+  pr_chan_events: { en: 'Events', fr: 'Événements' },
+  pr_chan_other: { en: 'Other', fr: 'Autre' },
+  pr_status_draft: { en: 'Draft', fr: 'Brouillon' },
+  pr_status_active: { en: 'Active', fr: 'Active' },
+  pr_status_paused: { en: 'Paused', fr: 'En pause' },
+  pr_status_done: { en: 'Done', fr: 'Terminée' },
+  pr_status_scheduled: { en: 'Scheduled', fr: 'Programmé' },
+  pr_status_published: { en: 'Published', fr: 'Publié' },
+
+  /* Content desk */
+  pr_content_title: { en: 'Content desk', fr: 'Bureau de contenu' },
+  pr_content_sub: {
+    en: 'Draft posts, releases, and ad copy in one place — then schedule when each goes out.',
+    fr: 'Rédigez publications, communiqués et textes publicitaires au même endroit — puis choisissez quand chacun paraît.',
+  },
+  pr_content_new: { en: 'New item', fr: 'Nouvel élément' },
+  pr_content_kind: { en: 'Type', fr: 'Type' },
+  pr_kind_post: { en: 'Social post', fr: 'Publication' },
+  pr_kind_release: { en: 'Press release', fr: 'Communiqué' },
+  pr_kind_ad: { en: 'Ad copy', fr: 'Texte publicitaire' },
+  pr_kind_article: { en: 'Article', fr: 'Article' },
+  pr_kind_brief: { en: 'Brief', fr: 'Note d’information' },
+  pr_content_title_field: { en: 'Title', fr: 'Titre' },
+  pr_content_title_ph: { en: 'Headline or working title.', fr: 'Manchette ou titre de travail.' },
+  pr_content_body: { en: 'Body', fr: 'Texte' },
+  pr_content_body_ph: {
+    en: 'The copy itself — paste a draft or write it here.',
+    fr: 'Le texte même — collez une ébauche ou rédigez-la ici.',
+  },
+  pr_content_channel: { en: 'Channel (optional)', fr: 'Canal (facultatif)' },
+  pr_content_channel_ph: { en: 'e.g. LinkedIn, wire, blog', fr: 'p. ex. LinkedIn, fil de presse, blogue' },
+  pr_content_campaign: { en: 'Campaign (optional)', fr: 'Campagne (facultatif)' },
+  pr_content_no_campaign: { en: 'No campaign', fr: 'Aucune campagne' },
+  pr_content_status: { en: 'Status', fr: 'Statut' },
+  pr_content_when: { en: 'Scheduled for', fr: 'Programmé pour' },
+  pr_content_save: { en: 'Save item', fr: 'Enregistrer l’élément' },
+  pr_content_saved: { en: 'Item saved.', fr: 'Élément enregistré.' },
+  pr_content_edit: { en: 'Edit', fr: 'Modifier' },
+  pr_content_cancel: { en: 'Cancel', fr: 'Annuler' },
+  pr_content_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_content_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_content_empty: {
+    en: 'Nothing drafted yet. Start with a post, release, or ad.',
+    fr: 'Rien de rédigé pour l’instant. Commencez par une publication, un communiqué ou une annonce.',
+  },
+  pr_content_note: {
+    en: 'Scheduling here is a plan, not an autopilot — nothing posts itself.',
+    fr: 'La programmation ici est un plan, pas un pilote automatique — rien ne se publie tout seul.',
+  },
+  pr_content_untitled: { en: 'Untitled', fr: 'Sans titre' },
+
+  /* Media contacts */
+  pr_media_title: { en: 'Media list', fr: 'Liste de médias' },
+  pr_media_sub: {
+    en: 'The journalists, editors, and outlets you work with — and what they cover.',
+    fr: 'Les journalistes, rédacteurs et médias avec qui vous travaillez — et ce qu’ils couvrent.',
+  },
+  pr_media_new: { en: 'Add contact', fr: 'Ajouter un contact' },
+  pr_media_name: { en: 'Name', fr: 'Nom' },
+  pr_media_name_ph: { en: 'e.g. Alex Tremblay', fr: 'p. ex. Alex Tremblay' },
+  pr_media_outlet: { en: 'Outlet', fr: 'Média' },
+  pr_media_outlet_ph: { en: 'e.g. The Gazette', fr: 'p. ex. La Presse' },
+  pr_media_beat: { en: 'Beat', fr: 'Sujet couvert' },
+  pr_media_beat_ph: { en: 'e.g. Tech, municipal affairs', fr: 'p. ex. Techno, affaires municipales' },
+  pr_media_email: { en: 'Email', fr: 'Courriel' },
+  pr_media_note: { en: 'Note (optional)', fr: 'Note (facultatif)' },
+  pr_media_note_ph: { en: 'Preferred beat, last pitch, anything useful.', fr: 'Sujet préféré, dernier pitch, tout ce qui est utile.' },
+  pr_media_save: { en: 'Save contact', fr: 'Enregistrer le contact' },
+  pr_media_saved: { en: 'Contact saved.', fr: 'Contact enregistré.' },
+  pr_media_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_media_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_media_empty: {
+    en: 'No contacts yet. Add the first journalist or outlet you pitch.',
+    fr: 'Aucun contact pour l’instant. Ajoutez le premier journaliste ou média.',
+  },
+
+  /* SEO keywords */
+  pr_seo_title: { en: 'SEO tracking', fr: 'Suivi SEO' },
+  pr_seo_sub: {
+    en: 'The keywords you care about and where they rank — updated by hand when you check.',
+    fr: 'Les mots-clés qui comptent et leur position — mis à jour manuellement quand vous vérifiez.',
+  },
+  pr_seo_new: { en: 'Track keyword', fr: 'Suivre un mot-clé' },
+  pr_seo_keyword: { en: 'Keyword', fr: 'Mot-clé' },
+  pr_seo_keyword_ph: { en: 'e.g. HR compliance Canada', fr: 'p. ex. conformité RH Canada' },
+  pr_seo_url: { en: 'Target URL (optional)', fr: 'URL cible (facultatif)' },
+  pr_seo_url_ph: { en: 'https://dutiva.ca/…', fr: 'https://dutiva.ca/…' },
+  pr_seo_position: { en: 'Current position', fr: 'Position actuelle' },
+  pr_seo_position_ph: { en: 'e.g. 12', fr: 'p. ex. 12' },
+  pr_seo_update_position: { en: 'Update position', fr: 'Mettre à jour' },
+  pr_seo_save: { en: 'Save keyword', fr: 'Enregistrer le mot-clé' },
+  pr_seo_saved: { en: 'Keyword saved.', fr: 'Mot-clé enregistré.' },
+  pr_seo_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_seo_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_seo_empty: {
+    en: 'No keywords tracked yet. Add the searches you want to watch.',
+    fr: 'Aucun mot-clé suivi pour l’instant. Ajoutez les recherches à surveiller.',
+  },
+  pr_seo_pos_col: { en: 'Position', fr: 'Position' },
+  pr_seo_delta_col: { en: 'Change', fr: 'Variation' },
+  pr_seo_url_col: { en: 'Target URL', fr: 'URL cible' },
+  pr_seo_checked: { en: 'Checked {date}', fr: 'Vérifié le {date}' },
+  pr_seo_never: { en: 'Not checked yet', fr: 'Pas encore vérifié' },
+  pr_seo_unranked: { en: 'Unranked', fr: 'Non classé' },
+  pr_seo_note: {
+    en: 'Positions are manual snapshots, not live rankings — update them when you check a search.',
+    fr: 'Les positions sont des relevés manuels, pas des classements en direct — mettez-les à jour quand vous faites une recherche.',
+  },
+
+  /* Mentions / coverage log */
+  pr_men_title: { en: 'Coverage', fr: 'Retombées' },
+  pr_men_sub: {
+    en: 'Every place you were mentioned — press, blogs, social. The log you’ll point to later.',
+    fr: 'Partout où l’on a parlé de vous — presse, blogues, réseaux sociaux. Le registre que vous montrerez plus tard.',
+  },
+  pr_men_new: { en: 'Log coverage', fr: 'Consigner une retombée' },
+  pr_men_source: { en: 'Source', fr: 'Source' },
+  pr_men_source_ph: { en: 'e.g. CBC, a trade blog', fr: 'p. ex. Radio-Canada, un blogue spécialisé' },
+  pr_men_headline: { en: 'Headline', fr: 'Manchette' },
+  pr_men_headline_ph: { en: 'What they called it.', fr: 'Le titre qu’ils ont choisi.' },
+  pr_men_url: { en: 'Link (optional)', fr: 'Lien (facultatif)' },
+  pr_men_url_ph: { en: 'https://…', fr: 'https://…' },
+  pr_men_sentiment: { en: 'Tone', fr: 'Ton' },
+  pr_men_positive: { en: 'Positive', fr: 'Positif' },
+  pr_men_neutral: { en: 'Neutral', fr: 'Neutre' },
+  pr_men_negative: { en: 'Negative', fr: 'Négatif' },
+  pr_men_date: { en: 'Date', fr: 'Date' },
+  pr_men_save: { en: 'Save mention', fr: 'Enregistrer la retombée' },
+  pr_men_saved: { en: 'Coverage logged.', fr: 'Retombée consignée.' },
+  pr_men_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_men_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_men_empty: {
+    en: 'Nothing logged yet. When someone covers you, record it here.',
+    fr: 'Rien de consigné pour l’instant. Quand on parle de vous, notez-le ici.',
+  },
+  pr_men_view: { en: 'View', fr: 'Voir' },
+
+  /* Layout chrome */
+  pr_loading: { en: 'Loading…', fr: 'Chargement…' },
+  pr_load_error: {
+    en: 'Couldn’t load your data. Check your connection and try again.',
+    fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
+  },
+  pr_retry: { en: 'Try again', fr: 'Réessayer' },
+  pr_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
+
+  /* Footer + legal */
+  pr_footer_nav: { en: 'Dutiva PR links', fr: 'Liens Dutiva RP' },
+  pr_footer_terms: { en: 'Terms', fr: 'Conditions' },
+  pr_footer_privacy: { en: 'Privacy', fr: 'Confidentialité' },
+  pr_footer_support: { en: 'Support', fr: 'Soutien' },
+  pr_legal_back: { en: 'Back to PR', fr: 'Retour à RP' },
+  pr_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
+  pr_legal_effective: { en: 'Effective:', fr: 'En vigueur :' },
+  pr_legal_contact: { en: 'Contact', fr: 'Nous joindre' },
+  pr_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
+
+  /* SEO/head titles */
+  pr_seo_doc_title: { en: 'Dutiva PR', fr: 'Dutiva RP' },
+  pr_seo_title_terms: { en: 'Terms — Dutiva PR', fr: 'Conditions — Dutiva RP' },
+  pr_seo_title_privacy: { en: 'Privacy — Dutiva PR', fr: 'Confidentialité — Dutiva RP' },
+  pr_seo_title_support: { en: 'Support — Dutiva PR', fr: 'Soutien — Dutiva RP' },
+  pr_seo_desc_terms: {
+    en: 'Terms of use for Dutiva PR.',
+    fr: 'Conditions d’utilisation de Dutiva RP.',
+  },
+  pr_seo_desc_privacy: {
+    en: 'How Dutiva PR handles your data.',
+    fr: 'Comment Dutiva RP traite vos données.',
+  },
+  pr_seo_desc_support: {
+    en: 'How to reach Dutiva support.',
+    fr: 'Comment joindre le soutien Dutiva.',
+  },
+})

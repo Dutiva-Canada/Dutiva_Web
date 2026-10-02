@@ -85,6 +85,16 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
+/* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
+/* prettier-ignore */ const PrPortalSurface = lazy(() => import('./prSurface').then((m) => ({ default: m.PrPortalSurface })))
+/* prettier-ignore */ const PrHomePage = lazy(() => import('@/features/pr/portal/PrHomePage').then((m) => ({ default: m.PrHomePage })))
+/* prettier-ignore */ const PrCampaignsPage = lazy(() => import('@/features/pr/portal/PrCampaignsPage').then((m) => ({ default: m.PrCampaignsPage })))
+/* prettier-ignore */ const PrContentPage = lazy(() => import('@/features/pr/portal/PrContentPage').then((m) => ({ default: m.PrContentPage })))
+/* prettier-ignore */ const PrMediaPage = lazy(() => import('@/features/pr/portal/PrMediaPage').then((m) => ({ default: m.PrMediaPage })))
+/* prettier-ignore */ const PrSeoPage = lazy(() => import('@/features/pr/portal/PrSeoPage').then((m) => ({ default: m.PrSeoPage })))
+/* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
+/* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
+/* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -213,6 +223,15 @@ function NotFoundRoute() {
  *   /health/journal         private journal entries
  *   /health/insights        trends derived from the user's own check-ins
  *   /health/resources       crisis + support resources (real services)
+ *   /pr                     PR portal — standalone shell, shared auth,
+ *                           gated by a pr_access grant (invite-only);
+ *                           communications desk: campaigns, content,
+ *                           media contacts, SEO tracking, coverage log
+ *   /pr/campaigns           campaigns across social/search/press/etc.
+ *   /pr/content             content desk — posts, releases, ad copy, briefs
+ *   /pr/media               media-contact list (outlets, beats, emails)
+ *   /pr/seo                 keyword position tracker (manual snapshots)
+ *   /pr/mentions            coverage/mentions log with tone tagging
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
@@ -405,6 +424,33 @@ function routeTree(): RouteObject[] {
             { path: 'journal', element: <HealthJournalPage /> },
             { path: 'insights', element: <HealthInsightsPage /> },
             { path: 'resources', element: <HealthResourcesPage /> },
+          ],
+        },
+      ],
+    },
+    /* Standalone PR portal — shared auth + pr_access grant, own shell.
+       Invite-only; a planning/tracking desk for the communications
+       function — it records intent, it never publishes anything. */
+    {
+      path: '/pr',
+      element: (
+        <Suspense fallback={null}>
+          <PrPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        /* Public legal pages — outside the gated layout so the sign-in
+           wall's footer links work for signed-out visitors. */
+        { path: 'legal/:slug', element: <PrLegalPage /> },
+        {
+          element: <PrPortalLayout />,
+          children: [
+            { index: true, element: <PrHomePage /> },
+            { path: 'campaigns', element: <PrCampaignsPage /> },
+            { path: 'content', element: <PrContentPage /> },
+            { path: 'media', element: <PrMediaPage /> },
+            { path: 'seo', element: <PrSeoPage /> },
+            { path: 'mentions', element: <PrMentionsPage /> },
           ],
         },
       ],

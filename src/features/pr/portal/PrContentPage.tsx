@@ -1,0 +1,398 @@
+import '@/features/invest/portal/strategies.css'
+import './pr.css'
+import { useState } from 'react'
+import { Info, Loader2, PenSquare, Trash2 } from 'lucide-react'
+import { useI18n } from '@/i18n/context'
+import { prMessages as PM } from '@/i18n/messages/pr'
+import { usePrData } from '@/features/pr/data/PrDataContext'
+import {
+  addContentItem,
+  deleteContentItem,
+  updateContentItem,
+} from '@/features/pr/data/api'
+import type { PrContentItem, PrContentKind, PrContentStatus } from '@/features/pr/data/types'
+import { useToasts } from '@/features/app/toasts/toastsContext'
+import {
+  CONTENT_KINDS,
+  contentKindLabel,
+  CONTENT_STATUSES,
+  contentStatusLabel,
+  fmtDateTime,
+} from './prUi'
+import { usePrHead } from './usePrHead'
+
+const STATUS_PILL: Record<PrContentStatus, string> = {
+  draft: 'sb-pill sb-pill-draft',
+  scheduled: 'sb-pill sb-pill-warn',
+  published: 'sb-pill sb-pill-ok',
+}
+
+interface Draft {
+  id: string | null
+  kind: PrContentKind
+  title: string
+  channel: string
+  campaignId: string
+  status: PrContentStatus
+  scheduledFor: string
+  body: string
+}
+
+const EMPTY: Draft = {
+  id: null,
+  kind: 'post',
+  title: '',
+  channel: '',
+  campaignId: '',
+  status: 'draft',
+  scheduledFor: '',
+  body: '',
+}
+
+/** <input type="datetime-local"> needs "YYYY-MM-DDTHH:mm" local. */
+function toLocalInput(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`
+}
+
+export function PrContentPage() {
+  const { x, lang } = useI18n()
+  const { state, loading, error, refresh } = usePrData()
+  const { showToast } = useToasts()
+  usePrHead(PM.pr_content_title, PM.pr_content_sub)
+
+  const [formOpen, setFormOpen] = useState(false)
+  const [draft, setDraft] = useState<Draft>(EMPTY)
+  const [saving, setSaving] = useState(false)
+  const [armDelete, setArmDelete] = useState<string | null>(null)
+
+  const openNew = () => {
+    setDraft(EMPTY)
+    setFormOpen(true)
+  }
+
+  const openEdit = (item: PrContentItem) => {
+    setDraft({
+      id: item.id,
+      kind: item.kind,
+      title: item.title,
+      channel: item.channel,
+      campaignId: item.campaignId ?? '',
+      status: item.status,
+      scheduledFor: toLocalInput(item.scheduledFor),
+      body: item.body,
+    })
+    setFormOpen(true)
+  }
+
+  const submit = async () => {
+    if ((!draft.title.trim() && !draft.body.trim()) || saving) return
+    setSaving(true)
+    try {
+      const scheduled =
+        draft.status === 'scheduled' && draft.scheduledFor
+          ? new Date(draft.scheduledFor).toISOString()
+          : null
+      const fields = {
+        kind: draft.kind,
+        title: draft.title,
+        body: draft.body,
+        channel: draft.channel,
+        status: draft.status,
+        campaignId: draft.campaignId || null,
+        scheduledFor: scheduled,
+      }
+      if (draft.id) await updateContentItem(draft.id, fields)
+      else await addContentItem(fields)
+      await refresh()
+      setDraft(EMPTY)
+      setFormOpen(false)
+      showToast(PM.pr_content_saved)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const remove = async (id: string) => {
+    if (armDelete !== id) {
+      setArmDelete(id)
+      return
+    }
+    setArmDelete(null)
+    await deleteContentItem(id)
+    await refresh()
+  }
+
+  const campaignName = (id: string | null) =>
+    state?.campaigns.find((c) => c.id === id)?.name ?? ''
+
+  if (loading || !state) {
+    return (
+      <div className="flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="sb prx sb-page">
+        <p role="alert" className="sb-note">{x(PM.pr_load_error)}</p>
+        <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
+          {x(PM.pr_retry)}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="sb prx sb-page">
+      <div className="sb-head-row">
+        <h1>{x(PM.pr_content_title)}</h1>
+        <button type="button" className="sb-btn sb-btn-primary" onClick={openNew}>
+          {x(PM.pr_content_new)}
+        </button>
+      </div>
+      <p className="sb-sub">{x(PM.pr_content_sub)}</p>
+
+      {formOpen && (
+        <form
+          className="sb-card sb-card-pad"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void submit()
+          }}
+        >
+          <div className="sb-form-grid">
+            <div className="sb-field">
+              <label className="sb-flabel" htmlFor="pr-ct-kind">{x(PM.pr_content_kind)}</label>
+              <select
+                id="pr-ct-kind"
+                className="sb-input"
+                value={draft.kind}
+                onChange={(e) => setDraft({ ...draft, kind: e.target.value as PrContentKind })}
+              >
+                {CONTENT_KINDS.map((k) => (
+                  <option key={k} value={k}>{contentKindLabel(k, lang)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="sb-field">
+              <label className="sb-flabel" htmlFor="pr-ct-status">
+                {x(PM.pr_content_status)}
+              </label>
+              <select
+                id="pr-ct-status"
+                className="sb-input"
+                value={draft.status}
+                onChange={(e) =>
+                  setDraft({ ...draft, status: e.target.value as PrContentStatus })
+                }
+              >
+                {CONTENT_STATUSES.map((s) => (
+                  <option key={s} value={s}>{contentStatusLabel(s, lang)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="sb-field">
+              <label className="sb-flabel" htmlFor="pr-ct-when">{x(PM.pr_content_when)}</label>
+              <input
+                id="pr-ct-when"
+                className="sb-input"
+                type="datetime-local"
+                disabled={draft.status !== 'scheduled'}
+                value={draft.scheduledFor}
+                onChange={(e) => setDraft({ ...draft, scheduledFor: e.target.value })}
+              />
+            </div>
+            <div className="sb-field">
+              <label className="sb-flabel" htmlFor="pr-ct-channel">
+                {x(PM.pr_content_channel)}
+              </label>
+              <input
+                id="pr-ct-channel"
+                className="sb-input"
+                value={draft.channel}
+                placeholder={x(PM.pr_content_channel_ph)}
+                onChange={(e) => setDraft({ ...draft, channel: e.target.value })}
+              />
+            </div>
+            <div className="sb-field">
+              <label className="sb-flabel" htmlFor="pr-ct-camp">
+                {x(PM.pr_content_campaign)}
+              </label>
+              <select
+                id="pr-ct-camp"
+                className="sb-input"
+                value={draft.campaignId}
+                onChange={(e) => setDraft({ ...draft, campaignId: e.target.value })}
+              >
+                <option value="">{x(PM.pr_content_no_campaign)}</option>
+                {state.campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
+              <label className="sb-flabel" htmlFor="pr-ct-title">
+                {x(PM.pr_content_title_field)}
+              </label>
+              <input
+                id="pr-ct-title"
+                className="sb-input"
+                value={draft.title}
+                placeholder={x(PM.pr_content_title_ph)}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              />
+            </div>
+            <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
+              <label className="sb-flabel" htmlFor="pr-ct-body">{x(PM.pr_content_body)}</label>
+              <textarea
+                id="pr-ct-body"
+                className="sb-input"
+                style={{ minHeight: 120, paddingTop: 12, resize: 'vertical' }}
+                value={draft.body}
+                placeholder={x(PM.pr_content_body_ph)}
+                onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+              />
+            </div>
+            <div className="sb-form-actions">
+              {draft.id && (
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary"
+                  onClick={() => {
+                    setDraft(EMPTY)
+                    setFormOpen(false)
+                  }}
+                >
+                  {x(PM.pr_content_cancel)}
+                </button>
+              )}
+              <button type="submit" className="sb-btn sb-btn-primary" disabled={saving}>
+                {saving && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+                {x(PM.pr_content_save)}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+
+      <section className="sb-card sb-card-pad">
+        {state.contentItems.length === 0 ? (
+          <div className="sb-empty">{x(PM.pr_content_empty)}</div>
+        ) : (
+          <div>
+            {state.contentItems.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 12,
+                  padding: '14px 0',
+                  borderBottom: '1px solid var(--sb-line)',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span className="prx-chip">{contentKindLabel(item.kind, lang)}</span>
+                    <span className={STATUS_PILL[item.status]}>
+                      {contentStatusLabel(item.status, lang)}
+                    </span>
+                    {item.channel && (
+                      <span className="prx-chip" data-plain>{item.channel}</span>
+                    )}
+                    {item.campaignId && (
+                      <span
+                        className="prx-chip"
+                        data-plain
+                        style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}
+                      >
+                        {campaignName(item.campaignId)}
+                      </span>
+                    )}
+                  </div>
+                  <p
+                    style={{
+                      margin: '6px 0 0',
+                      fontWeight: 600,
+                      fontSize: 14.5,
+                      color: 'var(--sb-ink)',
+                    }}
+                  >
+                    {item.title || x(PM.pr_content_untitled)}
+                  </p>
+                  {item.body && (
+                    <p
+                      style={{
+                        margin: '3px 0 0',
+                        fontSize: 13,
+                        lineHeight: 1.55,
+                        color: 'var(--sb-body)',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {item.body}
+                    </p>
+                  )}
+                  <p
+                    style={{
+                      margin: '5px 0 0',
+                      fontSize: 12.5,
+                      color: 'var(--sb-muted)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {item.scheduledFor
+                      ? fmtDateTime(item.scheduledFor, lang)
+                      : fmtDateTime(item.createdAt, lang)}
+                  </p>
+                </div>
+                <div className="sb-row-actions" style={{ flexShrink: 0 }}>
+                  <button
+                    type="button"
+                    className="sb-btn sb-btn-secondary sb-btn-sm"
+                    onClick={() => openEdit(item)}
+                  >
+                    <PenSquare size={13} aria-hidden="true" />
+                    {x(PM.pr_content_edit)}
+                  </button>
+                  <button
+                    type="button"
+                    className="sb-btn sb-btn-secondary sb-btn-sm"
+                    onClick={() => void remove(item.id)}
+                  >
+                    <Trash2 size={13} aria-hidden="true" />
+                    {armDelete === item.id
+                      ? x(PM.pr_content_delete_confirm)
+                      : x(PM.pr_content_delete)}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="sb-note">
+        <Info size={16} aria-hidden="true" />
+        <span>{x(PM.pr_content_note)}</span>
+      </div>
+    </div>
+  )
+}
