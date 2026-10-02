@@ -413,6 +413,16 @@ export const investMessages = defineMessages({
     en: 'No headlines yet — they arrive with the daily market sync and the Refresh prices button.',
     fr: 'Aucune manchette pour l’instant — elles arrivent avec la synchronisation quotidienne et le bouton Actualiser les cours.',
   },
+  /* [FR self-authored] */
+  invest_news_more: {
+    en: 'Show all {count} headlines',
+    fr: 'Afficher les {count} manchettes',
+  },
+  /* [FR self-authored] */
+  invest_news_less: {
+    en: 'Show fewer',
+    fr: 'Réduire la liste',
+  },
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

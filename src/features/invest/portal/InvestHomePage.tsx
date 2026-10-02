@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, Info, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, RefreshCw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
@@ -52,6 +52,7 @@ export function InvestHomePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
+  const [newsExpanded, setNewsExpanded] = useState(false)
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -96,6 +97,9 @@ export function InvestHomePage() {
       setBusy(false)
     }
   }
+
+  const headlines = useMemo(() => dedupeNews(state.news), [state.news])
+  const visibleHeadlines = newsExpanded ? headlines : headlines.slice(0, 12)
 
   const allocation = ASSET_CLASSES.map((cls) => ({
     cls,
@@ -270,8 +274,9 @@ export function InvestHomePage() {
         {state.news.length === 0 ? (
           <p className="m-0 mt-[14px] text-[12.5px] text-text-muted">{x(IM.invest_news_empty)}</p>
         ) : (
+          <>
           <ul className="m-0 mt-[12px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
-            {dedupeNews(state.news).slice(0, 12).map((n) => (
+            {visibleHeadlines.map((n) => (
               <li key={n.id}>
                 <a
                   href={n.url}
@@ -314,6 +319,23 @@ export function InvestHomePage() {
               </li>
             ))}
           </ul>
+          {headlines.length > 12 && (
+            <button
+              type="button"
+              onClick={() => setNewsExpanded((v) => !v)}
+              className="mt-[10px] flex min-h-[36px] w-full cursor-pointer items-center justify-center gap-[6px] rounded-[10px] border border-border bg-transparent px-[12px] text-[12.5px] font-semibold text-text-2 transition-colors hover:bg-inset"
+            >
+              {newsExpanded
+                ? x(IM.invest_news_less)
+                : x(IM.invest_news_more).replace('{count}', String(headlines.length))}
+              {newsExpanded ? (
+                <ChevronUp size={14} aria-hidden="true" />
+              ) : (
+                <ChevronDown size={14} aria-hidden="true" />
+              )}
+            </button>
+          )}
+          </>
         )}
       </section>
     </div>
