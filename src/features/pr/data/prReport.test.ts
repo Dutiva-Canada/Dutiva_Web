@@ -21,6 +21,7 @@ const mention = (over: Partial<PrState['mentions'][number]> = {}) => ({
   title: 'Story',
   url: 'https://example.com/a',
   sentiment: 'neutral' as const,
+  sentimentAuto: false,
   publishedAt: '2026-10-05T12:00:00Z',
   createdAt: '2026-10-05T12:00:00Z',
   ...over,

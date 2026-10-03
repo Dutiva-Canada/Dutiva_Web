@@ -50,6 +50,8 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   deletePrFeed: vi.fn(),
   syncPrFeeds: vi.fn(),
   runGeoChecks: vi.fn(),
+  suggestMentionTone: vi.fn(),
+  draftPrContent: vi.fn(),
 }))
 
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
@@ -241,6 +243,7 @@ describe('prStats', () => {
     title: `Piece ${offsetDays}`,
     url: '',
     sentiment: 'neutral',
+    sentimentAuto: false,
     publishedAt: new Date(Date.now() - offsetDays * 86400000).toISOString(),
     createdAt: new Date().toISOString(),
   })

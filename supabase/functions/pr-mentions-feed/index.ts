@@ -3,6 +3,9 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl } from '../pr-fetch-meta/handlers.ts'
 import { parseFeedItems, type FeedItem } from './handlers.ts'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
+import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import { parseToneList, tonePrompt, type PrSentiment } from '../pr-ai/handlers.ts'
 
 /**
  * pr-mentions-feed — poll the RSS/Atom feeds a user saved (Google Alerts,
@@ -17,8 +20,11 @@ import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
  *   - otherwise a portal JWT with a pr_access grant → the caller's feeds
  *     only, so the "Sync now" button can never touch someone else's rows.
  *
- * New items land as neutral coverage; dedupe is the stored URL (Google
- * redirect wrappers are unwrapped first), so repeated polls are no-ops.
+ * Fresh items get a model-guessed tone tag when an AI route resolves —
+ * stored with sentiment_auto=true so the UI marks it as machine-suggested.
+ * A missing route, key, or flaky reply degrades to 'neutral' and never
+ * blocks the insert. Dedupe is the stored URL (Google redirect wrappers are
+ * unwrapped first), so repeated polls are no-ops.
  */
 
 const corsHeaders = {
@@ -129,7 +135,51 @@ interface SyncResult {
   error?: string
 }
 
-async function syncFeed(admin: SupabaseClient, feed: FeedRow): Promise<SyncResult> {
+/* ---------- tone tagging ------------------------------------------------ */
+
+type ToneClassifier = (titles: string[]) => Promise<PrSentiment[] | null>
+
+/** One model call per feed batch — headlines go in numbered, one tone word
+    per line comes back. Returns null when no route/key/upstream cooperates;
+    callers treat that as "leave neutral", never an error. */
+async function makeToneClassifier(admin: SupabaseClient): Promise<ToneClassifier | null> {
+  const found = await activeModelRoute(admin, ['pr_ai', 'advisor_chat'])
+  if ('error' in found) return null
+  const key = routeApiKey(found)
+  if ('missingSecret' in key) return null
+  const { provider } = found
+  const apiKey = key.apiKey
+  const model = found.modelName
+  return async (titles) => {
+    if (titles.length === 0) return []
+    try {
+      const upstream = await postChatCompletion(
+        provider,
+        apiKey,
+        {
+          model,
+          messages: [{ role: 'user', content: tonePrompt(titles) }],
+          temperature: 0.2,
+          max_tokens: Math.max(24, titles.length * 8),
+        },
+        30_000,
+      )
+      if (!upstream.ok) return null
+      const payload = (await upstream.json()) as {
+        choices?: { message?: { content?: string } }[]
+      }
+      return parseToneList(payload.choices?.[0]?.message?.content ?? '', titles.length)
+    } catch {
+      return null
+    }
+  }
+}
+
+async function syncFeed(
+  admin: SupabaseClient,
+  feed: FeedRow,
+  classify: ToneClassifier | null,
+): Promise<SyncResult> {
   let feedUrl: URL
   try {
     feedUrl = assertPublicHttpUrl(feed.url)
@@ -150,12 +200,16 @@ async function syncFeed(admin: SupabaseClient, feed: FeedRow): Promise<SyncResul
   const fresh = items.filter((i) => i.link !== '' && !known.has(i.link))
 
   if (fresh.length > 0) {
-    const rows = fresh.map((i: FeedItem) => ({
+    /* Best-effort tone guess — tagged sentiment_auto so the desk shows it
+       as a suggestion, not a read. null classifier → all neutral/manual. */
+    const tones = classify ? await classify(fresh.map((i) => i.title || i.link)) : null
+    const rows = fresh.map((i: FeedItem, idx: number) => ({
       user_id: feed.user_id,
       source: i.source || feed.label || 'Feed',
       title: i.title || i.link,
       url: i.link,
-      sentiment: 'neutral',
+      sentiment: tones?.[idx] ?? 'neutral',
+      sentiment_auto: tones !== null,
       published_at: i.publishedAt ?? new Date().toISOString(),
     }))
     const { error } = await admin.from('pr_mentions').insert(rows)
@@ -255,10 +309,11 @@ Deno.serve(async (req) => {
     const { data: feeds, error } = await q
     if (error) return json({ error: error.message }, 500)
 
+    const classify = await makeToneClassifier(admin)
     const results = []
     const byUser = new Map<string, { items: FeedItem[] }>()
     for (const feed of (feeds ?? []) as FeedRow[]) {
-      const r = await syncFeed(admin, feed)
+      const r = await syncFeed(admin, feed, classify)
       results.push({ feed: r.feed, added: r.added, error: r.error })
       if (r.fresh.length > 0) {
         const bucket = byUser.get(feed.user_id) ?? { items: [] }

@@ -1,9 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { Info, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Info, Loader2, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
+import { healthAiRecap } from '@/features/health/data/api'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import {
   avgEnergy,
   avgMood,
@@ -19,7 +22,24 @@ const CHART_DAYS = 14
 export function HealthInsightsPage() {
   const { x, lang } = useI18n()
   const { state, loading } = useHealthData()
+  const { showToast } = useToasts()
   useHealthHead(HM.health_insights_title, HM.health_insights_sub)
+  const [recap, setRecap] = useState<string | null>(null)
+  const [recapping, setRecapping] = useState(false)
+
+  /* The model narrates the same aggregates the page shows — nothing more
+     leaves the portal. Regenerated on each click; never stored. */
+  const summarize = async () => {
+    if (recapping) return
+    setRecapping(true)
+    try {
+      setRecap(await healthAiRecap(lang))
+    } catch {
+      showToast(HM.health_ai_failed)
+    } finally {
+      setRecapping(false)
+    }
+  }
 
   if (loading || !state) {
     return (
@@ -41,8 +61,33 @@ export function HealthInsightsPage() {
     <div className="sb hb sb-page">
       <div className="sb-head-row">
         <h1>{x(HM.health_insights_title)}</h1>
+        {hasData && (
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
+            disabled={recapping}
+            onClick={() => void summarize()}
+          >
+            {recapping ? (
+              <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Sparkles size={15} aria-hidden="true" />
+            )}
+            {x(recapping ? HM.health_ai_recap_loading : HM.health_ai_recap_btn)}
+          </button>
+        )}
       </div>
       <p className="sb-sub">{x(HM.health_insights_sub)}</p>
+
+      {recap && (
+        <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>
+          <div className="sb-section-head" style={{ marginTop: 0 }}>
+            <h2>{x(HM.health_ai_recap_title)}</h2>
+          </div>
+          <p style={{ marginTop: 0, whiteSpace: 'pre-line' }}>{recap}</p>
+          <p className="sb-helper" style={{ marginBottom: 0 }}>{x(HM.health_ai_note)}</p>
+        </section>
+      )}
 
       <div className="sb-stats">
         <div className="sb-stat">

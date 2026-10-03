@@ -1,11 +1,11 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Link2, Loader2, Rss, Trash2 } from 'lucide-react'
+import { ExternalLink, Link2, Loader2, Rss, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, syncPrFeeds } from '@/features/pr/data/api'
+import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, suggestMentionTone, syncPrFeeds } from '@/features/pr/data/api'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -23,6 +23,9 @@ interface Draft {
   title: string
   url: string
   sentiment: PrSentiment
+  /** True after "Suggest" filled the tone — cleared the moment the user
+      touches the select, so a human pick never inherits the AI flag. */
+  sentimentAuto: boolean
   date: string
 }
 
@@ -38,10 +41,12 @@ export function PrMentionsPage() {
     title: '',
     url: '',
     sentiment: 'neutral',
+    sentimentAuto: false,
     date: '',
   })
   const [saving, setSaving] = useState(false)
   const [fetching, setFetching] = useState(false)
+  const [suggesting, setSuggesting] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [feedUrl, setFeedUrl] = useState('')
   const [feedLabel, setFeedLabel] = useState('')
@@ -97,6 +102,21 @@ export function PrMentionsPage() {
     }
   }
 
+  /* Model-guessed tone for a manually logged item — fills the select, but
+     the user still sees and can change it before saving. */
+  const suggestTone = async () => {
+    if (!draft.title.trim() || suggesting) return
+    setSuggesting(true)
+    try {
+      const sentiment = await suggestMentionTone({ title: draft.title, source: draft.source })
+      setDraft((d) => ({ ...d, sentiment, sentimentAuto: true }))
+    } catch {
+      showToast(PM.pr_ai_tone_failed)
+    } finally {
+      setSuggesting(false)
+    }
+  }
+
   const submit = async () => {
     if (!draft.title.trim() || saving) return
     setSaving(true)
@@ -106,12 +126,13 @@ export function PrMentionsPage() {
         title: draft.title,
         url: draft.url,
         sentiment: draft.sentiment,
+        sentimentAuto: draft.sentimentAuto,
         publishedAt: draft.date
           ? new Date(`${draft.date}T12:00:00`).toISOString()
           : undefined,
       })
       await refresh()
-      setDraft({ source: '', title: '', url: '', sentiment: 'neutral', date: '' })
+      setDraft({ source: '', title: '', url: '', sentiment: 'neutral', sentimentAuto: false, date: '' })
       setFormOpen(false)
       showToast(PM.pr_men_saved)
     } finally {
@@ -277,18 +298,35 @@ export function PrMentionsPage() {
             </div>
             <div className="sb-field">
               <label className="sb-flabel" htmlFor="pr-mn-sent">{x(PM.pr_men_sentiment)}</label>
-              <select
-                id="pr-mn-sent"
-                className="sb-input"
-                value={draft.sentiment}
-                onChange={(e) =>
-                  setDraft({ ...draft, sentiment: e.target.value as PrSentiment })
-                }
-              >
-                {SENTIMENTS.map((s) => (
-                  <option key={s} value={s}>{sentimentLabel(s, lang)}</option>
-                ))}
-              </select>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <select
+                  id="pr-mn-sent"
+                  className="sb-input"
+                  style={{ flex: 1 }}
+                  value={draft.sentiment}
+                  onChange={(e) =>
+                    setDraft({ ...draft, sentiment: e.target.value as PrSentiment, sentimentAuto: false })
+                  }
+                >
+                  {SENTIMENTS.map((s) => (
+                    <option key={s} value={s}>{sentimentLabel(s, lang)}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  disabled={!draft.title.trim() || suggesting}
+                  title={x(PM.pr_ai_draft_note)}
+                  onClick={() => void suggestTone()}
+                >
+                  {suggesting ? (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Sparkles size={13} aria-hidden="true" />
+                  )}
+                  {x(suggesting ? PM.pr_ai_tone_suggesting : PM.pr_ai_tone_suggest)}
+                </button>
+              </div>
             </div>
             <div className="sb-field">
               <label className="sb-flabel" htmlFor="pr-mn-date">{x(PM.pr_men_date)}</label>
@@ -445,6 +483,7 @@ export function PrMentionsPage() {
                 <div className="prx-mention-side">
                   <span className={`sb-pill ${SENT_PILL[m.sentiment]}`}>
                     {sentimentLabel(m.sentiment, lang)}
+                    {m.sentimentAuto && ` · ${x(PM.pr_ai_tone_tag)}`}
                   </span>
                   <div className="sb-row-actions">
                     {m.url && (

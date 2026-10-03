@@ -263,6 +263,26 @@ export const healthMessages = defineMessages({
     fr: 'Un courriel par jour au plus, seulement quand une habitude avec une suite n’est pas encore cochée.',
   },
 
+  /* AI assists — aggregates only (counts, averages, streaks); note text and
+     journal bodies never leave the portal. Reflection, not advice. */
+  health_ai_prompt_btn: { en: 'Suggest a prompt', fr: 'Suggérer une amorce' },
+  health_ai_prompt_loading: { en: 'Thinking…', fr: 'Réflexion…' },
+  health_ai_prompt_label: {
+    en: 'An idea to write about — built from your numbers, not your entries.',
+    fr: 'Une idée à explorer — tirée de vos chiffres, pas de vos écrits.',
+  },
+  health_ai_recap_btn: { en: 'Summarize my week', fr: 'Résumer ma semaine' },
+  health_ai_recap_loading: { en: 'Summarizing…', fr: 'Résumé en cours…' },
+  health_ai_recap_title: { en: 'Your week in numbers', fr: 'Votre semaine en chiffres' },
+  health_ai_note: {
+    en: 'Generated from counts and averages only — entries stay private. A reflection, not advice.',
+    fr: 'Généré à partir de comptes et moyennes seulement — vos écrits restent privés. Une réflexion, pas un conseil.',
+  },
+  health_ai_failed: {
+    en: 'The assistant isn’t available right now.',
+    fr: 'L’assistant n’est pas disponible pour le moment.',
+  },
+
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },
   health_tools_sub: {

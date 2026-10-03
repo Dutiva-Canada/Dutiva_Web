@@ -11793,59 +11793,6 @@ export type Database = {
           },
         ]
       }
-      predictive_risk_forecasts: {
-        Row: {
-          drivers: Json
-          forecast_type: string
-          forecast_window_days: number
-          generated_at: string
-          generated_by: string
-          id: string
-          metadata: Json
-          organization_id: string
-          recommended_actions: Json
-          risk_level: string
-          risk_score: number | null
-          summary: string | null
-        }
-        Insert: {
-          drivers?: Json
-          forecast_type: string
-          forecast_window_days?: number
-          generated_at?: string
-          generated_by?: string
-          id?: string
-          metadata?: Json
-          organization_id: string
-          recommended_actions?: Json
-          risk_level?: string
-          risk_score?: number | null
-          summary?: string | null
-        }
-        Update: {
-          drivers?: Json
-          forecast_type?: string
-          forecast_window_days?: number
-          generated_at?: string
-          generated_by?: string
-          id?: string
-          metadata?: Json
-          organization_id?: string
-          recommended_actions?: Json
-          risk_level?: string
-          risk_score?: number | null
-          summary?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "predictive_risk_forecasts_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       portal_notification_prefs: {
         Row: {
           email_enabled: boolean
@@ -12157,6 +12104,7 @@ export type Database = {
           id: string
           published_at: string
           sentiment: string
+          sentiment_auto: boolean
           source: string
           title: string
           url: string
@@ -12167,6 +12115,7 @@ export type Database = {
           id?: string
           published_at?: string
           sentiment?: string
+          sentiment_auto?: boolean
           source?: string
           title: string
           url?: string
@@ -12177,12 +12126,66 @@ export type Database = {
           id?: string
           published_at?: string
           sentiment?: string
+          sentiment_auto?: boolean
           source?: string
           title?: string
           url?: string
           user_id?: string
         }
         Relationships: []
+      }
+      predictive_risk_forecasts: {
+        Row: {
+          drivers: Json
+          forecast_type: string
+          forecast_window_days: number
+          generated_at: string
+          generated_by: string
+          id: string
+          metadata: Json
+          organization_id: string
+          recommended_actions: Json
+          risk_level: string
+          risk_score: number | null
+          summary: string | null
+        }
+        Insert: {
+          drivers?: Json
+          forecast_type: string
+          forecast_window_days?: number
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          metadata?: Json
+          organization_id: string
+          recommended_actions?: Json
+          risk_level?: string
+          risk_score?: number | null
+          summary?: string | null
+        }
+        Update: {
+          drivers?: Json
+          forecast_type?: string
+          forecast_window_days?: number
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          metadata?: Json
+          organization_id?: string
+          recommended_actions?: Json
+          risk_level?: string
+          risk_score?: number | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictive_risk_forecasts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -16949,11 +16952,14 @@ export type Database = {
       }
       trigger_attachment_scan: { Args: never; Returns: undefined }
       trigger_candidate_job_agent: { Args: never; Returns: undefined }
+      trigger_health_streak_notify: { Args: never; Returns: undefined }
       trigger_invest_bot: { Args: never; Returns: undefined }
       trigger_invest_market_sync: { Args: never; Returns: undefined }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
+      trigger_pr_geo_check: { Args: never; Returns: undefined }
+      trigger_pr_mentions_sync: { Args: never; Returns: undefined }
       trigger_score_snapshots: { Args: never; Returns: undefined }
       trigger_signing_reminder_scheduler: { Args: never; Returns: undefined }
       trigger_support_call_scheduler: { Args: never; Returns: undefined }

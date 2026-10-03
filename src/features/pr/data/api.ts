@@ -321,6 +321,8 @@ export async function addMention(input: {
   title: string
   url?: string
   sentiment?: PrSentiment
+  /** Set when the tone tag came from pr-ai's suggestion, not the user. */
+  sentimentAuto?: boolean
   publishedAt?: string
 }): Promise<PrMention> {
   const client = requireSupabase()
@@ -333,6 +335,7 @@ export async function addMention(input: {
       title: input.title.trim(),
       url: (input.url ?? '').trim(),
       sentiment: input.sentiment ?? 'neutral',
+      sentiment_auto: input.sentimentAuto ?? false,
       published_at: input.publishedAt ?? new Date().toISOString(),
     })
     .select()
@@ -510,4 +513,52 @@ export async function runGeoChecks(promptId?: string): Promise<GeoCheckSummary> 
   if (error) throw error
   const raw = (data as Partial<GeoCheckSummary> | null) ?? {}
   return { checked: raw.checked ?? 0, prompts: raw.prompts ?? 0 }
+}
+
+/* ---------- pr-ai: model suggestions (tone tag, content draft) ---------- */
+
+/** Ask pr-ai to guess a coverage item's tone from its headline. The result
+    is a suggestion — the caller still decides before saving. */
+export async function suggestMentionTone(input: {
+  title: string
+  source?: string
+}): Promise<PrSentiment> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: { kind: 'tone', title: input.title, source: input.source ?? '' },
+  })
+  if (error) throw error
+  const raw = (data as { sentiment?: string } | null) ?? {}
+  if (raw.sentiment !== 'positive' && raw.sentiment !== 'neutral' && raw.sentiment !== 'negative') {
+    throw new Error('Unexpected tone from pr-ai')
+  }
+  return raw.sentiment
+}
+
+/** Ask pr-ai for a first draft the user edits in the body field — the desk
+    never ships model text anywhere. lang mirrors the user's UI language. */
+export async function draftPrContent(input: {
+  itemKind: PrContentKind
+  channel: string
+  title: string
+  notes: string
+  lang: 'en' | 'fr'
+}): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: {
+      kind: 'draft',
+      itemKind: input.itemKind,
+      channel: input.channel,
+      title: input.title,
+      notes: input.notes,
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as { draft?: string } | null) ?? {}
+  if (typeof raw.draft !== 'string' || raw.draft.trim() === '') {
+    throw new Error('Empty draft from pr-ai')
+  }
+  return raw.draft
 }

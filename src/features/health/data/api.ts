@@ -179,3 +179,36 @@ export async function setHabitDone(
     )
   if (error) throw error
 }
+
+/* ---------- health-ai: gentle model assists (aggregates only) ---------- */
+
+/** One journal prompt built from mood/energy/habit AGGREGATES — the model
+    never sees note text or journal bodies. A suggestion to write about,
+    not advice. */
+export async function healthAiPrompt(lang: 'en' | 'fr'): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'reflect', lang },
+  })
+  if (error) throw error
+  const raw = (data as { prompt?: string } | null) ?? {}
+  if (typeof raw.prompt !== 'string' || raw.prompt.trim() === '') {
+    throw new Error('Empty prompt from health-ai')
+  }
+  return raw.prompt
+}
+
+/** A short weekly summary of the same aggregates — describes the numbers,
+    never advises. */
+export async function healthAiRecap(lang: 'en' | 'fr'): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'recap', lang },
+  })
+  if (error) throw error
+  const raw = (data as { summary?: string } | null) ?? {}
+  if (typeof raw.summary !== 'string' || raw.summary.trim() === '') {
+    throw new Error('Empty recap from health-ai')
+  }
+  return raw.summary
+}

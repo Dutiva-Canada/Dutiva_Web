@@ -1,10 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import {
-  postChatCompletion,
-  resolveApiKey,
-  type UpstreamProvider,
-} from '../_shared/modelUpstream.ts'
+import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import { answerExcerpt, classifyGeoAnswer } from './handlers.ts'
 
 /**
@@ -79,29 +76,6 @@ async function portalUserId(
   return { userId: userData.user.id }
 }
 
-/** Route lookup — `pr_geo` first, `advisor_chat` as the shared fallback
-    (same contract as invest-ai). */
-async function activeModelRoute(admin: SupabaseClient) {
-  for (const routeKey of ['pr_geo', 'advisor_chat']) {
-    const { data: route, error } = await admin
-      .from('ai_model_routes')
-      .select(
-        'id, model_name, config, provider:ai_model_providers(id, provider_key, base_url, secret_ref, status)',
-      )
-      .eq('route_key', routeKey)
-      .eq('status', 'active')
-      .order('priority', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-    if (error) return { error: json({ error: error.message }, 500) }
-    const provider = route?.provider as UpstreamProvider | null | undefined
-    if (route && provider && provider.status === 'active') {
-      return { route, provider }
-    }
-  }
-  return { error: json({ error: 'No active AI route', code: 'no_route' }, 503) }
-}
-
 interface PromptRow {
   id: string
   user_id: string
@@ -149,10 +123,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const found = await activeModelRoute(admin)
-    if ('error' in found) return found.error
-    const { route, provider } = found
-    const keyResult = resolveApiKey(provider.secret_ref, (n) => Deno.env.get(n))
+    const found = await activeModelRoute(admin, ['pr_geo', 'advisor_chat'])
+    if ('error' in found) {
+      return json(
+        found.error === 'no_route'
+          ? { error: 'No active AI route', code: 'no_route' }
+          : { error: found.error },
+        found.error === 'no_route' ? 503 : 500,
+      )
+    }
+    const route = found
+    const keyResult = routeApiKey(route)
     if ('missingSecret' in keyResult) {
       return json({ error: `Provider secret ${keyResult.missingSecret} not configured`, code: 'no_key' }, 503)
     }
@@ -171,10 +152,10 @@ Deno.serve(async (req) => {
     for (const p of (prompts ?? []) as PromptRow[]) {
       try {
         const upstream = await postChatCompletion(
-          provider,
+          route.provider,
           keyResult.apiKey,
           {
-            model: route.model_name,
+            model: route.modelName,
             /* The tracked prompt goes in raw — the answer should be what a
                real user asking it would get, not a coached response. */
             messages: [{ role: 'user', content: p.prompt }],
@@ -216,7 +197,7 @@ Deno.serve(async (req) => {
     return json({
       checked: results.filter((r) => 'result' in r).length,
       prompts: (prompts ?? []).length,
-      model: route.model_name,
+      model: route.modelName,
       results,
     })
   } finally {

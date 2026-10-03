@@ -102,6 +102,14 @@ verify_jwt = false
 [functions.health-habit-notify]
 verify_jwt = false
 
+# Portal AI endpoints — user-invoked only; in-handler JWT + access-grant
+# checks (pr_access / health_access), no scheduled path.
+[functions.pr-ai]
+verify_jwt = false
+
+[functions.health-ai]
+verify_jwt = false
+
 [functions.notify-signing-status]
 verify_jwt = false
 

@@ -1,13 +1,13 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useState } from 'react'
-import { Loader2, Pencil, Plus } from 'lucide-react'
+import { Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addJournalEntry, deleteJournalEntry, updateJournalEntry } from '@/features/health/data/api'
-import type { HealthJournalEntry } from '@/features/health/data/types'
+import { addJournalEntry, deleteJournalEntry, healthAiPrompt, updateJournalEntry } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import type { HealthJournalEntry } from '@/features/health/data/types'
 import { fmtDateTime } from './healthUi'
 import { useHealthHead } from './useHealthHead'
 
@@ -153,10 +153,28 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
 }
 
 export function HealthJournalPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { state } = useHealthData()
+  const { showToast } = useToasts()
   useHealthHead(HM.health_journal_title, HM.health_journal_sub)
   const [composing, setComposing] = useState(false)
+  const [prompt, setPrompt] = useState<string | null>(null)
+  const [prompting, setPrompting] = useState(false)
+
+  /* Model-built writing idea from aggregates (numbers only — entries stay
+     private). Lands as a note above the editor; the user still writes. */
+  const suggestPrompt = async () => {
+    if (prompting) return
+    setPrompting(true)
+    try {
+      setPrompt(await healthAiPrompt(lang))
+      setComposing(true)
+    } catch {
+      showToast(HM.health_ai_failed)
+    } finally {
+      setPrompting(false)
+    }
+  }
 
   const entries = state?.entries ?? []
 
@@ -164,21 +182,46 @@ export function HealthJournalPage() {
     <div className="sb hb sb-page">
       <div className="sb-head-row">
         <h1>{x(HM.health_journal_title)}</h1>
-        {!composing && (
+        <div style={{ display: 'flex', gap: 10 }}>
           <button
             type="button"
-            className="sb-btn sb-btn-primary"
-            onClick={() => setComposing(true)}
+            className="sb-btn sb-btn-secondary"
+            disabled={prompting}
+            onClick={() => void suggestPrompt()}
           >
-            <Plus size={15} aria-hidden="true" />
-            {x(HM.health_journal_new)}
+            {prompting ? (
+              <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Sparkles size={15} aria-hidden="true" />
+            )}
+            {x(prompting ? HM.health_ai_prompt_loading : HM.health_ai_prompt_btn)}
           </button>
-        )}
+          {!composing && (
+            <button
+              type="button"
+              className="sb-btn sb-btn-primary"
+              onClick={() => setComposing(true)}
+            >
+              <Plus size={15} aria-hidden="true" />
+              {x(HM.health_journal_new)}
+            </button>
+          )}
+        </div>
       </div>
       <p className="sb-sub">{x(HM.health_journal_sub)}</p>
 
       {composing && (
         <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>
+          {prompt && (
+            <div className="sb-note" style={{ marginBottom: 14 }}>
+              <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
+              <span>
+                <strong>{prompt}</strong>
+                <br />
+                <span style={{ fontSize: '0.9em' }}>{x(HM.health_ai_prompt_label)}</span>
+              </span>
+            </div>
+          )}
           <EntryEditor onDone={() => setComposing(false)} />
         </section>
       )}

@@ -459,6 +459,26 @@ export const prMessages = defineMessages({
   },
   pr_rep_file_name: { en: 'dutiva-pr-report', fr: 'rapport-dutiva-rp' },
 
+  /* AI assists — every model output lands as a suggestion the human edits
+     or overrides; nothing ships straight from the model. */
+  pr_ai_tone_suggest: { en: 'Suggest', fr: 'Suggérer' },
+  pr_ai_tone_suggesting: { en: 'Guessing…', fr: 'Suggestion…' },
+  pr_ai_tone_tag: { en: 'AI', fr: 'IA' },
+  pr_ai_tone_failed: {
+    en: 'No tone suggestion right now — pick one yourself.',
+    fr: 'Pas de suggestion pour le moment — choisissez-en une.',
+  },
+  pr_ai_draft_btn: { en: 'Draft with AI', fr: 'Rédiger avec l’IA' },
+  pr_ai_drafting: { en: 'Drafting…', fr: 'Rédaction…' },
+  pr_ai_draft_note: {
+    en: 'AI draft — read it over and edit before saving.',
+    fr: 'Ébauche IA — relisez et modifiez avant d’enregistrer.',
+  },
+  pr_ai_draft_failed: {
+    en: 'Drafting failed — write it yourself for now.',
+    fr: 'La rédaction a échoué — rédigez vous-même pour l’instant.',
+  },
+
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },
   pr_load_error: {

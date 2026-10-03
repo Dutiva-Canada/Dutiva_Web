@@ -1,13 +1,14 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useState } from 'react'
-import { ExternalLink, Info, Loader2, PenSquare, Trash2 } from 'lucide-react'
+import { ExternalLink, Info, Loader2, PenSquare, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import {
   addContentItem,
   deleteContentItem,
+  draftPrContent,
   updateContentItem,
 } from '@/features/pr/data/api'
 import type { PrContentItem, PrContentKind, PrContentStatus } from '@/features/pr/data/types'
@@ -73,7 +74,31 @@ export function PrContentPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [saving, setSaving] = useState(false)
+  const [drafting, setDrafting] = useState(false)
+  const [aiDrafted, setAiDrafted] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+
+  /* Rough notes in the body field become the model's input; the returned
+     draft replaces them and stays marked until the user edits it. */
+  const draftWithAi = async () => {
+    if (drafting || (!draft.title.trim() && !draft.body.trim())) return
+    setDrafting(true)
+    try {
+      const text = await draftPrContent({
+        itemKind: draft.kind,
+        channel: draft.channel,
+        title: draft.title,
+        notes: draft.body,
+        lang,
+      })
+      setDraft((d) => ({ ...d, body: text }))
+      setAiDrafted(true)
+    } catch {
+      showToast(PM.pr_ai_draft_failed)
+    } finally {
+      setDrafting(false)
+    }
+  }
 
   const openNew = () => {
     setDraft(EMPTY)
@@ -279,15 +304,39 @@ export function PrContentPage() {
               />
             </div>
             <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
-              <label className="sb-flabel" htmlFor="pr-ct-body">{x(PM.pr_content_body)}</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                <label className="sb-flabel" htmlFor="pr-ct-body">{x(PM.pr_content_body)}</label>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  disabled={drafting || (!draft.title.trim() && !draft.body.trim())}
+                  title={x(PM.pr_ai_draft_note)}
+                  onClick={() => void draftWithAi()}
+                >
+                  {drafting ? (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Sparkles size={13} aria-hidden="true" />
+                  )}
+                  {x(drafting ? PM.pr_ai_drafting : PM.pr_ai_draft_btn)}
+                </button>
+              </div>
               <textarea
                 id="pr-ct-body"
                 className="sb-input"
                 style={{ minHeight: 120, paddingTop: 12, resize: 'vertical' }}
                 value={draft.body}
                 placeholder={x(PM.pr_content_body_ph)}
-                onChange={(e) => setDraft({ ...draft, body: e.target.value })}
+                onChange={(e) => {
+                  setDraft({ ...draft, body: e.target.value })
+                  setAiDrafted(false)
+                }}
               />
+              {aiDrafted && (
+                <p className="sb-helper" style={{ margin: '6px 0 0' }}>
+                  {x(PM.pr_ai_draft_note)}
+                </p>
+              )}
             </div>
             <div className="sb-form-actions">
               {draft.id && (

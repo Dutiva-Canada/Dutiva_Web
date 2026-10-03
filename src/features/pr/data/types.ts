@@ -88,6 +88,9 @@ export interface PrMention {
   title: string
   url: string
   sentiment: PrSentiment
+  /** True when the tone tag came from the model (feed ingest / "Suggest
+      tone"), not a human read — the UI marks it as a suggestion. */
+  sentimentAuto: boolean
   publishedAt: string
   createdAt: string
 }
@@ -204,6 +207,7 @@ export function mentionFromRow(row: MentionRow): PrMention {
     title: row.title,
     url: row.url,
     sentiment: row.sentiment as PrSentiment,
+    sentimentAuto: row.sentiment_auto,
     publishedAt: row.published_at,
     createdAt: row.created_at,
   }
