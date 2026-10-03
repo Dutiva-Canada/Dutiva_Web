@@ -31,6 +31,7 @@ export const prMessages = defineMessages({
   pr_tab_media: { en: 'Media', fr: 'Médias' },
   pr_tab_seo: { en: 'SEO', fr: 'SEO' },
   pr_tab_mentions: { en: 'Coverage', fr: 'Retombées' },
+  pr_tab_answers: { en: 'AI answers', fr: 'Réponses IA' },
 
   /* Sign-in wall + access gate */
   pr_signin_title: { en: 'Sign in to Dutiva PR', fr: 'Se connecter à Dutiva RP' },
@@ -67,6 +68,7 @@ export const prMessages = defineMessages({
   pr_ov_scheduled: { en: 'Scheduled content', fr: 'Contenu programmé' },
   pr_ov_contacts: { en: 'Media contacts', fr: 'Contacts médias' },
   pr_ov_mentions_30d: { en: 'Coverage (30 days)', fr: 'Retombées (30 jours)' },
+  pr_ov_answers: { en: 'AI answers cited', fr: 'Réponses IA citées' },
   pr_ov_upcoming: { en: 'Coming up', fr: 'À venir' },
   pr_ov_latest_mentions: { en: 'Latest coverage', fr: 'Dernières retombées' },
   pr_ov_new_campaign: { en: 'New campaign', fr: 'Nouvelle campagne' },
@@ -168,6 +170,12 @@ export const prMessages = defineMessages({
     fr: 'La programmation ici est un plan, pas un pilote automatique — rien ne se publie tout seul.',
   },
   pr_content_untitled: { en: 'Untitled', fr: 'Sans titre' },
+  pr_content_live_url: { en: 'Live URL', fr: 'URL en ligne' },
+  pr_content_live_url_ph: {
+    en: 'Where it actually went out — the link you’ll want later.',
+    fr: 'Où il a réellement paru — le lien que vous voudrez plus tard.',
+  },
+  pr_content_live: { en: 'Live', fr: 'En ligne' },
 
   /* Media contacts */
   pr_media_title: { en: 'Media list', fr: 'Liste de médias' },
@@ -226,6 +234,23 @@ export const prMessages = defineMessages({
     en: 'Positions are manual snapshots, not live rankings — update them when you check a search.',
     fr: 'Les positions sont des relevés manuels, pas des classements en direct — mettez-les à jour quand vous faites une recherche.',
   },
+  pr_seo_import: { en: 'Import', fr: 'Importer' },
+  pr_seo_import_title: { en: 'Import keywords', fr: 'Importer des mots-clés' },
+  pr_seo_import_body: {
+    en: 'One per line: keyword, position, URL. Paste a column from Search Console or a spreadsheet — commas or tabs both work.',
+    fr: 'Un par ligne : mot-clé, position, URL. Collez une colonne de Search Console ou d’un tableur — virgules et tabulations fonctionnent.',
+  },
+  pr_seo_import_ph: {
+    en: 'HR compliance Canada, 12, https://dutiva.ca/\ntermination letter template Ontario, 22\nDutiva',
+    fr: 'conformité RH Canada, 12, https://dutiva.ca/fr\nmodèle de lettre de congédiement Ontario, 22\nDutiva',
+  },
+  pr_seo_import_go: { en: 'Import {count} keywords', fr: 'Importer {count} mots-clés' },
+  pr_seo_import_done: { en: '{count} keywords imported.', fr: '{count} mots-clés importés.' },
+  pr_seo_import_none: {
+    en: 'Nothing to import — each line needs at least a keyword.',
+    fr: 'Rien à importer — chaque ligne doit au moins contenir un mot-clé.',
+  },
+  pr_seo_cancel: { en: 'Cancel', fr: 'Annuler' },
 
   /* Mentions / coverage log */
   pr_men_title: { en: 'Coverage', fr: 'Retombées' },
@@ -254,6 +279,61 @@ export const prMessages = defineMessages({
     fr: 'Rien de consigné pour l’instant. Quand on parle de vous, notez-le ici.',
   },
   pr_men_view: { en: 'View', fr: 'Voir' },
+  pr_men_fetch: { en: 'Fetch details', fr: 'Récupérer les détails' },
+  pr_men_fetching: { en: 'Fetching…', fr: 'Récupération…' },
+  pr_men_fetched: {
+    en: 'Details filled in — check them before saving.',
+    fr: 'Détails remplis — vérifiez-les avant d’enregistrer.',
+  },
+  pr_men_fetch_fail: {
+    en: 'Couldn’t read that page. Fill in the details yourself.',
+    fr: 'Impossible de lire cette page. Remplissez les détails vous-même.',
+  },
+
+  /* AI answers (GEO) — manual spot-checks of assistant visibility */
+  pr_ans_title: { en: 'AI answers', fr: 'Réponses IA' },
+  pr_ans_sub: {
+    en: 'The questions people actually ask ChatGPT, Perplexity, and friends — and whether you come up.',
+    fr: 'Les questions que les gens posent vraiment à ChatGPT, Perplexity et les autres — et si vous y figurez.',
+  },
+  pr_ans_new: { en: 'Track a prompt', fr: 'Suivre une question' },
+  pr_ans_prompt: { en: 'Prompt', fr: 'Question' },
+  pr_ans_prompt_ph: {
+    en: 'e.g. best HR compliance tools for a small Canadian business',
+    fr: 'p. ex. meilleurs outils de conformité RH pour une petite entreprise canadienne',
+  },
+  pr_ans_engine: { en: 'Assistant', fr: 'Assistant' },
+  pr_ans_engine_chatgpt: { en: 'ChatGPT', fr: 'ChatGPT' },
+  pr_ans_engine_perplexity: { en: 'Perplexity', fr: 'Perplexity' },
+  pr_ans_engine_gemini: { en: 'Gemini', fr: 'Gemini' },
+  pr_ans_engine_copilot: { en: 'Copilot', fr: 'Copilot' },
+  pr_ans_engine_other: { en: 'Other', fr: 'Autre' },
+  pr_ans_result: { en: 'Last result', fr: 'Dernier résultat' },
+  pr_ans_res_unchecked: { en: 'Not checked', fr: 'Pas vérifié' },
+  pr_ans_res_cited: { en: 'Cited', fr: 'Citée' },
+  pr_ans_res_mentioned: { en: 'Mentioned', fr: 'Mentionnée' },
+  pr_ans_res_absent: { en: 'Not found', fr: 'Absente' },
+  pr_ans_note: { en: 'Note (optional)', fr: 'Note (facultatif)' },
+  pr_ans_note_ph: {
+    en: 'e.g. named third, no link; suggested a competitor',
+    fr: 'p. ex. nommée troisième, sans lien; a suggéré un concurrent',
+  },
+  pr_ans_check: { en: 'Log result', fr: 'Consigner' },
+  pr_ans_checked: { en: 'Checked {date}', fr: 'Vérifié le {date}' },
+  pr_ans_never: { en: 'Not checked yet', fr: 'Pas encore vérifié' },
+  pr_ans_save: { en: 'Save prompt', fr: 'Enregistrer la question' },
+  pr_ans_saved: { en: 'Prompt saved.', fr: 'Question enregistrée.' },
+  pr_ans_updated: { en: 'Result logged.', fr: 'Résultat consigné.' },
+  pr_ans_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_ans_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_ans_empty: {
+    en: 'No prompts tracked yet. Add the questions you’d want to be named in.',
+    fr: 'Aucune question suivie pour l’instant. Ajoutez celles où vous voudriez être nommé.',
+  },
+  pr_ans_note_banner: {
+    en: 'These are your own spot-checks — assistants personalize answers, so treat results as directional, not definitive.',
+    fr: 'Ce sont vos propres vérifications ponctuelles — les assistants personnalisent leurs réponses, alors prenez les résultats comme indicatifs, pas définitifs.',
+  },
 
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },

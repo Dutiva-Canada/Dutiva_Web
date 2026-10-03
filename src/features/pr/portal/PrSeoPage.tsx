@@ -5,8 +5,13 @@ import { Loader2, Minus, MoveDown, MoveUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addKeyword, deleteKeyword, updateKeywordPosition } from '@/features/pr/data/api'
-import { rankDelta } from '@/features/pr/data/prStats'
+import {
+  addKeyword,
+  bulkAddKeywords,
+  deleteKeyword,
+  updateKeywordPosition,
+} from '@/features/pr/data/api'
+import { parseKeywordImport, rankDelta } from '@/features/pr/data/prStats'
 import type { PrKeyword } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate } from './prUi'
@@ -28,6 +33,9 @@ export function PrSeoPage() {
   const [saving, setSaving] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [positions, setPositions] = useState<Record<string, string>>({})
+  const [importOpen, setImportOpen] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [importing, setImporting] = useState(false)
 
   const submit = async () => {
     if (!draft.keyword.trim() || saving) return
@@ -63,6 +71,25 @@ export function PrSeoPage() {
     await refresh()
   }
 
+  const importRows = parseKeywordImport(importText)
+
+  const runImport = async () => {
+    if (importRows.length === 0 || importing) return
+    setImporting(true)
+    try {
+      await bulkAddKeywords(importRows)
+      await refresh()
+      setImportText('')
+      setImportOpen(false)
+      showToast({
+        en: PM.pr_seo_import_done.en.replace('{count}', String(importRows.length)),
+        fr: PM.pr_seo_import_done.fr.replace('{count}', String(importRows.length)),
+      })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   if (loading || !state) {
     return (
       <div className="flex items-center justify-center py-[80px]">
@@ -85,15 +112,71 @@ export function PrSeoPage() {
     <div className="sb prx sb-page">
       <div className="sb-head-row">
         <h1>{x(PM.pr_seo_title)}</h1>
-        <button
-          type="button"
-          className="sb-btn sb-btn-primary"
-          onClick={() => setFormOpen(true)}
-        >
-          {x(PM.pr_seo_new)}
-        </button>
+        <div className="sb-row-actions">
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
+            onClick={() => {
+              setImportOpen((o) => !o)
+              setFormOpen(false)
+            }}
+          >
+            {x(PM.pr_seo_import)}
+          </button>
+          <button
+            type="button"
+            className="sb-btn sb-btn-primary"
+            onClick={() => {
+              setFormOpen(true)
+              setImportOpen(false)
+            }}
+          >
+            {x(PM.pr_seo_new)}
+          </button>
+        </div>
       </div>
       <p className="sb-sub">{x(PM.pr_seo_sub)}</p>
+
+      {importOpen && (
+        <div className="sb-card sb-card-pad">
+          <div className="sb-section-head" style={{ marginTop: 0 }}>
+            <h2 className="m-0 text-[16px]">{x(PM.pr_seo_import_title)}</h2>
+          </div>
+          <p className="sb-sub" style={{ marginTop: 4 }}>{x(PM.pr_seo_import_body)}</p>
+          <textarea
+            className="sb-input"
+            style={{ width: '100%', minHeight: 120, marginTop: 10, resize: 'vertical' }}
+            value={importText}
+            placeholder={x(PM.pr_seo_import_ph)}
+            aria-label={x(PM.pr_seo_import_title)}
+            onChange={(e) => setImportText(e.target.value)}
+          />
+          <div className="sb-form-actions" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="sb-btn sb-btn-secondary"
+              onClick={() => {
+                setImportText('')
+                setImportOpen(false)
+              }}
+            >
+              {x(PM.pr_seo_cancel)}
+            </button>
+            <button
+              type="button"
+              className="sb-btn sb-btn-primary"
+              disabled={importRows.length === 0 || importing}
+              title={
+                importRows.length === 0 ? x(PM.pr_seo_import_none) : undefined
+              }
+              onClick={() => void runImport()}
+            >
+              {importing && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+              {x(PM.pr_seo_import_go).replace('{count}', String(importRows.length))}
+            </button>
+          </div>
+        </div>
+      )}
 
       {formOpen && (
         <form

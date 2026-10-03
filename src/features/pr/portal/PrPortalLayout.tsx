@@ -17,6 +17,7 @@ const NAV = [
   { to: '/pr/content', end: false, label: PM.pr_tab_content },
   { to: '/pr/media', end: false, label: PM.pr_tab_media },
   { to: '/pr/seo', end: false, label: PM.pr_tab_seo },
+  { to: '/pr/answers', end: false, label: PM.pr_tab_answers },
   { to: '/pr/mentions', end: false, label: PM.pr_tab_mentions },
 ] as const
 

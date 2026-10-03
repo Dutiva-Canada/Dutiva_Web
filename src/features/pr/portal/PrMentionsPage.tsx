@@ -1,11 +1,11 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useState } from 'react'
-import { ExternalLink, Loader2, Trash2 } from 'lucide-react'
+import { ExternalLink, Link2, Loader2, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addMention, deleteMention } from '@/features/pr/data/api'
+import { addMention, deleteMention, fetchMentionMeta } from '@/features/pr/data/api'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate, SENTIMENTS, sentimentLabel } from './prUi'
@@ -40,7 +40,29 @@ export function PrMentionsPage() {
     date: '',
   })
   const [saving, setSaving] = useState(false)
+  const [fetching, setFetching] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+
+  /** Paste-a-link prefill — the edge function reads the page's meta tags so
+      headline/outlet/date come back filled. Never overwrites typed fields. */
+  const fetchDetails = async () => {
+    if (!draft.url.trim() || fetching) return
+    setFetching(true)
+    try {
+      const meta = await fetchMentionMeta(draft.url.trim())
+      setDraft((d) => ({
+        ...d,
+        title: d.title || meta.title,
+        source: d.source || meta.source,
+        date: d.date || (meta.publishedAt ? meta.publishedAt.slice(0, 10) : ''),
+      }))
+      showToast(PM.pr_men_fetched)
+    } catch {
+      showToast(PM.pr_men_fetch_fail)
+    } finally {
+      setFetching(false)
+    }
+  }
 
   const submit = async () => {
     if (!draft.title.trim() || saving) return
@@ -136,16 +158,33 @@ export function PrMentionsPage() {
                 onChange={(e) => setDraft({ ...draft, source: e.target.value })}
               />
             </div>
-            <div className="sb-field">
+            <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
               <label className="sb-flabel" htmlFor="pr-mn-url">{x(PM.pr_men_url)}</label>
-              <input
-                id="pr-mn-url"
-                className="sb-input"
-                type="url"
-                value={draft.url}
-                placeholder={x(PM.pr_men_url_ph)}
-                onChange={(e) => setDraft({ ...draft, url: e.target.value })}
-              />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                <input
+                  id="pr-mn-url"
+                  className="sb-input"
+                  style={{ flex: 1, minWidth: 0 }}
+                  type="url"
+                  value={draft.url}
+                  placeholder={x(PM.pr_men_url_ph)}
+                  onChange={(e) => setDraft({ ...draft, url: e.target.value })}
+                />
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary"
+                  style={{ minHeight: 44, whiteSpace: 'nowrap' }}
+                  disabled={!draft.url.trim() || fetching}
+                  onClick={() => void fetchDetails()}
+                >
+                  {fetching ? (
+                    <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Link2 size={14} aria-hidden="true" />
+                  )}
+                  {x(fetching ? PM.pr_men_fetching : PM.pr_men_fetch)}
+                </button>
+              </div>
             </div>
             <div className="sb-field">
               <label className="sb-flabel" htmlFor="pr-mn-sent">{x(PM.pr_men_sentiment)}</label>

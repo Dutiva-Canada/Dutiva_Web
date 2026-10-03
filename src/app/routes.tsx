@@ -92,6 +92,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PrContentPage = lazy(() => import('@/features/pr/portal/PrContentPage').then((m) => ({ default: m.PrContentPage })))
 /* prettier-ignore */ const PrMediaPage = lazy(() => import('@/features/pr/portal/PrMediaPage').then((m) => ({ default: m.PrMediaPage })))
 /* prettier-ignore */ const PrSeoPage = lazy(() => import('@/features/pr/portal/PrSeoPage').then((m) => ({ default: m.PrSeoPage })))
+/* prettier-ignore */ const PrAnswersPage = lazy(() => import('@/features/pr/portal/PrAnswersPage').then((m) => ({ default: m.PrAnswersPage })))
 /* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
 /* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
 /* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
@@ -231,6 +232,7 @@ function NotFoundRoute() {
  *   /pr/content             content desk — posts, releases, ad copy, briefs
  *   /pr/media               media-contact list (outlets, beats, emails)
  *   /pr/seo                 keyword position tracker (manual snapshots)
+ *   /pr/answers             GEO tracker — brand presence in AI answers
  *   /pr/mentions            coverage/mentions log with tone tagging
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
@@ -450,6 +452,7 @@ function routeTree(): RouteObject[] {
             { path: 'content', element: <PrContentPage /> },
             { path: 'media', element: <PrMediaPage /> },
             { path: 'seo', element: <PrSeoPage /> },
+            { path: 'answers', element: <PrAnswersPage /> },
             { path: 'mentions', element: <PrMentionsPage /> },
           ],
         },

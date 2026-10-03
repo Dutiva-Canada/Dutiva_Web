@@ -11840,6 +11840,8 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          published_at: string | null
+          published_url: string
           scheduled_for: string | null
           status: string
           title: string
@@ -11853,6 +11855,8 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          published_at?: string | null
+          published_url?: string
           scheduled_for?: string | null
           status?: string
           title?: string
@@ -11866,6 +11870,8 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          published_at?: string | null
+          published_url?: string
           scheduled_for?: string | null
           status?: string
           title?: string
@@ -11881,6 +11887,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pr_geo_prompts: {
+        Row: {
+          checked_at: string | null
+          created_at: string
+          engine: string
+          id: string
+          note: string
+          prompt: string
+          result: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string | null
+          created_at?: string
+          engine?: string
+          id?: string
+          note?: string
+          prompt: string
+          result?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checked_at?: string | null
+          created_at?: string
+          engine?: string
+          id?: string
+          note?: string
+          prompt?: string
+          result?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pr_keywords: {
         Row: {

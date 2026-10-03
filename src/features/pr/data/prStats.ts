@@ -54,3 +54,46 @@ export function rankDelta(k: PrKeyword): { dir: RankDelta; spots: number } {
 export function campaignItemCount(items: PrContentItem[], campaignId: string): number {
   return items.filter((i) => i.campaignId === campaignId).length
 }
+
+export interface KeywordImportRow {
+  keyword: string
+  position?: number
+  targetUrl?: string
+}
+
+/** Parse a pasted keyword export — one `keyword[, position[, url]]` per
+    line, commas or tabs. Tolerant of a header row and of extra numeric
+    columns (clicks/impressions in a Search Console export): the first
+    plausible rank wins, the first URL-shaped cell becomes the target. */
+export function parseKeywordImport(text: string): KeywordImportRow[] {
+  const out: KeywordImportRow[] = []
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (!line) continue
+    const cells = line.split(/[,\t]/).map((c) => c.trim().replace(/^["']|["']$/g, ''))
+    const keyword = cells[0] ?? ''
+    if (!keyword) continue
+    if (out.length === 0 && /^(keyword|query|top quer|mot[- ]?cl|requête)/i.test(keyword)) {
+      continue
+    }
+    /* A URL in the keyword column means a "top pages" export, not a query —
+       skip it rather than tracking a domain as a keyword. */
+    if (/^(https?:\/\/|\S+\.[a-z]{2,})/i.test(keyword)) continue
+    let position: number | undefined
+    let targetUrl: string | undefined
+    for (const cell of cells.slice(1)) {
+      if (position === undefined && cell !== '') {
+        const n = Number(cell)
+        if (Number.isFinite(n) && n >= 1 && n <= 100) {
+          position = Math.round(n)
+          continue
+        }
+      }
+      if (targetUrl === undefined && /^(https?:\/\/|\S+\.[a-z]{2,})/i.test(cell)) {
+        targetUrl = cell
+      }
+    }
+    out.push({ keyword, position, targetUrl })
+  }
+  return out
+}

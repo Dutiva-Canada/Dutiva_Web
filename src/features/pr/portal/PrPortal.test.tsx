@@ -12,6 +12,7 @@ import {
   activeCampaigns,
   campaignItemCount,
   mentionsInWindow,
+  parseKeywordImport,
   rankDelta,
   upcomingContent,
 } from '@/features/pr/data/prStats'
@@ -36,10 +37,15 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   addMediaContact: vi.fn(),
   deleteMediaContact: vi.fn(),
   addKeyword: vi.fn(),
+  bulkAddKeywords: vi.fn(),
   updateKeywordPosition: vi.fn(),
   deleteKeyword: vi.fn(),
   addMention: vi.fn(),
   deleteMention: vi.fn(),
+  fetchMentionMeta: vi.fn(),
+  addGeoPrompt: vi.fn(),
+  recordGeoCheck: vi.fn(),
+  deleteGeoPrompt: vi.fn(),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -95,6 +101,8 @@ const STATE: PrState = {
       channel: 'LinkedIn',
       status: 'scheduled',
       scheduledFor: new Date(Date.now() + 2 * 86400000).toISOString(),
+      publishedUrl: '',
+      publishedAt: null,
       createdAt: '2026-10-03T14:00:00Z',
       updatedAt: '2026-10-03T14:00:00Z',
     },
@@ -112,6 +120,18 @@ const STATE: PrState = {
   ],
   keywords: [],
   mentions: [],
+  geoPrompts: [
+    {
+      id: 'gp1',
+      prompt: 'best hr compliance tool canada',
+      engine: 'chatgpt',
+      result: 'cited',
+      note: '',
+      checkedAt: '2026-10-02T14:00:00Z',
+      createdAt: '2026-10-01T14:00:00Z',
+      updatedAt: '2026-10-02T14:00:00Z',
+    },
+  ],
   lastLoadedAt: new Date().toISOString(),
 }
 
@@ -130,6 +150,7 @@ function renderPortal(ui: ReactElement, route = '/pr') {
                 <Route path="/pr/content" element={ui} />
                 <Route path="/pr/media" element={ui} />
                 <Route path="/pr/seo" element={ui} />
+                <Route path="/pr/answers" element={ui} />
                 <Route path="/pr/mentions" element={ui} />
               </Routes>
             </MemoryRouter>
@@ -253,5 +274,40 @@ describe('prStats', () => {
   it('counts content items linked to a campaign', () => {
     expect(campaignItemCount(STATE.contentItems, 'camp1')).toBe(1)
     expect(campaignItemCount(STATE.contentItems, 'camp2')).toBe(0)
+  })
+
+  it('parses a pasted keyword export — commas, tabs, quotes, headers', () => {
+    const rows = parseKeywordImport(
+      [
+        'keyword,position,url',
+        'hr compliance software, 4, https://dutiva.ca/',
+        '"onboarding checklist",12,',
+        'payroll rules\t27\tdutiva.ca/pricing',
+        '',
+        '   ',
+        'termination notice',
+      ].join('\n'),
+    )
+    expect(rows).toEqual([
+      { keyword: 'hr compliance software', position: 4, targetUrl: 'https://dutiva.ca/' },
+      { keyword: 'onboarding checklist', position: 12, targetUrl: undefined },
+      { keyword: 'payroll rules', position: 27, targetUrl: 'dutiva.ca/pricing' },
+      { keyword: 'termination notice', position: undefined, targetUrl: undefined },
+    ])
+  })
+
+  it('skips Search Console extras and keeps the first plausible rank', () => {
+    /* query, clicks, impressions, ctr, position — the rank is column 5. */
+    const rows = parseKeywordImport('hr templates,1240,8300,14.9%,7')
+    expect(rows).toEqual([
+      { keyword: 'hr templates', position: 7, targetUrl: undefined },
+    ])
+  })
+
+  it('ignores out-of-range numbers and URL-shaped first cells', () => {
+    const rows = parseKeywordImport('wrongful dismissal, 450\nhttps://example.com/page')
+    expect(rows).toEqual([
+      { keyword: 'wrongful dismissal', position: undefined, targetUrl: undefined },
+    ])
   })
 })

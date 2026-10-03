@@ -45,6 +45,7 @@ export function PrHomePage() {
   const active = activeCampaigns(state.campaigns).length
   const upcoming = upcomingContent(state.contentItems)
   const recentMentions = mentionsInWindow(state.mentions, 30)
+  const citedAnswers = state.geoPrompts.filter((p) => p.result === 'cited').length
 
   return (
     <div className="sb prx sb-page">
@@ -72,6 +73,10 @@ export function PrHomePage() {
         <div className="sb-stat">
           <div className="k">{x(PM.pr_ov_mentions_30d)}</div>
           <div className="v">{recentMentions.length}</div>
+        </div>
+        <div className="sb-stat">
+          <div className="k">{x(PM.pr_ov_answers)}</div>
+          <div className="v">{citedAnswers}</div>
         </div>
       </div>
 

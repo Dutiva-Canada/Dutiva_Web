@@ -1,7 +1,7 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useState } from 'react'
-import { Info, Loader2, PenSquare, Trash2 } from 'lucide-react'
+import { ExternalLink, Info, Loader2, PenSquare, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
@@ -35,6 +35,8 @@ interface Draft {
   campaignId: string
   status: PrContentStatus
   scheduledFor: string
+  publishedUrl: string
+  publishedAt: string | null
   body: string
 }
 
@@ -46,6 +48,8 @@ const EMPTY: Draft = {
   campaignId: '',
   status: 'draft',
   scheduledFor: '',
+  publishedUrl: '',
+  publishedAt: null,
   body: '',
 }
 
@@ -85,6 +89,8 @@ export function PrContentPage() {
       campaignId: item.campaignId ?? '',
       status: item.status,
       scheduledFor: toLocalInput(item.scheduledFor),
+      publishedUrl: item.publishedUrl,
+      publishedAt: item.publishedAt,
       body: item.body,
     })
     setFormOpen(true)
@@ -106,6 +112,14 @@ export function PrContentPage() {
         status: draft.status,
         campaignId: draft.campaignId || null,
         scheduledFor: scheduled,
+        publishedUrl: draft.publishedUrl,
+        /* First transition to published stamps the date; unpublishing
+           keeps the record — it did go out — so the history isn't
+           rewritten. */
+        publishedAt:
+          draft.status === 'published' && !draft.publishedAt
+            ? new Date().toISOString()
+            : draft.publishedAt,
       }
       if (draft.id) await updateContentItem(draft.id, fields)
       else await addContentItem(fields)
@@ -237,6 +251,21 @@ export function PrContentPage() {
                 ))}
               </select>
             </div>
+            {draft.status === 'published' && (
+              <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
+                <label className="sb-flabel" htmlFor="pr-ct-live">
+                  {x(PM.pr_content_live_url)}
+                </label>
+                <input
+                  id="pr-ct-live"
+                  className="sb-input"
+                  type="url"
+                  value={draft.publishedUrl}
+                  placeholder={x(PM.pr_content_live_url_ph)}
+                  onChange={(e) => setDraft({ ...draft, publishedUrl: e.target.value })}
+                />
+              </div>
+            )}
             <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
               <label className="sb-flabel" htmlFor="pr-ct-title">
                 {x(PM.pr_content_title_field)}
@@ -313,6 +342,18 @@ export function PrContentPage() {
                       >
                         {campaignName(item.campaignId)}
                       </span>
+                    )}
+                    {item.publishedUrl && (
+                      <a
+                        href={item.publishedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="prx-chip"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <ExternalLink size={11} aria-hidden="true" />
+                        {x(PM.pr_content_live)}
+                      </a>
                     )}
                   </div>
                   <p

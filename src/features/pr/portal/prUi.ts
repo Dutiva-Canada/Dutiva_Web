@@ -6,6 +6,8 @@ import type {
   PrChannel,
   PrContentKind,
   PrContentStatus,
+  PrGeoEngine,
+  PrGeoResult,
   PrSentiment,
 } from '@/features/pr/data/types'
 
@@ -53,7 +55,24 @@ export const CHANNELS = Object.keys(CHANNEL_LABELS) as PrChannel[]
 export const CAMPAIGN_STATUSES = Object.keys(CAMPAIGN_STATUS_LABELS) as PrCampaignStatus[]
 export const CONTENT_KINDS = Object.keys(CONTENT_KIND_LABELS) as PrContentKind[]
 export const CONTENT_STATUSES = Object.keys(CONTENT_STATUS_LABELS) as PrContentStatus[]
+export const GEO_ENGINE_LABELS: Record<PrGeoEngine, Bi> = {
+  chatgpt: PM.pr_ans_engine_chatgpt,
+  perplexity: PM.pr_ans_engine_perplexity,
+  gemini: PM.pr_ans_engine_gemini,
+  copilot: PM.pr_ans_engine_copilot,
+  other: PM.pr_ans_engine_other,
+}
+
+export const GEO_RESULT_LABELS: Record<PrGeoResult, Bi> = {
+  unchecked: PM.pr_ans_res_unchecked,
+  cited: PM.pr_ans_res_cited,
+  mentioned: PM.pr_ans_res_mentioned,
+  absent: PM.pr_ans_res_absent,
+}
+
 export const SENTIMENTS = Object.keys(SENTIMENT_LABELS) as PrSentiment[]
+export const GEO_ENGINES = Object.keys(GEO_ENGINE_LABELS) as PrGeoEngine[]
+export const GEO_RESULTS = Object.keys(GEO_RESULT_LABELS) as PrGeoResult[]
 
 export function channelLabel(c: PrChannel, lang: Lang): string {
   return pick(CHANNEL_LABELS[c] ?? PM.pr_chan_other, lang)
@@ -73,6 +92,14 @@ export function contentStatusLabel(s: PrContentStatus, lang: Lang): string {
 
 export function sentimentLabel(s: PrSentiment, lang: Lang): string {
   return pick(SENTIMENT_LABELS[s] ?? PM.pr_men_neutral, lang)
+}
+
+export function geoEngineLabel(e: PrGeoEngine, lang: Lang): string {
+  return pick(GEO_ENGINE_LABELS[e] ?? PM.pr_ans_engine_other, lang)
+}
+
+export function geoResultLabel(r: PrGeoResult, lang: Lang): string {
+  return pick(GEO_RESULT_LABELS[r] ?? PM.pr_ans_res_unchecked, lang)
 }
 
 const dateFmt = (lang: Lang, opts: Intl.DateTimeFormatOptions) =>

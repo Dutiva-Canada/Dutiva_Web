@@ -3,6 +3,7 @@ import {
   campaignFromRow,
   contactFromRow,
   contentFromRow,
+  geoPromptFromRow,
   keywordFromRow,
   mentionFromRow,
   type PrCampaign,
@@ -11,6 +12,9 @@ import {
   type PrContentItem,
   type PrContentKind,
   type PrContentStatus,
+  type PrGeoEngine,
+  type PrGeoPrompt,
+  type PrGeoResult,
   type PrKeyword,
   type PrMediaContact,
   type PrMention,
@@ -50,14 +54,16 @@ export async function hasPrAccess(): Promise<boolean> {
 
 export async function loadPrState(): Promise<PrState> {
   const client = requireSupabase()
-  const [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes] = await Promise.all([
-    client.from('pr_campaigns').select('*').order('created_at', { ascending: false }),
-    client.from('pr_content_items').select('*').order('created_at', { ascending: false }),
-    client.from('pr_media_contacts').select('*').order('created_at', { ascending: false }),
-    client.from('pr_keywords').select('*').order('created_at', { ascending: false }),
-    client.from('pr_mentions').select('*').order('published_at', { ascending: false }),
-  ])
-  for (const res of [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes]) {
+  const [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes] =
+    await Promise.all([
+      client.from('pr_campaigns').select('*').order('created_at', { ascending: false }),
+      client.from('pr_content_items').select('*').order('created_at', { ascending: false }),
+      client.from('pr_media_contacts').select('*').order('created_at', { ascending: false }),
+      client.from('pr_keywords').select('*').order('created_at', { ascending: false }),
+      client.from('pr_mentions').select('*').order('published_at', { ascending: false }),
+      client.from('pr_geo_prompts').select('*').order('created_at', { ascending: false }),
+    ])
+  for (const res of [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes]) {
     if (res.error) throw res.error
   }
   return {
@@ -66,6 +72,7 @@ export async function loadPrState(): Promise<PrState> {
     contacts: (contactsRes.data ?? []).map(contactFromRow),
     keywords: (keywordsRes.data ?? []).map(keywordFromRow),
     mentions: (mentionsRes.data ?? []).map(mentionFromRow),
+    geoPrompts: (geoRes.data ?? []).map(geoPromptFromRow),
     lastLoadedAt: new Date().toISOString(),
   }
 }
@@ -149,6 +156,8 @@ export async function addContentItem(input: {
   status?: PrContentStatus
   campaignId?: string | null
   scheduledFor?: string | null
+  publishedUrl?: string
+  publishedAt?: string | null
 }): Promise<PrContentItem> {
   const client = requireSupabase()
   const userId = await requireUserId()
@@ -164,6 +173,8 @@ export async function addContentItem(input: {
       channel: (input.channel ?? '').trim(),
       status: input.status ?? 'draft',
       scheduled_for: input.scheduledFor ?? null,
+      published_url: (input.publishedUrl ?? '').trim(),
+      published_at: input.publishedAt ?? null,
       created_at: now,
       updated_at: now,
     })
@@ -183,6 +194,8 @@ export async function updateContentItem(
     status: PrContentStatus
     campaignId: string | null
     scheduledFor: string | null
+    publishedUrl: string
+    publishedAt: string | null
   }>,
 ): Promise<void> {
   const client = requireSupabase()
@@ -196,6 +209,8 @@ export async function updateContentItem(
       ...(patch.status !== undefined ? { status: patch.status } : {}),
       ...(patch.campaignId !== undefined ? { campaign_id: patch.campaignId } : {}),
       ...(patch.scheduledFor !== undefined ? { scheduled_for: patch.scheduledFor } : {}),
+      ...(patch.publishedUrl !== undefined ? { published_url: patch.publishedUrl.trim() } : {}),
+      ...(patch.publishedAt !== undefined ? { published_at: patch.publishedAt } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -323,4 +338,106 @@ export async function deleteMention(id: string): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.from('pr_mentions').delete().eq('id', id)
   if (error) throw error
+}
+
+/* ---------- GEO prompts (AI answers) ---------- */
+
+export async function addGeoPrompt(input: {
+  prompt: string
+  engine?: PrGeoEngine
+}): Promise<PrGeoPrompt> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const now = new Date().toISOString()
+  const { data, error } = await client
+    .from('pr_geo_prompts')
+    .insert({
+      user_id: userId,
+      prompt: input.prompt.trim(),
+      engine: input.engine ?? 'chatgpt',
+      created_at: now,
+      updated_at: now,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return geoPromptFromRow(data)
+}
+
+/** Record the outcome of a manual spot-check — the human asked the prompt
+    in the assistant and is logging what came back. */
+export async function recordGeoCheck(
+  id: string,
+  result: PrGeoResult,
+  note: string,
+): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('pr_geo_prompts')
+    .update({
+      result,
+      note: note.trim(),
+      checked_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteGeoPrompt(id: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('pr_geo_prompts').delete().eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- SEO bulk import ---------- */
+
+/** Paste an export (Search Console, a rank tracker, a spreadsheet column)
+    — one `keyword[, position[, url]]` per line. Rows with a position are
+    treated as a fresh check, like updateKeywordPosition for a new keyword. */
+export async function bulkAddKeywords(
+  rows: { keyword: string; position?: number; targetUrl?: string }[],
+): Promise<number> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const now = new Date().toISOString()
+  const { error } = await client.from('pr_keywords').insert(
+    rows.map((r) => ({
+      user_id: userId,
+      keyword: r.keyword.trim(),
+      target_url: (r.targetUrl ?? '').trim(),
+      position: r.position ?? null,
+      previous_position: null,
+      checked_at: r.position != null ? now : null,
+    })),
+  )
+  if (error) throw error
+  return rows.length
+}
+
+/* ---------- mention metadata fetch ---------- */
+
+export interface MentionMeta {
+  title: string
+  source: string
+  publishedAt: string | null
+}
+
+/** Ask the pr-fetch-meta edge function for a page's headline/site/date so
+    logging coverage is a paste-a-URL job instead of retyping it. The date
+    comes back normalized to ISO (the raw meta tag may be "September 3",
+    RFC-822, etc.) so callers can slice it into a <input type="date">. */
+export async function fetchMentionMeta(url: string): Promise<MentionMeta> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-fetch-meta', {
+    body: { url },
+  })
+  if (error) throw error
+  const raw = (data as Partial<MentionMeta> | null) ?? {}
+  const parsed = raw.publishedAt ? Date.parse(raw.publishedAt) : NaN
+  return {
+    title: raw.title ?? '',
+    source: raw.source ?? '',
+    publishedAt: Number.isNaN(parsed) ? null : new Date(parsed).toISOString(),
+  }
 }

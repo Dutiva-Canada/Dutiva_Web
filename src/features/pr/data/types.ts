@@ -5,6 +5,7 @@ type ContentRow = Database['public']['Tables']['pr_content_items']['Row']
 type ContactRow = Database['public']['Tables']['pr_media_contacts']['Row']
 type KeywordRow = Database['public']['Tables']['pr_keywords']['Row']
 type MentionRow = Database['public']['Tables']['pr_mentions']['Row']
+type GeoPromptRow = Database['public']['Tables']['pr_geo_prompts']['Row']
 
 /** The constrained vocabularies the migration CHECKs enforce — mirrored in
     TS so forms can't emit a value the database would reject. */
@@ -21,6 +22,8 @@ export type PrCampaignStatus = 'draft' | 'active' | 'paused' | 'done'
 export type PrContentKind = 'post' | 'release' | 'ad' | 'article' | 'brief'
 export type PrContentStatus = 'draft' | 'scheduled' | 'published'
 export type PrSentiment = 'positive' | 'neutral' | 'negative'
+export type PrGeoEngine = 'chatgpt' | 'perplexity' | 'gemini' | 'copilot' | 'other'
+export type PrGeoResult = 'unchecked' | 'cited' | 'mentioned' | 'absent'
 
 export interface PrCampaign {
   id: string
@@ -45,6 +48,9 @@ export interface PrContentItem {
   status: PrContentStatus
   /** When the user plans to publish — a reminder, not automation. */
   scheduledFor: string | null
+  /** Where the piece actually went out, once the user marks it published. */
+  publishedUrl: string
+  publishedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -79,12 +85,25 @@ export interface PrMention {
   createdAt: string
 }
 
+export interface PrGeoPrompt {
+  id: string
+  prompt: string
+  engine: PrGeoEngine
+  /** What the assistant did with the brand the last time a human checked. */
+  result: PrGeoResult
+  note: string
+  checkedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface PrState {
   campaigns: PrCampaign[]
   contentItems: PrContentItem[]
   contacts: PrMediaContact[]
   keywords: PrKeyword[]
   mentions: PrMention[]
+  geoPrompts: PrGeoPrompt[]
   lastLoadedAt: string
 }
 
@@ -113,6 +132,8 @@ export function contentFromRow(row: ContentRow): PrContentItem {
     channel: row.channel,
     status: row.status as PrContentStatus,
     scheduledFor: row.scheduled_for,
+    publishedUrl: row.published_url,
+    publishedAt: row.published_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -151,5 +172,18 @@ export function mentionFromRow(row: MentionRow): PrMention {
     sentiment: row.sentiment as PrSentiment,
     publishedAt: row.published_at,
     createdAt: row.created_at,
+  }
+}
+
+export function geoPromptFromRow(row: GeoPromptRow): PrGeoPrompt {
+  return {
+    id: row.id,
+    prompt: row.prompt,
+    engine: row.engine as PrGeoEngine,
+    result: row.result as PrGeoResult,
+    note: row.note,
+    checkedAt: row.checked_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
