@@ -255,6 +255,14 @@ export const healthMessages = defineMessages({
   },
   health_ov_habits: { en: 'Habits today', fr: 'Habitudes du jour' },
 
+  /* Notifications — one gentle evening nudge, only when a live streak
+     isn't checked off yet. */
+  health_notify_label: { en: 'Email me if a streak is at risk', fr: 'M’écrire si une suite est à risque' },
+  health_notify_hint: {
+    en: 'One email a day at most, only when a habit with a streak isn’t checked off yet.',
+    fr: 'Un courriel par jour au plus, seulement quand une habitude avec une suite n’est pas encore cochée.',
+  },
+
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },
   health_tools_sub: {

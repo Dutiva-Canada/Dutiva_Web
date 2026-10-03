@@ -1,12 +1,13 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Loader2, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { addHabit, deleteHabit, setHabitDone } from '@/features/health/data/api'
 import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
+import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHealthHead } from './useHealthHead'
 
@@ -25,6 +26,32 @@ export function HealthHabitsPage() {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
+  const [notifySaving, setNotifySaving] = useState(false)
+
+  /* Evening streak nudge — one email a day at most, only while a live
+     streak is unchecked. Absent pref row defaults to on. */
+  useEffect(() => {
+    let cancelled = false
+    loadNotifyPref('health')
+      .then((v) => { if (!cancelled) setNotifyOn(v) })
+      .catch(() => { if (!cancelled) setNotifyOn(true) })
+    return () => { cancelled = true }
+  }, [])
+
+  const toggleNotify = async () => {
+    const next = !(notifyOn ?? true)
+    if (notifySaving) return
+    setNotifySaving(true)
+    setNotifyOn(next)
+    try {
+      await setNotifyPref('health', next)
+    } catch {
+      setNotifyOn(!next)
+    } finally {
+      setNotifySaving(false)
+    }
+  }
 
   const habits = state?.habits ?? []
   const logs = state?.habitLogs ?? []
@@ -169,6 +196,20 @@ export function HealthHabitsPage() {
               )
             })}
           </div>
+        )}
+        {notifyOn !== null && (
+          <label className="sb-notify-row">
+            <input
+              type="checkbox"
+              checked={notifyOn}
+              disabled={notifySaving}
+              onChange={() => void toggleNotify()}
+            />
+            <span>
+              {x(HM.health_notify_label)}
+              <span className="sb-notify-hint">{x(HM.health_notify_hint)}</span>
+            </span>
+          </label>
         )}
       </section>
 

@@ -40,6 +40,11 @@ vi.mock('@/features/health/data/api', async (importOriginal) => ({
   setHabitDone: vi.fn(),
 }))
 
+vi.mock('@/lib/notifications/notifyPrefs', () => ({
+  loadNotifyPref: vi.fn().mockResolvedValue(true),
+  setNotifyPref: vi.fn().mockResolvedValue(undefined),
+}))
+
 const { useAuth } = await import('@/features/app/auth/authContext')
 const { hasHealthAccess, loadHealthState } = await import('@/features/health/data/api')
 

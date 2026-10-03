@@ -96,6 +96,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PrSeoPage = lazy(() => import('@/features/pr/portal/PrSeoPage').then((m) => ({ default: m.PrSeoPage })))
 /* prettier-ignore */ const PrAnswersPage = lazy(() => import('@/features/pr/portal/PrAnswersPage').then((m) => ({ default: m.PrAnswersPage })))
 /* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
+/* prettier-ignore */ const PrReportPage = lazy(() => import('@/features/pr/portal/PrReportPage').then((m) => ({ default: m.PrReportPage })))
 /* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
 /* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
 
@@ -238,6 +239,7 @@ function NotFoundRoute() {
  *   /pr/seo                 keyword position tracker (manual snapshots)
  *   /pr/answers             GEO tracker — brand presence in AI answers
  *   /pr/mentions            coverage/mentions log with tone tagging
+ *   /pr/report              monthly desk summary + Markdown export
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
@@ -460,6 +462,7 @@ function routeTree(): RouteObject[] {
             { path: 'seo', element: <PrSeoPage /> },
             { path: 'answers', element: <PrAnswersPage /> },
             { path: 'mentions', element: <PrMentionsPage /> },
+            { path: 'report', element: <PrReportPage /> },
           ],
         },
       ],

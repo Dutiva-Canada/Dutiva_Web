@@ -97,6 +97,11 @@ verify_jwt = false
 [functions.pr-geo-check]
 verify_jwt = false
 
+# Health cron worker — x-trigger-secret in-band (migration 0196 schedules it).
+# Trigger-only: no portal button, so no JWT path.
+[functions.health-habit-notify]
+verify_jwt = false
+
 [functions.notify-signing-status]
 verify_jwt = false
 

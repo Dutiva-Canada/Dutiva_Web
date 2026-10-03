@@ -52,6 +52,11 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   runGeoChecks: vi.fn(),
 }))
 
+vi.mock('@/lib/notifications/notifyPrefs', () => ({
+  loadNotifyPref: vi.fn().mockResolvedValue(true),
+  setNotifyPref: vi.fn().mockResolvedValue(undefined),
+}))
+
 const { useAuth } = await import('@/features/app/auth/authContext')
 const { hasPrAccess, loadPrState } = await import('@/features/pr/data/api')
 

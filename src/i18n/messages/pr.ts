@@ -32,6 +32,7 @@ export const prMessages = defineMessages({
   pr_tab_seo: { en: 'SEO', fr: 'SEO' },
   pr_tab_mentions: { en: 'Coverage', fr: 'Retombées' },
   pr_tab_answers: { en: 'AI answers', fr: 'Réponses IA' },
+  pr_tab_report: { en: 'Report', fr: 'Rapport' },
 
   /* Sign-in wall + access gate */
   pr_signin_title: { en: 'Sign in to Dutiva PR', fr: 'Se connecter à Dutiva RP' },
@@ -414,6 +415,50 @@ export const prMessages = defineMessages({
     fr: 'Les connexions de publication et de Search Console exigent des applications OAuth approuvées par les plateformes — la configuration est en cours. Rien ici ne publie tout seul.',
   },
 
+  /* Notifications — coverage digests piggyback on the daily feed sync; one
+     email a day at most, only when new items actually landed. */
+  pr_notify_label: { en: 'Email me new coverage', fr: 'M’envoyer les nouvelles retombées' },
+  pr_notify_hint: {
+    en: 'One email a day at most, only when a feed adds something.',
+    fr: 'Un courriel par jour au plus, seulement quand un fil ajoute quelque chose.',
+  },
+
+  /* Monthly report — derived from the desk’s own rows, exported as Markdown. */
+  pr_rep_title: { en: 'Monthly report', fr: 'Rapport mensuel' },
+  pr_rep_sub: {
+    en: 'What the desk recorded this month — coverage, output, and movement.',
+    fr: 'Ce que le bureau a noté ce mois-ci — retombées, production et mouvements.',
+  },
+  pr_rep_month: { en: 'Month', fr: 'Mois' },
+  pr_rep_export: { en: 'Download Markdown', fr: 'Télécharger en Markdown' },
+  pr_rep_coverage: { en: 'Coverage', fr: 'Retombées' },
+  pr_rep_coverage_tone: { en: '{pos} positive · {neu} neutral · {neg} negative', fr: '{pos} positive · {neu} neutre · {neg} négative' },
+  pr_rep_coverage_empty: { en: 'Nothing logged this month.', fr: 'Rien de consigné ce mois-ci.' },
+  pr_rep_top_outlets: { en: 'Top outlets', fr: 'Médias principaux' },
+  pr_rep_content: { en: 'Published content', fr: 'Contenus publiés' },
+  pr_rep_content_line: { en: '{count} piece(s) marked published', fr: '{count} contenu(s) marqué(s) publié(s)' },
+  pr_rep_content_empty: { en: 'Nothing marked published this month.', fr: 'Rien de marqué publié ce mois-ci.' },
+  pr_rep_campaigns: { en: 'Campaigns now', fr: 'Campagnes actuelles' },
+  pr_rep_campaigns_line: {
+    en: '{active} active · {draft} planning · {paused} paused · {done} done',
+    fr: '{active} active(s) · {draft} en planification · {paused} en pause · {done} terminée(s)',
+  },
+  pr_rep_search: { en: 'Search positions', fr: 'Positions en recherche' },
+  pr_rep_search_line: { en: '{up} up · {down} down · {flat} flat of {total} checked', fr: '{up} en hausse · {down} en baisse · {flat} stable(s) sur {total} vérifié(s)' },
+  pr_rep_search_empty: { en: 'No keywords checked this month.', fr: 'Aucun mot-clé vérifié ce mois-ci.' },
+  pr_rep_answers: { en: 'AI answers', fr: 'Réponses IA' },
+  pr_rep_answers_line: {
+    en: '{cited} cited · {mentioned} mentioned · {absent} absent of {total} checks',
+    fr: '{cited} citée · {mentioned} mentionnée · {absent} absente sur {total} vérifications',
+  },
+  pr_rep_answers_via: { en: '{auto} auto · {manual} manual', fr: '{auto} auto · {manual} manuelles' },
+  pr_rep_answers_empty: { en: 'No prompts checked this month.', fr: 'Aucune question vérifiée ce mois-ci.' },
+  pr_rep_note: {
+    en: 'A snapshot of what you recorded — nothing here is measured beyond your own entries and feed pulls.',
+    fr: 'Un aperçu de ce que vous avez consigné — rien ici n’est mesuré au-delà de vos propres entrées et des fils.',
+  },
+  pr_rep_file_name: { en: 'dutiva-pr-report', fr: 'rapport-dutiva-rp' },
+
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },
   pr_load_error: {
@@ -436,6 +481,7 @@ export const prMessages = defineMessages({
 
   /* SEO/head titles */
   pr_seo_doc_title: { en: 'Dutiva PR', fr: 'Dutiva RP' },
+  pr_seo_title_report: { en: 'Monthly report — Dutiva PR', fr: 'Rapport mensuel — Dutiva RP' },
   pr_seo_title_terms: { en: 'Terms — Dutiva PR', fr: 'Conditions — Dutiva RP' },
   pr_seo_title_privacy: { en: 'Privacy — Dutiva PR', fr: 'Confidentialité — Dutiva RP' },
   pr_seo_title_support: { en: 'Support — Dutiva PR', fr: 'Soutien — Dutiva RP' },

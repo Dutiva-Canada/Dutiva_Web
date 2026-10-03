@@ -1,11 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLink, Link2, Loader2, Rss, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, syncPrFeeds } from '@/features/pr/data/api'
+import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate, SENTIMENTS, sentimentLabel } from './prUi'
@@ -47,6 +48,33 @@ export function PrMentionsPage() {
   const [feedSaving, setFeedSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [armFeedDelete, setArmFeedDelete] = useState<string | null>(null)
+  const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
+  const [notifySaving, setNotifySaving] = useState(false)
+
+  /* Email opt-out — absent pref row defaults to on; failures leave the
+     checkbox at its previous value rather than lying. */
+  useEffect(() => {
+    let cancelled = false
+    loadNotifyPref('pr')
+      .then((v) => { if (!cancelled) setNotifyOn(v) })
+      .catch(() => { if (!cancelled) setNotifyOn(true) })
+    return () => { cancelled = true }
+  }, [])
+
+  const toggleNotify = async () => {
+    const next = !(notifyOn ?? true)
+    if (notifySaving) return
+    setNotifySaving(true)
+    setNotifyOn(next)
+    try {
+      await setNotifyPref('pr', next)
+    } catch {
+      setNotifyOn(!next)
+      showToast(PM.pr_men_fetch_fail)
+    } finally {
+      setNotifySaving(false)
+    }
+  }
 
   /** Paste-a-link prefill — the edge function reads the page's meta tags so
       headline/outlet/date come back filled. Never overwrites typed fields. */
@@ -372,6 +400,20 @@ export function PrMentionsPage() {
               </div>
             ))}
           </div>
+        )}
+        {notifyOn !== null && (
+          <label className="sb-notify-row">
+            <input
+              type="checkbox"
+              checked={notifyOn}
+              disabled={notifySaving}
+              onChange={() => void toggleNotify()}
+            />
+            <span>
+              {x(PM.pr_notify_label)}
+              <span className="sb-notify-hint">{x(PM.pr_notify_hint)}</span>
+            </span>
+          </label>
         )}
       </section>
 

@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl } from '../pr-fetch-meta/handlers.ts'
 import { parseFeedItems, type FeedItem } from './handlers.ts'
+import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 
 /**
  * pr-mentions-feed — poll the RSS/Atom feeds a user saved (Google Alerts,
@@ -121,18 +122,22 @@ interface FeedRow {
   label: string
 }
 
-async function syncFeed(
-  admin: SupabaseClient,
-  feed: FeedRow,
-): Promise<{ feed: string; added: number; error?: string }> {
+interface SyncResult {
+  feed: string
+  added: number
+  fresh: FeedItem[]
+  error?: string
+}
+
+async function syncFeed(admin: SupabaseClient, feed: FeedRow): Promise<SyncResult> {
   let feedUrl: URL
   try {
     feedUrl = assertPublicHttpUrl(feed.url)
   } catch {
-    return { feed: feed.id, added: 0, error: 'invalid_url' }
+    return { feed: feed.id, added: 0, fresh: [], error: 'invalid_url' }
   }
   const xml = await fetchFeedXml(feedUrl)
-  if (xml === null) return { feed: feed.id, added: 0, error: 'fetch_failed' }
+  if (xml === null) return { feed: feed.id, added: 0, fresh: [], error: 'fetch_failed' }
 
   const items = parseFeedItems(xml).slice(0, MAX_ITEMS_PER_FEED)
 
@@ -154,7 +159,7 @@ async function syncFeed(
       published_at: i.publishedAt ?? new Date().toISOString(),
     }))
     const { error } = await admin.from('pr_mentions').insert(rows)
-    if (error) return { feed: feed.id, added: 0, error: error.message }
+    if (error) return { feed: feed.id, added: 0, fresh: [], error: error.message }
   }
 
   await admin
@@ -162,7 +167,44 @@ async function syncFeed(
     .update({ last_synced_at: new Date().toISOString(), last_item_count: fresh.length })
     .eq('id', feed.id)
 
-  return { feed: feed.id, added: fresh.length }
+  return { feed: feed.id, added: fresh.length, fresh }
+}
+
+/**
+ * One coverage digest per user per day, bilingual (the portals store no
+ * locale server-side). Pref/dedupe/provider rules live in sendPortalEmail.
+ */
+async function sendCoverageDigests(
+  admin: SupabaseClient,
+  byUser: Map<string, { items: FeedItem[] }>,
+): Promise<Record<string, string>> {
+  const outcomes: Record<string, string> = {}
+  const refDate = new Date().toISOString().slice(0, 10)
+  for (const [userId, { items }] of byUser) {
+    const shown = items.slice(0, 10)
+    const en = [
+      `${items.length} new coverage item${items.length === 1 ? '' : 's'} landed in your Dutiva PR desk:`,
+      '',
+      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      '',
+      'Open the desk: https://dutiva.ca/pr/mentions',
+    ]
+    const fr = [
+      `${items.length} nouvelle${items.length === 1 ? '' : 's'} retombée${items.length === 1 ? '' : 's'} dans votre bureau Dutiva PR :`,
+      '',
+      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      '',
+      'Ouvrir le bureau : https://dutiva.ca/pr/mentions',
+    ]
+    outcomes[userId] = await sendPortalEmail(admin, {
+      userId,
+      kind: 'pr_coverage',
+      refDate,
+      subject: `Dutiva PR — new coverage / nouvelles retombées (${items.length})`,
+      text: bilingualBody(en, fr),
+    })
+  }
+  return outcomes
 }
 
 Deno.serve(async (req) => {
@@ -214,13 +256,22 @@ Deno.serve(async (req) => {
     if (error) return json({ error: error.message }, 500)
 
     const results = []
+    const byUser = new Map<string, { items: FeedItem[] }>()
     for (const feed of (feeds ?? []) as FeedRow[]) {
-      results.push(await syncFeed(admin, feed))
+      const r = await syncFeed(admin, feed)
+      results.push({ feed: r.feed, added: r.added, error: r.error })
+      if (r.fresh.length > 0) {
+        const bucket = byUser.get(feed.user_id) ?? { items: [] }
+        bucket.items.push(...r.fresh)
+        byUser.set(feed.user_id, bucket)
+      }
     }
+    const emails = await sendCoverageDigests(admin, byUser)
     return json({
       feeds: results.length,
       added: results.reduce((n, r) => n + r.added, 0),
       results,
+      emails,
     })
   } finally {
     if (instanceId) {

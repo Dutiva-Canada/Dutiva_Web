@@ -10769,6 +10769,30 @@ export type Database = {
           },
         ]
       }
+      notification_log: {
+        Row: {
+          id: string
+          kind: string
+          ref_date: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          kind: string
+          ref_date: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          kind?: string
+          ref_date?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -11821,6 +11845,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      portal_notification_prefs: {
+        Row: {
+          email_enabled: boolean
+          surface: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          surface: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean
+          surface?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pr_access: {
         Row: {

@@ -19,6 +19,7 @@ const NAV = [
   { to: '/pr/seo', end: false, label: PM.pr_tab_seo },
   { to: '/pr/answers', end: false, label: PM.pr_tab_answers },
   { to: '/pr/mentions', end: false, label: PM.pr_tab_mentions },
+  { to: '/pr/report', end: false, label: PM.pr_tab_report },
 ] as const
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
