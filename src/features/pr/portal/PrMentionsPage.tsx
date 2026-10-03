@@ -1,11 +1,11 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useEffect, useState } from 'react'
-import { ExternalLink, Link2, Loader2, Rss, Sparkles, Trash2 } from 'lucide-react'
+import { ExternalLink, Link2, Loader2, Rss, Sparkles, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, suggestMentionTone, syncPrFeeds } from '@/features/pr/data/api'
+import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, prMentionClusters, suggestMentionTone, syncPrFeeds, type PrMentionCluster } from '@/features/pr/data/api'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -55,6 +55,9 @@ export function PrMentionsPage() {
   const [armFeedDelete, setArmFeedDelete] = useState<string | null>(null)
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
   const [notifySaving, setNotifySaving] = useState(false)
+  const [themes, setThemes] = useState<PrMentionCluster[] | null>(null)
+  const [themesBusy, setThemesBusy] = useState(false)
+  const [themesFailed, setThemesFailed] = useState(false)
 
   /* Email opt-out — absent pref row defaults to on; failures leave the
      checkbox at its previous value rather than lying. */
@@ -204,6 +207,26 @@ export function PrMentionsPage() {
     setArmFeedDelete(null)
     await deletePrFeed(id)
     await refresh()
+  }
+
+  /* Group recent headlines into broad themes — the model sees titles and
+     outlets only (no URLs, no notes), and the result is presented as a
+     rough first read, never a verdict on the coverage. */
+  const findThemes = async () => {
+    if (themesBusy || !state || state.mentions.length < 3) return
+    setThemesBusy(true)
+    setThemesFailed(false)
+    try {
+      const clusters = await prMentionClusters(
+        state.mentions.slice(0, 24).map((m) => ({ title: m.title, source: m.source })),
+      )
+      setThemes(clusters)
+    } catch {
+      setThemes(null)
+      setThemesFailed(true)
+    } finally {
+      setThemesBusy(false)
+    }
   }
 
   if (loading || !state) {
@@ -457,7 +480,48 @@ export function PrMentionsPage() {
 
       <div className="sb-section-head">
         <h2>{x(PM.pr_men_title)}</h2>
+        {state.mentions.length >= 3 && (
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            disabled={themesBusy}
+            onClick={() => void findThemes()}
+          >
+            {themesBusy ? (
+              <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Sparkles size={13} aria-hidden="true" />
+            )}
+            {x(themesBusy ? PM.pr_ai_themes_working : PM.pr_ai_themes_btn)}
+          </button>
+        )}
       </div>
+      {themes && (
+        <section className="sb-card sb-card-pad" style={{ position: 'relative' }}>
+          <div className="flex flex-wrap gap-[8px]" style={{ paddingRight: 28 }}>
+            {themes.map((t) => (
+              <span key={t.theme} className="sb-pill sb-pill-draft" style={{ fontSize: 12.5 }}>
+                {t.theme} · {t.indices.length}
+              </span>
+            ))}
+          </div>
+          <p className="sb-helper" style={{ marginBottom: 0, marginTop: 8, fontSize: 12, color: 'var(--sb-muted)' }}>
+            {x(PM.pr_ai_themes_tag)}
+          </p>
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            aria-label={x(PM.pr_ai_dismiss)}
+            style={{ position: 'absolute', top: 10, right: 10, padding: '3px 6px' }}
+            onClick={() => setThemes(null)}
+          >
+            <X size={13} aria-hidden="true" />
+          </button>
+        </section>
+      )}
+      {themesFailed && (
+        <p className="sb-note" role="alert">{x(PM.pr_ai_themes_failed)}</p>
+      )}
       <section className="sb-card sb-card-pad">
         {state.mentions.length === 0 ? (
           <div className="sb-empty">{x(PM.pr_men_empty)}</div>

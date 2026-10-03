@@ -1,5 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { cleanDraft, parseTone, parseToneList, draftPrompt, tonePrompt } from './handlers'
+import {
+  cleanDraft,
+  clustersPrompt,
+  draftPrompt,
+  parseClusters,
+  parsePromptList,
+  parseTone,
+  parseToneList,
+  promptsPrompt,
+  summaryPrompt,
+  tonePrompt,
+} from './handlers'
 
 describe('parseTone', () => {
   it('extracts plain tone words', () => {
@@ -88,5 +99,86 @@ describe('prompts', () => {
   it('draftPrompt shortens for social posts', () => {
     const p = draftPrompt({ itemKind: 'post', channel: 'linkedin', title: 'Hi', notes: '', lang: 'en' })
     expect(p).toContain('under 60 words')
+  })
+  it('clustersPrompt numbers items and fixes the output format', () => {
+    const p = clustersPrompt([
+      { title: 'Dutiva launches toolkit', source: 'BetaKit' },
+      { title: 'Compliance roundup', source: '' },
+    ])
+    expect(p).toContain('1. Dutiva launches toolkit — BetaKit')
+    expect(p).toContain('2. Compliance roundup')
+    expect(p).toContain('Theme name | 1,3,5')
+  })
+  it('summaryPrompt pins the model to the given numbers only', () => {
+    const p = summaryPrompt('{"coverage":{"total":4}}', 'October 2026', 'fr')
+    expect(p).toContain('ONLY the numbers')
+    expect(p).toContain('October 2026')
+    expect(p).toContain('Canadian French')
+  })
+  it('promptsPrompt carries tracked questions and campaign context', () => {
+    const p = promptsPrompt({
+      campaigns: ['Fall launch'],
+      existing: ['What is Dutiva?'],
+      lang: 'en',
+    })
+    expect(p).toContain('Fall launch')
+    expect(p).toContain('What is Dutiva?')
+    expect(p).toContain('3 lines')
+  })
+})
+
+describe('parseClusters', () => {
+  const items = 5
+  it('parses theme lines into indices', () => {
+    expect(parseClusters('Product news | 1,3\nCriticism | 2', items)).toEqual([
+      { theme: 'Product news', indices: [0, 2] },
+      { theme: 'Criticism', indices: [1] },
+    ])
+  })
+  it('strips bullets and numbering from theme names', () => {
+    expect(parseClusters('- Product news | 1\n2. Industry | 2', items)).toEqual([
+      { theme: 'Product news', indices: [0] },
+      { theme: 'Industry', indices: [1] },
+    ])
+  })
+  it('drops out-of-range and non-numeric indices', () => {
+    expect(parseClusters('News | 1,9,abc,2', items)).toEqual([
+      { theme: 'News', indices: [0, 1] },
+    ])
+    expect(parseClusters('News | 9', items)).toEqual([])
+  })
+  it('ignores lines without a bar and caps at four themes', () => {
+    const raw = 'preamble\nA | 1\nB | 2\nC | 3\nD | 4\nE | 5'
+    const out = parseClusters(raw, items)
+    expect(out).toHaveLength(4)
+    expect(out[0]).toEqual({ theme: 'A', indices: [0] })
+  })
+  it('dedupes indices within a theme', () => {
+    expect(parseClusters('News | 1 1,1', items)).toEqual([{ theme: 'News', indices: [0] }])
+  })
+})
+
+describe('parsePromptList', () => {
+  it('strips numbering and quotes', () => {
+    expect(parsePromptList('1. Best HR software in Canada?\n- "Alternatives to BambooHR"', [])).toEqual([
+      'Best HR software in Canada?',
+      'Alternatives to BambooHR',
+    ])
+  })
+  it('dedupes against existing prompts case-insensitively', () => {
+    expect(
+      parsePromptList('What is Dutiva?\nHR tools for Ontario employers', ['what is dutiva?']),
+    ).toEqual(['HR tools for Ontario employers'])
+  })
+  it('rejects fragments and overlong lines, caps at max', () => {
+    const long = 'x'.repeat(400)
+    expect(parsePromptList(`short\nok line here\n${long}\nanother good line\nfourth one here`, [], 3)).toEqual([
+      'ok line here',
+      'another good line',
+      'fourth one here',
+    ])
+  })
+  it('returns empty for unusable replies', () => {
+    expect(parsePromptList('n/a\nok\n\n', [])).toEqual([])
   })
 })

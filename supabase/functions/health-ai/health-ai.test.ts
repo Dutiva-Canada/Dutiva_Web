@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { buildHealthFacts, recapPrompt, reflectPrompt } from './handlers'
+import {
+  buildHealthFacts,
+  habitPrompt,
+  parseHabit,
+  recapPrompt,
+  reflectPrompt,
+} from './handlers'
 
 const NOW = '2026-10-02T18:00:00.000Z'
 const dayAgo = (n: number, hour = 12) => {
@@ -78,5 +84,41 @@ describe('prompt guardrails', () => {
   })
   it('recap instructs describe-not-advise', () => {
     expect(recapPrompt(facts, 'en')).toContain('describe')
+  })
+  it('habit prompt stays non-clinical and names existing habits', () => {
+    const p = habitPrompt(facts, ['Morning walk'], 'en')
+    expect(p).toContain('non-clinical')
+    expect(p).toContain('Morning walk')
+    expect(p).toContain('Habit name | one short reason')
+  })
+  it('habit prompt switches language and handles an empty habit list', () => {
+    const p = habitPrompt(facts, [], 'fr')
+    expect(p).toContain('Canadian French')
+    expect(p).toContain('(none yet)')
+  })
+})
+
+describe('parseHabit', () => {
+  it('parses the name | reason format', () => {
+    expect(parseHabit('Evening stretch | five minutes before bed')).toEqual({
+      name: 'Evening stretch',
+      why: 'five minutes before bed',
+    })
+  })
+  it('accepts a name-only line', () => {
+    expect(parseHabit('Ten-minute tidy')).toEqual({ name: 'Ten-minute tidy', why: '' })
+  })
+  it('strips bullets, numbering, and quotes', () => {
+    expect(parseHabit('1. "Glass of water by the bed" | easy win')).toEqual({
+      name: 'Glass of water by the bed',
+      why: 'easy win',
+    })
+  })
+  it('skips a leading blank line', () => {
+    expect(parseHabit('\n\nShort walk | fresh air')).toEqual({ name: 'Short walk', why: 'fresh air' })
+  })
+  it('returns null for empty or unusable replies', () => {
+    expect(parseHabit('')).toBeNull()
+    expect(parseHabit('ok')).toBeNull()
   })
 })

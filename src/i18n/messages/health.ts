@@ -282,6 +282,14 @@ export const healthMessages = defineMessages({
     en: 'The assistant isn’t available right now.',
     fr: 'L’assistant n’est pas disponible pour le moment.',
   },
+  health_ai_habit_btn: { en: 'Suggest a habit', fr: 'Suggérer une habitude' },
+  health_ai_habit_loading: { en: 'Thinking…', fr: 'Réflexion…' },
+  health_ai_habit_add: { en: 'Add it', fr: 'L’ajouter' },
+  health_ai_habit_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  health_ai_habit_failed: {
+    en: 'No suggestion right now — your own ideas work just as well.',
+    fr: 'Pas de suggestion pour l’instant — vos propres idées conviennent aussi.',
+  },
 
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },

@@ -478,6 +478,39 @@ export const prMessages = defineMessages({
     en: 'Drafting failed — write it yourself for now.',
     fr: 'La rédaction a échoué — rédigez vous-même pour l’instant.',
   },
+  pr_ai_intro_btn: { en: 'Write an intro', fr: 'Rédiger une intro' },
+  pr_ai_intro_writing: { en: 'Writing…', fr: 'Rédaction…' },
+  pr_ai_intro_tag: {
+    en: 'AI intro — it describes the numbers below, nothing more.',
+    fr: 'Intro IA — elle décrit les chiffres ci-dessous, rien de plus.',
+  },
+  pr_ai_intro_failed: {
+    en: 'No intro this time — the numbers still speak for themselves.',
+    fr: 'Pas d’intro cette fois — les chiffres parlent d’eux-mêmes.',
+  },
+  pr_ai_intro_md: { en: 'Intro (AI draft)', fr: 'Intro (ébauche IA)' },
+  pr_ai_themes_btn: { en: 'Find themes', fr: 'Dégager les thèmes' },
+  pr_ai_themes_working: { en: 'Grouping…', fr: 'Regroupement…' },
+  pr_ai_themes_tag: {
+    en: 'AI grouping — headlines, sorted roughly. Your read may differ.',
+    fr: 'Regroupement IA — un premier tri des manchettes. Votre lecture peut différer.',
+  },
+  pr_ai_themes_failed: {
+    en: 'No themes came back — the coverage list is still all there.',
+    fr: 'Aucun thème n’est revenu — la liste de couverture est toujours là.',
+  },
+  pr_ai_prompts_btn: { en: 'Suggest questions', fr: 'Suggérer des questions' },
+  pr_ai_prompts_working: { en: 'Thinking…', fr: 'Réflexion…' },
+  pr_ai_prompts_hint: {
+    en: 'Suggested — add any worth tracking.',
+    fr: 'Suggestions — ajoutez celles qui valent le suivi.',
+  },
+  pr_ai_prompts_failed: {
+    en: 'No suggestions right now — your own questions work too.',
+    fr: 'Pas de suggestions pour l’instant — vos propres questions conviennent aussi.',
+  },
+  pr_ai_add: { en: 'Add', fr: 'Ajouter' },
+  pr_ai_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
 
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },

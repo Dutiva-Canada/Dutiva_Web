@@ -1,11 +1,11 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useState } from 'react'
-import { Check, Loader2, Trash2 } from 'lucide-react'
+import { Check, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addHabit, deleteHabit, setHabitDone } from '@/features/health/data/api'
+import { addHabit, deleteHabit, healthAiHabit, setHabitDone, type HabitSuggestion } from '@/features/health/data/api'
 import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -17,7 +17,7 @@ import { useHealthHead } from './useHealthHead'
  * missed day; nothing here is a health metric.
  */
 export function HealthHabitsPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_habits, HM.health_seo_desc_habits)
@@ -28,6 +28,8 @@ export function HealthHabitsPage() {
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
   const [notifySaving, setNotifySaving] = useState(false)
+  const [suggestion, setSuggestion] = useState<HabitSuggestion | null>(null)
+  const [suggestBusy, setSuggestBusy] = useState(false)
 
   /* Evening streak nudge — one email a day at most, only while a live
      streak is unchecked. Absent pref row defaults to on. */
@@ -67,6 +69,35 @@ export function HealthHabitsPage() {
       await addHabit(trimmed)
       await refresh()
       setName('')
+      showToast(HM.health_habit_added)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /* Habit suggestion — the model sees habit names + streak aggregates only
+     and answers "name | reason". Nothing is added until the user taps
+     "Add it"; dismissing just clears the card. */
+  const suggestHabit = async () => {
+    if (suggestBusy) return
+    setSuggestBusy(true)
+    try {
+      setSuggestion(await healthAiHabit(lang))
+    } catch {
+      setSuggestion(null)
+      showToast(HM.health_ai_habit_failed)
+    } finally {
+      setSuggestBusy(false)
+    }
+  }
+
+  const acceptSuggestion = async () => {
+    if (!suggestion || saving) return
+    setSaving(true)
+    try {
+      await addHabit(suggestion.name)
+      await refresh()
+      setSuggestion(null)
       showToast(HM.health_habit_added)
     } finally {
       setSaving(false)
@@ -128,7 +159,48 @@ export function HealthHabitsPage() {
             {saving && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
             {x(HM.health_habit_add)}
           </button>
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
+            disabled={suggestBusy}
+            onClick={() => void suggestHabit()}
+          >
+            {suggestBusy ? (
+              <Loader2 size={15} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Sparkles size={15} aria-hidden="true" />
+            )}
+            {x(suggestBusy ? HM.health_ai_habit_loading : HM.health_ai_habit_btn)}
+          </button>
         </div>
+        {suggestion && (
+          <div className="sb-notify-row" style={{ marginTop: 12, alignItems: 'flex-start' }}>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <strong>{suggestion.name}</strong>
+              {suggestion.why && (
+                <span className="sb-notify-hint">{suggestion.why}</span>
+              )}
+              <span className="sb-notify-hint">{x(HM.health_ai_note)}</span>
+            </span>
+            <span className="flex gap-[8px]" style={{ flexShrink: 0 }}>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                disabled={saving}
+                onClick={() => void acceptSuggestion()}
+              >
+                {x(HM.health_ai_habit_add)}
+              </button>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                onClick={() => setSuggestion(null)}
+              >
+                {x(HM.health_ai_habit_dismiss)}
+              </button>
+            </span>
+          </div>
+        )}
       </section>
 
       <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>

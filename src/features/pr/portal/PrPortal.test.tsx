@@ -52,6 +52,9 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   runGeoChecks: vi.fn(),
   suggestMentionTone: vi.fn(),
   draftPrContent: vi.fn(),
+  prReportIntro: vi.fn(),
+  prMentionClusters: vi.fn(),
+  prSuggestGeoPrompts: vi.fn(),
 }))
 
 vi.mock('@/lib/notifications/notifyPrefs', () => ({

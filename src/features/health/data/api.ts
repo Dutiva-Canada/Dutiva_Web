@@ -212,3 +212,23 @@ export async function healthAiRecap(lang: 'en' | 'fr'): Promise<string> {
   }
   return raw.summary
 }
+
+export interface HabitSuggestion {
+  name: string
+  why: string
+}
+
+/** One small habit the user isn't already tracking — suggested from habit
+    names + streak aggregates. The user still adds (or dismisses) it. */
+export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'habit', lang },
+  })
+  if (error) throw error
+  const raw = (data as { habit?: HabitSuggestion } | null) ?? {}
+  if (!raw.habit || typeof raw.habit.name !== 'string' || raw.habit.name.trim() === '') {
+    throw new Error('Empty habit suggestion from health-ai')
+  }
+  return raw.habit
+}

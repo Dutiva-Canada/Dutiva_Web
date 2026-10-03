@@ -4,17 +4,27 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
 import {
   cleanDraft,
+  clustersPrompt,
   draftPrompt,
+  parseClusters,
+  parsePromptList,
   parseTone,
+  promptsPrompt,
   singleTonePrompt,
+  summaryPrompt,
+  type ClusterItem,
   type DraftInput,
+  type PromptsInput,
 } from './handlers.ts'
 
 /**
- * pr-ai — the PR desk's two user-triggered model calls:
+ * pr-ai — the PR desk's user-triggered model calls:
  *
  *   POST { kind:'tone',  title, source? }                  → { sentiment }
  *   POST { kind:'draft', itemKind, channel?, title, notes?, lang? } → { draft }
+ *   POST { kind:'summary', month, stats, lang? }           → { intro }
+ *   POST { kind:'clusters', items:[{title,source}] }       → { clusters }
+ *   POST { kind:'prompts', campaigns?, existing?, lang? }  → { prompts }
  *
  * Auth is the portal contract only (JWT + pr_access) — no scheduled path.
  * Route lookup is `pr_ai` first, `advisor_chat` fallback (shared aiRoute).
@@ -32,6 +42,10 @@ const corsHeaders = {
 const MAX_TITLE_CHARS = 500
 const MAX_SOURCE_CHARS = 200
 const MAX_NOTES_CHARS = 2000
+const MAX_STATS_CHARS = 4000
+const MAX_CLUSTER_ITEMS = 24
+const MAX_LIST_ITEMS = 30
+const MAX_LIST_ITEM_CHARS = 200
 const UPSTREAM_TIMEOUT_MS = 45_000
 
 function json(body: unknown, status = 200) {
@@ -150,5 +164,61 @@ Deno.serve(async (req) => {
     return json({ draft })
   }
 
-  return json({ error: 'kind must be "tone" or "draft"' }, 400)
+  if (body.kind === 'summary') {
+    const month = clip(body.month, 40)
+    const statsJson = JSON.stringify(body.stats ?? {}).slice(0, MAX_STATS_CHARS)
+    const lang = body.lang === 'fr' ? 'fr' : 'en'
+    const out = await modelText(
+      found.provider, keyResult.apiKey, found.modelName,
+      summaryPrompt(statsJson, month, lang), 220,
+    )
+    if ('error' in out) return out.error
+    const intro = cleanDraft(out.text)
+    if (!intro) return json({ error: 'Model returned an empty intro', code: 'empty' }, 502)
+    return json({ intro })
+  }
+
+  if (body.kind === 'clusters') {
+    const raw = Array.isArray(body.items) ? body.items : []
+    const items: ClusterItem[] = raw.slice(0, MAX_CLUSTER_ITEMS).map((it) => ({
+      title: clip((it as Record<string, unknown>)?.title, MAX_TITLE_CHARS),
+      source: clip((it as Record<string, unknown>)?.source, MAX_SOURCE_CHARS),
+    })).filter((it) => it.title !== '')
+    if (items.length < 3) {
+      return json({ error: 'at least 3 coverage items are needed to find themes' }, 400)
+    }
+    const out = await modelText(
+      found.provider, keyResult.apiKey, found.modelName,
+      clustersPrompt(items), 200,
+    )
+    if ('error' in out) return out.error
+    const clusters = parseClusters(out.text, items.length)
+    if (clusters.length === 0) {
+      return json({ error: 'Model returned no usable themes', code: 'unparseable' }, 502)
+    }
+    return json({ clusters })
+  }
+
+  if (body.kind === 'prompts') {
+    const list = (v: unknown) =>
+      (Array.isArray(v) ? v : []).slice(0, MAX_LIST_ITEMS)
+        .map((s) => clip(s, MAX_LIST_ITEM_CHARS)).filter((s) => s !== '')
+    const input: PromptsInput = {
+      campaigns: list(body.campaigns),
+      existing: list(body.existing),
+      lang: body.lang === 'fr' ? 'fr' : 'en',
+    }
+    const out = await modelText(
+      found.provider, keyResult.apiKey, found.modelName,
+      promptsPrompt(input), 300,
+    )
+    if ('error' in out) return out.error
+    const prompts = parsePromptList(out.text, input.existing)
+    if (prompts.length === 0) {
+      return json({ error: 'Model returned no new questions', code: 'empty' }, 502)
+    }
+    return json({ prompts })
+  }
+
+  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", or "prompts"' }, 400)
 })

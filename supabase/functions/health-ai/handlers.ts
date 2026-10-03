@@ -121,3 +121,31 @@ export function recapPrompt(facts: HealthFacts, lang: 'en' | 'fr'): string {
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
   ].join('\n')
 }
+
+export function habitPrompt(facts: HealthFacts, habitNames: string[], lang: 'en' | 'fr'): string {
+  const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
+  return [
+    `You suggest one small daily habit for a personal wellness tracker. ${SHARED_RULES}`,
+    'Given the stats and the habits the person already tracks, suggest ONE new habit they are not already doing — small, concrete, and doable in under ten minutes a day.',
+    'Answer in exactly this format: Habit name | one short reason it fits. No preamble.',
+    langLine,
+    '',
+    `Current habits: ${habitNames.length > 0 ? habitNames.join(' | ') : '(none yet)'}`,
+    `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
+  ].join('\n')
+}
+
+/** "Habit name | reason" — tolerates a missing reason half. Anything else
+    returns null so the caller can say "no suggestion" rather than invent one. */
+export function parseHabit(raw: string): { name: string; why: string } | null {
+  const first = raw.split('\n').map((l) => l.trim()).find((l) => l !== '') ?? ''
+  if (!first) return null
+  const bar = first.lastIndexOf('|')
+  const rawName = (bar < 0 ? first : first.slice(0, bar))
+    .replace(/^[-*•\d.\s]+/, '')
+    .replace(/["“”]/g, '')
+    .trim()
+  if (rawName.length < 3 || rawName.length > 120) return null
+  const why = bar < 0 ? '' : first.slice(bar + 1).trim().slice(0, 200)
+  return { name: rawName.slice(0, 120), why }
+}

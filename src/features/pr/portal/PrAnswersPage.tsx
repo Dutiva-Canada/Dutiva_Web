@@ -1,11 +1,11 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useState } from 'react'
-import { Info, Loader2, Trash2 } from 'lucide-react'
+import { Info, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addGeoPrompt, deleteGeoPrompt, recordGeoCheck, runGeoChecks } from '@/features/pr/data/api'
+import { addGeoPrompt, deleteGeoPrompt, prSuggestGeoPrompts, recordGeoCheck, runGeoChecks } from '@/features/pr/data/api'
 import type { PrGeoEngine, PrGeoPrompt, PrGeoResult } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate, GEO_ENGINES, geoEngineLabel, GEO_RESULTS, geoResultLabel } from './prUi'
@@ -42,6 +42,10 @@ export function PrAnswersPage() {
   const [running, setRunning] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [checks, setChecks] = useState<Record<string, RowCheck>>({})
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestBusy, setSuggestBusy] = useState(false)
+  const [suggestFailed, setSuggestFailed] = useState(false)
+  const [addingSuggestion, setAddingSuggestion] = useState<string | null>(null)
 
   /** Manual "check my prompts now" — the scheduled sweep does the same daily;
       results land with checkedVia='auto' so they're never confused with a
@@ -80,6 +84,41 @@ export function PrAnswersPage() {
       showToast(PM.pr_ans_saved)
     } finally {
       setSaving(false)
+    }
+  }
+
+  /* Suggest new questions to track — the model sees campaign names and the
+     already-tracked list (to avoid repeats). Each suggestion stays a draft
+     until the user adds it. */
+  const suggestPrompts = async () => {
+    if (suggestBusy || !state) return
+    setSuggestBusy(true)
+    setSuggestFailed(false)
+    try {
+      const out = await prSuggestGeoPrompts({
+        campaigns: state.campaigns.map((c) => c.name),
+        existing: state.geoPrompts.map((p) => p.prompt),
+        lang,
+      })
+      setSuggestions(out)
+      if (out.length === 0) setSuggestFailed(true)
+    } catch {
+      setSuggestFailed(true)
+    } finally {
+      setSuggestBusy(false)
+    }
+  }
+
+  const addSuggestion = async (prompt: string) => {
+    if (addingSuggestion) return
+    setAddingSuggestion(prompt)
+    try {
+      await addGeoPrompt({ prompt, engine: 'chatgpt' })
+      setSuggestions((s) => s.filter((p) => p !== prompt))
+      await refresh()
+      showToast(PM.pr_ans_saved)
+    } finally {
+      setAddingSuggestion(null)
     }
   }
 
@@ -130,6 +169,19 @@ export function PrAnswersPage() {
           <button
             type="button"
             className="sb-btn sb-btn-secondary"
+            disabled={suggestBusy}
+            onClick={() => void suggestPrompts()}
+          >
+            {suggestBusy ? (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Sparkles size={14} aria-hidden="true" />
+            )}
+            {x(suggestBusy ? PM.pr_ai_prompts_working : PM.pr_ai_prompts_btn)}
+          </button>
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
             disabled={running || state.geoPrompts.length === 0}
             onClick={() => void runChecks()}
           >
@@ -146,6 +198,33 @@ export function PrAnswersPage() {
         </div>
       </div>
       <p className="sb-sub">{x(PM.pr_ans_sub)}</p>
+
+      {suggestions.length > 0 && (
+        <section className="sb-card sb-card-pad">
+          <p className="sb-helper" style={{ marginTop: 0 }}>{x(PM.pr_ai_prompts_hint)}</p>
+          <div className="sb-mini-list" style={{ marginBottom: 0 }}>
+            {suggestions.map((p) => (
+              <div key={p} className="flex items-center gap-[10px]" style={{ padding: '6px 0' }}>
+                <span style={{ flex: 1, minWidth: 0 }}>{p}</span>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  disabled={addingSuggestion === p}
+                  onClick={() => void addSuggestion(p)}
+                >
+                  {addingSuggestion === p && (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  )}
+                  {x(PM.pr_ai_add)}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {suggestFailed && (
+        <p className="sb-note" role="alert">{x(PM.pr_ai_prompts_failed)}</p>
+      )}
 
       {formOpen && (
         <form

@@ -4,6 +4,8 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import {
   buildHealthFacts,
+  habitPrompt,
+  parseHabit,
   recapPrompt,
   reflectPrompt,
   type CheckInRow,
@@ -12,10 +14,11 @@ import {
 } from './handlers.ts'
 
 /**
- * health-ai — the wellness portal's two user-triggered model calls:
+ * health-ai — the wellness portal's user-triggered model calls:
  *
  *   POST { kind:'reflect', lang? } → { prompt }   — one gentle journal prompt
  *   POST { kind:'recap',   lang? } → { summary }  — a short weekly summary
+ *   POST { kind:'habit',   lang? } → { habit }    — one habit suggestion
  *
  * Auth is the portal contract only (JWT + health_access) — no scheduled path.
  *
@@ -81,8 +84,8 @@ Deno.serve(async (req) => {
   }
   const kind = body.kind
   const lang = body.lang === 'fr' ? 'fr' : 'en'
-  if (kind !== 'reflect' && kind !== 'recap') {
-    return json({ error: 'kind must be "reflect" or "recap"' }, 400)
+  if (kind !== 'reflect' && kind !== 'recap' && kind !== 'habit') {
+    return json({ error: 'kind must be "reflect", "recap", or "habit"' }, 400)
   }
 
   const found = await activeModelRoute(admin, ['health_ai', 'advisor_chat'])
@@ -127,7 +130,13 @@ Deno.serve(async (req) => {
     new Date().toISOString(),
   )
 
-  const prompt = kind === 'reflect' ? reflectPrompt(facts, lang) : recapPrompt(facts, lang)
+  const habitNames = ((habits ?? []) as HabitRowLite[]).map((h) => h.name)
+  const prompt =
+    kind === 'reflect'
+      ? reflectPrompt(facts, lang)
+      : kind === 'recap'
+        ? recapPrompt(facts, lang)
+        : habitPrompt(facts, habitNames, lang)
 
   let upstream: Response
   try {
@@ -138,7 +147,7 @@ Deno.serve(async (req) => {
         model: found.modelName,
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.5,
-        max_tokens: kind === 'reflect' ? 120 : 300,
+        max_tokens: kind === 'reflect' ? 120 : kind === 'recap' ? 300 : 120,
       },
       UPSTREAM_TIMEOUT_MS,
     )
@@ -151,5 +160,10 @@ Deno.serve(async (req) => {
   const text = (payload.choices?.[0]?.message?.content ?? '').trim()
   if (!text) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
 
+  if (kind === 'habit') {
+    const habit = parseHabit(text)
+    if (!habit) return json({ error: 'Model returned no usable habit', code: 'unparseable' }, 502)
+    return json({ habit })
+  }
   return kind === 'reflect' ? json({ prompt: text }) : json({ summary: text })
 })

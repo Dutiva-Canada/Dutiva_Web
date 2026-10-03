@@ -40,6 +40,7 @@ vi.mock('@/features/health/data/api', async (importOriginal) => ({
   setHabitDone: vi.fn(),
   healthAiPrompt: vi.fn(),
   healthAiRecap: vi.fn(),
+  healthAiHabit: vi.fn(),
 }))
 
 vi.mock('@/lib/notifications/notifyPrefs', () => ({

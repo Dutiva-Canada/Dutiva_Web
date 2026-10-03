@@ -1,11 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useMemo, useState } from 'react'
-import { Download, Info, Loader2 } from 'lucide-react'
+import { Download, Info, Loader2, Sparkles, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { buildPrReport, reportMonths, type PrReport } from '@/features/pr/data/prReport'
+import { prReportIntro } from '@/features/pr/data/api'
 import { fmtDate } from './prUi'
 import { usePrHead } from './usePrHead'
 
@@ -24,8 +25,14 @@ function monthLabel(month: string, lang: 'en' | 'fr'): string {
   )
 }
 
-function reportMarkdown(report: PrReport, label: string, x: (m: { en: string; fr: string }) => string): string {
+function reportMarkdown(
+  report: PrReport,
+  label: string,
+  intro: string | null,
+  x: (m: { en: string; fr: string }) => string,
+): string {
   const lines: string[] = [`# ${x(PM.pr_rep_title)} — ${label}`, '']
+  if (intro) lines.push(`_${x(PM.pr_ai_intro_md)}_: ${intro}`, '')
   lines.push(`## ${x(PM.pr_rep_coverage)}`)
   lines.push(
     report.coverage.total === 0
@@ -95,6 +102,26 @@ export function PrReportPage() {
   const [picked, setPicked] = useState<string | null>(null)
   const month = picked && months.includes(picked) ? picked : (months[0] ?? new Date().toISOString().slice(0, 7))
   const report = useMemo(() => (state ? buildPrReport(state, month) : null), [state, month])
+  /* The intro is a per-month AI summary of the numbers below — kept in
+     state so it can flow into the Markdown export, labelled as an AI draft. */
+  const [intro, setIntro] = useState<{ month: string; text: string } | null>(null)
+  const [introBusy, setIntroBusy] = useState(false)
+  const [introFailed, setIntroFailed] = useState(false)
+  const shownIntro = intro && intro.month === month ? intro.text : null
+
+  const writeIntro = async () => {
+    if (introBusy || !report) return
+    setIntroBusy(true)
+    setIntroFailed(false)
+    try {
+      const text = await prReportIntro({ monthLabel: label, stats: report, lang })
+      setIntro({ month, text })
+    } catch {
+      setIntroFailed(true)
+    } finally {
+      setIntroBusy(false)
+    }
+  }
 
   if (loading || !state || !report) {
     return (
@@ -117,7 +144,7 @@ export function PrReportPage() {
   const label = monthLabel(month, lang)
 
   function download() {
-    const md = reportMarkdown(report!, label, x)
+    const md = reportMarkdown(report!, label, shownIntro, x)
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -131,10 +158,23 @@ export function PrReportPage() {
     <div className="sb prx sb-page">
       <div className="sb-head-row">
         <h1>{x(PM.pr_rep_title)}</h1>
-        <button type="button" className="sb-btn sb-btn-secondary" onClick={download}>
-          <Download size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: -3 }} />{' '}
-          {x(PM.pr_rep_export)}
-        </button>
+        <div className="flex gap-[8px]">
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
+            disabled={introBusy || report.coverage.total + report.content.publishedCount + report.search.checked + report.answers.checked === 0}
+            onClick={() => void writeIntro()}
+          >
+            {introBusy
+              ? <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              : <Sparkles size={14} aria-hidden="true" />}
+            {x(introBusy ? PM.pr_ai_intro_writing : PM.pr_ai_intro_btn)}
+          </button>
+          <button type="button" className="sb-btn sb-btn-secondary" onClick={download}>
+            <Download size={15} strokeWidth={2} aria-hidden="true" style={{ verticalAlign: -3 }} />{' '}
+            {x(PM.pr_rep_export)}
+          </button>
+        </div>
       </div>
       <p className="sb-sub">{x(PM.pr_rep_sub)}</p>
 
@@ -151,6 +191,27 @@ export function PrReportPage() {
           ))}
         </select>
       </div>
+
+      {shownIntro && (
+        <section className="sb-card sb-card-pad" style={{ position: 'relative' }}>
+          <p className="sb-helper" style={{ marginTop: 0 }}>{shownIntro}</p>
+          <p className="sb-helper" style={{ marginBottom: 0, fontSize: 12, color: 'var(--sb-muted)' }}>
+            {x(PM.pr_ai_intro_tag)}
+          </p>
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            aria-label={x(PM.pr_ai_dismiss)}
+            style={{ position: 'absolute', top: 10, right: 10, padding: '3px 6px' }}
+            onClick={() => setIntro(null)}
+          >
+            <X size={13} aria-hidden="true" />
+          </button>
+        </section>
+      )}
+      {introFailed && (
+        <p className="sb-note" role="alert">{x(PM.pr_ai_intro_failed)}</p>
+      )}
 
       <div className="sb-stats">
         <div className="sb-stat">

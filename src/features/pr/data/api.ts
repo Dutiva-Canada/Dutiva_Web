@@ -562,3 +562,73 @@ export async function draftPrContent(input: {
   }
   return raw.draft
 }
+
+/** Report intro — sends the same numbers the report shows, gets back 2–3
+    plain sentences. Marked as AI wherever it lands. */
+export async function prReportIntro(input: {
+  monthLabel: string
+  stats: unknown
+  lang: 'en' | 'fr'
+}): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: { kind: 'summary', month: input.monthLabel, stats: input.stats, lang: input.lang },
+  })
+  if (error) throw error
+  const raw = (data as { intro?: string } | null) ?? {}
+  if (typeof raw.intro !== 'string' || raw.intro.trim() === '') {
+    throw new Error('Empty intro from pr-ai')
+  }
+  return raw.intro
+}
+
+export interface PrMentionCluster {
+  theme: string
+  /** 0-based indices into the items array passed in. */
+  indices: number[]
+}
+
+/** Group recent coverage headlines into 2–4 broad themes. Sends titles and
+    outlets only — never URLs or notes. */
+export async function prMentionClusters(
+  items: { title: string; source: string }[],
+): Promise<PrMentionCluster[]> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: { kind: 'clusters', items: items.slice(0, 24) },
+  })
+  if (error) throw error
+  const raw = (data as { clusters?: PrMentionCluster[] } | null) ?? {}
+  if (!Array.isArray(raw.clusters) || raw.clusters.length === 0) {
+    throw new Error('No themes from pr-ai')
+  }
+  return raw.clusters
+}
+
+/** Suggest up to 3 new questions to track — deduped against the existing
+    list server-side and again here. */
+export async function prSuggestGeoPrompts(input: {
+  campaigns: string[]
+  existing: string[]
+  lang: 'en' | 'fr'
+}): Promise<string[]> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: {
+      kind: 'prompts',
+      campaigns: input.campaigns.slice(0, 20),
+      existing: input.existing.slice(0, 30),
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as { prompts?: string[] } | null) ?? {}
+  if (!Array.isArray(raw.prompts) || raw.prompts.length === 0) {
+    throw new Error('No suggestions from pr-ai')
+  }
+  const seen = new Set(input.existing.map((e) => e.trim().toLowerCase()))
+  return raw.prompts.filter((p) => {
+    const t = p.trim()
+    return t.length > 0 && !seen.has(t.toLowerCase())
+  })
+}
