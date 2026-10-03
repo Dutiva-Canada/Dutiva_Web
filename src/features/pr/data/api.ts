@@ -1,8 +1,10 @@
 import { supabase } from '@/lib/supabaseClient'
 import {
   campaignFromRow,
+  connectionFromRow,
   contactFromRow,
   contentFromRow,
+  feedFromRow,
   geoPromptFromRow,
   keywordFromRow,
   mentionFromRow,
@@ -12,6 +14,7 @@ import {
   type PrContentItem,
   type PrContentKind,
   type PrContentStatus,
+  type PrFeed,
   type PrGeoEngine,
   type PrGeoPrompt,
   type PrGeoResult,
@@ -54,7 +57,7 @@ export async function hasPrAccess(): Promise<boolean> {
 
 export async function loadPrState(): Promise<PrState> {
   const client = requireSupabase()
-  const [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes] =
+  const [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes, feedsRes, connectionsRes] =
     await Promise.all([
       client.from('pr_campaigns').select('*').order('created_at', { ascending: false }),
       client.from('pr_content_items').select('*').order('created_at', { ascending: false }),
@@ -62,8 +65,10 @@ export async function loadPrState(): Promise<PrState> {
       client.from('pr_keywords').select('*').order('created_at', { ascending: false }),
       client.from('pr_mentions').select('*').order('published_at', { ascending: false }),
       client.from('pr_geo_prompts').select('*').order('created_at', { ascending: false }),
+      client.from('pr_feeds').select('*').order('created_at', { ascending: false }),
+      client.from('pr_connections').select('*').order('created_at', { ascending: false }),
     ])
-  for (const res of [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes]) {
+  for (const res of [campaignsRes, contentRes, contactsRes, keywordsRes, mentionsRes, geoRes, feedsRes, connectionsRes]) {
     if (res.error) throw res.error
   }
   return {
@@ -73,6 +78,8 @@ export async function loadPrState(): Promise<PrState> {
     keywords: (keywordsRes.data ?? []).map(keywordFromRow),
     mentions: (mentionsRes.data ?? []).map(mentionFromRow),
     geoPrompts: (geoRes.data ?? []).map(geoPromptFromRow),
+    feeds: (feedsRes.data ?? []).map(feedFromRow),
+    connections: (connectionsRes.data ?? []).map(connectionFromRow),
     lastLoadedAt: new Date().toISOString(),
   }
 }
@@ -378,6 +385,7 @@ export async function recordGeoCheck(
       result,
       note: note.trim(),
       checked_at: new Date().toISOString(),
+      checked_via: 'manual',
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -440,4 +448,66 @@ export async function fetchMentionMeta(url: string): Promise<MentionMeta> {
     source: raw.source ?? '',
     publishedAt: Number.isNaN(parsed) ? null : new Date(parsed).toISOString(),
   }
+}
+
+/* ---------- coverage feeds (RSS/Atom, e.g. Google Alerts) ---------- */
+
+export async function addPrFeed(input: { url: string; label?: string }): Promise<PrFeed> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const { data, error } = await client
+    .from('pr_feeds')
+    .insert({
+      user_id: userId,
+      url: input.url.trim(),
+      label: (input.label ?? '').trim(),
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return feedFromRow(data)
+}
+
+export async function deletePrFeed(id: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('pr_feeds').delete().eq('id', id)
+  if (error) throw error
+}
+
+export interface FeedSyncResult {
+  feeds: number
+  added: number
+}
+
+/** Ask pr-mentions-feed to poll the caller's feeds now (or one feed when
+    feedId is given). The scheduled sweep does the same daily for everyone. */
+export async function syncPrFeeds(feedId?: string): Promise<FeedSyncResult> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-mentions-feed', {
+    body: feedId ? { feedId } : {},
+  })
+  if (error) throw error
+  const raw = (data as Partial<FeedSyncResult> | null) ?? {}
+  return { feeds: raw.feeds ?? 0, added: raw.added ?? 0 }
+}
+
+/* ---------- GEO auto-check ---------- */
+
+export interface GeoCheckSummary {
+  checked: number
+  prompts: number
+}
+
+/** Ask pr-geo-check to run the caller's tracked prompts through the
+    configured model route and log cited/mentioned/absent. Results are
+    directional — the model's own answer, not what a specific assistant
+    shows users. */
+export async function runGeoChecks(promptId?: string): Promise<GeoCheckSummary> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-geo-check', {
+    body: promptId ? { promptId } : {},
+  })
+  if (error) throw error
+  const raw = (data as Partial<GeoCheckSummary> | null) ?? {}
+  return { checked: raw.checked ?? 0, prompts: raw.prompts ?? 0 }
 }

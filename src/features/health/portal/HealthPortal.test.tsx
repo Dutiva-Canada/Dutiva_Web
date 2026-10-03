@@ -7,13 +7,16 @@ import { ThemeProvider } from '@/lib/theme'
 import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { AuthContextValue } from '@/features/app/auth/authContext'
-import type { HealthState } from '@/features/health/data/types'
+import type { HealthHabit, HealthHabitLog, HealthState } from '@/features/health/data/types'
 import {
   avgMood,
   checkInStreak,
   dailyMoods,
+  habitStreak,
+  habitsDoneToday,
   hasCheckInToday,
   moodRange,
+  recentDayKeys,
 } from '@/features/health/data/healthStats'
 
 /* useAuth is mocked per-test to drive the signed-out / no-access / granted
@@ -32,6 +35,9 @@ vi.mock('@/features/health/data/api', async (importOriginal) => ({
   addJournalEntry: vi.fn(),
   updateJournalEntry: vi.fn(),
   deleteJournalEntry: vi.fn(),
+  addHabit: vi.fn(),
+  deleteHabit: vi.fn(),
+  setHabitDone: vi.fn(),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -69,6 +75,8 @@ const STATE: HealthState = {
       updatedAt: '2026-10-03T14:00:00Z',
     },
   ],
+  habits: [],
+  habitLogs: [],
   lastLoadedAt: new Date().toISOString(),
 }
 
@@ -197,5 +205,48 @@ describe('healthStats', () => {
     expect(best?.mood).toBe(5)
     expect(toughest?.mood).toBe(1)
     expect(moodRange([], 7).best).toBeNull()
+  })
+
+  /* Habits — done-days are stored as local YYYY-MM-DD keys. */
+  const dayKey = (offset: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() - offset)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  }
+  const log = (habitId: string, offset: number): HealthHabitLog => ({
+    id: `l-${habitId}-${offset}`,
+    habitId,
+    day: dayKey(offset),
+    createdAt: at(12, offset),
+  })
+  const habit = (id: string): HealthHabit => ({
+    id,
+    name: `Habit ${id}`,
+    createdAt: at(9, 30),
+  })
+
+  it('tracks a habit streak with the same leniency as check-ins', () => {
+    const logs = [log('h1', 0), log('h1', 1), log('h1', 2)]
+    expect(habitStreak(logs, 'h1')).toBe(3)
+    expect(habitStreak([log('h1', 1), log('h1', 2)], 'h1')).toBe(2)
+    expect(habitStreak([log('h1', 0), log('h1', 2)], 'h1')).toBe(1)
+    expect(habitStreak([], 'h1')).toBe(0)
+    /* A different habit's days never bleed into the count. */
+    expect(habitStreak([log('h2', 0), log('h2', 1)], 'h1')).toBe(0)
+  })
+
+  it('counts habits done today out of the total', () => {
+    const logs = [log('h1', 0), log('h2', 1)]
+    const habits = [habit('h1'), habit('h2'), habit('h3')]
+    expect(habitsDoneToday(logs, habits)).toEqual({ done: 1, total: 3 })
+    expect(habitsDoneToday([], habits)).toEqual({ done: 0, total: 3 })
+    expect(habitsDoneToday([], [])).toEqual({ done: 0, total: 0 })
+  })
+
+  it('builds the last-N day keys oldest first', () => {
+    const keys = recentDayKeys(3)
+    expect(keys).toHaveLength(3)
+    expect(keys[2]).toBe(dayKey(0))
+    expect(keys[0]).toBe(dayKey(2))
   })
 })

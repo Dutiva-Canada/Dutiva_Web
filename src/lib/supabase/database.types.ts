@@ -7570,6 +7570,59 @@ export type Database = {
         }
         Relationships: []
       }
+      health_habit_logs: {
+        Row: {
+          created_at: string
+          day: string
+          habit_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          habit_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          habit_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "health_habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_habits: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_journal_entries: {
         Row: {
           body: string
@@ -11832,6 +11885,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pr_connections: {
+        Row: {
+          account_label: string
+          connected_at: string | null
+          created_at: string
+          id: string
+          provider: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          account_label?: string
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          provider: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          account_label?: string
+          connected_at?: string | null
+          created_at?: string
+          id?: string
+          provider?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pr_content_items: {
         Row: {
           body: string
@@ -11888,9 +11971,40 @@ export type Database = {
           },
         ]
       }
+      pr_feeds: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          last_item_count: number | null
+          last_synced_at: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string
+          last_item_count?: number | null
+          last_synced_at?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          last_item_count?: number | null
+          last_synced_at?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pr_geo_prompts: {
         Row: {
           checked_at: string | null
+          checked_via: string
           created_at: string
           engine: string
           id: string
@@ -11902,6 +12016,7 @@ export type Database = {
         }
         Insert: {
           checked_at?: string | null
+          checked_via?: string
           created_at?: string
           engine?: string
           id?: string
@@ -11913,6 +12028,7 @@ export type Database = {
         }
         Update: {
           checked_at?: string | null
+          checked_via?: string
           created_at?: string
           engine?: string
           id?: string

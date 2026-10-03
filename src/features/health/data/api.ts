@@ -1,8 +1,11 @@
 import { supabase } from '@/lib/supabaseClient'
 import {
   checkInFromRow,
+  habitFromRow,
+  habitLogFromRow,
   journalFromRow,
   type HealthCheckIn,
+  type HealthHabit,
   type HealthJournalEntry,
   type HealthState,
 } from './types'
@@ -39,16 +42,20 @@ export async function hasHealthAccess(): Promise<boolean> {
 
 export async function loadHealthState(): Promise<HealthState> {
   const client = requireSupabase()
-  const [checkInsRes, entriesRes] = await Promise.all([
+  const [checkInsRes, entriesRes, habitsRes, habitLogsRes] = await Promise.all([
     client.from('health_checkins').select('*').order('created_at', { ascending: false }),
     client.from('health_journal_entries').select('*').order('created_at', { ascending: false }),
+    client.from('health_habits').select('*').order('created_at', { ascending: false }),
+    client.from('health_habit_logs').select('*').order('day', { ascending: false }),
   ])
-  for (const res of [checkInsRes, entriesRes]) {
+  for (const res of [checkInsRes, entriesRes, habitsRes, habitLogsRes]) {
     if (res.error) throw res.error
   }
   return {
     checkIns: (checkInsRes.data ?? []).map(checkInFromRow),
     entries: (entriesRes.data ?? []).map(journalFromRow),
+    habits: (habitsRes.data ?? []).map(habitFromRow),
+    habitLogs: (habitLogsRes.data ?? []).map(habitLogFromRow),
     lastLoadedAt: new Date().toISOString(),
   }
 }
@@ -121,5 +128,54 @@ export async function updateJournalEntry(
 export async function deleteJournalEntry(id: string): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.from('health_journal_entries').delete().eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- daily habits ---------- */
+
+export async function addHabit(name: string): Promise<HealthHabit> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const { data, error } = await client
+    .from('health_habits')
+    .insert({ user_id: userId, name: name.trim() })
+    .select()
+    .single()
+  if (error) throw error
+  return habitFromRow(data)
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  const client = requireSupabase()
+  /* The log rows cascade on habit_id, so this removes its history too. */
+  const { error } = await client.from('health_habits').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Mark a habit done/not-done on a day. `day` is local YYYY-MM-DD — the
+    portal tracks "did it today" in the user's own timezone, so the toggle
+    upserts by the (habit_id, day) uniqueness the migration enforces. */
+export async function setHabitDone(
+  habitId: string,
+  day: string,
+  done: boolean,
+): Promise<void> {
+  const client = requireSupabase()
+  if (!done) {
+    const { error } = await client
+      .from('health_habit_logs')
+      .delete()
+      .eq('habit_id', habitId)
+      .eq('day', day)
+    if (error) throw error
+    return
+  }
+  const userId = await requireUserId()
+  const { error } = await client
+    .from('health_habit_logs')
+    .upsert(
+      { user_id: userId, habit_id: habitId, day },
+      { onConflict: 'habit_id,day', ignoreDuplicates: true },
+    )
   if (error) throw error
 }

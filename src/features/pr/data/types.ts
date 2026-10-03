@@ -6,6 +6,8 @@ type ContactRow = Database['public']['Tables']['pr_media_contacts']['Row']
 type KeywordRow = Database['public']['Tables']['pr_keywords']['Row']
 type MentionRow = Database['public']['Tables']['pr_mentions']['Row']
 type GeoPromptRow = Database['public']['Tables']['pr_geo_prompts']['Row']
+type FeedRow = Database['public']['Tables']['pr_feeds']['Row']
+type ConnectionRow = Database['public']['Tables']['pr_connections']['Row']
 
 /** The constrained vocabularies the migration CHECKs enforce — mirrored in
     TS so forms can't emit a value the database would reject. */
@@ -24,6 +26,11 @@ export type PrContentStatus = 'draft' | 'scheduled' | 'published'
 export type PrSentiment = 'positive' | 'neutral' | 'negative'
 export type PrGeoEngine = 'chatgpt' | 'perplexity' | 'gemini' | 'copilot' | 'other'
 export type PrGeoResult = 'unchecked' | 'cited' | 'mentioned' | 'absent'
+/** Who produced the last check — a human spot-check or the scheduled
+    auto-check through the configured model route. */
+export type PrGeoCheckVia = 'manual' | 'auto'
+export type PrConnectionProvider = 'buffer' | 'linkedin' | 'meta' | 'search_console'
+export type PrConnectionStatus = 'pending' | 'connected' | 'error' | 'disconnected'
 
 export interface PrCampaign {
   id: string
@@ -89,12 +96,37 @@ export interface PrGeoPrompt {
   id: string
   prompt: string
   engine: PrGeoEngine
-  /** What the assistant did with the brand the last time a human checked. */
+  /** What the assistant did with the brand the last time it was checked. */
   result: PrGeoResult
   note: string
   checkedAt: string | null
+  /** 'auto' = the scheduled model check; 'manual' = a human spot-check. */
+  checkedVia: PrGeoCheckVia
   createdAt: string
   updatedAt: string
+}
+
+/** A coverage feed the user pasted in (Google Alerts RSS, an outlet feed) —
+    pr-mentions-feed polls it and logs new items as mentions. */
+export interface PrFeed {
+  id: string
+  url: string
+  label: string
+  lastSyncedAt: string | null
+  /** New mentions the last sync added (null = never synced). */
+  lastItemCount: number | null
+  createdAt: string
+}
+
+/** Status of an external platform connection. 'pending' means the OAuth
+    app/review isn't done yet — the UI must never render it as usable. */
+export interface PrConnection {
+  id: string
+  provider: PrConnectionProvider
+  status: PrConnectionStatus
+  accountLabel: string
+  connectedAt: string | null
+  createdAt: string
 }
 
 export interface PrState {
@@ -104,6 +136,8 @@ export interface PrState {
   keywords: PrKeyword[]
   mentions: PrMention[]
   geoPrompts: PrGeoPrompt[]
+  feeds: PrFeed[]
+  connections: PrConnection[]
   lastLoadedAt: string
 }
 
@@ -183,7 +217,30 @@ export function geoPromptFromRow(row: GeoPromptRow): PrGeoPrompt {
     result: row.result as PrGeoResult,
     note: row.note,
     checkedAt: row.checked_at,
+    checkedVia: row.checked_via as PrGeoCheckVia,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+  }
+}
+
+export function feedFromRow(row: FeedRow): PrFeed {
+  return {
+    id: row.id,
+    url: row.url,
+    label: row.label,
+    lastSyncedAt: row.last_synced_at,
+    lastItemCount: row.last_item_count,
+    createdAt: row.created_at,
+  }
+}
+
+export function connectionFromRow(row: ConnectionRow): PrConnection {
+  return {
+    id: row.id,
+    provider: row.provider as PrConnectionProvider,
+    status: row.status as PrConnectionStatus,
+    accountLabel: row.account_label,
+    connectedAt: row.connected_at,
+    createdAt: row.created_at,
   }
 }

@@ -11,6 +11,24 @@ import {
   upcomingContent,
 } from '@/features/pr/data/prStats'
 import { contentKindLabel, fmtDateTime, sentimentLabel } from './prUi'
+import type { PrConnectionProvider, PrConnectionStatus } from '@/features/pr/data/types'
+
+/** The providers the desk will reach once their OAuth apps clear review —
+    order matches the Connections card; status comes from pr_connections and
+    defaults to pending until a real connect flow writes a row. */
+const CONNECTION_PROVIDERS = [
+  'buffer',
+  'linkedin',
+  'meta',
+  'search_console',
+] as const satisfies readonly PrConnectionProvider[]
+
+const CONN_PILL: Record<PrConnectionStatus, string> = {
+  pending: 'sb-pill sb-pill-draft',
+  connected: 'sb-pill prx-sent-pos',
+  error: 'sb-pill prx-sent-neg',
+  disconnected: 'sb-pill sb-pill-draft',
+}
 import { usePrHead } from './usePrHead'
 
 const SENT_CLASS = {
@@ -152,6 +170,33 @@ export function PrHomePage() {
           )}
         </section>
       </div>
+
+      <section className="sb-card sb-card-pad">
+        <div className="sb-section-head" style={{ marginTop: 0 }}>
+          <h2 className="m-0 text-[16px]">{x(PM.pr_ov_conn_title)}</h2>
+        </div>
+        <p className="sb-helper" style={{ marginTop: -6 }}>{x(PM.pr_ov_conn_sub)}</p>
+        <ul className="sb-mini-list">
+          {CONNECTION_PROVIDERS.map((provider) => {
+            const row = state.connections.find((c) => c.provider === provider)
+            const status: PrConnectionStatus = row?.status ?? 'pending'
+            return (
+              <li key={provider}>
+                <span style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>
+                  {x(PM[`pr_ov_conn_${provider}`])}
+                  {row?.accountLabel ? (
+                    <span style={{ color: 'var(--sb-muted)', fontWeight: 400 }}>
+                      {` — ${row.accountLabel}`}
+                    </span>
+                  ) : null}
+                </span>
+                <span className={CONN_PILL[status]}>{x(PM[`pr_ov_conn_${status}`])}</span>
+              </li>
+            )
+          })}
+        </ul>
+        <p className="sb-helper" style={{ marginBottom: 0 }}>{x(PM.pr_ov_conn_note)}</p>
+      </section>
 
       <div className="sb-note">
         <Info size={16} aria-hidden="true" />

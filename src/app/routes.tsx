@@ -80,7 +80,9 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
 /* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
 /* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))
+/* prettier-ignore */ const HealthHabitsPage = lazy(() => import('@/features/health/portal/HealthHabitsPage').then((m) => ({ default: m.HealthHabitsPage })))
 /* prettier-ignore */ const HealthJournalPage = lazy(() => import('@/features/health/portal/HealthJournalPage').then((m) => ({ default: m.HealthJournalPage })))
+/* prettier-ignore */ const HealthToolsPage = lazy(() => import('@/features/health/portal/HealthToolsPage').then((m) => ({ default: m.HealthToolsPage })))
 /* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
 /* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
@@ -221,7 +223,9 @@ function NotFoundRoute() {
  *                           gated by a health_access grant (invite-only);
  *                           non-clinical self-tracking + journal
  *   /health/check-in        daily mood/energy check-in + history
+ *   /health/habits          daily habit toggles + streaks (non-clinical)
  *   /health/journal         private journal entries
+ *   /health/tools           self-guided pauses — breathing, grounding, gratitude
  *   /health/insights        trends derived from the user's own check-ins
  *   /health/resources       crisis + support resources (real services)
  *   /pr                     PR portal — standalone shell, shared auth,
@@ -423,7 +427,9 @@ function routeTree(): RouteObject[] {
           children: [
             { index: true, element: <HealthHomePage /> },
             { path: 'check-in', element: <HealthCheckInPage /> },
+            { path: 'habits', element: <HealthHabitsPage /> },
             { path: 'journal', element: <HealthJournalPage /> },
+            { path: 'tools', element: <HealthToolsPage /> },
             { path: 'insights', element: <HealthInsightsPage /> },
             { path: 'resources', element: <HealthResourcesPage /> },
           ],

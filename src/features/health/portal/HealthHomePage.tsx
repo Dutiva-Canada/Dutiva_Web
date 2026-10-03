@@ -5,7 +5,7 @@ import { BookOpen, HeartPulse, Info, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { avgMood, checkInStreak, hasCheckInToday } from '@/features/health/data/healthStats'
+import { avgMood, checkInStreak, habitsDoneToday, hasCheckInToday } from '@/features/health/data/healthStats'
 import { fmtDateTime, moodLabel } from './healthUi'
 import { useHealthHead } from './useHealthHead'
 
@@ -35,6 +35,7 @@ export function HealthHomePage() {
   const mood7 = avgMood(state.checkIns, 7)
   const streak = checkInStreak(state.checkIns)
   const today = hasCheckInToday(state.checkIns)
+  const habitsToday = habitsDoneToday(state.habitLogs, state.habits)
   const latest = state.entries[0]
 
   return (
@@ -82,6 +83,12 @@ export function HealthHomePage() {
         <div className="sb-stat">
           <div className="k">{x(HM.health_ov_entries)}</div>
           <div className="v">{state.entries.length}</div>
+        </div>
+        <div className="sb-stat">
+          <div className="k">{x(HM.health_ov_habits)}</div>
+          <div className="v">
+            {habitsToday.total === 0 ? '—' : `${habitsToday.done}/${habitsToday.total}`}
+          </div>
         </div>
       </div>
 

@@ -290,6 +290,40 @@ export const prMessages = defineMessages({
     fr: 'Impossible de lire cette page. Remplissez les détails vous-même.',
   },
 
+  /* Coverage feeds — paste a Google Alerts RSS link; new items land as
+     mentions on their own. Neutral tone until you review them. */
+  pr_men_feeds_title: { en: 'Coverage feeds', fr: 'Fils de retombées' },
+  pr_men_feeds_sub: {
+    en: 'Paste a Google Alerts RSS link (or any news feed) — new items become coverage entries on their own.',
+    fr: 'Collez un lien RSS Google Alerts (ou n’importe quel fil d’actualités) — les nouveaux éléments deviennent des retombées automatiquement.',
+  },
+  pr_men_feed_url: { en: 'Feed URL', fr: 'Adresse du fil' },
+  pr_men_feed_url_ph: { en: 'https://www.google.com/alerts/feeds/…', fr: 'https://www.google.com/alerts/feeds/…' },
+  pr_men_feed_label: { en: 'Name (optional)', fr: 'Nom (facultatif)' },
+  pr_men_feed_label_ph: { en: 'e.g. “Dutiva” alerts', fr: 'p. ex. alertes « Dutiva »' },
+  pr_men_feed_add: { en: 'Add feed', fr: 'Ajouter le fil' },
+  pr_men_feed_added: { en: 'Feed saved.', fr: 'Fil enregistré.' },
+  pr_men_feed_invalid: {
+    en: 'That doesn’t look like a feed URL — paste the RSS link.',
+    fr: 'Cette adresse ne ressemble pas à un fil — collez le lien RSS.',
+  },
+  pr_men_feed_sync: { en: 'Sync now', fr: 'Synchroniser' },
+  pr_men_feed_syncing: { en: 'Syncing…', fr: 'Synchronisation…' },
+  pr_men_feed_synced_one: { en: 'Sync done — 1 new mention added.', fr: 'Synchronisation terminée — 1 nouvelle retombée ajoutée.' },
+  pr_men_feed_synced_many: { en: 'Sync done — {count} new mentions added.', fr: 'Synchronisation terminée — {count} nouvelles retombées ajoutées.' },
+  pr_men_feed_synced_none: { en: 'Sync done — nothing new.', fr: 'Synchronisation terminée — rien de nouveau.' },
+  pr_men_feed_last: { en: 'Last synced {date}', fr: 'Synchronisé le {date}' },
+  pr_men_feed_never: {
+    en: 'Not synced yet — runs daily and on demand.',
+    fr: 'Pas encore synchronisé — s’exécute chaque jour et sur demande.',
+  },
+  pr_men_feed_delete: { en: 'Remove', fr: 'Retirer' },
+  pr_men_feed_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  pr_men_feeds_empty: {
+    en: 'No feeds yet. In Google Alerts, set “Deliver to: RSS feed” and paste the link here.',
+    fr: 'Aucun fil pour l’instant. Dans Google Alerts, choisissez « Envoyer à : flux RSS » et collez le lien ici.',
+  },
+
   /* AI answers (GEO) — manual spot-checks of assistant visibility */
   pr_ans_title: { en: 'AI answers', fr: 'Réponses IA' },
   pr_ans_sub: {
@@ -333,6 +367,51 @@ export const prMessages = defineMessages({
   pr_ans_note_banner: {
     en: 'These are your own spot-checks — assistants personalize answers, so treat results as directional, not definitive.',
     fr: 'Ce sont vos propres vérifications ponctuelles — les assistants personnalisent leurs réponses, alors prenez les résultats comme indicatifs, pas définitifs.',
+  },
+
+  /* Auto-checks — the tracked prompt is sent to the configured AI model on a
+     daily schedule (and on demand); its answer is scored for a Dutiva link or
+     brand mention. Directional by design — it measures what one model says,
+     not what ChatGPT/Perplexity show a given user. */
+  pr_ans_run: { en: 'Run checks', fr: 'Vérifier maintenant' },
+  pr_ans_running: { en: 'Checking…', fr: 'Vérification…' },
+  pr_ans_ran_one: {
+    en: '1 prompt checked against the configured model.',
+    fr: '1 question vérifiée avec le modèle configuré.',
+  },
+  pr_ans_ran_many: {
+    en: '{count} prompts checked against the configured model.',
+    fr: '{count} questions vérifiées avec le modèle configuré.',
+  },
+  pr_ans_run_fail: {
+    en: 'Checks didn’t run — the model may be unavailable. Try again in a bit.',
+    fr: 'La vérification a échoué — le modèle est peut-être indisponible. Réessayez dans un moment.',
+  },
+  pr_ans_via_auto: { en: 'Auto-check', fr: 'Vérif. auto' },
+  pr_ans_via_manual: { en: 'Manual', fr: 'Manuelle' },
+  pr_ans_auto_note: {
+    en: 'Auto-checks run daily through the configured AI model and record whether its answer names or links to the brand — a directional signal, not what a specific assistant shows your customers.',
+    fr: 'Les vérifications automatiques s’exécutent chaque jour avec le modèle d’IA configuré et notent si sa réponse nomme ou cite la marque — un signal indicatif, pas ce qu’un assistant précis montre à vos clients.',
+  },
+
+  /* Connections — external platforms the desk can reach once their OAuth
+     apps clear review. Rows render pending until a real flow lands. */
+  pr_ov_conn_title: { en: 'Connections', fr: 'Connexions' },
+  pr_ov_conn_sub: {
+    en: 'External platforms the desk can post to or pull reports from.',
+    fr: 'Les plateformes externes où le bureau peut publier ou tirer des rapports.',
+  },
+  pr_ov_conn_buffer: { en: 'Buffer', fr: 'Buffer' },
+  pr_ov_conn_linkedin: { en: 'LinkedIn', fr: 'LinkedIn' },
+  pr_ov_conn_meta: { en: 'Meta', fr: 'Meta' },
+  pr_ov_conn_search_console: { en: 'Google Search Console', fr: 'Google Search Console' },
+  pr_ov_conn_pending: { en: 'Pending setup', fr: 'En attente' },
+  pr_ov_conn_connected: { en: 'Connected', fr: 'Connecté' },
+  pr_ov_conn_error: { en: 'Needs attention', fr: 'À vérifier' },
+  pr_ov_conn_disconnected: { en: 'Disconnected', fr: 'Déconnecté' },
+  pr_ov_conn_note: {
+    en: 'Publishing and Search Console connections need platform-approved OAuth apps — setup is in progress. Nothing here posts on its own.',
+    fr: 'Les connexions de publication et de Search Console exigent des applications OAuth approuvées par les plateformes — la configuration est en cours. Rien ici ne publie tout seul.',
   },
 
   /* Layout chrome */

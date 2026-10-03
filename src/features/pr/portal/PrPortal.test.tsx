@@ -46,6 +46,10 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   addGeoPrompt: vi.fn(),
   recordGeoCheck: vi.fn(),
   deleteGeoPrompt: vi.fn(),
+  addPrFeed: vi.fn(),
+  deletePrFeed: vi.fn(),
+  syncPrFeeds: vi.fn(),
+  runGeoChecks: vi.fn(),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -128,10 +132,13 @@ const STATE: PrState = {
       result: 'cited',
       note: '',
       checkedAt: '2026-10-02T14:00:00Z',
+      checkedVia: 'manual',
       createdAt: '2026-10-01T14:00:00Z',
       updatedAt: '2026-10-02T14:00:00Z',
     },
   ],
+  feeds: [],
+  connections: [],
   lastLoadedAt: new Date().toISOString(),
 }
 

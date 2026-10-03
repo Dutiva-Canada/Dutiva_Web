@@ -33,7 +33,9 @@ export const healthMessages = defineMessages({
   /* Tabs */
   health_tab_overview: { en: 'Overview', fr: 'Aperçu' },
   health_tab_checkin: { en: 'Check-in', fr: 'Point du jour' },
+  health_tab_habits: { en: 'Habits', fr: 'Habitudes' },
   health_tab_journal: { en: 'Journal', fr: 'Journal' },
+  health_tab_tools: { en: 'Tools', fr: 'Outils' },
   health_tab_insights: { en: 'Insights', fr: 'Tendances' },
   health_tab_resources: { en: 'Resources', fr: 'Ressources' },
 
@@ -226,6 +228,85 @@ export const healthMessages = defineMessages({
     fr: 'Dutiva Santé n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
   },
 
+  /* Habits — gentle routine tracking, nothing diagnostic */
+  health_habits_title: { en: 'Habits', fr: 'Habitudes' },
+  health_habits_sub: {
+    en: 'Small daily things you want to keep up — tick them off, watch the streak.',
+    fr: 'Les petites choses quotidiennes que vous voulez garder — cochez-les, suivez la suite.',
+  },
+  health_habit_new: { en: 'New habit', fr: 'Nouvelle habitude' },
+  health_habit_ph: { en: 'e.g. a ten-minute walk', fr: 'p. ex. une marche de dix minutes' },
+  health_habit_add: { en: 'Add habit', fr: 'Ajouter l’habitude' },
+  health_habit_added: { en: 'Habit added.', fr: 'Habitude ajoutée.' },
+  health_habit_done: { en: 'Done today', fr: 'Fait aujourd’hui' },
+  health_habit_mark: { en: 'Mark done', fr: 'Marquer fait' },
+  health_habit_streak_one: { en: '1-day streak', fr: '1 jour de suite' },
+  health_habit_streak_many: { en: '{count}-day streak', fr: '{count} jours de suite' },
+  health_habit_week: { en: 'Last 7 days', fr: '7 derniers jours' },
+  health_habit_delete: { en: 'Delete', fr: 'Supprimer' },
+  health_habit_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_habits_empty: {
+    en: 'No habits yet. Pick one small thing you’d like to do most days — a walk, a stretch, a screen-free meal.',
+    fr: 'Aucune habitude pour l’instant. Choisissez une petite chose à faire la plupart des jours — une marche, un étirement, un repas sans écran.',
+  },
+  health_habits_note: {
+    en: 'Habits here are gentle routine-tracking — not treatment, and a missed day doesn’t break anything.',
+    fr: 'Les habitudes ici servent à suivre une routine en douceur — ce n’est pas un traitement, et une journée manquée ne gâche rien.',
+  },
+  health_ov_habits: { en: 'Habits today', fr: 'Habitudes du jour' },
+
+  /* Tools — self-guided pauses, not treatment */
+  health_tools_title: { en: 'Tools', fr: 'Outils' },
+  health_tools_sub: {
+    en: 'Small self-guided exercises for the moment you’re in — a pause with some structure, not treatment.',
+    fr: 'De petits exercices guidés pour le moment présent — une pause structurée, pas un traitement.',
+  },
+  health_tool_breath_title: { en: 'Box breathing', fr: 'Respiration carrée' },
+  health_tool_breath_body: {
+    en: 'Four counts in, four held, four out, four held. A few rounds is enough.',
+    fr: 'Quatre temps pour inspirer, quatre pour retenir, quatre pour expirer, quatre pour retenir. Quelques cycles suffisent.',
+  },
+  health_tool_breath_start: { en: 'Start', fr: 'Commencer' },
+  health_tool_breath_stop: { en: 'Stop', fr: 'Arrêter' },
+  health_tool_breath_in: { en: 'Breathe in', fr: 'Inspirez' },
+  health_tool_breath_hold: { en: 'Hold', fr: 'Retenez' },
+  health_tool_breath_out: { en: 'Breathe out', fr: 'Expirez' },
+  health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
+  health_tool_ground_title: { en: 'Grounding: 5–4–3–2–1', fr: 'Ancrage : 5-4-3-2-1' },
+  health_tool_ground_body: {
+    en: 'Name things around you, counting down through the senses.',
+    fr: 'Nommez ce qui vous entoure, en descendant les sens un à un.',
+  },
+  health_tool_ground_s5: { en: '5 things you can see', fr: '5 choses que vous voyez' },
+  health_tool_ground_s4: { en: '4 things you can touch', fr: '4 choses que vous pouvez toucher' },
+  health_tool_ground_s3: { en: '3 things you can hear', fr: '3 choses que vous entendez' },
+  health_tool_ground_s2: { en: '2 things you can smell', fr: '2 odeurs que vous remarquez' },
+  health_tool_ground_s1: { en: '1 thing you can taste', fr: '1 chose que vous goûtez' },
+  health_tool_ground_next: { en: 'Next', fr: 'Suivant' },
+  health_tool_ground_restart: { en: 'Start over', fr: 'Recommencer' },
+  health_tool_ground_done: {
+    en: 'That’s the exercise — take one more breath before you go back.',
+    fr: 'C’est tout — prenez une dernière respiration avant de repartir.',
+  },
+  health_tool_grat_title: { en: 'Gratitude note', fr: 'Note de gratitude' },
+  health_tool_grat_body: {
+    en: 'One small thing that went okay today — write it down.',
+    fr: 'Une petite chose qui s’est bien passée aujourd’hui — notez-la.',
+  },
+  health_tool_grat_p1: { en: 'What’s one thing that went a little better than expected today?', fr: 'Qu’est-ce qui s’est un peu mieux passé que prévu aujourd’hui?' },
+  health_tool_grat_p2: { en: 'Who made your day a bit easier — and how?', fr: 'Qui a rendu votre journée un peu plus facile — et comment?' },
+  health_tool_grat_p3: { en: 'What’s a small thing you have now that past-you wanted?', fr: 'Quelle petite chose avez-vous maintenant que vous souhaitiez avant?' },
+  health_tool_grat_p4: { en: 'What did you enjoy eating, seeing, or hearing recently?', fr: 'Qu’avez-vous aimé manger, voir ou entendre récemment?' },
+  health_tool_grat_another: { en: 'Try another prompt', fr: 'Une autre idée' },
+  health_tool_grat_ph: { en: 'A sentence or two is plenty.', fr: 'Une phrase ou deux suffit.' },
+  health_tool_grat_save: { en: 'Save to journal', fr: 'Enregistrer au journal' },
+  health_tool_grat_saved: { en: 'Saved to your journal.', fr: 'Enregistrée dans votre journal.' },
+  health_tool_grat_entry: { en: 'Gratitude', fr: 'Gratitude' },
+  health_tools_note: {
+    en: 'These exercises are pauses, not treatment. If you’re struggling, the Resources page lists real people to reach.',
+    fr: 'Ces exercices sont des pauses, pas un traitement. Si vous avez du mal, la page Ressources liste de vraies personnes à joindre.',
+  },
+
   /* Layout chrome */
   health_loading: { en: 'Loading…', fr: 'Chargement…' },
   health_load_error: {
@@ -254,6 +335,16 @@ export const healthMessages = defineMessages({
   health_seo_title_privacy: { en: 'Privacy — Dutiva Health', fr: 'Confidentialité — Dutiva Santé' },
   health_seo_title_support: { en: 'Support — Dutiva Health', fr: 'Soutien — Dutiva Santé' },
   health_seo_title_wellness: { en: 'Wellness notice — Dutiva Health', fr: 'Avis de bien-être — Dutiva Santé' },
+  health_seo_title_habits: { en: 'Habits — Dutiva Health', fr: 'Habitudes — Dutiva Santé' },
+  health_seo_title_tools: { en: 'Tools — Dutiva Health', fr: 'Outils — Dutiva Santé' },
+  health_seo_desc_habits: {
+    en: 'Small daily habits you track yourself.',
+    fr: 'De petites habitudes quotidiennes à suivre vous-même.',
+  },
+  health_seo_desc_tools: {
+    en: 'Self-guided pauses — breathing, grounding, gratitude.',
+    fr: 'Des pauses guidées — respiration, ancrage, gratitude.',
+  },
   health_seo_desc_terms: {
     en: 'Terms of use for Dutiva Health.',
     fr: 'Conditions d’utilisation de Dutiva Santé.',

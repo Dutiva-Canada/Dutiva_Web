@@ -14,7 +14,9 @@ import { HealthFooter } from './HealthFooter'
 const NAV = [
   { to: '/health', end: true, label: HM.health_tab_overview },
   { to: '/health/check-in', end: false, label: HM.health_tab_checkin },
+  { to: '/health/habits', end: false, label: HM.health_tab_habits },
   { to: '/health/journal', end: false, label: HM.health_tab_journal },
+  { to: '/health/tools', end: false, label: HM.health_tab_tools },
   { to: '/health/insights', end: false, label: HM.health_tab_insights },
   { to: '/health/resources', end: false, label: HM.health_tab_resources },
 ] as const

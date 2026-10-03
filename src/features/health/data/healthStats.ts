@@ -1,4 +1,4 @@
-import type { HealthCheckIn } from './types'
+import type { HealthCheckIn, HealthHabit, HealthHabitLog } from './types'
 
 /**
  * Pure derivations over check-ins — the Insights and Overview pages compute
@@ -136,4 +136,57 @@ export function moodRange(
     if (!toughest || (d.mood ?? 0) < (toughest.mood ?? 0)) toughest = d
   }
   return { best, toughest }
+}
+
+/* ---------- habits (non-clinical: routine tracking, nothing diagnostic) -- */
+
+export function todayDayKey(now: Date = new Date()): string {
+  return todayKey(now)
+}
+
+/** Days on which a given habit was marked done, as a Set of YYYY-MM-DD. */
+export function habitDoneDays(logs: HealthHabitLog[], habitId: string): Set<string> {
+  return new Set(logs.filter((l) => l.habitId === habitId).map((l) => l.day))
+}
+
+/** Consecutive days a habit was marked done, counting back from today
+    (today empty doesn't break the streak, same leniency as check-ins). */
+export function habitStreak(
+  logs: HealthHabitLog[],
+  habitId: string,
+  now: Date = new Date(),
+): number {
+  const days = habitDoneDays(logs, habitId)
+  if (days.size === 0) return 0
+  let streak = 0
+  const cursor = new Date(now)
+  if (!days.has(todayKey(cursor))) cursor.setDate(cursor.getDate() - 1)
+  while (days.has(todayKey(cursor))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+}
+
+/** How many habits are done today — the Overview stat. */
+export function habitsDoneToday(
+  logs: HealthHabitLog[],
+  habits: HealthHabit[],
+  now: Date = new Date(),
+): { done: number; total: number } {
+  const today = todayKey(now)
+  const doneIds = new Set(logs.filter((l) => l.day === today).map((l) => l.habitId))
+  return { done: habits.filter((h) => doneIds.has(h.id)).length, total: habits.length }
+}
+
+/** The last `days` day-keys, oldest first — the 7-day dots on each habit row. */
+export function recentDayKeys(days: number, now: Date = new Date()): string[] {
+  const out: string[] = []
+  const cursor = new Date(now)
+  cursor.setDate(cursor.getDate() - (days - 1))
+  for (let i = 0; i < days; i += 1) {
+    out.push(todayKey(cursor))
+    cursor.setDate(cursor.getDate() + 1)
+  }
+  return out
 }

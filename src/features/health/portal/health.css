@@ -267,6 +267,56 @@
   text-decoration: underline;
 }
 
+/* Habit 7-day dots — a filled accent dot per done day, plain ring otherwise. */
+.hb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sb-line);
+  background: transparent;
+  display: inline-block;
+}
+.hb-dot.is-on {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent);
+}
+
+/* Box-breathing circle — scales up on inhale, holds, scales down on exhale.
+   The phase duration is set inline so the animation and the countdown are
+   driven by the same constant in the component. */
+.hb-breath {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  background: var(--sb-accent-soft);
+  border: 2px solid var(--sb-accent);
+  color: var(--sb-accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform var(--breath-ms, 4000ms) ease-in-out;
+  transform: scale(0.72);
+}
+.hb-breath[data-phase='in'] {
+  transform: scale(1);
+}
+.hb-breath[data-phase='hold-in'] {
+  transform: scale(1);
+}
+.hb-breath[data-phase='out'] {
+  transform: scale(0.72);
+}
+.hb-breath[data-phase='hold-out'] {
+  transform: scale(0.72);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-breath {
+    transition: none;
+  }
+}
+
 /* Journal editor textarea. */
 .hb-textarea {
   width: 100%;

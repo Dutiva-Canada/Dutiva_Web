@@ -5,7 +5,7 @@ import { Info, Loader2, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addGeoPrompt, deleteGeoPrompt, recordGeoCheck } from '@/features/pr/data/api'
+import { addGeoPrompt, deleteGeoPrompt, recordGeoCheck, runGeoChecks } from '@/features/pr/data/api'
 import type { PrGeoEngine, PrGeoPrompt, PrGeoResult } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate, GEO_ENGINES, geoEngineLabel, GEO_RESULTS, geoResultLabel } from './prUi'
@@ -39,8 +39,35 @@ export function PrAnswersPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [draft, setDraft] = useState<Draft>({ prompt: '', engine: 'chatgpt' })
   const [saving, setSaving] = useState(false)
+  const [running, setRunning] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [checks, setChecks] = useState<Record<string, RowCheck>>({})
+
+  /** Manual "check my prompts now" — the scheduled sweep does the same daily;
+      results land with checkedVia='auto' so they're never confused with a
+      human spot-check. */
+  const runChecks = async () => {
+    if (running) return
+    setRunning(true)
+    try {
+      const res = await runGeoChecks()
+      await refresh()
+      showToast({
+        en: (res.checked === 1 ? PM.pr_ans_ran_one : PM.pr_ans_ran_many).en.replace(
+          '{count}',
+          String(res.checked),
+        ),
+        fr: (res.checked === 1 ? PM.pr_ans_ran_one : PM.pr_ans_ran_many).fr.replace(
+          '{count}',
+          String(res.checked),
+        ),
+      })
+    } catch {
+      showToast(PM.pr_ans_run_fail)
+    } finally {
+      setRunning(false)
+    }
+  }
 
   const submit = async () => {
     if (!draft.prompt.trim() || saving) return
@@ -99,13 +126,24 @@ export function PrAnswersPage() {
     <div className="sb prx sb-page">
       <div className="sb-head-row">
         <h1>{x(PM.pr_ans_title)}</h1>
-        <button
-          type="button"
-          className="sb-btn sb-btn-primary"
-          onClick={() => setFormOpen(true)}
-        >
-          {x(PM.pr_ans_new)}
-        </button>
+        <div className="flex gap-[8px]">
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary"
+            disabled={running || state.geoPrompts.length === 0}
+            onClick={() => void runChecks()}
+          >
+            {running && <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+            {x(running ? PM.pr_ans_running : PM.pr_ans_run)}
+          </button>
+          <button
+            type="button"
+            className="sb-btn sb-btn-primary"
+            onClick={() => setFormOpen(true)}
+          >
+            {x(PM.pr_ans_new)}
+          </button>
+        </div>
       </div>
       <p className="sb-sub">{x(PM.pr_ans_sub)}</p>
 
@@ -173,7 +211,11 @@ export function PrAnswersPage() {
                       <div style={{ fontWeight: 600 }}>{p.prompt}</div>
                       <div style={{ fontSize: 12, color: 'var(--sb-muted)' }}>
                         {p.checkedAt
-                          ? x(PM.pr_ans_checked).replace('{date}', fmtDate(p.checkedAt, lang))
+                          ? `${x(PM.pr_ans_checked).replace('{date}', fmtDate(p.checkedAt, lang))} · ${x(
+                              p.checkedVia === 'auto'
+                                ? PM.pr_ans_via_auto
+                                : PM.pr_ans_via_manual,
+                            )}`
                           : x(PM.pr_ans_never)}
                         {p.note ? ` — ${p.note}` : ''}
                       </div>
@@ -252,7 +294,9 @@ export function PrAnswersPage() {
 
       <div className="sb-note">
         <Info size={16} aria-hidden="true" />
-        <span>{x(PM.pr_ans_note_banner)}</span>
+        <span>
+          {x(PM.pr_ans_note_banner)} {x(PM.pr_ans_auto_note)}
+        </span>
       </div>
     </div>
   )
