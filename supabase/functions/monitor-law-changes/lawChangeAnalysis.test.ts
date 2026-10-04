@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildBackfillFacts,
   buildLawAnalysisMessages,
   LAW_ANALYSIS_MAX_CHARS,
   parseLawAnalysis,
@@ -26,6 +27,22 @@ describe('buildLawAnalysisMessages', () => {
   it('caps oversized fact blocks', () => {
     const msgs = buildLawAnalysisMessages('L', 'ON', 'x'.repeat(10_000))
     expect(msgs[1].content.length).toBeLessThan(7000)
+  })
+})
+
+describe('buildBackfillFacts', () => {
+  it('combines summary and raw detail as the model-facing record', () => {
+    const facts = buildBackfillFacts({
+      change_summary: 'The Act has a new version in force from 2026-04-24.',
+      raw_diff: 'current dateFrom: 2026-04-24 · versions on record: 12',
+    })
+    expect(facts).toContain('The Act has a new version')
+    expect(facts).toContain('dateFrom: 2026-04-24')
+  })
+
+  it('tolerates nulls', () => {
+    expect(buildBackfillFacts({ change_summary: null, raw_diff: null })).toBe('')
+    expect(buildBackfillFacts({ change_summary: 's', raw_diff: null })).toContain('s')
   })
 })
 

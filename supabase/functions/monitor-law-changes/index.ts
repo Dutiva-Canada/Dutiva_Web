@@ -5,6 +5,7 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { assessLegislationText } from './contentSanity.ts'
 import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
 import {
+  buildBackfillFacts,
   buildLawAnalysisMessages,
   parseLawAnalysis,
   type LawAnalysis,
@@ -623,6 +624,58 @@ Deno.serve(async (req) => {
     } catch {
       return null
     }
+  }
+
+  /* Maintenance path — `POST {"backfill_analysis": true}` fills ai_analysis
+     on change rows written before the interpretation layer existed. It is
+     keyed on the row's own recorded facts, so legacy "dataset refreshed"
+     entries get an honest "which provisions moved is not in this record"
+     brief rather than invented detail. Runs before the cron lock: it only
+     writes the analysis columns, which no sweep row races on. Batches of
+     five so the whole backfill fits in one function run. */
+  const body = await req.json().catch(() => null) as { backfill_analysis?: unknown } | null
+  if (body?.backfill_analysis === true) {
+    const { data: pending, error: pendingError } = await db
+      .from('law_updates')
+      .select('id, law_name, jurisdiction, change_summary, raw_diff')
+      .eq('event_type', 'change')
+      .is('ai_analysis_en', null)
+      .order('detected_at', { ascending: false })
+      .limit(60)
+    if (pendingError) {
+      return new Response(JSON.stringify({ error: pendingError.message }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    let analyzed = 0
+    let skipped = 0
+    for (let i = 0; i < (pending ?? []).length; i += 5) {
+      const batch = (pending ?? []).slice(i, i + 5)
+      const results = await Promise.allSettled(
+        batch.map(async (row) => {
+          const analysis = await analyzeChange(
+            row.law_name as string,
+            row.jurisdiction as string,
+            buildBackfillFacts(row as { change_summary: string | null; raw_diff: string | null }),
+          )
+          if (!analysis) return false
+          const { error } = await db
+            .from('law_updates')
+            .update({ ai_analysis_en: analysis.en, ai_analysis_fr: analysis.fr })
+            .eq('id', row.id)
+          return !error
+        }),
+      )
+      for (const r of results) {
+        if (r.status === 'fulfilled' && r.value) analyzed++
+        else skipped++
+      }
+    }
+    return new Response(
+      JSON.stringify({ ok: true, analyzed, skipped, scanned: (pending ?? []).length }),
+      { headers: { 'Content-Type': 'application/json' } },
+    )
   }
 
   // Take the lease so a long run can't race the next scheduled trigger.

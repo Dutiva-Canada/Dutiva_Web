@@ -56,6 +56,22 @@ export function buildLawAnalysisMessages(
 }
 
 /**
+ * Facts block for the maintenance backfill — rows written before section
+ * evidence existed carry only change_summary + raw_diff, and the analysis
+ * must be honest about that ("a corpus refresh was recorded; which
+ * provisions moved is not in this record") rather than invent detail.
+ */
+export function buildBackfillFacts(row: {
+  change_summary: string | null
+  raw_diff: string | null
+}): string {
+  const parts: string[] = []
+  if (row.change_summary) parts.push(`Detector summary: ${row.change_summary}`)
+  if (row.raw_diff) parts.push(`Detail recorded:\n${row.raw_diff}`)
+  return parts.join('\n\n')
+}
+
+/**
  * Parse the model's reply into both locales. Returns null on anything
  * unparseable or one-sided — a half-language analysis is worse than none,
  * since the card and the digest pick a field per locale.
