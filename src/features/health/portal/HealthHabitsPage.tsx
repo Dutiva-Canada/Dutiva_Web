@@ -222,6 +222,9 @@ export function HealthHabitsPage() {
                 <span className="sb-notify-hint">{s.why}</span>
               )}
               <span className="sb-notify-hint">{x(HM.health_ai_note)}</span>
+              {s.suggestionId === null ? (
+                <span className="sb-notify-hint">{x(HM.health_ai_not_filed)}</span>
+              ) : null}
             </span>
             <span className="flex gap-[8px]" style={{ flexShrink: 0 }}>
               <button

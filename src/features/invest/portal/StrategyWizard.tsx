@@ -105,6 +105,9 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
         setRules(toDrafts(d.rules))
         setCadence(d.cadence)
         setSuggestionId(sid)
+        /* Queue write didn't land — the wizard flow is unaffected, but an
+           abandoned draft won't be waiting on the strategies page. */
+        if (sid === null) showToast(IM.invest_review_not_filed)
         setStep(2)
       } catch (e) {
         showToast(

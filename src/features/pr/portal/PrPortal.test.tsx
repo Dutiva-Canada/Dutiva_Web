@@ -270,6 +270,8 @@ describe('PrMediaPage', () => {
     expect(await screen.findByText(/ESA changes briefing/)).toBeInTheDocument()
     expect(screen.getByText(/Draft body for the pitch/)).toBeInTheDocument()
     expect(screen.getByText(/nothing goes out from here/i)).toBeInTheDocument()
+    /* suggestionId came back null — the draft must not pretend to be durable. */
+    expect(screen.getByText(/Not saved for review/i)).toBeInTheDocument()
     /* Only active campaigns feed the model — Hiring push is paused. */
     expect(draftPitch).toHaveBeenCalledWith(
       expect.objectContaining({ campaigns: ['Fall launch'], name: 'Alex Tremblay' }),
@@ -293,6 +295,7 @@ describe('PrMediaPage', () => {
 
     expect(await screen.findByText(/write it yourself for now/i)).toBeInTheDocument()
     expect(screen.queryByText(/nothing goes out from here/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Not saved for review/i)).not.toBeInTheDocument()
   })
 })
 

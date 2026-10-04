@@ -525,6 +525,12 @@ export const prMessages = defineMessages({
   pr_ai_pitch_copy: { en: 'Copy', fr: 'Copier' },
   pr_ai_pitch_copied: { en: 'Copied', fr: 'Copié' },
   pr_ai_pitch_mailto: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
+  /* Queue write didn't land upstream — the suggestion works but won't
+     survive leaving the page. [FR self-authored] */
+  pr_ai_not_filed: {
+    en: 'Not saved for review — it disappears if you leave this page.',
+    fr: 'Non conservée pour validation — elle disparaît si vous quittez la page.',
+  },
 
   /* For review — work agents filed for a human decision */
   pr_review_title: { en: 'For review', fr: 'À valider' },
@@ -542,6 +548,11 @@ export const prMessages = defineMessages({
     fr: 'La liste n’a pas chargé — réessayez.',
   },
   pr_review_ack: { en: 'Got it', fr: 'C’est noté' },
+  /* A resolve call failed — the row stays pending. [FR self-authored] */
+  pr_review_action_failed: {
+    en: 'That didn’t save — it’s still waiting here; try again.',
+    fr: 'Ça n’a pas enregistré — c’est toujours en attente; réessayez.',
+  },
   pr_review_accept_pitch_copy: { en: 'Copy', fr: 'Copier' },
   pr_review_accept_pitch_mail: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
   pr_review_accept_prompt: { en: 'Track it', fr: 'La suivre' },

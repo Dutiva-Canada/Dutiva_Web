@@ -9,6 +9,7 @@ import {
   type AgentSuggestion,
   type AgentSurface,
 } from '@/lib/agentQueue'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 
 /**
  * The durable review list for one surface's agent_suggestions — the
@@ -41,6 +42,9 @@ interface Props {
     acceptFallback: Bi
     loadFailed: Bi
     filedBy: Bi
+    /** Toast when a resolve call fails — the row stays pending either way,
+        but the click shouldn't look dead. */
+    actionFailed: Bi
     /** Human labels per kind — the row's raw kind is the fallback. */
     kindLabel?: Record<string, Bi>
   }
@@ -57,6 +61,7 @@ function ageOf(s: AgentSuggestion): string {
 
 export function AgentReviewQueue({ surface, kinds, messages }: Props) {
   const { x } = useI18n()
+  const { showToast } = useToasts()
   const [items, setItems] = useState<AgentSuggestion[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -84,6 +89,8 @@ export function AgentReviewQueue({ surface, kinds, messages }: Props) {
       await run()
       await resolveSuggestion(s.id, 'accepted', action)
       setItems((cur) => (cur ?? []).filter((i) => i.id !== s.id))
+    } catch {
+      showToast(messages.actionFailed)
     } finally {
       setBusyId(null)
     }
@@ -95,6 +102,8 @@ export function AgentReviewQueue({ surface, kinds, messages }: Props) {
     try {
       await resolveSuggestion(s.id, 'dismissed', 'dismissed')
       setItems((cur) => (cur ?? []).filter((i) => i.id !== s.id))
+    } catch {
+      showToast(messages.actionFailed)
     } finally {
       setBusyId(null)
     }

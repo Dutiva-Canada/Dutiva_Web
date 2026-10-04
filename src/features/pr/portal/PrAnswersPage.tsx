@@ -252,7 +252,12 @@ export function PrAnswersPage() {
                 className="flex items-center gap-[10px]"
                 style={{ padding: '6px 0' }}
               >
-                <span style={{ flex: 1, minWidth: 0 }}>{p.text}</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  {p.text}
+                  {p.suggestionId === null ? (
+                    <span className="sb-notify-hint">{x(PM.pr_ai_not_filed)}</span>
+                  ) : null}
+                </span>
                 <button
                   type="button"
                   className="sb-btn sb-btn-secondary sb-btn-sm"

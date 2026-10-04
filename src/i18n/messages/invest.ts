@@ -677,6 +677,12 @@ export const investMessages = defineMessages({
     en: '{rules} · {cadence} · disabled until you enable it',
     fr: '{rules} · {cadence} · désactivée tant que vous ne l’activez pas',
   },
+  /* Queue write didn't land upstream — completing the wizard still saves
+     the strategy, but abandoning it loses the draft. [FR self-authored] */
+  invest_review_not_filed: {
+    en: 'Draft ready — not kept for review; leaving the wizard loses it.',
+    fr: 'Brouillon prêt — non conservé pour validation; quitter l’assistant le perd.',
+  },
   invest_sb_delete_strategy: { en: 'Delete strategy', fr: 'Supprimer la stratégie' },
   invest_sb_untitled: { en: 'Untitled strategy', fr: 'Stratégie sans titre' },
 

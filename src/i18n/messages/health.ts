@@ -308,9 +308,20 @@ export const healthMessages = defineMessages({
     fr: 'La liste n’a pas chargé — réessayez.',
   },
   health_review_ack: { en: 'Got it', fr: 'C’est noté' },
+  /* A resolve call failed — the row stays pending. [FR self-authored] */
+  health_review_action_failed: {
+    en: 'That didn’t save — it’s still waiting here; try again.',
+    fr: 'Ça n’a pas enregistré — c’est toujours en attente; réessayez.',
+  },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
   health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
+  /* Queue write didn't land upstream — the suggestion works but won't
+     survive leaving the page. [FR self-authored] */
+  health_ai_not_filed: {
+    en: 'Not saved for review — it disappears if you leave this page.',
+    fr: 'Non conservée pour validation — elle disparaît si vous quittez la page.',
+  },
 
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },

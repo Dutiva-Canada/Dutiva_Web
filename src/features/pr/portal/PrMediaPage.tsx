@@ -25,6 +25,10 @@ interface PitchState extends PrPitchDraft {
   contactId: string
   contactName: string
   email: string
+  /** True when the queue write didn't land upstream — the card still works
+      (copy/mailto) but isn't filed for review. Captured at draft time;
+      suggestionId itself is cleared after resolution so it can't flag it. */
+  ephemeral?: boolean
 }
 
 export function PrMediaPage() {
@@ -121,7 +125,13 @@ export function PrMediaPage() {
         campaigns: state.campaigns.filter((k) => k.status === 'active').map((k) => k.name),
         lang,
       })
-      setPitch({ contactId: c.id, contactName: c.name, email: c.email, ...out })
+      setPitch({
+        contactId: c.id,
+        contactName: c.name,
+        email: c.email,
+        ...out,
+        ephemeral: out.suggestionId === null,
+      })
       /* The new row is the active card — keep it out of the queued list so
          it doesn't render twice; a re-draft superseded the old one upstream. */
       void reloadQueued(out.suggestionId)
@@ -413,6 +423,11 @@ export function PrMediaPage() {
           <p style={{ whiteSpace: 'pre-wrap', margin: 0, color: 'var(--sb-muted)' }}>
             {pitch.body}
           </p>
+          {pitch.ephemeral ? (
+            <p className="sb-notify-hint" style={{ margin: '10px 0 0' }}>
+              {x(PM.pr_ai_not_filed)}
+            </p>
+          ) : null}
           <div className="sb-form-actions" style={{ marginTop: 12 }}>
             <button
               type="button"

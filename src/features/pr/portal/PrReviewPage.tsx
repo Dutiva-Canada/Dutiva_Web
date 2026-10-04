@@ -97,6 +97,7 @@ export function PrReviewPage() {
           acceptFallback: PM.pr_review_ack,
           loadFailed: PM.pr_review_load_failed,
           filedBy: PM.pr_review_filed_by,
+          actionFailed: PM.pr_review_action_failed,
           kindLabel: {
             pitch: PM.pr_review_kind_pitch,
             geo_prompt: PM.pr_review_kind_geo_prompt,

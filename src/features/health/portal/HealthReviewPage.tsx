@@ -59,6 +59,7 @@ export function HealthReviewPage() {
           acceptFallback: HM.health_review_ack,
           loadFailed: HM.health_review_load_failed,
           filedBy: HM.health_review_filed_by,
+          actionFailed: HM.health_review_action_failed,
           kindLabel: { habit: HM.health_review_kind_habit },
         }}
       />

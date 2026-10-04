@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, afterEach } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { LangProvider } from '@/i18n/LangProvider'
+import { ToastsContext } from '@/features/app/toasts/toastsContext'
 import { AgentReviewQueue, type KindRenderer } from './AgentReviewQueue'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 
@@ -36,13 +37,18 @@ const MESSAGES = {
   acceptFallback: { en: 'Got it', fr: "C'est noté" },
   loadFailed: { en: 'Failed to load', fr: 'Échec' },
   filedBy: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
+  actionFailed: { en: 'That did not save', fr: "Ça n'a pas enregistré" },
   kindLabel: { pitch: { en: 'Pitch', fr: 'Pitch' } },
 }
+
+const showToast = vi.fn()
 
 function renderQueue(kinds: Record<string, KindRenderer> = {}) {
   return render(
     <LangProvider>
-      <AgentReviewQueue surface="pr" kinds={kinds} messages={MESSAGES} />
+      <ToastsContext value={{ toasts: [], showToast, dismissToast: vi.fn() }}>
+        <AgentReviewQueue surface="pr" kinds={kinds} messages={MESSAGES} />
+      </ToastsContext>
     </LangProvider>,
   )
 }
@@ -81,6 +87,17 @@ describe('AgentReviewQueue', () => {
     expect(run).toHaveBeenCalled()
     await screen.findByText('Nothing waiting')
     expect(resolveSuggestion).toHaveBeenCalledWith('s1', 'accepted', 'used')
+  })
+
+  it('keeps the row and toasts when the resolve write fails', async () => {
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([row()])
+    vi.mocked(resolveSuggestion).mockRejectedValue(new Error('offline'))
+    renderQueue()
+
+    fireEvent.click(await screen.findByRole('button', { name: /Dismiss/i }))
+    /* The row stays pending — a failed resolve must not look like a dismissal. */
+    await vi.waitFor(() => expect(showToast).toHaveBeenCalledWith(MESSAGES.actionFailed))
+    expect(screen.getByText('Pitch — Alex Tremblay')).toBeInTheDocument()
   })
 
   it('shows the retry state when the queue cannot be read', async () => {
