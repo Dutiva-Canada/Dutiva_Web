@@ -62,6 +62,13 @@ export const guidanceMessages = defineMessages({
     en: 'More',
     fr: 'Plus de détails',
   },
+  /* The model-written read inside "More". Prefixed "AI" so the interpretation
+     is never mistaken for the detector's own record; the hedge is part of the
+     label. [FR self-authored] */
+  guidance_update_ai_label: {
+    en: 'AI read — interpretation, not legal advice:',
+    fr: 'Lecture IA — une interprétation, pas un avis juridique :',
+  },
   /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
      unusable for change detection (docs/LAW_MONITORING.md). The panel states
      that rather than letting "law-change tracking" imply it covers everywhere.

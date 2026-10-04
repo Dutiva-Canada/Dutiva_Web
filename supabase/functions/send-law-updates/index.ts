@@ -59,6 +59,7 @@ interface LawUpdateRow {
   law_name: string
   url: string
   reference_url: string | null
+  ai_analysis_en: string | null
   change_summary: string | null
   detected_at: string | null
   event_type: string | null
@@ -72,6 +73,9 @@ function formatUpdate(row: LawUpdateRow): string {
   const lines = [
     `${row.jurisdiction} — ${row.law_name} (detected ${date})`,
     row.change_summary ?? '(no summary recorded)',
+    /* The AI interpretation goes out labelled — it reads the detector's
+       facts, it is not the detector's record itself. */
+    ...(row.ai_analysis_en ? [`AI read: ${row.ai_analysis_en}`] : []),
     /* The reader-facing page — `url` on some rows is a machine endpoint
        (a CKAN API call, a raw XML file) nobody can read in a browser. */
     row.reference_url ?? row.url,
@@ -103,7 +107,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await admin
     .from('law_updates')
     .select(
-      'id, jurisdiction, law_name, url, reference_url, change_summary, detected_at, event_type, review_status',
+      'id, jurisdiction, law_name, url, reference_url, ai_analysis_en, change_summary, detected_at, event_type, review_status',
     )
     .eq('event_type', 'change')
     .eq('review_status', 'reviewed')

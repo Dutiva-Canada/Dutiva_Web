@@ -10572,6 +10572,8 @@ export type Database = {
       }
       law_updates: {
         Row: {
+          ai_analysis_en: string | null
+          ai_analysis_fr: string | null
           change_summary: string | null
           content_hash: string | null
           created_at: string | null
@@ -10587,6 +10589,8 @@ export type Database = {
           url: string
         }
         Insert: {
+          ai_analysis_en?: string | null
+          ai_analysis_fr?: string | null
           change_summary?: string | null
           content_hash?: string | null
           created_at?: string | null
@@ -10602,6 +10606,8 @@ export type Database = {
           url: string
         }
         Update: {
+          ai_analysis_en?: string | null
+          ai_analysis_fr?: string | null
           change_summary?: string | null
           content_hash?: string | null
           created_at?: string | null
@@ -15485,6 +15491,8 @@ export type Database = {
       admin_list_law_updates: {
         Args: never
         Returns: {
+          ai_analysis_en: string | null
+          ai_analysis_fr: string | null
           change_summary: string | null
           content_hash: string | null
           created_at: string | null

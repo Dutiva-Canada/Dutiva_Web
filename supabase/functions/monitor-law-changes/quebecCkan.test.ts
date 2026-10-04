@@ -168,6 +168,7 @@ describe('parseStatuteXml', () => {
     /* The last HistoricalNote ref is the most recent amendment — '2025, c. 9'
        rather than the 1982 original. */
     expect(s31?.latestRef).toBe('2025, c. 9, s. 2')
+    expect(s31?.excerpt).toBe('Scope text.')
   })
 
   it('labels schedules and tolerates a missing HistoricalNote', () => {
@@ -179,9 +180,9 @@ describe('parseStatuteXml', () => {
 
 describe('sectionFingerprint + diffStatuteSections', () => {
   const before = [
-    { number: '1', eev: '19990401', latestRef: null },
-    { number: '3.1', eev: '20180601', latestRef: '2018, c. 21' },
-    { number: '40', eev: '19800101', latestRef: null },
+    { number: '1', eev: '19990401', latestRef: null, excerpt: null },
+    { number: '3.1', eev: '20180601', latestRef: '2018, c. 21', excerpt: null },
+    { number: '40', eev: '19800101', latestRef: null, excerpt: null },
   ]
 
   it('stays identical under a cosmetic republish of the same provisions', () => {
@@ -196,9 +197,9 @@ describe('sectionFingerprint + diffStatuteSections', () => {
 
   it('names amended, added and removed provisions', () => {
     const after = [
-      { number: '1', eev: '19990401', latestRef: null },
-      { number: '3.1', eev: '20251028', latestRef: '2025, c. 9, s. 2' },
-      { number: '81.1', eev: '20251028', latestRef: '2025, c. 9, s. 4' },
+      { number: '1', eev: '19990401', latestRef: null, excerpt: null },
+      { number: '3.1', eev: '20251028', latestRef: '2025, c. 9, s. 2', excerpt: null },
+      { number: '81.1', eev: '20251028', latestRef: '2025, c. 9, s. 4', excerpt: null },
     ]
     const diff = diffStatuteSections(before, after)
     expect(diff.amended.map((s) => s.number)).toEqual(['3.1'])

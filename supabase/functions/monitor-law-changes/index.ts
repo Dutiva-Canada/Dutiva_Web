@@ -1,7 +1,14 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { assessLegislationText } from './contentSanity.ts'
 import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
+import {
+  buildLawAnalysisMessages,
+  parseLawAnalysis,
+  type LawAnalysis,
+} from './lawChangeAnalysis.ts'
 import {
   assessCurrencyDate,
   assessOntarioActVersions,
@@ -52,9 +59,15 @@ import {
  * Required Supabase project secrets:
  *   SUPABASE_URL                — injected automatically
  *   SUPABASE_SERVICE_ROLE_KEY   — injected automatically
- *   HF_TOKEN                    — model access for summaries/URL recovery.
- *                                 Absent: the monitor still runs and still
- *                                 records events, with a generic summary.
+ *   HF_TOKEN                    — HuggingFace model access for URL recovery
+ *                                 and the HTML path's change_summary.
+ *                                 Absent: events still record, with a
+ *                                 generic summary.
+ *   (ai_model_routes)           — the shared model-route table powers the
+ *                                 ai_analysis_en/fr interpretation on change
+ *                                 rows (`law_monitor` route if registered,
+ *                                 else `advisor_chat`). Absent: rows file
+ *                                 with both columns null.
  */
 
 // ── All 14 Canadian jurisdictions ─────────────────────────────────────────────
@@ -579,6 +592,39 @@ Deno.serve(async (req) => {
 
   const db = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 
+  /* AI read of change rows — the same model-route table the portal AI
+     functions use (`law_monitor` if a dedicated route is ever registered,
+     else the shared `advisor_chat` route). Best-effort: a model failure
+     files the factual row without an analysis rather than losing the
+     detection itself. */
+  const aiRoute = await activeModelRoute(db, ['law_monitor', 'advisor_chat'])
+  const aiKey = 'provider' in aiRoute ? routeApiKey(aiRoute) : null
+  const analyzeChange = async (
+    lawName: string,
+    jurisdiction: string,
+    facts: string,
+  ): Promise<LawAnalysis | null> => {
+    if ('error' in aiRoute || aiKey === null || 'missingSecret' in aiKey) return null
+    try {
+      const res = await postChatCompletion(
+        aiRoute.provider,
+        aiKey.apiKey,
+        {
+          model: aiRoute.modelName,
+          messages: buildLawAnalysisMessages(lawName, jurisdiction, facts),
+          max_tokens: 900,
+          temperature: 0.2,
+        },
+        60_000,
+      )
+      if (!res.ok) return null
+      const data = await res.json()
+      return parseLawAnalysis(data.choices?.[0]?.message?.content)
+    } catch {
+      return null
+    }
+  }
+
   // Take the lease so a long run can't race the next scheduled trigger.
   const instanceId = crypto.randomUUID()
   const { data: acquired, error: lockError } = await db.rpc('acquire_cron_lock', {
@@ -836,12 +882,27 @@ Deno.serve(async (req) => {
           continue
         }
 
+        const analysis = isNew
+          ? null
+          : await analyzeChange(
+              page.law_name,
+              page.jurisdiction,
+              `Justice Canada's consolidated XML now reports a last-amended date of ` +
+                `${verdict.facts.lastAmendedDate}` +
+                `${record?.hash ? `, previously ${record.hash.replace('amended:', '')}` : ''}.` +
+                `${verdict.facts.currentDate ? ` The consolidation is current to ${verdict.facts.currentDate}.` : ''}` +
+                ` The detector does not diff federal XML section-by-section, so which ` +
+                `provisions moved is not in this record.`,
+            )
+
         await db.from('law_updates').insert({
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: page.url,
           reference_url: page.referenceUrl ?? null,
           content_hash: fingerprint,
+          ai_analysis_en: analysis?.en ?? null,
+          ai_analysis_fr: analysis?.fr ?? null,
           change_summary: isNew
             ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
               `sourced from Justice Canada's consolidated XML. It was last amended on ` +
@@ -923,12 +984,26 @@ Deno.serve(async (req) => {
           continue
         }
 
+        const analysis = isNew
+          ? null
+          : await analyzeChange(
+              page.law_name,
+              page.jurisdiction,
+              `Ontario e-Laws has a new or changed version on record. The current ` +
+                `version is now in force from ${verdict.facts.current?.dateFrom ?? 'an unspecified date'}; ` +
+                `${verdict.facts.versionCount} versions on record.` +
+                ` The version list does not include the amended text, so which ` +
+                `provisions moved is not in this record.`,
+            )
+
         await db.from('law_updates').insert({
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: page.url,
           reference_url: page.referenceUrl ?? null,
           content_hash: fingerprint,
+          ai_analysis_en: analysis?.en ?? null,
+          ai_analysis_fr: analysis?.fr ?? null,
           change_summary: isNew
             ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
               `sourced from Ontario e-Laws' act-versions API. Current version in force from ` +
@@ -1162,6 +1237,11 @@ Deno.serve(async (req) => {
 
         let changeSummary: string
         let rawDiff: string
+        /* Facts block for the AI read — section numbers, in-force dates,
+           amending instruments and provision excerpts. Null when there is
+           no section-level signal to interpret (dataset-refresh fallback),
+           because an analysis written over nothing would just invent. */
+        let analysisFacts: string | null = null
         if (isNew) {
           changeSummary =
             `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
@@ -1199,6 +1279,19 @@ Deno.serve(async (req) => {
                 ` (in force ${fmtYmd(maxEev)})${recent.length > 5 ? `, +${recent.length - 5} more` : ''}.`
               : '.') +
             ' Read the current text on LégisQuébec.'
+          analysisFacts =
+            `LégisQuébec republished the Act${updatedTo ? `, marked updated to ${fmtYmd(updatedTo)}` : ''}. ` +
+            `This is the detector's first attributed read, so which provisions moved between ` +
+            `publications is not in the record. Most recently in-force provisions in the ` +
+            `current text:\n` +
+            recent
+              .map(
+                (s) =>
+                  `s. ${s.number} — in force ${fmtYmd(s.eev)}` +
+                  `${s.latestRef ? `, last amended by ${s.latestRef}` : ''}` +
+                  `${s.excerpt ? `. Text: "${s.excerpt}"` : ''}`,
+              )
+              .join('\n')
           rawDiff =
             `Statute ${code} · updated to ${updatedTo ? fmtYmd(updatedTo) : 'unknown'} · first attributed read\n` +
             (recent.length > 0
@@ -1263,7 +1356,48 @@ Deno.serve(async (req) => {
             (diff.amended.length + diff.added.length + diff.removedNumbers.length === 0
               ? 'No provision-level marker moved.\n'
               : '')
+          const prevByNum = new Map(prevSections!.map((s) => [s.number, s]))
+          const fmtFact = (s: StatuteSection) =>
+            `s. ${s.number} — in force ${fmtYmd(s.eev)}` +
+            `${s.latestRef ? `, last amended by ${s.latestRef}` : ''}` +
+            `${s.excerpt ? `. Current text: "${s.excerpt}"` : ''}`
+          analysisFacts =
+            `LégisQuébec published a new codified text of the Act` +
+            `${updatedTo ? `, marked updated to ${fmtYmd(updatedTo)}` : ''}. ` +
+            `Detector diff against the previous read:\n` +
+            (diff.amended.length > 0
+              ? `Amended provisions (in-force date moved later):\n` +
+                diff.amended.slice(0, 15).map(fmtFact).join('\n') +
+                `${diff.amended.length > 15 ? `\n+${diff.amended.length - 15} more amended` : ''}\n`
+              : '') +
+            (diff.added.length > 0
+              ? `Added provisions (new in the text):\n` +
+                diff.added.slice(0, 10).map(fmtFact).join('\n') +
+                `${diff.added.length > 10 ? `\n+${diff.added.length - 10} more added` : ''}\n`
+              : '') +
+            (diff.removedNumbers.length > 0
+              ? `No longer in the text: ${diff.removedNumbers.join(', ')}\n` +
+                diff.removedNumbers
+                  .slice(0, 6)
+                  .map((n) => {
+                    const prev = prevByNum.get(n)
+                    return prev?.excerpt ? `former s. ${n} read: "${prev.excerpt}"` : null
+                  })
+                  .filter(Boolean)
+                  .join('\n') +
+                '\n'
+              : '') +
+            (diff.amended.length + diff.added.length + diff.removedNumbers.length === 0
+              ? 'No provision-level marker moved — the file changed but every ' +
+                "section's in-force date is identical, consistent with an " +
+                'administrative reissue rather than an amendment.\n'
+              : '')
         }
+
+        const analysis =
+          isNew || analysisFacts === null
+            ? null
+            : await analyzeChange(page.law_name, page.jurisdiction, analysisFacts)
 
         await db.from('law_updates').insert({
           jurisdiction: page.jurisdiction,
@@ -1271,6 +1405,8 @@ Deno.serve(async (req) => {
           url: page.url,
           reference_url: page.referenceUrl ?? null,
           content_hash: newHash,
+          ai_analysis_en: analysis?.en ?? null,
+          ai_analysis_fr: analysis?.fr ?? null,
           change_summary: changeSummary,
           raw_diff: rawDiff,
           detected_at: new Date().toISOString(),
@@ -1358,6 +1494,13 @@ Deno.serve(async (req) => {
       const summary = isNew
         ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring. Baseline captured.`
         : await summarizeChange(page.law_name, page.jurisdiction, snippet, hfToken)
+      const analysis = isNew
+        ? null
+        : await analyzeChange(
+            page.law_name,
+            page.jurisdiction,
+            'The page text changed. Excerpt of the current text:\n' + snippet.slice(0, 1500),
+          )
 
       await db.from('law_updates').insert({
         jurisdiction: page.jurisdiction,
@@ -1365,6 +1508,8 @@ Deno.serve(async (req) => {
         url: fetchResult.finalUrl || page.url,
         reference_url: page.referenceUrl ?? null,
         content_hash: hash,
+        ai_analysis_en: analysis?.en ?? null,
+        ai_analysis_fr: analysis?.fr ?? null,
         change_summary: summary,
         raw_diff: isNew ? null : snippet,
         detected_at: new Date().toISOString(),

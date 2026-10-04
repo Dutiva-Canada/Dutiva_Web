@@ -169,6 +169,9 @@ export interface StatuteSection {
   /** Last HistoricalNote ref — the most recent amending instrument
       ('2025, c. 12, s. 3'). Null when the section carries none. */
   latestRef: string | null
+  /** First ~160 chars of the section's own text — enough for the change
+      analyst to describe substance without carrying the whole statute. */
+  excerpt: string | null
 }
 
 export interface StatuteXmlFacts {
@@ -200,7 +203,11 @@ export function parseStatuteXml(xml: string): StatuteXmlFacts {
       /* A Schedule without a Label still diffs — name it by kind. */
       (m[1] === 'Schedule' ? 'SCHEDULE' : '?')
     const refs = [...body.matchAll(/<RefFreeForm>([^<]+)<\/RefFreeForm>/g)].map((r) => r[1].trim())
-    sections.push({ number, eev: m[2], latestRef: refs.at(-1) ?? null })
+    const textBlock = /<Text\b[^>]*>([\s\S]*?)<\/Text>/.exec(body)?.[1]
+    const excerpt = textBlock
+      ? textBlock.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) || null
+      : null
+    sections.push({ number, eev: m[2], latestRef: refs.at(-1) ?? null, excerpt })
   }
   return { docEev, title, sections }
 }

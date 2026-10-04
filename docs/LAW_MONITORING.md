@@ -158,6 +158,23 @@ directly beneath the block stating that Ontario and Québec are not monitored.
 
 Monitoring stays wider than coverage on purpose; **the panel is what filters.**
 
+### The AI read (`ai_analysis_en` / `ai_analysis_fr`)
+
+Rows with `event_type = 'change'` can carry a model-written brief in the
+two `ai_analysis_*` columns (migration 0201). Separation of duties is
+deliberate: `change_summary` / `raw_diff` are the detector's factual record;
+the analysis is interpretation, written by a model over _only_ the facts the
+detector recorded — provision numbers, in-force dates, amending instruments,
+and ~160-char excerpts of each moved provision's own text
+(`lawChangeAnalysis.ts`, `StatuteSection.excerpt`). The prompt forbids
+inventing provisions and requires "substance unknown" wording when the facts
+are a metadata move alone. Both locales are generated in one JSON call; a
+reply that is unparseable or one-sided stores `null`, and a missing model
+route never blocks the row. The card renders the analysis inside "More",
+prefixed "AI read — interpretation, not legal advice"; the digest includes
+the English field under the same label. `first_seen`, `redirect` and `broken`
+rows get no analysis — there is nothing to interpret.
+
 ## In-product freshness
 
 The panel states its own currency rather than letting undated rows imply they

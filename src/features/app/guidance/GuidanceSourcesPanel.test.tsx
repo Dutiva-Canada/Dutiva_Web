@@ -67,6 +67,8 @@ describe('updatesAreStale', () => {
     url: 'https://www.ontario.ca/laws/statute/00e41',
     referenceUrl: 'https://www.ontario.ca/laws/statute/00e41',
     rawDiff: null,
+    aiAnalysisEn: null,
+    aiAnalysisFr: null,
     changeSummary: null,
     detectedAt,
     eventType: 'change',
