@@ -10499,6 +10499,7 @@ export type Database = {
           last_broken_at: string | null
           last_checked: string | null
           law_name: string
+          meta: Json | null
           redirect_url: string | null
           url: string
         }
@@ -10510,6 +10511,7 @@ export type Database = {
           last_broken_at?: string | null
           last_checked?: string | null
           law_name: string
+          meta?: Json | null
           redirect_url?: string | null
           url: string
         }
@@ -10521,6 +10523,7 @@ export type Database = {
           last_broken_at?: string | null
           last_checked?: string | null
           law_name?: string
+          meta?: Json | null
           redirect_url?: string | null
           url?: string
         }
@@ -10579,6 +10582,7 @@ export type Database = {
           jurisdiction: string
           law_name: string
           raw_diff: string | null
+          reference_url: string | null
           review_status: string
           url: string
         }
@@ -10593,6 +10597,7 @@ export type Database = {
           jurisdiction: string
           law_name: string
           raw_diff?: string | null
+          reference_url?: string | null
           review_status?: string
           url: string
         }
@@ -10607,6 +10612,7 @@ export type Database = {
           jurisdiction?: string
           law_name?: string
           raw_diff?: string | null
+          reference_url?: string | null
           review_status?: string
           url?: string
         }
@@ -15489,6 +15495,7 @@ export type Database = {
           jurisdiction: string
           law_name: string
           raw_diff: string | null
+          reference_url: string | null
           review_status: string
           url: string
         }[]

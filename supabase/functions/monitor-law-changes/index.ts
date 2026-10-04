@@ -3,7 +3,21 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assessLegislationText } from './contentSanity.ts'
 import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
 import { assessOntarioActVersions, ontarioFingerprintPayload } from './ontarioApi.ts'
-import { assessQuebecPackage, quebecFingerprint } from './quebecCkan.ts'
+import {
+  assessQuebecPackage,
+  diffStatuteSections,
+  parseStatuteStatus,
+  parseStatuteXml,
+  quebecFingerprint,
+  sectionFingerprint,
+  type StatuteSection,
+} from './quebecCkan.ts'
+import {
+  openRemoteZip,
+  readZipEntry,
+  type RangeFetcher,
+  type ZipDirectory,
+} from './zipRange.ts'
 
 /**
  * monitor-law-changes — the law-change watcher behind the Knowledge view's
@@ -55,6 +69,7 @@ const MONITORED_PAGES: PageConfig[] = [
     url: 'https://raw.githubusercontent.com/justicecanada/laws-lois-xml/main/eng/acts/L-2.xml',
     fallbacks: [],
     source: { kind: 'justice-xml', consolidatedNumber: 'L-2' },
+    referenceUrl: 'https://laws-lois.justice.gc.ca/eng/acts/L-2/',
   },
   {
     jurisdiction: 'Federal',
@@ -62,6 +77,7 @@ const MONITORED_PAGES: PageConfig[] = [
     url: 'https://raw.githubusercontent.com/justicecanada/laws-lois-xml/main/eng/acts/H-6.xml',
     fallbacks: [],
     source: { kind: 'justice-xml', consolidatedNumber: 'H-6' },
+    referenceUrl: 'https://laws-lois.justice.gc.ca/eng/acts/H-6/',
   },
   // ── Ontario ───────────────────────────────────────────────────────────────
   /* e-Laws' statute pages (www.ontario.ca/laws/statute/{id}) are a JavaScript
@@ -77,6 +93,7 @@ const MONITORED_PAGES: PageConfig[] = [
     url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/00e41',
     fallbacks: [],
     source: { kind: 'ontario-api', expectedActEn: 'Employment Standards Act' },
+    referenceUrl: 'https://www.ontario.ca/laws/statute/00e41',
   },
   {
     jurisdiction: 'Ontario',
@@ -84,6 +101,7 @@ const MONITORED_PAGES: PageConfig[] = [
     url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/90h19',
     fallbacks: [],
     source: { kind: 'ontario-api', expectedActEn: 'Human Rights Code' },
+    referenceUrl: 'https://www.ontario.ca/laws/statute/90h19',
   },
   {
     jurisdiction: 'Ontario',
@@ -91,6 +109,7 @@ const MONITORED_PAGES: PageConfig[] = [
     url: 'https://www.ontario.ca/laws/api/v2/legislation/en/act-versions/statute/97w16',
     fallbacks: [],
     source: { kind: 'ontario-api', expectedActEn: 'Workplace Safety and Insurance Act' },
+    referenceUrl: 'https://www.ontario.ca/laws/statute/97w16',
   },
   // ── British Columbia ──────────────────────────────────────────────────────
   {
@@ -121,29 +140,29 @@ const MONITORED_PAGES: PageConfig[] = [
      Québec's CKAN API publishes the same codified corpus as a first-party,
      byte-stable, no-bot-filter dataset instead; see quebecCkan.ts.
 
-     Both LNT and Charter live in that dataset's single "Lois" resource, so
-     detection here is dataset-level: a change to the resource is reported
-     against both law_names, the same way an `html` source reports "this page
-     changed" without saying which section. Per-statute drill-down into the
-     zip (Statutes_EN_Status.txt names the exact statutes that changed) is a
-     documented follow-up, not built here. The two rows share one API
-     response but need distinct `url` values to key their own
-     law_page_hashes/law_updates rows — the #LNT / #Charter fragment is never
-     sent to the server (fragments are client-side only), so both fetch the
-     identical endpoint. */
+     Both LNT and Charter live in that dataset's single "Lois" resource, but
+     detection is per-statute: a moved dataset triggers a drill-down into the
+     zip (zipRange.ts) that reads the Act's own XML and compares its
+     section→in-force-date map — a corpus refresh that did not touch the Act
+     files nothing. The two rows share one API response but need distinct
+     `url` values to key their own law_page_hashes/law_updates rows — the
+     #LNT / #Charter fragment is never sent to the server (fragments are
+     client-side only), so both fetch the identical endpoint. */
   {
     jurisdiction: 'Quebec',
     law_name: 'Act respecting labour standards (LNT)',
     url: 'https://www.donneesquebec.ca/recherche/api/3/action/package_show?id=c8433300-f752-4815-8ea2-69cad416dd80#LNT',
     fallbacks: [],
-    source: { kind: 'quebec-ckan', resourceName: 'Lois' },
+    source: { kind: 'quebec-ckan', resourceName: 'Lois', statuteCode: 'N-1.1' },
+    referenceUrl: 'https://www.legisquebec.gouv.qc.ca/en/document/cs/N-1.1',
   },
   {
     jurisdiction: 'Quebec',
     law_name: 'Charter of Human Rights and Freedoms (Quebec)',
     url: 'https://www.donneesquebec.ca/recherche/api/3/action/package_show?id=c8433300-f752-4815-8ea2-69cad416dd80#Charter',
     fallbacks: [],
-    source: { kind: 'quebec-ckan', resourceName: 'Lois' },
+    source: { kind: 'quebec-ckan', resourceName: 'Lois', statuteCode: 'C-12' },
+    referenceUrl: 'https://www.legisquebec.gouv.qc.ca/en/document/cs/C-12',
   },
   // ── Manitoba ──────────────────────────────────────────────────────────────
   {
@@ -233,7 +252,7 @@ type PageSource =
   | { kind: 'html' }
   | { kind: 'justice-xml'; consolidatedNumber: string }
   | { kind: 'ontario-api'; expectedActEn: string }
-  | { kind: 'quebec-ckan'; resourceName: string }
+  | { kind: 'quebec-ckan'; resourceName: string; statuteCode: string }
 
 interface PageConfig {
   jurisdiction: string
@@ -242,6 +261,13 @@ interface PageConfig {
   fallbacks: string[]
   /** Defaults to `html` when omitted. */
   source?: PageSource
+  /**
+   * The human-facing official page for this Act — where a reader goes to
+   * actually look at the law. Optional: `html` pages ARE their reference,
+   * so this only carries a value for API/XML sources whose `url` is a
+   * machine endpoint nobody should be asked to open.
+   */
+  referenceUrl?: string
 }
 
 interface FetchResult {
@@ -311,6 +337,41 @@ async function fetchWithTimeout(
   } catch {
     clearTimeout(timer)
     return { ok: false, text: null, finalUrl: url, wasRedirected: false, statusCode: 0 }
+  }
+}
+
+/** Content-Length of a remote file without downloading it. */
+async function headContentLength(url: string): Promise<number | null> {
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 12000)
+    const res = await fetch(url, { method: 'HEAD', signal: controller.signal })
+    clearTimeout(timer)
+    if (!res.ok) return null
+    const len = Number(res.headers.get('content-length'))
+    return Number.isFinite(len) && len > 0 ? len : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * A RangeFetcher for a remote file. The Données Québec host answers 206
+ * (verified 2026-10-04); a server that ignores Range returns 200 with the
+ * whole file — still correct once sliced to the requested window.
+ */
+function zipRangeFetcher(url: string): RangeFetcher {
+  return async (start: number, end: number) => {
+    const res = await fetch(url, {
+      headers: {
+        Range: `bytes=${start}-${end}`,
+        'User-Agent':
+          'Dutiva-LawMonitor/2.1 (compliance@dutiva.ca; Canadian employment law compliance platform)',
+      },
+    })
+    if (!res.ok && res.status !== 206) throw new Error(`range fetch failed: HTTP ${res.status}`)
+    const buf = new Uint8Array(await res.arrayBuffer())
+    return res.status === 200 ? buf.subarray(start, end + 1) : buf
   }
 }
 
@@ -537,12 +598,16 @@ Deno.serve(async (req) => {
   }
 
   const { data: hashRows } = await db.from('law_page_hashes').select('*')
-  const hashMap: Record<string, { hash: string; failures: number; redirectUrl: string | null }> = {}
+  const hashMap: Record<
+    string,
+    { hash: string; failures: number; redirectUrl: string | null; meta: unknown }
+  > = {}
   for (const row of hashRows ?? []) {
     hashMap[row.url] = {
       hash: row.content_hash,
       failures: row.consecutive_failures ?? 0,
       redirectUrl: row.redirect_url ?? null,
+      meta: row.meta ?? null,
     }
   }
 
@@ -584,6 +649,7 @@ Deno.serve(async (req) => {
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: newUrl,
+          reference_url: page.referenceUrl ?? null,
           content_hash: null,
           change_summary:
             `The legislation page for "${page.law_name}" (${page.jurisdiction}) has permanently moved. ` +
@@ -652,6 +718,7 @@ Deno.serve(async (req) => {
                 jurisdiction: page.jurisdiction,
                 law_name: page.law_name,
                 url: newUrlSuggestion,
+                reference_url: page.referenceUrl ?? null,
                 change_summary:
                   `The original URL for "${page.law_name}" was broken (HTTP ${fetchResult.statusCode}). ` +
                   `Dutiva automatically located the new URL: ${newUrlSuggestion}. ` +
@@ -676,6 +743,7 @@ Deno.serve(async (req) => {
             jurisdiction: page.jurisdiction,
             law_name: page.law_name,
             url: page.url,
+            reference_url: page.referenceUrl ?? null,
             change_summary:
               `The "${page.law_name}" (${page.jurisdiction}) legislation page has been unreachable ` +
               `for ${failures} consecutive checks (HTTP ${fetchResult.statusCode}). ` +
@@ -719,6 +787,7 @@ Deno.serve(async (req) => {
               jurisdiction: page.jurisdiction,
               law_name: page.law_name,
               url: page.url,
+              reference_url: page.referenceUrl ?? null,
               change_summary:
                 `The XML source for "${page.law_name}" (${page.jurisdiction}) could not be read as ` +
                 `the expected Act for ${failures} consecutive checks. ${verdict.detail} ` +
@@ -760,6 +829,7 @@ Deno.serve(async (req) => {
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: page.url,
+          reference_url: page.referenceUrl ?? null,
           content_hash: fingerprint,
           change_summary: isNew
             ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
@@ -806,6 +876,7 @@ Deno.serve(async (req) => {
               jurisdiction: page.jurisdiction,
               law_name: page.law_name,
               url: page.url,
+              reference_url: page.referenceUrl ?? null,
               change_summary:
                 `The e-Laws API for "${page.law_name}" (${page.jurisdiction}) could not be read as ` +
                 `the expected Act for ${failures} consecutive checks. ${verdict.detail} ` +
@@ -845,6 +916,7 @@ Deno.serve(async (req) => {
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: page.url,
+          reference_url: page.referenceUrl ?? null,
           content_hash: fingerprint,
           change_summary: isNew
             ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
@@ -888,6 +960,7 @@ Deno.serve(async (req) => {
               jurisdiction: page.jurisdiction,
               law_name: page.law_name,
               url: page.url,
+              reference_url: page.referenceUrl ?? null,
               change_summary:
                 `The Données Québec dataset for "${page.law_name}" (${page.jurisdiction}) could not be read ` +
                 `as expected for ${failures} consecutive checks. ${verdict.detail} ` +
@@ -905,44 +978,215 @@ Deno.serve(async (req) => {
           continue
         }
 
-        const fingerprint = quebecFingerprint(verdict.facts)
-        const changed = isNew || record?.hash !== fingerprint
+        const datasetFp = quebecFingerprint(verdict.facts)
+
+        /* content_hash layout for Québec rows: `qck2:<datasetFp>::<sectionFp>`.
+           The dataset half is the cheap gate — when it matches, the Act's file
+           in the zip cannot have changed and the run costs one API call. The
+           section half — a hash of the Act's own section→in-force-date map —
+           is the real signal: a corpus refresh that leaves this Act untouched
+           files nothing.
+
+           Rows written before per-statute detection hold the bare
+           `quebec-ckan:…` value: matching it means the dataset did not move,
+           but the statute baseline still has to be established, so the
+           drill-down runs once and the row is silently rekeyed. */
+        const stored = record?.hash ?? ''
+        const storedDataset = stored.startsWith('qck2:')
+          ? stored.slice(5, stored.indexOf('::'))
+          : stored.startsWith('quebec-ckan:')
+            ? stored
+            : null
+        const storedSections =
+          stored.startsWith('qck2:') && stored.includes('::')
+            ? stored.slice(stored.indexOf('::') + 2)
+            : null
+        const rekeyOnly = !isNew && stored === datasetFp // legacy bare-hash match
+
+        if (!isNew && !rekeyOnly && storedDataset === datasetFp) {
+          await db.from('law_page_hashes').upsert({
+            url: page.url,
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            content_hash: stored,
+            is_broken: false,
+            consecutive_failures: 0,
+            last_checked: new Date().toISOString(),
+            meta: record?.meta ?? null,
+          })
+          results.push(`OK        ${page.jurisdiction}/${page.law_name}: dataset unchanged`)
+          continue
+        }
+
+        /* Open the zip by Range — the manifest row for this Act plus the
+           Act's own XML are a few KB apiece against a 45 MB archive. */
+        const code = page.source.statuteCode
+        let updatedTo: string | null = null
+        let statuteFacts: ReturnType<typeof parseStatuteXml> | null = null
+        let drillError: string | null = null
+        try {
+          const zipUrl = verdict.facts.url
+          const size = await headContentLength(zipUrl)
+          if (size === null) throw new Error('zip HEAD returned no content-length')
+          const fetchRange = zipRangeFetcher(zipUrl)
+          const zip: ZipDirectory = await openRemoteZip(fetchRange, size)
+          const decoder = new TextDecoder()
+          updatedTo =
+            parseStatuteStatus(
+              decoder.decode(await readZipEntry(fetchRange, zip, 'Statutes_EN_Status.txt')),
+            ).get(code)?.ymd ?? null
+          const entryName = `Statutes\\${code}\\EN\\${code}_EN.xml`
+          statuteFacts = parseStatuteXml(
+            decoder.decode(await readZipEntry(fetchRange, zip, entryName)),
+          )
+          if (statuteFacts.sections.length === 0) {
+            throw new Error(`${entryName} parsed to zero sections`)
+          }
+        } catch (err) {
+          drillError = err instanceof Error ? err.message : String(err)
+          console.warn(
+            `[monitor-law-changes] Québec drill-down failed for ${page.law_name}:`,
+            drillError,
+          )
+        }
+
+        const sectionFp = statuteFacts
+          ? await sha256(sectionFingerprint(statuteFacts.sections))
+          : null
+        const meta = statuteFacts
+          ? {
+              statuteCode: code,
+              updatedTo,
+              docEev: statuteFacts.docEev,
+              sections: statuteFacts.sections,
+            }
+          : (record?.meta ?? null)
+        const newHash = sectionFp
+          ? `qck2:${datasetFp}::${sectionFp}`
+          : `qck2:${datasetFp}::unread`
 
         await db.from('law_page_hashes').upsert({
           url: page.url,
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
-          content_hash: fingerprint,
+          content_hash: newHash,
           is_broken: false,
           consecutive_failures: 0,
           last_checked: new Date().toISOString(),
+          meta,
         })
 
-        if (!changed) {
-          results.push(`OK        ${page.jurisdiction}/${page.law_name}: no change`)
+        /* Baseline rekey or a corpus refresh that left this Act's section map
+           identical — either way there is no change to report. */
+        const statuteChanged = isNew || storedSections === null || storedSections !== sectionFp
+        if (rekeyOnly || (!isNew && sectionFp !== null && !statuteChanged)) {
+          results.push(
+            `${rekeyOnly ? 'BASELINE ' : 'OK       '} ${page.jurisdiction}/${page.law_name}: ` +
+              `${statuteFacts?.sections.length ?? 0} sections, Act untouched`,
+          )
           continue
+        }
+
+        const prevSections: StatuteSection[] | null = (() => {
+          const m = record?.meta as { sections?: unknown } | null
+          return m && Array.isArray(m.sections) ? (m.sections as StatuteSection[]) : null
+        })()
+        const fmtYmd = (ymd: string) =>
+          /^\d{8}$/.test(ymd) ? `${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}` : ymd
+
+        let changeSummary: string
+        let rawDiff: string
+        if (isNew) {
+          changeSummary =
+            `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
+            'read per-Act from Québec’s codified-legislation package. ' +
+            `The province's manifest marks the Act updated to ${updatedTo ? fmtYmd(updatedTo) : 'an unspecified date'}` +
+            `${statuteFacts?.docEev ? `; the newest provision in the current text is in force since ${fmtYmd(statuteFacts.docEev)}` : ''}.`
+          rawDiff = `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · sections: ${statuteFacts?.sections.length ?? 0}`
+        } else if (sectionFp === null) {
+          /* Drill-down failed — fall back to the dataset-level wording, which
+             was always honest about its own limit. */
+          changeSummary =
+            `"${page.law_name}" (${page.jurisdiction}): Données Québec's codified-legislation dataset ` +
+            `was refreshed (resource last modified ${verdict.facts.lastModified}). This dataset covers ` +
+            'every codified Quebec Act, not just this one — review LégisQuébec for what changed and ' +
+            'what it means for employers.'
+          rawDiff = `resource: ${verdict.facts.resourceName} · last_modified: ${verdict.facts.lastModified} · drill: ${drillError ?? 'unavailable'}`
+        } else if (prevSections === null) {
+          /* No section baseline on record (the previous read pre-dates the
+             drill-down or failed) — a diff would claim every section moved.
+             Say what is known: the Act's file changed, and which provisions
+             carry the newest in-force dates in the current text. */
+          const maxEev = statuteFacts!.sections.reduce((a, s) => (s.eev > a ? s.eev : a), '')
+          const recent = statuteFacts!.sections.filter((s) => s.eev === maxEev)
+          changeSummary =
+            `LégisQuébec published a new codified text of "${page.law_name}"` +
+            (updatedTo ? `, marked updated to ${fmtYmd(updatedTo)}` : '') +
+            '. Which provisions moved cannot be established from the first per-Act read' +
+            (recent.length > 0
+              ? ` — the most recently in-force provisions in the current text: ` +
+                `${recent.slice(0, 5).map((s) => `s. ${s.number}`).join(', ')}` +
+                ` (in force ${fmtYmd(maxEev)})${recent.length > 5 ? `, +${recent.length - 5} more` : ''}.`
+              : '.') +
+            ' Read the current text on LégisQuébec.'
+          rawDiff = `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · first attributed read`
+        } else {
+          const diff = diffStatuteSections(prevSections, statuteFacts!.sections)
+          const moved = [...diff.amended, ...diff.added]
+          const parts: string[] = [
+            `LégisQuébec published a new codified text of "${page.law_name}"` +
+              (updatedTo ? `, marked updated to ${fmtYmd(updatedTo)}` : '') +
+              '.',
+          ]
+          if (moved.length > 0) {
+            const shown = moved.slice(0, 5).map(
+              (s) =>
+                `s. ${s.number} (in force ${fmtYmd(s.eev)}` +
+                `${s.latestRef ? `, last amended by ${s.latestRef}` : ''})`,
+            )
+            parts.push(
+              `Provisions whose in-force date moved: ${shown.join('; ')}` +
+                `${moved.length > 5 ? `, +${moved.length - 5} more` : ''}.`,
+            )
+          }
+          if (diff.removedNumbers.length > 0) {
+            parts.push(
+              `No longer in the text: ${diff.removedNumbers.slice(0, 4).join(', ')}` +
+                `${diff.removedNumbers.length > 4 ? `, +${diff.removedNumbers.length - 4} more` : ''}.`,
+            )
+          }
+          if (moved.length === 0 && diff.removedNumbers.length === 0) {
+            parts.push(
+              'The Act file changed but no provision-level marker moved — likely a ' +
+                'reissue rather than an amendment; check the consolidated text if this Act applies to you.',
+            )
+          }
+          parts.push('Read the current text on LégisQuébec.')
+          changeSummary = parts.join(' ')
+          rawDiff =
+            `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · ` +
+            `amended: ${diff.amended.map((s) => s.number).join(',') || 'none'} · ` +
+            `added: ${diff.added.map((s) => s.number).join(',') || 'none'} · ` +
+            `removed: ${diff.removedNumbers.join(',') || 'none'}`
         }
 
         await db.from('law_updates').insert({
           jurisdiction: page.jurisdiction,
           law_name: page.law_name,
           url: page.url,
-          content_hash: fingerprint,
-          change_summary: isNew
-            ? `"${page.law_name}" (${page.jurisdiction}) has been added to Dutiva's law monitoring, ` +
-              `sourced from Données Québec's codified-legislation dataset (resource last modified ` +
-              `${verdict.facts.lastModified}).`
-            : `"${page.law_name}" (${page.jurisdiction}): Données Québec's codified-legislation dataset ` +
-              `was refreshed (resource last modified ${verdict.facts.lastModified}). This dataset covers ` +
-              'every codified Quebec Act, not just this one — review LégisQuébec for what changed and ' +
-              'what it means for employers.',
-          raw_diff: `resource: ${verdict.facts.resourceName} · last_modified: ${verdict.facts.lastModified} · url: ${verdict.facts.url}`,
+          reference_url: page.referenceUrl ?? null,
+          content_hash: newHash,
+          change_summary: changeSummary,
+          raw_diff: rawDiff,
           detected_at: new Date().toISOString(),
           is_new: isNew,
           event_type: isNew ? 'first_seen' : 'change',
         })
 
-        results.push(`${isNew ? 'FIRST_SEEN' : 'CHANGE   '} ${page.jurisdiction}/${page.law_name}`)
+        results.push(
+          `${isNew ? 'FIRST_SEEN' : 'CHANGE   '} ${page.jurisdiction}/${page.law_name}` +
+            `${drillError ? ` (drill failed: ${drillError})` : ''}`,
+        )
         continue
       }
 
@@ -979,6 +1223,7 @@ Deno.serve(async (req) => {
             jurisdiction: page.jurisdiction,
             law_name: page.law_name,
             url: page.url,
+            reference_url: page.referenceUrl ?? null,
             change_summary:
               `The "${page.law_name}" (${page.jurisdiction}) page returned HTTP 200 but did not contain legislation ` +
               `for ${failures} consecutive checks. ${verdict.detail} ` +
@@ -1023,6 +1268,7 @@ Deno.serve(async (req) => {
         jurisdiction: page.jurisdiction,
         law_name: page.law_name,
         url: fetchResult.finalUrl || page.url,
+        reference_url: page.referenceUrl ?? null,
         content_hash: hash,
         change_summary: summary,
         raw_diff: isNew ? null : snippet,

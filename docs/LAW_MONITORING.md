@@ -311,6 +311,22 @@ not monitored. Don't flip that claim until a real scheduled run proves the
 code against the live APIs, the same discipline OA2 already applies to
 Federal.
 
+**Update 2026-10-04 — per-statute drill built, deployed and proven live.**
+The Quebec branch now opens the zip by HTTP Range (zipRange.ts — the 45 MB
+archive costs ~4 small fetches): `Statutes_EN_Status.txt` names each Act's
+consolidation stamp, and the Act's own XML is compared by its
+section→`date-eev` map, stored in `law_page_hashes.meta` between runs. A
+corpus refresh that leaves a watched Act untouched files nothing — the old
+every-refresh double-alert is gone — and a real change names the provisions
+that moved plus their latest amending instrument from `HistoricalNote`.
+`law_updates.reference_url` carries the human page (LégisQuébec/e-Laws/
+Justice Laws) so cards and the digest link somewhere readable instead of the
+machine endpoint. **Live proof the same day:** a real `trigger_law_monitor()`
+sweep on the deployed function rekeyed both Québec rows to the `qck2:`
+fingerprint and stored their section baselines (LNT 354 sections, Charter
+165) without filing a single false update — the first attributed read worked
+exactly as designed against production.
+
 Everything below was probed live, and every candidate was **fetched twice and
 diffed** to rule out sources that churn on every request — the failure mode that
 turns a monitor into a daily false-alarm generator.

@@ -48,6 +48,13 @@ export const guidanceMessages = defineMessages({
     en: 'Detected',
     fr: 'Détecté le',
   },
+  /* The card's link to the official consolidated text — the monitored url can
+     be a machine endpoint, so this points readers at the human page instead.
+     [FR self-authored] */
+  guidance_update_read_source: {
+    en: 'Read the current text',
+    fr: 'Lire le texte à jour',
+  },
   /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
      unusable for change detection (docs/LAW_MONITORING.md). The panel states
      that rather than letting "law-change tracking" imply it covers everywhere.

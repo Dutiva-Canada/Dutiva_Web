@@ -58,6 +58,7 @@ interface LawUpdateRow {
   jurisdiction: string
   law_name: string
   url: string
+  reference_url: string | null
   change_summary: string | null
   detected_at: string | null
   event_type: string | null
@@ -71,7 +72,9 @@ function formatUpdate(row: LawUpdateRow): string {
   const lines = [
     `${row.jurisdiction} — ${row.law_name} (detected ${date})`,
     row.change_summary ?? '(no summary recorded)',
-    row.url,
+    /* The reader-facing page — `url` on some rows is a machine endpoint
+       (a CKAN API call, a raw XML file) nobody can read in a browser. */
+    row.reference_url ?? row.url,
   ]
   return lines.join('\n')
 }
@@ -100,7 +103,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await admin
     .from('law_updates')
     .select(
-      'id, jurisdiction, law_name, url, change_summary, detected_at, event_type, review_status',
+      'id, jurisdiction, law_name, url, reference_url, change_summary, detected_at, event_type, review_status',
     )
     .eq('event_type', 'change')
     .eq('review_status', 'reviewed')

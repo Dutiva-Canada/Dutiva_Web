@@ -253,11 +253,24 @@ export function GuidanceSourcesPanel() {
                       {update.changeSummary && (
                         <p className="mt-[3px] text-[12.5px] text-text-2">{update.changeSummary}</p>
                       )}
-                      {update.detectedAt && (
-                        <p className="mt-[4px] text-[11.5px] text-text-muted">
-                          {x(M.guidance_detected_on)} {formatDate(update.detectedAt, lang)}
-                        </p>
-                      )}
+                      <div className="mt-[4px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px]">
+                        {update.detectedAt && (
+                          <p className="text-[11.5px] text-text-muted">
+                            {x(M.guidance_detected_on)} {formatDate(update.detectedAt, lang)}
+                          </p>
+                        )}
+                        {(update.referenceUrl ?? update.url) && (
+                          <a
+                            href={update.referenceUrl ?? update.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-[4px] text-[11.5px] font-semibold text-text-3 underline underline-offset-2"
+                          >
+                            {x(M.guidance_update_read_source)}
+                            <ExternalLink size={11} aria-hidden="true" />
+                          </a>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>

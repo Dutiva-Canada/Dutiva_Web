@@ -65,6 +65,7 @@ describe('updatesAreStale', () => {
     jurisdiction: 'Ontario',
     lawName: 'Employment Standards Act, 2000',
     url: 'https://www.ontario.ca/laws/statute/00e41',
+    referenceUrl: 'https://www.ontario.ca/laws/statute/00e41',
     changeSummary: null,
     detectedAt,
     eventType: 'change',
