@@ -17,7 +17,8 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useInvestData } from '../data/InvestDataContext'
-import { deleteStrategy, saveStrategy, scanNow, testScan } from '../data/api'
+import { deleteStrategy, normalizeAiStrategyDraft, saveStrategy, scanNow, testScan } from '../data/api'
+import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type { InvestStrategy, StrategyRule } from '../data/types'
 import { ruleFireCount } from '../data/strategyRules'
 import { relTimeLabel } from './relTime'
@@ -47,6 +48,10 @@ export function InvestStrategiesPage() {
   const [draft, setDraft] = useState<StrategyDraft | null>(null)
   const [snapshot, setSnapshot] = useState<StrategyDraft | null>(null)
   const [busy, setBusy] = useState<'scan' | 'save' | 'delete' | 'create' | null>(null)
+  /* Pending 'strategy' rows the AI drafted — a wizard abandoned mid-edit
+     leaves the draft waiting here instead of vanishing. */
+  const [pending, setPending] = useState<AgentSuggestion[]>([])
+  const [pendingBusy, setPendingBusy] = useState<string | null>(null)
 
   const universe = useMemo(
     () => trackedUniverse(state.positions, state.watchlist),
@@ -62,6 +67,44 @@ export function InvestStrategiesPage() {
     document.body.classList.toggle('sb-has-savebar', on)
     return () => document.body.classList.remove('sb-has-savebar')
   }, [view.kind])
+
+  useEffect(() => {
+    loadPendingSuggestions('invest')
+      .then((rows) => setPending(rows.filter((r) => r.kind === 'strategy')))
+      .catch(() => {})
+  }, [])
+
+  /* "Add it" on a filed draft creates the strategy through the same
+     saveStrategy path the wizard ends on — disabled, in-app notify. */
+  const acceptPending = useCallback(
+    async (s: AgentSuggestion) => {
+      if (pendingBusy) return
+      const raw = (s.payload as { draft?: Record<string, unknown> } | null)?.draft
+      if (!raw) return
+      setPendingBusy(s.id)
+      try {
+        await saveStrategy(normalizeAiStrategyDraft(raw))
+        await resolveSuggestion(s.id, 'accepted', 'added')
+        setPending((cur) => cur.filter((r) => r.id !== s.id))
+        await refresh()
+        showToast(IM.invest_sb_created)
+      } catch (e) {
+        showToast(
+          fill(x(IM.invest_sb_save_failed), {
+            error: e instanceof Error ? e.message : String(e),
+          }),
+        )
+      } finally {
+        setPendingBusy(null)
+      }
+    },
+    [pendingBusy, refresh, showToast, x],
+  )
+
+  const dismissPending = useCallback(async (s: AgentSuggestion) => {
+    setPending((cur) => cur.filter((r) => r.id !== s.id))
+    await resolveSuggestion(s.id, 'dismissed', 'dismissed').catch(() => {})
+  }, [])
 
   const openEditor = useCallback((s: InvestStrategy) => {
     const d = toDraft(s)
@@ -169,11 +212,17 @@ export function InvestStrategiesPage() {
   }, [draft, universe])
 
   const createFromWizard = useCallback(
-    async (d: StrategyDraft) => {
+    async (d: StrategyDraft, suggestionId?: string | null) => {
       if (busy) return
       setBusy('create')
       try {
         const id = await saveStrategy(toWire(d))
+        /* The strategy reached the book — resolve the queue row the
+           draft-strategy call filed, so no orphan card asks to add it
+           again. Best-effort: a resolve failure leaves the row pending. */
+        if (suggestionId) {
+          void resolveSuggestion(suggestionId, 'accepted', 'added').catch(() => {})
+        }
         await refresh()
         showToast(IM.invest_sb_created)
         const next = { ...d, id: id ?? null }
@@ -237,6 +286,69 @@ export function InvestStrategiesPage() {
             </button>
           </div>
           <p className="sb-caption">{x(IM.invest_sb_scan_caption)}</p>
+
+          {pending.length > 0 && (
+            <div className="sb-mini-list" style={{ marginBottom: 16 }}>
+              <p className="sb-caption" style={{ marginTop: 0 }}>
+                {x(IM.invest_review_hint)}
+              </p>
+              {pending.map((s) => {
+                const p = (s.payload ?? {}) as {
+                  draft?: { cadence?: string; rules?: unknown[] }
+                }
+                const ruleCount = p.draft?.rules?.length ?? 0
+                const cadence =
+                  p.draft?.cadence === 'weekly' || p.draft?.cadence === 'monthly'
+                    ? p.draft.cadence
+                    : 'daily'
+                const cadenceLabel = x(
+                  cadence === 'weekly'
+                    ? IM.invest_cadence_weekly
+                    : cadence === 'monthly'
+                      ? IM.invest_cadence_monthly
+                      : IM.invest_cadence_daily,
+                )
+                return (
+                  <div
+                    key={s.id}
+                    className="sb-notify-row"
+                    style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
+                  >
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <strong>{s.title}</strong>
+                      <span className="sb-notify-hint">
+                        {fill(x(IM.invest_review_meta), {
+                          rules: pl(lang, ruleCount, IM.invest_sb_rule_one, IM.invest_sb_rule_many),
+                          cadence: cadenceLabel,
+                        })}
+                      </span>
+                    </span>
+                    <span className="sb-row-actions" style={{ flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        className="sb-btn sb-btn-secondary sb-btn-sm"
+                        disabled={pendingBusy !== null}
+                        onClick={() => void acceptPending(s)}
+                      >
+                        {pendingBusy === s.id && (
+                          <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                        )}
+                        {x(IM.invest_review_add)}
+                      </button>
+                      <button
+                        type="button"
+                        className="sb-btn sb-btn-secondary sb-btn-sm"
+                        disabled={pendingBusy !== null}
+                        onClick={() => void dismissPending(s)}
+                      >
+                        {x(IM.invest_dismiss)}
+                      </button>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
 
           <div className="sb-strat-grid">
             {state.strategies.map((s) => {

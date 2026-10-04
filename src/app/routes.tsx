@@ -85,6 +85,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthToolsPage = lazy(() => import('@/features/health/portal/HealthToolsPage').then((m) => ({ default: m.HealthToolsPage })))
 /* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
 /* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
+/* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
 /* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
@@ -97,6 +98,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PrAnswersPage = lazy(() => import('@/features/pr/portal/PrAnswersPage').then((m) => ({ default: m.PrAnswersPage })))
 /* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
 /* prettier-ignore */ const PrReportPage = lazy(() => import('@/features/pr/portal/PrReportPage').then((m) => ({ default: m.PrReportPage })))
+/* prettier-ignore */ const PrReviewPage = lazy(() => import('@/features/pr/portal/PrReviewPage').then((m) => ({ default: m.PrReviewPage })))
 /* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
 /* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
 
@@ -433,6 +435,7 @@ function routeTree(): RouteObject[] {
             { path: 'journal', element: <HealthJournalPage /> },
             { path: 'tools', element: <HealthToolsPage /> },
             { path: 'insights', element: <HealthInsightsPage /> },
+            { path: 'review', element: <HealthReviewPage /> },
             { path: 'resources', element: <HealthResourcesPage /> },
           ],
         },
@@ -463,6 +466,7 @@ function routeTree(): RouteObject[] {
             { path: 'answers', element: <PrAnswersPage /> },
             { path: 'mentions', element: <PrMentionsPage /> },
             { path: 'report', element: <PrReportPage /> },
+            { path: 'review', element: <PrReviewPage /> },
           ],
         },
       ],

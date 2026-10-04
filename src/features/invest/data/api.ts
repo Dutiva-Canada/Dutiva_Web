@@ -512,23 +512,12 @@ export async function syncPrices(): Promise<{ symbols: number; synced: number; f
   return data as { symbols: number; synced: number; failed: string[] }
 }
 
-/**
- * Ask the model to author a strategy draft from a plain-language goal.
- * Returns a disabled draft — the user reviews, picks the scope, and saves
- * before anything reaches the book.
- */
-export async function draftStrategy(
-  goal: string,
-  lang: 'en' | 'fr',
-): Promise<Omit<InvestStrategy, 'id'>> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.functions.invoke('invest-ai', {
-    body: { action: 'draft-strategy', goal, lang },
-  })
-  if (error) throw error
-  const d = (data as { draft?: Record<string, unknown> }).draft
-  if (!d) throw new Error('No draft returned')
+/** invest-ai draft → save-ready wire strategy. Shared by the wizard and the
+    review-queue "Add it" path, so a filed draft creates the same strategy
+    either way — disabled, in-app notify, one match each. */
+export function normalizeAiStrategyDraft(
+  d: Record<string, unknown>,
+): Omit<InvestStrategy, 'id'> {
   const scope = (d.scope ?? {}) as Record<string, unknown>
   return {
     name: String(d.name),
@@ -543,6 +532,31 @@ export async function draftStrategy(
     multiMatch: 'each',
     template: 'ai-draft',
   }
+}
+
+/**
+ * Ask the model to author a strategy draft from a plain-language goal.
+ * Returns a disabled draft — the user reviews, picks the scope, and saves
+ * before anything reaches the book. The draft is also filed to the review
+ * queue server-side; suggestionId links the wizard's save back to that row
+ * (null when the queue write didn't land).
+ */
+export async function draftStrategy(
+  goal: string,
+  lang: 'en' | 'fr',
+): Promise<{ draft: Omit<InvestStrategy, 'id'>; suggestionId: string | null }> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: { action: 'draft-strategy', goal, lang },
+  })
+  if (error) throw error
+  const raw = (data as {
+    draft?: Record<string, unknown>
+    suggestionId?: string | null
+  }) ?? {}
+  if (!raw.draft) throw new Error('No draft returned')
+  return { draft: normalizeAiStrategyDraft(raw.draft), suggestionId: raw.suggestionId ?? null }
 }
 
 /* ── Mappers ─────────────────────────────────────────────────────────────── */

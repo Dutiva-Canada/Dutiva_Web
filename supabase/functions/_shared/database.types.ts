@@ -653,6 +653,51 @@ export type Database = {
           },
         ]
       }
+      agent_suggestions: {
+        Row: {
+          created_at: string
+          dedupe_key: string | null
+          id: string
+          kind: string
+          payload: Json
+          resolved_action: string | null
+          resolved_at: string | null
+          source: string
+          status: string
+          surface: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          kind: string
+          payload?: Json
+          resolved_action?: string | null
+          resolved_at?: string | null
+          source?: string
+          status?: string
+          surface: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dedupe_key?: string | null
+          id?: string
+          kind?: string
+          payload?: Json
+          resolved_action?: string | null
+          resolved_at?: string | null
+          source?: string
+          status?: string
+          surface?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_action_runs: {
         Row: {
           action_type: string

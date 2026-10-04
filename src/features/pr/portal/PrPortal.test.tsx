@@ -260,6 +260,7 @@ describe('PrMediaPage', () => {
     vi.mocked(draftPitch).mockResolvedValue({
       subject: 'ESA changes briefing',
       body: 'Hi Alex,\n\nDraft body for the pitch.',
+      suggestionId: null,
     })
     await renderMedia()
 

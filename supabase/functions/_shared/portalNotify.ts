@@ -14,7 +14,14 @@ import { resendSend } from './resendSend.ts'
  * Returns a short status string the caller can log/return; 'sent' means the
  * provider accepted the message (resendSend resolves on 2xx only).
  */
-export type PortalNotifyKind = 'pr_coverage' | 'health_streak_risk'
+export type PortalNotifyKind = 'pr_coverage' | 'pr_coverage_alert' | 'health_streak_risk'
+
+/* Pref + log scoping: kinds are prefixed by surface, so an alert variant
+   (pr_coverage_alert) shares the surface's opt-out toggle but gets its own
+   daily dedupe row. */
+function kindSurface(kind: PortalNotifyKind): 'pr' | 'health' {
+  return kind.startsWith('pr_') ? 'pr' : 'health'
+}
 
 export interface PortalEmail {
   userId: string
@@ -33,7 +40,7 @@ export async function sendPortalEmail(
     .from('portal_notification_prefs')
     .select('email_enabled')
     .eq('user_id', email.userId)
-    .eq('surface', email.kind === 'pr_coverage' ? 'pr' : 'health')
+    .eq('surface', kindSurface(email.kind))
     .maybeSingle()
   if (pref && pref.email_enabled === false) return 'pref_off'
 

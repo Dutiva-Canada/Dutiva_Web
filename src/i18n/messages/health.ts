@@ -291,6 +291,27 @@ export const healthMessages = defineMessages({
     fr: 'Pas de suggestion pour l’instant — vos propres idées conviennent aussi.',
   },
 
+  /* For review — work agents filed for a human decision */
+  health_tab_review: { en: 'For review', fr: 'À valider' },
+  health_review_title: { en: 'For review', fr: 'À valider' },
+  health_review_sub: {
+    en: 'Ideas the portal’s agents surfaced — each waits on your call, nothing is added on its own.',
+    fr: 'Idées soulevées par les agents du portail — chacune attend votre décision, rien ne s’ajoute seul.',
+  },
+  health_review_empty: {
+    en: 'Nothing waiting — agent suggestions land here when there’s something worth a look.',
+    fr: 'Rien en attente — les suggestions des agents arrivent ici quand quelque chose mérite un regard.',
+  },
+  health_review_filed_by: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
+  health_review_load_failed: {
+    en: 'The review list didn’t load — retry.',
+    fr: 'La liste n’a pas chargé — réessayez.',
+  },
+  health_review_ack: { en: 'Got it', fr: 'C’est noté' },
+  health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
+  health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
+  health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
+
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },
   health_tools_sub: {

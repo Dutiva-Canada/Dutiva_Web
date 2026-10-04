@@ -1,11 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
-import { Info, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Info, Loader2, Sparkles, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addGeoPrompt, deleteGeoPrompt, prSuggestGeoPrompts, recordGeoCheck, runGeoChecks } from '@/features/pr/data/api'
+import { addGeoPrompt, deleteGeoPrompt, prSuggestGeoPrompts, recordGeoCheck, runGeoChecks, type PrPromptSuggestion } from '@/features/pr/data/api'
+import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import type { PrGeoEngine, PrGeoPrompt, PrGeoResult } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtDate, GEO_ENGINES, geoEngineLabel, GEO_RESULTS, geoResultLabel } from './prUi'
@@ -42,10 +43,29 @@ export function PrAnswersPage() {
   const [running, setRunning] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [checks, setChecks] = useState<Record<string, RowCheck>>({})
-  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestions, setSuggestions] = useState<PrPromptSuggestion[]>([])
   const [suggestBusy, setSuggestBusy] = useState(false)
   const [suggestFailed, setSuggestFailed] = useState(false)
   const [addingSuggestion, setAddingSuggestion] = useState<string | null>(null)
+
+  /* Pending geo_prompt rows from the review queue survive refresh — load
+     them on mount so a suggestion the user hasn't resolved yet is still
+     here (the /pr/review page shows the same rows). */
+  useEffect(() => {
+    loadPendingSuggestions('pr')
+      .then((rows) =>
+        setSuggestions(
+          rows
+            .filter((r) => r.kind === 'geo_prompt')
+            .map((r) => ({
+              text: ((r.payload as { prompt?: string } | null)?.prompt ?? r.title).trim(),
+              suggestionId: r.id,
+            }))
+            .filter((r) => r.text !== ''),
+        ),
+      )
+      .catch(() => {})
+  }, [])
 
   /** Manual "check my prompts now" — the scheduled sweep does the same daily;
       results land with checkedVia='auto' so they're never confused with a
@@ -100,7 +120,19 @@ export function PrAnswersPage() {
         existing: state.geoPrompts.map((p) => p.prompt),
         lang,
       })
-      setSuggestions(out)
+      /* Merge by id AND text — server-side dedupe returns the same pending
+         row for a re-suggested question, and a null-id row shouldn't twin
+         a queued one either. */
+      setSuggestions((cur) => {
+        const ids = new Set(cur.map((c) => c.suggestionId).filter(Boolean))
+        const texts = new Set(cur.map((c) => c.text.toLowerCase()))
+        const fresh = out.filter(
+          (o) =>
+            (!o.suggestionId || !ids.has(o.suggestionId)) &&
+            !texts.has(o.text.toLowerCase()),
+        )
+        return [...cur, ...fresh]
+      })
       if (out.length === 0) setSuggestFailed(true)
     } catch {
       setSuggestFailed(true)
@@ -109,17 +141,28 @@ export function PrAnswersPage() {
     }
   }
 
-  const addSuggestion = async (prompt: string) => {
+  const addSuggestion = async (s: PrPromptSuggestion) => {
     if (addingSuggestion) return
-    setAddingSuggestion(prompt)
+    setAddingSuggestion(s.text)
     try {
-      await addGeoPrompt({ prompt, engine: 'chatgpt' })
-      setSuggestions((s) => s.filter((p) => p !== prompt))
+      await addGeoPrompt({ prompt: s.text, engine: 'chatgpt' })
+      if (s.suggestionId) {
+        await resolveSuggestion(s.suggestionId, 'accepted', 'added').catch(() => {})
+      }
+      setSuggestions((cur) => cur.filter((p) => p !== s))
       await refresh()
       showToast(PM.pr_ans_saved)
     } finally {
       setAddingSuggestion(null)
     }
+  }
+
+  const dismissSuggestion = async (s: PrPromptSuggestion) => {
+    if (addingSuggestion) return
+    if (s.suggestionId) {
+      await resolveSuggestion(s.suggestionId, 'dismissed', 'dismissed').catch(() => {})
+    }
+    setSuggestions((cur) => cur.filter((p) => p !== s))
   }
 
   const check = (id: string): RowCheck => checks[id] ?? { result: 'unchecked', note: '' }
@@ -204,18 +247,31 @@ export function PrAnswersPage() {
           <p className="sb-helper" style={{ marginTop: 0 }}>{x(PM.pr_ai_prompts_hint)}</p>
           <div className="sb-mini-list" style={{ marginBottom: 0 }}>
             {suggestions.map((p) => (
-              <div key={p} className="flex items-center gap-[10px]" style={{ padding: '6px 0' }}>
-                <span style={{ flex: 1, minWidth: 0 }}>{p}</span>
+              <div
+                key={p.suggestionId ?? p.text}
+                className="flex items-center gap-[10px]"
+                style={{ padding: '6px 0' }}
+              >
+                <span style={{ flex: 1, minWidth: 0 }}>{p.text}</span>
                 <button
                   type="button"
                   className="sb-btn sb-btn-secondary sb-btn-sm"
-                  disabled={addingSuggestion === p}
+                  disabled={addingSuggestion === p.text}
                   onClick={() => void addSuggestion(p)}
                 >
-                  {addingSuggestion === p && (
+                  {addingSuggestion === p.text && (
                     <Loader2 size={13} className="animate-spin" aria-hidden="true" />
                   )}
                   {x(PM.pr_ai_add)}
+                </button>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  disabled={addingSuggestion === p.text}
+                  onClick={() => void dismissSuggestion(p)}
+                  title={x(PM.pr_ai_dismiss)}
+                >
+                  <X size={13} aria-hidden="true" />
                 </button>
               </div>
             ))}

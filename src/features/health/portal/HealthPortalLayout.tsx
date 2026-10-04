@@ -18,6 +18,7 @@ const NAV = [
   { to: '/health/journal', end: false, label: HM.health_tab_journal },
   { to: '/health/tools', end: false, label: HM.health_tab_tools },
   { to: '/health/insights', end: false, label: HM.health_tab_insights },
+  { to: '/health/review', end: false, label: HM.health_tab_review },
   { to: '/health/resources', end: false, label: HM.health_tab_resources },
 ] as const
 

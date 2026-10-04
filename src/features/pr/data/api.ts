@@ -607,11 +607,18 @@ export async function prMentionClusters(
 
 /** Suggest up to 3 new questions to track — deduped against the existing
     list server-side and again here. */
+export interface PrPromptSuggestion {
+  text: string
+  /** agent_suggestions row id — the suggestion is filed for review server-
+     side; null when the queue write didn't land. */
+  suggestionId: string | null
+}
+
 export async function prSuggestGeoPrompts(input: {
   campaigns: string[]
   existing: string[]
   lang: 'en' | 'fr'
-}): Promise<string[]> {
+}): Promise<PrPromptSuggestion[]> {
   const client = requireSupabase()
   const { data, error } = await client.functions.invoke('pr-ai', {
     body: {
@@ -622,30 +629,33 @@ export async function prSuggestGeoPrompts(input: {
     },
   })
   if (error) throw error
-  const raw = (data as { prompts?: string[] } | null) ?? {}
+  const raw = (data as { prompts?: { text?: string; suggestionId?: string | null }[] } | null) ?? {}
   if (!Array.isArray(raw.prompts) || raw.prompts.length === 0) {
     throw new Error('No suggestions from pr-ai')
   }
   const seen = new Set(input.existing.map((e) => e.trim().toLowerCase()))
-  return raw.prompts.filter((p) => {
-    const t = p.trim()
-    return t.length > 0 && !seen.has(t.toLowerCase())
-  })
+  return raw.prompts
+    .map((p) => ({ text: (p.text ?? '').trim(), suggestionId: p.suggestionId ?? null }))
+    .filter((p) => p.text !== '' && !seen.has(p.text.toLowerCase()))
 }
 
 export interface PrPitchDraft {
   subject: string
   body: string
+  /** agent_suggestions row id — null when the queue write didn't land. */
+  suggestionId: string | null
 }
 
 /** Pitch draft for a media contact — the model sees the contact's public
     details (name/outlet/beat/note) plus campaign names. The desk copies it
     or opens it in their mail app; it is never sent from here. */
 export async function draftPitch(input: {
+  contactId: string
   name: string
   outlet: string
   beat: string
   note: string
+  email: string
   campaigns: string[]
   lang: 'en' | 'fr'
 }): Promise<PrPitchDraft> {
@@ -653,18 +663,20 @@ export async function draftPitch(input: {
   const { data, error } = await client.functions.invoke('pr-ai', {
     body: {
       kind: 'pitch',
+      contactId: input.contactId,
       name: input.name,
       outlet: input.outlet,
       beat: input.beat,
       note: input.note,
+      email: input.email,
       campaigns: input.campaigns.slice(0, 20),
       lang: input.lang,
     },
   })
   if (error) throw error
-  const raw = (data as { subject?: string; pitch?: string } | null) ?? {}
+  const raw = (data as { subject?: string; pitch?: string; suggestionId?: string | null } | null) ?? {}
   if (typeof raw.pitch !== 'string' || raw.pitch.trim() === '') {
     throw new Error('Empty pitch from pr-ai')
   }
-  return { subject: raw.subject ?? '', body: raw.pitch }
+  return { subject: raw.subject ?? '', body: raw.pitch, suggestionId: raw.suggestionId ?? null }
 }

@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   postChatCompletion,
   resolveApiKey,
@@ -109,7 +110,7 @@ Deno.serve(async (req: Request) => {
 
   const authed = await authenticateInvestUser(req, config)
   if (authed instanceof Response) return authed
-  const { adminClient } = authed
+  const { userId, adminClient } = authed
 
   let body: Record<string, unknown> = {}
   try {
@@ -170,6 +171,18 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Could not turn that goal into a strategy — try describing it differently.', code: 'no_draft' }, 422)
   }
 
-  /* The draft ships disabled: the user reviews, then enables. */
-  return json({ draft: { ...draft, enabled: false, autonomy: 'suggest', template: 'ai-draft' } })
+  /* File the draft for review — a wizard abandoned mid-edit shouldn't lose
+     it. Deduped on the normalized goal so re-describing the same strategy
+     returns the pending row instead of a twin; the draft itself ships
+     disabled either way — the user reviews, then enables. */
+  const shipped = { ...draft, enabled: false, autonomy: 'suggest', template: 'ai-draft' }
+  const filed = await fileSuggestion(adminClient, {
+    userId,
+    surface: 'invest',
+    kind: 'strategy',
+    title: shipped.name,
+    payload: { goal, draft: shipped },
+    dedupeKey: textDedupeKey(goal),
+  })
+  return json({ draft: shipped, suggestionId: filed?.id ?? null })
 })

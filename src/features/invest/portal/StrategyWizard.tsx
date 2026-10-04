@@ -27,7 +27,7 @@ import type { StrategyDraft } from './strategyDraft'
 interface Props {
   trackedSymbols: string[]
   onCancel: () => void
-  onCreate: (draft: StrategyDraft) => void
+  onCreate: (draft: StrategyDraft, suggestionId?: string | null) => void
   busy: boolean
 }
 
@@ -46,6 +46,9 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
   const [symbols, setSymbols] = useState<string[]>([])
   const [notify, setNotify] = useState<StrategyNotify>({ inApp: true, email: false })
   const [drafting, setDrafting] = useState(false)
+  /* agent_suggestions row for the AI draft — carried through onCreate so a
+     finished wizard resolves the queue row instead of orphaning it. */
+  const [suggestionId, setSuggestionId] = useState<string | null>(null)
 
   const steps = [IM.invest_sb_wiz_describe, IM.invest_sb_wiz_review, IM.invest_sb_wiz_schedule]
 
@@ -97,10 +100,11 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
     if (desc.trim()) {
       setDrafting(true)
       try {
-        const d = await draftStrategy(desc.trim(), lang)
+        const { draft: d, suggestionId: sid } = await draftStrategy(desc.trim(), lang)
         setName(d.name)
         setRules(toDrafts(d.rules))
         setCadence(d.cadence)
+        setSuggestionId(sid)
         setStep(2)
       } catch (e) {
         showToast(
@@ -119,17 +123,20 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
   }
 
   const create = () => {
-    onCreate({
-      id: null,
-      name: name.trim() || x(IM.invest_sb_untitled),
-      enabled: false,
-      cadence,
-      scope: { watchlist: scope === 'all', symbols },
-      notify,
-      multiMatch: 'summary',
-      template: tplSlug ? `tpl:${tplSlug}` : desc.trim() ? 'ai-draft' : '',
-      rules,
-    })
+    onCreate(
+      {
+        id: null,
+        name: name.trim() || x(IM.invest_sb_untitled),
+        enabled: false,
+        cadence,
+        scope: { watchlist: scope === 'all', symbols },
+        notify,
+        multiMatch: 'summary',
+        template: tplSlug ? `tpl:${tplSlug}` : desc.trim() ? 'ai-draft' : '',
+        rules,
+      },
+      suggestionId,
+    )
   }
 
   const createDisabled = busy || (scope === 'specific' && symbols.length === 0)

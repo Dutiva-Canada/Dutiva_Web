@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   buildHealthFacts,
   habitPrompt,
@@ -163,7 +164,17 @@ Deno.serve(async (req) => {
   if (kind === 'habit') {
     const habit = parseHabit(text)
     if (!habit) return json({ error: 'Model returned no usable habit', code: 'unparseable' }, 502)
-    return json({ habit })
+    /* File for review — deduped on the habit name so re-suggesting returns
+       the same pending row rather than a twin. */
+    const filed = await fileSuggestion(admin, {
+      userId: portal.userId,
+      surface: 'health',
+      kind: 'habit',
+      title: habit.name,
+      payload: { name: habit.name, why: habit.why },
+      dedupeKey: textDedupeKey(habit.name),
+    })
+    return json({ habit, suggestionId: filed?.id ?? null })
   }
   return kind === 'reflect' ? json({ prompt: text }) : json({ summary: text })
 })

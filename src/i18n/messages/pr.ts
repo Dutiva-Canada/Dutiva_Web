@@ -33,6 +33,7 @@ export const prMessages = defineMessages({
   pr_tab_mentions: { en: 'Coverage', fr: 'Retombées' },
   pr_tab_answers: { en: 'AI answers', fr: 'Réponses IA' },
   pr_tab_report: { en: 'Report', fr: 'Rapport' },
+  pr_tab_review: { en: 'For review', fr: 'À valider' },
 
   /* Sign-in wall + access gate */
   pr_signin_title: { en: 'Sign in to Dutiva PR', fr: 'Se connecter à Dutiva RP' },
@@ -524,6 +525,30 @@ export const prMessages = defineMessages({
   pr_ai_pitch_copy: { en: 'Copy', fr: 'Copier' },
   pr_ai_pitch_copied: { en: 'Copied', fr: 'Copié' },
   pr_ai_pitch_mailto: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
+
+  /* For review — work agents filed for a human decision */
+  pr_review_title: { en: 'For review', fr: 'À valider' },
+  pr_review_sub: {
+    en: 'Drafts and ideas the desk’s agents produced — each waits on your call, nothing acts on its own.',
+    fr: 'Ébauches et idées produites par les agents du bureau — chacune attend votre décision, rien n’agit seul.',
+  },
+  pr_review_empty: {
+    en: 'Nothing waiting — when an agent drafts something worth your eye, it lands here.',
+    fr: 'Rien en attente — quand un agent prépare quelque chose qui mérite votre œil, ça arrive ici.',
+  },
+  pr_review_filed_by: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
+  pr_review_load_failed: {
+    en: 'The review list didn’t load — retry.',
+    fr: 'La liste n’a pas chargé — réessayez.',
+  },
+  pr_review_ack: { en: 'Got it', fr: 'C’est noté' },
+  pr_review_accept_pitch_copy: { en: 'Copy', fr: 'Copier' },
+  pr_review_accept_pitch_mail: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
+  pr_review_accept_prompt: { en: 'Track it', fr: 'La suivre' },
+  pr_review_kind_pitch: { en: 'Pitch', fr: 'Pitch' },
+  pr_review_kind_geo_prompt: { en: 'AI answers question', fr: 'Question réponses IA' },
+  pr_seo_title_review: { en: 'For review — Dutiva PR', fr: 'À valider — Dutiva RP' },
+  pr_review_saved: { en: 'Added.', fr: 'Ajouté.' },
 
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },

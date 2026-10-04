@@ -163,3 +163,12 @@ export function toneCounts(
   }
   return c
 }
+
+/** Items that warrant the immediate negative-coverage interrupt — only
+    auto-tagged negatives qualify. A manually 'negative' guess or an
+    unclassified fallback-to-neutral must never fire the alarm. */
+export function negativeAutoItems<
+  T extends Pick<FeedItem, 'sentiment' | 'sentimentAuto'>,
+>(items: T[]): T[] {
+  return items.filter((i) => i.sentimentAuto === true && i.sentiment === 'negative')
+}

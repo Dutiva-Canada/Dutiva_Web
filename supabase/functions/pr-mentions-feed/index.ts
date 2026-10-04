@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl } from '../pr-fetch-meta/handlers.ts'
-import { parseFeedItems, toneCounts, type FeedItem } from './handlers.ts'
+import { negativeAutoItems, parseFeedItems, toneCounts, type FeedItem } from './handlers.ts'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
@@ -229,6 +229,50 @@ async function syncFeed(
 }
 
 /**
+ * Negative-coverage interrupt — fires in the same run that ingested the
+ * item, not in tomorrow's digest. Kind 'pr_coverage_alert' shares the 'pr'
+ * surface opt-out but dedupes on its own log row, so a hostile piece can
+ * reach the desk even when the daily digest already went out. Only fires
+ * on auto-tagged negatives: an untagged batch never claims a machine read.
+ */
+async function sendNegativeAlerts(
+  admin: SupabaseClient,
+  byUser: Map<string, { items: FeedItem[] }>,
+): Promise<Record<string, string>> {
+  const outcomes: Record<string, string> = {}
+  const refDate = new Date().toISOString().slice(0, 10)
+  for (const [userId, { items }] of byUser) {
+    const negatives = negativeAutoItems(items)
+    if (negatives.length === 0) continue
+    const shown = negatives.slice(0, 5)
+    const en = [
+      `${negatives.length} coverage item${negatives.length === 1 ? '' : 's'} just landed that the desk tagged negative:`,
+      '',
+      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      '',
+      'Auto-tagged — a first guess, not a read. Worth a look now rather than in tomorrow\'s digest.',
+      'Review it: https://dutiva.ca/pr/mentions',
+    ]
+    const fr = [
+      `${negatives.length} retombée${negatives.length === 1 ? '' : 's'} vient${negatives.length === 1 ? '' : 'nent'} d’arriver, étiquetée${negatives.length === 1 ? '' : 's'} négative${negatives.length === 1 ? '' : 's'} par le bureau :`,
+      '',
+      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      '',
+      'Étiquette automatique — une première estimation, pas un verdict. À regarder maintenant plutôt que dans le résumé de demain.',
+      'Voir le bureau : https://dutiva.ca/pr/mentions',
+    ]
+    outcomes[userId] = await sendPortalEmail(admin, {
+      userId,
+      kind: 'pr_coverage_alert',
+      refDate,
+      subject: `Dutiva PR — coverage to check now / retombées à regarder (${negatives.length})`,
+      text: bilingualBody(en, fr),
+    })
+  }
+  return outcomes
+}
+
+/**
  * One coverage digest per user per day, bilingual (the portals store no
  * locale server-side). Pref/dedupe/provider rules live in sendPortalEmail.
  */
@@ -337,11 +381,13 @@ Deno.serve(async (req) => {
         byUser.set(feed.user_id, bucket)
       }
     }
+    const alerts = await sendNegativeAlerts(admin, byUser)
     const emails = await sendCoverageDigests(admin, byUser)
     return json({
       feeds: results.length,
       added: results.reduce((n, r) => n + r.added, 0),
       results,
+      alerts,
       emails,
     })
   } finally {

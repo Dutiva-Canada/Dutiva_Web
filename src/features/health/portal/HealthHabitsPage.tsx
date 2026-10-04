@@ -8,6 +8,7 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { addHabit, deleteHabit, healthAiHabit, setHabitDone, type HabitSuggestion } from '@/features/health/data/api'
 import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
+import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHealthHead } from './useHealthHead'
 
@@ -28,7 +29,7 @@ export function HealthHabitsPage() {
   const [armDelete, setArmDelete] = useState<string | null>(null)
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
   const [notifySaving, setNotifySaving] = useState(false)
-  const [suggestion, setSuggestion] = useState<HabitSuggestion | null>(null)
+  const [suggestions, setSuggestions] = useState<HabitSuggestion[]>([])
   const [suggestBusy, setSuggestBusy] = useState(false)
 
   /* Evening streak nudge — one email a day at most, only while a live
@@ -75,33 +76,69 @@ export function HealthHabitsPage() {
     }
   }
 
+  /* Pending habit rows from the review queue survive refresh — same rows
+     the /health/review page lists. */
+  useEffect(() => {
+    loadPendingSuggestions('health')
+      .then((rows) =>
+        setSuggestions(
+          rows
+            .filter((r) => r.kind === 'habit')
+            .map((r) => {
+              const p = (r.payload as { name?: string; why?: string } | null) ?? {}
+              return { name: p.name ?? r.title, why: p.why ?? '', suggestionId: r.id }
+            })
+            .filter((r) => r.name.trim() !== ''),
+        ),
+      )
+      .catch(() => {})
+  }, [])
+
   /* Habit suggestion — the model sees habit names + streak aggregates only
      and answers "name | reason". Nothing is added until the user taps
-     "Add it"; dismissing just clears the card. */
+     "Add it"; dismissing resolves the queue row. */
   const suggestHabit = async () => {
     if (suggestBusy) return
     setSuggestBusy(true)
     try {
-      setSuggestion(await healthAiHabit(lang))
+      const out = await healthAiHabit(lang)
+      setSuggestions((cur) =>
+        cur.some(
+          (c) =>
+            (c.suggestionId && c.suggestionId === out.suggestionId) ||
+            c.name.toLowerCase() === out.name.toLowerCase(),
+        )
+          ? cur
+          : [...cur, out],
+      )
     } catch {
-      setSuggestion(null)
       showToast(HM.health_ai_habit_failed)
     } finally {
       setSuggestBusy(false)
     }
   }
 
-  const acceptSuggestion = async () => {
-    if (!suggestion || saving) return
+  const acceptSuggestion = async (s: HabitSuggestion) => {
+    if (saving) return
     setSaving(true)
     try {
-      await addHabit(suggestion.name)
+      await addHabit(s.name)
+      if (s.suggestionId) {
+        await resolveSuggestion(s.suggestionId, 'accepted', 'added').catch(() => {})
+      }
+      setSuggestions((cur) => cur.filter((c) => c !== s))
       await refresh()
-      setSuggestion(null)
       showToast(HM.health_habit_added)
     } finally {
       setSaving(false)
     }
+  }
+
+  const dismissSuggestion = async (s: HabitSuggestion) => {
+    if (s.suggestionId) {
+      await resolveSuggestion(s.suggestionId, 'dismissed', 'dismissed').catch(() => {})
+    }
+    setSuggestions((cur) => cur.filter((c) => c !== s))
   }
 
   const toggle = async (habitId: string, done: boolean) => {
@@ -173,12 +210,16 @@ export function HealthHabitsPage() {
             {x(suggestBusy ? HM.health_ai_habit_loading : HM.health_ai_habit_btn)}
           </button>
         </div>
-        {suggestion && (
-          <div className="sb-notify-row" style={{ marginTop: 12, alignItems: 'flex-start' }}>
+        {suggestions.map((s) => (
+          <div
+            key={s.suggestionId ?? s.name}
+            className="sb-notify-row"
+            style={{ marginTop: 12, alignItems: 'flex-start', cursor: 'default' }}
+          >
             <span style={{ flex: 1, minWidth: 0 }}>
-              <strong>{suggestion.name}</strong>
-              {suggestion.why && (
-                <span className="sb-notify-hint">{suggestion.why}</span>
+              <strong>{s.name}</strong>
+              {s.why && (
+                <span className="sb-notify-hint">{s.why}</span>
               )}
               <span className="sb-notify-hint">{x(HM.health_ai_note)}</span>
             </span>
@@ -187,20 +228,20 @@ export function HealthHabitsPage() {
                 type="button"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
                 disabled={saving}
-                onClick={() => void acceptSuggestion()}
+                onClick={() => void acceptSuggestion(s)}
               >
                 {x(HM.health_ai_habit_add)}
               </button>
               <button
                 type="button"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
-                onClick={() => setSuggestion(null)}
+                onClick={() => void dismissSuggestion(s)}
               >
                 {x(HM.health_ai_habit_dismiss)}
               </button>
             </span>
           </div>
-        )}
+        ))}
       </section>
 
       <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>

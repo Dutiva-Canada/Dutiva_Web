@@ -1082,6 +1082,8 @@ textarea.sb-input {
 .sb-form-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
   grid-column: 1 / -1;
 }
 .sb-form-actions .sb-btn {
@@ -1149,6 +1151,14 @@ textarea.sb-input {
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 8px;
+}
+/* Review-queue rows (agent suggestions): on narrow screens the button
+   cluster drops under the text instead of squeezing it into a column. */
+@media (max-width: 640px) {
+  .sb-notify-row .sb-row-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+  }
 }
 .sb-row-actions .sb-btn {
   white-space: nowrap;
@@ -1315,6 +1325,7 @@ textarea.sb-input {
 .sb-notify-row {
   display: flex;
   align-items: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 14px;
   padding-top: 12px;

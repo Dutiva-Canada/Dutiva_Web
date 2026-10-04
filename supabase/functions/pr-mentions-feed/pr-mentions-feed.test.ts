@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodeEntities, parseFeedItems, toneCounts, unwrapGoogleRedirect } from './handlers'
+import { decodeEntities, negativeAutoItems, parseFeedItems, toneCounts, unwrapGoogleRedirect } from './handlers'
 
 describe('decodeEntities', () => {
   it('decodes named and numeric entities', () => {
@@ -104,5 +104,26 @@ describe('toneCounts', () => {
     expect(c).toEqual({ positive: 0, neutral: 2, negative: 0 })
     expect(toneCounts([{ sentiment: 'positive' }, {}]))
       .toEqual({ positive: 0, neutral: 0, negative: 0 })
+  })
+})
+
+describe('negativeAutoItems', () => {
+  it('selects only auto-tagged negatives — the interrupt never fires on a guess', () => {
+    const items = [
+      { title: 'a', sentiment: 'negative', sentimentAuto: true },
+      /* machine said negative but flag missing → not an auto read */
+      { title: 'b', sentiment: 'negative' },
+      /* human-set or fallback values never qualify */
+      { title: 'c', sentiment: 'negative', sentimentAuto: false },
+      { title: 'd', sentiment: 'neutral', sentimentAuto: true },
+      { title: 'e', sentiment: 'positive', sentimentAuto: true },
+    ]
+    expect(negativeAutoItems(items).map((i) => i.title)).toEqual(['a'])
+  })
+
+  it('returns empty when the classifier never ran', () => {
+    expect(
+      negativeAutoItems([{ sentiment: 'negative' }, { sentiment: 'neutral' }]),
+    ).toEqual([])
   })
 })

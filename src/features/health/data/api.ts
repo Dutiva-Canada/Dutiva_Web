@@ -216,6 +216,8 @@ export async function healthAiRecap(lang: 'en' | 'fr'): Promise<string> {
 export interface HabitSuggestion {
   name: string
   why: string
+  /** agent_suggestions row id — null when the queue write didn't land. */
+  suggestionId: string | null
 }
 
 /** One small habit the user isn't already tracking — suggested from habit
@@ -226,9 +228,16 @@ export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion>
     body: { kind: 'habit', lang },
   })
   if (error) throw error
-  const raw = (data as { habit?: HabitSuggestion } | null) ?? {}
+  const raw = (data as {
+    habit?: { name?: string; why?: string }
+    suggestionId?: string | null
+  } | null) ?? {}
   if (!raw.habit || typeof raw.habit.name !== 'string' || raw.habit.name.trim() === '') {
     throw new Error('Empty habit suggestion from health-ai')
   }
-  return raw.habit
+  return {
+    name: raw.habit.name,
+    why: raw.habit.why ?? '',
+    suggestionId: raw.suggestionId ?? null,
+  }
 }

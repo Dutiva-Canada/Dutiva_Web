@@ -1,11 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Copy, Loader2, Mail, MailPlus, Sparkles, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { addMediaContact, deleteMediaContact, draftPitch, type PrPitchDraft } from '@/features/pr/data/api'
+import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import type { PrMediaContact } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { usePrHead } from './usePrHead'
@@ -40,6 +41,43 @@ export function PrMediaPage() {
   const [pitchBusy, setPitchBusy] = useState<string | null>(null)
   const [pitchFailed, setPitchFailed] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [queued, setQueued] = useState<PitchState[]>([])
+
+  /* Pending pitch rows from the review queue — drafts filed earlier that
+     nobody resolved yet. They render as the same card, oldest first. */
+  const reloadQueued = async (excludeId?: string | null) => {
+    try {
+      const rows = await loadPendingSuggestions('pr')
+      setQueued(
+        rows
+          .filter((r) => r.kind === 'pitch' && r.id !== excludeId)
+          .map((r) => {
+            const p = (r.payload as {
+              contactId?: string | null
+              contactName?: string
+              email?: string
+              subject?: string
+              body?: string
+            } | null) ?? {}
+            return {
+              contactId: p.contactId ?? '',
+              contactName: p.contactName ?? r.title,
+              email: p.email ?? '',
+              subject: p.subject ?? '',
+              body: p.body ?? '',
+              suggestionId: r.id,
+            }
+          }),
+      )
+    } catch {
+      /* queue list is cosmetic — a failed reload keeps the current one */
+    }
+  }
+
+  useEffect(() => {
+    void reloadQueued()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const submit = async () => {
     if (!draft.name.trim() || saving) return
@@ -74,14 +112,19 @@ export function PrMediaPage() {
     setPitchFailed(null)
     try {
       const out = await draftPitch({
+        contactId: c.id,
         name: c.name,
         outlet: c.outlet,
         beat: c.beat,
         note: c.note,
+        email: c.email,
         campaigns: state.campaigns.filter((k) => k.status === 'active').map((k) => k.name),
         lang,
       })
       setPitch({ contactId: c.id, contactName: c.name, email: c.email, ...out })
+      /* The new row is the active card — keep it out of the queued list so
+         it doesn't render twice; a re-draft superseded the old one upstream. */
+      void reloadQueued(out.suggestionId)
     } catch {
       setPitch(null)
       setPitchFailed(c.id)
@@ -90,18 +133,72 @@ export function PrMediaPage() {
     }
   }
 
+  /* Resolving the queued row is best-effort — suggestionId is null when the
+     queue write didn't land upstream, and a resolve failure must not block
+     the local action. After the first resolution the id is cleared so a
+     second click can't overwrite the recorded outcome. */
+  const resolve = (action: string) => {
+    if (!pitch?.suggestionId) return
+    const id = pitch.suggestionId
+    setPitch((p) => (p ? { ...p, suggestionId: null } : p))
+    setQueued((q) => q.filter((r) => r.suggestionId !== id))
+    void resolveSuggestion(id, 'accepted', action).catch(() => {})
+  }
+
   const copyPitch = async () => {
     if (!pitch) return
     try {
       await navigator.clipboard.writeText(
         `${pitch.subject ? `Subject: ${pitch.subject}\n\n` : ''}${pitch.body}`,
       )
+      resolve('copied')
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch {
       showToast(PM.pr_ai_pitch_failed)
     }
   }
+
+  const dismissPitch = () => {
+    if (pitch?.suggestionId) {
+      void resolveSuggestion(pitch.suggestionId, 'dismissed', 'dismissed').catch(() => {})
+    }
+    setPitch(null)
+    void reloadQueued()
+  }
+
+  /* Queued-row actions mirror the fresh card's — resolve + drop the row. */
+  const queuedCopy = async (q: PitchState) => {
+    try {
+      await navigator.clipboard.writeText(
+        `${q.subject ? `Subject: ${q.subject}\n\n` : ''}${q.body}`,
+      )
+    } catch {
+      showToast(PM.pr_ai_pitch_failed)
+      return
+    }
+    if (q.suggestionId) {
+      setQueued((cur) => cur.filter((r) => r.suggestionId !== q.suggestionId))
+      void resolveSuggestion(q.suggestionId, 'accepted', 'copied').catch(() => {})
+    }
+  }
+
+  const queuedOpen = (q: PitchState) => {
+    if (q.suggestionId) {
+      setQueued((cur) => cur.filter((r) => r.suggestionId !== q.suggestionId))
+      void resolveSuggestion(q.suggestionId, 'accepted', 'opened_email').catch(() => {})
+    }
+  }
+
+  const queuedDismiss = (q: PitchState) => {
+    if (q.suggestionId) {
+      setQueued((cur) => cur.filter((r) => r.suggestionId !== q.suggestionId))
+      void resolveSuggestion(q.suggestionId, 'dismissed', 'dismissed').catch(() => {})
+    }
+  }
+
+  const queuedMailto = (q: PitchState) =>
+    `mailto:${q.email}?subject=${encodeURIComponent(q.subject)}&body=${encodeURIComponent(q.body)}`
 
   const mailtoHref = pitch
     ? `mailto:${pitch.email}?subject=${encodeURIComponent(pitch.subject)}&body=${encodeURIComponent(pitch.body)}`
@@ -326,7 +423,11 @@ export function PrMediaPage() {
               {x(copied ? PM.pr_ai_pitch_copied : PM.pr_ai_pitch_copy)}
             </button>
             {pitch.email !== '' ? (
-              <a className="sb-btn sb-btn-secondary sb-btn-sm" href={mailtoHref}>
+              <a
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                href={mailtoHref}
+                onClick={() => resolve('opened_email')}
+              >
                 <MailPlus size={13} aria-hidden="true" />
                 {x(PM.pr_ai_pitch_mailto)}
               </a>
@@ -334,7 +435,7 @@ export function PrMediaPage() {
             <button
               type="button"
               className="sb-btn sb-btn-secondary sb-btn-sm"
-              onClick={() => setPitch(null)}
+              onClick={() => dismissPitch()}
             >
               <X size={13} aria-hidden="true" />
               {x(PM.pr_ai_dismiss)}
@@ -342,6 +443,55 @@ export function PrMediaPage() {
           </div>
         </section>
       ) : null}
+
+      {queued.map((q) => (
+        <section key={q.suggestionId ?? q.contactName} className="sb-card sb-card-pad">
+          <div className="sb-card-head">
+            <div>
+              <h3 className="sb-card-title">
+                {x(PM.pr_ai_pitch_btn)} — {q.contactName}
+              </h3>
+              <p className="sb-card-sub">{x(PM.pr_ai_pitch_note)}</p>
+            </div>
+          </div>
+          {q.subject !== '' ? (
+            <p style={{ fontWeight: 600, margin: '0 0 6px' }}>
+              Subject: {q.subject}
+            </p>
+          ) : null}
+          <p style={{ whiteSpace: 'pre-wrap', margin: 0, color: 'var(--sb-muted)' }}>
+            {q.body}
+          </p>
+          <div className="sb-form-actions" style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className="sb-btn sb-btn-secondary sb-btn-sm"
+              onClick={() => void queuedCopy(q)}
+            >
+              <Copy size={13} aria-hidden="true" />
+              {x(PM.pr_ai_pitch_copy)}
+            </button>
+            {q.email !== '' ? (
+              <a
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                href={queuedMailto(q)}
+                onClick={() => queuedOpen(q)}
+              >
+                <MailPlus size={13} aria-hidden="true" />
+                {x(PM.pr_ai_pitch_mailto)}
+              </a>
+            ) : null}
+            <button
+              type="button"
+              className="sb-btn sb-btn-secondary sb-btn-sm"
+              onClick={() => queuedDismiss(q)}
+            >
+              <X size={13} aria-hidden="true" />
+              {x(PM.pr_ai_dismiss)}
+            </button>
+          </div>
+        </section>
+      ))}
     </div>
   )
 }

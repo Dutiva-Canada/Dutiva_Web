@@ -665,6 +665,18 @@ export const investMessages = defineMessages({
     en: 'The save failed — {error}',
     fr: 'L’enregistrement a échoué — {error}',
   },
+
+  /* Review queue — AI-drafted strategies filed while the wizard was open.
+     [FR self-authored] */
+  invest_review_hint: {
+    en: 'Drafted by an agent — each waits on your call.',
+    fr: 'Rédigées par un agent — chacune attend votre décision.',
+  },
+  invest_review_add: { en: 'Add it', fr: 'L’ajouter' },
+  invest_review_meta: {
+    en: '{rules} · {cadence} · disabled until you enable it',
+    fr: '{rules} · {cadence} · désactivée tant que vous ne l’activez pas',
+  },
   invest_sb_delete_strategy: { en: 'Delete strategy', fr: 'Supprimer la stratégie' },
   invest_sb_untitled: { en: 'Untitled strategy', fr: 'Stratégie sans titre' },
 

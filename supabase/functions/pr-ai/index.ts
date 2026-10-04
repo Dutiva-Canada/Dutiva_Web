@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
+import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   cleanDraft,
   clustersPrompt,
@@ -222,7 +223,21 @@ Deno.serve(async (req) => {
     if (prompts.length === 0) {
       return json({ error: 'Model returned no new questions', code: 'empty' }, 502)
     }
-    return json({ prompts })
+    /* File each question as a pending review row — deduped on normalized
+       text, so re-suggesting returns the existing row instead of piling up
+       twins. suggestionId=null when the queue write didn't land. */
+    const items = await Promise.all(prompts.map(async (text) => {
+      const filed = await fileSuggestion(admin, {
+        userId: portal.userId,
+        surface: 'pr',
+        kind: 'geo_prompt',
+        title: text,
+        payload: { prompt: text },
+        dedupeKey: textDedupeKey(text),
+      })
+      return { text, suggestionId: filed?.id ?? null }
+    }))
+    return json({ prompts: items })
   }
 
   if (body.kind === 'pitch') {
@@ -245,7 +260,29 @@ Deno.serve(async (req) => {
     if ('error' in out) return out.error
     const parsed = parsePitch(out.text)
     if (!parsed) return json({ error: 'Model returned no usable pitch', code: 'unparseable' }, 502)
-    return json({ subject: parsed.subject, pitch: parsed.body })
+    /* File for review — a re-draft supersedes the pending one for the same
+       contact so the queue never holds two drafts of one pitch. */
+    const contactId = clip(body.contactId, MAX_LIST_ITEM_CHARS) || null
+    const email = clip(body.email, MAX_LIST_ITEM_CHARS)
+    const filed = await fileSuggestion(admin, {
+      userId: portal.userId,
+      surface: 'pr',
+      kind: 'pitch',
+      title: input.outlet
+        ? `Pitch — ${input.name} (${input.outlet})`
+        : `Pitch — ${input.name}`,
+      payload: {
+        contactId,
+        contactName: input.name,
+        outlet: input.outlet,
+        email,
+        subject: parsed.subject,
+        body: parsed.body,
+      },
+      dedupeKey: contactId ? `contact:${contactId}` : `name:${input.name}`,
+      dedupeMode: 'supersede',
+    })
+    return json({ subject: parsed.subject, pitch: parsed.body, suggestionId: filed?.id ?? null })
   }
 
   return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", or "pitch"' }, 400)
