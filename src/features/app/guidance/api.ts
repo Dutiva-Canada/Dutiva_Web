@@ -85,7 +85,14 @@ export async function fetchGuidanceSources(): Promise<GuidanceSource[]> {
     }))
 }
 
-export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
+/** Page size for the law-updates list — the panel pages the same filtered
+    set when the reader asks for earlier detections. */
+export const LAW_UPDATES_PAGE_SIZE = 10
+
+export async function fetchRecentLawUpdates(
+  limit = LAW_UPDATES_PAGE_SIZE,
+  offset = 0,
+): Promise<LawUpdate[]> {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('law_updates')
@@ -101,7 +108,7 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
     .eq('event_type', CUSTOMER_FACING_EVENT_TYPE)
     .in('jurisdiction', MONITOR_JURISDICTION_NAMES)
     .order('detected_at', { ascending: false })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
   if (error) throw error
   return z
     .array(lawUpdateRowSchema)

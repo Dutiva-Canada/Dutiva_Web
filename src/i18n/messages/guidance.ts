@@ -69,6 +69,13 @@ export const guidanceMessages = defineMessages({
     en: 'AI read — interpretation, not legal advice:',
     fr: 'Lecture IA — une interprétation, pas un avis juridique :',
   },
+  /* Pages the same filtered update set — older detections, same coverage
+     rules. "Earlier" names what the reader actually gets.
+     [FR self-authored] */
+  guidance_updates_show_more: {
+    en: 'Show earlier changes',
+    fr: 'Voir les changements antérieurs',
+  },
   /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
      unusable for change detection (docs/LAW_MONITORING.md). The panel states
      that rather than letting "law-change tracking" imply it covers everywhere.

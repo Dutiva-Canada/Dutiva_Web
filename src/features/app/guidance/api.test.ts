@@ -9,6 +9,7 @@ interface FakeResult {
 interface RecordedFilters {
   eq: [string, unknown][]
   in: [string, readonly unknown[]][]
+  range: [number, number][]
 }
 
 /** Chainable, thenable stand-in for a supabase-js PostgrestFilterBuilder. */
@@ -25,6 +26,10 @@ function chain(result: FakeResult, filters?: RecordedFilters) {
     },
     order: () => builder,
     limit: () => builder,
+    range: (from: number, to: number) => {
+      filters?.range.push([from, to])
+      return builder
+    },
     then: (onfulfilled: (value: FakeResult) => unknown) =>
       Promise.resolve(result).then(onfulfilled),
   }
@@ -139,7 +144,7 @@ describe('guidance api', () => {
    */
   describe('fetchRecentLawUpdates filtering', () => {
     const filtersFor = async () => {
-      const filters: RecordedFilters = { eq: [], in: [] }
+      const filters: RecordedFilters = { eq: [], in: [], range: [] }
       const { fetchRecentLawUpdates } = await loadApiWithFakeClient(() =>
         chain({ data: [], error: null }, filters),
       )
@@ -180,6 +185,23 @@ describe('guidance api', () => {
       for (const code of ['ON', 'QC', 'FED']) {
         expect(values).not.toContain(code)
       }
+    })
+
+    it('pages the same filtered set for earlier detections', async () => {
+      const filters: RecordedFilters = { eq: [], in: [], range: [] }
+      const { fetchRecentLawUpdates } = await loadApiWithFakeClient(() =>
+        chain({ data: [], error: null }, filters),
+      )
+      await fetchRecentLawUpdates()
+      await fetchRecentLawUpdates(10, 10)
+      await fetchRecentLawUpdates(10, 20)
+      expect(filters.range).toEqual([
+        [0, 9],
+        [10, 19],
+        [20, 29],
+      ])
+      // Paging must not widen scope — every page carries the same filters.
+      expect(filters.eq.every(([col, v]) => col === 'event_type' && v === 'change')).toBe(true)
     })
   })
 })
