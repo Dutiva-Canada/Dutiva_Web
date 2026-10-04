@@ -2,7 +2,11 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assessLegislationText } from './contentSanity.ts'
 import { amendmentFingerprint, assessJusticeStatute } from './justiceXml.ts'
-import { assessOntarioActVersions, ontarioFingerprintPayload } from './ontarioApi.ts'
+import {
+  assessCurrencyDate,
+  assessOntarioActVersions,
+  ontarioFingerprintPayload,
+} from './ontarioApi.ts'
 import {
   assessQuebecPackage,
   diffStatuteSections,
@@ -614,6 +618,15 @@ Deno.serve(async (req) => {
   const results: string[] = []
   /** Consecutive failures before we alert and attempt URL recovery. */
   const BROKEN_ALERT_THRESHOLD = 3
+  /* Source-liveness heartbeats — a source that keeps answering 200s while its
+     data stops advancing looks identical to "no changes" at the fingerprint
+     level. e-Laws' currency-date normally moves within days (a 90-day-old
+     claim means the corpus froze); Données Québec republishes roughly
+     fortnightly but a 71-day gap is on record, so Québec gets 120 days
+     before we suspect the feed rather than the law. */
+  const DAY_MS = 86_400_000
+  const ONTARIO_SOURCE_STALE_MS = 90 * DAY_MS
+  const QUEBEC_DATASET_STALE_MS = 120 * DAY_MS
 
   for (const page of MONITORED_PAGES) {
     try {
@@ -980,6 +993,60 @@ Deno.serve(async (req) => {
 
         const datasetFp = quebecFingerprint(verdict.facts)
 
+        /* Dataset liveness — independent of the fingerprint comparison. A
+           corpus that stops republishing keeps answering 200s and every
+           fingerprint matches: "no changes" would be a frozen feed, not a
+           quiet legislature. The alert files once per freeze
+           (`meta.datasetStaleAlertedAt` dedupes) and re-arms when the stamp
+           advances again. */
+        const datasetAgeMs = Date.now() - Date.parse(verdict.facts.lastModified)
+        const prevMetaObj = (record?.meta ?? null) as Record<string, unknown> | null
+        let datasetStaleAlertedAt =
+          typeof prevMetaObj?.datasetStaleAlertedAt === 'string'
+            ? prevMetaObj.datasetStaleAlertedAt
+            : null
+        if (Number.isFinite(datasetAgeMs) && datasetAgeMs > QUEBEC_DATASET_STALE_MS) {
+          const ageDays = Math.floor(datasetAgeMs / DAY_MS)
+          const firstStaleSweep = datasetStaleAlertedAt === null
+          if (firstStaleSweep) datasetStaleAlertedAt = new Date().toISOString()
+          await db.from('law_page_hashes').upsert({
+            url: page.url,
+            jurisdiction: page.jurisdiction,
+            law_name: page.law_name,
+            content_hash: record?.hash ?? '',
+            is_broken: true,
+            consecutive_failures: record?.failures ?? 0,
+            last_checked: new Date().toISOString(),
+            meta: { ...(prevMetaObj ?? {}), datasetStaleAlertedAt },
+          })
+          if (firstStaleSweep) {
+            await db.from('law_updates').insert({
+              jurisdiction: page.jurisdiction,
+              law_name: page.law_name,
+              url: page.url,
+              reference_url: page.referenceUrl ?? null,
+              change_summary:
+                `Données Québec's codified-legislation dataset — the source for ` +
+                `"${page.law_name}" monitoring — was last republished ` +
+                `${verdict.facts.lastModified.slice(0, 10)}, ${ageDays} days ago and well past ` +
+                'its usual fortnightly cadence. The feed may have stopped updating even ' +
+                'though it still answers; treat Québec coverage as unconfirmed until a ' +
+                'fresh package lands.',
+              raw_diff:
+                `resource: ${verdict.facts.resourceName} · last_modified: ${verdict.facts.lastModified} ` +
+                `· age: ${ageDays}d · threshold: ${QUEBEC_DATASET_STALE_MS / DAY_MS}d`,
+              detected_at: new Date().toISOString(),
+              is_new: false,
+              event_type: 'broken',
+            })
+          }
+          results.push(
+            `STALE-SRC ${page.jurisdiction}/${page.law_name}: dataset ${ageDays}d old`,
+          )
+          continue
+        }
+        datasetStaleAlertedAt = null
+
         /* content_hash layout for Québec rows: `qck2:<datasetFp>::<sectionFp>`.
            The dataset half is the cheap gate — when it matches, the Act's file
            in the zip cannot have changed and the run costs one API call. The
@@ -1012,7 +1079,7 @@ Deno.serve(async (req) => {
             is_broken: false,
             consecutive_failures: 0,
             last_checked: new Date().toISOString(),
-            meta: record?.meta ?? null,
+            meta: { ...(prevMetaObj ?? {}), datasetStaleAlertedAt },
           })
           results.push(`OK        ${page.jurisdiction}/${page.law_name}: dataset unchanged`)
           continue
@@ -1059,8 +1126,9 @@ Deno.serve(async (req) => {
               updatedTo,
               docEev: statuteFacts.docEev,
               sections: statuteFacts.sections,
+              datasetStaleAlertedAt,
             }
-          : (record?.meta ?? null)
+          : { ...(prevMetaObj ?? {}), datasetStaleAlertedAt }
         const newHash = sectionFp
           ? `qck2:${datasetFp}::${sectionFp}`
           : `qck2:${datasetFp}::unread`
@@ -1310,6 +1378,88 @@ Deno.serve(async (req) => {
     } catch (err) {
       results.push(`ERROR     ${page.jurisdiction}/${page.law_name}: ${String(err)}`)
     }
+  }
+
+  /* ── Source liveness: e-Laws currency-date heartbeat ──────────────────
+     Per-page verdicts catch a page that stops answering or stops being the
+     Act it claimed. What they cannot catch: the whole Ontario API answering
+     fine while the corpus behind it freezes — every fingerprint matches and
+     every sweep reports green. e-Laws publishes how current its corpus is
+     ("Laws current to …") at a dedicated endpoint; polling it is the
+     independent alarm docs/LAW_MONITORING.md left open. State lives on a
+     pseudo law_page_hashes row so a freeze alerts once, not every sweep. */
+  const HEARTBEAT_KEY = 'heartbeat:ontario-elaws-currency-date'
+  const HEARTBEAT_URL = 'https://www.ontario.ca/laws/api/v2/legislation/en/currency-date'
+  try {
+    const hbRecord = hashMap[HEARTBEAT_KEY]
+    const hbMeta = (hbRecord?.meta ?? null) as Record<string, unknown> | null
+    let alertKind = typeof hbMeta?.alertKind === 'string' ? hbMeta.alertKind : null
+    let hbFailures = typeof hbMeta?.failures === 'number' ? hbMeta.failures : 0
+
+    const hbFetch = await fetchWithTimeout(HEARTBEAT_URL, 12000)
+    const hbVerdict = assessCurrencyDate(
+      hbFetch.ok ? hbFetch.text : null,
+      Date.now(),
+      ONTARIO_SOURCE_STALE_MS,
+    )
+    const claimText = hbVerdict.kind === 'dead' ? null : hbVerdict.claimText
+
+    let summary: string | null = null
+    if (hbVerdict.kind === 'dead') {
+      hbFailures += 1
+      results.push(`HB-DEAD   Ontario/e-Laws currency-date unreadable (failure #${hbFailures})`)
+      if (hbFailures >= BROKEN_ALERT_THRESHOLD && alertKind !== 'dead') {
+        alertKind = 'dead'
+        summary =
+          'The e-Laws currency-date endpoint stopped returning a readable "laws current to" ' +
+          `date — ${hbFailures} consecutive checks. Per-statute fetches may still succeed on ` +
+          'stale data; treat Ontario monitoring as unconfirmed until the endpoint recovers.'
+      }
+    } else {
+      hbFailures = 0
+      if (hbVerdict.kind === 'stale') {
+        results.push(`HB-STALE  Ontario/e-Laws claims corpus is ${hbVerdict.ageDays}d old`)
+        if (alertKind !== 'stale') {
+          alertKind = 'stale'
+          summary =
+            `e-Laws still reports its corpus "current to ${hbVerdict.claimText}" — ` +
+            `${hbVerdict.ageDays} days old, past the ~90-day bound a live consolidation feed ` +
+            'stays under. Ontario act-version data may have stopped updating even though ' +
+            'every page fetch succeeds; verify against e-Laws before relying on the next digest.'
+        }
+      } else {
+        alertKind = null
+        results.push(`HB-OK     Ontario/e-Laws corpus current to ${hbVerdict.claimText}`)
+      }
+    }
+
+    await db.from('law_page_hashes').upsert({
+      url: HEARTBEAT_KEY,
+      jurisdiction: 'Ontario',
+      law_name: 'e-Laws source liveness (currency-date)',
+      content_hash: claimText ?? hbRecord?.hash ?? '',
+      is_broken: alertKind !== null,
+      consecutive_failures: hbFailures,
+      ...(alertKind !== null ? { last_broken_at: new Date().toISOString() } : {}),
+      last_checked: new Date().toISOString(),
+      meta: { heartbeat: true, alertKind, failures: hbFailures, lastClaimed: claimText },
+    })
+
+    if (summary !== null) {
+      await db.from('law_updates').insert({
+        jurisdiction: 'Ontario',
+        law_name: 'e-Laws source liveness (currency-date)',
+        url: HEARTBEAT_URL,
+        reference_url: 'https://www.ontario.ca/laws',
+        change_summary: summary,
+        raw_diff: `claimed: ${claimText ?? 'unreadable'} · failures: ${hbFailures} · threshold: ${ONTARIO_SOURCE_STALE_MS / DAY_MS}d`,
+        detected_at: new Date().toISOString(),
+        is_new: false,
+        event_type: 'broken',
+      })
+    }
+  } catch (err) {
+    results.push(`HB-ERROR  Ontario heartbeat: ${String(err)}`)
   }
 
   // Release the lease so the next run starts promptly. If the TTL was exceeded

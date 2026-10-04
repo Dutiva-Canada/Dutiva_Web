@@ -301,9 +301,7 @@ session does not re-probe any of it.
 described below is now built: `MONITORED_PAGES` carries Ontario's three
 statutes on the `ontario-api` source and Quebec's two on `quebec-ckan` (see
 `supabase/functions/monitor-law-changes/ontarioApi.ts` and `quebecCkan.ts`).
-**Still open:** the two health checks (`versions.length > 0`, polling
-`currency-date`) are implemented as part of the per-fetch verdict but not as
-independent liveness alarms; the Quebec side watches the dataset's "Lois"
+**Still open:** the Quebec side watches the dataset's "Lois"
 resource at the whole-resource level, not yet the per-statute drill into the
 zip's `Statutes_EN_Status.txt`; and — most importantly — **no live sweep has
 run**, so `monitoringCoverage.ts` still correctly tells customers ON/QC are
@@ -326,6 +324,17 @@ sweep on the deployed function rekeyed both Québec rows to the `qck2:`
 fingerprint and stored their section baselines (LNT 354 sections, Charter
 165) without filing a single false update — the first attributed read worked
 exactly as designed against production.
+
+**Source liveness — built the same day.** Two heartbeats now run
+independently of the per-page verdicts, closing the "answering but frozen"
+gap. Once per sweep the monitor polls e-Laws' `currency-date` endpoint and
+files a `broken` row if the claimed "laws current to" date is unreadable
+(three consecutive checks) or older than ~90 days; a pseudo
+`law_page_hashes` row (`heartbeat:ontario-elaws-currency-date`) dedupes so a
+freeze alerts once and re-arms on recovery. The Québec branch separately
+checks the dataset's own `last_modified` stamp and alerts past 120 days —
+the corpus republishes roughly fortnightly, and a 71-day gap is on record,
+so the threshold sits well above normal cadence.
 
 Everything below was probed live, and every candidate was **fetched twice and
 diffed** to rule out sources that churn on every request — the failure mode that

@@ -159,8 +159,8 @@ export function ontarioFingerprintPayload(facts: OntarioActFacts): string {
 /**
  * `GET .../en/currency-date` returns the plain-text date e-Laws considers
  * itself current to (e.g. "August 3, 2026") — a liveness signal independent
- * of any single statute. Not wired into per-page alerting yet; see
- * docs/LAW_MONITORING.md for the follow-up this leaves open.
+ * of any single statute. index.ts polls it once per sweep as the source
+ * heartbeat; see docs/LAW_MONITORING.md § Source liveness.
  */
 export function looksLikeCurrencyDate(text: string): boolean {
   const trimmed = text.trim()
@@ -170,4 +170,32 @@ export function looksLikeCurrencyDate(text: string): boolean {
     !trimmed.startsWith('{') &&
     !trimmed.startsWith('<')
   )
+}
+
+export type CurrencyDateVerdict =
+  | { readonly kind: 'fresh'; readonly claimText: string }
+  | { readonly kind: 'stale'; readonly claimText: string; readonly ageDays: number }
+  | { readonly kind: 'dead' }
+
+/**
+ * Classify one currency-date observation. `dead` means the endpoint gave
+ * nothing date-shaped at all (outage, redirect to HTML, error payload);
+ * `stale` means it answered but the claimed "laws current to" date has not
+ * advanced past `staleMs` — the corpus froze while the endpoint stayed up.
+ */
+export function assessCurrencyDate(
+  text: string | null,
+  nowMs: number,
+  staleMs: number,
+): CurrencyDateVerdict {
+  if (text === null) return { kind: 'dead' }
+  const trimmed = text.trim()
+  if (!looksLikeCurrencyDate(trimmed)) return { kind: 'dead' }
+  const claimedMs = Date.parse(trimmed)
+  if (Number.isNaN(claimedMs)) return { kind: 'dead' }
+  const ageMs = nowMs - claimedMs
+  if (ageMs > staleMs) {
+    return { kind: 'stale', claimText: trimmed, ageDays: Math.floor(ageMs / 86_400_000) }
+  }
+  return { kind: 'fresh', claimText: trimmed }
 }
