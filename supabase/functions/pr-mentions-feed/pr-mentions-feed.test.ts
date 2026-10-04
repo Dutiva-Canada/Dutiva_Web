@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodeEntities, parseFeedItems, unwrapGoogleRedirect } from './handlers'
+import { decodeEntities, parseFeedItems, toneCounts, unwrapGoogleRedirect } from './handlers'
 
 describe('decodeEntities', () => {
   it('decodes named and numeric entities', () => {
@@ -79,5 +79,30 @@ describe('parseFeedItems', () => {
   it('returns nothing for non-feed input', () => {
     expect(parseFeedItems('<html><body>not a feed</body></html>')).toHaveLength(0)
     expect(parseFeedItems('')).toHaveLength(0)
+  })
+})
+
+describe('toneCounts', () => {
+  it('counts only machine-tagged items', () => {
+    const c = toneCounts([
+      { sentiment: 'positive', sentimentAuto: true },
+      { sentiment: 'positive', sentimentAuto: true },
+      { sentiment: 'negative', sentimentAuto: true },
+      /* no tag → no count: keeps an unclassified batch from reading as
+         "all neutral" in the digest */
+      { sentiment: 'neutral' },
+      { sentiment: 'positive' },
+    ])
+    expect(c).toEqual({ positive: 2, neutral: 0, negative: 1 })
+  })
+
+  it('maps unexpected values to neutral and zeroes an untagged batch', () => {
+    const c = toneCounts([
+      { sentiment: 'mixed', sentimentAuto: true },
+      { sentiment: undefined, sentimentAuto: true },
+    ])
+    expect(c).toEqual({ positive: 0, neutral: 2, negative: 0 })
+    expect(toneCounts([{ sentiment: 'positive' }, {}]))
+      .toEqual({ positive: 0, neutral: 0, negative: 0 })
   })
 })

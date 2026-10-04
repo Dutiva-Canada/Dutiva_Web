@@ -4,9 +4,11 @@ import {
   clustersPrompt,
   draftPrompt,
   parseClusters,
+  parsePitch,
   parsePromptList,
   parseTone,
   parseToneList,
+  pitchPrompt,
   promptsPrompt,
   summaryPrompt,
   tonePrompt,
@@ -180,5 +182,52 @@ describe('parsePromptList', () => {
   })
   it('returns empty for unusable replies', () => {
     expect(parsePromptList('n/a\nok\n\n', [])).toEqual([])
+  })
+})
+
+describe('pitchPrompt', () => {
+  it('carries journalist context and the subject-line contract', () => {
+    const p = pitchPrompt({
+      name: 'Marie Tremblay',
+      outlet: 'La Presse',
+      beat: 'small business',
+      note: 'covers Quebec SMBs',
+      campaigns: ['Fall launch'],
+      lang: 'en',
+    })
+    expect(p).toContain('Subject: <subject line>')
+    expect(p).toContain('Marie Tremblay')
+    expect(p).toContain('La Presse')
+    expect(p).toContain('Fall launch')
+    expect(p).toContain('never goes out automatically')
+  })
+  it('switches language and omits empty fields', () => {
+    const p = pitchPrompt({ name: 'A', outlet: '', beat: '', note: '', campaigns: [], lang: 'fr' })
+    expect(p).toContain('Canadian French')
+    expect(p).not.toContain('Outlet:')
+    expect(p).not.toContain('What we are pitching')
+  })
+})
+
+describe('parsePitch', () => {
+  it('splits the subject line from the body', () => {
+    const out = parsePitch('Subject: ESA changes briefing\n\nBody text here.\nMore.')
+    expect(out).toEqual({ subject: 'ESA changes briefing', body: 'Body text here.\nMore.' })
+  })
+  it('tolerates case and spacing on the subject line', () => {
+    const out = parsePitch('subject:  Hello\n\nBody')
+    expect(out?.subject).toBe('Hello')
+  })
+  it('returns an empty subject with the whole reply as body when the line is missing', () => {
+    const out = parsePitch('Just a body with no subject line.')
+    expect(out).toEqual({ subject: '', body: 'Just a body with no subject line.' })
+  })
+  it('strips code fences', () => {
+    const out = parsePitch('```\nSubject: Hi\n\nBody\n```')
+    expect(out?.subject).toBe('Hi')
+  })
+  it('returns null for empty input or a subject with no body', () => {
+    expect(parsePitch('')).toBeNull()
+    expect(parsePitch('Subject: only a subject')).toBeNull()
   })
 })

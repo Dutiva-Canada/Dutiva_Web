@@ -10,6 +10,12 @@ export interface FeedItem {
   publishedAt: string | null
   /** Outlet/site name when the feed declares one (RSS <source>, Atom source). */
   source: string
+  /** The tone tag assigned at insert — attached after classification so the
+      digest email can summarize the batch. */
+  sentiment?: string
+  /** True only when the model actually classified this item — the digest
+      skips its tone line entirely when nothing was machine-tagged. */
+  sentimentAuto?: boolean
 }
 
 const ENTITY_MAP: Record<string, string> = {
@@ -141,4 +147,19 @@ function hostnameOf(link: string): string {
   } catch {
     return ''
   }
+}
+
+/** Digest tone tallies — counts only items the model actually tagged, so an
+    unclassified batch (no route, no key, flaky upstream) yields zeros and the
+    caller can skip the line rather than claim a fake all-neutral read. */
+export function toneCounts(
+  items: Pick<FeedItem, 'sentiment' | 'sentimentAuto'>[],
+): { positive: number; neutral: number; negative: number } {
+  const c = { positive: 0, neutral: 0, negative: 0 }
+  for (const i of items) {
+    if (!i.sentimentAuto) continue
+    const s = i.sentiment === 'positive' || i.sentiment === 'negative' ? i.sentiment : 'neutral'
+    c[s]++
+  }
+  return c
 }

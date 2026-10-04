@@ -511,6 +511,19 @@ export const prMessages = defineMessages({
   },
   pr_ai_add: { en: 'Add', fr: 'Ajouter' },
   pr_ai_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  pr_ai_pitch_btn: { en: 'Draft a pitch', fr: 'Rédiger un pitch' },
+  pr_ai_pitch_working: { en: 'Drafting…', fr: 'Rédaction…' },
+  pr_ai_pitch_note: {
+    en: 'AI draft — edit it and send it yourself; nothing goes out from here.',
+    fr: 'Ébauche IA — modifiez-la et envoyez-la vous-même; rien ne part d’ici.',
+  },
+  pr_ai_pitch_failed: {
+    en: 'No draft right now — write it yourself for now.',
+    fr: 'Pas d’ébauche pour l’instant — rédigez-la vous-même.',
+  },
+  pr_ai_pitch_copy: { en: 'Copy', fr: 'Copier' },
+  pr_ai_pitch_copied: { en: 'Copied', fr: 'Copié' },
+  pr_ai_pitch_mailto: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
 
   /* Layout chrome */
   pr_loading: { en: 'Loading…', fr: 'Chargement…' },

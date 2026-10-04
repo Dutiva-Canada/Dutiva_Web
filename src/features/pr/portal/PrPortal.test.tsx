@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -55,6 +55,7 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
   prReportIntro: vi.fn(),
   prMentionClusters: vi.fn(),
   prSuggestGeoPrompts: vi.fn(),
+  draftPitch: vi.fn(),
 }))
 
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
@@ -236,6 +237,61 @@ describe('PrCampaignsPage', () => {
     expect(screen.getByText('Hiring push')).toBeInTheDocument()
     expect(screen.getByText('1 items')).toBeInTheDocument()
     expect(screen.getByText('0 items')).toBeInTheDocument()
+  })
+})
+
+describe('PrMediaPage', () => {
+  const renderMedia = async () => {
+    const { PrDataProvider } = await import('@/features/pr/data/PrDataProvider')
+    const { PrMediaPage } = await import('./PrMediaPage')
+    renderPortal(
+      <PrDataProvider>
+        <PrMediaPage />
+      </PrDataProvider>,
+      '/pr/media',
+    )
+  }
+
+  it('drafts a pitch into a review card — nothing sends itself', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(hasPrAccess).mockResolvedValue(true)
+    vi.mocked(loadPrState).mockResolvedValue(STATE)
+    const { draftPitch } = await import('@/features/pr/data/api')
+    vi.mocked(draftPitch).mockResolvedValue({
+      subject: 'ESA changes briefing',
+      body: 'Hi Alex,\n\nDraft body for the pitch.',
+    })
+    await renderMedia()
+
+    await screen.findByText('Alex Tremblay')
+    fireEvent.click(screen.getByRole('button', { name: /Draft a pitch/i }))
+
+    expect(await screen.findByText(/ESA changes briefing/)).toBeInTheDocument()
+    expect(screen.getByText(/Draft body for the pitch/)).toBeInTheDocument()
+    expect(screen.getByText(/nothing goes out from here/i)).toBeInTheDocument()
+    /* Only active campaigns feed the model — Hiring push is paused. */
+    expect(draftPitch).toHaveBeenCalledWith(
+      expect.objectContaining({ campaigns: ['Fall launch'], name: 'Alex Tremblay' }),
+    )
+    /* The mailto carries subject+body but is a user action, not an auto-send. */
+    const mailto = screen.getByRole('link', { name: /Open in email/i })
+    expect(mailto.getAttribute('href')).toContain('mailto:alex@lapresse.ca')
+    expect(mailto.getAttribute('href')).toContain('subject=ESA%20changes')
+  })
+
+  it('shows the failure note and keeps the table usable', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(hasPrAccess).mockResolvedValue(true)
+    vi.mocked(loadPrState).mockResolvedValue(STATE)
+    const { draftPitch } = await import('@/features/pr/data/api')
+    vi.mocked(draftPitch).mockRejectedValue(new Error('no route'))
+    await renderMedia()
+
+    await screen.findByText('Alex Tremblay')
+    fireEvent.click(screen.getByRole('button', { name: /Draft a pitch/i }))
+
+    expect(await screen.findByText(/write it yourself for now/i)).toBeInTheDocument()
+    expect(screen.queryByText(/nothing goes out from here/i)).not.toBeInTheDocument()
   })
 })
 

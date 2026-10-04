@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl } from '../pr-fetch-meta/handlers.ts'
-import { parseFeedItems, type FeedItem } from './handlers.ts'
+import { parseFeedItems, toneCounts, type FeedItem } from './handlers.ts'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
@@ -203,6 +203,10 @@ async function syncFeed(
     /* Best-effort tone guess — tagged sentiment_auto so the desk shows it
        as a suggestion, not a read. null classifier → all neutral/manual. */
     const tones = classify ? await classify(fresh.map((i) => i.title || i.link)) : null
+    fresh.forEach((i, idx) => {
+      i.sentiment = tones?.[idx] ?? 'neutral'
+      i.sentimentAuto = tones?.[idx] != null
+    })
     const rows = fresh.map((i: FeedItem, idx: number) => ({
       user_id: feed.user_id,
       source: i.source || feed.label || 'Feed',
@@ -236,9 +240,20 @@ async function sendCoverageDigests(
   const refDate = new Date().toISOString().slice(0, 10)
   for (const [userId, { items }] of byUser) {
     const shown = items.slice(0, 10)
+    /* Tone summary line — only when the model actually tagged this batch.
+       No route/key/upstream → no line at all, rather than a fake all-neutral
+       "machine" read. */
+    const tone = toneCounts(shown)
+    const enTone = tone.positive + tone.neutral + tone.negative > 0
+      ? [`Tone at a glance: ${tone.positive} positive · ${tone.neutral} neutral · ${tone.negative} negative (auto-tagged — a first guess, not a read).`, '']
+      : []
+    const frTone = tone.positive + tone.neutral + tone.negative > 0
+      ? [`Ton en un coup d’œil : ${tone.positive} positif · ${tone.neutral} neutre · ${tone.negative} négatif (étiquettes automatiques — une première estimation).`, '']
+      : []
     const en = [
       `${items.length} new coverage item${items.length === 1 ? '' : 's'} landed in your Dutiva PR desk:`,
       '',
+      ...enTone,
       ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
       '',
       'Open the desk: https://dutiva.ca/pr/mentions',
@@ -246,6 +261,7 @@ async function sendCoverageDigests(
     const fr = [
       `${items.length} nouvelle${items.length === 1 ? '' : 's'} retombée${items.length === 1 ? '' : 's'} dans votre bureau Dutiva PR :`,
       '',
+      ...frTone,
       ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
       '',
       'Ouvrir le bureau : https://dutiva.ca/pr/mentions',

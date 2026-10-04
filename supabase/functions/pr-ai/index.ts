@@ -7,13 +7,16 @@ import {
   clustersPrompt,
   draftPrompt,
   parseClusters,
+  parsePitch,
   parsePromptList,
   parseTone,
+  pitchPrompt,
   promptsPrompt,
   singleTonePrompt,
   summaryPrompt,
   type ClusterItem,
   type DraftInput,
+  type PitchInput,
   type PromptsInput,
 } from './handlers.ts'
 
@@ -25,6 +28,8 @@ import {
  *   POST { kind:'summary', month, stats, lang? }           → { intro }
  *   POST { kind:'clusters', items:[{title,source}] }       → { clusters }
  *   POST { kind:'prompts', campaigns?, existing?, lang? }  → { prompts }
+ *   POST { kind:'pitch', name, outlet?, beat?, note?, campaigns?, lang? }
+ *                                                        → { subject, pitch }
  *
  * Auth is the portal contract only (JWT + pr_access) — no scheduled path.
  * Route lookup is `pr_ai` first, `advisor_chat` fallback (shared aiRoute).
@@ -220,5 +225,28 @@ Deno.serve(async (req) => {
     return json({ prompts })
   }
 
-  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", or "prompts"' }, 400)
+  if (body.kind === 'pitch') {
+    const list = (v: unknown) =>
+      (Array.isArray(v) ? v : []).slice(0, MAX_LIST_ITEMS)
+        .map((s) => clip(s, MAX_LIST_ITEM_CHARS)).filter((s) => s !== '')
+    const input: PitchInput = {
+      name: clip(body.name, MAX_LIST_ITEM_CHARS),
+      outlet: clip(body.outlet, MAX_LIST_ITEM_CHARS),
+      beat: clip(body.beat, MAX_LIST_ITEM_CHARS),
+      note: clip(body.note, 300),
+      campaigns: list(body.campaigns),
+      lang: body.lang === 'fr' ? 'fr' : 'en',
+    }
+    if (!input.name) return json({ error: 'name is required' }, 400)
+    const out = await modelText(
+      found.provider, keyResult.apiKey, found.modelName,
+      pitchPrompt(input), 500,
+    )
+    if ('error' in out) return out.error
+    const parsed = parsePitch(out.text)
+    if (!parsed) return json({ error: 'Model returned no usable pitch', code: 'unparseable' }, 502)
+    return json({ subject: parsed.subject, pitch: parsed.body })
+  }
+
+  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", or "pitch"' }, 400)
 })

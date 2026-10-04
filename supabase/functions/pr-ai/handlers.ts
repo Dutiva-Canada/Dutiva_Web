@@ -198,6 +198,48 @@ export function promptsPrompt(input: PromptsInput): string {
   ].filter((l) => l !== undefined).join('\n')
 }
 
+/* ---------- journalist pitch drafts ---------- */
+
+export interface PitchInput {
+  name: string
+  outlet: string
+  beat: string
+  note: string
+  campaigns: string[]
+  lang: 'en' | 'fr'
+}
+
+export function pitchPrompt(input: PitchInput): string {
+  const langLine = input.lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.'
+  return [
+    'You help a PR desk draft a short pitch email to a journalist. The brand is Dutiva, a Canadian HR-compliance platform (dutiva.ca).',
+    'Format: first line must be exactly "Subject: <subject line>", then a blank line, then the body. The body is 4–6 sentences, ends with one clear ask, no hype words, no emoji. A human edits and sends it — the pitch never goes out automatically.',
+    langLine,
+    'Return only the formatted pitch.',
+    '',
+    `Journalist: ${input.name}`,
+    input.outlet ? `Outlet: ${input.outlet}` : '',
+    input.beat ? `Beat: ${input.beat}` : '',
+    input.note ? `Note on file: ${input.note}` : '',
+    input.campaigns.length > 0 ? `What we are pitching: ${input.campaigns.join(' · ')}` : '',
+  ].filter((l) => l !== undefined).join('\n')
+}
+
+/** "Subject: …" line + body. If the model skipped the subject line the whole
+    reply becomes the body and the caller supplies a fallback subject — but
+    an empty body is unrecoverable. */
+export function parsePitch(raw: string): { subject: string; body: string } | null {
+  const text = raw.trim().replace(/^```[a-z]*\s*/i, '').replace(/\s*```$/, '').trim()
+  if (!text) return null
+  const lines = text.split('\n')
+  const subjIdx = lines.findIndex((l) => /^\s*subject\s*[:：]/i.test(l))
+  if (subjIdx < 0) return { subject: '', body: text }
+  const subject = lines[subjIdx]!.replace(/^\s*subject\s*[:：]\s*/i, '').trim().slice(0, 200)
+  const body = lines.slice(subjIdx + 1).join('\n').trim()
+  if (!body) return null
+  return { subject, body }
+}
+
 /** Numbered/bulleted lines → clean prompt strings, deduped case-insensitively
     against already-tracked prompts and each other. */
 export function parsePromptList(raw: string, existing: string[], max = 3): string[] {

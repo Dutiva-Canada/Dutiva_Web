@@ -632,3 +632,39 @@ export async function prSuggestGeoPrompts(input: {
     return t.length > 0 && !seen.has(t.toLowerCase())
   })
 }
+
+export interface PrPitchDraft {
+  subject: string
+  body: string
+}
+
+/** Pitch draft for a media contact — the model sees the contact's public
+    details (name/outlet/beat/note) plus campaign names. The desk copies it
+    or opens it in their mail app; it is never sent from here. */
+export async function draftPitch(input: {
+  name: string
+  outlet: string
+  beat: string
+  note: string
+  campaigns: string[]
+  lang: 'en' | 'fr'
+}): Promise<PrPitchDraft> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('pr-ai', {
+    body: {
+      kind: 'pitch',
+      name: input.name,
+      outlet: input.outlet,
+      beat: input.beat,
+      note: input.note,
+      campaigns: input.campaigns.slice(0, 20),
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as { subject?: string; pitch?: string } | null) ?? {}
+  if (typeof raw.pitch !== 'string' || raw.pitch.trim() === '') {
+    throw new Error('Empty pitch from pr-ai')
+  }
+  return { subject: raw.subject ?? '', body: raw.pitch }
+}
