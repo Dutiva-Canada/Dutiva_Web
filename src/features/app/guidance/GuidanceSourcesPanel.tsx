@@ -253,6 +253,16 @@ export function GuidanceSourcesPanel() {
                       {update.changeSummary && (
                         <p className="mt-[3px] text-[12.5px] text-text-2">{update.changeSummary}</p>
                       )}
+                      {update.rawDiff && (
+                        <details className="mt-[4px]">
+                          <summary className="w-fit cursor-pointer text-[11.5px] font-semibold text-text-3 underline underline-offset-2">
+                            {x(M.guidance_update_more)}
+                          </summary>
+                          <pre className="mt-[4px] font-sans text-[11.5px] leading-[1.55] whitespace-pre-wrap text-text-muted">
+                            {update.rawDiff}
+                          </pre>
+                        </details>
+                      )}
                       <div className="mt-[4px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px]">
                         {update.detectedAt && (
                           <p className="text-[11.5px] text-text-muted">

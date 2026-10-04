@@ -55,6 +55,13 @@ export const guidanceMessages = defineMessages({
     en: 'Read the current text',
     fr: 'Lire le texte à jour',
   },
+  /* Expands the monitor's full detail under a change card — every provision
+     that moved, when the summary only names the first few.
+     [FR self-authored] */
+  guidance_update_more: {
+    en: 'More',
+    fr: 'Plus de détails',
+  },
   /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
      unusable for change detection (docs/LAW_MONITORING.md). The panel states
      that rather than letting "law-change tracking" imply it covers everywhere.

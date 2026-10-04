@@ -27,6 +27,8 @@ export interface LawUpdate {
   url: string
   /** Human-facing official statute page — `url` may be a machine endpoint. */
   referenceUrl: string | null
+  /** The monitor's full detail — every provision that moved, uncapped. */
+  rawDiff: string | null
   changeSummary: string | null
   detectedAt: string | null
   eventType: string | null
@@ -48,6 +50,7 @@ const lawUpdateRowSchema = z.object({
   law_name: z.string(),
   url: z.string(),
   reference_url: z.string().nullable(),
+  raw_diff: z.string().nullable(),
   change_summary: z.string().nullable(),
   detected_at: z.string().nullable(),
   event_type: z.string().nullable(),
@@ -79,7 +82,9 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('law_updates')
-    .select('id, jurisdiction, law_name, url, reference_url, change_summary, detected_at, event_type')
+    .select(
+      'id, jurisdiction, law_name, url, reference_url, raw_diff, change_summary, detected_at, event_type',
+    )
     /* Only real amendments, only in jurisdictions Dutiva supports. Unfiltered,
        this panel showed customers URL-move notices for provinces the product
        does not cover — of the ten newest rows on 2026-07-30, none were from a
@@ -100,6 +105,7 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
       lawName: r.law_name,
       url: r.url,
       referenceUrl: r.reference_url,
+      rawDiff: r.raw_diff,
       changeSummary: r.change_summary,
       detectedAt: r.detected_at,
       eventType: r.event_type,

@@ -1102,7 +1102,9 @@ Deno.serve(async (req) => {
             'read per-Act from Québec’s codified-legislation package. ' +
             `The province's manifest marks the Act updated to ${updatedTo ? fmtYmd(updatedTo) : 'an unspecified date'}` +
             `${statuteFacts?.docEev ? `; the newest provision in the current text is in force since ${fmtYmd(statuteFacts.docEev)}` : ''}.`
-          rawDiff = `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · sections: ${statuteFacts?.sections.length ?? 0}`
+          rawDiff =
+            `Statute ${code} · updated to ${updatedTo ? fmtYmd(updatedTo) : 'unknown'}\n` +
+            `${statuteFacts?.sections.length ?? 0} provisions in the current text`
         } else if (sectionFp === null) {
           /* Drill-down failed — fall back to the dataset-level wording, which
              was always honest about its own limit. */
@@ -1111,7 +1113,9 @@ Deno.serve(async (req) => {
             `was refreshed (resource last modified ${verdict.facts.lastModified}). This dataset covers ` +
             'every codified Quebec Act, not just this one — review LégisQuébec for what changed and ' +
             'what it means for employers.'
-          rawDiff = `resource: ${verdict.facts.resourceName} · last_modified: ${verdict.facts.lastModified} · drill: ${drillError ?? 'unavailable'}`
+          rawDiff =
+            `Dataset resource: ${verdict.facts.resourceName} · last modified ${verdict.facts.lastModified}\n` +
+            `Per-Act drill-down unavailable this run: ${drillError ?? 'unknown'}`
         } else if (prevSections === null) {
           /* No section baseline on record (the previous read pre-dates the
              drill-down or failed) — a diff would claim every section moved.
@@ -1129,7 +1133,18 @@ Deno.serve(async (req) => {
                 ` (in force ${fmtYmd(maxEev)})${recent.length > 5 ? `, +${recent.length - 5} more` : ''}.`
               : '.') +
             ' Read the current text on LégisQuébec.'
-          rawDiff = `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · first attributed read`
+          rawDiff =
+            `Statute ${code} · updated to ${updatedTo ? fmtYmd(updatedTo) : 'unknown'} · first attributed read\n` +
+            (recent.length > 0
+              ? `Most recently in-force provisions (${recent.length}):\n` +
+                recent
+                  .map(
+                    (s) =>
+                      `  s. ${s.number} — in force ${fmtYmd(s.eev)}` +
+                      `${s.latestRef ? ` · last amended by ${s.latestRef}` : ''}`,
+                  )
+                  .join('\n')
+              : '')
         } else {
           const diff = diffStatuteSections(prevSections, statuteFacts!.sections)
           const moved = [...diff.amended, ...diff.added]
@@ -1163,11 +1178,25 @@ Deno.serve(async (req) => {
           }
           parts.push('Read the current text on LégisQuébec.')
           changeSummary = parts.join(' ')
+          /* raw_diff carries the complete list — the summary caps at five
+             provisions, the card's "more" affordance reveals all of them. */
+          const fmtSection = (s: StatuteSection) =>
+            `  s. ${s.number} — in force ${fmtYmd(s.eev)}` +
+            `${s.latestRef ? ` · last amended by ${s.latestRef}` : ''}`
           rawDiff =
-            `statute: ${code} · updatedTo: ${updatedTo ?? 'unknown'} · ` +
-            `amended: ${diff.amended.map((s) => s.number).join(',') || 'none'} · ` +
-            `added: ${diff.added.map((s) => s.number).join(',') || 'none'} · ` +
-            `removed: ${diff.removedNumbers.join(',') || 'none'}`
+            `Statute ${code} · updated to ${updatedTo ? fmtYmd(updatedTo) : 'unknown'}\n` +
+            (diff.amended.length > 0
+              ? `Amended (${diff.amended.length}):\n` + diff.amended.map(fmtSection).join('\n') + '\n'
+              : '') +
+            (diff.added.length > 0
+              ? `Added (${diff.added.length}):\n` + diff.added.map(fmtSection).join('\n') + '\n'
+              : '') +
+            (diff.removedNumbers.length > 0
+              ? `No longer in the text: ${diff.removedNumbers.join(', ')}\n`
+              : '') +
+            (diff.amended.length + diff.added.length + diff.removedNumbers.length === 0
+              ? 'No provision-level marker moved.\n'
+              : '')
         }
 
         await db.from('law_updates').insert({
