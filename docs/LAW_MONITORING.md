@@ -325,7 +325,9 @@ fingerprint and stored their section baselines (LNT 354 sections, Charter
 165) without filing a single false update — the first attributed read worked
 exactly as designed against production.
 
-**Source liveness — built the same day.** Two heartbeats now run
+### Source liveness — built 2026-10-04
+
+Two heartbeats now run
 independently of the per-page verdicts, closing the "answering but frozen"
 gap. Once per sweep the monitor polls e-Laws' `currency-date` endpoint and
 files a `broken` row if the claimed "laws current to" date is unreadable

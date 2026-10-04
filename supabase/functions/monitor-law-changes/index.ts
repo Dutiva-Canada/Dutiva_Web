@@ -274,6 +274,9 @@ interface PageConfig {
   referenceUrl?: string
 }
 
+const LAW_MONITOR_UA =
+  'Dutiva-LawMonitor/2.1 (compliance@dutiva.ca; Canadian employment law compliance platform)'
+
 interface FetchResult {
   ok: boolean
   text: string | null
@@ -323,8 +326,7 @@ async function fetchWithTimeout(
       signal: controller.signal,
       redirect: 'follow',
       headers: {
-        'User-Agent':
-          'Dutiva-LawMonitor/2.0 (compliance@dutiva.ca; Canadian employment law compliance platform)',
+        'User-Agent': LAW_MONITOR_UA,
         Accept: 'text/html,application/xhtml+xml,application/pdf,*/*',
         ...(rangeBytes === undefined ? {} : { Range: `bytes=0-${rangeBytes - 1}` }),
       },
@@ -367,11 +369,7 @@ async function headContentLength(url: string): Promise<number | null> {
 function zipRangeFetcher(url: string): RangeFetcher {
   return async (start: number, end: number) => {
     const res = await fetch(url, {
-      headers: {
-        Range: `bytes=${start}-${end}`,
-        'User-Agent':
-          'Dutiva-LawMonitor/2.1 (compliance@dutiva.ca; Canadian employment law compliance platform)',
-      },
+      headers: { Range: `bytes=${start}-${end}`, 'User-Agent': LAW_MONITOR_UA },
     })
     if (!res.ok && res.status !== 206) throw new Error(`range fetch failed: HTTP ${res.status}`)
     const buf = new Uint8Array(await res.arrayBuffer())
