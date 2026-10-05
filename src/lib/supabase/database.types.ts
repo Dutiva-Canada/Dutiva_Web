@@ -7588,6 +7588,33 @@ export type Database = {
         }
         Relationships: []
       }
+      health_chat_messages: {
+        Row: {
+          action: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          action?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          action?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_checkins: {
         Row: {
           created_at: string
@@ -9855,6 +9882,33 @@ export type Database = {
           },
         ]
       }
+      invest_chat_messages: {
+        Row: {
+          action: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          action?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          action?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_market_news: {
         Row: {
           asset_class: string
@@ -11930,6 +11984,33 @@ export type Database = {
           starts_on?: string | null
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pr_chat_messages: {
+        Row: {
+          action: Json | null
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          action?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          action?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
           user_id?: string
         }
         Relationships: []
