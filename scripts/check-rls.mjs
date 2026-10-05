@@ -76,6 +76,12 @@ const SENSITIVE_TABLES = [
   'candidate_applications',
   'candidate_ai_usage',
   'hr_job_postings',
+  // Portal chat history (0202/0203/0204): private conversations between a
+  // portal user and their assistant — wellness context, PR strategy, and
+  // investment positions must never reach anon.
+  'health_chat_messages',
+  'pr_chat_messages',
+  'invest_chat_messages',
 ]
 
 /**
