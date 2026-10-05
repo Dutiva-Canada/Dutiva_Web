@@ -13,6 +13,132 @@ import {
   summaryPrompt,
   tonePrompt,
 } from './handlers'
+import {
+  parsePrChatReply,
+  prChatPrompt,
+  resolveNameRef,
+  type PrChatContext,
+} from './handlers'
+
+const EMPTY_CTX: PrChatContext = {
+  campaigns: [],
+  contentByStatus: {},
+  recentContent: [],
+  contacts: [],
+  keywords: [],
+  mentionsBySentiment: {},
+  recentMentions: [],
+  geoPrompts: [],
+  feeds: 0,
+  connections: [],
+}
+
+describe('prChatPrompt', () => {
+  it('lists the action grammar and the hard publishing boundary', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('add_campaign')
+    expect(p).toContain('add_media_contact')
+    expect(p).toContain('add_geo_prompt')
+    expect(p).toContain('never publish, schedule, send, delete')
+    expect(p).toContain('strict JSON')
+  })
+  it('renders desk data and (none) placeholders', () => {
+    const ctx: PrChatContext = {
+      ...EMPTY_CTX,
+      campaigns: [{ name: 'Launch', status: 'active', channel: 'social' }],
+      keywords: [{ keyword: 'hr compliance canada', position: 4 }],
+    }
+    const p = prChatPrompt(ctx, 'en').content
+    expect(p).toContain('"Launch" — active, social')
+    expect(p).toContain('"hr compliance canada" — position 4')
+    expect(p).toContain('(none)')
+  })
+  it('asks for French under lang fr', () => {
+    expect(prChatPrompt(EMPTY_CTX, 'fr').content).toContain('Canadian French')
+  })
+})
+
+describe('parsePrChatReply', () => {
+  it('parses a clean reply with no action', () => {
+    const out = parsePrChatReply('{"reply":"Hi there","action":null}')
+    expect(out).toEqual({ reply: 'Hi there', action: null })
+  })
+  it('parses an add_campaign action and keeps whitelisted fields', () => {
+    const out = parsePrChatReply(
+      JSON.stringify({
+        reply: 'Done.',
+        action: { type: 'add_campaign', name: 'Q4 push', channel: 'social', objective: 'Awareness', junk: 'x' },
+      }),
+    )
+    expect(out?.action).toEqual({
+      type: 'add_campaign',
+      name: 'Q4 push',
+      channel: 'social',
+      objective: 'Awareness',
+    })
+  })
+  it('drops malformed optional fields instead of storing them', () => {
+    const out = parsePrChatReply(
+      JSON.stringify({
+        reply: 'ok',
+        action: {
+          type: 'add_media_contact',
+          name: 'Jo',
+          email: 'not-an-email',
+          outlet: 'CBC',
+        },
+      }),
+    )
+    expect(out?.action).toMatchObject({ type: 'add_media_contact', name: 'Jo', outlet: 'CBC' })
+    expect(out?.action && (out.action as { email?: string }).email).toBeUndefined()
+  })
+  it('rejects unknown actions and missing required fields', () => {
+    expect(
+      parsePrChatReply(JSON.stringify({ reply: 'x', action: { type: 'delete_campaign', name: 'x' } })),
+    ).toBeNull()
+    expect(
+      parsePrChatReply(JSON.stringify({ reply: 'x', action: { type: 'add_mention' } })),
+    ).toBeNull()
+  })
+  it('rejects non-JSON replies, empty replies, and fenced garbage', () => {
+    expect(parsePrChatReply('just prose')).toBeNull()
+    expect(parsePrChatReply('{"action":null}')).toBeNull()
+    expect(parsePrChatReply('')).toBeNull()
+    /* A fenced-but-valid block still parses — the strip handles it. */
+    expect(
+      parsePrChatReply('```json\n{"reply":"ok","action":null}\n```'),
+    ).toEqual({ reply: 'ok', action: null })
+  })
+  it('rejects out-of-vocab enum values by dropping them, not the action', () => {
+    const out = parsePrChatReply(
+      JSON.stringify({
+        reply: 'ok',
+        action: { type: 'add_geo_prompt', prompt: 'best hr platform canada?', engine: 'skynet' },
+      }),
+    )
+    expect(out?.action).toMatchObject({ type: 'add_geo_prompt' })
+    expect(out?.action && (out.action as { engine?: string }).engine).toBeUndefined()
+  })
+})
+
+describe('resolveNameRef', () => {
+  const rows = [
+    { id: '1', name: 'Spring launch' },
+    { id: '2', name: 'Fall launch' },
+    { id: '3', name: 'Hiring push' },
+  ]
+  it('resolves exact matches case-insensitively', () => {
+    expect(resolveNameRef('spring launch', rows)?.id).toBe('1')
+  })
+  it('resolves a unique substring match', () => {
+    expect(resolveNameRef('hiring', rows)?.id).toBe('3')
+  })
+  it('returns null on ambiguous or absent names', () => {
+    expect(resolveNameRef('launch', rows)).toBeNull()
+    expect(resolveNameRef('nope', rows)).toBeNull()
+    expect(resolveNameRef('  ', rows)).toBeNull()
+  })
+})
 
 describe('parseTone', () => {
   it('extracts plain tone words', () => {

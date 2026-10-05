@@ -429,4 +429,45 @@ export const healthMessages = defineMessages({
     en: 'What Dutiva Health is and is not — a reflection tool, not medical care.',
     fr: 'Ce qu’est et n’est pas Dutiva Santé — un outil de réflexion, pas des soins médicaux.',
   },
+
+  /* Chat — the portal assistant. Sees the same aggregate numbers the
+     Insights page shows plus habit status; can log what the user asks it to
+     (habits, check-ins, journal entries). Non-clinical: it notices and it
+     writes down — it never advises on health. [FR self-authored] */
+  health_tab_chat: { en: 'Chat', fr: 'Discussion' },
+  health_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  health_chat_sub: {
+    en: 'Ask about your own numbers, or tell it what to record — mark a habit done, log a check-in, save a journal entry.',
+    fr: 'Posez une question sur vos propres chiffres, ou dites-lui quoi noter — marquer une habitude, noter un point du jour, enregistrer une entrée.',
+  },
+  health_chat_empty: {
+    en: 'Nothing yet. Try “how did this week go?” or “mark my walk done.”',
+    fr: 'Rien pour l’instant. Essayez « comment s’est passée ma semaine? » ou « marque ma marche comme faite ».',
+  },
+  health_chat_placeholder: {
+    en: 'Write a message…',
+    fr: 'Écrivez un message…',
+  },
+  health_chat_send: { en: 'Send', fr: 'Envoyer' },
+  health_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  health_chat_error: {
+    en: 'That didn’t go through — try again.',
+    fr: 'Ça n’a pas fonctionné — réessayez.',
+  },
+  /* Confirmation chips under a reply that did something. The {name} slot is
+     the subject the action touched. [FR self-authored] */
+  health_chat_did_mark: { en: 'Marked "{name}" done today', fr: '« {name} » marqué pour aujourd’hui' },
+  health_chat_did_unmark: { en: 'Unmarked "{name}" for today', fr: '« {name} » retiré pour aujourd’hui' },
+  health_chat_did_habit: { en: 'Now tracking "{name}"', fr: '« {name} » ajouté au suivi' },
+  health_chat_did_checkin: { en: 'Check-in logged — {name}', fr: 'Point du jour noté — {name}' },
+  health_chat_did_journal: { en: 'Journal entry saved', fr: 'Entrée de journal enregistrée' },
+  health_chat_action_failed: {
+    en: 'That write didn’t save — the reply above still stands.',
+    fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
+  },
+  health_seo_title_chat: { en: 'Assistant — Dutiva Health', fr: 'Assistant — Dutiva Santé' },
+  health_seo_desc_chat: {
+    en: 'Chat with the portal assistant about your own tracked data.',
+    fr: 'Discutez avec l’assistant du portail de vos propres données suivies.',
+  },
 })

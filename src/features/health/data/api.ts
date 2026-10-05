@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { todayDayKey } from './healthStats'
 import {
   checkInFromRow,
   habitFromRow,
@@ -240,4 +241,69 @@ export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion>
     why: raw.habit.why ?? '',
     suggestionId: raw.suggestionId ?? null,
   }
+}
+
+/* ---------- chat — the portal assistant ---------- */
+
+/** A write the assistant executed on the user's own rows during a turn —
+    additive or same-day-undoable by design (see health-ai's action grammar). */
+export interface HealthChatAction {
+  type: 'mark_habit_done' | 'unmark_habit_done' | 'add_habit' | 'add_checkin' | 'add_journal_entry'
+  /** Human-facing subject — the habit name, entry title, "mood 3/5". */
+  detail: string
+  ok: boolean
+  refId?: string
+}
+
+export interface HealthChatTurn {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  action: HealthChatAction | null
+  createdAt: string
+}
+
+/** One turn of the portal conversation. The server writes both sides to
+    health_chat_messages, so history is consistent across sessions — the
+    caller only sends the message, the day (local), and the locale. */
+export async function sendHealthChat(
+  message: string,
+  lang: 'en' | 'fr',
+): Promise<{ reply: string; action: HealthChatAction | null }> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'chat', message, lang, today: todayDayKey() },
+  })
+  if (error) throw error
+  const raw = (data as { reply?: string; action?: HealthChatAction | null } | null) ?? {}
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from health-ai')
+  }
+  return { reply: raw.reply, action: raw.action ?? null }
+}
+
+export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[]> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'chat_history', limit },
+  })
+  if (error) throw error
+  const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
+  return rows.map((r) => ({
+    id: String(r.id ?? ''),
+    role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
+    content: String(r.content ?? ''),
+    action: (r.action as HealthChatAction | null) ?? null,
+    createdAt: String(r.created_at ?? ''),
+  }))
+}
+
+/** Clears the whole conversation for the signed-in user — routed through the
+    function so the table's writer stays server-side. */
+export async function clearHealthChat(): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'chat_clear' },
+  })
+  if (error) throw error
 }

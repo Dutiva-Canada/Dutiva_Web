@@ -16,6 +16,7 @@ import { InvestFooter } from './InvestFooter'
 
 const NAV = [
   { to: '/invest', end: true, label: IM.invest_tab_overview },
+  { to: '/invest/chat', end: false, label: IM.invest_tab_chat },
   { to: '/invest/portfolio', end: false, label: IM.invest_tab_portfolios },
   { to: '/invest/orders', end: false, label: IM.invest_tab_orders },
   { to: '/invest/signals', end: false, label: IM.invest_tab_signals },

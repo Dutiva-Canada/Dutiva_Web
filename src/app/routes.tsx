@@ -74,6 +74,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
 /* prettier-ignore */ const InvestNotificationsPage = lazy(() => import('@/features/invest/portal/InvestNotificationsPage').then((m) => ({ default: m.InvestNotificationsPage })))
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
+/* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
 /* Health surface — standalone invite-only wellness portal (/health), see healthSurface.tsx. */
@@ -86,6 +87,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
 /* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
 /* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
+/* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
 /* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
@@ -99,6 +101,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
 /* prettier-ignore */ const PrReportPage = lazy(() => import('@/features/pr/portal/PrReportPage').then((m) => ({ default: m.PrReportPage })))
 /* prettier-ignore */ const PrReviewPage = lazy(() => import('@/features/pr/portal/PrReviewPage').then((m) => ({ default: m.PrReviewPage })))
+/* prettier-ignore */ const PrChatPage = lazy(() => import('@/features/pr/portal/PrChatPage').then((m) => ({ default: m.PrChatPage })))
 /* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
 /* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
 
@@ -402,6 +405,7 @@ function routeTree(): RouteObject[] {
           element: <InvestPortalLayout />,
           children: [
             { index: true, element: <InvestHomePage /> },
+            { path: 'chat', element: <InvestChatPage /> },
             { path: 'portfolio', element: <InvestPortfolioPage /> },
             { path: 'orders', element: <InvestOrdersPage /> },
             { path: 'signals', element: <InvestSignalsPage /> },
@@ -430,6 +434,7 @@ function routeTree(): RouteObject[] {
           element: <HealthPortalLayout />,
           children: [
             { index: true, element: <HealthHomePage /> },
+            { path: 'chat', element: <HealthChatPage /> },
             { path: 'check-in', element: <HealthCheckInPage /> },
             { path: 'habits', element: <HealthHabitsPage /> },
             { path: 'journal', element: <HealthJournalPage /> },
@@ -459,6 +464,7 @@ function routeTree(): RouteObject[] {
           element: <PrPortalLayout />,
           children: [
             { index: true, element: <PrHomePage /> },
+            { path: 'chat', element: <PrChatPage /> },
             { path: 'campaigns', element: <PrCampaignsPage /> },
             { path: 'content', element: <PrContentPage /> },
             { path: 'media', element: <PrMediaPage /> },

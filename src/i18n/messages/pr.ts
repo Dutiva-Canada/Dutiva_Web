@@ -599,4 +599,46 @@ export const prMessages = defineMessages({
     en: 'How to reach Dutiva support.',
     fr: 'Comment joindre le soutien Dutiva.',
   },
+
+  /* Chat — the desk assistant. Sees the desk's own rows (campaigns, content,
+     contacts, keywords, coverage, GEO prompts, connections) and can record
+     what the user asks it to — everything lands as a draft or log entry.
+     [FR self-authored] */
+  pr_tab_chat: { en: 'Chat', fr: 'Discussion' },
+  pr_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  pr_chat_sub: {
+    en: 'Ask about your desk, or tell it what to record — a campaign, a draft, a contact, a mention, a keyword to track.',
+    fr: 'Posez une question sur vos données, ou dites-lui quoi noter — une campagne, un brouillon, un contact, une retombée, un mot-clé à suivre.',
+  },
+  pr_chat_empty: {
+    en: 'Nothing yet. Try “what campaigns are active?” or “add a contact at a trade outlet.”',
+    fr: 'Rien pour l’instant. Essayez « quelles campagnes sont actives? » ou « ajoute un contact dans un média spécialisé ».',
+  },
+  pr_chat_placeholder: {
+    en: 'Write a message…',
+    fr: 'Écrivez un message…',
+  },
+  pr_chat_send: { en: 'Send', fr: 'Envoyer' },
+  pr_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  pr_chat_error: {
+    en: 'That didn’t go through — try again.',
+    fr: 'Ça n’a pas fonctionné — réessayez.',
+  },
+  /* Confirmation chips under a reply that did something. The {name} slot is
+     the subject the action touched. [FR self-authored] */
+  pr_chat_did_campaign: { en: 'Campaign "{name}" created as draft', fr: 'Campagne « {name} » créée en brouillon' },
+  pr_chat_did_content: { en: 'Draft "{name}" saved to Content', fr: 'Brouillon « {name} » enregistré au contenu' },
+  pr_chat_did_contact: { en: 'Contact "{name}" added', fr: 'Contact « {name} » ajouté' },
+  pr_chat_did_mention: { en: 'Mention "{name}" logged', fr: 'Retombée « {name} » notée' },
+  pr_chat_did_keyword: { en: 'Now tracking "{name}"', fr: '« {name} » ajouté au suivi' },
+  pr_chat_did_geo: { en: 'Now tracking the question "{name}"', fr: 'Question « {name} » ajoutée au suivi' },
+  pr_chat_action_failed: {
+    en: 'That write didn’t save — the reply above still stands.',
+    fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
+  },
+  pr_seo_title_chat: { en: 'Assistant — Dutiva PR', fr: 'Assistant — Dutiva RP' },
+  pr_seo_desc_chat: {
+    en: 'Chat with the desk assistant about your own PR data.',
+    fr: 'Discutez avec l’assistant du portail de vos propres données RP.',
+  },
 })

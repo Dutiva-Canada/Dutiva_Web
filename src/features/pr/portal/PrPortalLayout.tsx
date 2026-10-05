@@ -13,6 +13,7 @@ import { PrFooter } from './PrFooter'
 
 const NAV = [
   { to: '/pr', end: true, label: PM.pr_tab_overview },
+  { to: '/pr/chat', end: false, label: PM.pr_tab_chat },
   { to: '/pr/campaigns', end: false, label: PM.pr_tab_campaigns },
   { to: '/pr/content', end: false, label: PM.pr_tab_content },
   { to: '/pr/media', end: false, label: PM.pr_tab_media },

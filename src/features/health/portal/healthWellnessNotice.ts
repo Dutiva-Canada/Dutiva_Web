@@ -10,7 +10,9 @@ import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
  * The substance is mandated, not editorial: Dutiva Health is a self-tracking
  * and reflection tool — not medical or mental-health advice, diagnosis,
  * treatment, therapy, or a crisis service; journal contents are private to
- * the user; nothing the user writes is monitored or answered.
+ * the user; nothing the user writes is monitored by a person, and no entry
+ * triggers an alert. The in-app assistant answers chat messages as software
+ * — it is not a person and not a crisis service.
  *
  * [FR self-authored — parity with the EN text; hedge strength matched.]
  */
@@ -28,11 +30,11 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva Health lets you record daily check-ins (mood and energy), keep a private journal, and view simple counts and averages of what you recorded. It is a reflection tool you operate yourself.',
+            text: 'Dutiva Health lets you record daily check-ins (mood and energy), keep a private journal, track small habits, and view simple counts and averages of what you recorded. It is a reflection tool you operate yourself.',
           },
           {
             type: 'p',
-            text: 'The trends and summaries shown in the app describe the information you entered — they are observations about your inputs, not assessments of your health.',
+            text: 'An in-app assistant can answer questions about your own tracked data and record things you ask it to (a check-in, a habit marked done, a journal entry). Its replies are generated from the same counts and averages you can see — they are observations about your inputs, not assessments of your health.',
           },
         ],
       },
@@ -61,7 +63,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva cannot respond to anything you write in the app — including entries about feeling unsafe or thinking about suicide. Nobody reads your entries, and no alert is triggered by them.',
+            text: 'Nobody monitors what you write in the app, and nothing you write triggers an alert to a person — including entries about feeling unsafe or thinking about suicide. The in-app assistant is software: it can reply to a chat message with supportive words and the crisis line below, but it is not a crisis service and it cannot help in an emergency.',
           },
           {
             type: 'p',
@@ -74,7 +76,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Check-ins and journal entries are stored in your account and readable only by you. What you record may be sensitive — write what you choose, and you can delete any entry at any time.',
+            text: 'Check-ins, journal entries, habits, and chat messages are stored in your account and readable only by you. What you record may be sensitive — write what you choose, and you can delete entries or clear the conversation at any time.',
           },
           {
             type: 'p',
@@ -97,11 +99,11 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva Santé vous permet de noter des points du jour (humeur et énergie), de tenir un journal privé et de voir de simples décomptes et moyennes de ce que vous avez noté. C’est un outil de réflexion que vous utilisez vous-même.',
+            text: 'Dutiva Santé vous permet de noter des points du jour (humeur et énergie), de tenir un journal privé, de suivre de petites habitudes et de voir de simples décomptes et moyennes de ce que vous avez noté. C’est un outil de réflexion que vous utilisez vous-même.',
           },
           {
             type: 'p',
-            text: 'Les tendances et les résumés affichés décrivent les informations que vous avez saisies — ce sont des observations sur vos saisies, pas une évaluation de votre santé.',
+            text: 'Un assistant intégré peut répondre à des questions sur vos propres données suivies et enregistrer ce que vous lui demandez (un point du jour, une habitude faite, une entrée de journal). Ses réponses sont générées à partir des mêmes décomptes et moyennes que vous voyez — ce sont des observations sur vos saisies, pas une évaluation de votre santé.',
           },
         ],
       },
@@ -130,7 +132,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva ne peut pas répondre à ce que vous écrivez dans l’application — y compris aux entrées où vous ne vous sentez pas en sécurité ou pensez au suicide. Personne ne lit vos entrées, et rien ne déclenche d’alerte.',
+            text: 'Personne ne surveille ce que vous écrivez dans l’application, et rien de ce que vous écrivez ne déclenche d’alerte vers une personne — y compris les entrées où vous ne vous sentez pas en sécurité ou pensez au suicide. L’assistant intégré est un logiciel : il peut répondre à un message de clavardage avec des mots de soutien et la ligne de crise ci-dessous, mais ce n’est pas un service de crise et il ne peut pas intervenir en cas d’urgence.',
           },
           {
             type: 'p',
@@ -143,7 +145,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Vos points du jour et vos entrées de journal sont conservés dans votre compte et ne sont lisibles que par vous. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer toute entrée en tout temps.',
+            text: 'Vos points du jour, vos entrées de journal, vos habitudes et vos messages de clavardage sont conservés dans votre compte et ne sont lisibles que par vous. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer des entrées ou effacer la discussion en tout temps.',
           },
           {
             type: 'p',

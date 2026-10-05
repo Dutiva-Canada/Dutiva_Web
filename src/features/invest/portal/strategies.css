@@ -1350,3 +1350,124 @@ textarea.sb-input {
   font-weight: 400;
   color: var(--sb-muted);
 }
+
+/* Chat — the portal assistant. A transcript of bubbles over a composer row;
+   bubbles stay compact on phones, the composer pins to the viewport bottom. */
+.sbchat {
+  display: flex;
+  flex-direction: column;
+  min-height: min(62vh, 640px);
+}
+.sbchat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  padding: 4px 0 12px;
+}
+.sbchat-bubble {
+  max-width: min(78%, 560px);
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.sbchat-bubble.user {
+  align-self: flex-end;
+  background: var(--sb-primary);
+  color: var(--sb-primary-text);
+  border-bottom-right-radius: 4px;
+}
+.sbchat-bubble.assistant {
+  align-self: flex-start;
+  background: var(--sb-input);
+  border: 1px solid var(--sb-line);
+  color: var(--sb-ink);
+  border-bottom-left-radius: 4px;
+}
+.sbchat-bubble-meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 10.5px;
+  color: var(--sb-muted);
+}
+.sbchat-bubble.assistant .sbchat-bubble-meta {
+  color: var(--sb-ink-soft);
+}
+.sbchat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--sb-accent);
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+.sbchat-chip[data-ok='false'] {
+  border-color: var(--sb-line);
+  background: transparent;
+  color: var(--sb-muted);
+}
+.sbchat-empty {
+  color: var(--sb-muted);
+  font-size: 13px;
+  padding: 18px 4px;
+}
+.sbchat-compose {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  border-top: 1px solid var(--sb-line);
+  padding-top: 12px;
+  position: sticky;
+  bottom: 0;
+  background: var(--sb-bg, transparent);
+}
+.sbchat-input {
+  flex: 1;
+  min-height: 44px;
+  max-height: 160px;
+  resize: vertical;
+  border: 1.5px solid var(--sb-line);
+  border-radius: 12px;
+  background: var(--sb-input);
+  color: var(--sb-ink);
+  font: inherit;
+  font-size: 13.5px;
+  padding: 10px 12px;
+}
+.sbchat-input:focus {
+  outline: none;
+  border-color: var(--sb-accent);
+}
+.sbchat-input::placeholder {
+  color: var(--sb-muted);
+}
+.sbchat-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: var(--sb-primary);
+  color: var(--sb-primary-text);
+  cursor: pointer;
+}
+.sbchat-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sbchat-note {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--sb-muted);
+  line-height: 1.5;
+}

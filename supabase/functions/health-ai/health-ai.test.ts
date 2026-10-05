@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildHabitStatuses,
   buildHealthFacts,
+  chatPrompt,
   habitPrompt,
+  parseChatReply,
   parseHabit,
   recapPrompt,
   reflectPrompt,
+  resolveHabitRef,
 } from './handlers'
 
 const NOW = '2026-10-02T18:00:00.000Z'
@@ -120,5 +124,99 @@ describe('parseHabit', () => {
   it('returns null for empty or unusable replies', () => {
     expect(parseHabit('')).toBeNull()
     expect(parseHabit('ok')).toBeNull()
+  })
+})
+
+const HABITS = [
+  { id: 'h1', name: 'Walk' },
+  { id: 'h2', name: 'Evening stretch' },
+]
+const TODAY = '2026-10-02'
+
+describe('buildHabitStatuses', () => {
+  it('marks done-today and counts streaks back from today', () => {
+    const statuses = buildHabitStatuses(
+      HABITS,
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        { habit_id: 'h1', day: '2026-09-30' },
+        { habit_id: 'h2', day: '2026-10-01' },
+        { habit_id: 'h2', day: '2026-09-30' },
+      ],
+      TODAY,
+    )
+    expect(statuses).toEqual([
+      { id: 'h1', name: 'Walk', doneToday: true, streak: 3 },
+      /* Today is unmarked but the streak started yesterday — the same
+         leniency the client-side habitStreak gives. */
+      { id: 'h2', name: 'Evening stretch', doneToday: false, streak: 2 },
+    ])
+  })
+
+  it('an empty log set streaks to zero without error', () => {
+    expect(buildHabitStatuses(HABITS, [], TODAY).map((s) => s.streak)).toEqual([0, 0])
+    expect(buildHabitStatuses([], [], TODAY)).toEqual([])
+  })
+})
+
+describe('chatPrompt', () => {
+  const facts = buildHealthFacts([], HABITS, [], 14, NOW)
+  it('carries the non-clinical rules, the action grammar and the crisis line', () => {
+    const p = chatPrompt(facts, [], TODAY, 'en')
+    expect(p.role).toBe('system')
+    expect(p.content).toContain('non-clinical')
+    expect(p.content).toContain('mark_habit_done')
+    expect(p.content).toContain('9-8-8')
+    expect(p.content).toContain('action')
+    expect(p.content).toContain(TODAY)
+  })
+  it('lists habit status for the model and switches language', () => {
+    const statuses = buildHabitStatuses(HABITS, [{ habit_id: 'h1', day: TODAY }], TODAY)
+    const p = chatPrompt(facts, statuses, TODAY, 'fr')
+    expect(p.content).toContain('"Walk" — done today, streak 1 day')
+    expect(p.content).toContain('"Evening stretch" — not done today, streak 0 days')
+    expect(p.content).toContain('Canadian French')
+  })
+})
+
+describe('parseChatReply', () => {
+  it('parses a reply with no action', () => {
+    expect(parseChatReply('{"reply":"Looks like a steady week.","action":null}')).toEqual({
+      reply: 'Looks like a steady week.',
+      action: null,
+    })
+  })
+  it('parses a reply with a habit action', () => {
+    expect(
+      parseChatReply('{"reply":"Done!","action":{"type":"mark_habit_done","habit":"Walk"}}'),
+    ).toEqual({ reply: 'Done!', action: { type: 'mark_habit_done', habit: 'Walk' } })
+  })
+  it('validates check-in bounds', () => {
+    expect(
+      parseChatReply('{"reply":"r","action":{"type":"add_checkin","mood":3,"energy":2}}'),
+    ).toEqual({ reply: 'r', action: { type: 'add_checkin', mood: 3, energy: 2, note: undefined } })
+    expect(
+      parseChatReply('{"reply":"r","action":{"type":"add_checkin","mood":9}}'),
+    ).toBeNull()
+  })
+  it('rejects unknown actions, bad JSON and empty replies', () => {
+    expect(parseChatReply('{"reply":"r","action":{"type":"delete_everything"}}')).toBeNull()
+    expect(parseChatReply('{"reply":"r","action":{"type":"mark_habit_done"}}')).toBeNull()
+    expect(parseChatReply('plain text')).toBeNull()
+    expect(parseChatReply('{"action":null}')).toBeNull()
+    expect(parseChatReply(null)).toBeNull()
+  })
+})
+
+describe('resolveHabitRef', () => {
+  const statuses = buildHabitStatuses(HABITS, [], TODAY)
+  it('matches exact names case-insensitively and unique substrings', () => {
+    expect(resolveHabitRef('walk', statuses)?.id).toBe('h1')
+    expect(resolveHabitRef('stretch', statuses)?.id).toBe('h2')
+  })
+  it('returns null for unknown names', () => {
+    expect(resolveHabitRef('meditate', statuses)).toBeNull()
+    expect(resolveHabitRef('', statuses)).toBeNull()
   })
 })

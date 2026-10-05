@@ -582,6 +582,48 @@ const investCoreMessages = defineMessages({
     fr: 'Une erreur s’est produite. Veuillez réessayer.',
   },
   invest_loading: { en: 'Loading…', fr: 'Chargement…' },
+
+  /* Chat — the book assistant. Answers over the user's own rows (accounts,
+     positions, watchlist, signals, orders, strategies) and can record what
+     the user asks — watchlist changes, a QUEUED draft order, a signal
+     status, a strategy draft for review. Never investment advice; nothing
+     executes itself. [FR self-authored] */
+  invest_tab_chat: { en: 'Chat', fr: 'Discussion' },
+  invest_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  invest_chat_sub: {
+    en: 'Ask about your book, or tell it what to record — watch a symbol, queue a draft order, acknowledge a signal, draft a strategy for review.',
+    fr: 'Posez une question sur votre portefeuille, ou dites-lui quoi noter — suivre un symbole, mettre un ordre en file, accuser un signal, préparer une stratégie à valider.',
+  },
+  invest_chat_empty: {
+    en: 'Nothing yet. Try “what’s on my watchlist?” or “watch XEQT for me.”',
+    fr: 'Rien pour l’instant. Essayez « qu’est-ce que je surveille? » ou « ajoute XEQT à ma liste ».',
+  },
+  invest_chat_placeholder: {
+    en: 'Write a message…',
+    fr: 'Écrivez un message…',
+  },
+  invest_chat_send: { en: 'Send', fr: 'Envoyer' },
+  invest_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  invest_chat_error: {
+    en: 'That didn’t go through — try again.',
+    fr: 'Ça n’a pas fonctionné — réessayez.',
+  },
+  /* Confirmation chips under a reply that did something. The {name} slot is
+     the subject the action touched. [FR self-authored] */
+  invest_chat_did_watch: { en: 'Now watching "{name}"', fr: '« {name} » ajouté à la liste' },
+  invest_chat_did_unwatch: { en: '"{name}" removed from the watchlist', fr: '« {name} » retiré de la liste' },
+  invest_chat_did_order: { en: 'Draft order queued — {name}', fr: 'Ordre mis en file — {name}' },
+  invest_chat_did_signal: { en: 'Signal "{name}" updated', fr: 'Signal « {name} » mis à jour' },
+  invest_chat_did_strategy: { en: 'Strategy "{name}" filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
+  invest_chat_action_failed: {
+    en: 'That write didn’t save — the reply above still stands.',
+    fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
+  },
+  invest_seo_title_chat: { en: 'Dutiva Invest — Assistant', fr: 'Dutiva Invest — Assistant' },
+  invest_seo_desc_chat: {
+    en: 'Chat with the portal assistant about your own book data.',
+    fr: 'Discutez avec l’assistant du portail de vos propres données.',
+  },
 })
 
 /* The strategy-builder block lives in investStrategyBuilder.ts (this file

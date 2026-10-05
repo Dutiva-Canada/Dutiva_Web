@@ -259,3 +259,254 @@ export function parsePromptList(raw: string, existing: string[], max = 3): strin
   }
   return out
 }
+
+/* ── Chat — the portal's conversational surface ─────────────────────────────
+   The model sees the same data the portal pages show — campaign names and
+   statuses, content titles, contact cards, tracked keywords, coverage
+   headlines, GEO prompts, connection statuses — capped per list. It can act
+   only through the additive grammar below: everything lands as a draft or a
+   log entry the user could have created themselves. It never publishes,
+   sends, deletes, or touches the outside world. */
+
+export interface PrChatContext {
+  campaigns: { name: string; status: string; channel: string }[]
+  contentByStatus: Record<string, number>
+  recentContent: string[]
+  contacts: { name: string; outlet: string; beat: string }[]
+  keywords: { keyword: string; position: number | null }[]
+  mentionsBySentiment: Record<string, number>
+  recentMentions: { title: string; source: string }[]
+  geoPrompts: { prompt: string; result: string }[]
+  feeds: number
+  connections: { provider: string; status: string }[]
+}
+
+export type PrChatAction =
+  | { type: 'add_campaign'; name: string; channel?: string; objective?: string }
+  | {
+      type: 'add_content_item'
+      title: string
+      kind?: string
+      channel?: string
+      body?: string
+      campaign?: string
+    }
+  | {
+      type: 'add_media_contact'
+      name: string
+      outlet?: string
+      beat?: string
+      email?: string
+      note?: string
+    }
+  | {
+      type: 'add_mention'
+      title: string
+      source?: string
+      url?: string
+      sentiment?: string
+    }
+  | { type: 'add_keyword'; keyword: string; targetUrl?: string }
+  | { type: 'add_geo_prompt'; prompt: string; engine?: string }
+
+export interface PrChatReply {
+  reply: string
+  action: PrChatAction | null
+}
+
+export const PR_CHAT_ACTION_TYPES = new Set([
+  'add_campaign',
+  'add_content_item',
+  'add_media_contact',
+  'add_mention',
+  'add_keyword',
+  'add_geo_prompt',
+])
+
+const CHANNELS = new Set([
+  'mixed', 'social', 'search', 'display', 'email', 'press', 'events', 'other',
+])
+const CONTENT_KINDS = new Set(['post', 'release', 'ad', 'article', 'brief'])
+const ENGINES = new Set(['chatgpt', 'perplexity', 'gemini', 'copilot', 'other'])
+
+/** Loose field sanitation — the model's optional slots are dropped when they
+    don't look like what they claim, never corrected into something else. */
+const optStr = (v: unknown, max = 200): string | undefined => {
+  if (typeof v !== 'string') return undefined
+  const t = v.trim().slice(0, max)
+  return t === '' ? undefined : t
+}
+const optUrl = (v: unknown): string | undefined => {
+  const t = optStr(v, 500)
+  return t && /^https?:\/\/\S+$/i.test(t) ? t : undefined
+}
+const optEmail = (v: unknown): string | undefined => {
+  const t = optStr(v, 200)
+  return t && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) ? t : undefined
+}
+const optEnum = (v: unknown, allowed: Set<string>): string | undefined =>
+  typeof v === 'string' && allowed.has(v.trim().toLowerCase())
+    ? v.trim().toLowerCase()
+    : undefined
+
+export function prChatPrompt(ctx: PrChatContext, lang: 'en' | 'fr'): {
+  role: 'system'
+  content: string
+} {
+  const lines = (items: string[]): string =>
+    items.length === 0 ? '  (none)' : items.map((i) => `  - ${i}`).join('\n')
+  return {
+    role: 'system',
+    content: [
+      'You are the in-product assistant of a PR desk inside Dutiva (a Canadian HR-compliance platform). Answer only from the desk data below — if it cannot answer the question, say so plainly.',
+      'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their desk. Allowed actions:',
+      '  {"type":"add_campaign","name":"<name>","channel":"<mixed|social|search|display|email|press|events|other>","objective":"<short>"}',
+      '  {"type":"add_content_item","title":"<title>","kind":"<post|release|ad|article|brief>","channel":"<optional>","body":"<optional draft text>","campaign":"<existing campaign name>"}',
+      '  {"type":"add_media_contact","name":"<name>","outlet":"<optional>","beat":"<optional>","email":"<optional>"}',
+      '  {"type":"add_mention","title":"<headline>","source":"<outlet>","url":"<optional>","sentiment":"<positive|neutral|negative>"}',
+      '  {"type":"add_keyword","keyword":"<term>","targetUrl":"<optional>"}',
+      '  {"type":"add_geo_prompt","prompt":"<question to track>","engine":"<chatgpt|perplexity|gemini|copilot|other>"}',
+      'Everything you add lands as a draft or a log entry the person could have created themselves. You never publish, schedule, send, delete, or contact anyone — if asked for that, say you cannot and point to the page that does it (Content publishes, Review holds suggestions, Media drafts pitches).',
+      'Only emit an action the person actually asked for. If a campaign name does not match the list below, ask which one they mean instead of guessing.',
+      lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
+      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>}. No markdown fences.',
+      '',
+      'Desk data:',
+      `Campaigns (${ctx.campaigns.length}):`,
+      lines(ctx.campaigns.map((c) => `"${c.name}" — ${c.status}, ${c.channel}`)),
+      `Content items by status: ${JSON.stringify(ctx.contentByStatus)}`,
+      'Recent content:',
+      lines(ctx.recentContent),
+      `Media contacts (${ctx.contacts.length}):`,
+      lines(
+        ctx.contacts.map((c) =>
+          `"${c.name}"${c.outlet ? ` — ${c.outlet}` : ''}${c.beat ? ` (${c.beat})` : ''}`,
+        ),
+      ),
+      'Tracked keywords:',
+      lines(
+        ctx.keywords.map(
+          (k) => `"${k.keyword}"${k.position !== null ? ` — position ${k.position}` : ' — unchecked'}`,
+        ),
+      ),
+      `Coverage by tone: ${JSON.stringify(ctx.mentionsBySentiment)}`,
+      'Recent coverage:',
+      lines(ctx.recentMentions.map((m) => `"${m.title}"${m.source ? ` — ${m.source}` : ''}`)),
+      'AI-answer questions tracked:',
+      lines(ctx.geoPrompts.map((g) => `"${g.prompt}" — last check: ${g.result}`)),
+      `Feeds connected: ${ctx.feeds}`,
+      'Platform connections:',
+      lines(ctx.connections.map((c) => `${c.provider}: ${c.status}`)),
+    ].join('\n'),
+  }
+}
+
+/** Strict JSON reply from the model. Anything unparseable or with a
+    malformed/unknown action returns null — the caller files a plain-text
+    fallback rather than executing something it half-understood. */
+export function parsePrChatReply(raw: string | null | undefined): PrChatReply | null {
+  if (!raw) return null
+  const text = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start === -1 || end <= start) return null
+  try {
+    const obj = JSON.parse(text.slice(start, end + 1)) as {
+      reply?: unknown
+      action?: unknown
+    }
+    const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
+    if (!reply) return null
+    const a = obj.action
+    if (a === null || a === undefined) return { reply, action: null }
+    if (typeof a !== 'object') return null
+    const action = a as Record<string, unknown>
+    if (typeof action.type !== 'string' || !PR_CHAT_ACTION_TYPES.has(action.type)) return null
+    switch (action.type) {
+      case 'add_campaign': {
+        const name = optStr(action.name, 120)
+        if (!name) return null
+        return {
+          reply,
+          action: {
+            type: 'add_campaign',
+            name,
+            channel: optEnum(action.channel, CHANNELS),
+            objective: optStr(action.objective, 300),
+          },
+        }
+      }
+      case 'add_content_item': {
+        const title = optStr(action.title, 200)
+        if (!title) return null
+        return {
+          reply,
+          action: {
+            type: 'add_content_item',
+            title,
+            kind: optEnum(action.kind, CONTENT_KINDS),
+            channel: optStr(action.channel, 60),
+            body: optStr(action.body, 4000),
+            campaign: optStr(action.campaign, 120),
+          },
+        }
+      }
+      case 'add_media_contact': {
+        const name = optStr(action.name, 120)
+        if (!name) return null
+        return {
+          reply,
+          action: {
+            type: 'add_media_contact',
+            name,
+            outlet: optStr(action.outlet, 120),
+            beat: optStr(action.beat, 80),
+            email: optEmail(action.email),
+            note: optStr(action.note, 500),
+          },
+        }
+      }
+      case 'add_mention': {
+        const title = optStr(action.title, 300)
+        if (!title) return null
+        return {
+          reply,
+          action: {
+            type: 'add_mention',
+            title,
+            source: optStr(action.source, 120),
+            url: optUrl(action.url),
+            sentiment: optEnum(action.sentiment, new Set(PR_SENTIMENTS)),
+          },
+        }
+      }
+      case 'add_keyword': {
+        const keyword = optStr(action.keyword, 120)
+        if (!keyword) return null
+        return { reply, action: { type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) } }
+      }
+      case 'add_geo_prompt': {
+        const prompt = optStr(action.prompt, 300)
+        if (!prompt || prompt.length < 8) return null
+        return { reply, action: { type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) } }
+      }
+    }
+  } catch {
+    return null
+  }
+}
+
+/** Resolve a name the model mentioned — exact (case-insensitive) first, then
+    a unique substring match. Ambiguous or absent → null, so the caller can
+    report ok:false rather than attach to the wrong row. */
+export function resolveNameRef(
+  named: string,
+  rows: { id: string; name: string }[],
+): { id: string; name: string } | null {
+  const needle = named.trim().toLowerCase()
+  if (!needle) return null
+  const exact = rows.filter((r) => r.name.trim().toLowerCase() === needle)
+  if (exact.length === 1) return exact[0]
+  const partial = rows.filter((r) => r.name.trim().toLowerCase().includes(needle))
+  return partial.length === 1 ? partial[0] : null
+}

@@ -13,6 +13,7 @@ import { HealthFooter } from './HealthFooter'
 
 const NAV = [
   { to: '/health', end: true, label: HM.health_tab_overview },
+  { to: '/health/chat', end: false, label: HM.health_tab_chat },
   { to: '/health/check-in', end: false, label: HM.health_tab_checkin },
   { to: '/health/habits', end: false, label: HM.health_tab_habits },
   { to: '/health/journal', end: false, label: HM.health_tab_journal },
