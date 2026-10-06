@@ -181,7 +181,8 @@ export async function setHabitDone(
   if (error) throw error
 }
 
-/* ---------- health-ai: gentle model assists (aggregates only) ---------- */
+/* ---------- health-ai: gentle model assists (aggregates only — chat below
+   is the one exception: the companion reads the user's own notes too) --- */
 
 /** One journal prompt built from mood/energy/habit AGGREGATES — the model
     never sees note text or journal bodies. A suggestion to write about,
@@ -243,9 +244,9 @@ export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion>
   }
 }
 
-/* ---------- chat — the portal assistant ---------- */
+/* ---------- chat — Mira, the portal companion ---------- */
 
-/** A write the assistant executed on the user's own rows during a turn —
+/** A write the companion executed on the user's own rows during a turn —
     additive or same-day-undoable by design (see health-ai's action grammar). */
 export interface HealthChatAction {
   type: 'mark_habit_done' | 'unmark_habit_done' | 'add_habit' | 'add_checkin' | 'add_journal_entry'
@@ -265,7 +266,10 @@ export interface HealthChatTurn {
 
 /** One turn of the portal conversation. The server writes both sides to
     health_chat_messages, so history is consistent across sessions — the
-    caller only sends the message, the day (local), and the locale. */
+    caller only sends the message, the day (local), and the locale. Mira
+    replies over the caller's own context assembled server-side: numbers,
+    habit status, recent check-in notes and journal excerpts, and the
+    conversation itself. */
 export async function sendHealthChat(
   message: string,
   lang: 'en' | 'fr',

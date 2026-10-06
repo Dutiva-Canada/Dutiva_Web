@@ -430,23 +430,38 @@ export const healthMessages = defineMessages({
     fr: 'Ce qu’est et n’est pas Dutiva Santé — un outil de réflexion, pas des soins médicaux.',
   },
 
-  /* Chat — the portal assistant. Sees the same aggregate numbers the
-     Insights page shows plus habit status; can log what the user asks it to
-     (habits, check-ins, journal entries). Non-clinical: it notices and it
-     writes down — it never advises on health. [FR self-authored] */
-  health_tab_chat: { en: 'Chat', fr: 'Discussion' },
-  health_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  /* Chat — Mira, the portal companion. She sees the aggregate numbers, the
+     habit board, this conversation, and the person's own recent words
+     (check-in notes, journal excerpts) — keeping company means hearing what
+     was shared. Still non-clinical: she listens and she jots things down —
+     she never advises on health, and the copy always says she's software.
+     [FR self-authored] */
+  health_tab_chat: { en: 'Mira', fr: 'Mira' },
+  health_chat_title: { en: 'Mira', fr: 'Mira' },
   health_chat_sub: {
-    en: 'Ask about your own numbers, or tell it what to record — mark a habit done, log a check-in, save a journal entry.',
-    fr: 'Posez une question sur vos propres chiffres, ou dites-lui quoi noter — marquer une habitude, noter un point du jour, enregistrer une entrée.',
+    en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you: a check-in, a habit done, a journal entry. She’s software, not a person or a therapist.',
+    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute.',
   },
-  health_chat_empty: {
-    en: 'Nothing yet. Try “how did this week go?” or “mark my walk done.”',
-    fr: 'Rien pour l’instant. Essayez « comment s’est passée ma semaine? » ou « marque ma marche comme faite ».',
+  /* Her opening turn on an empty conversation — she speaks first, in one
+     breath: a hello, at most one thing she noticed, and a question. Built
+     client-side from HealthState so it costs no call and stays bilingual.
+     [FR self-authored] */
+  health_chat_hi: { en: 'Hi — I’m Mira.', fr: 'Bonjour — je suis Mira.' },
+  health_chat_hi_streak: {
+    en: 'I noticed “{name}” is on a {days}-day streak — nicely kept.',
+    fr: 'J’ai remarqué que « {name} » se maintient depuis {days} jours — bien tenu.',
+  },
+  health_chat_hi_checkins: {
+    en: 'You’ve checked in {count} times this week already.',
+    fr: 'Vous avez déjà pris le point {count} fois cette semaine.',
+  },
+  health_chat_hi_ask: {
+    en: 'How are you arriving today?',
+    fr: 'Comment vous sentez-vous en arrivant aujourd’hui?',
   },
   health_chat_placeholder: {
-    en: 'Write a message…',
-    fr: 'Écrivez un message…',
+    en: 'Tell Mira how it’s going, or what to jot down…',
+    fr: 'Dites à Mira comment ça va, ou quoi noter…',
   },
   health_chat_send: { en: 'Send', fr: 'Envoyer' },
   health_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
@@ -465,9 +480,9 @@ export const healthMessages = defineMessages({
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
   },
-  health_seo_title_chat: { en: 'Assistant — Dutiva Health', fr: 'Assistant — Dutiva Santé' },
+  health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
-    en: 'Chat with the portal assistant about your own tracked data.',
-    fr: 'Discutez avec l’assistant du portail de vos propres données suivies.',
+    en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',
+    fr: 'Discutez avec Mira — la compagne de bien-être qui vous écoute et suit le fil avec vous.',
   },
 })

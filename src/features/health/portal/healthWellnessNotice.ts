@@ -11,15 +11,17 @@ import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
  * and reflection tool — not medical or mental-health advice, diagnosis,
  * treatment, therapy, or a crisis service; journal contents are private to
  * the user; nothing the user writes is monitored by a person, and no entry
- * triggers an alert. The in-app assistant answers chat messages as software
- * — it is not a person and not a crisis service.
+ * triggers an alert. The in-app companion (Mira) answers chat messages as
+ * software — she is not a person and not a crisis service — and she reads
+ * the user's own check-in notes and journal entries to generate replies;
+ * that reading is disclosed here, not hidden.
  *
  * [FR self-authored — parity with the EN text; hedge strength matched.]
  */
 export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
   en: {
     title: 'Wellness notice',
-    effectiveDate: 'October 4, 2026',
+    effectiveDate: 'October 6, 2026',
     callout: [
       'Dutiva Health is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment, and it is not a crisis service.',
       'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
@@ -34,7 +36,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
           },
           {
             type: 'p',
-            text: 'An in-app assistant can answer questions about your own tracked data and record things you ask it to (a check-in, a habit marked done, a journal entry). Its replies are generated from the same counts and averages you can see — they are observations about your inputs, not assessments of your health.',
+            text: 'An in-app companion, Mira, can keep you company in the Mira tab — she listens, remembers the conversation, and records things you ask for (a check-in, a habit marked done, a journal entry). To respond, she reads your tracked numbers, your check-in notes, your recent journal entries, and the conversation itself. What she says reflects what you have shared — it is not an assessment of your health.',
           },
         ],
       },
@@ -63,7 +65,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Nobody monitors what you write in the app, and nothing you write triggers an alert to a person — including entries about feeling unsafe or thinking about suicide. The in-app assistant is software: it can reply to a chat message with supportive words and the crisis line below, but it is not a crisis service and it cannot help in an emergency.',
+            text: 'Nobody monitors what you write in the app, and nothing you write triggers an alert to a person — including entries about feeling unsafe or thinking about suicide. Mira is software: she can reply to a chat message with supportive words and the crisis line below, but she is not a crisis service and cannot help in an emergency.',
           },
           {
             type: 'p',
@@ -76,7 +78,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Check-ins, journal entries, habits, and chat messages are stored in your account and readable only by you. What you record may be sensitive — write what you choose, and you can delete entries or clear the conversation at any time.',
+            text: 'Check-ins, journal entries, habits, and chat messages are stored in your account and readable only by you. To generate her replies, Mira processes what you have written — the conversation, your check-in notes, and your journal entries. What you record may be sensitive — write what you choose, and you can delete entries or clear the conversation at any time.',
           },
           {
             type: 'p',
@@ -88,7 +90,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
   },
   fr: {
     title: 'Avis de bien-être',
-    effectiveDate: '4 octobre 2026',
+    effectiveDate: '6 octobre 2026',
     callout: [
       'Dutiva Santé est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement, et ce n’est pas un service de crise.',
       'En crise ou si vous pensez au suicide? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
@@ -103,7 +105,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
           },
           {
             type: 'p',
-            text: 'Un assistant intégré peut répondre à des questions sur vos propres données suivies et enregistrer ce que vous lui demandez (un point du jour, une habitude faite, une entrée de journal). Ses réponses sont générées à partir des mêmes décomptes et moyennes que vous voyez — ce sont des observations sur vos saisies, pas une évaluation de votre santé.',
+            text: 'Une compagne intégrée, Mira, vous tient compagnie dans l’onglet Mira — elle écoute, se souvient de la discussion et note ce que vous demandez (un point du jour, une habitude faite, une entrée de journal). Pour répondre, elle lit vos données suivies, les notes de vos points du jour, vos entrées de journal récentes et la discussion elle-même. Ce qu’elle dit reflète ce que vous avez partagé — ce n’est pas une évaluation de votre santé.',
           },
         ],
       },
@@ -132,7 +134,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Personne ne surveille ce que vous écrivez dans l’application, et rien de ce que vous écrivez ne déclenche d’alerte vers une personne — y compris les entrées où vous ne vous sentez pas en sécurité ou pensez au suicide. L’assistant intégré est un logiciel : il peut répondre à un message de clavardage avec des mots de soutien et la ligne de crise ci-dessous, mais ce n’est pas un service de crise et il ne peut pas intervenir en cas d’urgence.',
+            text: 'Personne ne surveille ce que vous écrivez dans l’application, et rien de ce que vous écrivez ne déclenche d’alerte vers une personne — y compris les entrées où vous ne vous sentez pas en sécurité ou pensez au suicide. Mira est un logiciel : elle peut répondre à un message de clavardage avec des mots de soutien et la ligne de crise ci-dessous, mais ce n’est pas un service de crise et elle ne peut pas intervenir en cas d’urgence.',
           },
           {
             type: 'p',
@@ -145,7 +147,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Vos points du jour, vos entrées de journal, vos habitudes et vos messages de clavardage sont conservés dans votre compte et ne sont lisibles que par vous. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer des entrées ou effacer la discussion en tout temps.',
+            text: 'Vos points du jour, vos entrées de journal, vos habitudes et vos messages de clavardage sont conservés dans votre compte et ne sont lisibles que par vous. Pour générer ses réponses, Mira traite ce que vous avez écrit — la discussion, les notes de vos points du jour et vos entrées de journal. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer des entrées ou effacer la discussion en tout temps.',
           },
           {
             type: 'p',

@@ -13,7 +13,7 @@ import {
   type HealthChatTurn,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { fmtDateTime } from './healthUi'
+import { companionGreeting, fmtDateTime } from './healthUi'
 import { useHealthHead } from './useHealthHead'
 
 /** What the assistant did during a turn, as a confirmation chip. The label
@@ -40,15 +40,16 @@ function actionLabel(
 }
 
 /**
- * The portal assistant — a chat over the user's own aggregate numbers that
- * can also act: mark a habit done, add a habit, log a check-in, save a
- * journal entry. History persists server-side (health_chat_messages), so the
+ * Mira — the portal's emotional companion. She keeps company over the user's
+ * own context (numbers, notes, journal excerpts, this conversation) and can
+ * also act: mark a habit done, add a habit, log a check-in, save a journal
+ * entry. History persists server-side (health_chat_messages), so the
  * conversation follows the account across sessions. Actions refresh the
  * shared HealthDataContext, so every other page reflects them immediately.
  */
 export function HealthChatPage() {
   const { x, lang } = useI18n()
-  const { refresh } = useHealthData()
+  const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_chat, HM.health_seo_desc_chat)
 
@@ -141,7 +142,9 @@ export function HealthChatPage() {
           {turns === null ? (
             <Loader2 size={18} className="animate-spin" aria-hidden="true" />
           ) : turns.length === 0 ? (
-            <p className="sbchat-empty">{x(HM.health_chat_empty)}</p>
+            /* She speaks first — a greeting built locally from HealthState,
+               not a stored turn, so clearing history brings it back. */
+            <div className="sbchat-bubble assistant">{companionGreeting(state, lang)}</div>
           ) : (
             turns.map((t) => (
               <div key={t.id} className={`sbchat-bubble ${t.role}`}>

@@ -4,6 +4,7 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
+  buildCompanionSignals,
   buildHabitStatuses,
   buildHealthFacts,
   chatPrompt,
@@ -13,10 +14,12 @@ import {
   recapPrompt,
   reflectPrompt,
   resolveHabitRef,
+  type CheckInNoteRow,
   type CheckInRow,
   type ChatReply,
   type HabitLogRowLite,
   type HabitRowLite,
+  type JournalExcerptRow,
 } from './handlers.ts'
 
 /**
@@ -26,9 +29,10 @@ import {
  *   POST { kind:'recap',   lang? } → { summary }  — a short weekly summary
  *   POST { kind:'habit',   lang? } → { habit }    — one habit suggestion
  *   POST { kind:'chat', message, today?, lang? } → { reply, action }
- *                                             — the portal assistant: answers
- *                                             over the same aggregates and can
- *                                             execute whitelisted writes
+ *                                             — Mira, the portal companion:
+ *                                             keeps company over the caller's
+ *                                             own context and can execute
+ *                                             whitelisted writes
  *                                             (mark/unmark a habit today, add a
  *                                             habit, log a check-in, write a
  *                                             journal entry). Both turns persist
@@ -41,10 +45,13 @@ import {
  *
  * Auth is the portal contract only (JWT + health_access) — no scheduled path.
  *
- * PRIVACY: the model is fed aggregates only (counts, averages, streak
- * lengths — buildHealthFacts). Check-in notes and journal bodies are never
- * selected, let alone sent. The recap can only describe what the Insights
- * page already shows.
+ * PRIVACY: two tiers. reflect / recap / habit are fed aggregates only
+ * (counts, averages, streak lengths — buildHealthFacts); note text and
+ * journal bodies are never selected for them. chat — the companion —
+ * additionally reads the caller's own recent check-in notes, short journal
+ * excerpts, and the conversation, because keeping company means hearing
+ * what was shared. Everything read belongs to the caller; nothing is
+ * shared across users.
  */
 
 const corsHeaders = {
@@ -244,10 +251,12 @@ Deno.serve(async (req) => {
 })
 
 /* ── kind 'chat' ──────────────────────────────────────────────────────────
-   The conversational surface. Context is the same aggregate-only set the
-   other kinds use plus per-habit done/streak status and the last CHAT_HISTORY
-   turns — the person expects the assistant to know their portal, and it does,
-   without note text or journal bodies ever entering the prompt. */
+   The companion surface. Context is the aggregate set plus per-habit
+   done/streak status, the last CHAT_HISTORY turns, and the person's own
+   recent words — check-in notes and truncated journal excerpts
+   (buildCompanionSignals). Unlike the other kinds, free text the person
+   wrote does enter this prompt — that is the product, and the wellness
+   notice discloses it. */
 
 const CHAT_HISTORY = 20
 const CHAT_LOG_DAYS = 90
@@ -293,11 +302,14 @@ async function runChat(
     { data: checkIns, error: ciError },
     { data: habits, error: hError },
     { data: logs, error: lError },
+    { data: journals, error: jError },
     { data: historyRows, error: histError },
   ] = await Promise.all([
+    /* Chat is the companion tier — the note text is selected here (and only
+       here) so Mira can hear what the person actually wrote. */
     admin
       .from('health_checkins')
-      .select('mood, energy, created_at')
+      .select('mood, energy, note, created_at')
       .eq('user_id', userId)
       .gte('created_at', factsSince),
     admin.from('health_habits').select('id, name').eq('user_id', userId),
@@ -306,6 +318,12 @@ async function runChat(
       .select('habit_id, day')
       .eq('user_id', userId)
       .gte('day', logsSince),
+    admin
+      .from('health_journal_entries')
+      .select('title, body, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(6),
     admin
       .from('health_chat_messages')
       .select('role, content')
@@ -316,18 +334,15 @@ async function runChat(
   if (ciError) return json({ error: ciError.message }, 500)
   if (hError) return json({ error: hError.message }, 500)
   if (lError) return json({ error: lError.message }, 500)
+  if (jError) return json({ error: jError.message }, 500)
   if (histError) return json({ error: histError.message }, 500)
 
   const habitRows = (habits ?? []) as HabitRowLite[]
   const logRows = (logs ?? []) as HabitLogRowLite[]
-  const facts = buildHealthFacts(
-    (checkIns ?? []) as CheckInRow[],
-    habitRows,
-    logRows,
-    FACTS_DAYS,
-    new Date().toISOString(),
-  )
+  const noteRows = (checkIns ?? []) as CheckInNoteRow[]
+  const facts = buildHealthFacts(noteRows, habitRows, logRows, FACTS_DAYS, new Date().toISOString())
   const statuses = buildHabitStatuses(habitRows, logRows, today)
+  const signals = buildCompanionSignals(noteRows, (journals ?? []) as JournalExcerptRow[])
 
   const history = ((historyRows ?? []) as { role: string; content: string }[])
     .reverse()
@@ -344,7 +359,7 @@ async function runChat(
       {
         model: found.modelName,
         messages: [
-          chatPrompt(facts, statuses, today, lang),
+          chatPrompt(facts, statuses, signals, today, lang),
           ...history,
           { role: 'user', content: message },
         ],

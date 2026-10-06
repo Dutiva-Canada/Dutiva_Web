@@ -1,9 +1,13 @@
 /**
- * health-ai — pure helpers for the wellness-portal model calls. The privacy
- * rule is load-bearing here: prompts are built from AGGREGATES ONLY
- * (counts, averages, streak lengths). Journal text and check-in notes never
- * leave the function — the model sees the same numbers the Insights page
- * shows, nothing more.
+ * health-ai — pure helpers for the wellness-portal model calls. Two privacy
+ * tiers, both deliberate:
+ *
+ *   - reflect / recap / habit: AGGREGATES ONLY (counts, averages, streak
+ *     lengths). Journal text and check-in notes never leave the function.
+ *   - chat (the companion): the model also sees the person's own recent
+ *     words — check-in notes and short journal excerpts — plus the
+ *     conversation. A companion that can't read what was shared isn't one;
+ *     the wellness notice says this plainly. Rows are still the caller's own.
  */
 
 export interface CheckInRow {
@@ -98,6 +102,15 @@ const SHARED_RULES = [
   'Write in plain, warm language — a sentence or two at a time.',
 ].join(' ')
 
+/* The chat companion gets a wider remit than the one-shot prompts — she may
+   listen, reflect feelings, and offer small everyday suggestions — but the
+   clinical line is the same, and "she is software" is a rule, not a mood. */
+const COMPANION_RULES = [
+  'This is a non-clinical wellness space. Never diagnose, never name or imply illness, treatment, or medication, and never offer therapy — if professional support is what the person needs, point them to the portal\'s Resources page.',
+  'You are software, not a person. Never claim feelings, a body, a life outside this chat, or a professional credential — if asked, say so plainly.',
+  'No praise inflation, no shame, no scorekeeping. Meet the person where they are.',
+].join(' ')
+
 export function reflectPrompt(facts: HealthFacts, lang: 'en' | 'fr'): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
@@ -150,11 +163,12 @@ export function parseHabit(raw: string): { name: string; why: string } | null {
   return { name: rawName.slice(0, 120), why }
 }
 
-/* ── Chat — the portal's conversational surface ─────────────────────────────
-   Same privacy line as the other kinds: the context block is aggregates plus
-   per-habit name/done/streak status — the model never sees check-in notes or
-   journal bodies it did not write itself this turn. The user's own message
-   is of course sent — that is the product, and it is their input. */
+/* ── Chat — the portal's companion ──────────────────────────────────────────
+   Wider context than the other kinds, on purpose: aggregates and per-habit
+   status, plus the person's own recent words (check-in notes, journal
+   excerpts) and the conversation itself. Mira keeps company by knowing what
+   the person has shared — every row is still the caller's own, and quoted
+   text is truncated hard before it reaches the prompt. */
 
 export interface HabitStatus {
   id: string
@@ -205,9 +219,58 @@ export interface ChatReply {
   action: ChatAction | null
 }
 
+/** A check-in row with its free-text note — chat only. */
+export interface CheckInNoteRow extends CheckInRow {
+  note: string
+}
+
+/** A journal entry trimmed for prompting — chat only. */
+export interface JournalExcerptRow {
+  title: string
+  body: string
+  created_at: string
+}
+
+const SIGNAL_NOTE_MAX = 160
+const SIGNAL_EXCERPT_MAX = 200
+const SIGNAL_NOTES_LIMIT = 8
+const SIGNAL_JOURNAL_LIMIT = 3
+
+const oneLine = (s: string, max: number): string =>
+  s.replace(/\s+/g, ' ').replace(/"/g, "'").trim().slice(0, max)
+
+/** The person's own recent words, as prompt lines. Bounded hard — the point
+    is that Mira can hear "rough day at work," not that she can recite the
+    journal. Newest first; empty notes and entries are dropped. */
+export function buildCompanionSignals(
+  checkIns: CheckInNoteRow[],
+  journals: JournalExcerptRow[],
+): string[] {
+  const byNewest = <T extends { created_at: string }>(rows: T[]): T[] =>
+    [...rows].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+  const dayOf = (iso: string) => iso.slice(0, 10)
+
+  const lines: string[] = []
+  const notes = byNewest(checkIns)
+    .filter((c) => c.note.trim() !== '')
+    .slice(0, SIGNAL_NOTES_LIMIT)
+  for (const c of notes) {
+    lines.push(`- check-in ${dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`)
+  }
+  const entries = byNewest(journals)
+    .filter((j) => j.body.trim() !== '')
+    .slice(0, SIGNAL_JOURNAL_LIMIT)
+  for (const j of entries) {
+    const title = j.title.trim() ? `"${oneLine(j.title, 80)}" · ` : ''
+    lines.push(`- journal ${dayOf(j.created_at)} · ${title}"${oneLine(j.body, SIGNAL_EXCERPT_MAX)}"`)
+  }
+  return lines
+}
+
 export function chatPrompt(
   facts: HealthFacts,
   statuses: HabitStatus[],
+  signals: string[],
   today: string,
   lang: 'en' | 'fr',
 ): { role: 'system'; content: string } {
@@ -221,18 +284,23 @@ export function chatPrompt(
               `streak ${s.streak} day${s.streak === 1 ? '' : 's'}`,
           )
           .join('\n')
+  const signalLines = signals.length === 0 ? '  (nothing shared yet)' : signals.join('\n')
   return {
     role: 'system',
     content: [
-      `You are the in-product assistant of a personal wellness tracker (Dutiva Health). ${SHARED_RULES}`,
-      'You can answer questions about the person\'s own data below — check-in counts, mood and energy averages, which habits are tracked, what is done today, streaks. If asked something the stats cannot answer, say so plainly rather than guessing.',
+      `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${COMPANION_RULES}`,
+      'How you keep company:',
+      '- Listen first. When the person shares how they feel, acknowledge it warmly and specifically — name the feeling back in their own terms, then ask at most one gentle follow-up. Let them set the pace; do not interrogate.',
+      '- Weave their tracked context (below) into conversation when it helps them feel heard — a streak kept, a note they left, something they journaled. Never recite it as a report, and never mention that you were given a context block.',
+      '- When they seem stuck or ask for ideas, offer at most ONE small, concrete, everyday suggestion — a short walk, a few slow breaths, writing a few lines, reaching out to someone they trust. Offer, don\'t push.',
+      '- You can answer questions about their tracked data — check-in counts, mood and energy averages, habits and streaks. If asked something the context cannot answer, say so plainly rather than guessing.',
       'You can also DO things in the portal when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"mark_habit_done","habit":"<existing habit name>"}   — mark a habit done today',
       '  {"type":"unmark_habit_done","habit":"<existing habit name>"} — undo today\'s mark',
       '  {"type":"add_habit","name":"<new habit>"}                    — start tracking a habit',
       '  {"type":"add_checkin","mood":<1-5>,"energy":<1-5>,"note":"<short>"} — log a check-in (mood required; energy/note optional)',
       '  {"type":"add_journal_entry","title":"<optional>","body":"<text>"}   — write a journal entry',
-      'Only emit an action the person actually asked for. If a habit name does not match the list below, ask which habit they mean instead of guessing. Never emit an action to satisfy a hypothetical.',
+      'Only emit an action the person actually asked for. If a habit name does not match the list below, ask which habit they mean instead of guessing. Never emit an action to satisfy a hypothetical. When you do act, keep the reply personal — a companion confirming, not a receipt.',
       'If the person seems to be in crisis or mentions suicide or self-harm: set action to null and reply ONLY with supportive words plus this line — "Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger." Do not log check-ins or entries for crisis content.',
       `Today is ${today} (the person's local date).`,
       lang === 'fr'
@@ -243,6 +311,8 @@ export function chatPrompt(
       `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
       'Habits:',
       habitLines,
+      'Their recent words — their own text; quote back sparingly and only when it fits:',
+      signalLines,
     ].join('\n'),
   }
 }

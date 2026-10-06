@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildCompanionSignals,
   buildHabitStatuses,
   buildHealthFacts,
   chatPrompt,
@@ -162,10 +163,12 @@ describe('buildHabitStatuses', () => {
 
 describe('chatPrompt', () => {
   const facts = buildHealthFacts([], HABITS, [], 14, NOW)
-  it('carries the non-clinical rules, the action grammar and the crisis line', () => {
-    const p = chatPrompt(facts, [], TODAY, 'en')
+  it('names the companion, keeps the guardrails, the action grammar and the crisis line', () => {
+    const p = chatPrompt(facts, [], [], TODAY, 'en')
     expect(p.role).toBe('system')
+    expect(p.content).toContain('Mira')
     expect(p.content).toContain('non-clinical')
+    expect(p.content).toContain('software, not a person')
     expect(p.content).toContain('mark_habit_done')
     expect(p.content).toContain('9-8-8')
     expect(p.content).toContain('action')
@@ -173,10 +176,72 @@ describe('chatPrompt', () => {
   })
   it('lists habit status for the model and switches language', () => {
     const statuses = buildHabitStatuses(HABITS, [{ habit_id: 'h1', day: TODAY }], TODAY)
-    const p = chatPrompt(facts, statuses, TODAY, 'fr')
+    const p = chatPrompt(facts, statuses, [], TODAY, 'fr')
     expect(p.content).toContain('"Walk" — done today, streak 1 day')
     expect(p.content).toContain('"Evening stretch" — not done today, streak 0 days')
     expect(p.content).toContain('Canadian French')
+  })
+  it('embeds the person\'s own words when present, and says so when not', () => {
+    const signals = buildCompanionSignals(
+      [{ mood: 2, energy: null, note: 'rough day at work', created_at: dayAgo(1) }],
+      [],
+    )
+    const withWords = chatPrompt(facts, [], signals, TODAY, 'en')
+    expect(withWords.content).toContain('"rough day at work"')
+    expect(withWords.content).toContain('mood 2/5')
+    const empty = chatPrompt(facts, [], [], TODAY, 'en')
+    expect(empty.content).toContain('(nothing shared yet)')
+  })
+})
+
+describe('buildCompanionSignals', () => {
+  it('quotes notes and journal excerpts, newest first, skipping empty text', () => {
+    const lines = buildCompanionSignals(
+      [
+        { mood: 4, energy: 3, note: '', created_at: dayAgo(1) },
+        { mood: 2, energy: null, note: 'tense morning', created_at: dayAgo(3) },
+        { mood: 3, energy: 3, note: 'better after a walk', created_at: dayAgo(1) },
+      ],
+      [
+        { title: 'Sunday', body: 'felt calmer after the walk', created_at: dayAgo(2) },
+        { title: '', body: '   ', created_at: dayAgo(1) },
+      ],
+    )
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toContain('mood 3/5')
+    expect(lines[0]).toContain('"better after a walk"')
+    expect(lines[1]).toContain('mood 2/5')
+    expect(lines[2]).toContain('journal')
+    expect(lines[2]).toContain('"Sunday"')
+    expect(lines[2]).toContain('"felt calmer after the walk"')
+  })
+
+  it('flattens newlines and truncates long text', () => {
+    const lines = buildCompanionSignals(
+      [{ mood: 3, energy: null, note: `line one\nline two ${'x'.repeat(400)}`, created_at: dayAgo(1) }],
+      [{ title: '', body: 'y'.repeat(500), created_at: dayAgo(1) }],
+    )
+    expect(lines[0]).toContain('line one line two')
+    expect(lines[0]).not.toContain('\n')
+    expect(lines[0].length).toBeLessThan(220)
+    expect(lines[1].length).toBeLessThan(260)
+  })
+
+  it('caps how much of a person\'s writing reaches the prompt', () => {
+    const many = Array.from({ length: 12 }, (_, i) => ({
+      mood: 3,
+      energy: null,
+      note: `note ${i}`,
+      created_at: dayAgo(i),
+    }))
+    const entries = Array.from({ length: 6 }, (_, i) => ({
+      title: `e${i}`,
+      body: `body ${i}`,
+      created_at: dayAgo(i),
+    }))
+    const lines = buildCompanionSignals(many, entries)
+    expect(lines.filter((l) => l.startsWith('- check-in'))).toHaveLength(8)
+    expect(lines.filter((l) => l.startsWith('- journal'))).toHaveLength(3)
   })
 })
 

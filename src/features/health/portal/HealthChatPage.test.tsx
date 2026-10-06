@@ -6,6 +6,7 @@ import type { LangContextValue } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
+import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearHealthChat,
@@ -33,10 +34,10 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function renderPage(lang: Lang = 'en') {
+function renderPage(lang: Lang = 'en', state?: HealthState) {
   const refresh = vi.fn().mockResolvedValue(undefined)
   const health: HealthDataContextValue = {
-    state: undefined,
+    state,
     loading: false,
     error: undefined,
     refresh,
@@ -60,12 +61,39 @@ describe('HealthChatPage', () => {
     vi.clearAllMocks()
   })
 
-  it('shows the empty state and the crisis note when there is no history', async () => {
+  it('opens with Mira’s greeting and the crisis note when there is no history', async () => {
     vi.mocked(loadHealthChatHistory).mockResolvedValue([])
     renderPage()
 
-    expect(await screen.findByText(/Nothing yet/)).toBeInTheDocument()
+    expect(await screen.findByText(/I’m Mira/)).toBeInTheDocument()
+    expect(screen.getByText(/How are you arriving today/)).toBeInTheDocument()
     expect(screen.getByText(/9-8-8/)).toBeInTheDocument()
+  })
+
+  it('personalizes the greeting with a live habit streak', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    const localDay = (ago: number) => {
+      const d = new Date()
+      d.setDate(d.getDate() - ago)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+        d.getDate(),
+      ).padStart(2, '0')}`
+    }
+    const state: HealthState = {
+      checkIns: [],
+      entries: [],
+      habits: [{ id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' }],
+      habitLogs: [0, 1, 2].map((ago, i) => ({
+        id: `l${i}`,
+        habitId: 'h1',
+        day: localDay(ago),
+        createdAt: new Date().toISOString(),
+      })),
+      lastLoadedAt: new Date().toISOString(),
+    }
+    renderPage('en', state)
+
+    expect(await screen.findByText(/“Walk” is on a 3-day streak/)).toBeInTheDocument()
   })
 
   it('sends a message, renders the reply, and confirms the executed action', async () => {
@@ -75,9 +103,9 @@ describe('HealthChatPage', () => {
       action: { type: 'mark_habit_done', detail: 'Walk', ok: true, refId: 'h1' },
     })
     const { refresh } = renderPage()
-    await screen.findByPlaceholderText(/Write a message/)
+    await screen.findByPlaceholderText(/Tell Mira/)
 
-    fireEvent.change(screen.getByPlaceholderText(/Write a message/), {
+    fireEvent.change(screen.getByPlaceholderText(/Tell Mira/), {
       target: { value: 'mark Walk done' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
@@ -142,7 +170,7 @@ describe('HealthChatPage', () => {
     vi.mocked(loadHealthChatHistory).mockResolvedValue([])
     renderPage('fr')
 
-    expect(await screen.findByText(/Rien pour l/)).toBeInTheDocument()
+    expect(await screen.findByText(/je suis Mira/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
   })
 })
