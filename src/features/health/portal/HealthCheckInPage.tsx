@@ -5,9 +5,10 @@ import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addCheckIn, deleteCheckIn } from '@/features/health/data/api'
+import { addCheckIn, deleteCheckIn, sendHealthReaction } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { ENERGY_LABELS, fmtDateTime, MOOD_LABELS, moodLabel } from './healthUi'
+import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
 
 function ScalePicker({
@@ -62,17 +63,25 @@ export function HealthCheckInPage() {
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  const [miraLine, setMiraLine] = useState<string | null>(null)
 
   const submit = async () => {
     if (mood == null || saving) return
     setSaving(true)
     try {
-      await addCheckIn({ mood, energy, note })
+      const saved = { mood, energy, note }
+      await addCheckIn(saved)
       await refresh()
       setMood(null)
       setEnergy(null)
       setNote('')
       showToast(HM.health_checkin_saved)
+      /* Best-effort: Mira reacts to what was just saved — her line shows
+         here and lands in the chat thread too. A failed reaction never
+         disturbs the save. */
+      void sendHealthReaction({ type: 'checkin_saved', ...saved }, lang)
+        .then((r) => setMiraLine(r.reply))
+        .catch(() => {})
     } finally {
       setSaving(false)
     }
@@ -139,6 +148,7 @@ export function HealthCheckInPage() {
               {x(HM.health_checkin_submit)}
             </button>
           </div>
+          {miraLine && <MiraNote line={miraLine} />}
         </div>
       </section>
 

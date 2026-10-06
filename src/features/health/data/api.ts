@@ -181,12 +181,12 @@ export async function setHabitDone(
   if (error) throw error
 }
 
-/* ---------- health-ai: gentle model assists (aggregates only — chat below
-   is the one exception: the companion reads the user's own notes too) --- */
+/* ---------- health-ai: Mira's model assists — every kind reads the user's
+   own check-in notes and bounded journal excerpts server-side, plus the
+   aggregates. Disclosed in the wellness notice. -------------------------- */
 
-/** One journal prompt built from mood/energy/habit AGGREGATES — the model
-    never sees note text or journal bodies. A suggestion to write about,
-    not advice. */
+/** One journal prompt built from the user's stats and their own recent
+    words — a suggestion to write about, not advice. */
 export async function healthAiPrompt(lang: 'en' | 'fr'): Promise<string> {
   const client = requireSupabase()
   const { data, error } = await client.functions.invoke('health-ai', {
@@ -200,8 +200,8 @@ export async function healthAiPrompt(lang: 'en' | 'fr'): Promise<string> {
   return raw.prompt
 }
 
-/** A short weekly summary of the same aggregates — describes the numbers,
-    never advises. */
+/** A short weekly summary over the same context — describes what the
+    numbers and the notes say, never advises. */
 export async function healthAiRecap(lang: 'en' | 'fr'): Promise<string> {
   const client = requireSupabase()
   const { data, error } = await client.functions.invoke('health-ai', {
@@ -223,7 +223,8 @@ export interface HabitSuggestion {
 }
 
 /** One small habit the user isn't already tracking — suggested from habit
-    names + streak aggregates. The user still adds (or dismisses) it. */
+    names, streaks, and what the user has been writing. The user still adds
+    (or dismisses) it. */
 export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion> {
   const client = requireSupabase()
   const { data, error } = await client.functions.invoke('health-ai', {
@@ -261,6 +262,8 @@ export interface HealthChatTurn {
   role: 'user' | 'assistant'
   content: string
   action: HealthChatAction | null
+  /** Thumbs rating the user left on an assistant turn: 1 | -1 | null. */
+  feedback: number | null
   createdAt: string
 }
 
@@ -269,21 +272,81 @@ export interface HealthChatTurn {
     caller only sends the message, the day (local), and the locale. Mira
     replies over the caller's own context assembled server-side: numbers,
     habit status, recent check-in notes and journal excerpts, and the
-    conversation itself. */
+    conversation itself. assistantId is the persisted row's id — the client
+    needs it to attach feedback. */
 export async function sendHealthChat(
   message: string,
   lang: 'en' | 'fr',
-): Promise<{ reply: string; action: HealthChatAction | null }> {
+): Promise<{ reply: string; action: HealthChatAction | null; assistantId: string | null }> {
   const client = requireSupabase()
   const { data, error } = await client.functions.invoke('health-ai', {
     body: { kind: 'chat', message, lang, today: todayDayKey() },
   })
   if (error) throw error
-  const raw = (data as { reply?: string; action?: HealthChatAction | null } | null) ?? {}
+  const raw =
+    (data as { reply?: string; action?: HealthChatAction | null; assistantId?: string | null } | null) ??
+    {}
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from health-ai')
   }
-  return { reply: raw.reply, action: raw.action ?? null }
+  return { reply: raw.reply, action: raw.action ?? null, assistantId: raw.assistantId ?? null }
+}
+
+/* ---------- reactions — Mira noticing what the user just did ---------- */
+
+export type HealthReactEvent =
+  | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
+  | { type: 'habit_marked'; habit: string }
+
+/** One short reaction to something the user just did elsewhere in the
+    portal — a saved check-in or a habit marked done. The line is written
+    into the conversation too (assistant turn), so it survives the session.
+    Callers treat this as best-effort: a failed reaction never blocks the
+    action it responds to. */
+export async function sendHealthReaction(
+  event: HealthReactEvent,
+  lang: 'en' | 'fr',
+): Promise<{ reply: string; assistantId: string | null }> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'react', event, lang, today: todayDayKey() },
+  })
+  if (error) throw error
+  const raw = (data as { reply?: string; assistantId?: string | null } | null) ?? {}
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reaction from health-ai')
+  }
+  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+}
+
+/** Share ONE journal entry with Mira — explicit per-entry consent; only
+    this entry's body reaches the model. Her reply lands in the
+    conversation and is returned here for inline display. */
+export async function shareEntryWithMira(
+  entryId: string,
+  lang: 'en' | 'fr',
+): Promise<{ reply: string; assistantId: string | null }> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'entry_react', entryId, lang, today: todayDayKey() },
+  })
+  if (error) throw error
+  const raw = (data as { reply?: string; assistantId?: string | null } | null) ?? {}
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from health-ai')
+  }
+  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+}
+
+/** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). Routed
+    through the function — it constrains the write to the caller's own
+    assistant rows. */
+export async function rateHealthChatTurn(messageId: string, rating: 1 | -1 | 0): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.functions.invoke('health-ai', {
+    body: { kind: 'chat_feedback', messageId, rating },
+  })
+  if (error) throw error
 }
 
 export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[]> {
@@ -298,6 +361,7 @@ export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
     action: (r.action as HealthChatAction | null) ?? null,
+    feedback: r.feedback === 1 || r.feedback === -1 ? r.feedback : null,
     createdAt: String(r.created_at ?? ''),
   }))
 }

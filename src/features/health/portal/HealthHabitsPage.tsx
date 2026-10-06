@@ -5,11 +5,12 @@ import { Check, Loader2, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addHabit, deleteHabit, healthAiHabit, setHabitDone, type HabitSuggestion } from '@/features/health/data/api'
+import { addHabit, deleteHabit, healthAiHabit, sendHealthReaction, setHabitDone, type HabitSuggestion } from '@/features/health/data/api'
 import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
 
 /**
@@ -31,6 +32,7 @@ export function HealthHabitsPage() {
   const [notifySaving, setNotifySaving] = useState(false)
   const [suggestions, setSuggestions] = useState<HabitSuggestion[]>([])
   const [suggestBusy, setSuggestBusy] = useState(false)
+  const [miraLine, setMiraLine] = useState<string | null>(null)
 
   /* Evening streak nudge — one email a day at most, only while a live
      streak is unchecked. Absent pref row defaults to on. */
@@ -147,6 +149,14 @@ export function HealthHabitsPage() {
     try {
       await setHabitDone(habitId, today, done)
       await refresh()
+      /* She reacts to the kept promise, not the unchecking — best-effort,
+         the line also lands in the chat thread. */
+      if (done) {
+        const name = habits.find((h) => h.id === habitId)?.name ?? ''
+        void sendHealthReaction({ type: 'habit_marked', habit: name }, lang)
+          .then((r) => setMiraLine(r.reply))
+          .catch(() => {})
+      }
     } finally {
       setBusyId(null)
     }
@@ -327,6 +337,7 @@ export function HealthHabitsPage() {
             </span>
           </label>
         )}
+        {miraLine && <MiraNote line={miraLine} />}
       </section>
 
       <p className="sb-note" style={{ marginTop: 18 }}>

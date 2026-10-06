@@ -5,10 +5,11 @@ import { Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addJournalEntry, deleteJournalEntry, healthAiPrompt, updateJournalEntry } from '@/features/health/data/api'
+import { addJournalEntry, deleteJournalEntry, healthAiPrompt, shareEntryWithMira, updateJournalEntry } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { HealthJournalEntry } from '@/features/health/data/types'
 import { fmtDateTime } from './healthUi'
+import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
 
 function EntryEditor({
@@ -93,8 +94,11 @@ function EntryEditor({
 function EntryRow({ entry }: { entry: HealthJournalEntry }) {
   const { x, lang } = useI18n()
   const { refresh } = useHealthData()
+  const { showToast } = useToasts()
   const [editing, setEditing] = useState(false)
   const [armDelete, setArmDelete] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [miraLine, setMiraLine] = useState<string | null>(null)
 
   const remove = async () => {
     if (!armDelete) {
@@ -103,6 +107,22 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
     }
     await deleteJournalEntry(entry.id)
     await refresh()
+  }
+
+  /* Explicit per-entry consent — only this entry's body reaches Mira, and
+     only because the button was pressed. Her reply shows here and lands in
+     the chat thread. */
+  const share = async () => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      const out = await shareEntryWithMira(entry.id, lang)
+      setMiraLine(out.reply)
+    } catch {
+      showToast(HM.health_journal_share_failed)
+    } finally {
+      setSharing(false)
+    }
   }
 
   if (editing) {
@@ -118,36 +138,56 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
   }
 
   return (
-    <div className="hb-row">
-      <div className="hb-row-main">
-        <p className="hb-row-title">{entry.title.trim() || x(HM.health_journal_untitled)}</p>
-        <p className="hb-row-body">{entry.body}</p>
-        <span className="hb-row-meta">
-          {fmtDateTime(entry.createdAt, lang)}
-          {entry.updatedAt !== entry.createdAt &&
-            ` · ${x(HM.health_journal_edited).replace('{date}', fmtDateTime(entry.updatedAt, lang))}`}
-        </span>
+    <div>
+      <div className="hb-row">
+        <div className="hb-row-main">
+          <p className="hb-row-title">{entry.title.trim() || x(HM.health_journal_untitled)}</p>
+          <p className="hb-row-body">{entry.body}</p>
+          <span className="hb-row-meta">
+            {fmtDateTime(entry.createdAt, lang)}
+            {entry.updatedAt !== entry.createdAt &&
+              ` · ${x(HM.health_journal_edited).replace('{date}', fmtDateTime(entry.updatedAt, lang))}`}
+          </span>
+        </div>
+        <div className="hb-row-side" style={{ flexDirection: 'row', gap: 8 }}>
+          {miraLine === null && (
+            <button
+              type="button"
+              className="sb-btn sb-btn-secondary sb-btn-sm"
+              style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+              disabled={sharing}
+              title={x(HM.health_journal_share_mira_hint)}
+              onClick={() => void share()}
+            >
+              {sharing ? (
+                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <Sparkles size={12} aria-hidden="true" />
+              )}
+              {x(sharing ? HM.health_journal_share_mira_loading : HM.health_journal_share_mira)}
+            </button>
+          )}
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+            onClick={() => setEditing(true)}
+          >
+            <Pencil size={12} aria-hidden="true" />
+            {x(HM.health_journal_edit)}
+          </button>
+          <button
+            type="button"
+            className={`sb-btn sb-btn-sm ${armDelete ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+            onClick={() => void remove()}
+            onBlur={() => setArmDelete(false)}
+          >
+            {armDelete ? x(HM.health_journal_delete_confirm) : x(HM.health_journal_delete)}
+          </button>
+        </div>
       </div>
-      <div className="hb-row-side" style={{ flexDirection: 'row', gap: 8 }}>
-        <button
-          type="button"
-          className="sb-btn sb-btn-secondary sb-btn-sm"
-          style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
-          onClick={() => setEditing(true)}
-        >
-          <Pencil size={12} aria-hidden="true" />
-          {x(HM.health_journal_edit)}
-        </button>
-        <button
-          type="button"
-          className={`sb-btn sb-btn-sm ${armDelete ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
-          style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
-          onClick={() => void remove()}
-          onBlur={() => setArmDelete(false)}
-        >
-          {armDelete ? x(HM.health_journal_delete_confirm) : x(HM.health_journal_delete)}
-        </button>
-      </div>
+      {miraLine && <MiraNote line={miraLine} />}
     </div>
   )
 }
@@ -161,8 +201,8 @@ export function HealthJournalPage() {
   const [prompt, setPrompt] = useState<string | null>(null)
   const [prompting, setPrompting] = useState(false)
 
-  /* Model-built writing idea from aggregates (numbers only — entries stay
-     private). Lands as a note above the editor; the user still writes. */
+  /* Model-built writing idea — Mira reads the numbers and the user's own
+     recent words. Lands as a note above the editor; the user still writes. */
   const suggestPrompt = async () => {
     if (prompting) return
     setPrompting(true)

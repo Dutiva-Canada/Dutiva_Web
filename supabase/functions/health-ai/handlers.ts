@@ -1,13 +1,11 @@
 /**
- * health-ai — pure helpers for the wellness-portal model calls. Two privacy
- * tiers, both deliberate:
+ * health-ai — pure helpers for the wellness-portal model calls.
  *
- *   - reflect / recap / habit: AGGREGATES ONLY (counts, averages, streak
- *     lengths). Journal text and check-in notes never leave the function.
- *   - chat (the companion): the model also sees the person's own recent
- *     words — check-in notes and short journal excerpts — plus the
- *     conversation. A companion that can't read what was shared isn't one;
- *     the wellness notice says this plainly. Rows are still the caller's own.
+ * Mira reads what the person wrote: check-in notes and bounded journal
+ * excerpts reach every prompt kind (buildCompanionSignals), the chat
+ * conversation is included on chat, and entry_react reads one journal
+ * entry the person explicitly shared. Everything read belongs to the
+ * caller — the wellness notice discloses this plainly.
  */
 
 export interface CheckInRow {
@@ -111,40 +109,64 @@ const COMPANION_RULES = [
   'No praise inflation, no shame, no scorekeeping. Meet the person where they are.',
 ].join(' ')
 
-export function reflectPrompt(facts: HealthFacts, lang: 'en' | 'fr'): string {
+/** The one line every prompt kind hands out when something looks like crisis. */
+const CRISIS_LINE =
+  'Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger.'
+
+/** Rendered signal lines shared by every kind — see buildCompanionSignals. */
+function signalsBlock(signals: string[]): string {
+  return signals.length === 0 ? '(nothing shared yet)' : signals.join('\n')
+}
+
+export function reflectPrompt(
+  facts: HealthFacts,
+  signals: string[],
+  lang: 'en' | 'fr',
+): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
     `You write gentle journal prompts for a personal wellness tracker. ${SHARED_RULES}`,
-    'Given the aggregate stats below, suggest ONE short reflection prompt (one or two sentences, phrased as a question the person could write about). If the stats are thin, ask a broad gentle question instead of referencing numbers.',
+    'Given the stats and the person\'s own recent words below, suggest ONE short reflection prompt (one or two sentences, phrased as a question they could write about). If something they wrote invites a deeper look, ask toward it. If everything is thin, ask a broad gentle question instead.',
     langLine,
     'Return only the prompt text — no preamble, no quotes.',
     '',
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
+    'Their recent words:',
+    signalsBlock(signals),
   ].join('\n')
 }
 
-export function recapPrompt(facts: HealthFacts, lang: 'en' | 'fr'): string {
+export function recapPrompt(facts: HealthFacts, signals: string[], lang: 'en' | 'fr'): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
     `You write weekly summaries for a personal wellness tracker. ${SHARED_RULES}`,
-    'Summarize the aggregate stats below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down, and how habits went. Stick to the numbers — describe, don\'t advise. If there is no data, say so in one sentence and stop.',
+    'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down, how habits went, and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. Describe, don\'t advise. If there is no data, say so in one sentence and stop.',
     langLine,
     'Return only the summary text.',
     '',
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
+    'Their recent words:',
+    signalsBlock(signals),
   ].join('\n')
 }
 
-export function habitPrompt(facts: HealthFacts, habitNames: string[], lang: 'en' | 'fr'): string {
+export function habitPrompt(
+  facts: HealthFacts,
+  habitNames: string[],
+  signals: string[],
+  lang: 'en' | 'fr',
+): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
     `You suggest one small daily habit for a personal wellness tracker. ${SHARED_RULES}`,
-    'Given the stats and the habits the person already tracks, suggest ONE new habit they are not already doing — small, concrete, and doable in under ten minutes a day.',
+    'Given the stats, the habits the person already tracks, and their own recent words below, suggest ONE new habit they are not already doing — small, concrete, and doable in under ten minutes a day.',
     'Answer in exactly this format: Habit name | one short reason it fits. No preamble.',
     langLine,
     '',
     `Current habits: ${habitNames.length > 0 ? habitNames.join(' | ') : '(none yet)'}`,
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
+    'Their recent words:',
+    signalsBlock(signals),
   ].join('\n')
 }
 
@@ -301,7 +323,7 @@ export function chatPrompt(
       '  {"type":"add_checkin","mood":<1-5>,"energy":<1-5>,"note":"<short>"} — log a check-in (mood required; energy/note optional)',
       '  {"type":"add_journal_entry","title":"<optional>","body":"<text>"}   — write a journal entry',
       'Only emit an action the person actually asked for. If a habit name does not match the list below, ask which habit they mean instead of guessing. Never emit an action to satisfy a hypothetical. When you do act, keep the reply personal — a companion confirming, not a receipt.',
-      'If the person seems to be in crisis or mentions suicide or self-harm: set action to null and reply ONLY with supportive words plus this line — "Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger." Do not log check-ins or entries for crisis content.',
+      `If the person seems to be in crisis or mentions suicide or self-harm: set action to null and reply ONLY with supportive words plus this line — "${CRISIS_LINE}" Do not log check-ins or entries for crisis content.`,
       `Today is ${today} (the person's local date).`,
       lang === 'fr'
         ? 'Reply in Canadian French.'
@@ -400,4 +422,70 @@ export function resolveHabitRef(
   if (exact.length === 1) return exact[0]
   const partial = statuses.filter((s) => s.name.trim().toLowerCase().includes(needle))
   return partial.length === 1 ? partial[0] : null
+}
+
+/* ── Reactions — Mira noticing what the person just did ─────────────────────
+   Fired on positive actions (check-in saved, habit marked done) and on an
+   explicitly shared journal entry. Same context and same rules as chat —
+   she reacts because she already knows the person — but plain-text output,
+   no action grammar. */
+
+export type ReactEvent =
+  | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
+  | { type: 'habit_marked'; habit: string }
+
+/** One or two sentences reacting to something the person just did. `habitStreak`
+    is the streak the server already computed — the client only names the habit. */
+export function reactPrompt(
+  event: ReactEvent,
+  habitStreak: number | null,
+  signals: string[],
+  today: string,
+  lang: 'en' | 'fr',
+): string {
+  const eventLine =
+    event.type === 'checkin_saved'
+      ? `saved a check-in — mood ${event.mood}/5` +
+        (event.energy != null ? `, energy ${event.energy}/5` : '') +
+        (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
+      : `marked the habit "${oneLine(event.habit, 120)}" done today` +
+        (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+  return [
+    `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${COMPANION_RULES}`,
+    'The person just did something in the app (below). React the way a companion would — one or two short sentences, naming what they did. If they shared a feeling in the note, meet the feeling first. Small warmth, no cheerleading, no advice unless it lands as one gentle observation.',
+    `If anything they wrote hints at crisis or self-harm, reply ONLY with supportive words plus "${CRISIS_LINE}" — nothing else.`,
+    `Today is ${today}.`,
+    lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
+    'Return only the reply text.',
+    '',
+    `The event: ${eventLine}.`,
+    'Their recent words:',
+    signalsBlock(signals),
+  ].join('\n')
+}
+
+const ENTRY_BODY_MAX = 2500
+
+/** A fuller response to a journal entry the person explicitly chose to share
+    — pressed "Let Mira read this." Consent per entry: only this body is sent. */
+export function entryReactPrompt(
+  title: string,
+  body: string,
+  signals: string[],
+  today: string,
+  lang: 'en' | 'fr',
+): string {
+  return [
+    `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${COMPANION_RULES}`,
+    'The person chose to share a private journal entry with you. Respond as a companion who was trusted with it: name what they shared in their own terms, reflect the feeling underneath it, ask at most one gentle question if it helps them feel heard. 2–4 short sentences. Not a summary, not advice — no fixes, no lists.',
+    `If the entry hints at crisis or self-harm, reply ONLY with supportive words plus "${CRISIS_LINE}" — nothing else.`,
+    `Today is ${today}.`,
+    lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
+    'Return only the reply text.',
+    '',
+    `The entry${title.trim() ? ` "${oneLine(title, 120)}"` : ''} — their own words:`,
+    `"""${oneLine(body, ENTRY_BODY_MAX)}"""`,
+    'Their recent words:',
+    signalsBlock(signals),
+  ].join('\n')
 }

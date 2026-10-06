@@ -11,16 +11,19 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearHealthChat,
   loadHealthChatHistory,
+  rateHealthChatTurn,
   sendHealthChat,
 } from '@/features/health/data/api'
 import { HealthChatPage } from './HealthChatPage'
 
-/* The page never reads the table directly — history, sending and clearing all
-   go through the health-ai function, so the api module is the seam to mock. */
+/* The page never reads the table directly — history, sending, rating and
+   clearing all go through the health-ai function, so the api module is the
+   seam to mock. */
 vi.mock('@/features/health/data/api', () => ({
   sendHealthChat: vi.fn(),
   loadHealthChatHistory: vi.fn(),
   clearHealthChat: vi.fn(),
+  rateHealthChatTurn: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -101,6 +104,7 @@ describe('HealthChatPage', () => {
     vi.mocked(sendHealthChat).mockResolvedValue({
       reply: 'Done — marked for today.',
       action: { type: 'mark_habit_done', detail: 'Walk', ok: true, refId: 'h1' },
+      assistantId: '11111111-2222-3333-4444-555555555555',
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Tell Mira/)
@@ -127,6 +131,7 @@ describe('HealthChatPage', () => {
         role: 'user',
         content: 'add a habit called Stretch',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
       {
@@ -134,6 +139,7 @@ describe('HealthChatPage', () => {
         role: 'assistant',
         content: 'Stretch is on your list now.',
         action: { type: 'add_habit', detail: 'Stretch', ok: true, refId: 'h9' },
+        feedback: null,
         createdAt: '2026-10-05T12:00:01Z',
       },
     ])
@@ -152,6 +158,7 @@ describe('HealthChatPage', () => {
         role: 'user',
         content: 'hi',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
     ])
@@ -164,6 +171,51 @@ describe('HealthChatPage', () => {
     await waitFor(() =>
       expect(screen.queryByText('hi')).not.toBeInTheDocument(),
     )
+  })
+
+  it('rates an assistant turn thumbs-up and persists it', async () => {
+    const assistantId = '11111111-2222-3333-4444-555555555555'
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: 'That sounds heavy.',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    vi.mocked(rateHealthChatTurn).mockResolvedValue(undefined)
+    renderPage()
+    await screen.findByText('That sounds heavy.')
+
+    const up = screen.getByRole('button', { name: 'Helpful' })
+    fireEvent.click(up)
+    await waitFor(() => expect(rateHealthChatTurn).toHaveBeenCalledWith(assistantId, 1))
+    expect(up).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('re-rating clears the thumbs on a second click', async () => {
+    const assistantId = '11111111-2222-3333-4444-555555555555'
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: 'One reply.',
+        action: null,
+        feedback: 1,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    vi.mocked(rateHealthChatTurn).mockResolvedValue(undefined)
+    renderPage()
+    await screen.findByText('One reply.')
+
+    const up = screen.getByRole('button', { name: 'Helpful' })
+    expect(up).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.click(up)
+    await waitFor(() => expect(rateHealthChatTurn).toHaveBeenCalledWith(assistantId, 0))
+    expect(up).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('renders the French chrome under lang fr', async () => {

@@ -4,9 +4,11 @@ import {
   buildHabitStatuses,
   buildHealthFacts,
   chatPrompt,
+  entryReactPrompt,
   habitPrompt,
   parseChatReply,
   parseHabit,
+  reactPrompt,
   recapPrompt,
   reflectPrompt,
   resolveHabitRef,
@@ -77,27 +79,40 @@ describe('buildHealthFacts', () => {
 describe('prompt guardrails', () => {
   const facts = buildHealthFacts([], [{ id: 'h1', name: 'Walk' }], [], 14, NOW)
   it('carries the non-clinical rules in both prompts', () => {
-    for (const p of [reflectPrompt(facts, 'en'), recapPrompt(facts, 'en')]) {
+    for (const p of [reflectPrompt(facts, [], 'en'), recapPrompt(facts, [], 'en')]) {
       expect(p).toContain('non-clinical')
       expect(p).toContain('Never diagnose')
-      expect(p).not.toContain('journal entries')
+    }
+  })
+  it('reads the person\'s own words now — every kind carries the signals block', () => {
+    const signals = buildCompanionSignals(
+      [{ mood: 2, energy: null, note: 'tense morning', created_at: dayAgo(1) }],
+      [],
+    )
+    for (const p of [
+      reflectPrompt(facts, signals, 'en'),
+      recapPrompt(facts, signals, 'en'),
+      habitPrompt(facts, [], signals, 'en'),
+    ]) {
+      expect(p).toContain('"tense morning"')
+      expect(p).toContain('Their recent words')
     }
   })
   it('switches language', () => {
-    expect(reflectPrompt(facts, 'fr')).toContain('Canadian French')
-    expect(recapPrompt(facts, 'fr')).toContain('Canadian French')
+    expect(reflectPrompt(facts, [], 'fr')).toContain('Canadian French')
+    expect(recapPrompt(facts, [], 'fr')).toContain('Canadian French')
   })
   it('recap instructs describe-not-advise', () => {
-    expect(recapPrompt(facts, 'en')).toContain('describe')
+    expect(recapPrompt(facts, [], 'en').toLowerCase()).toContain('describe')
   })
   it('habit prompt stays non-clinical and names existing habits', () => {
-    const p = habitPrompt(facts, ['Morning walk'], 'en')
+    const p = habitPrompt(facts, ['Morning walk'], [], 'en')
     expect(p).toContain('non-clinical')
     expect(p).toContain('Morning walk')
     expect(p).toContain('Habit name | one short reason')
   })
   it('habit prompt switches language and handles an empty habit list', () => {
-    const p = habitPrompt(facts, [], 'fr')
+    const p = habitPrompt(facts, [], [], 'fr')
     expect(p).toContain('Canadian French')
     expect(p).toContain('(none yet)')
   })
@@ -242,6 +257,61 @@ describe('buildCompanionSignals', () => {
     const lines = buildCompanionSignals(many, entries)
     expect(lines.filter((l) => l.startsWith('- check-in'))).toHaveLength(8)
     expect(lines.filter((l) => l.startsWith('- journal'))).toHaveLength(3)
+  })
+})
+
+describe('reaction prompts', () => {
+  it('reactPrompt carries the companion rules, the event, and the crisis line', () => {
+    const p = reactPrompt(
+      { type: 'checkin_saved', mood: 2, energy: 1, note: 'rough day' },
+      null,
+      [],
+      TODAY,
+      'en',
+    )
+    expect(p).toContain('Mira')
+    expect(p).toContain('software, not a person')
+    expect(p).toContain('mood 2/5')
+    expect(p).toContain('energy 1/5')
+    expect(p).toContain('"rough day"')
+    expect(p).toContain('9-8-8')
+    expect(p).toContain('one or two short sentences')
+    expect(p).toContain(TODAY)
+  })
+
+  it('habit_marked names the habit and the server-resolved streak', () => {
+    const p = reactPrompt({ type: 'habit_marked', habit: 'Walk' }, 3, [], TODAY, 'en')
+    expect(p).toContain('"Walk"')
+    expect(p).toContain('streak now 3 days')
+  })
+
+  it('a check-in without a note says so instead of inventing one', () => {
+    const p = reactPrompt({ type: 'checkin_saved', mood: 4 }, null, [], TODAY, 'en')
+    expect(p).toContain('no note')
+    expect(p).not.toContain('note:')
+  })
+
+  it('entryReactPrompt quotes the shared entry and says it was chosen', () => {
+    const p = entryReactPrompt('Sunday', 'a long entry body', [], TODAY, 'fr')
+    expect(p).toContain('chose to share')
+    expect(p).toContain('"Sunday"')
+    expect(p).toContain('a long entry body')
+    expect(p).toContain('Canadian French')
+    expect(p).toContain('9-8-8')
+    expect(p).toContain('software, not a person')
+  })
+
+  it('flattens newlines and caps the shared entry body', () => {
+    const p = entryReactPrompt(
+      '',
+      `first line\nsecond line ${'x'.repeat(4000)}`,
+      [],
+      TODAY,
+      'en',
+    )
+    expect(p).toContain('first line second line')
+    expect(p).not.toContain('\nsecond')
+    expect(p.length).toBeLessThan(4000)
   })
 })
 

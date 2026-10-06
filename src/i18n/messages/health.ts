@@ -263,20 +263,21 @@ export const healthMessages = defineMessages({
     fr: 'Un courriel par jour au plus, seulement quand une habitude avec une suite n’est pas encore cochée.',
   },
 
-  /* AI assists — aggregates only (counts, averages, streaks); note text and
-     journal bodies never leave the portal. Reflection, not advice. */
+  /* AI assists — Mira reads the user's own check-in notes and journal
+     excerpts alongside the numbers (disclosed in the wellness notice).
+     Reflection, not advice. */
   health_ai_prompt_btn: { en: 'Suggest a prompt', fr: 'Suggérer une amorce' },
   health_ai_prompt_loading: { en: 'Thinking…', fr: 'Réflexion…' },
   health_ai_prompt_label: {
-    en: 'An idea to write about — built from your numbers, not your entries.',
-    fr: 'Une idée à explorer — tirée de vos chiffres, pas de vos écrits.',
+    en: 'An idea to write about — Mira reads your numbers and what you’ve written.',
+    fr: 'Une idée à explorer — Mira lit vos chiffres et vos écrits.',
   },
   health_ai_recap_btn: { en: 'Summarize my week', fr: 'Résumer ma semaine' },
   health_ai_recap_loading: { en: 'Summarizing…', fr: 'Résumé en cours…' },
-  health_ai_recap_title: { en: 'Your week in numbers', fr: 'Votre semaine en chiffres' },
+  health_ai_recap_title: { en: 'Your week', fr: 'Votre semaine' },
   health_ai_note: {
-    en: 'Generated from counts and averages only — entries stay private. A reflection, not advice.',
-    fr: 'Généré à partir de comptes et moyennes seulement — vos écrits restent privés. Une réflexion, pas un conseil.',
+    en: 'Mira reads your numbers and what you wrote to respond. A reflection, not advice.',
+    fr: 'Mira lit vos chiffres et vos écrits pour répondre. Une réflexion, pas un conseil.',
   },
   health_ai_failed: {
     en: 'The assistant isn’t available right now.',
@@ -480,6 +481,24 @@ export const healthMessages = defineMessages({
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
   },
+  /* Reactions — Mira responds inline where the action happened (check-in,
+     habit, journal); the same words also land in the conversation.
+     [FR self-authored] */
+  health_journal_share_mira: { en: 'Let Mira read this', fr: 'Laisser Mira le lire' },
+  health_journal_share_mira_loading: { en: 'Mira is reading…', fr: 'Mira lit…' },
+  /* Per-entry consent, stated at the button. [FR self-authored] */
+  health_journal_share_mira_hint: {
+    en: 'She reads only this entry — her reply lands here and in your chat.',
+    fr: 'Elle lit seulement cette entrée — sa réponse arrive ici et dans votre discussion.',
+  },
+  health_journal_share_failed: {
+    en: 'Mira couldn’t read it right now — try again.',
+    fr: 'Mira n’a pas pu le lire — réessayez.',
+  },
+  /* Thumbs rating under an assistant reply — stored on the turn.
+     [FR self-authored] */
+  health_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
+  health_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',

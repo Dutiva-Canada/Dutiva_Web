@@ -1,13 +1,14 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useRef, useState } from 'react'
-import { Check, Loader2, Send, Trash2 } from 'lucide-react'
+import { Check, Loader2, Send, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   clearHealthChat,
   loadHealthChatHistory,
+  rateHealthChatTurn,
   sendHealthChat,
   type HealthChatAction,
   type HealthChatTurn,
@@ -77,7 +78,7 @@ export function HealthChatPage() {
     setSending(true)
     setDraft('')
     try {
-      const { reply, action } = await sendHealthChat(message, lang)
+      const { reply, action, assistantId } = await sendHealthChat(message, lang)
       setTurns((prev) => [
         ...(prev ?? []),
         {
@@ -85,13 +86,16 @@ export function HealthChatPage() {
           role: 'user',
           content: message,
           action: null,
+          feedback: null,
           createdAt: new Date().toISOString(),
         },
         {
-          id: `a-${Date.now()}`,
+          /* The persisted row id when the insert landed — rating needs it. */
+          id: assistantId ?? `a-${Date.now()}`,
           role: 'assistant',
           content: reply,
           action,
+          feedback: null,
           createdAt: new Date().toISOString(),
         },
       ])
@@ -116,6 +120,23 @@ export function HealthChatPage() {
       showToast(HM.health_chat_error)
     } finally {
       setClearing(false)
+    }
+  }
+
+  /* Thumbs on an assistant turn — only real rows (uuid ids) can hold a
+     rating; optimistic, reverted if the write fails. */
+  const rate = async (turnId: string, rating: 1 | -1) => {
+    const before = turns?.find((t) => t.id === turnId)?.feedback ?? null
+    const next = before === rating ? 0 : rating
+    setTurns((prev) =>
+      (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: next || null } : t)),
+    )
+    try {
+      await rateHealthChatTurn(turnId, next)
+    } catch {
+      setTurns((prev) =>
+        (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: before } : t)),
+      )
     }
   }
 
@@ -155,7 +176,34 @@ export function HealthChatPage() {
                     {t.action.ok ? actionLabel(t.action, x) : x(HM.health_chat_action_failed)}
                   </span>
                 )}
-                <span className="sbchat-bubble-meta">{fmtDateTime(t.createdAt, lang)}</span>
+                <span className="sbchat-bubble-meta">
+                  {fmtDateTime(t.createdAt, lang)}
+                  {t.role === 'assistant' &&
+                    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                      t.id,
+                    ) && (
+                      <span className="sbchat-rate">
+                        <button
+                          type="button"
+                          className="sbchat-rate-btn"
+                          aria-label={x(HM.health_chat_rate_up)}
+                          aria-pressed={t.feedback === 1}
+                          onClick={() => void rate(t.id, 1)}
+                        >
+                          <ThumbsUp size={12} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="sbchat-rate-btn"
+                          aria-label={x(HM.health_chat_rate_down)}
+                          aria-pressed={t.feedback === -1}
+                          onClick={() => void rate(t.id, -1)}
+                        >
+                          <ThumbsDown size={12} aria-hidden="true" />
+                        </button>
+                      </span>
+                    )}
+                </span>
               </div>
             ))
           )}
