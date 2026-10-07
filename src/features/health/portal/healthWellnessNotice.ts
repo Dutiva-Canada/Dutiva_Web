@@ -13,10 +13,10 @@ import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
  * the user; nothing the user writes is monitored by a person, and no entry
  * triggers an alert. The in-app companion (Mira) answers and reacts as
  * software — she is not a person and not a crisis service — and she reads
- * the user's own check-in notes, short excerpts of recent journal entries,
- * and the conversation; one full journal entry reaches her only when the
- * user presses "Let Mira read this." That reading is disclosed here, not
- * hidden.
+ * the user's own check-in notes, the conversation, and short excerpts of
+ * journal entries the user explicitly shared — pressing "Let Mira read
+ * this" shares an entry until the user revokes it. That reading is
+ * disclosed here, not hidden.
  *
  * [FR self-authored — parity with the EN text; hedge strength matched.]
  */
@@ -38,7 +38,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
           },
           {
             type: 'p',
-            text: 'An in-app companion, Mira, can keep you company — she listens in the Mira tab, reacts when you save a check-in or mark a habit done, and responds to a journal entry when you press “Let Mira read this.” To respond, she reads your tracked numbers, your check-in notes, short excerpts of your recent journal entries, and the conversation itself. What she says reflects what you have shared — it is not an assessment of your health.',
+            text: 'An in-app companion, Mira, can keep you company — she listens in the Mira tab, reacts when you save a check-in or mark a habit done, and responds to a journal entry when you press “Let Mira read this.” To respond, she reads your tracked numbers, your check-in notes, short excerpts of the journal entries you have shared with her, and the conversation itself. What she says reflects what you have shared — it is not an assessment of your health.',
           },
         ],
       },
@@ -80,7 +80,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Check-ins, journal entries, habits, and chat messages are stored in your account and readable only by you. To generate her replies, Mira processes what you have written — the conversation, your check-in notes, and short excerpts of your recent journal entries — and, when you press “Let Mira read this,” the full entry you chose. The thumbs rating you leave on a reply is stored with the conversation. What you record may be sensitive — write what you choose, and you can delete entries or clear the conversation at any time.',
+            text: 'Check-ins, journal entries, habits, and chat messages are stored in your account and readable only by you. To generate her replies, Mira processes what you have written — the conversation, your check-in notes, and short excerpts of the journal entries you have shared. Pressing “Let Mira read this” on an entry shares it with her — she reads it in full, and its excerpt stays in her context until you press “Stop sharing” on the entry. The thumbs rating you leave on a reply is stored with the conversation, and a write she makes at your request (a saved check-in, a marked habit) can be undone from the chat. What you record may be sensitive — write what you choose, and you can delete entries or clear the conversation at any time.',
           },
           {
             type: 'p',
@@ -107,7 +107,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
           },
           {
             type: 'p',
-            text: 'Une compagne intégrée, Mira, vous tient compagnie — elle écoute dans l’onglet Mira, réagit quand vous notez un point du jour ou marquez une habitude, et répond à une entrée de journal quand vous appuyez sur « Laisser Mira le lire ». Pour répondre, elle lit vos données suivies, les notes de vos points du jour, de courts extraits de vos entrées de journal récentes et la discussion elle-même. Ce qu’elle dit reflète ce que vous avez partagé — ce n’est pas une évaluation de votre santé.',
+            text: 'Une compagne intégrée, Mira, vous tient compagnie — elle écoute dans l’onglet Mira, réagit quand vous notez un point du jour ou marquez une habitude, et répond à une entrée de journal quand vous appuyez sur « Laisser Mira le lire ». Pour répondre, elle lit vos données suivies, les notes de vos points du jour, de courts extraits des entrées de journal que vous lui avez confiées et la discussion elle-même. Ce qu’elle dit reflète ce que vous avez partagé — ce n’est pas une évaluation de votre santé.',
           },
         ],
       },
@@ -149,7 +149,7 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         blocks: [
           {
             type: 'p',
-            text: 'Vos points du jour, vos entrées de journal, vos habitudes et vos messages de clavardage sont conservés dans votre compte et ne sont lisibles que par vous. Pour générer ses réponses, Mira traite ce que vous avez écrit — la discussion, les notes de vos points du jour et de courts extraits de vos entrées de journal récentes — ainsi que, quand vous appuyez sur « Laisser Mira le lire », l’entrée complète que vous avez choisie. L’appréciation que vous laissez sur une réponse est conservée avec la discussion. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer des entrées ou effacer la discussion en tout temps.',
+            text: 'Vos points du jour, vos entrées de journal, vos habitudes et vos messages de clavardage sont conservés dans votre compte et ne sont lisibles que par vous. Pour générer ses réponses, Mira traite ce que vous avez écrit — la discussion, les notes de vos points du jour et de courts extraits des entrées de journal que vous lui avez confiées. Appuyer sur « Laisser Mira le lire » sur une entrée la partage avec elle — elle la lit en entier, et son extrait demeure dans son contexte jusqu’à ce que vous appuyiez sur « Retirer le partage ». L’appréciation que vous laissez sur une réponse est conservée avec la discussion, et une écriture qu’elle fait à votre demande (un point du jour noté, une habitude marquée) peut être annulée depuis la discussion. Ce que vous notez peut être sensible — écrivez ce que vous choisissez, et vous pouvez supprimer des entrées ou effacer la discussion en tout temps.',
           },
           {
             type: 'p',

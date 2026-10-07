@@ -10,6 +10,7 @@ import {
   loadHealthChatHistory,
   rateHealthChatTurn,
   sendHealthChat,
+  undoHealthChatAction,
   type HealthChatAction,
   type HealthChatTurn,
 } from '@/features/health/data/api'
@@ -57,6 +58,8 @@ export function HealthChatPage() {
   const [turns, setTurns] = useState<HealthChatTurn[] | null>(null)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
+  const [streamed, setStreamed] = useState('')
+  const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
   const logRef = useRef<HTMLDivElement | null>(null)
 
@@ -77,8 +80,11 @@ export function HealthChatPage() {
     if (!message || sending) return
     setSending(true)
     setDraft('')
+    setStreamed('')
     try {
-      const { reply, action, assistantId } = await sendHealthChat(message, lang)
+      /* onDelta turns on SSE — the reply types into the pending bubble as
+         it generates; the final payload stays authoritative. */
+      const { reply, action, assistantId } = await sendHealthChat(message, lang, setStreamed)
       setTurns((prev) => [
         ...(prev ?? []),
         {
@@ -107,6 +113,27 @@ export function HealthChatPage() {
       setDraft(message)
     } finally {
       setSending(false)
+      setStreamed('')
+    }
+  }
+
+  /* Undo on an action chip — the server reverses the write and marks the
+     action undone, so the chip doesn't offer it again after a reload. */
+  const undo = async (turnId: string) => {
+    if (undoing) return
+    setUndoing(turnId)
+    try {
+      await undoHealthChatAction(turnId)
+      setTurns((prev) =>
+        (prev ?? []).map((t) =>
+          t.id === turnId && t.action ? { ...t, action: { ...t.action, undone: true } } : t,
+        ),
+      )
+      await refresh()
+    } catch {
+      showToast(HM.health_chat_undo_failed)
+    } finally {
+      setUndoing(null)
     }
   }
 
@@ -174,6 +201,23 @@ export function HealthChatPage() {
                   <span className="sbchat-chip" data-ok={t.action.ok ? 'true' : 'false'}>
                     <Check size={11} aria-hidden="true" />
                     {t.action.ok ? actionLabel(t.action, x) : x(HM.health_chat_action_failed)}
+                    {t.action.ok &&
+                      t.action.refId &&
+                      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                        t.id,
+                      ) &&
+                      (t.action.undone ? (
+                        <em className="sbchat-chip-undone">{x(HM.health_chat_undone)}</em>
+                      ) : (
+                        <button
+                          type="button"
+                          className="sbchat-chip-undo"
+                          disabled={undoing === t.id}
+                          onClick={() => void undo(t.id)}
+                        >
+                          {x(HM.health_chat_undo)}
+                        </button>
+                      ))}
                   </span>
                 )}
                 <span className="sbchat-bubble-meta">
@@ -209,7 +253,7 @@ export function HealthChatPage() {
           )}
           {sending && (
             <div className="sbchat-bubble assistant">
-              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              {streamed || <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
             </div>
           )}
         </div>

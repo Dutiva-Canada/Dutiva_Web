@@ -5,7 +5,14 @@ import { Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addJournalEntry, deleteJournalEntry, healthAiPrompt, shareEntryWithMira, updateJournalEntry } from '@/features/health/data/api'
+import {
+  addJournalEntry,
+  deleteJournalEntry,
+  healthAiPrompt,
+  shareEntryWithMira,
+  unshareEntryFromMira,
+  updateJournalEntry,
+} from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { HealthJournalEntry } from '@/features/health/data/types'
 import { fmtDateTime } from './healthUi'
@@ -109,17 +116,34 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
     await refresh()
   }
 
-  /* Explicit per-entry consent — only this entry's body reaches Mira, and
-     only because the button was pressed. Her reply shows here and lands in
-     the chat thread. */
+  /* Explicit per-entry consent — the press stamps shared_at on the row
+     (that's the record), only this entry's body reaches Mira, and the
+     excerpt joins her context until revoked. Her reply streams in here and
+     lands in the chat thread. */
   const share = async () => {
     if (sharing) return
     setSharing(true)
     try {
-      const out = await shareEntryWithMira(entry.id, lang)
+      const out = await shareEntryWithMira(entry.id, lang, setMiraLine)
       setMiraLine(out.reply)
+      await refresh()
     } catch {
       showToast(HM.health_journal_share_failed)
+    } finally {
+      setSharing(false)
+    }
+  }
+
+  /* Revocation — shared_at clears, her context loses the excerpt at once. */
+  const unshare = async () => {
+    if (sharing) return
+    setSharing(true)
+    try {
+      await unshareEntryFromMira(entry.id)
+      setMiraLine(null)
+      await refresh()
+    } catch {
+      showToast(HM.health_journal_unshare_failed)
     } finally {
       setSharing(false)
     }
@@ -149,8 +173,29 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
               ` · ${x(HM.health_journal_edited).replace('{date}', fmtDateTime(entry.updatedAt, lang))}`}
           </span>
         </div>
-        <div className="hb-row-side" style={{ flexDirection: 'row', gap: 8 }}>
-          {miraLine === null && (
+        <div className="hb-row-side" style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          {entry.sharedAt !== null || miraLine !== null ? (
+            /* Consent is recorded on the row — the state survives reloads
+               and the same button now revokes it. */
+            <>
+              <span className="hb-row-meta" style={{ fontSize: 12.5 }}>
+                {x(HM.health_journal_shared_mira)}
+              </span>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+                disabled={sharing}
+                title={x(HM.health_journal_unshare_hint)}
+                onClick={() => void unshare()}
+              >
+                {sharing ? (
+                  <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                ) : null}
+                {x(HM.health_journal_unshare_mira)}
+              </button>
+            </>
+          ) : (
             <button
               type="button"
               className="sb-btn sb-btn-secondary sb-btn-sm"

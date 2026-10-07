@@ -7593,6 +7593,7 @@ export type Database = {
           action: Json | null
           content: string
           created_at: string
+          feedback: number | null
           id: string
           role: string
           user_id: string
@@ -7601,6 +7602,7 @@ export type Database = {
           action?: Json | null
           content: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role: string
           user_id: string
@@ -7609,6 +7611,7 @@ export type Database = {
           action?: Json | null
           content?: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role?: string
           user_id?: string
@@ -7700,6 +7703,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          shared_at: string | null
           title: string
           updated_at: string
           user_id: string
@@ -7708,6 +7712,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          shared_at?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -7716,6 +7721,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          shared_at?: string | null
           title?: string
           updated_at?: string
           user_id?: string

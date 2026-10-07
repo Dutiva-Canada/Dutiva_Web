@@ -1,11 +1,12 @@
 /**
  * health-ai — pure helpers for the wellness-portal model calls.
  *
- * Mira reads what the person wrote: check-in notes and bounded journal
- * excerpts reach every prompt kind (buildCompanionSignals), the chat
- * conversation is included on chat, and entry_react reads one journal
- * entry the person explicitly shared. Everything read belongs to the
- * caller — the wellness notice discloses this plainly.
+ * Mira reads what the person wrote: check-in notes and bounded excerpts
+ * of explicitly shared journal entries reach every prompt kind
+ * (buildCompanionSignals), the chat conversation is included on chat, and
+ * entry_react reads one journal entry the person explicitly shared.
+ * Everything read belongs to the caller — the wellness notice discloses
+ * this plainly.
  */
 
 export interface CheckInRow {
@@ -187,10 +188,11 @@ export function parseHabit(raw: string): { name: string; why: string } | null {
 
 /* ── Chat — the portal's companion ──────────────────────────────────────────
    Wider context than the other kinds, on purpose: aggregates and per-habit
-   status, plus the person's own recent words (check-in notes, journal
-   excerpts) and the conversation itself. Mira keeps company by knowing what
-   the person has shared — every row is still the caller's own, and quoted
-   text is truncated hard before it reaches the prompt. */
+   status, plus the person's own recent words (check-in notes, excerpts of
+   journal entries they chose to share) and the conversation itself. Mira
+   keeps company by knowing what the person has shared — every row is still
+   the caller's own, and quoted text is truncated hard before it reaches
+   the prompt. */
 
 export interface HabitStatus {
   id: string
@@ -246,11 +248,15 @@ export interface CheckInNoteRow extends CheckInRow {
   note: string
 }
 
-/** A journal entry trimmed for prompting — chat only. */
+/** A journal entry trimmed for prompting — chat only. `shared_at` is the
+    per-entry consent flag: null means the person never pressed "Let Mira
+    read this", and the excerpt must not reach a prompt. */
 export interface JournalExcerptRow {
   title: string
   body: string
   created_at: string
+  /** Consent timestamp — set by "Let Mira read this", cleared by revoking. */
+  shared_at: string | null
 }
 
 const SIGNAL_NOTE_MAX = 160
@@ -263,7 +269,9 @@ const oneLine = (s: string, max: number): string =>
 
 /** The person's own recent words, as prompt lines. Bounded hard — the point
     is that Mira can hear "rough day at work," not that she can recite the
-    journal. Newest first; empty notes and entries are dropped. */
+    journal. Newest first; empty notes and entries are dropped, and journal
+    excerpts come only from entries the person explicitly shared — consent
+    is enforced here too, not just in the query that fetched the rows. */
 export function buildCompanionSignals(
   checkIns: CheckInNoteRow[],
   journals: JournalExcerptRow[],
@@ -280,7 +288,7 @@ export function buildCompanionSignals(
     lines.push(`- check-in ${dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`)
   }
   const entries = byNewest(journals)
-    .filter((j) => j.body.trim() !== '')
+    .filter((j) => j.shared_at != null && j.body.trim() !== '')
     .slice(0, SIGNAL_JOURNAL_LIMIT)
   for (const j of entries) {
     const title = j.title.trim() ? `"${oneLine(j.title, 80)}" · ` : ''
@@ -336,6 +344,85 @@ export function chatPrompt(
       'Their recent words — their own text; quote back sparingly and only when it fits:',
       signalLines,
     ].join('\n'),
+  }
+}
+
+/** Incremental extractor for streamed chat replies. The model's output is
+    one JSON object — {"reply":"…","action":…} — arriving piece by piece.
+    To stream we surface the reply text WITHOUT the JSON scaffolding or the
+    action block: this hunts the "reply" key, then emits its string content
+    (escapes resolved) until the closing quote. Emits nothing when the
+    shape never arrives — the fully-parsed payload stays authoritative. */
+export function createReplyDeltaExtractor(): { push: (chunk: string) => string } {
+  const KEY = '"reply"'
+  const ESCAPES: Record<string, string> = {
+    n: '\n',
+    t: '\t',
+    r: '\r',
+    b: '\b',
+    f: '\f',
+    '"': '"',
+    '\\': '\\',
+    '/': '/',
+  }
+  let buf = ''
+  let emitting = false
+  let done = false
+  return {
+    push(chunk) {
+      if (done) return ''
+      buf += chunk
+      if (!emitting) {
+        const ki = buf.indexOf(KEY)
+        if (ki === -1) {
+          /* keep only a tail — the key cannot straddle an evicted boundary */
+          buf = buf.length > 64 ? buf.slice(-KEY.length) : buf
+          return ''
+        }
+        const rest = buf.slice(ki + KEY.length)
+        const open = /^\s*:\s*"/.exec(rest)
+        if (!open) {
+          /* the `:` and quote may not have arrived yet — hold briefly, then
+             stop hoping (a malformed shape still resolves via `done`) */
+          if (rest.length < 8) {
+            buf = rest
+            return ''
+          }
+          done = true
+          return ''
+        }
+        buf = rest.slice(open[0].length)
+        emitting = true
+      }
+      let out = ''
+      let i = 0
+      while (i < buf.length) {
+        const ch = buf[i]
+        if (ch === '"') {
+          done = true
+          i += 1
+          break
+        }
+        if (ch === '\\') {
+          const esc = buf[i + 1]
+          if (esc === undefined) break /* escaped char not here yet */
+          if (esc === 'u') {
+            if (i + 6 > buf.length) break /* hex digits not here yet */
+            const code = Number.parseInt(buf.slice(i + 2, i + 6), 16)
+            if (!Number.isNaN(code)) out += String.fromCharCode(code)
+            i += 6
+            continue
+          }
+          out += ESCAPES[esc] ?? esc
+          i += 2
+          continue
+        }
+        out += ch
+        i += 1
+      }
+      buf = buf.slice(i)
+      return out
+    },
   }
 }
 

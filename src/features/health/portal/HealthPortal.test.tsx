@@ -79,6 +79,7 @@ const STATE: HealthState = {
       id: 'j1',
       title: 'First entry',
       body: 'A quiet Saturday.',
+      sharedAt: null,
       createdAt: '2026-10-03T14:00:00Z',
       updatedAt: '2026-10-03T14:00:00Z',
     },

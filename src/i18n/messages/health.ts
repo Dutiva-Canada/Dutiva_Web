@@ -495,6 +495,44 @@ export const healthMessages = defineMessages({
     en: 'Mira couldn’t read it right now — try again.',
     fr: 'Mira n’a pas pu le lire — réessayez.',
   },
+  /* Undo on an action chip — reverses the write (unmark the habit, remove
+     the added row); the chip then reads Undone. [FR self-authored] */
+  health_chat_undo: { en: 'Undo', fr: 'Annuler' },
+  health_chat_undone: { en: 'Undone', fr: 'Annulé' },
+  health_chat_undo_failed: {
+    en: 'Couldn’t undo that — try again.',
+    fr: 'Impossible d’annuler — réessayez.',
+  },
+  /* Journal share state — entry rows where shared_at is set read as shared;
+     Stop sharing revokes it and her context loses the excerpt at once.
+     [FR self-authored] */
+  health_journal_shared_mira: { en: 'Shared with Mira', fr: 'Partagé avec Mira' },
+  health_journal_unshare_mira: { en: 'Stop sharing', fr: 'Retirer le partage' },
+  health_journal_unshare_hint: {
+    en: 'She stops seeing this entry right away.',
+    fr: 'Elle ne voit plus cette entrée dès maintenant.',
+  },
+  health_journal_unshare_failed: {
+    en: 'Couldn’t stop sharing — try again.',
+    fr: 'Impossible de retirer le partage — réessayez.',
+  },
+  /* Overview strip — one thing she noticed, built locally (no call). The
+     {mood} slot is a lowercase scale label; {note} a trimmed quote.
+     [FR self-authored] */
+  health_home_mira_label: { en: 'Mira noticed', fr: 'Mira a remarqué' },
+  health_home_mira_streak: {
+    en: '“{name}” — {days} days running.',
+    fr: '« {name} » — {days} jours de suite.',
+  },
+  health_home_mira_checkin: {
+    en: 'You checked in today — feeling {mood}.',
+    fr: 'Vous avez pris le point aujourd’hui — {mood}.',
+  },
+  health_home_mira_note: {
+    en: 'You wrote today: “{note}”',
+    fr: 'Vous avez écrit aujourd’hui : « {note} »',
+  },
+  health_home_mira_open: { en: 'Chat with Mira', fr: 'Discuter avec Mira' },
   /* Thumbs rating under an assistant reply — stored on the turn.
      [FR self-authored] */
   health_chat_rate_up: { en: 'Helpful', fr: 'Utile' },

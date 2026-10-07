@@ -9,6 +9,7 @@
 import './lib/env.mjs'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { managementQuery } from './lib/managementApi.mjs'
 
 const token = process.env.SUPABASE_ACCESS_TOKEN?.trim()
 const projectRef = process.env.SUPABASE_PROJECT_REF?.trim()
@@ -25,7 +26,6 @@ if (!file) {
 }
 
 const sql = readFileSync(resolve(file), 'utf-8')
-const API_URL = `https://api.supabase.com/v1/projects/${projectRef}/database/query`
 
 /**
  * Split SQL into individual statements, respecting:
@@ -155,18 +155,11 @@ function splitSql(sql) {
 }
 
 async function runQuery(query) {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query }),
-  })
+  const response = await managementQuery(projectRef, token, query)
 
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(`${response.status} ${body.slice(0, 300)}`)
+  if (!response || !response.ok) {
+    const body = response ? await response.text() : 'no response'
+    throw new Error(`${response?.status ?? 'network'} ${String(body).slice(0, 300)}`)
   }
 
   return response.json().catch(() => null)

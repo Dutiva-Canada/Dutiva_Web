@@ -153,8 +153,11 @@ export function HealthHabitsPage() {
          the line also lands in the chat thread. */
       if (done) {
         const name = habits.find((h) => h.id === habitId)?.name ?? ''
-        void sendHealthReaction({ type: 'habit_marked', habit: name }, lang)
-          .then((r) => setMiraLine(r.reply))
+        /* Throttled reactions resolve reply:null — leave any earlier line up. */
+        void sendHealthReaction({ type: 'habit_marked', habit: name }, lang, setMiraLine)
+          .then((r) => {
+            if (r.reply !== null) setMiraLine(r.reply)
+          })
           .catch(() => {})
       }
     } finally {

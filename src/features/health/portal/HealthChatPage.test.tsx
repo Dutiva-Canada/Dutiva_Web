@@ -13,17 +13,19 @@ import {
   loadHealthChatHistory,
   rateHealthChatTurn,
   sendHealthChat,
+  undoHealthChatAction,
 } from '@/features/health/data/api'
 import { HealthChatPage } from './HealthChatPage'
 
-/* The page never reads the table directly — history, sending, rating and
-   clearing all go through the health-ai function, so the api module is the
-   seam to mock. */
+/* The page never reads the table directly — history, sending, rating,
+   undo and clearing all go through the health-ai function, so the api
+   module is the seam to mock. */
 vi.mock('@/features/health/data/api', () => ({
   sendHealthChat: vi.fn(),
   loadHealthChatHistory: vi.fn(),
   clearHealthChat: vi.fn(),
   rateHealthChatTurn: vi.fn(),
+  undoHealthChatAction: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -114,8 +116,9 @@ describe('HealthChatPage', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
 
+    /* The third argument is the streaming onDelta callback. */
     await waitFor(() =>
-      expect(sendHealthChat).toHaveBeenCalledWith('mark Walk done', 'en'),
+      expect(sendHealthChat).toHaveBeenCalledWith('mark Walk done', 'en', expect.any(Function)),
     )
     expect(await screen.findByText('Done — marked for today.')).toBeInTheDocument()
     expect(screen.getByText('Marked "Walk" done today')).toBeInTheDocument()
@@ -148,7 +151,60 @@ describe('HealthChatPage', () => {
     expect(await screen.findByText('add a habit called Stretch')).toBeInTheDocument()
     expect(screen.getByText('Stretch is on your list now.')).toBeInTheDocument()
     expect(screen.getByText('Now tracking "Stretch"')).toBeInTheDocument()
+    /* The undo affordance only rides on persisted (uuid-id) assistant turns
+       — 'a1' is not one, so no Undo button appears. */
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
+  })
+
+  it('offers undo on a persisted action and marks it undone', async () => {
+    const assistantId = '11111111-2222-3333-4444-555555555555'
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: 'Marked Walk done.',
+        action: {
+          type: 'mark_habit_done',
+          detail: 'Walk',
+          ok: true,
+          refId: 'h1',
+          day: '2026-10-05',
+        },
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    vi.mocked(undoHealthChatAction).mockResolvedValue(undefined)
+    const { refresh } = renderPage()
+    await screen.findByText('Marked Walk done.')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(undoHealthChatAction).toHaveBeenCalledWith(assistantId))
+    /* The chip flips to Undone and the undo button is gone — the same state
+       a reload would render from the stored action. */
+    expect(await screen.findByText('Undone')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('does not offer undo on an action that already failed', async () => {
+    const assistantId = '11111111-2222-3333-4444-555555555555'
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: assistantId,
+        role: 'assistant',
+        content: 'I tried.',
+        action: { type: 'mark_habit_done', detail: 'Walk', ok: false },
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    renderPage()
+    await screen.findByText('I tried.')
+
+    expect(screen.getByText(/didn’t save/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
   })
 
   it('clears the conversation via the function', async () => {

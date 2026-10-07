@@ -13,8 +13,10 @@ import {
   addCheckIn,
   sendHealthReaction,
   shareEntryWithMira,
+  unshareEntryFromMira,
 } from '@/features/health/data/api'
 import { HealthCheckInPage } from './HealthCheckInPage'
+import { HealthHomePage } from './HealthHomePage'
 import { HealthJournalPage } from './HealthJournalPage'
 
 /* Both pages call the health-ai function for Mira's reaction — the api
@@ -28,6 +30,7 @@ vi.mock('@/features/health/data/api', () => ({
   deleteJournalEntry: vi.fn(),
   healthAiPrompt: vi.fn(),
   shareEntryWithMira: vi.fn(),
+  unshareEntryFromMira: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -48,6 +51,7 @@ const STATE: HealthState = {
       id: 'j1',
       title: 'Sunday',
       body: 'A quiet, heavy day.',
+      sharedAt: null,
       createdAt: '2026-10-04T14:00:00Z',
       updatedAt: '2026-10-04T14:00:00Z',
     },
@@ -104,6 +108,7 @@ describe('check-in → Mira reacts', () => {
       expect(sendHealthReaction).toHaveBeenCalledWith(
         { type: 'checkin_saved', mood: 4, energy: null, note: 'good day' },
         'en',
+        expect.any(Function),
       ),
     )
     expect(await screen.findByText(/Glad the day was good/)).toBeInTheDocument()
@@ -142,10 +147,28 @@ describe('journal → share with Mira', () => {
     renderWith(<HealthJournalPage />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Let Mira read this' }))
-    await waitFor(() => expect(shareEntryWithMira).toHaveBeenCalledWith('j1', 'en'))
+    await waitFor(() =>
+      expect(shareEntryWithMira).toHaveBeenCalledWith('j1', 'en', expect.any(Function)),
+    )
     expect(await screen.findByText(/Quiet can carry a lot/)).toBeInTheDocument()
-    /* Consent is one-shot per row — the button is gone once she replied. */
+    /* The share persisted (shared_at) — the row now reads as shared and
+       offers revocation instead of the share button. */
     expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Shared with Mira')).toBeInTheDocument()
+  })
+
+  it('revokes a shared entry — shared_at clears and the share button returns', async () => {
+    vi.mocked(unshareEntryFromMira).mockResolvedValue(undefined)
+    const sharedState: HealthState = {
+      ...STATE,
+      entries: STATE.entries.map((e) => ({ ...e, sharedAt: '2026-10-04T15:00:00Z' })),
+    }
+    const { refresh } = renderWith(<HealthJournalPage />, 'en', sharedState)
+
+    expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Stop sharing' }))
+    await waitFor(() => expect(unshareEntryFromMira).toHaveBeenCalledWith('j1'))
+    await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
 
   it('says she reads only this entry, in French too', async () => {
@@ -153,5 +176,51 @@ describe('journal → share with Mira', () => {
 
     const btn = await screen.findByRole('button', { name: 'Laisser Mira le lire' })
     expect(btn).toHaveAttribute('title', 'Elle lit seulement cette entrée — sa réponse arrive ici et dans votre discussion.')
+  })
+})
+
+describe('overview — Mira noticed strip', () => {
+  const localDay = (ago: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() - ago)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+      d.getDate(),
+    ).padStart(2, '0')}`
+  }
+
+  it('shows the strip with a live streak and a chat link', async () => {
+    const state: HealthState = {
+      ...STATE,
+      entries: [],
+      habits: [{ id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' }],
+      habitLogs: [0, 1].map((ago, i) => ({
+        id: `l${i}`,
+        habitId: 'h1',
+        day: localDay(ago),
+        createdAt: new Date().toISOString(),
+      })),
+    }
+    renderWith(<HealthHomePage />, 'en', state)
+
+    expect(await screen.findByText(/Mira noticed/)).toBeInTheDocument()
+    expect(screen.getByText(/days running/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Chat with Mira' })).toHaveAttribute(
+      'href',
+      '/health/chat',
+    )
+  })
+
+  it('stays hidden when there is nothing worth noticing', async () => {
+    const empty: HealthState = {
+      checkIns: [],
+      entries: [],
+      habits: [],
+      habitLogs: [],
+      lastLoadedAt: new Date().toISOString(),
+    }
+    renderWith(<HealthHomePage />, 'en', empty)
+
+    await screen.findByText(/quiet summary/i)
+    expect(screen.queryByText(/Mira noticed/)).not.toBeInTheDocument()
   })
 })

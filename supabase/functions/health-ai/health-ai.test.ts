@@ -4,6 +4,7 @@ import {
   buildHabitStatuses,
   buildHealthFacts,
   chatPrompt,
+  createReplyDeltaExtractor,
   entryReactPrompt,
   habitPrompt,
   parseChatReply,
@@ -218,8 +219,13 @@ describe('buildCompanionSignals', () => {
         { mood: 3, energy: 3, note: 'better after a walk', created_at: dayAgo(1) },
       ],
       [
-        { title: 'Sunday', body: 'felt calmer after the walk', created_at: dayAgo(2) },
-        { title: '', body: '   ', created_at: dayAgo(1) },
+        {
+          title: 'Sunday',
+          body: 'felt calmer after the walk',
+          created_at: dayAgo(2),
+          shared_at: dayAgo(0),
+        },
+        { title: '', body: '   ', created_at: dayAgo(1), shared_at: dayAgo(0) },
       ],
     )
     expect(lines).toHaveLength(3)
@@ -231,10 +237,33 @@ describe('buildCompanionSignals', () => {
     expect(lines[2]).toContain('"felt calmer after the walk"')
   })
 
+  it('excerpts only entries the person explicitly shared', () => {
+    const lines = buildCompanionSignals(
+      [],
+      [
+        {
+          title: 'private',
+          body: 'never shown',
+          created_at: dayAgo(1),
+          shared_at: null,
+        },
+        {
+          title: 'shared',
+          body: 'shown',
+          created_at: dayAgo(2),
+          shared_at: dayAgo(0),
+        },
+      ],
+    )
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toContain('"shared"')
+    expect(lines[0]).not.toContain('never shown')
+  })
+
   it('flattens newlines and truncates long text', () => {
     const lines = buildCompanionSignals(
       [{ mood: 3, energy: null, note: `line one\nline two ${'x'.repeat(400)}`, created_at: dayAgo(1) }],
-      [{ title: '', body: 'y'.repeat(500), created_at: dayAgo(1) }],
+      [{ title: '', body: 'y'.repeat(500), created_at: dayAgo(1), shared_at: dayAgo(0) }],
     )
     expect(lines[0]).toContain('line one line two')
     expect(lines[0]).not.toContain('\n')
@@ -253,6 +282,7 @@ describe('buildCompanionSignals', () => {
       title: `e${i}`,
       body: `body ${i}`,
       created_at: dayAgo(i),
+      shared_at: dayAgo(0),
     }))
     const lines = buildCompanionSignals(many, entries)
     expect(lines.filter((l) => l.startsWith('- check-in'))).toHaveLength(8)
@@ -299,6 +329,22 @@ describe('reaction prompts', () => {
     expect(p).toContain('Canadian French')
     expect(p).toContain('9-8-8')
     expect(p).toContain('software, not a person')
+  })
+
+  /* The crisis path for reactions: a saved check-in whose note reads as
+     crisis must route to the 9-8-8 reply, not a "noted!" reaction. The
+     prompt is the seam vitest can reach — index.ts carries Deno imports. */
+  it('a crisis-flavored check-in note still routes to the crisis reply', () => {
+    const p = reactPrompt(
+      { type: 'checkin_saved', mood: 1, energy: null, note: 'thinking about ending it' },
+      null,
+      [],
+      TODAY,
+      'en',
+    )
+    expect(p).toContain('thinking about ending it')
+    expect(p).toContain('9-8-8')
+    expect(p).toContain('reply ONLY with supportive words')
   })
 
   it('flattens newlines and caps the shared entry body', () => {
@@ -353,5 +399,44 @@ describe('resolveHabitRef', () => {
   it('returns null for unknown names', () => {
     expect(resolveHabitRef('meditate', statuses)).toBeNull()
     expect(resolveHabitRef('', statuses)).toBeNull()
+  })
+})
+
+/* Streaming — the model's reply arrives as a JSON object fed piece by
+   piece; the extractor emits only the reply field's string content so the
+   action block never reaches the bubble mid-stream. */
+describe('createReplyDeltaExtractor', () => {
+  it('emits only the reply text from streamed JSON', () => {
+    const ex = createReplyDeltaExtractor()
+    let out = ''
+    for (const chunk of [
+      '{"reply":"Hel',
+      'lo there,',
+      ' that sounded heavy.',
+      '","action":{"type":"mark_habit_done","habit":"Walk"}}',
+    ]) {
+      out += ex.push(chunk)
+    }
+    expect(out).toBe('Hello there, that sounded heavy.')
+  })
+
+  it('resolves escapes and never leaks the action block', () => {
+    const ex = createReplyDeltaExtractor()
+    const out = ex.push('{"reply":"line one\\nline \\"two\\"","action":null}')
+    expect(out).toBe('line one\nline "two"')
+  })
+
+  it('holds a split escape across chunk boundaries', () => {
+    const ex = createReplyDeltaExtractor()
+    let out = ex.push('{"reply":"one\\')
+    out += ex.push('ntwo\\u00')
+    out += ex.push('e9 three","action":null}')
+    expect(out).toBe('one\ntwoé three')
+  })
+
+  it('emits nothing when the reply key never arrives', () => {
+    const ex = createReplyDeltaExtractor()
+    expect(ex.push('plain text, no json')).toBe('')
+    expect(ex.push('{"other":123}')).toBe('')
   })
 })

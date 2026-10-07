@@ -1,12 +1,12 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { Link } from 'react-router-dom'
-import { BookOpen, HeartPulse, Info, Loader2 } from 'lucide-react'
+import { BookOpen, HeartPulse, Info, Loader2, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { avgMood, checkInStreak, habitsDoneToday, hasCheckInToday } from '@/features/health/data/healthStats'
-import { fmtDateTime, moodLabel } from './healthUi'
+import { fmtDateTime, miraNoticed, moodLabel } from './healthUi'
 import { useHealthHead } from './useHealthHead'
 
 export function HealthHomePage() {
@@ -37,6 +37,9 @@ export function HealthHomePage() {
   const today = hasCheckInToday(state.checkIns)
   const habitsToday = habitsDoneToday(state.habitLogs, state.habits)
   const latest = state.entries[0]
+  /* Mira's presence outside the chat tab — one noticed thing, built locally
+     from the same state the stats read. No model call. */
+  const noticed = miraNoticed(state, lang)
 
   return (
     <div className="sb hb sb-page">
@@ -60,6 +63,18 @@ export function HealthHomePage() {
           </p>
         </div>
       </div>
+
+      {noticed && (
+        <div className="sb-note" style={{ marginTop: 14, alignItems: 'center' }}>
+          <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <span>
+            <strong>{x(HM.health_home_mira_label)}</strong> — {noticed}{' '}
+            <Link to="/health/chat" style={{ color: 'inherit', fontWeight: 600 }}>
+              {x(HM.health_home_mira_open)}
+            </Link>
+          </span>
+        </div>
+      )}
 
       <div className="sb-stats">
         <div className="sb-stat">

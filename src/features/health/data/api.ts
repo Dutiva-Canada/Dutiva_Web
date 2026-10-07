@@ -182,8 +182,84 @@ export async function setHabitDone(
 }
 
 /* ---------- health-ai: Mira's model assists — every kind reads the user's
-   own check-in notes and bounded journal excerpts server-side, plus the
-   aggregates. Disclosed in the wellness notice. -------------------------- */
+   own check-in notes and bounded excerpts of shared journal entries
+   server-side, plus the aggregates. Disclosed in the wellness notice.
+   --------------------------------------------------------------------- */
+
+/** The invoke path — one JSON response per request. */
+async function invokeHealthAi(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const client = requireSupabase()
+  const { data, error } = await client.functions.invoke('health-ai', { body })
+  if (error) throw error
+  return (data ?? {}) as Record<string, unknown>
+}
+
+/** Streaming transport: `stream: true` switches the function to
+    text/event-stream — delta events carry the reply text piece by piece
+    (for chat, already extracted from its JSON envelope), one done event
+    carries the same payload a plain call would return. onDelta receives
+    the accumulated text each time, ready for a state setter. When the
+    deployed function predates streaming it answers plain JSON instead —
+    the caller just sees one big delta. */
+async function invokeHealthAiStream(
+  body: Record<string, unknown>,
+  onDelta: (text: string) => void,
+): Promise<Record<string, unknown>> {
+  const client = requireSupabase()
+  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
+  const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
+  if (!base || !anon) throw new Error('Supabase env unavailable')
+  const {
+    data: { session },
+  } = await client.auth.getSession()
+  const res = await fetch(`${base}/functions/v1/health-ai`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: anon,
+      Authorization: `Bearer ${session?.access_token ?? anon}`,
+    },
+    body: JSON.stringify({ ...body, stream: true }),
+  })
+  if (!res.ok) throw new Error(`health-ai ${res.status}`)
+  const contentType = res.headers.get('content-type') ?? ''
+  if (!contentType.includes('text/event-stream') || !res.body) {
+    return (await res.json()) as Record<string, unknown>
+  }
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ''
+  let acc = ''
+  let doneEvent: Record<string, unknown> | null = null
+  let streamError: string | null = null
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += decoder.decode(value, { stream: true })
+    let idx: number
+    while ((idx = buf.indexOf('\n\n')) >= 0) {
+      const line = buf.slice(0, idx).trim()
+      buf = buf.slice(idx + 2)
+      if (!line.startsWith('data:')) continue
+      let event: { type?: string; text?: unknown; error?: unknown }
+      try {
+        event = JSON.parse(line.slice(5).trim())
+      } catch {
+        continue
+      }
+      if (event.type === 'delta' && typeof event.text === 'string') {
+        acc += event.text
+        onDelta(acc)
+      } else if (event.type === 'done') {
+        doneEvent = event as Record<string, unknown>
+      } else if (event.type === 'error') {
+        streamError = String(event.error ?? 'stream error')
+      }
+    }
+  }
+  if (!doneEvent) throw new Error(streamError ?? 'health-ai stream ended without a reply')
+  return doneEvent
+}
 
 /** One journal prompt built from the user's stats and their own recent
     words — a suggestion to write about, not advice. */
@@ -248,13 +324,18 @@ export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion>
 /* ---------- chat — Mira, the portal companion ---------- */
 
 /** A write the companion executed on the user's own rows during a turn —
-    additive or same-day-undoable by design (see health-ai's action grammar). */
+    additive or undoable by design (see health-ai's action grammar). */
 export interface HealthChatAction {
   type: 'mark_habit_done' | 'unmark_habit_done' | 'add_habit' | 'add_checkin' | 'add_journal_entry'
   /** Human-facing subject — the habit name, entry title, "mood 3/5". */
   detail: string
   ok: boolean
+  /** Row the action created/toggled — chat_undo needs it. */
   refId?: string
+  /** Local day a habit mark/unmark landed on — undo needs it back. */
+  day?: string
+  /** Set once the write was reversed via chat_undo. */
+  undone?: boolean
 }
 
 export interface HealthChatTurn {
@@ -271,25 +352,33 @@ export interface HealthChatTurn {
     health_chat_messages, so history is consistent across sessions — the
     caller only sends the message, the day (local), and the locale. Mira
     replies over the caller's own context assembled server-side: numbers,
-    habit status, recent check-in notes and journal excerpts, and the
-    conversation itself. assistantId is the persisted row's id — the client
-    needs it to attach feedback. */
+    habit status, recent check-in notes and excerpts of shared journal
+    entries, and the conversation itself. assistantId is the persisted
+    row's id — the client needs it to attach feedback. Pass onDelta to
+    stream the reply into the UI as it generates. */
 export async function sendHealthChat(
   message: string,
   lang: 'en' | 'fr',
+  onDelta?: (text: string) => void,
 ): Promise<{ reply: string; action: HealthChatAction | null; assistantId: string | null }> {
-  const client = requireSupabase()
-  const { data, error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'chat', message, lang, today: todayDayKey() },
-  })
-  if (error) throw error
-  const raw =
-    (data as { reply?: string; action?: HealthChatAction | null; assistantId?: string | null } | null) ??
-    {}
+  const body = { kind: 'chat', message, lang, today: todayDayKey() }
+  const raw = (onDelta
+    ? await invokeHealthAiStream(body, onDelta)
+    : await invokeHealthAi(body)) as {
+    reply?: string
+    action?: HealthChatAction | null
+    assistantId?: string | null
+  }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from health-ai')
   }
   return { reply: raw.reply, action: raw.action ?? null, assistantId: raw.assistantId ?? null }
+}
+
+/** Reverses the write an assistant turn's action made — unmark the habit,
+    remove the added row. The turn keeps a record marked undone. */
+export async function undoHealthChatAction(messageId: string): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_undo', messageId })
 }
 
 /* ---------- reactions — Mira noticing what the user just did ---------- */
@@ -298,63 +387,84 @@ export type HealthReactEvent =
   | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
 
+/* Reactions fire a model call per qualifying action — someone checking off
+   three habits shouldn't produce three calls. A floor between calls keeps
+   the noise and the bill down; a skipped reaction resolves reply:null and
+   the page simply stays quiet. */
+const REACTION_MIN_INTERVAL_MS = 90_000
+let lastReactionAt = 0
+
+/** Test hook — the throttle is module state, which carries between tests. */
+export function resetHealthReactionThrottle(): void {
+  lastReactionAt = 0
+}
+
 /** One short reaction to something the user just did elsewhere in the
     portal — a saved check-in or a habit marked done. The line is written
     into the conversation too (assistant turn), so it survives the session.
-    Callers treat this as best-effort: a failed reaction never blocks the
-    action it responds to. */
+    Callers treat this as best-effort: a failed or throttled reaction never
+    blocks the action it responds to — reply comes back null then, and the
+    page shows nothing. onDelta streams the line in as it generates. */
 export async function sendHealthReaction(
   event: HealthReactEvent,
   lang: 'en' | 'fr',
-): Promise<{ reply: string; assistantId: string | null }> {
-  const client = requireSupabase()
-  const { data, error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'react', event, lang, today: todayDayKey() },
-  })
-  if (error) throw error
-  const raw = (data as { reply?: string; assistantId?: string | null } | null) ?? {}
+  onDelta?: (text: string) => void,
+): Promise<{ reply: string | null; assistantId: string | null }> {
+  if (Date.now() - lastReactionAt < REACTION_MIN_INTERVAL_MS) {
+    return { reply: null, assistantId: null }
+  }
+  lastReactionAt = Date.now()
+  const body = { kind: 'react', event, lang, today: todayDayKey() }
+  const raw = (onDelta
+    ? await invokeHealthAiStream(body, onDelta)
+    : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reaction from health-ai')
   }
   return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
-/** Share ONE journal entry with Mira — explicit per-entry consent; only
-    this entry's body reaches the model. Her reply lands in the
-    conversation and is returned here for inline display. */
+/** Share ONE journal entry with Mira — explicit per-entry consent; the
+    function stamps shared_at on the row (that's the consent record), reads
+    only this entry's body, and the excerpt joins her context until the
+    share is revoked. Her reply lands in the conversation and is returned
+    here for inline display. onDelta streams it in. */
 export async function shareEntryWithMira(
   entryId: string,
   lang: 'en' | 'fr',
+  onDelta?: (text: string) => void,
 ): Promise<{ reply: string; assistantId: string | null }> {
-  const client = requireSupabase()
-  const { data, error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'entry_react', entryId, lang, today: todayDayKey() },
-  })
-  if (error) throw error
-  const raw = (data as { reply?: string; assistantId?: string | null } | null) ?? {}
+  const body = { kind: 'entry_react', entryId, lang, today: todayDayKey() }
+  const raw = (onDelta
+    ? await invokeHealthAiStream(body, onDelta)
+    : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from health-ai')
   }
   return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
+/** Revoke a journal entry's sharing — her context stops seeing its excerpt
+    right away. Direct table write on the caller's own row, same path as
+    editing the entry. */
+export async function unshareEntryFromMira(entryId: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_journal_entries')
+    .update({ shared_at: null })
+    .eq('id', entryId)
+  if (error) throw error
+}
+
 /** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). Routed
     through the function — it constrains the write to the caller's own
     assistant rows. */
 export async function rateHealthChatTurn(messageId: string, rating: 1 | -1 | 0): Promise<void> {
-  const client = requireSupabase()
-  const { error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'chat_feedback', messageId, rating },
-  })
-  if (error) throw error
+  await invokeHealthAi({ kind: 'chat_feedback', messageId, rating })
 }
 
 export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[]> {
-  const client = requireSupabase()
-  const { data, error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'chat_history', limit },
-  })
-  if (error) throw error
+  const data = await invokeHealthAi({ kind: 'chat_history', limit })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),
@@ -369,9 +479,5 @@ export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[
 /** Clears the whole conversation for the signed-in user — routed through the
     function so the table's writer stays server-side. */
 export async function clearHealthChat(): Promise<void> {
-  const client = requireSupabase()
-  const { error } = await client.functions.invoke('health-ai', {
-    body: { kind: 'chat_clear' },
-  })
-  if (error) throw error
+  await invokeHealthAi({ kind: 'chat_clear' })
 }

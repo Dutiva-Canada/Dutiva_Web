@@ -19,6 +19,9 @@ export interface HealthJournalEntry {
   id: string
   title: string
   body: string
+  /** When the person pressed "Let Mira read this" — null means the entry
+      stays private and its excerpt never reaches her context. */
+  sharedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -63,6 +66,7 @@ export function journalFromRow(row: JournalRow): HealthJournalEntry {
     id: row.id,
     title: row.title,
     body: row.body,
+    sharedAt: row.shared_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

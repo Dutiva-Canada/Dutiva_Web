@@ -79,8 +79,11 @@ export function HealthCheckInPage() {
       /* Best-effort: Mira reacts to what was just saved — her line shows
          here and lands in the chat thread too. A failed reaction never
          disturbs the save. */
-      void sendHealthReaction({ type: 'checkin_saved', ...saved }, lang)
-        .then((r) => setMiraLine(r.reply))
+      /* Throttled reactions resolve reply:null — leave any earlier line up. */
+      void sendHealthReaction({ type: 'checkin_saved', ...saved }, lang, setMiraLine)
+        .then((r) => {
+          if (r.reply !== null) setMiraLine(r.reply)
+        })
         .catch(() => {})
     } finally {
       setSaving(false)

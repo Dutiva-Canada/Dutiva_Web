@@ -99,3 +99,48 @@ export function companionGreeting(
   parts.push(pick(HM.health_chat_hi_ask, lang))
   return parts.join(' ')
 }
+
+/** The Overview strip — Mira's quiet presence outside the chat tab. One
+    thing she noticed, picked deterministically from local state (no call):
+    the best live habit streak, else a nod to today's check-in — quoting
+    the note when there is one — else this week's check-in count. Null
+    means nothing worth noticing; the strip stays hidden. */
+export function miraNoticed(
+  state: HealthState | undefined,
+  lang: Lang,
+  now: Date = new Date(),
+): string | null {
+  if (!state) return null
+  let best: { name: string; streak: number } | null = null
+  for (const h of state.habits) {
+    const streak = habitStreak(state.habitLogs, h.id, now)
+    if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
+  }
+  if (best) {
+    return pick(HM.health_home_mira_streak, lang)
+      .replace('{name}', best.name)
+      .replace('{days}', String(best.streak))
+  }
+  const startOfDay = new Date(now)
+  startOfDay.setHours(0, 0, 0, 0)
+  const todayCheckIn = state.checkIns.find(
+    (c) => Date.parse(c.createdAt) >= startOfDay.getTime(),
+  )
+  if (todayCheckIn?.note.trim()) {
+    const note = todayCheckIn.note.replace(/\s+/g, ' ').trim().slice(0, 80)
+    return pick(HM.health_home_mira_note, lang).replace('{note}', note)
+  }
+  if (todayCheckIn) {
+    return pick(HM.health_home_mira_checkin, lang).replace(
+      '{mood}',
+      moodLabel(todayCheckIn.mood, lang).toLowerCase(),
+    )
+  }
+  const weekCount = state.checkIns.filter(
+    (c) => Date.parse(c.createdAt) >= now.getTime() - WEEK_MS,
+  ).length
+  if (weekCount >= 2) {
+    return pick(HM.health_chat_hi_checkins, lang).replace('{count}', String(weekCount))
+  }
+  return null
+}
