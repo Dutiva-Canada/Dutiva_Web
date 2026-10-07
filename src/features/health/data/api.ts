@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
 import { todayDayKey } from './healthStats'
 import {
   checkInFromRow,
@@ -188,77 +189,15 @@ export async function setHabitDone(
 
 /** The invoke path — one JSON response per request. */
 async function invokeHealthAi(body: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const client = requireSupabase()
-  const { data, error } = await client.functions.invoke('health-ai', { body })
-  if (error) throw error
-  return (data ?? {}) as Record<string, unknown>
+  return invokeEdgeFn(requireSupabase(), 'health-ai', body)
 }
 
-/** Streaming transport: `stream: true` switches the function to
-    text/event-stream — delta events carry the reply text piece by piece
-    (for chat, already extracted from its JSON envelope), one done event
-    carries the same payload a plain call would return. onDelta receives
-    the accumulated text each time, ready for a state setter. When the
-    deployed function predates streaming it answers plain JSON instead —
-    the caller just sees one big delta. */
+/** Streaming path — see src/lib/edgeStream.ts for the event contract. */
 async function invokeHealthAiStream(
   body: Record<string, unknown>,
   onDelta: (text: string) => void,
 ): Promise<Record<string, unknown>> {
-  const client = requireSupabase()
-  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
-  const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
-  if (!base || !anon) throw new Error('Supabase env unavailable')
-  const {
-    data: { session },
-  } = await client.auth.getSession()
-  const res = await fetch(`${base}/functions/v1/health-ai`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: anon,
-      Authorization: `Bearer ${session?.access_token ?? anon}`,
-    },
-    body: JSON.stringify({ ...body, stream: true }),
-  })
-  if (!res.ok) throw new Error(`health-ai ${res.status}`)
-  const contentType = res.headers.get('content-type') ?? ''
-  if (!contentType.includes('text/event-stream') || !res.body) {
-    return (await res.json()) as Record<string, unknown>
-  }
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buf = ''
-  let acc = ''
-  let doneEvent: Record<string, unknown> | null = null
-  let streamError: string | null = null
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buf += decoder.decode(value, { stream: true })
-    let idx: number
-    while ((idx = buf.indexOf('\n\n')) >= 0) {
-      const line = buf.slice(0, idx).trim()
-      buf = buf.slice(idx + 2)
-      if (!line.startsWith('data:')) continue
-      let event: { type?: string; text?: unknown; error?: unknown }
-      try {
-        event = JSON.parse(line.slice(5).trim())
-      } catch {
-        continue
-      }
-      if (event.type === 'delta' && typeof event.text === 'string') {
-        acc += event.text
-        onDelta(acc)
-      } else if (event.type === 'done') {
-        doneEvent = event as Record<string, unknown>
-      } else if (event.type === 'error') {
-        streamError = String(event.error ?? 'stream error')
-      }
-    }
-  }
-  if (!doneEvent) throw new Error(streamError ?? 'health-ai stream ended without a reply')
-  return doneEvent
+  return invokeEdgeFnStream(requireSupabase(), 'health-ai', body, onDelta)
 }
 
 /** One journal prompt built from the user's stats and their own recent

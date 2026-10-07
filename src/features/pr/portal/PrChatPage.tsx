@@ -1,19 +1,21 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { useEffect, useRef, useState } from 'react'
-import { Check, Loader2, Send, Trash2 } from 'lucide-react'
+import { Check, Loader2, Send, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import {
   clearPrChat,
   loadPrChatHistory,
+  ratePrChatTurn,
   sendPrChat,
+  undoPrChatAction,
   type PrChatAction,
   type PrChatTurn,
-} from '@/features/pr/data/api'
+} from '@/features/pr/data/chatApi'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { fmtDateTime } from './prUi'
+import { fmtDateTime, paigeGreeting } from './prUi'
 import { usePrHead } from './usePrHead'
 
 /** What the assistant did during a turn, as a confirmation chip. The label
@@ -42,21 +44,25 @@ function actionLabel(
 }
 
 /**
- * The desk assistant — a chat over the user's own PR data that can also
- * record what they ask for: a draft campaign, a content item, a media
- * contact, a logged mention, a keyword or GEO prompt to track. History
- * persists server-side (pr_chat_messages); actions refresh the shared
- * PrDataContext so every other tab reflects them immediately.
+ * Paige — the desk's press specialist. A chat over the user's own PR data
+ * that can also record what they ask for: a draft campaign, a content item,
+ * a media contact, a logged mention, a keyword or GEO prompt to track.
+ * Everything she writes lands as a draft or a log row — she never sends or
+ * publishes. History persists server-side (pr_chat_messages); actions
+ * refresh the shared PrDataContext so every other tab reflects them
+ * immediately.
  */
 export function PrChatPage() {
   const { x, lang } = useI18n()
-  const { refresh } = usePrData()
+  const { state, refresh } = usePrData()
   const { showToast } = useToasts()
   usePrHead(PM.pr_seo_title_chat, PM.pr_seo_desc_chat)
 
   const [turns, setTurns] = useState<PrChatTurn[] | null>(null)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
+  const [streamed, setStreamed] = useState('')
+  const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
   const logRef = useRef<HTMLDivElement | null>(null)
 
@@ -75,8 +81,11 @@ export function PrChatPage() {
     if (!message || sending) return
     setSending(true)
     setDraft('')
+    setStreamed('')
     try {
-      const { reply, action } = await sendPrChat(message, lang)
+      /* onDelta turns on SSE — the reply types into the pending bubble as
+         it generates; the final payload stays authoritative. */
+      const { reply, action, assistantId } = await sendPrChat(message, lang, setStreamed)
       setTurns((prev) => [
         ...(prev ?? []),
         {
@@ -84,13 +93,16 @@ export function PrChatPage() {
           role: 'user',
           content: message,
           action: null,
+          feedback: null,
           createdAt: new Date().toISOString(),
         },
         {
-          id: `a-${Date.now()}`,
+          /* The persisted row id when the insert landed — rating needs it. */
+          id: assistantId ?? `a-${Date.now()}`,
           role: 'assistant',
           content: reply,
           action,
+          feedback: null,
           createdAt: new Date().toISOString(),
         },
       ])
@@ -102,6 +114,27 @@ export function PrChatPage() {
       setDraft(message)
     } finally {
       setSending(false)
+      setStreamed('')
+    }
+  }
+
+  /* Undo on an action chip — the server deletes the row the action created
+     and marks it undone, so the chip doesn't offer it again after a reload. */
+  const undo = async (turnId: string) => {
+    if (undoing) return
+    setUndoing(turnId)
+    try {
+      await undoPrChatAction(turnId)
+      setTurns((prev) =>
+        (prev ?? []).map((t) =>
+          t.id === turnId && t.action ? { ...t, action: { ...t.action, undone: true } } : t,
+        ),
+      )
+      await refresh()
+    } catch {
+      showToast(PM.pr_chat_undo_failed)
+    } finally {
+      setUndoing(null)
     }
   }
 
@@ -115,6 +148,23 @@ export function PrChatPage() {
       showToast(PM.pr_chat_error)
     } finally {
       setClearing(false)
+    }
+  }
+
+  /* Thumbs on an assistant turn — only real rows (uuid ids) can hold a
+     rating; optimistic, reverted if the write fails. */
+  const rate = async (turnId: string, rating: 1 | -1) => {
+    const before = turns?.find((t) => t.id === turnId)?.feedback ?? null
+    const next = before === rating ? 0 : rating
+    setTurns((prev) =>
+      (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: next || null } : t)),
+    )
+    try {
+      await ratePrChatTurn(turnId, next)
+    } catch {
+      setTurns((prev) =>
+        (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: before } : t)),
+      )
     }
   }
 
@@ -141,7 +191,9 @@ export function PrChatPage() {
           {turns === null ? (
             <Loader2 size={18} className="animate-spin" aria-hidden="true" />
           ) : turns.length === 0 ? (
-            <p className="sbchat-empty">{x(PM.pr_chat_empty)}</p>
+            /* She speaks first — a greeting built locally from PrState, not
+               a stored turn, so clearing history brings it back. */
+            <div className="sbchat-bubble assistant">{paigeGreeting(state, lang)}</div>
           ) : (
             turns.map((t) => (
               <div key={t.id} className={`sbchat-bubble ${t.role}`}>
@@ -150,15 +202,59 @@ export function PrChatPage() {
                   <span className="sbchat-chip" data-ok={t.action.ok ? 'true' : 'false'}>
                     <Check size={11} aria-hidden="true" />
                     {t.action.ok ? actionLabel(t.action, x) : x(PM.pr_chat_action_failed)}
+                    {t.action.ok &&
+                      t.action.refId &&
+                      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                        t.id,
+                      ) &&
+                      (t.action.undone ? (
+                        <em className="sbchat-chip-undone">{x(PM.pr_chat_undone)}</em>
+                      ) : (
+                        <button
+                          type="button"
+                          className="sbchat-chip-undo"
+                          disabled={undoing === t.id}
+                          onClick={() => void undo(t.id)}
+                        >
+                          {x(PM.pr_chat_undo)}
+                        </button>
+                      ))}
                   </span>
                 )}
-                <span className="sbchat-bubble-meta">{fmtDateTime(t.createdAt, lang)}</span>
+                <span className="sbchat-bubble-meta">
+                  {fmtDateTime(t.createdAt, lang)}
+                  {t.role === 'assistant' &&
+                    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+                      t.id,
+                    ) && (
+                      <span className="sbchat-rate">
+                        <button
+                          type="button"
+                          className="sbchat-rate-btn"
+                          aria-label={x(PM.pr_chat_rate_up)}
+                          aria-pressed={t.feedback === 1}
+                          onClick={() => void rate(t.id, 1)}
+                        >
+                          <ThumbsUp size={12} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="sbchat-rate-btn"
+                          aria-label={x(PM.pr_chat_rate_down)}
+                          aria-pressed={t.feedback === -1}
+                          onClick={() => void rate(t.id, -1)}
+                        >
+                          <ThumbsDown size={12} aria-hidden="true" />
+                        </button>
+                      </span>
+                    )}
+                </span>
               </div>
             ))
           )}
           {sending && (
             <div className="sbchat-bubble assistant">
-              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              {streamed || <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
             </div>
           )}
         </div>

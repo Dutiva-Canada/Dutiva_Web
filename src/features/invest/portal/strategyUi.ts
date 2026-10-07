@@ -287,3 +287,63 @@ export function scanSummaryLine(lang: Lang, res: {
     proposals: pl(lang, res.proposals, IM.invest_sb_proposal_one, IM.invest_sb_proposal_many),
   })
 }
+
+/** Tally's opening turn on an empty conversation — one breath: hello, at
+    most one thing she noticed (the watchlist count, queued orders waiting,
+    or open signals), then a question. Deterministic and bilingual, so she
+    speaks first without a model call. */
+export function tallyGreeting(
+  state: {
+    watchlist: unknown[]
+    orders: { status: string }[]
+    signals: { status: string }[]
+  } | undefined,
+  lang: Lang,
+): string {
+  const parts = [pick(IM.invest_chat_hi, lang)]
+  if (state) {
+    const queued = state.orders.filter((o) => o.status === 'queued' || o.status === 'draft').length
+    const open = state.signals.filter((s) => s.status === 'new').length
+    if (queued >= 1) {
+      parts.push(pick(IM.invest_chat_hi_orders, lang).replace('{count}', String(queued)))
+    } else if (state.watchlist.length >= 1) {
+      parts.push(
+        pick(IM.invest_chat_hi_watch, lang).replace('{count}', String(state.watchlist.length)),
+      )
+    } else if (open >= 1) {
+      parts.push(pick(IM.invest_chat_hi_signals, lang).replace('{count}', String(open)))
+    }
+  }
+  parts.push(pick(IM.invest_chat_hi_ask, lang))
+  return parts.join(' ')
+}
+
+/** The Overview strip — Tally's presence outside the chat tab. One thing
+    she noticed, picked deterministically from local state (no call): queued
+    orders waiting on the user, else open signals, else the watchlist size.
+    Null means nothing worth noticing; the strip stays hidden. */
+export function tallyNoticed(
+  state: {
+    watchlist: unknown[]
+    orders: { status: string }[]
+    signals: { status: string }[]
+  } | undefined,
+  lang: Lang,
+): string | null {
+  if (!state) return null
+  const queued = state.orders.filter((o) => o.status === 'queued' || o.status === 'draft').length
+  if (queued >= 1) {
+    return pick(IM.invest_home_tally_orders, lang).replace('{count}', String(queued))
+  }
+  const open = state.signals.filter((s) => s.status === 'new').length
+  if (open >= 1) {
+    return pick(IM.invest_home_tally_signals, lang).replace('{count}', String(open))
+  }
+  if (state.watchlist.length >= 1) {
+    return pick(IM.invest_home_tally_watch, lang).replace(
+      '{count}',
+      String(state.watchlist.length),
+    )
+  }
+  return null
+}

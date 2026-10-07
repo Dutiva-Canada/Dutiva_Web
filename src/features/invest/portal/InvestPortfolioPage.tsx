@@ -13,6 +13,8 @@ import {
   syncPrices,
   upsertSnapshot,
 } from '@/features/invest/data/api'
+import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 
 const cardClass = 'sb-card sb-card-pad'
@@ -56,6 +58,7 @@ export function InvestPortfolioPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
+  const [tallyLine, setTallyLine] = useState<string | null>(null)
 
   const syncNow = async () => {
     setBusy(true)
@@ -219,7 +222,23 @@ export function InvestPortfolioPage() {
       <section className={cardClass} style={{ marginTop: 16 }}>
         <h2 style={{ margin: 0 }}>{x(IM.invest_watchlist_title)}</h2>
         <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_watchlist_sub)}</p>
-        <WatchForm busy={busy} onAdd={(input) => run(() => addWatchSymbol(input))} />
+        <WatchForm
+          busy={busy}
+          onAdd={(input) =>
+            run(async () => {
+              await addWatchSymbol(input)
+              /* Tally notices — best-effort: a throttled or failed reaction
+                 returns null and never disturbs the save. Her line also
+                 lands in the chat thread. */
+              sendInvestReaction({ type: 'watch_added', symbol: input.symbol }, lang, setTallyLine)
+                .then((r) => {
+                  if (r.reply) setTallyLine(r.reply)
+                })
+                .catch(() => {})
+            })
+          }
+        />
+        {tallyLine && <TallyNote line={tallyLine} />}
         {state.watchlist.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_watchlist_empty)}</p>
         ) : (

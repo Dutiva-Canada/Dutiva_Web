@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import {
   investChatPrompt,
+  investReactPrompt,
   parseInvestChatReply,
   resolveInvestRef,
   type InvestChatContext,
@@ -245,5 +246,30 @@ describe('validateAiAction', () => {
   it('accepts only draft-strategy', () => {
     expect(validateAiAction('draft-strategy').ok).toBe(true)
     expect(validateAiAction('auto-trade').ok).toBe(false)
+  })
+})
+
+
+describe('investReactPrompt', () => {
+  it('names the watched symbol and carries the no-advice hard line', () => {
+    const p = investReactPrompt({ type: 'watch_added', symbol: 'vfv' }, EMPTY_CTX, 'en')
+    expect(p).toContain('Tally')
+    expect(p).toContain('VFV')
+    expect(p).toContain('watchlist')
+    expect(p).toContain('never say the order or the watch is good or bad')
+    expect(p).toContain('Plain text only')
+    expect(p).toContain('Canadian English')
+  })
+
+  it('names a queued order as a draft awaiting review, with book context', () => {
+    const p = investReactPrompt(
+      { type: 'order_queued', symbol: 'xeqt', side: 'buy', quantity: 5 },
+      { ...EMPTY_CTX, newSignals: [{ kind: 'price_alert', symbol: 'XEQT' } as never] },
+      'fr',
+    )
+    expect(p).toContain('buy 5 XEQT')
+    expect(p).toContain('draft')
+    expect(p).toContain('price_alert on XEQT')
+    expect(p).toContain('Canadian French')
   })
 })

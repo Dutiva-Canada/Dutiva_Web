@@ -9893,6 +9893,7 @@ export type Database = {
           action: Json | null
           content: string
           created_at: string
+          feedback: number | null
           id: string
           role: string
           user_id: string
@@ -9901,6 +9902,7 @@ export type Database = {
           action?: Json | null
           content: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role: string
           user_id: string
@@ -9909,6 +9911,7 @@ export type Database = {
           action?: Json | null
           content?: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role?: string
           user_id?: string
@@ -11999,6 +12002,7 @@ export type Database = {
           action: Json | null
           content: string
           created_at: string
+          feedback: number | null
           id: string
           role: string
           user_id: string
@@ -12007,6 +12011,7 @@ export type Database = {
           action?: Json | null
           content: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role: string
           user_id: string
@@ -12015,6 +12020,7 @@ export type Database = {
           action?: Json | null
           content?: string
           created_at?: string
+          feedback?: number | null
           id?: string
           role?: string
           user_id?: string

@@ -588,19 +588,39 @@ const investCoreMessages = defineMessages({
      the user asks — watchlist changes, a QUEUED draft order, a signal
      status, a strategy draft for review. Never investment advice; nothing
      executes itself. [FR self-authored] */
-  invest_tab_chat: { en: 'Chat', fr: 'Discussion' },
-  invest_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  invest_tab_chat: { en: 'Tally', fr: 'Tally' },
+  invest_chat_title: { en: 'Tally', fr: 'Tally' },
   invest_chat_sub: {
-    en: 'Ask about your book, or tell it what to record — watch a symbol, queue a draft order, acknowledge a signal, draft a strategy for review.',
-    fr: 'Posez une question sur votre portefeuille, ou dites-lui quoi noter — suivre un symbole, mettre un ordre en file, accuser un signal, préparer une stratégie à valider.',
+    en: 'The book’s watch clerk — ask about your positions or tell her what to record. She’s software, not a person or an advisor; never investment advice.',
+    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une conseillère; jamais de conseil en placement.',
+  },
+  /* Her opening turn on an empty conversation — a hello, at most one thing
+     she noticed from the book, and a question. Built client-side from
+     InvestState so it costs no call and stays bilingual. [FR self-authored] */
+  invest_chat_hi: { en: 'Hi — I’m Tally, the book’s watch clerk.', fr: 'Bonjour — je suis Tally, la surveillante du carnet.' },
+  invest_chat_hi_watch: {
+    en: '{count} symbols are on the watchlist.',
+    fr: '{count} symboles sont sous surveillance.',
+  },
+  invest_chat_hi_orders: {
+    en: '{count} orders are queued waiting on you.',
+    fr: '{count} ordres attendent votre validation.',
+  },
+  invest_chat_hi_signals: {
+    en: '{count} open signals on the board.',
+    fr: '{count} signaux ouverts au tableau.',
+  },
+  invest_chat_hi_ask: {
+    en: 'What should the book record today?',
+    fr: 'Qu’est-ce que le carnet note aujourd’hui?',
   },
   invest_chat_empty: {
     en: 'Nothing yet. Try “what’s on my watchlist?” or “watch XEQT for me.”',
     fr: 'Rien pour l’instant. Essayez « qu’est-ce que je surveille? » ou « ajoute XEQT à ma liste ».',
   },
   invest_chat_placeholder: {
-    en: 'Write a message…',
-    fr: 'Écrivez un message…',
+    en: 'Ask Tally about the book, or tell her what to record…',
+    fr: 'Demandez à Tally sur le carnet, ou dites-lui quoi noter…',
   },
   invest_chat_send: { en: 'Send', fr: 'Envoyer' },
   invest_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
@@ -619,10 +639,39 @@ const investCoreMessages = defineMessages({
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
   },
-  invest_seo_title_chat: { en: 'Dutiva Invest — Assistant', fr: 'Dutiva Invest — Assistant' },
+  /* Undo on an action chip — reverses the write while it's still
+     reversible (a queued order untouched, a watch row, a signal status,
+     a filed draft); the chip then reads Undone. [FR self-authored] */
+  invest_chat_undo: { en: 'Undo', fr: 'Annuler' },
+  invest_chat_undone: { en: 'Undone', fr: 'Annulé' },
+  invest_chat_undo_failed: {
+    en: 'Couldn’t undo that — try again.',
+    fr: 'Impossible d’annuler — réessayez.',
+  },
+  /* Thumbs rating under an assistant reply — stored on the turn.
+     [FR self-authored] */
+  invest_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
+  invest_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Overview strip — one thing she noticed, built locally (no call).
+     [FR self-authored] */
+  invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },
+  invest_home_tally_orders: {
+    en: '{count} orders are queued waiting on you.',
+    fr: '{count} ordres attendent votre validation.',
+  },
+  invest_home_tally_signals: {
+    en: '{count} open signals on the board.',
+    fr: '{count} signaux ouverts au tableau.',
+  },
+  invest_home_tally_watch: {
+    en: 'Watching {count} symbols.',
+    fr: '{count} symboles sous surveillance.',
+  },
+  invest_home_tally_open: { en: 'Chat with Tally', fr: 'Discuter avec Tally' },
+  invest_seo_title_chat: { en: 'Tally — Dutiva Invest', fr: 'Tally — Dutiva Invest' },
   invest_seo_desc_chat: {
-    en: 'Chat with the portal assistant about your own book data.',
-    fr: 'Discutez avec l’assistant du portail de vos propres données.',
+    en: 'Chat with Tally — the book’s watch clerk — about your own book data.',
+    fr: 'Discutez avec Tally — la surveillante du carnet — de vos propres données.',
   },
 })
 

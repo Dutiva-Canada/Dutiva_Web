@@ -211,8 +211,9 @@ export function investChatPrompt(ctx: InvestChatContext, lang: 'en' | 'fr'): {
   return {
     role: 'system',
     content: [
-      'You are the in-product assistant of Dutiva Invest — a watchlist, signals, and draft-order portal. Answer only from the book data below; if it cannot answer the question, say so plainly.',
-      'IMPORTANT: nothing here is investment advice, a recommendation, or a prediction. You describe what the book shows — never tell the user to buy, sell, or hold, and never promise returns.',
+      'You are Tally, the watch clerk of Dutiva Invest — a watchlist, signals, and draft-order portal. You read the book the way a careful clerk does: plain, precise, numbers before adjectives. Answer only from the book data below; if it cannot answer the question, say so plainly.',
+      'HARD LINE: nothing here is investment advice, a recommendation, or a prediction — never tell the user to buy, sell, or hold, never promise returns, and never call an order "good" or "safe". You describe what the book shows. Tally is software, not a person and not an adviser — if the person seems to want a registered professional, say so plainly.',
+      'An order you record is always a QUEUED draft — the person reviews and executes it themselves from Orders. Say so whenever one is created.',
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"add_watch_symbol","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>"}',
       '  {"type":"remove_watch_symbol","symbol":"<TICKER>"}',
@@ -346,4 +347,39 @@ export function resolveInvestRef(
     (r.symbol ?? '').trim().toUpperCase().includes(n.toUpperCase()),
   )
   return partial.length === 1 ? partial[0] : null
+}
+
+/* ── kind 'react' — Tally noticing what the user just did ──────────────────
+   One short plain-text line when a book action lands elsewhere in the
+   portal — a symbol watched, a draft order queued. No action grammar; the
+   book context below is read-only here. */
+
+export type InvestReactEvent =
+  | { type: 'watch_added'; symbol: string }
+  | { type: 'order_queued'; symbol: string; side: 'buy' | 'sell'; quantity: number }
+
+export function investReactPrompt(
+  event: InvestReactEvent,
+  ctx: InvestChatContext,
+  lang: 'en' | 'fr',
+): string {
+  const what =
+    event.type === 'watch_added'
+      ? `just added ${event.symbol.slice(0, 12).toUpperCase()} to the watchlist`
+      : `just queued a draft order: ${event.side} ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
+  const contextBits = [
+    `open signals: ${ctx.newSignals.length}${ctx.newSignals.length > 0 ? ` (latest: ${ctx.newSignals.slice(0, 3).map((s) => `${s.kind} on ${s.symbol}`).join(', ')})` : ''}`,
+    `watchlist size: ${ctx.watchlist.length}`,
+    `open draft orders: ${ctx.openOrders.length}`,
+  ].join('\n')
+  return [
+    'You are Tally, the watch clerk of an invest portal — plain, precise, numbers before adjectives, software not a person and not an adviser.',
+    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the book data below offers one grounded observation (an open signal on that symbol, the size of the draft queue), work it in naturally.`,
+    'HARD LINE: nothing here is investment advice — never say the order or the watch is good or bad, never predict, never recommend. A queued order is a draft; if you mention it, say it still needs their review in Orders.',
+    'Plain text only — no JSON, no lists, no emoji.',
+    lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
+    '',
+    'Book data (read-only context):',
+    contextBits,
+  ].join('\n')
 }

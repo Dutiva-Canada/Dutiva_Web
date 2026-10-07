@@ -14,6 +14,8 @@ import {
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
+import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
@@ -56,6 +58,7 @@ export function InvestOrdersPage() {
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
+  const [tallyLine, setTallyLine] = useState<string | null>(null)
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -99,8 +102,25 @@ export function InvestOrdersPage() {
           <OrderForm
             busy={busy}
             accounts={state.accounts}
-            onCreate={(input) => run(() => createOrder(input))}
+            onCreate={(input) =>
+              run(async () => {
+                await createOrder(input)
+                /* Tally notices — best-effort: a throttled or failed
+                   reaction returns null and never disturbs the save. Her
+                   line also lands in the chat thread. */
+                sendInvestReaction(
+                  { type: 'order_queued', symbol: input.symbol, side: input.side, quantity: input.quantity },
+                  lang,
+                  setTallyLine,
+                )
+                  .then((r) => {
+                    if (r.reply) setTallyLine(r.reply)
+                  })
+                  .catch(() => {})
+              })
+            }
           />
+          {tallyLine && <TallyNote line={tallyLine} />}
         </section>
       )}
 

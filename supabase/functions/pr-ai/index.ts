@@ -1,7 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
-import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
+import { type ResolvedRoute } from '../_shared/aiRoute.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   cleanDraft,
@@ -9,25 +9,30 @@ import {
   draftPrompt,
   parseClusters,
   parsePitch,
-  parsePrChatReply,
   parsePromptList,
   parseTone,
   pitchPrompt,
-  prChatPrompt,
   promptsPrompt,
-  resolveNameRef,
   singleTonePrompt,
   summaryPrompt,
   type ClusterItem,
   type DraftInput,
   type PitchInput,
-  type PrChatAction,
-  type PrChatContext,
   type PromptsInput,
 } from './handlers.ts'
+import {
+  corsHeaders,
+  json,
+  modelRoute,
+  parsePrReactEvent,
+  runChat,
+  runChatUndo,
+  runReact,
+  UPSTREAM_TIMEOUT_MS,
+} from './runtime.ts'
 
 /**
- * pr-ai — the PR desk's user-triggered model calls:
+ * pr-ai — the PR desk's user-triggered model calls, in Paige's voice:
  *
  *   POST { kind:'tone',  title, source? }                  → { sentiment }
  *   POST { kind:'draft', itemKind, channel?, title, notes?, lang? } → { draft }
@@ -36,32 +41,51 @@ import {
  *   POST { kind:'prompts', campaigns?, existing?, lang? }  → { prompts }
  *   POST { kind:'pitch', name, outlet?, beat?, note?, campaigns?, lang? }
  *                                                        → { subject, pitch }
- *   POST { kind:'chat', message, lang? }      → { reply, action }
- *                                             — the portal assistant: answers
- *                                             over the desk's own data and can
- *                                             execute whitelisted additive
- *                                             writes (campaign, content draft,
+ *   POST { kind:'chat', message, lang? }      → { reply, action, assistantId }
+ *                                             — Paige, the desk's press
+ *                                             specialist: answers over the
+ *                                             desk's own data and executes
+ *                                             whitelisted additive writes
+ *                                             (campaign, content draft,
  *                                             contact, mention, keyword, GEO
  *                                             prompt). Both turns persist to
  *                                             pr_chat_messages.
+ *   POST { kind:'react', event, lang? }       → { reply }
+ *                                             — she reacts when the person
+ *                                             does something: logged a
+ *                                             mention, saved a content
+ *                                             draft. Her line persists to
+ *                                             pr_chat_messages.
  *   POST { kind:'chat_history', limit? }      → { turns }
  *   POST { kind:'chat_clear' }                → { cleared: true }
- *                                             — history read/clear run through
- *                                             the function too, so the table's
- *                                             only writer is this code path.
+ *   POST { kind:'chat_feedback', messageId, rating } → { ok }
+ *                                             — thumbs up/down on an
+ *                                             assistant turn; history
+ *                                             read/clear/feedback run
+ *                                             through the function too, so
+ *                                             the table's only writer is
+ *                                             this code path.
+ *   POST { kind:'chat_undo', messageId }      → { ok }
+ *                                             — deletes the row an
+ *                                             assistant turn's action
+ *                                             created, then marks the action
+ *                                             undone.
+ *
+ * `stream: true` on the model kinds switches the response to
+ * text/event-stream: `{"type":"delta","text":…}` events carry the reply as
+ * it generates (chat emits only the reply field — never the action JSON),
+ * then one `{"type":"done",…}` event carries the same payload the
+ * non-streaming shape would return. Errors mid-stream arrive as
+ * `{"type":"error"}`.
  *
  * Auth is the portal contract only (JWT + pr_access) — no scheduled path.
  * Route lookup is `pr_ai` first, `advisor_chat` fallback (shared aiRoute).
  * Everything returned is a suggestion: a tone tag the user can override, a
  * draft that goes into the edit field, never straight to "published".
+ *
+ * The chat/react handlers live in ./runtime.ts — this file is auth +
+ * routing + the one-shot kinds.
  */
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
 
 const MAX_TITLE_CHARS = 500
 const MAX_SOURCE_CHARS = 200
@@ -70,14 +94,6 @@ const MAX_STATS_CHARS = 4000
 const MAX_CLUSTER_ITEMS = 24
 const MAX_LIST_ITEMS = 30
 const MAX_LIST_ITEM_CHARS = 200
-const UPSTREAM_TIMEOUT_MS = 45_000
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
 
 async function portalUserId(
   admin: SupabaseClient,
@@ -144,10 +160,11 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: 'Invalid JSON body' }, 400)
   }
+  const lang = body.lang === 'fr' ? 'fr' : 'en'
 
-  /* History read/clear need no model — they run through this function so the
-     table's only writer is this code path (a client can't file its own
-     'assistant' rows under the owner policy). */
+  /* History read/clear/feedback/undo need no model — they run through this
+     function so the table's only writer is this code path (a client can't
+     file its own 'assistant' rows under the owner policy). */
   if (body.kind === 'chat_history') {
     const limit =
       typeof body.limit === 'number' && Number.isInteger(body.limit)
@@ -155,7 +172,7 @@ Deno.serve(async (req) => {
         : 60
     const { data, error } = await admin
       .from('pr_chat_messages')
-      .select('id, role, content, action, created_at')
+      .select('id, role, content, action, feedback, created_at')
       .eq('user_id', portal.userId)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -170,26 +187,49 @@ Deno.serve(async (req) => {
     if (error) return json({ error: error.message }, 500)
     return json({ cleared: true })
   }
-
-  const found = await activeModelRoute(admin, ['pr_ai', 'advisor_chat'])
-  if ('error' in found) {
-    return json(
-      found.error === 'no_route'
-        ? { error: 'No active AI route', code: 'no_route' }
-        : { error: found.error },
-      found.error === 'no_route' ? 503 : 500,
-    )
+  if (body.kind === 'chat_feedback') {
+    const messageId = typeof body.messageId === 'string' ? body.messageId : ''
+    const rating = body.rating
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId) ||
+      (rating !== 1 && rating !== -1 && rating !== 0 && rating !== null)
+    ) {
+      return json({ error: 'messageId (uuid) and rating (-1|0|1) required' }, 400)
+    }
+    const { error } = await admin
+      .from('pr_chat_messages')
+      .update({ feedback: rating === 0 ? null : rating })
+      .eq('id', messageId)
+      .eq('user_id', portal.userId)
+      .eq('role', 'assistant')
+    if (error) return json({ error: error.message }, 500)
+    return json({ ok: true })
   }
-  const keyResult = routeApiKey(found)
-  if ('missingSecret' in keyResult) {
-    return json({ error: `Provider secret ${keyResult.missingSecret} not configured`, code: 'no_key' }, 503)
+  if (body.kind === 'chat_undo') {
+    const messageId = typeof body.messageId === 'string' ? body.messageId : ''
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId)) {
+      return json({ error: 'messageId (uuid) required' }, 400)
+    }
+    return await runChatUndo(admin, portal.userId, messageId)
   }
 
+  /* stream:true answers Server-Sent Events instead of one JSON payload —
+     see the module header for the event shapes. */
+  const stream = body.stream === true
   if (body.kind === 'chat') {
     const message = clip(body.message, 1200)
     if (!message) return json({ error: 'message is required' }, 400)
-    return await runChat(admin, portal.userId, message, body.lang === 'fr' ? 'fr' : 'en', found, keyResult.apiKey)
+    return await runChat(admin, portal.userId, message, lang, stream)
   }
+  if (body.kind === 'react') {
+    const event = parsePrReactEvent(body.event)
+    if (!event) return json({ error: 'bad event' }, 400)
+    return await runReact(admin, portal.userId, event, lang, stream)
+  }
+
+  const route = await modelRoute(admin)
+  if ('error' in route) return route.error
+  const { found, keyResult } = route
 
   if (body.kind === 'tone') {
     const title = clip(body.title, MAX_TITLE_CHARS)
@@ -208,7 +248,7 @@ Deno.serve(async (req) => {
       channel: clip(body.channel, 60),
       title: clip(body.title, MAX_TITLE_CHARS),
       notes: clip(body.notes, MAX_NOTES_CHARS),
-      lang: body.lang === 'fr' ? 'fr' : 'en',
+      lang,
     }
     if (!input.title && !input.notes) {
       return json({ error: 'title or notes is required — give the draft something to work from' }, 400)
@@ -223,7 +263,6 @@ Deno.serve(async (req) => {
   if (body.kind === 'summary') {
     const month = clip(body.month, 40)
     const statsJson = JSON.stringify(body.stats ?? {}).slice(0, MAX_STATS_CHARS)
-    const lang = body.lang === 'fr' ? 'fr' : 'en'
     const out = await modelText(
       found.provider, keyResult.apiKey, found.modelName,
       summaryPrompt(statsJson, month, lang), 220,
@@ -262,7 +301,7 @@ Deno.serve(async (req) => {
     const input: PromptsInput = {
       campaigns: list(body.campaigns),
       existing: list(body.existing),
-      lang: body.lang === 'fr' ? 'fr' : 'en',
+      lang,
     }
     const out = await modelText(
       found.provider, keyResult.apiKey, found.modelName,
@@ -300,7 +339,7 @@ Deno.serve(async (req) => {
       beat: clip(body.beat, MAX_LIST_ITEM_CHARS),
       note: clip(body.note, 300),
       campaigns: list(body.campaigns),
-      lang: body.lang === 'fr' ? 'fr' : 'en',
+      lang,
     }
     if (!input.name) return json({ error: 'name is required' }, 400)
     const out = await modelText(
@@ -335,250 +374,5 @@ Deno.serve(async (req) => {
     return json({ subject: parsed.subject, pitch: parsed.body, suggestionId: filed?.id ?? null })
   }
 
-  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", "pitch", "chat", "chat_history", or "chat_clear"' }, 400)
+  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", "pitch", "chat", "react", "chat_history", "chat_clear", "chat_feedback", or "chat_undo"' }, 400)
 })
-
-/* ── kind 'chat' ──────────────────────────────────────────────────────────
-   The conversational surface. Context is the desk's own rows — names,
-   statuses, counts — capped per list, plus the last CHAT_HISTORY turns.
-   Actions execute through executeChatAction's whitelist only; everything is
-   additive and lands as a draft or log row the user could have written. */
-
-const CHAT_HISTORY = 20
-const CHAT_LIST_CAP = 15
-
-interface ExecutedAction {
-  type: string
-  /** Human-facing subject — the campaign name, contact name, etc. */
-  detail: string
-  ok: boolean
-  /** Row id of the created row. */
-  refId?: string
-}
-
-async function runChat(
-  admin: SupabaseClient,
-  userId: string,
-  message: string,
-  lang: 'en' | 'fr',
-  route: ResolvedRoute,
-  apiKey: string | null,
-): Promise<Response> {
-  const [
-    { data: campaigns },
-    { data: contentItems },
-    { data: contacts },
-    { data: keywords },
-    { data: mentions },
-    { data: geoPrompts },
-    { count: feedCount },
-    { data: connections },
-    { data: historyRows },
-  ] = await Promise.all([
-    admin.from('pr_campaigns').select('id, name, status, channel').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_content_items').select('id, title, status').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_media_contacts').select('name, outlet, beat').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_keywords').select('keyword, position').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_mentions').select('title, source, sentiment').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_geo_prompts').select('prompt, result').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_feeds').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    admin.from('pr_connections').select('provider, status').eq('user_id', userId),
-    admin.from('pr_chat_messages').select('role, content').eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_HISTORY),
-  ])
-
-  const contentByStatus: Record<string, number> = {}
-  for (const c of contentItems ?? []) {
-    contentByStatus[String(c.status)] = (contentByStatus[String(c.status)] ?? 0) + 1
-  }
-  const mentionsBySentiment: Record<string, number> = {}
-  for (const m of mentions ?? []) {
-    mentionsBySentiment[String(m.sentiment)] = (mentionsBySentiment[String(m.sentiment)] ?? 0) + 1
-  }
-
-  const ctx: PrChatContext = {
-    campaigns: (campaigns ?? []).map((c) => ({
-      name: String(c.name), status: String(c.status), channel: String(c.channel),
-    })),
-    contentByStatus,
-    recentContent: (contentItems ?? []).slice(0, 8).map((c) => String(c.title)),
-    contacts: (contacts ?? []).map((c) => ({
-      name: String(c.name), outlet: String(c.outlet ?? ''), beat: String(c.beat ?? ''),
-    })),
-    keywords: (keywords ?? []).map((k) => ({
-      keyword: String(k.keyword),
-      position: typeof k.position === 'number' ? k.position : null,
-    })),
-    mentionsBySentiment,
-    recentMentions: (mentions ?? []).slice(0, 8).map((m) => ({
-      title: String(m.title), source: String(m.source ?? ''),
-    })),
-    geoPrompts: (geoPrompts ?? []).map((g) => ({
-      prompt: String(g.prompt), result: String(g.result ?? 'unchecked'),
-    })),
-    feeds: feedCount ?? 0,
-    connections: (connections ?? []).map((c) => ({
-      provider: String(c.provider), status: String(c.status),
-    })),
-  }
-
-  const history = ((historyRows ?? []) as { role: string; content: string }[])
-    .reverse()
-    .map((r) => ({
-      role: r.role === 'assistant' ? ('assistant' as const) : ('user' as const),
-      content: r.content.slice(0, 1500),
-    }))
-
-  let upstream: Response
-  try {
-    upstream = await postChatCompletion(
-      route.provider,
-      apiKey,
-      {
-        model: route.modelName,
-        messages: [
-          prChatPrompt(ctx, lang),
-          ...history,
-          { role: 'user', content: message },
-        ],
-        temperature: 0.4,
-        max_tokens: 500,
-      },
-      UPSTREAM_TIMEOUT_MS,
-    )
-  } catch (e) {
-    return json({ error: `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`, code: 'upstream' }, 502)
-  }
-  if (!upstream.ok) {
-    return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
-  }
-  const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
-  const parsed = parsePrChatReply(payload.choices?.[0]?.message?.content)
-  if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
-
-  let executed: ExecutedAction | null = null
-  if (parsed.action) {
-    executed = await executeChatAction(
-      admin,
-      userId,
-      parsed.action,
-      (campaigns ?? []) as { id: string; name: string }[],
-    )
-  }
-
-  /* Persist both turns — history is server-side so the next device/session
-     sees the same conversation, and the assistant row keeps what it did. */
-  const nowIso = new Date().toISOString()
-  await admin.from('pr_chat_messages').insert([
-    { user_id: userId, role: 'user', content: message, created_at: nowIso },
-    {
-      user_id: userId,
-      role: 'assistant',
-      content: parsed.reply,
-      action: executed,
-      created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
-    },
-  ])
-
-  return json({ reply: parsed.reply, action: executed })
-}
-
-/** Execute a whitelisted additive write on the caller's own rows. Nothing
-    here publishes, sends, schedules, or deletes — everything lands as a
-    draft or log row. A failure reports ok:false so the reply still lands. */
-async function executeChatAction(
-  admin: SupabaseClient,
-  userId: string,
-  action: PrChatAction,
-  campaigns: { id: string; name: string }[],
-): Promise<ExecutedAction> {
-  switch (action.type) {
-    case 'add_campaign': {
-      const { data, error } = await admin
-        .from('pr_campaigns')
-        .insert({
-          user_id: userId,
-          name: action.name,
-          channel: action.channel ?? 'mixed',
-          status: 'draft',
-          objective: action.objective ?? '',
-        })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
-    }
-    case 'add_content_item': {
-      /* Status is forced — chat can only file drafts, never publish. */
-      const campaignRef = action.campaign ? resolveNameRef(action.campaign, campaigns) : null
-      if (action.campaign && !campaignRef) {
-        return { type: action.type, detail: action.title, ok: false }
-      }
-      const { data, error } = await admin
-        .from('pr_content_items')
-        .insert({
-          user_id: userId,
-          campaign_id: campaignRef?.id ?? null,
-          kind: action.kind ?? 'post',
-          title: action.title,
-          body: action.body ?? '',
-          channel: action.channel ?? '',
-          status: 'draft',
-        })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.title, ok: !error, refId: data?.id }
-    }
-    case 'add_media_contact': {
-      const { data, error } = await admin
-        .from('pr_media_contacts')
-        .insert({
-          user_id: userId,
-          name: action.name,
-          outlet: action.outlet ?? '',
-          beat: action.beat ?? '',
-          email: action.email ?? '',
-          note: action.note ?? '',
-        })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
-    }
-    case 'add_mention': {
-      const { data, error } = await admin
-        .from('pr_mentions')
-        .insert({
-          user_id: userId,
-          title: action.title,
-          source: action.source ?? '',
-          url: action.url ?? '',
-          sentiment: action.sentiment ?? 'neutral',
-          published_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.title, ok: !error, refId: data?.id }
-    }
-    case 'add_keyword': {
-      const { data, error } = await admin
-        .from('pr_keywords')
-        .insert({ user_id: userId, keyword: action.keyword, target_url: action.targetUrl ?? '' })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.keyword, ok: !error, refId: data?.id }
-    }
-    case 'add_geo_prompt': {
-      const { data, error } = await admin
-        .from('pr_geo_prompts')
-        .insert({ user_id: userId, prompt: action.prompt, engine: action.engine ?? 'chatgpt' })
-        .select('id')
-        .single()
-      return { type: action.type, detail: action.prompt, ok: !error, refId: data?.id }
-    }
-  }
-}

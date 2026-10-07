@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, prMentionClusters, suggestMentionTone, syncPrFeeds, type PrMentionCluster } from '@/features/pr/data/api'
+import { sendPrReaction } from '@/features/pr/data/chatApi'
+import { PaigeNote } from './PaigeNote'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -58,6 +60,7 @@ export function PrMentionsPage() {
   const [themes, setThemes] = useState<PrMentionCluster[] | null>(null)
   const [themesBusy, setThemesBusy] = useState(false)
   const [themesFailed, setThemesFailed] = useState(false)
+  const [paigeLine, setPaigeLine] = useState<string | null>(null)
 
   /* Email opt-out — absent pref row defaults to on; failures leave the
      checkbox at its previous value rather than lying. */
@@ -138,6 +141,20 @@ export function PrMentionsPage() {
       setDraft({ source: '', title: '', url: '', sentiment: 'neutral', sentimentAuto: false, date: '' })
       setFormOpen(false)
       showToast(PM.pr_men_saved)
+      /* Paige notices — best-effort: a throttled or failed reaction returns
+         null and never disturbs the save. Her line also lands in the chat
+         thread. */
+      sendPrReaction(
+        { type: 'mention_logged', title: draft.title, source: draft.source, sentiment: draft.sentiment },
+        lang,
+        setPaigeLine,
+      )
+        /* A throttled reaction resolves reply:null — keep whatever the
+           stream already showed. */
+        .then((r) => {
+          if (r.reply) setPaigeLine(r.reply)
+        })
+        .catch(() => {})
     } finally {
       setSaving(false)
     }
@@ -260,6 +277,8 @@ export function PrMentionsPage() {
         </button>
       </div>
       <p className="sb-sub">{x(PM.pr_men_sub)}</p>
+
+      {paigeLine && <PaigeNote line={paigeLine} />}
 
       {formOpen && (
         <form

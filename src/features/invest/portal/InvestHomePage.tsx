@@ -1,6 +1,7 @@
 import './strategies.css'
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
@@ -8,6 +9,7 @@ import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
+import { tallyNoticed } from './strategyUi'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -102,6 +104,10 @@ export function InvestHomePage() {
   const headlines = useMemo(() => dedupeNews(state.news), [state.news])
   const visibleHeadlines = newsExpanded ? headlines : headlines.slice(0, 12)
 
+  /* Tally's presence outside the chat tab — one noticed thing, built
+     locally from the same state the stats read. No model call. */
+  const noticed = tallyNoticed(state, lang)
+
   const allocation = ASSET_CLASSES.map((cls) => ({
     cls,
     value: state.positions
@@ -158,6 +164,18 @@ export function InvestHomePage() {
       )}
 
       <InvestOnboarding />
+
+      {noticed && (
+        <div className="sb-note" style={{ marginBottom: 16, alignItems: 'center' }}>
+          <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <span>
+            <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed}{' '}
+            <Link to="/invest/chat" style={{ color: 'inherit', fontWeight: 600 }}>
+              {x(IM.invest_home_tally_open)}
+            </Link>
+          </span>
+        </div>
+      )}
 
       <div className="sb-note">
         <Info size={16} strokeWidth={1.7} aria-hidden="true" />

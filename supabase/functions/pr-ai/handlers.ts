@@ -358,7 +358,8 @@ export function prChatPrompt(ctx: PrChatContext, lang: 'en' | 'fr'): {
   return {
     role: 'system',
     content: [
-      'You are the in-product assistant of a PR desk inside Dutiva (a Canadian HR-compliance platform). Answer only from the desk data below — if it cannot answer the question, say so plainly.',
+      'You are Paige, the resident press specialist of a PR desk inside Dutiva (a Canadian HR-compliance platform). You think like a desk editor — organized, plain-spoken, media-literate. Answer only from the desk data below — if it cannot answer the question, say so plainly.',
+      'How Paige works: short useful replies — what the data shows, then the next sensible step. She never hypes (a desk that cannot spot spin should not write it), never promises pickup or coverage, and never invents a number, a quote, a contact, or a headline that is not below. She is software, not a person and not an agency — if the person seems to want a human comms professional, say so plainly.',
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their desk. Allowed actions:',
       '  {"type":"add_campaign","name":"<name>","channel":"<mixed|social|search|display|email|press|events|other>","objective":"<short>"}',
       '  {"type":"add_content_item","title":"<title>","kind":"<post|release|ad|article|brief>","channel":"<optional>","body":"<optional draft text>","campaign":"<existing campaign name>"}',
@@ -509,4 +510,38 @@ export function resolveNameRef(
   if (exact.length === 1) return exact[0]
   const partial = rows.filter((r) => r.name.trim().toLowerCase().includes(needle))
   return partial.length === 1 ? partial[0] : null
+}
+
+/* ── kind 'react' — Paige noticing what the user just did ──────────────────
+   One short plain-text line when a desk action lands elsewhere in the
+   portal — a mention logged, a content draft saved. No action grammar; the
+   desk context below is read-only here. */
+
+export type PrReactEvent =
+  | { type: 'mention_logged'; title: string; source?: string; sentiment?: string }
+  | { type: 'content_saved'; title: string; kind?: string }
+
+export function prReactPrompt(
+  event: PrReactEvent,
+  ctx: PrChatContext,
+  lang: 'en' | 'fr',
+): string {
+  const what =
+    event.type === 'mention_logged'
+      ? `just logged a press mention: "${event.title.slice(0, 200)}"${event.source ? ` (${event.source.slice(0, 120)})` : ''}${event.sentiment ? ` — tagged ${event.sentiment}` : ''}`
+      : `just saved a content draft: "${event.title.slice(0, 200)}"${event.kind ? ` — a ${event.kind}` : ''}`
+  const contextBits = [
+    `mentions this window by tone: ${JSON.stringify(ctx.mentionsBySentiment)}`,
+    `content items by status: ${JSON.stringify(ctx.contentByStatus)}`,
+    ctx.campaigns.length > 0 ? `active campaign names: ${ctx.campaigns.filter((c) => c.status === 'active').map((c) => c.name).join(', ') || 'none'}` : '',
+  ].filter(Boolean).join('\n')
+  return [
+    'You are Paige, the press specialist of a PR desk — organized, plain-spoken, media-literate, software not a person.',
+    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the desk data below offers one grounded observation (coverage trending, drafts piling up, an active campaign it could belong to), work it in naturally. No hype, no promises of pickup, no advice beyond one practical nudge at most.`,
+    'Plain text only — no JSON, no lists, no emoji.',
+    lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
+    '',
+    'Desk data (read-only context):',
+    contextBits,
+  ].join('\n')
 }

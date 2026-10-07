@@ -10,16 +10,21 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearInvestChat,
   loadInvestChatHistory,
+  rateInvestChatTurn,
   sendInvestChat,
-} from '@/features/invest/data/api'
+  undoInvestChatAction,
+} from '@/features/invest/data/chatApi'
 import { InvestChatPage } from './InvestChatPage'
 
-/* The page never reads the table directly — history, sending and clearing
-   all go through the invest-ai function, so the api module is the seam. */
-vi.mock('@/features/invest/data/api', () => ({
+/* The page never reads the table directly — history, sending, undo and
+   clearing all go through the invest-ai function, so the api module is
+   the seam. */
+vi.mock('@/features/invest/data/chatApi', () => ({
   sendInvestChat: vi.fn(),
   loadInvestChatHistory: vi.fn(),
   clearInvestChat: vi.fn(),
+  rateInvestChatTurn: vi.fn(),
+  undoInvestChatAction: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -51,15 +56,18 @@ function renderPage(lang: Lang = 'en') {
   return { refresh }
 }
 
+const ASSISTANT_ID = 'a1b2c3d4-0000-4000-8000-000000000001'
+
 describe('InvestChatPage', () => {
   afterEach(() => {
     vi.clearAllMocks()
   })
 
-  it('shows the empty state when there is no history', async () => {
+  it('greets on an empty conversation — Tally speaks first', async () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     renderPage()
-    expect(await screen.findByText(/Nothing yet/)).toBeInTheDocument()
+    expect(await screen.findByText(/Hi — I’m Tally/)).toBeInTheDocument()
+    expect(screen.getByText(/What should the book record today\?/)).toBeInTheDocument()
   })
 
   it('sends a message, renders the reply, and confirms the executed action', async () => {
@@ -67,17 +75,22 @@ describe('InvestChatPage', () => {
     vi.mocked(sendInvestChat).mockResolvedValue({
       reply: 'Queued a draft order for review.',
       action: { type: 'create_order', detail: 'buy 5 XEQT', ok: true, refId: 'o1' },
+      assistantId: ASSISTANT_ID,
     })
     const { refresh } = renderPage()
-    await screen.findByPlaceholderText(/Write a message/)
+    await screen.findByPlaceholderText(/Ask Tally/)
 
-    fireEvent.change(screen.getByPlaceholderText(/Write a message/), {
+    fireEvent.change(screen.getByPlaceholderText(/Ask Tally/), {
       target: { value: 'queue a buy of 5 XEQT' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
 
     await waitFor(() =>
-      expect(sendInvestChat).toHaveBeenCalledWith('queue a buy of 5 XEQT', 'en'),
+      expect(sendInvestChat).toHaveBeenCalledWith(
+        'queue a buy of 5 XEQT',
+        'en',
+        expect.any(Function),
+      ),
     )
     expect(await screen.findByText('Queued a draft order for review.')).toBeInTheDocument()
     expect(screen.getByText('Draft order queued — buy 5 XEQT')).toBeInTheDocument()
@@ -93,13 +106,15 @@ describe('InvestChatPage', () => {
         role: 'user',
         content: 'watch XEQT',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
       {
-        id: 'a1',
+        id: ASSISTANT_ID,
         role: 'assistant',
         content: 'Watching it.',
         action: { type: 'add_watch_symbol', detail: 'XEQT', ok: true },
+        feedback: null,
         createdAt: '2026-10-05T12:00:01Z',
       },
     ])
@@ -111,6 +126,48 @@ describe('InvestChatPage', () => {
     expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
   })
 
+  it('offers undo on a successful action chip and marks it undone', async () => {
+    vi.mocked(loadInvestChatHistory).mockResolvedValue([
+      {
+        id: ASSISTANT_ID,
+        role: 'assistant',
+        content: 'Queued.',
+        action: { type: 'create_order', detail: 'buy 5 XEQT', ok: true, refId: 'o1' },
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    vi.mocked(undoInvestChatAction).mockResolvedValue(undefined)
+    const { refresh } = renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(undoInvestChatAction).toHaveBeenCalledWith(ASSISTANT_ID))
+    expect(await screen.findByText('Undone')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('toggles a thumbs rating on an assistant turn', async () => {
+    vi.mocked(loadInvestChatHistory).mockResolvedValue([
+      {
+        id: ASSISTANT_ID,
+        role: 'assistant',
+        content: 'On the books.',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    vi.mocked(rateInvestChatTurn).mockResolvedValue(undefined)
+    renderPage()
+
+    const up = await screen.findByRole('button', { name: 'Helpful' })
+    expect(up).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(up)
+    await waitFor(() => expect(rateInvestChatTurn).toHaveBeenCalledWith(ASSISTANT_ID, 1))
+    expect(up).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('clears the conversation via the function', async () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([
       {
@@ -118,6 +175,7 @@ describe('InvestChatPage', () => {
         role: 'user',
         content: 'hi',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
     ])
@@ -130,11 +188,11 @@ describe('InvestChatPage', () => {
     await waitFor(() => expect(screen.queryByText('hi')).not.toBeInTheDocument())
   })
 
-  it('renders the French chrome under lang fr', async () => {
+  it('renders the French chrome and greeting under lang fr', async () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     renderPage('fr')
 
-    expect(await screen.findByText(/Rien pour l/)).toBeInTheDocument()
+    expect(await screen.findByText(/Bonjour — je suis Tally/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
   })
 })

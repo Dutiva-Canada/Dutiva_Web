@@ -133,3 +133,61 @@ export function fmtCad(amount: number | null, lang: Lang): string {
   }).format(amount)
   return lang === 'fr' ? `${n} $` : `$${n}`
 }
+
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000
+
+/** Paige's opening turn on an empty conversation — one breath: hello, at
+    most one thing she noticed (drafts waiting for review, else recent
+    coverage, else the active campaign count), then a question.
+    Deterministic and bilingual, so she speaks first without a model call. */
+export function paigeGreeting(
+  state: { campaigns: { status: string }[]; contentItems: { status: string }[]; mentions: { publishedAt: string }[] } | undefined,
+  lang: Lang,
+  now: Date = new Date(),
+): string {
+  const parts = [pick(PM.pr_chat_hi, lang)]
+  if (state) {
+    const drafts = state.contentItems.filter((c) => c.status === 'draft').length
+    const recent = state.mentions.filter(
+      (m) => Date.parse(m.publishedAt) >= now.getTime() - MONTH_MS,
+    ).length
+    const active = state.campaigns.filter((c) => c.status === 'active').length
+    if (drafts >= 1) {
+      parts.push(pick(PM.pr_chat_hi_drafts, lang).replace('{count}', String(drafts)))
+    } else if (recent >= 1) {
+      parts.push(pick(PM.pr_chat_hi_mentions, lang).replace('{count}', String(recent)))
+    } else if (active >= 1) {
+      parts.push(pick(PM.pr_chat_hi_campaigns, lang).replace('{count}', String(active)))
+    }
+  }
+  parts.push(pick(PM.pr_chat_hi_ask, lang))
+  return parts.join(' ')
+}
+
+/** The Overview strip — Paige's presence outside the chat tab. One thing
+    she noticed, picked deterministically from local state (no call): drafts
+    waiting for review, else coverage from the last 30 days, else the active
+    campaign count. Null means nothing worth noticing; the strip stays
+    hidden. */
+export function paigeNoticed(
+  state: { campaigns: { status: string }[]; contentItems: { status: string }[]; mentions: { publishedAt: string }[] } | undefined,
+  lang: Lang,
+  now: Date = new Date(),
+): string | null {
+  if (!state) return null
+  const drafts = state.contentItems.filter((c) => c.status === 'draft').length
+  if (drafts >= 1) {
+    return pick(PM.pr_home_paige_drafts, lang).replace('{count}', String(drafts))
+  }
+  const recent = state.mentions.filter(
+    (m) => Date.parse(m.publishedAt) >= now.getTime() - MONTH_MS,
+  ).length
+  if (recent >= 1) {
+    return pick(PM.pr_home_paige_mentions, lang).replace('{count}', String(recent))
+  }
+  const active = state.campaigns.filter((c) => c.status === 'active').length
+  if (active >= 1) {
+    return pick(PM.pr_home_paige_campaigns, lang).replace('{count}', String(active))
+  }
+  return null
+}

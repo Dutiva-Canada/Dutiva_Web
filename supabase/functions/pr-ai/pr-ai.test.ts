@@ -16,6 +16,7 @@ import {
 import {
   parsePrChatReply,
   prChatPrompt,
+  prReactPrompt,
   resolveNameRef,
   type PrChatContext,
 } from './handlers'
@@ -355,5 +356,35 @@ describe('parsePitch', () => {
   it('returns null for empty input or a subject with no body', () => {
     expect(parsePitch('')).toBeNull()
     expect(parsePitch('Subject: only a subject')).toBeNull()
+  })
+})
+
+
+describe('prReactPrompt', () => {
+  it('names the logged mention and stays inside the no-hype register', () => {
+    const p = prReactPrompt(
+      { type: 'mention_logged', title: 'Local paper covers the launch', source: 'Gazette', sentiment: 'positive' },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('Paige')
+    expect(p).toContain('Local paper covers the launch')
+    expect(p).toContain('Gazette')
+    expect(p).toContain('tagged positive')
+    expect(p).toContain('No hype')
+    expect(p).toContain('Plain text only')
+    expect(p).toContain('Canadian English')
+  })
+
+  it('names a saved draft with its kind and pulls in desk context', () => {
+    const p = prReactPrompt(
+      { type: 'content_saved', title: 'Q4 op-ed', kind: 'article' },
+      { ...EMPTY_CTX, contentByStatus: { draft: 3 }, campaigns: [{ name: 'Winter push', status: 'active' } as never] },
+      'fr',
+    )
+    expect(p).toContain('Q4 op-ed')
+    expect(p).toContain('article')
+    expect(p).toContain('Winter push')
+    expect(p).toContain('Canadian French')
   })
 })

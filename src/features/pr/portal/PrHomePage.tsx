@@ -1,7 +1,7 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
 import { Link } from 'react-router-dom'
-import { Info, Loader2 } from 'lucide-react'
+import { Info, Loader2, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
@@ -10,7 +10,7 @@ import {
   mentionsInWindow,
   upcomingContent,
 } from '@/features/pr/data/prStats'
-import { contentKindLabel, fmtDateTime, sentimentLabel } from './prUi'
+import { contentKindLabel, fmtDateTime, paigeNoticed, sentimentLabel } from './prUi'
 import type { PrConnectionProvider, PrConnectionStatus } from '@/features/pr/data/types'
 
 /** The providers the desk will reach once their OAuth apps clear review —
@@ -65,6 +65,10 @@ export function PrHomePage() {
   const recentMentions = mentionsInWindow(state.mentions, 30)
   const citedAnswers = state.geoPrompts.filter((p) => p.result === 'cited').length
 
+  /* Paige's presence outside the chat tab — one noticed thing, built
+     locally from the same state the stats read. No model call. */
+  const noticed = paigeNoticed(state, lang)
+
   return (
     <div className="sb prx sb-page">
       <div className="sb-head-row">
@@ -74,6 +78,18 @@ export function PrHomePage() {
         </Link>
       </div>
       <p className="sb-sub">{x(PM.pr_ov_sub)}</p>
+
+      {noticed && (
+        <div className="sb-note" style={{ marginTop: 14, alignItems: 'center' }}>
+          <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
+          <span>
+            <strong>{x(PM.pr_home_paige_label)}</strong> — {noticed}{' '}
+            <Link to="/pr/chat" style={{ color: 'inherit', fontWeight: 600 }}>
+              {x(PM.pr_home_paige_open)}
+            </Link>
+          </span>
+        </div>
+      )}
 
       <div className="sb-stats">
         <div className="sb-stat">

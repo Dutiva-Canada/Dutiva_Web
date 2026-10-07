@@ -604,19 +604,39 @@ export const prMessages = defineMessages({
      contacts, keywords, coverage, GEO prompts, connections) and can record
      what the user asks it to — everything lands as a draft or log entry.
      [FR self-authored] */
-  pr_tab_chat: { en: 'Chat', fr: 'Discussion' },
-  pr_chat_title: { en: 'Assistant', fr: 'Assistant' },
+  pr_tab_chat: { en: 'Paige', fr: 'Paige' },
+  pr_chat_title: { en: 'Paige', fr: 'Paige' },
   pr_chat_sub: {
-    en: 'Ask about your desk, or tell it what to record — a campaign, a draft, a contact, a mention, a keyword to track.',
-    fr: 'Posez une question sur vos données, ou dites-lui quoi noter — une campagne, un brouillon, un contact, une retombée, un mot-clé à suivre.',
+    en: 'Your press specialist — ask about your desk, or tell her what to record. She’s software, not a person or an agency; drafts always wait for your review.',
+    fr: 'Votre spécialiste presse — posez-lui une question sur vos données, ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une agence; les brouillons attendent toujours votre validation.',
+  },
+  /* Her opening turn on an empty conversation — a hello, at most one thing
+     she noticed from the desk, and a question. Built client-side from
+     PrState so it costs no call and stays bilingual. [FR self-authored] */
+  pr_chat_hi: { en: 'Hi — I’m Paige, your press specialist.', fr: 'Bonjour — je suis Paige, votre spécialiste presse.' },
+  pr_chat_hi_drafts: {
+    en: 'You have {count} drafts waiting in Content.',
+    fr: 'Vous avez {count} brouillons en attente au contenu.',
+  },
+  pr_chat_hi_mentions: {
+    en: 'Coverage picked up — {count} mentions logged in the last 30 days.',
+    fr: 'La couverture a bougé — {count} retombées notées dans les 30 derniers jours.',
+  },
+  pr_chat_hi_campaigns: {
+    en: '{count} campaigns are active right now.',
+    fr: '{count} campagnes sont actives en ce moment.',
+  },
+  pr_chat_hi_ask: {
+    en: 'What are we working on today?',
+    fr: 'Sur quoi travaille-t-on aujourd’hui?',
   },
   pr_chat_empty: {
     en: 'Nothing yet. Try “what campaigns are active?” or “add a contact at a trade outlet.”',
     fr: 'Rien pour l’instant. Essayez « quelles campagnes sont actives? » ou « ajoute un contact dans un média spécialisé ».',
   },
   pr_chat_placeholder: {
-    en: 'Write a message…',
-    fr: 'Écrivez un message…',
+    en: 'Ask Paige about the desk, or tell her what to record…',
+    fr: 'Demandez à Paige sur vos données, ou dites-lui quoi noter…',
   },
   pr_chat_send: { en: 'Send', fr: 'Envoyer' },
   pr_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
@@ -636,9 +656,37 @@ export const prMessages = defineMessages({
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
   },
-  pr_seo_title_chat: { en: 'Assistant — Dutiva PR', fr: 'Assistant — Dutiva RP' },
+  /* Undo on an action chip — deletes the row the action created; the chip
+     then reads Undone. [FR self-authored] */
+  pr_chat_undo: { en: 'Undo', fr: 'Annuler' },
+  pr_chat_undone: { en: 'Undone', fr: 'Annulé' },
+  pr_chat_undo_failed: {
+    en: 'Couldn’t undo that — try again.',
+    fr: 'Impossible d’annuler — réessayez.',
+  },
+  /* Thumbs rating under an assistant reply — stored on the turn.
+     [FR self-authored] */
+  pr_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
+  pr_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Overview strip — one thing she noticed, built locally (no call).
+     [FR self-authored] */
+  pr_home_paige_label: { en: 'Paige noticed', fr: 'Paige a remarqué' },
+  pr_home_paige_drafts: {
+    en: '{count} drafts sit in Content waiting for review.',
+    fr: '{count} brouillons attendent votre validation au contenu.',
+  },
+  pr_home_paige_mentions: {
+    en: '{count} mentions logged in the last 30 days.',
+    fr: '{count} retombées notées dans les 30 derniers jours.',
+  },
+  pr_home_paige_campaigns: {
+    en: '{count} active campaigns on the books.',
+    fr: '{count} campagnes actives au programme.',
+  },
+  pr_home_paige_open: { en: 'Chat with Paige', fr: 'Discuter avec Paige' },
+  pr_seo_title_chat: { en: 'Paige — Dutiva PR', fr: 'Paige — Dutiva RP' },
   pr_seo_desc_chat: {
-    en: 'Chat with the desk assistant about your own PR data.',
-    fr: 'Discutez avec l’assistant du portail de vos propres données RP.',
+    en: 'Chat with Paige — the desk’s press specialist — about your own PR data.',
+    fr: 'Discutez avec Paige — la spécialiste presse du portail — de vos propres données.',
   },
 })

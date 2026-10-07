@@ -11,6 +11,8 @@ import {
   draftPrContent,
   updateContentItem,
 } from '@/features/pr/data/api'
+import { sendPrReaction } from '@/features/pr/data/chatApi'
+import { PaigeNote } from './PaigeNote'
 import type { PrContentItem, PrContentKind, PrContentStatus } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import {
@@ -77,6 +79,7 @@ export function PrContentPage() {
   const [drafting, setDrafting] = useState(false)
   const [aiDrafted, setAiDrafted] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  const [paigeLine, setPaigeLine] = useState<string | null>(null)
 
   /* Rough notes in the body field become the model's input; the returned
      draft replaces them and stays marked until the user edits it. */
@@ -146,12 +149,27 @@ export function PrContentPage() {
             ? new Date().toISOString()
             : draft.publishedAt,
       }
+      const isNew = !draft.id
       if (draft.id) await updateContentItem(draft.id, fields)
       else await addContentItem(fields)
       await refresh()
       setDraft(EMPTY)
       setFormOpen(false)
       showToast(PM.pr_content_saved)
+      /* Paige notices new drafts — best-effort: a throttled or failed
+         reaction returns null and never disturbs the save. Her line also
+         lands in the chat thread. Edits stay quiet. */
+      if (isNew) {
+        sendPrReaction(
+          { type: 'content_saved', title: draft.title, kind: draft.kind },
+          lang,
+          setPaigeLine,
+        )
+          .then((r) => {
+            if (r.reply) setPaigeLine(r.reply)
+          })
+          .catch(() => {})
+      }
     } finally {
       setSaving(false)
     }
@@ -197,6 +215,8 @@ export function PrContentPage() {
         </button>
       </div>
       <p className="sb-sub">{x(PM.pr_content_sub)}</p>
+
+      {paigeLine && <PaigeNote line={paigeLine} />}
 
       {formOpen && (
         <form

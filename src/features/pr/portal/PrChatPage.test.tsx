@@ -10,16 +10,21 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearPrChat,
   loadPrChatHistory,
+  ratePrChatTurn,
   sendPrChat,
-} from '@/features/pr/data/api'
+  undoPrChatAction,
+} from '@/features/pr/data/chatApi'
 import { PrChatPage } from './PrChatPage'
 
-/* The page never reads the table directly — history, sending and clearing
-   all go through the pr-ai function, so the api module is the seam to mock. */
-vi.mock('@/features/pr/data/api', () => ({
+/* The page never reads the table directly — history, sending, undo and
+   clearing all go through the pr-ai function, so the api module is the
+   seam to mock. */
+vi.mock('@/features/pr/data/chatApi', () => ({
   sendPrChat: vi.fn(),
   loadPrChatHistory: vi.fn(),
   clearPrChat: vi.fn(),
+  ratePrChatTurn: vi.fn(),
+  undoPrChatAction: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -55,15 +60,18 @@ function renderPage(lang: Lang = 'en') {
   return { refresh }
 }
 
+const ASSISTANT_ID = 'a1b2c3d4-0000-4000-8000-000000000001'
+
 describe('PrChatPage', () => {
   afterEach(() => {
     vi.clearAllMocks()
   })
 
-  it('shows the empty state when there is no history', async () => {
+  it('greets on an empty conversation — Paige speaks first', async () => {
     vi.mocked(loadPrChatHistory).mockResolvedValue([])
     renderPage()
-    expect(await screen.findByText(/Nothing yet/)).toBeInTheDocument()
+    expect(await screen.findByText(/Hi — I’m Paige/)).toBeInTheDocument()
+    expect(screen.getByText(/What are we working on today\?/)).toBeInTheDocument()
   })
 
   it('sends a message, renders the reply, and confirms the executed action', async () => {
@@ -71,17 +79,22 @@ describe('PrChatPage', () => {
     vi.mocked(sendPrChat).mockResolvedValue({
       reply: 'Draft filed.',
       action: { type: 'add_media_contact', detail: 'Jo at CBC', ok: true, refId: 'c1' },
+      assistantId: ASSISTANT_ID,
     })
     const { refresh } = renderPage()
-    await screen.findByPlaceholderText(/Write a message/)
+    await screen.findByPlaceholderText(/Ask Paige/)
 
-    fireEvent.change(screen.getByPlaceholderText(/Write a message/), {
+    fireEvent.change(screen.getByPlaceholderText(/Ask Paige/), {
       target: { value: 'add Jo at CBC to my contacts' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Send' }))
 
     await waitFor(() =>
-      expect(sendPrChat).toHaveBeenCalledWith('add Jo at CBC to my contacts', 'en'),
+      expect(sendPrChat).toHaveBeenCalledWith(
+        'add Jo at CBC to my contacts',
+        'en',
+        expect.any(Function),
+      ),
     )
     expect(await screen.findByText('Draft filed.')).toBeInTheDocument()
     expect(screen.getByText('Contact "Jo at CBC" added')).toBeInTheDocument()
@@ -97,13 +110,15 @@ describe('PrChatPage', () => {
         role: 'user',
         content: 'track the keyword hr compliance',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
       {
-        id: 'a1',
+        id: ASSISTANT_ID,
         role: 'assistant',
         content: 'Tracking it now.',
         action: { type: 'add_keyword', detail: 'hr compliance', ok: true, refId: 'k1' },
+        feedback: null,
         createdAt: '2026-10-05T12:00:01Z',
       },
     ])
@@ -115,6 +130,48 @@ describe('PrChatPage', () => {
     expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
   })
 
+  it('offers undo on a successful action chip and marks it undone', async () => {
+    vi.mocked(loadPrChatHistory).mockResolvedValue([
+      {
+        id: ASSISTANT_ID,
+        role: 'assistant',
+        content: 'Tracking it now.',
+        action: { type: 'add_keyword', detail: 'hr compliance', ok: true, refId: 'k1' },
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    vi.mocked(undoPrChatAction).mockResolvedValue(undefined)
+    const { refresh } = renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    await waitFor(() => expect(undoPrChatAction).toHaveBeenCalledWith(ASSISTANT_ID))
+    expect(await screen.findByText('Undone')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('toggles a thumbs rating on an assistant turn', async () => {
+    vi.mocked(loadPrChatHistory).mockResolvedValue([
+      {
+        id: ASSISTANT_ID,
+        role: 'assistant',
+        content: 'On it.',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    vi.mocked(ratePrChatTurn).mockResolvedValue(undefined)
+    renderPage()
+
+    const up = await screen.findByRole('button', { name: 'Helpful' })
+    expect(up).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(up)
+    await waitFor(() => expect(ratePrChatTurn).toHaveBeenCalledWith(ASSISTANT_ID, 1))
+    expect(up).toHaveAttribute('aria-pressed', 'true')
+  })
+
   it('clears the conversation via the function', async () => {
     vi.mocked(loadPrChatHistory).mockResolvedValue([
       {
@@ -122,6 +179,7 @@ describe('PrChatPage', () => {
         role: 'user',
         content: 'hi',
         action: null,
+        feedback: null,
         createdAt: '2026-10-05T12:00:00Z',
       },
     ])
@@ -134,11 +192,11 @@ describe('PrChatPage', () => {
     await waitFor(() => expect(screen.queryByText('hi')).not.toBeInTheDocument())
   })
 
-  it('renders the French chrome under lang fr', async () => {
+  it('renders the French chrome and greeting under lang fr', async () => {
     vi.mocked(loadPrChatHistory).mockResolvedValue([])
     renderPage('fr')
 
-    expect(await screen.findByText(/Rien pour l/)).toBeInTheDocument()
+    expect(await screen.findByText(/Bonjour — je suis Paige/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
   })
 })
