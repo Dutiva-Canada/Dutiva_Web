@@ -5,6 +5,7 @@ import { selectRelevantUpdates } from '../_shared/lawUpdateRelevance.ts'
 import { selectDigestableUpdates } from '../_shared/lawUpdateDigest.ts'
 import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Weekly law-change digest (TODO.md D1, decided 2026-08-06: internal-only,
@@ -92,7 +93,7 @@ const handler = async (req: Request) => {
   if (!supabaseUrl || !serviceRoleKey) return json({ error: 'Server configuration missing' }, 500)
 
   const requiredSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET')
-  if (requiredSecret && req.headers.get('x-notify-secret') !== requiredSecret) {
+  if (requiredSecret && !secretEquals(req.headers.get('x-notify-secret') ?? '', requiredSecret)) {
     return json({ error: 'Unauthorized' }, 401)
   }
 

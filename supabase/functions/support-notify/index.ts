@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { resendSend } from '../_shared/resendSend.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Send worker for the support notification outbox. Drains `pending` rows from
@@ -576,7 +577,7 @@ const handler = async (req: Request) => {
 
   // Restrict invocation to the scheduler/operator when a secret is configured.
   const requiredSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET')
-  if (requiredSecret && req.headers.get('x-notify-secret') !== requiredSecret) {
+  if (requiredSecret && !secretEquals(req.headers.get('x-notify-secret') ?? '', requiredSecret)) {
     return json({ error: 'Unauthorized' }, 401)
   }
 
