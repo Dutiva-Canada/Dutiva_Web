@@ -1,5 +1,6 @@
 import { CADENCES, parseRules, type Strategy, type StrategyCadence } from './handlers.ts'
 import type { SupabaseClient } from './botShared.ts'
+import type { PostgrestSingleResponse } from 'npm:@supabase/supabase-js@2'
 
 /* Strategy loading — reads invest_strategies with the newest columns when
    present and degrades column-set by column-set, so a code-before-schema
@@ -33,7 +34,7 @@ export async function loadStrategies(
   userId: string,
   allSymbols: string[],
 ): Promise<{ strategies: Strategy[]; scoped: boolean }> {
-  let res = await adminClient
+  let res: PostgrestSingleResponse<StrategyRow[]> = await adminClient
     .from('invest_strategies')
     .select(STRATEGY_COLS_FULL)
     .eq('user_id', userId)

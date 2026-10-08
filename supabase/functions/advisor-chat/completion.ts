@@ -1,4 +1,4 @@
-import { finalizeAiUsage } from '../_shared/aiUsage.ts'
+import { finalizeAiUsage, type UsageDbClient } from '../_shared/aiUsage.ts'
 import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
 import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
 import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
@@ -14,6 +14,7 @@ import type {
   SupabaseClient,
 } from './chatTypes.ts'
 import { json } from './respond.ts'
+import type { Json } from '../_shared/database.types.ts'
 
 /**
  * The metered half of the turn — everything after request setup and
@@ -97,7 +98,7 @@ export async function loadConversation(
       .eq('user_id', userId)
       .single()
     if (error || !data) return json({ error: 'Conversation not found' }, 404)
-    return data as Conversation
+    return data as unknown as Conversation
   }
 
   const { data, error } = await adminClient
@@ -106,7 +107,7 @@ export async function loadConversation(
     .select('id, messages')
     .single()
   if (error) return json({ error: error.message }, 500)
-  return data as Conversation
+  return data as unknown as Conversation
 }
 
 /* Closes out the claimed telemetry row on an upstream failure. The claim is
@@ -120,7 +121,7 @@ async function recordUpstreamError(
   error: unknown,
 ): Promise<Response> {
   const errorMessage = error instanceof Error ? error.message : String(error)
-  await finalizeAiUsage(adminClient, claimId, {
+  await finalizeAiUsage(adminClient as unknown as UsageDbClient, claimId, {
     status: 'failed',
     latencyMs: Date.now() - started,
     metadata: { error: errorMessage },
@@ -140,7 +141,10 @@ export async function requestCompletion(
 ): Promise<{ completion: Completion; latencyMs: number } | Response> {
   const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
   if ('missingSecret' in keyResult) {
-    await finalizeAiUsage(adminClient, claimId, { status: 'failed', latencyMs: 0 })
+    await finalizeAiUsage(adminClient as unknown as UsageDbClient, claimId, {
+      status: 'failed',
+      latencyMs: 0,
+    })
     return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
   }
 
@@ -188,8 +192,8 @@ export async function saveConversation(
   const { error } = await adminClient
     .from('conversations')
     .update({
-      messages,
-      last_advisor_response: lastAdvisorResponse,
+      messages: messages as unknown as Json,
+      last_advisor_response: lastAdvisorResponse as Json,
       updated_at: new Date().toISOString(),
     })
     .eq('id', conversation.id)
@@ -208,7 +212,7 @@ export async function recordCompletion(
   commercialSource?: string,
 ) {
   const usage = completion.usage ?? {}
-  await finalizeAiUsage(adminClient, claimId, {
+  await finalizeAiUsage(adminClient as unknown as UsageDbClient, claimId, {
     status: 'completed',
     latencyMs,
     promptTokens: usage.prompt_tokens ?? null,

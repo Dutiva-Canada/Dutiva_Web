@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { withCors } from '../_shared/cors.ts'
@@ -54,7 +55,7 @@ import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
  * routing + the draft-strategy one-shot.
  */
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -80,7 +81,7 @@ async function authenticateInvestUser(
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
 
-  const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+  const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
   const { data: userData, error: userError } = await adminClient.auth.getUser(token)
   if (userError || !userData?.user) return json({ error: 'Invalid user token' }, 401)
 

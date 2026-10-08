@@ -1,4 +1,4 @@
-import { applyFill } from './handlers.ts'
+import { applyFill, type AssetClass } from './handlers.ts'
 import { json, type SupabaseClient } from './botShared.ts'
 
 /* ── Manual order execution (paper fills + live confirmations) ──────────────
@@ -55,7 +55,7 @@ export async function executeOrder(
     position
       ? {
           account_id: '',
-          asset_class: order.asset_class,
+          asset_class: order.asset_class as AssetClass,
           symbol: order.symbol,
           quantity: Number(position.quantity),
           avg_cost: Number(position.avg_cost),

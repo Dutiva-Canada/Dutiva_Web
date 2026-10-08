@@ -11,6 +11,7 @@ import {
 import { maybeEmitInsights } from './insights.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
+import type { Database } from '../_shared/database.types.ts'
 import { loadStrategies } from './strategies.ts'
 
 /* ── Org run ───────────────────────────────────────────────────────────────
@@ -73,12 +74,8 @@ export async function runUser(
   /* draftsRes may 42703 on a pre-0184 schema (no strategy_id column) —
      degrade to no proposal dedupe rather than failing the run. */
   const openDraftKeys = new Set(
-    (draftsRes.error ? [] : (draftsRes.data ?? [])).map((o) =>
-      draftKey({
-        strategy_id: o.strategy_id as string | null,
-        symbol: o.symbol as string,
-        note: (o.note as string | null) ?? null,
-      }),
+    ((draftsRes.error ? [] : (draftsRes.data ?? [])) as Parameters<typeof draftKey>[0][]).map(
+      draftKey,
     ),
   )
 
@@ -90,22 +87,18 @@ export async function runUser(
     ...new Set(
       [
         ...positions.map((p) => p.symbol),
-        ...(watchlistRes.data ?? []).map((w) => w.symbol as string),
+        ...((watchlistRes.data ?? []) as { symbol: string }[]).map((w) => w.symbol),
       ].map((s) => s.toUpperCase()),
     ),
   ]
   const { strategies } = await loadStrategies(adminClient, userId, knownSymbols)
 
-  const cashTotal = (accountsRes.data ?? []).reduce((sum, a) => sum + Number(a.cash_balance), 0)
+  const cashTotal = ((accountsRes.data ?? []) as { cash_balance: number }[]).reduce(
+    (sum, a) => sum + Number(a.cash_balance),
+    0,
+  )
   const existingKeys = new Set(
-    (signalsRes.data ?? []).map((s) =>
-      signalKey({
-        strategy_id: s.strategy_id as string,
-        symbol: s.symbol as string,
-        kind: s.kind as string,
-        title: s.title as string,
-      }),
-    ),
+    ((signalsRes.data ?? []) as Parameters<typeof signalKey>[0][]).map(signalKey),
   )
 
   const plan = planRun(strategies, snapshots, positions, existingKeys, {
@@ -292,20 +285,21 @@ export async function runUser(
      sweep, so rule_hits and symbols_scanned never mix across strategies
      that share a rule title. Proposals count what was actually inserted. */
   const durationMs = Date.now() - startedAt
-  const runRows: Record<string, unknown>[] = plan.perStrategy.map((s) => {
-    return {
-      user_id: userId,
-      strategy_id: s.strategyId,
-      signals_emitted: s.signals,
-      orders_suggested: proposalsByStrategy.get(s.strategyId) ?? 0,
-      orders_executed: 0,
-      summary: `${s.symbolsScanned.length} symbol(s) scanned`,
-      status: writesFailed ? 'partial' : 'ok',
-      symbols_scanned: s.symbolsScanned,
-      rule_hits: s.ruleHits,
-      duration_ms: durationMs,
-    }
-  })
+  const runRows: Database['public']['Tables']['invest_bot_runs']['Insert'][] =
+    plan.perStrategy.map((s) => {
+      return {
+        user_id: userId,
+        strategy_id: s.strategyId,
+        signals_emitted: s.signals,
+        orders_suggested: proposalsByStrategy.get(s.strategyId) ?? 0,
+        orders_executed: 0,
+        summary: `${s.symbolsScanned.length} symbol(s) scanned`,
+        status: writesFailed ? 'partial' : 'ok',
+        symbols_scanned: s.symbolsScanned,
+        rule_hits: s.ruleHits,
+        duration_ms: durationMs,
+      }
+    })
   if (insights.length > 0 || runRows.length === 0) {
     runRows.push({
       user_id: userId,

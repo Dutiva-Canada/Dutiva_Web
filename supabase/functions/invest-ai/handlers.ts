@@ -357,6 +357,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         }
       }
     }
+    return null
   } catch {
     return null
   }

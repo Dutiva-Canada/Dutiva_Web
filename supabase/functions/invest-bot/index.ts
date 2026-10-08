@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { validateBotAction } from './handlers.ts'
 import { withCors } from '../_shared/cors.ts'
 import {
@@ -68,7 +69,7 @@ const handler = async (req: Request) => {
       const authed = await authenticateInvestUser(req, config, { requireAdmin: true })
       if (authed instanceof Response) return authed
     }
-    const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+    const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
     /* Users with at least one enabled strategy — cheaper than sweeping all. */
     const { data: userRows } = await adminClient
       .from('invest_strategies')

@@ -1,5 +1,6 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { type SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import type { AdvisorAttachment } from '../_shared/modelUpstream.ts'
+import type { Database } from '../_shared/database.types.ts'
 
 /**
  * Shared types for the advisor-chat handler and its extracted modules —
@@ -12,7 +13,7 @@ export interface ChatMessage {
   content: string
 }
 
-export type SupabaseClient = ReturnType<typeof createClient>
+export type SupabaseClient = SbClient<Database>
 
 export interface ServerConfig {
   supabaseUrl: string

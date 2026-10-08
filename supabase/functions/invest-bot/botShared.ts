@@ -1,5 +1,6 @@
-import { createClient } from 'npm:@supabase/supabase-js@2'
+import { createClient, type SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import { makeCorsHeaders } from '../_shared/cors.ts'
+import type { Database } from '../_shared/database.types.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
@@ -21,7 +22,7 @@ export function json(body: unknown, status = 200) {
   })
 }
 
-export type SupabaseClient = ReturnType<typeof createClient>
+export type SupabaseClient = SbClient<Database>
 
 export interface ServerConfig {
   supabaseUrl: string
@@ -66,7 +67,7 @@ export async function authenticateInvestUser(
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
 
-  const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+  const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
   const { data: userData, error: userError } = await adminClient.auth.getUser(token)
   if (userError || !userData?.user) return json({ error: 'Invalid user token' }, 401)
 

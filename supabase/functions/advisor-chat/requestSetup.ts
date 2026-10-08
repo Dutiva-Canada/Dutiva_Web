@@ -1,10 +1,12 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { parseAttachments } from '../_shared/modelUpstream.ts'
 import type {
   ActiveModelRoute,
   AuthenticatedRequest,
   ChatRequest,
   ModelProvider,
+  ModelRoute,
   ServerConfig,
   SupabaseClient,
 } from './chatTypes.ts'
@@ -33,7 +35,7 @@ export async function authenticateRequest(
   const authHeader = req.headers.get('Authorization') ?? ''
   if (!authHeader.startsWith('Bearer ')) return json({ error: 'Missing bearer token' }, 401)
 
-  const userClient = createClient(config.supabaseUrl, config.anonKey, {
+  const userClient = createClient<Database>(config.supabaseUrl, config.anonKey, {
     global: { headers: { Authorization: authHeader } },
   })
   const token = authHeader.replace('Bearer ', '')
@@ -55,7 +57,10 @@ export async function authenticateRequest(
     return json({ error: 'Access to this workspace is invite-only.' }, 403)
   }
 
-  return { user, adminClient: createClient(config.supabaseUrl, config.serviceRoleKey) }
+  return {
+    user,
+    adminClient: createClient<Database>(config.supabaseUrl, config.serviceRoleKey),
+  }
 }
 
 export async function readChatRequest(req: Request): Promise<ChatRequest | Response> {
@@ -102,5 +107,5 @@ export async function activeModelRoute(
   if (!route || !provider || provider.status !== 'active') {
     return json({ error: 'No active model route configured for advisor_chat' }, 503)
   }
-  return { route, provider }
+  return { route: route as unknown as ModelRoute, provider }
 }

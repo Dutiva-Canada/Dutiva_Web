@@ -8,7 +8,12 @@ import { memoryBlock, selectMemoryFactsForPrompt } from './memoryFacts.ts'
 import { memoryExtractionPromptAppendix, extractMemoryCandidates } from './memoryExtract.ts'
 import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
 import { planAllowsAdvisorMemory, planFeatureGatesEnabled } from './planEntitlements.ts'
-import { advisorChatPolicy, claimAiUsage, usageLimitBody } from '../_shared/aiUsage.ts'
+import {
+  advisorChatPolicy,
+  claimAiUsage,
+  usageLimitBody,
+  type UsageDbClient,
+} from '../_shared/aiUsage.ts'
 import {
   missingModality,
   persistedUserContent,
@@ -118,12 +123,16 @@ const handler = async (req: Request) => {
   /* Meter as late as possible — right before the only step that costs money.
      Everything above is Postgres work, and a turn that dies loading its own
      conversation should not spend the caller's beta budget. */
-  const decision = await claimAiUsage(authenticated.adminClient, advisorChatPolicy(), {
-    userId: authenticated.user.id,
-    organizationId: request.organizationId,
-    provider: activeRoute.provider.provider_key,
-    model: activeRoute.route.model_name,
-  })
+  const decision = await claimAiUsage(
+    authenticated.adminClient as unknown as UsageDbClient,
+    advisorChatPolicy(),
+    {
+      userId: authenticated.user.id,
+      organizationId: request.organizationId,
+      provider: activeRoute.provider.provider_key,
+      model: activeRoute.route.model_name,
+    },
+  )
   if (decision.kind === 'denied') {
     /* Not stored as a row (see the migration): denials belong in the function
        log, where tuning the beta ceilings can read them without them counting
