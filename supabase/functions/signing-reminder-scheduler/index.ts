@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { sendInviteToRecipient, type Lang } from '../_shared/signingInvite.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Cron sweep for stale Dutiva Signature invites — emails a reminder to turn-
@@ -25,7 +26,7 @@ const CRON_LOCK_TTL_SECONDS = 300
 
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -34,7 +35,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 const handler = async (req: Request) => {

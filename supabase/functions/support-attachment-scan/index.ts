@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Malware-scan worker for support ticket attachments. Drains `pending` rows
@@ -143,7 +144,7 @@ const handler = async (req: Request) => {
   // a project that never set SUPPORT_NOTIFY_SECRET, and anyone could then make
   // us re-scan the queue at the operator's expense.
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  const bySecret = sharedSecret !== '' && req.headers.get('x-scan-secret') === sharedSecret
+  const bySecret = sharedSecret !== '' && secretEquals(req.headers.get('x-scan-secret') ?? '', sharedSecret)
   const byServiceRole = (req.headers.get('Authorization') ?? '') === `Bearer ${serviceRoleKey}`
   if (!bySecret && !byServiceRole) return json({ error: 'Forbidden' }, 403)
 

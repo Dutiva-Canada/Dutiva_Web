@@ -7,6 +7,7 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import { parseToneList, tonePrompt, type PrSentiment } from '../pr-ai/handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * pr-mentions-feed — poll the RSS/Atom feeds a user saved (Google Alerts,
@@ -47,11 +48,11 @@ function json(body: unknown, status = 200) {
 /** Scheduled-trigger auth: shared secret or the service-role bearer. */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (token === '') return false
-  return token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+  return secretEquals(token, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
 }
 
 /** Portal auth: signed-in user + pr_access grant → returns the user id. */

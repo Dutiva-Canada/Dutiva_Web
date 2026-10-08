@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { atRiskHabits, type HabitLogRow, type HabitRow } from './handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * health-habit-notify — daily streak-at-risk nudge (pg_cron 23:00 UTC,
@@ -31,10 +32,10 @@ function json(body: unknown, status = 200) {
 
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
-  return token !== '' && token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+  return token !== '' && secretEquals(token, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
 }
 
 const handler = async (req) => {

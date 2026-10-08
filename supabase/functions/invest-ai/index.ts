@@ -13,12 +13,11 @@ import {
 import {
   json,
   modelRoute,
-  parseInvestReactEvent,
   runChat,
   runChatUndo,
-  runReact,
   UPSTREAM_TIMEOUT_MS,
 } from './runtime.ts'
+import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
 
 /**
  * invest-ai — AI assistance for the invest portal, in Tally's voice.

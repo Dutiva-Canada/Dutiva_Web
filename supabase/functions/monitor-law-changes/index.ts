@@ -12,6 +12,7 @@ import { MONITORED_PAGES } from './pages.ts'
 import { sweepPage } from './sweep.ts'
 import { runOntarioHeartbeat } from './heartbeat.ts'
 import type { HashRecord } from './sweepShared.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * monitor-law-changes — the law-change watcher behind the Knowledge view's
@@ -71,7 +72,7 @@ const CRON_LOCK_TTL_SECONDS = 30 * 60
  */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -81,7 +82,7 @@ function isAuthorizedTrigger(req: Request): boolean {
   // anything the caller controls.
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 Deno.serve(async (req) => {

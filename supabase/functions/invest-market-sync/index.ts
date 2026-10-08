@@ -16,6 +16,7 @@ import {
   validateSyncAction,
   type SyncTarget,
 } from './handlers.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * invest-market-sync — refreshes invest_market_snapshots from free public
@@ -69,7 +70,7 @@ function serverConfig(): ServerConfig | Response {
 /** Same contract as invest-bot / candidate-job-agent. */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -77,7 +78,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 /** Portal JWT → user id, gated on invest_access; admin tier for sync-all. */

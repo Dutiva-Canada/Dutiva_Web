@@ -106,6 +106,9 @@ export const ALLOWED_LAW_HOST_SUFFIXES = [
   'justice.gc.ca',
   'canlii.org',
   'canada.ca',
+  /* The federal consolidated XML is republished to GitHub by Justice Canada —
+     the registry's primary URL for the two federal Acts. */
+  'raw.githubusercontent.com',
   'ontario.ca',
   'donneesquebec.ca',
   'bclaws.gov.bc.ca',
@@ -124,8 +127,11 @@ export const ALLOWED_LAW_HOST_SUFFIXES = [
   'princeedwardisland.ca',
   'assembly.nl.ca',
   'justice.gov.nt.ca',
+  'ntassembly.ca',
   'gov.nu.ca',
+  'nunavutlegislation.ca',
   'gov.yk.ca',
+  'yukon.ca',
 ]
 
 export function isAllowedLawHost(candidate: string): boolean {

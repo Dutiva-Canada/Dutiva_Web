@@ -22,6 +22,7 @@ import {
   type DiscoveredPosting,
 } from './handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Candidate job-search agent — discovers postings on the external job
@@ -101,7 +102,7 @@ function serverConfig(): ServerConfig | Response {
  */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -109,7 +110,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 async function authenticateCandidate(

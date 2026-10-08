@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { rowsNeedingFollowup, rowsNeedingReminder } from '../_shared/scheduledCalls.ts'
 import type { SchedulerRow } from '../_shared/scheduledCalls.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Cron sweep for confirmed scheduled calls (TODO.md D3): sends the one
@@ -43,7 +44,7 @@ const CRON_LOCK_TTL_SECONDS = 300
  */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -54,7 +55,7 @@ function isAuthorizedTrigger(req: Request): boolean {
   // anything the caller controls.
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 const handler = async (req: Request) => {

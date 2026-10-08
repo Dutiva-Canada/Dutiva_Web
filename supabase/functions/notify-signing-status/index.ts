@@ -4,6 +4,7 @@ import { resendSend } from '../_shared/resendSend.ts'
 import { renderSigningStatusEmail, type SigningStatusEvent } from '../_shared/signingStatusEmail.ts'
 import type { Lang } from '../_shared/signingInvite.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Email org admins when a Dutiva Signature envelope is fully signed or declined.
@@ -24,7 +25,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function isAuthorizedInternal(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -33,7 +34,7 @@ function isAuthorizedInternal(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 const handler = async (req: Request) => {

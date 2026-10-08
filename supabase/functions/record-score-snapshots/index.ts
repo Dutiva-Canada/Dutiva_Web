@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { SCORE_FORMULA_VERSION, computeOrgScore } from './scoring.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * record-score-snapshots — the scheduled compliance-score snapshot job
@@ -52,7 +53,7 @@ function isAuthorizedTrigger(req: Request): boolean {
   // anything the caller controls.
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 const PAGE = 1000
