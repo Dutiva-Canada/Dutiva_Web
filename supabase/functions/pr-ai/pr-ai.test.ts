@@ -463,6 +463,24 @@ describe('Paige persona contract', () => {
     }
   })
 
+  it('grants a teaching register — press concepts, not just desk data', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('MAY teach')
+    expect(p).toContain('embargo')
+    expect(p).toContain('AI answer engines')
+  })
+
+  it('grants honest opinions on approaches — but never a coverage prediction', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('what do you think')
+    expect(p).toContain('honest views on general approaches')
+    expect(p).toContain('frank read on their own materials')
+    expect(p).toContain('never do is predict coverage')
+    expect(p).toContain('not a promise of pickup')
+    /* The send stays human — opinions never become actions. */
+    expect(p).toContain('the send is always theirs')
+  })
+
   it('react prompt keeps the boundary too', () => {
     const p = prReactPrompt({ type: 'keyword_tracked', keyword: 'x' }, EMPTY_CTX, 'en')
     expect(p).toContain('Paige')
