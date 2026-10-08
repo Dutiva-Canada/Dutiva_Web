@@ -1,4 +1,4 @@
-import { CHAT_WIDGET_FENCE } from './widgetSpec'
+import { CHAT_WIDGET_FENCE } from './fence'
 
 /**
  * Splitting an assistant reply into text and widget segments.

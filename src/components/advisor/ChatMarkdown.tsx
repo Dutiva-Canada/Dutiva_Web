@@ -49,7 +49,7 @@ import {
 import { hideIncompleteTable } from './chatMarkdownUtils'
 import { hideIncompleteWidgetFence } from '../chatWidgets/specBlocks'
 import { interactiveChatWidgetsEnabled } from '../chatWidgets/flags'
-import { CHAT_WIDGET_FENCE } from '../chatWidgets/widgetSpec'
+import { CHAT_WIDGET_FENCE } from '../chatWidgets/fence'
 import './chat-markdown.css'
 
 /* recharts and its d3 tree are ~420kB, and most replies have no chart in them

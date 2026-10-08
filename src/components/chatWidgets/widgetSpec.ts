@@ -294,8 +294,9 @@ export const widgetSpecSchema = z.discriminatedUnion('type', [
 
 export type WidgetSpec = z.infer<typeof widgetSpecSchema>
 
-/** Fence language tag a bot uses to embed a spec in a reply. */
-export const CHAT_WIDGET_FENCE = 'dutiva-widget'
+/* Re-exported for spec-module consumers; import from './fence' directly
+   where pulling zod along would be wasted chunk weight. */
+export { CHAT_WIDGET_FENCE } from './fence'
 
 /**
  * JSON source → validated spec, or null when the source isn't a spec we
