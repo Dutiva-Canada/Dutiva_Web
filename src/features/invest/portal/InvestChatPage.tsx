@@ -80,20 +80,23 @@ export function InvestChatPage() {
     setSending(true)
     setDraft('')
     setStreamed('')
+    /* Optimistic user turn — your message should appear the moment you send,
+       not after the reply round-trips. */
+    const userTurn: InvestChatTurn = {
+      id: `u-${Date.now()}`,
+      role: 'user',
+      content: message,
+      action: null,
+      feedback: null,
+      createdAt: new Date().toISOString(),
+    }
+    setTurns((prev) => [...(prev ?? []), userTurn])
     try {
       /* onDelta turns on SSE — the reply types into the pending bubble as
          it generates; the final payload stays authoritative. */
       const { reply, action, assistantId } = await sendInvestChat(message, lang, setStreamed)
       setTurns((prev) => [
         ...(prev ?? []),
-        {
-          id: `u-${Date.now()}`,
-          role: 'user',
-          content: message,
-          action: null,
-          feedback: null,
-          createdAt: new Date().toISOString(),
-        },
         {
           /* The persisted row id when the insert landed — rating needs it. */
           id: assistantId ?? `a-${Date.now()}`,
@@ -110,6 +113,8 @@ export function InvestChatPage() {
     } catch {
       showToast(IM.invest_chat_error)
       setDraft(message)
+      /* Nothing reached the book — pull the optimistic turn back out. */
+      setTurns((prev) => (prev ?? []).filter((t) => t.id !== userTurn.id))
     } finally {
       setSending(false)
       setStreamed('')

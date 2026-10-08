@@ -349,6 +349,18 @@ describe('Tally persona contract', () => {
     expect(p).toContain('software, not a person and not an adviser')
   })
 
+  it('chat prompt grants the educational register without lowering the boundary', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    /* The teach grant — explaining concepts, abstract frameworks, generic
+       examples — is what lets a no-knowledge user learn enough to judge. */
+    expect(p).toContain('You MAY teach')
+    expect(p).toContain('never framed as what they should do')
+    /* And the line it must not cross: facts about the book are fine,
+       evaluation and direction are not. */
+    expect(p).toContain('never evaluate them')
+    expect(p).toContain('licensed adviser')
+  })
+
   it('every whitelisted action type appears in the grammar', () => {
     const p = investChatPrompt(EMPTY_CTX, 'en').content
     for (const t of INVEST_CHAT_ACTION_TYPES) {

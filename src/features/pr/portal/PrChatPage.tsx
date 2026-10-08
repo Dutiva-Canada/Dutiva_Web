@@ -84,20 +84,23 @@ export function PrChatPage() {
     setSending(true)
     setDraft('')
     setStreamed('')
+    /* Optimistic user turn — your message should appear the moment you send,
+       not after the reply round-trips. */
+    const userTurn: PrChatTurn = {
+      id: `u-${Date.now()}`,
+      role: 'user',
+      content: message,
+      action: null,
+      feedback: null,
+      createdAt: new Date().toISOString(),
+    }
+    setTurns((prev) => [...(prev ?? []), userTurn])
     try {
       /* onDelta turns on SSE — the reply types into the pending bubble as
          it generates; the final payload stays authoritative. */
       const { reply, action, assistantId } = await sendPrChat(message, lang, setStreamed)
       setTurns((prev) => [
         ...(prev ?? []),
-        {
-          id: `u-${Date.now()}`,
-          role: 'user',
-          content: message,
-          action: null,
-          feedback: null,
-          createdAt: new Date().toISOString(),
-        },
         {
           /* The persisted row id when the insert landed — rating needs it. */
           id: assistantId ?? `a-${Date.now()}`,
@@ -114,6 +117,8 @@ export function PrChatPage() {
     } catch {
       showToast(PM.pr_chat_error)
       setDraft(message)
+      /* Nothing reached the desk — pull the optimistic turn back out. */
+      setTurns((prev) => (prev ?? []).filter((t) => t.id !== userTurn.id))
     } finally {
       setSending(false)
       setStreamed('')
