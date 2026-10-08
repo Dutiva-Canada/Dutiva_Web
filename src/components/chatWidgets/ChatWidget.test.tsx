@@ -208,3 +208,25 @@ describe('live language switching', () => {
     expect(screen.getByText(/vérifiez la législation en vigueur/)).toBeInTheDocument()
   })
 })
+
+describe('WidgetErrorBoundary — a crashing widget degrades, the chat survives', () => {
+  function Boom(): never {
+    throw new Error('render kaboom')
+  }
+
+  it('swaps the crashed card for the fallback and reports the stack', async () => {
+    const { WidgetErrorBoundary } = await import('./WidgetErrorBoundary')
+    const { container } = wrap(
+      <>
+        <WidgetErrorBoundary>
+          <Boom />
+        </WidgetErrorBoundary>
+        <ChatWidget spec={CHECKLIST_SPEC} />
+      </>,
+    )
+    /* The boundary catches: the crashed card shows the quiet fallback… */
+    expect(container.querySelector('.cw-fallback')).not.toBeNull()
+    /* …and its sibling widget keeps living. */
+    expect(await screen.findByRole('checkbox')).toBeInTheDocument()
+  })
+})

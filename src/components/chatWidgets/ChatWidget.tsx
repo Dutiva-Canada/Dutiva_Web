@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { parseWidgetSpec, type WidgetSpec } from './widgetSpec'
+import { WidgetErrorBoundary } from './WidgetErrorBoundary'
 import { WidgetFallback } from './WidgetFallback'
 import './chatWidgets.css'
 
@@ -48,44 +49,37 @@ function useWidgetRenderLog(type: string) {
 export function ChatWidget({ spec }: { readonly spec: WidgetSpec }) {
   useWidgetRenderLog(spec.type)
 
+  let inner
   switch (spec.type) {
     case 'calculator':
-      return <CalculatorWidget spec={spec} />
+      inner = <CalculatorWidget spec={spec} />
+      break
     case 'chart':
-      return (
-        <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>
-          <ChartWidget spec={spec} />
-        </Suspense>
-      )
+      inner = <ChartWidget spec={spec} />
+      break
     case 'table':
-      return (
-        <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>
-          <TableWidget spec={spec} />
-        </Suspense>
-      )
+      inner = <TableWidget spec={spec} />
+      break
     case 'checklist':
-      return (
-        <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>
-          <ChecklistWidget spec={spec} />
-        </Suspense>
-      )
+      inner = <ChecklistWidget spec={spec} />
+      break
     case 'timeline':
-      return (
-        <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>
-          <TimelineWidget spec={spec} />
-        </Suspense>
-      )
+      inner = <TimelineWidget spec={spec} />
+      break
     case 'comparison':
-      return (
-        <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>
-          <ComparisonWidget spec={spec} />
-        </Suspense>
-      )
+      inner = <ComparisonWidget spec={spec} />
+      break
     default:
       /* The discriminated union is exhaustive — a validated spec can't land
          here, and an unvalidated one never reaches this component. */
       return <WidgetFallback />
   }
+
+  return (
+    <WidgetErrorBoundary>
+      <Suspense fallback={<div className="cw-loading" aria-hidden="true" />}>{inner}</Suspense>
+    </WidgetErrorBoundary>
+  )
 }
 
 /**
