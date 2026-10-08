@@ -101,7 +101,7 @@ export function InvestNotificationsPage() {
                         </span>
                       )}
                       <span className="text-[11px] text-text-muted">
-                        {new Date(s.createdAt).toLocaleString()}
+                        {new Date(s.createdAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                       </span>
                     </div>
                     <p className="m-0 mt-[6px] text-[13px] font-semibold text-text">
