@@ -280,8 +280,8 @@ export const healthMessages = defineMessages({
     fr: 'Mira lit vos chiffres et vos écrits pour répondre. Une réflexion, pas un conseil.',
   },
   health_ai_failed: {
-    en: 'The assistant isn’t available right now.',
-    fr: 'L’assistant n’est pas disponible pour le moment.',
+    en: 'Mira isn’t available right now.',
+    fr: 'Mira n’est pas disponible pour le moment.',
   },
   health_ai_habit_btn: { en: 'Suggest a habit', fr: 'Suggérer une habitude' },
   health_ai_habit_loading: { en: 'Thinking…', fr: 'Réflexion…' },
@@ -531,6 +531,12 @@ export const healthMessages = defineMessages({
   health_home_mira_note: {
     en: 'You wrote today: “{note}”',
     fr: 'Vous avez écrit aujourd’hui : « {note} »',
+  },
+  /* Quiet-return notice — someone who has history but hasn't checked in for
+     a few days. Warm, not guilt-trippy: the door's open, that's all. */
+  health_home_mira_away: {
+    en: 'It’s been {days} days since your last check-in — the door’s open whenever.',
+    fr: 'Ça fait {days} jours depuis votre dernier point — la porte reste ouverte.',
   },
   health_home_mira_open: { en: 'Chat with Mira', fr: 'Discuter avec Mira' },
   /* Thumbs rating under an assistant reply — stored on the turn.

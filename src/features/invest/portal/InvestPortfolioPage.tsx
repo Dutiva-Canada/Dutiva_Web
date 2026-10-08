@@ -133,7 +133,25 @@ export function InvestPortfolioPage() {
 
       <section className={cardClass} style={{ marginTop: 18 }}>
         <h2 style={{ margin: '0 0 14px' }}>{x(IM.invest_accounts_title)}</h2>
-        <AccountForm busy={busy} onCreate={(input) => run(() => createAccount(input))} />
+        <AccountForm
+          busy={busy}
+          onCreate={(input) =>
+            run(async () => {
+              await createAccount(input)
+              /* Tally notices — best-effort; a throttled or failed reaction
+                 never disturbs the save. */
+              sendInvestReaction(
+                { type: 'account_added', name: input.name, kind: input.kind },
+                lang,
+                setTallyLine,
+              )
+                .then((r) => {
+                  if (r.reply) setTallyLine(r.reply)
+                })
+                .catch(() => {})
+            })
+          }
+        />
         {state.accounts.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_accounts_empty)}</p>
         ) : (
@@ -159,7 +177,20 @@ export function InvestPortfolioPage() {
           <PositionForm
             busy={busy}
             accounts={state.accounts}
-            onCreate={(input) => run(() => createPosition(input))}
+            onCreate={(input) =>
+              run(async () => {
+                await createPosition(input)
+                sendInvestReaction(
+                  { type: 'position_logged', symbol: input.symbol, quantity: input.quantity },
+                  lang,
+                  setTallyLine,
+                )
+                  .then((r) => {
+                    if (r.reply) setTallyLine(r.reply)
+                  })
+                  .catch(() => {})
+              })
+            }
           />
         ) : (
           <p className="sb-helper" style={{ marginTop: 10 }}>

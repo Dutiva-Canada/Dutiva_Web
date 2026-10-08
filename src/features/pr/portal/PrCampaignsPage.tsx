@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { addCampaign, deleteCampaign, updateCampaign } from '@/features/pr/data/api'
+import { sendPrReaction } from '@/features/pr/data/chatApi'
+import { PaigeNote } from './PaigeNote'
 import { campaignItemCount } from '@/features/pr/data/prStats'
 import type { PrCampaign, PrCampaignStatus, PrChannel } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -57,6 +59,7 @@ export function PrCampaignsPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [saving, setSaving] = useState(false)
+  const [paigeLine, setPaigeLine] = useState<string | null>(null)
   const [armDelete, setArmDelete] = useState<string | null>(null)
 
   const openNew = () => {
@@ -92,12 +95,27 @@ export function PrCampaignsPage() {
         startsOn: draft.startsOn || null,
         endsOn: draft.endsOn || null,
       }
+      const isNew = !draft.id
       if (draft.id) await updateCampaign(draft.id, fields)
       else await addCampaign(fields)
       await refresh()
       setDraft(EMPTY)
       setFormOpen(false)
       showToast(PM.pr_camp_saved)
+      /* Paige notices new campaigns — best-effort: a throttled or failed
+         reaction returns null and never disturbs the save. Edits stay
+         quiet. */
+      if (isNew) {
+        sendPrReaction(
+          { type: 'campaign_created', name: fields.name, channel: fields.channel },
+          lang,
+          setPaigeLine,
+        )
+          .then((r) => {
+            if (r.reply) setPaigeLine(r.reply)
+          })
+          .catch(() => {})
+      }
     } finally {
       setSaving(false)
     }
@@ -140,6 +158,7 @@ export function PrCampaignsPage() {
         </button>
       </div>
       <p className="sb-sub">{x(PM.pr_camp_sub)}</p>
+      {paigeLine && <PaigeNote line={paigeLine} />}
 
       {formOpen && (
         <form

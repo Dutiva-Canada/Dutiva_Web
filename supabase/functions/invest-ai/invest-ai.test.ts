@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import {
+  INVEST_CHAT_ACTION_TYPES,
   investChatPrompt,
   investReactPrompt,
   parseInvestChatReply,
@@ -256,7 +257,7 @@ describe('investReactPrompt', () => {
     expect(p).toContain('Tally')
     expect(p).toContain('VFV')
     expect(p).toContain('watchlist')
-    expect(p).toContain('never say the order or the watch is good or bad')
+    expect(p).toContain('never say the order, watch, position, or signal call is good or bad')
     expect(p).toContain('Plain text only')
     expect(p).toContain('Canadian English')
   })
@@ -271,5 +272,93 @@ describe('investReactPrompt', () => {
     expect(p).toContain('draft')
     expect(p).toContain('price_alert on XEQT')
     expect(p).toContain('Canadian French')
+  })
+})
+
+describe('parseInvestChatReply — add_position', () => {
+  it('parses a position log with whitelisted fields', () => {
+    const out = parseInvestChatReply(
+      JSON.stringify({
+        reply: 'Logged.',
+        action: { type: 'add_position', symbol: 'vfv', quantity: 10, avgCost: 42.5, account: 'TFSA', name: 'VFV ETF' },
+      }),
+    )
+    expect(out?.action).toEqual({
+      type: 'add_position',
+      symbol: 'VFV',
+      name: 'VFV ETF',
+      assetClass: undefined,
+      quantity: 10,
+      avgCost: 42.5,
+      account: 'TFSA',
+    })
+  })
+
+  it('rejects non-positive quantities and missing costs', () => {
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'x', action: { type: 'add_position', symbol: 'VFV', quantity: -1, avgCost: 10 } }),
+      ),
+    ).toBeNull()
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'x', action: { type: 'add_position', symbol: 'VFV', quantity: 1 } }),
+      ),
+    ).toBeNull()
+  })
+})
+
+describe('investReactPrompt — the wider book events', () => {
+  it('names a signal triage with its symbol', () => {
+    const p = investReactPrompt(
+      { type: 'signal_updated', status: 'acknowledged', symbol: 'xeqt' },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('acknowledged')
+    expect(p).toContain('XEQT')
+    expect(p).toContain('never say the order, watch, position, or signal call is good or bad')
+  })
+
+  it('names a logged position and a new account', () => {
+    const p = investReactPrompt(
+      { type: 'position_logged', symbol: 'vfv', quantity: 12 },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('12 VFV')
+    const a = investReactPrompt(
+      { type: 'account_added', name: 'TFSA', kind: 'paper' },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(a).toContain('TFSA')
+    expect(a).toContain('paper')
+  })
+})
+
+/* Persona contract — the invariants that make Tally Tally: the no-advice
+   hard line, queued-not-executed honesty, and a grammar that matches the
+   whitelist. If a prompt edit loses one, this breaks before the model does. */
+describe('Tally persona contract', () => {
+  it('chat prompt carries the not-advice line and the queued-order honesty', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('Tally')
+    expect(p).toContain('nothing here is investment advice')
+    expect(p).toContain('QUEUED draft')
+    expect(p).toContain('software, not a person and not an adviser')
+  })
+
+  it('every whitelisted action type appears in the grammar', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    for (const t of INVEST_CHAT_ACTION_TYPES) {
+      expect(p).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('react prompt keeps the hard line', () => {
+    const p = investReactPrompt({ type: 'account_added', name: 'TFSA' }, EMPTY_CTX, 'en')
+    expect(p).toContain('Tally')
+    expect(p).toContain('nothing here is investment advice')
   })
 })

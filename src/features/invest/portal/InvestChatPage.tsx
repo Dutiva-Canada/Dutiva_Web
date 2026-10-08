@@ -35,6 +35,8 @@ function actionLabel(
       return x(IM.invest_chat_did_signal).replace('{name}', name)
     case 'draft_strategy':
       return x(IM.invest_chat_did_strategy).replace('{name}', name)
+    case 'add_position':
+      return x(IM.invest_chat_did_position).replace('{name}', name)
     default:
       return ''
   }

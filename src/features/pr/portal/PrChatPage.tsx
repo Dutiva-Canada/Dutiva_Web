@@ -38,6 +38,8 @@ function actionLabel(
       return x(PM.pr_chat_did_keyword).replace('{name}', name)
     case 'add_geo_prompt':
       return x(PM.pr_chat_did_geo).replace('{name}', name)
+    case 'update_campaign_status':
+      return x(PM.pr_chat_did_campstatus).replace('{name}', name)
     default:
       return ''
   }

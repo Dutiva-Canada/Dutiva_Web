@@ -18,6 +18,7 @@ export interface InvestChatAction {
     | 'create_order'
     | 'update_signal'
     | 'draft_strategy'
+    | 'add_position'
   /** Human-facing subject — the symbol, signal title, strategy name. */
   detail: string
   ok: boolean
@@ -76,6 +77,9 @@ export async function undoInvestChatAction(messageId: string): Promise<void> {
 export type InvestReactEvent =
   | { type: 'watch_added'; symbol: string }
   | { type: 'order_queued'; symbol: string; side: 'buy' | 'sell'; quantity: number }
+  | { type: 'signal_updated'; status: 'acknowledged' | 'dismissed'; symbol?: string }
+  | { type: 'position_logged'; symbol: string; quantity: number }
+  | { type: 'account_added'; name: string; kind?: string }
 
 /* Reactions fire a model call per qualifying action — someone watching
    three symbols shouldn't produce three calls. A floor between calls keeps

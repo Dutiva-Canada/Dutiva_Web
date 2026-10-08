@@ -211,6 +211,25 @@ export function productionTranscript(conv: ProductionConversation): ChatMessage[
     }))
 }
 
+/**
+ * Inverse of the `prod-{conversationId}-{index}` id productionTranscript
+ * stamps — recovers the (conversation_id, turn_index) key advisor_turn_feedback
+ * rates against. Returns null for demo/fixture/live ids, which aren't
+ * rateable.
+ */
+export function prodTurnRatingKey(
+  messageId: string,
+): { conversationId: string; turnIndex: number } | null {
+  if (!messageId.startsWith('prod-')) return null
+  const rest = messageId.slice(5)
+  const sep = rest.lastIndexOf('-')
+  if (sep <= 0) return null
+  const turnIndex = Number.parseInt(rest.slice(sep + 1), 10)
+  const conversationId = rest.slice(0, sep)
+  if (!Number.isInteger(turnIndex) || turnIndex < 0 || conversationId.length === 0) return null
+  return { conversationId, turnIndex }
+}
+
 export function resolveInitialActiveChatId(
   locationState: unknown,
   workspaceMode: WorkspaceMode,

@@ -64,7 +64,8 @@ export function fmtDay(dayKey: string, lang: Lang): string {
   return dateFmt(lang, { month: 'short', day: 'numeric' }).format(new Date(y, m - 1, d))
 }
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+const WEEK_MS = 7 * DAY_MS
 
 /** Mira's opening turn on an empty conversation — one breath: hello, at most
     one thing she noticed (the best live habit streak, else this week's
@@ -141,6 +142,16 @@ export function miraNoticed(
   ).length
   if (weekCount >= 2) {
     return pick(HM.health_chat_hi_checkins, lang).replace('{count}', String(weekCount))
+  }
+  /* Quiet-return: someone with a history who hasn't checked in for 3+ days.
+     Never fires on a brand-new account — absence needs a relationship to
+     be absent from. */
+  const newest = state.checkIns[0]
+  if (newest && state.checkIns.length >= 3) {
+    const silentDays = Math.floor((now.getTime() - Date.parse(newest.createdAt)) / DAY_MS)
+    if (silentDays >= 3) {
+      return pick(HM.health_home_mira_away, lang).replace('{days}', String(silentDays))
+    }
   }
   return null
 }

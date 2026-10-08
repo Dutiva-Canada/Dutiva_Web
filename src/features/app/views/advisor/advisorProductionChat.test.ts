@@ -19,6 +19,7 @@ describe('applyRealChatResult', () => {
       result: {
         reply: 'Here is guidance.',
         conversationId: 'conv-backend',
+        turnIndex: 7,
         response: null,
         memoryCreated: [],
       },
@@ -43,6 +44,7 @@ describe('applyRealChatResult', () => {
       result: {
         reply: 'Done.',
         conversationId: 'conv-backend',
+        turnIndex: 7,
         response: {
           route: {
             responseMode: 'hr',
@@ -116,6 +118,7 @@ describe('applyRealChatResult', () => {
       result: {
         reply: 'Done.',
         conversationId: 'conv-backend',
+        turnIndex: 7,
         response: gated,
         memoryCreated: [],
       },

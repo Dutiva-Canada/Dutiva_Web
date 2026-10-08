@@ -110,6 +110,10 @@ const advisorChatResponseSchema = z.object({
   data: z.object({
     reply: z.string(),
     conversation_id: z.string(),
+    /* Index of the assistant turn inside conversations.messages — the rating
+       key for advisor_turn_feedback. Older function versions omit it; thumbs
+       still appear on turns rehydrated via `prod-{convId}-{index}` ids. */
+    turn_index: z.number().int().nonnegative().optional(),
     advisor_response: z.unknown().optional(),
     memory_created: z.array(memoryCreatedItemSchema).optional(),
   }),
@@ -118,6 +122,8 @@ const advisorChatResponseSchema = z.object({
 export interface AdvisorChatResult {
   reply: string
   conversationId: string
+  /** Index of this assistant turn inside the persisted messages array. */
+  turnIndex: number | null
   /** Validated structured payload, or null if the engine didn't send one. */
   response: AdvisorResponse | null
   /** Facts newly persisted from this turn (inferred), for Review toasts. */
@@ -175,7 +181,67 @@ export async function sendAdvisorMessage(
   return {
     reply: parsed.data.reply,
     conversationId: parsed.data.conversation_id,
+    turnIndex: parsed.data.turn_index ?? null,
     response,
     memoryCreated: parsed.data.memory_created ?? [],
   }
+}
+
+/**
+ * Rate a persisted assistant turn. Portal companions rate a chat-message row;
+ * Advisor turns live inside conversations.messages (jsonb), so the key is
+ * (conversation_id, turn_index) — the index into the filtered transcript that
+ * productionTranscript() hydrates, stable across reloads. Only `prod-` turns
+ * (rehydrated from the persisted array) carry one; a fresh same-session reply
+ * has no index until the next load.
+ *
+ * rating: 1 helpful / -1 not; null clears (deletes the row).
+ */
+export async function rateAdvisorTurn(
+  conversationId: string,
+  turnIndex: number,
+  rating: 1 | -1 | null,
+): Promise<void> {
+  if (!supabase) throw new Error('Supabase client unavailable')
+  const { data: session } = await supabase.auth.getSession()
+  const userId = session.session?.user.id
+  if (userId == null) throw new Error('Not signed in')
+  if (rating === null) {
+    const { error } = await supabase
+      .from('advisor_turn_feedback')
+      .delete()
+      .eq('user_id', userId)
+      .eq('conversation_id', conversationId)
+      .eq('turn_index', turnIndex)
+    if (error) throw error
+    return
+  }
+  const { error } = await supabase.from('advisor_turn_feedback').upsert(
+    {
+      user_id: userId,
+      conversation_id: conversationId,
+      turn_index: turnIndex,
+      rating,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id,conversation_id,turn_index' },
+  )
+  if (error) throw error
+}
+
+/** Load the caller's ratings for one conversation (keyed by turn_index). */
+export async function loadAdvisorTurnRatings(
+  conversationId: string,
+): Promise<Map<number, 1 | -1>> {
+  if (!supabase) return new Map()
+  const { data, error } = await supabase
+    .from('advisor_turn_feedback')
+    .select('turn_index, rating')
+    .eq('conversation_id', conversationId)
+  if (error || data == null) return new Map()
+  return new Map(
+    data
+      .filter((r) => r.rating === 1 || r.rating === -1)
+      .map((r) => [r.turn_index, r.rating as 1 | -1]),
+  )
 }

@@ -308,6 +308,12 @@ export type PrChatAction =
     }
   | { type: 'add_keyword'; keyword: string; targetUrl?: string }
   | { type: 'add_geo_prompt'; prompt: string; engine?: string }
+  | {
+      type: 'update_campaign_status'
+      /** Existing campaign name — resolved against the desk list. */
+      campaign: string
+      status: 'draft' | 'active' | 'paused' | 'done'
+    }
 
 export interface PrChatReply {
   reply: string
@@ -321,11 +327,13 @@ export const PR_CHAT_ACTION_TYPES = new Set([
   'add_mention',
   'add_keyword',
   'add_geo_prompt',
+  'update_campaign_status',
 ])
 
 const CHANNELS = new Set([
   'mixed', 'social', 'search', 'display', 'email', 'press', 'events', 'other',
 ])
+const CAMPAIGN_STATUSES = new Set(['draft', 'active', 'paused', 'done'])
 const CONTENT_KINDS = new Set(['post', 'release', 'ad', 'article', 'brief'])
 const ENGINES = new Set(['chatgpt', 'perplexity', 'gemini', 'copilot', 'other'])
 
@@ -367,6 +375,7 @@ export function prChatPrompt(ctx: PrChatContext, lang: 'en' | 'fr'): {
       '  {"type":"add_mention","title":"<headline>","source":"<outlet>","url":"<optional>","sentiment":"<positive|neutral|negative>"}',
       '  {"type":"add_keyword","keyword":"<term>","targetUrl":"<optional>"}',
       '  {"type":"add_geo_prompt","prompt":"<question to track>","engine":"<chatgpt|perplexity|gemini|copilot|other>"}',
+      '  {"type":"update_campaign_status","campaign":"<existing campaign name>","status":"<draft|active|paused|done>"}   — the one non-additive action; it only flips a status field, nothing else moves',
       'Everything you add lands as a draft or a log entry the person could have created themselves. You never publish, schedule, send, delete, or contact anyone — if asked for that, say you cannot and point to the page that does it (Content publishes, Review holds suggestions, Media drafts pitches).',
       'Only emit an action the person actually asked for. If a campaign name does not match the list below, ask which one they mean instead of guessing.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
@@ -491,6 +500,15 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!prompt || prompt.length < 8) return null
         return { reply, action: { type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) } }
       }
+      case 'update_campaign_status': {
+        const campaign = optStr(action.campaign, 120)
+        const status = optEnum(action.status, CAMPAIGN_STATUSES)
+        if (!campaign || !status) return null
+        return {
+          reply,
+          action: { type: 'update_campaign_status', campaign, status: status as 'draft' | 'active' | 'paused' | 'done' },
+        }
+      }
     }
   } catch {
     return null
@@ -520,6 +538,9 @@ export function resolveNameRef(
 export type PrReactEvent =
   | { type: 'mention_logged'; title: string; source?: string; sentiment?: string }
   | { type: 'content_saved'; title: string; kind?: string }
+  | { type: 'campaign_created'; name: string; channel?: string }
+  | { type: 'keyword_tracked'; keyword: string }
+  | { type: 'contact_added'; name: string; outlet?: string }
 
 export function prReactPrompt(
   event: PrReactEvent,
@@ -529,15 +550,29 @@ export function prReactPrompt(
   const what =
     event.type === 'mention_logged'
       ? `just logged a press mention: "${event.title.slice(0, 200)}"${event.source ? ` (${event.source.slice(0, 120)})` : ''}${event.sentiment ? ` — tagged ${event.sentiment}` : ''}`
-      : `just saved a content draft: "${event.title.slice(0, 200)}"${event.kind ? ` — a ${event.kind}` : ''}`
+      : event.type === 'content_saved'
+        ? `just saved a content draft: "${event.title.slice(0, 200)}"${event.kind ? ` — a ${event.kind}` : ''}`
+        : event.type === 'campaign_created'
+          ? `just created a campaign: "${event.name.slice(0, 120)}"${event.channel ? ` — ${event.channel}` : ''}`
+          : event.type === 'keyword_tracked'
+            ? `just started tracking the keyword "${event.keyword.slice(0, 120)}"`
+            : `just added a media contact: "${event.name.slice(0, 120)}"${event.outlet ? ` (${event.outlet.slice(0, 120)})` : ''}`
+  /* Wider than counts — recent titles and names let the observation point at
+     something concrete without inventing coverage. */
   const contextBits = [
     `mentions this window by tone: ${JSON.stringify(ctx.mentionsBySentiment)}`,
+    ctx.recentMentions.length > 0
+      ? `recent coverage: ${ctx.recentMentions.slice(0, 4).map((m) => `"${m.title}"${m.source ? ` (${m.source})` : ''}`).join('; ')}`
+      : '',
     `content items by status: ${JSON.stringify(ctx.contentByStatus)}`,
-    ctx.campaigns.length > 0 ? `active campaign names: ${ctx.campaigns.filter((c) => c.status === 'active').map((c) => c.name).join(', ') || 'none'}` : '',
+    ctx.recentContent.length > 0 ? `recent drafts: ${ctx.recentContent.slice(0, 4).join('; ')}` : '',
+    ctx.campaigns.length > 0 ? `campaigns: ${ctx.campaigns.map((c) => `"${c.name}" (${c.status})`).join(', ')}` : '',
+    ctx.keywords.length > 0 ? `tracked keywords: ${ctx.keywords.map((k) => `"${k.keyword}"`).join(', ')}` : '',
+    `contacts on file: ${ctx.contacts.length}`,
   ].filter(Boolean).join('\n')
   return [
     'You are Paige, the press specialist of a PR desk — organized, plain-spoken, media-literate, software not a person.',
-    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the desk data below offers one grounded observation (coverage trending, drafts piling up, an active campaign it could belong to), work it in naturally. No hype, no promises of pickup, no advice beyond one practical nudge at most.`,
+    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the desk data below offers one grounded observation (coverage trending, drafts piling up, an active campaign it could belong to, a contact's beat), work it in naturally. No hype, no promises of pickup, no advice beyond one practical nudge at most.`,
     'Plain text only — no JSON, no lists, no emoji.',
     lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
     '',

@@ -100,6 +100,49 @@ describe('miraNoticed — the Overview strip', () => {
       'Vous avez pris le point aujourd’hui — bien.',
     )
   })
+
+  it('notes an absence when a returning user goes quiet — but never greets a stranger with it', () => {
+    /* 4 old check-ins, newest 5 days ago: a lapsed regular. */
+    const quiet: HealthState = {
+      ...EMPTY,
+      checkIns: [5, 8, 12, 20].map((ago) => ({
+        id: `c${ago}`,
+        mood: 3,
+        energy: null,
+        note: '',
+        createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
+      })),
+    }
+    expect(miraNoticed(quiet, 'en', NOW)).toBe(
+      'It’s been 5 days since your last check-in — the door’s open whenever.',
+    )
+
+    /* Two stale check-ins don't make a relationship — stays silent. */
+    const thin: HealthState = {
+      ...EMPTY,
+      checkIns: [10, 20].map((ago) => ({
+        id: `c${ago}`,
+        mood: 3,
+        energy: null,
+        note: '',
+        createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
+      })),
+    }
+    expect(miraNoticed(thin, 'en', NOW)).toBeNull()
+
+    /* A yesterday check-in isn't an absence. */
+    const recent: HealthState = {
+      ...EMPTY,
+      checkIns: [1, 4, 9].map((ago) => ({
+        id: `c${ago}`,
+        mood: 3,
+        energy: null,
+        note: '',
+        createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
+      })),
+    }
+    expect(miraNoticed(recent, 'en', NOW)).not.toContain('door')
+  })
 })
 
 describe('companionGreeting', () => {

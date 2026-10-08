@@ -11,6 +11,8 @@ import {
   deleteKeyword,
   updateKeywordPosition,
 } from '@/features/pr/data/api'
+import { sendPrReaction } from '@/features/pr/data/chatApi'
+import { PaigeNote } from './PaigeNote'
 import { parseKeywordImport, rankDelta } from '@/features/pr/data/prStats'
 import type { PrKeyword } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -36,6 +38,7 @@ export function PrSeoPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [importText, setImportText] = useState('')
   const [importing, setImporting] = useState(false)
+  const [paigeLine, setPaigeLine] = useState<string | null>(null)
 
   const submit = async () => {
     if (!draft.keyword.trim() || saving) return
@@ -46,6 +49,13 @@ export function PrSeoPage() {
       setDraft({ keyword: '', targetUrl: '' })
       setFormOpen(false)
       showToast(PM.pr_seo_saved)
+      /* Paige notices — best-effort; a throttled or failed reaction never
+         disturbs the save. */
+      sendPrReaction({ type: 'keyword_tracked', keyword: draft.keyword }, lang, setPaigeLine)
+        .then((r) => {
+          if (r.reply) setPaigeLine(r.reply)
+        })
+        .catch(() => {})
     } finally {
       setSaving(false)
     }
@@ -136,6 +146,7 @@ export function PrSeoPage() {
         </div>
       </div>
       <p className="sb-sub">{x(PM.pr_seo_sub)}</p>
+      {paigeLine && <PaigeNote line={paigeLine} />}
 
       {importOpen && (
         <div className="sb-card sb-card-pad">

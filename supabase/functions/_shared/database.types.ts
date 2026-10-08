@@ -534,6 +534,41 @@ export type Database = {
           },
         ]
       }
+      advisor_turn_feedback: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          rating: number
+          turn_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          rating: number
+          turn_index: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          rating?: number
+          turn_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advisor_turn_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_audit: {
         Row: {
           actor_id: string

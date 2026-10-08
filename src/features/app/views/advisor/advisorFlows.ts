@@ -238,6 +238,12 @@ export interface MessageExtras {
   memory?: MemoryUsedRead | null
   /** Commercial 429: offer prepaid reply packs under this turn. */
   advisorPackOffer?: boolean
+  /**
+   * Rating key for a fresh assistant turn — the index advisor-chat returned
+   * for the row it just appended to conversations.messages. Turns rehydrated
+   * from the thread list carry the same key inside their `prod-` id instead.
+   */
+  ratingKey?: { conversationId: string; turnIndex: number }
 }
 
 /**

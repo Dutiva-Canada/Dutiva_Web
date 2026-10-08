@@ -11,7 +11,7 @@ function requireClient() {
 /** A write Paige executed on the user's own rows during a turn —
     additive and undoable by design (see pr-ai's action grammar): campaigns
     and content land as drafts, contacts/mentions/keywords/GEO prompts as
-    log rows. */
+    log rows; a campaign status flip restores the previous status on undo. */
 export interface PrChatAction {
   type:
     | 'add_campaign'
@@ -20,6 +20,7 @@ export interface PrChatAction {
     | 'add_mention'
     | 'add_keyword'
     | 'add_geo_prompt'
+    | 'update_campaign_status'
   /** Human-facing subject — the campaign name, contact name, headline. */
   detail: string
   ok: boolean
@@ -77,6 +78,9 @@ export async function undoPrChatAction(messageId: string): Promise<void> {
 export type PrReactEvent =
   | { type: 'mention_logged'; title: string; source?: string; sentiment?: string }
   | { type: 'content_saved'; title: string; kind?: string }
+  | { type: 'campaign_created'; name: string; channel?: string }
+  | { type: 'keyword_tracked'; keyword: string }
+  | { type: 'contact_added'; name: string; outlet?: string }
 
 /* Reactions fire a model call per qualifying action — someone saving three
    drafts shouldn't produce three calls. A floor between calls keeps the

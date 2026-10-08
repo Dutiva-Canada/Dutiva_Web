@@ -9,6 +9,8 @@ import {
   Image,
   ShieldCheck,
   Sparkle,
+  ThumbsDown,
+  ThumbsUp,
   TriangleAlert,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -43,6 +45,7 @@ import type { MessageExtras, QuickFormState, SuggestChipSpec } from './advisorFl
 import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
 import type { ScenarioBanner, ScenarioBannerTone } from './advisorScenarios'
 import { ThreadListOpenButton } from './ThreadList'
+import { useTurnRatings } from './advisorTurnRatings'
 
 /**
  * Active conversation pane (prototype `hasActiveConversation` markup):
@@ -181,6 +184,7 @@ export function ChatPane({
 }: ChatPaneProps) {
   const { x, lang } = useI18n()
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  const { ratingFor, rate } = useTurnRatings(messages, getExtras)
 
   /* Keep the newest message (and its streaming tail) in view. */
   useEffect(() => {
@@ -237,6 +241,8 @@ export function ChatPane({
                 onPickProvince={onPickProvince}
                 onBuyAdvisorPack={onBuyAdvisorPack}
                 buyingAdvisorPack={buyingAdvisorPack}
+                rating={ratingFor(message.id)}
+                onRate={rate}
               />
             ),
           )}
@@ -323,6 +329,9 @@ interface AdvisorTurnProps {
   readonly onPickProvince?: (province: Bi) => void
   readonly onBuyAdvisorPack?: (pack: AdvisorPackSize) => void
   readonly buyingAdvisorPack?: AdvisorPackSize | null
+  /** undefined = turn has no persisted rating key (demo/fixture/live-seeded). */
+  readonly rating?: 1 | -1 | null
+  readonly onRate?: (messageId: string, rating: 1 | -1) => void
 }
 
 function AdvisorTurn({
@@ -339,6 +348,8 @@ function AdvisorTurn({
   onPickProvince,
   onBuyAdvisorPack,
   buyingAdvisorPack = null,
+  rating,
+  onRate,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
@@ -419,6 +430,36 @@ function AdvisorTurn({
                       <Download size={12} strokeWidth={2} />
                       {x(M.advisorview_export)}
                     </button>
+                    {rating !== undefined && onRate != null && (
+                      <span className="flex items-center gap-[2px]">
+                        <button
+                          type="button"
+                          aria-label={x(M.advisorview_rate_up)}
+                          aria-pressed={rating === 1}
+                          onClick={() => onRate(message.id, 1)}
+                          className={`cursor-pointer border-none bg-transparent p-[3px] ${
+                            rating === 1
+                              ? 'text-accent'
+                              : 'text-text-faint hover:text-text-muted'
+                          }`}
+                        >
+                          <ThumbsUp size={12} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={x(M.advisorview_rate_down)}
+                          aria-pressed={rating === -1}
+                          onClick={() => onRate(message.id, -1)}
+                          className={`cursor-pointer border-none bg-transparent p-[3px] ${
+                            rating === -1
+                              ? 'text-accent'
+                              : 'text-text-faint hover:text-text-muted'
+                          }`}
+                        >
+                          <ThumbsDown size={12} strokeWidth={2} aria-hidden="true" />
+                        </button>
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

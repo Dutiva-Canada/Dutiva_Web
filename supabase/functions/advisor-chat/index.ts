@@ -924,6 +924,11 @@ Deno.serve(async (req: Request) => {
     data: {
       reply,
       conversation_id: conversation.id,
+      /* Index of the assistant turn just persisted in messages[] — the key
+         advisor_turn_feedback rates against. Only user/assistant rows are
+         ever appended, so the raw index equals the client's filtered
+         transcript index (productionTranscript). */
+      turn_index: nextMessages.length - 1,
       advisor_response: wireAdvisorResponse,
       memory_created:
         memoryCreated.length > 0

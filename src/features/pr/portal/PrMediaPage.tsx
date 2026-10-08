@@ -6,6 +6,8 @@ import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { addMediaContact, deleteMediaContact, draftPitch, type PrPitchDraft } from '@/features/pr/data/api'
+import { sendPrReaction } from '@/features/pr/data/chatApi'
+import { PaigeNote } from './PaigeNote'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import type { PrMediaContact } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -46,6 +48,7 @@ export function PrMediaPage() {
   const [pitchFailed, setPitchFailed] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [queued, setQueued] = useState<PitchState[]>([])
+  const [paigeLine, setPaigeLine] = useState<string | null>(null)
 
   /* Pending pitch rows from the review queue — drafts filed earlier that
      nobody resolved yet. They render as the same card, oldest first. */
@@ -92,6 +95,17 @@ export function PrMediaPage() {
       setDraft(EMPTY)
       setFormOpen(false)
       showToast(PM.pr_media_saved)
+      /* Paige notices new contacts — best-effort; a throttled or failed
+         reaction never disturbs the save. */
+      sendPrReaction(
+        { type: 'contact_added', name: draft.name, outlet: draft.outlet },
+        lang,
+        setPaigeLine,
+      )
+        .then((r) => {
+          if (r.reply) setPaigeLine(r.reply)
+        })
+        .catch(() => {})
     } finally {
       setSaving(false)
     }
@@ -248,6 +262,7 @@ export function PrMediaPage() {
         </button>
       </div>
       <p className="sb-sub">{x(PM.pr_media_sub)}</p>
+      {paigeLine && <PaigeNote line={paigeLine} />}
 
       {formOpen && (
         <form

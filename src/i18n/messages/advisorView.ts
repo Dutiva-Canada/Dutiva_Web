@@ -93,6 +93,8 @@ export const advisorViewMessages = defineMessages({
   /* ── Transcript chrome ──────────────────────────────────────────────────── */
   advisorview_copy: { en: 'Copy', fr: 'Copier' },
   advisorview_export: { en: 'Export', fr: 'Exporter' },
+  advisorview_rate_up: { en: 'Helpful', fr: 'Utile' },
+  advisorview_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
   advisorview_generate: { en: 'Generate', fr: 'Générer' }, // [FR self-authored]
 
   /* Escalation toast (prototype `handleFollowup` → pushToast). */

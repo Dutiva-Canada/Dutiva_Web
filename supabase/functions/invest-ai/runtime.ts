@@ -479,6 +479,58 @@ async function executeChatAction(
         prevStatus: target.status,
       }
     }
+    case 'add_position': {
+      /* Log a holding the person says they already have — a record, not an
+         order. Insert-only: if the account already holds this symbol/class
+         the chat refuses rather than overwriting their numbers — fixing
+         quantities stays the Portfolio page's job. */
+      const accounts = deps.accounts
+      let accountId: string | null = null
+      if (action.account) {
+        const hit = resolveInvestRef(action.account, accounts)
+        if (!hit?.id) return { type: action.type, detail: action.symbol, ok: false }
+        accountId = hit.id
+      } else if (accounts.length === 1) {
+        accountId = accounts[0]!.id
+      } else if (accounts.length === 0) {
+        return { type: action.type, detail: action.symbol, ok: false }
+      } else {
+        return { type: action.type, detail: `${action.symbol} — account unclear`, ok: false }
+      }
+      const assetClass = action.assetClass ?? 'equity'
+      const { data: existing } = await adminClient
+        .from('invest_positions')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('account_id', accountId)
+        .eq('asset_class', assetClass)
+        .eq('symbol', action.symbol)
+        .maybeSingle()
+      if (existing) {
+        return { type: action.type, detail: `${action.symbol} — already held`, ok: false }
+      }
+      const { data, error } = await adminClient
+        .from('invest_positions')
+        .insert({
+          user_id: userId,
+          account_id: accountId,
+          asset_class: assetClass,
+          symbol: action.symbol,
+          name: action.name ?? action.symbol,
+          quantity: action.quantity,
+          avg_cost: action.avgCost,
+          currency: 'CAD',
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      return {
+        type: action.type,
+        detail: `${action.quantity} ${action.symbol}`,
+        ok: !error,
+        refId: data?.id,
+      }
+    }
     case 'draft_strategy': {
       /* Run the existing draft pipeline — the model authors a draft the
          same way the wizard does, then files it for review. */
@@ -585,6 +637,17 @@ async function undoChatAction(
         .eq('user_id', userId)
       return !error
     }
+    case 'add_position': {
+      /* Insert-only by construction, so undo is a clean delete — but not if
+         the position has since been priced or edited... a delete is still
+         right: the row exists only because chat made it. */
+      const { error } = await adminClient
+        .from('invest_positions')
+        .delete()
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+      return !error
+    }
     case 'draft_strategy': {
       const { error } = await adminClient
         .from('agent_suggestions')
@@ -647,6 +710,30 @@ export function parseInvestReactEvent(raw: unknown): InvestReactEvent | null {
     const quantity = Number(ev.quantity)
     if (!symbol || !side || !Number.isFinite(quantity) || quantity <= 0) return null
     return { type: 'order_queued', symbol, side, quantity }
+  }
+  if (ev.type === 'signal_updated') {
+    const status = ev.status === 'acknowledged' || ev.status === 'dismissed' ? ev.status : null
+    if (!status) return null
+    return {
+      type: 'signal_updated',
+      status,
+      symbol: typeof ev.symbol === 'string' ? ev.symbol.trim().slice(0, 12) : undefined,
+    }
+  }
+  if (ev.type === 'position_logged') {
+    const symbol = typeof ev.symbol === 'string' ? ev.symbol.trim().slice(0, 12) : ''
+    const quantity = Number(ev.quantity)
+    if (!symbol || !Number.isFinite(quantity) || quantity <= 0) return null
+    return { type: 'position_logged', symbol, quantity }
+  }
+  if (ev.type === 'account_added') {
+    const name = typeof ev.name === 'string' ? ev.name.trim().slice(0, 80) : ''
+    if (!name) return null
+    return {
+      type: 'account_added',
+      name,
+      kind: typeof ev.kind === 'string' ? ev.kind.slice(0, 20) : undefined,
+    }
   }
   return null
 }

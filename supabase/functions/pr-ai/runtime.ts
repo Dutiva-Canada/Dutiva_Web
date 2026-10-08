@@ -42,8 +42,11 @@ interface ExecutedAction {
   /** Human-facing subject — the campaign name, contact name, etc. */
   detail: string
   ok: boolean
-  /** Row id of the created row — lets the client offer undo. */
+  /** Row id of the created/touched row — lets the client offer undo. */
   refId?: string
+  /** For update_campaign_status: the status the row had before — what undo
+      restores instead of deleting the row. */
+  prevStatus?: string
   /** Set once chat_undo reverses the write — the client hides the chip. */
   undone?: boolean
 }
@@ -391,6 +394,38 @@ async function executeChatAction(
         .single()
       return { type: action.type, detail: action.prompt, ok: !error, refId: data?.id }
     }
+    case 'update_campaign_status': {
+      /* The grammar's one non-additive action — it flips a status field on
+         a row the person already has. The previous status rides along as
+         prevStatus so chat_undo can put it back. */
+      const target = resolveNameRef(action.campaign, campaigns)
+      if (!target) return { type: action.type, detail: action.campaign, ok: false }
+      const { data: prev, error: readError } = await admin
+        .from('pr_campaigns')
+        .select('status')
+        .eq('id', target.id)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (readError || !prev) return { type: action.type, detail: action.campaign, ok: false }
+      const prevStatus = String(prev.status)
+      if (prevStatus === action.status) {
+        /* Already there — nothing moved; still stamp prevStatus so an undo
+           restores (harmlessly) rather than reporting "nothing to undo". */
+        return { type: action.type, detail: action.campaign, ok: true, refId: target.id, prevStatus }
+      }
+      const { error } = await admin
+        .from('pr_campaigns')
+        .update({ status: action.status })
+        .eq('id', target.id)
+        .eq('user_id', userId)
+      return {
+        type: action.type,
+        detail: `${action.campaign} → ${action.status}`,
+        ok: !error,
+        refId: target.id,
+        prevStatus,
+      }
+    }
   }
 }
 
@@ -410,6 +445,32 @@ const ACTION_TABLE: Record<string, string> = {
   add_geo_prompt: 'pr_geo_prompts',
 }
 
+/** Reverse one executed action: additive writes delete their row; a status
+    flip restores prevStatus. False when the action has nothing reversible. */
+async function undoChatAction(
+  admin: SupabaseClient,
+  userId: string,
+  action: ExecutedAction,
+): Promise<boolean> {
+  if (action.type === 'update_campaign_status') {
+    if (typeof action.prevStatus !== 'string') return false
+    const { error } = await admin
+      .from('pr_campaigns')
+      .update({ status: action.prevStatus })
+      .eq('id', action.refId as string)
+      .eq('user_id', userId)
+    return !error
+  }
+  const table = ACTION_TABLE[action.type]
+  if (!table) return false
+  const { error } = await admin
+    .from(table)
+    .delete()
+    .eq('id', action.refId as string)
+    .eq('user_id', userId)
+  return !error
+}
+
 export async function runChatUndo(
   admin: SupabaseClient,
   userId: string,
@@ -424,16 +485,12 @@ export async function runChatUndo(
     .maybeSingle()
   if (error) return json({ error: error.message }, 500)
   const action = (msg?.action ?? null) as ExecutedAction | null
-  const table = action ? ACTION_TABLE[action.type] : undefined
-  if (!msg || !action || !action.ok || action.undone === true || !action.refId || !table) {
+  if (!msg || !action || !action.ok || action.undone === true || !action.refId) {
     return json({ error: 'Nothing to undo', code: 'not_undoable' }, 400)
   }
-  const { error: delError } = await admin
-    .from(table)
-    .delete()
-    .eq('id', action.refId)
-    .eq('user_id', userId)
-  if (delError) return json({ error: delError.message }, 500)
+  if (!(await undoChatAction(admin, userId, action))) {
+    return json({ error: 'Nothing to undo', code: 'not_undoable' }, 400)
+  }
   const { error: markError } = await admin
     .from('pr_chat_messages')
     .update({ action: { ...action, undone: true } })
@@ -469,6 +526,29 @@ export function parsePrReactEvent(raw: unknown): PrReactEvent | null {
       type: 'content_saved',
       title,
       kind: typeof ev.kind === 'string' ? ev.kind.slice(0, 40) : undefined,
+    }
+  }
+  if (ev.type === 'campaign_created') {
+    const name = typeof ev.name === 'string' ? ev.name.trim().slice(0, 120) : ''
+    if (!name) return null
+    return {
+      type: 'campaign_created',
+      name,
+      channel: typeof ev.channel === 'string' ? ev.channel.slice(0, 40) : undefined,
+    }
+  }
+  if (ev.type === 'keyword_tracked') {
+    const keyword = typeof ev.keyword === 'string' ? ev.keyword.trim().slice(0, 120) : ''
+    if (!keyword) return null
+    return { type: 'keyword_tracked', keyword }
+  }
+  if (ev.type === 'contact_added') {
+    const name = typeof ev.name === 'string' ? ev.name.trim().slice(0, 120) : ''
+    if (!name) return null
+    return {
+      type: 'contact_added',
+      name,
+      outlet: typeof ev.outlet === 'string' ? ev.outlet.slice(0, 120) : undefined,
     }
   }
   return null

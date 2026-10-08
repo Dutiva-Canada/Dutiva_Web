@@ -370,8 +370,8 @@ const investCoreMessages = defineMessages({
   invest_template_badge: { en: 'Template', fr: 'Modèle' },
   invest_ai_title: { en: 'Describe it instead', fr: 'Décrire plutôt' },
   invest_ai_sub: {
-    en: 'Write the goal in plain words; the assistant drafts a reviewable strategy — nothing runs until you save and enable it.',
-    fr: 'Décrivez l’objectif en mots simples; l’assistant propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
+    en: 'Write the goal in plain words; Tally drafts a reviewable strategy — nothing runs until you save and enable it.',
+    fr: 'Décrivez l’objectif en mots simples; Tally propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
   },
   invest_ai_placeholder: {
     en: 'e.g. Warn me when a holding passes 25% of the book, and watch TSX ETFs for 8% dips',
@@ -635,6 +635,7 @@ const investCoreMessages = defineMessages({
   invest_chat_did_order: { en: 'Draft order queued — {name}', fr: 'Ordre mis en file — {name}' },
   invest_chat_did_signal: { en: 'Signal "{name}" updated', fr: 'Signal « {name} » mis à jour' },
   invest_chat_did_strategy: { en: 'Strategy "{name}" filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
+  invest_chat_did_position: { en: 'Position logged — {name}', fr: 'Position notée — {name}' },
   invest_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',

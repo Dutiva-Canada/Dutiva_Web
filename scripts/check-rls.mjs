@@ -82,6 +82,10 @@ const SENSITIVE_TABLES = [
   'health_chat_messages',
   'pr_chat_messages',
   'invest_chat_messages',
+  // Advisor (0208): turn-level ratings are private to the rater, and the
+  // conversations table itself holds full Advisor transcripts.
+  'advisor_turn_feedback',
+  'conversations',
 ]
 
 /**

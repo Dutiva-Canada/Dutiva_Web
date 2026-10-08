@@ -45,6 +45,7 @@ describe('sendAdvisorMessage', () => {
     expect(result).toEqual({
       reply: 'Here is some guidance.',
       conversationId: 'conv-1',
+      turnIndex: null,
       response: null,
       memoryCreated: [],
     })

@@ -3,6 +3,7 @@ import {
   buildCompanionSignals,
   buildHabitStatuses,
   buildHealthFacts,
+  CHAT_ACTION_TYPES,
   chatPrompt,
   createReplyDeltaExtractor,
   entryReactPrompt,
@@ -315,6 +316,13 @@ describe('reaction prompts', () => {
     expect(p).toContain('streak now 3 days')
   })
 
+  it('habit_marked flags a round-mark streak as a milestone — and stays quiet otherwise', () => {
+    const mark = reactPrompt({ type: 'habit_marked', habit: 'Walk' }, 7, [], TODAY, 'en')
+    expect(mark).toContain('a round mark')
+    const ordinary = reactPrompt({ type: 'habit_marked', habit: 'Walk' }, 6, [], TODAY, 'en')
+    expect(ordinary).not.toContain('round mark')
+  })
+
   it('a check-in without a note says so instead of inventing one', () => {
     const p = reactPrompt({ type: 'checkin_saved', mood: 4 }, null, [], TODAY, 'en')
     expect(p).toContain('no note')
@@ -438,5 +446,30 @@ describe('createReplyDeltaExtractor', () => {
     const ex = createReplyDeltaExtractor()
     expect(ex.push('plain text, no json')).toBe('')
     expect(ex.push('{"other":123}')).toBe('')
+  })
+})
+
+/* Persona contract — the invariants that make Mira Mira: the non-clinical
+   boundary, the crisis line, and a grammar that matches the whitelist. If a
+   prompt edit loses one, this breaks before the model does. */
+describe('Mira persona contract', () => {
+  it('chat prompt carries the non-clinical boundary and the crisis line', () => {
+    const p = chatPrompt(buildHealthFacts([], [], [], 14, NOW), [], [], TODAY, 'en')
+    expect(p.content).toContain('Mira')
+    expect(p.content).toContain('non-clinical')
+    expect(p.content).toContain('software, not a person')
+    expect(p.content).toContain('9-8-8')
+  })
+
+  it('every whitelisted action type appears in the grammar', () => {
+    const p = chatPrompt(buildHealthFacts([], [], [], 14, NOW), [], [], TODAY, 'en')
+    for (const t of CHAT_ACTION_TYPES) {
+      expect(p.content).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('react and entry prompts keep the crisis line', () => {
+    expect(reactPrompt({ type: 'habit_marked', habit: 'x' }, 1, [], TODAY, 'en')).toContain('9-8-8')
+    expect(entryReactPrompt('t', 'b', [], TODAY, 'en')).toContain('9-8-8')
   })
 })

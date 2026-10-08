@@ -15,6 +15,7 @@ import {
 } from './handlers'
 import {
   parsePrChatReply,
+  PR_CHAT_ACTION_TYPES,
   prChatPrompt,
   prReactPrompt,
   resolveNameRef,
@@ -386,5 +387,85 @@ describe('prReactPrompt', () => {
     expect(p).toContain('article')
     expect(p).toContain('Winter push')
     expect(p).toContain('Canadian French')
+  })
+})
+
+describe('parsePrChatReply — update_campaign_status', () => {
+  it('parses a campaign status flip', () => {
+    const out = parsePrChatReply(
+      JSON.stringify({
+        reply: 'Marked done.',
+        action: { type: 'update_campaign_status', campaign: 'Winter push', status: 'done' },
+      }),
+    )
+    expect(out?.action).toEqual({
+      type: 'update_campaign_status',
+      campaign: 'Winter push',
+      status: 'done',
+    })
+  })
+
+  it('rejects an out-of-vocab status or a missing campaign', () => {
+    expect(
+      parsePrChatReply(
+        JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', campaign: 'c', status: 'archived' } }),
+      ),
+    ).toBeNull()
+    expect(
+      parsePrChatReply(
+        JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', status: 'done' } }),
+      ),
+    ).toBeNull()
+  })
+})
+
+describe('prReactPrompt — the wider desk events', () => {
+  it('names a new campaign and its channel', () => {
+    const p = prReactPrompt(
+      { type: 'campaign_created', name: 'Spring launch', channel: 'social' },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('Spring launch')
+    expect(p).toContain('social')
+    expect(p).toContain('No hype')
+  })
+
+  it('names a tracked keyword and an added contact', () => {
+    expect(
+      prReactPrompt({ type: 'keyword_tracked', keyword: 'hr compliance' }, EMPTY_CTX, 'en'),
+    ).toContain('hr compliance')
+    const p = prReactPrompt(
+      { type: 'contact_added', name: 'Jo Delmar', outlet: 'CBC' },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('Jo Delmar')
+    expect(p).toContain('CBC')
+  })
+})
+
+/* Persona contract — the invariants that make Paige Paige. If a prompt edit
+   drops the publishing boundary or the grammar drifts from the whitelist,
+   this breaks before the model does. */
+describe('Paige persona contract', () => {
+  it('chat prompt carries the never-publish/send boundary', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('Paige')
+    expect(p).toContain('never publish, schedule, send, delete')
+    expect(p).toContain('software, not a person')
+  })
+
+  it('every whitelisted action type appears in the grammar', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    for (const t of PR_CHAT_ACTION_TYPES) {
+      expect(p).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('react prompt keeps the boundary too', () => {
+    const p = prReactPrompt({ type: 'keyword_tracked', keyword: 'x' }, EMPTY_CTX, 'en')
+    expect(p).toContain('Paige')
+    expect(p).toContain('No hype')
   })
 })

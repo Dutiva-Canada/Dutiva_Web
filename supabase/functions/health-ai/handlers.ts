@@ -349,7 +349,7 @@ export function chatPrompt(
 
 export { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 
-const CHAT_ACTION_TYPES = new Set([
+export const CHAT_ACTION_TYPES = new Set([
   'mark_habit_done',
   'unmark_habit_done',
   'add_habit',
@@ -460,6 +460,13 @@ export function reactPrompt(
         (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
       : `marked the habit "${oneLine(event.habit, 120)}" done today` +
         (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+  /* A streak lands differently at a round mark — a week, two weeks, a month,
+     a round ten. Tell her once, so she can name the milestone plainly rather
+     than recite a number every day. */
+  const milestone =
+    habitStreak != null && (habitStreak % 10 === 0 || habitStreak === 7 || habitStreak === 14 || habitStreak === 21 || habitStreak === 28)
+      ? ` This is day ${habitStreak} — a round mark; you may name it in a few words (e.g. "a week of it", "a month straight").`
+      : ''
   return [
     `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${COMPANION_RULES}`,
     'The person just did something in the app (below). React the way a companion would — one or two short sentences, naming what they did. If they shared a feeling in the note, meet the feeling first. Small warmth, no cheerleading, no advice unless it lands as one gentle observation.',
@@ -468,7 +475,7 @@ export function reactPrompt(
     lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
     'Return only the reply text.',
     '',
-    `The event: ${eventLine}.`,
+    `The event: ${eventLine}.${milestone}`,
     'Their recent words:',
     signalsBlock(signals),
   ].join('\n')

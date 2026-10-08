@@ -176,6 +176,15 @@ export type InvestChatAction =
     }
   | { type: 'update_signal'; signalId: string; status: 'acknowledged' | 'dismissed' }
   | { type: 'draft_strategy'; goal: string }
+  | {
+      type: 'add_position'
+      symbol: string
+      name?: string
+      assetClass?: string
+      quantity: number
+      avgCost: number
+      account?: string
+    }
 
 export interface InvestChatReply {
   reply: string
@@ -188,6 +197,7 @@ export const INVEST_CHAT_ACTION_TYPES = new Set([
   'create_order',
   'update_signal',
   'draft_strategy',
+  'add_position',
 ])
 
 const ASSET_CLASSES = new Set(['equity', 'etf', 'crypto', 'bond', 'cash', 'other'])
@@ -220,6 +230,7 @@ export function investChatPrompt(ctx: InvestChatContext, lang: 'en' | 'fr'): {
       '  {"type":"create_order","symbol":"<TICKER>","side":"<buy|sell>","quantity":<number>,"orderType":"<market|limit>","limitPrice":<number if limit>,"account":"<account name if more than one>","mode":"<paper|live>","note":"<optional>"}   — lands as a QUEUED draft the person reviews and executes themselves; it never fills on its own',
       '  {"type":"update_signal","signalId":"<id from the list below>","status":"<acknowledged|dismissed>"}',
       '  {"type":"draft_strategy","goal":"<plain-language goal the person stated>"}',
+      '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>}. No markdown fences.',
@@ -323,6 +334,26 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         if (!goal || goal.length < 10) return null
         return { reply, action: { type: 'draft_strategy', goal } }
       }
+      case 'add_position': {
+        const symbol = optStr(action.symbol, 12)?.toUpperCase()
+        const quantity = Number(action.quantity)
+        const avgCost = Number(action.avgCost)
+        if (!symbol || !SYMBOL_RE.test(symbol)) return null
+        if (!Number.isFinite(quantity) || quantity <= 0) return null
+        if (!Number.isFinite(avgCost) || avgCost < 0) return null
+        return {
+          reply,
+          action: {
+            type: 'add_position',
+            symbol,
+            name: optStr(action.name, 80),
+            assetClass: optEnum(action.assetClass, [...ASSET_CLASSES] as string[]),
+            quantity,
+            avgCost,
+            account: optStr(action.account, 80),
+          },
+        }
+      }
     }
   } catch {
     return null
@@ -357,6 +388,9 @@ export function resolveInvestRef(
 export type InvestReactEvent =
   | { type: 'watch_added'; symbol: string }
   | { type: 'order_queued'; symbol: string; side: 'buy' | 'sell'; quantity: number }
+  | { type: 'signal_updated'; status: 'acknowledged' | 'dismissed'; symbol?: string }
+  | { type: 'position_logged'; symbol: string; quantity: number }
+  | { type: 'account_added'; name: string; kind?: string }
 
 export function investReactPrompt(
   event: InvestReactEvent,
@@ -366,16 +400,35 @@ export function investReactPrompt(
   const what =
     event.type === 'watch_added'
       ? `just added ${event.symbol.slice(0, 12).toUpperCase()} to the watchlist`
-      : `just queued a draft order: ${event.side} ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
+      : event.type === 'order_queued'
+        ? `just queued a draft order: ${event.side} ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
+        : event.type === 'signal_updated'
+          ? `just marked a signal ${event.status}${event.symbol ? ` on ${event.symbol.slice(0, 12).toUpperCase()}` : ''}`
+          : event.type === 'position_logged'
+            ? `just logged a position: ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
+            : `just added an account: "${event.name.slice(0, 80)}"${event.kind ? ` (${event.kind})` : ''}`
+  /* Wider than counts — symbols and names let the observation point at
+     something concrete on the book without inventing numbers. */
   const contextBits = [
     `open signals: ${ctx.newSignals.length}${ctx.newSignals.length > 0 ? ` (latest: ${ctx.newSignals.slice(0, 3).map((s) => `${s.kind} on ${s.symbol}`).join(', ')})` : ''}`,
-    `watchlist size: ${ctx.watchlist.length}`,
-    `open draft orders: ${ctx.openOrders.length}`,
-  ].join('\n')
+    `watchlist: ${ctx.watchlist.length > 0 ? ctx.watchlist.map((w) => w.symbol).join(', ') : 'empty'}`,
+    ctx.openOrders.length > 0
+      ? `open draft orders: ${ctx.openOrders.map((o) => `${o.side} ${o.quantity} ${o.symbol}`).join(', ')}`
+      : `open draft orders: 0`,
+    ctx.positions.length > 0
+      ? `positions: ${ctx.positions.slice(0, 6).map((p) => `${p.quantity} ${p.symbol}`).join(', ')}`
+      : '',
+    ctx.accounts.length > 0
+      ? `accounts: ${ctx.accounts.map((a) => `"${a.name}" (${a.kind})`).join(', ')}`
+      : '',
+    ctx.strategies.length > 0
+      ? `strategies: ${ctx.strategies.map((s) => `"${s.name}"${s.enabled ? ' enabled' : ''}`).join(', ')}`
+      : '',
+  ].filter(Boolean).join('\n')
   return [
     'You are Tally, the watch clerk of an invest portal — plain, precise, numbers before adjectives, software not a person and not an adviser.',
-    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the book data below offers one grounded observation (an open signal on that symbol, the size of the draft queue), work it in naturally.`,
-    'HARD LINE: nothing here is investment advice — never say the order or the watch is good or bad, never predict, never recommend. A queued order is a draft; if you mention it, say it still needs their review in Orders.',
+    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the book data below offers one grounded observation (an open signal on that symbol, the size of the draft queue, a matching watchlist entry), work it in naturally.`,
+    'HARD LINE: nothing here is investment advice — never say the order, watch, position, or signal call is good or bad, never predict, never recommend. A queued order is a draft; if you mention it, say it still needs their review in Orders.',
     'Plain text only — no JSON, no lists, no emoji.',
     lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
     '',

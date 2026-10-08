@@ -6,6 +6,8 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import type { SignalKind, SignalStatus } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { setSignalStatus } from '@/features/invest/data/api'
+import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 
 const kindLabel: Record<SignalKind, keyof typeof IM> = {
@@ -28,6 +30,7 @@ export function InvestSignalsPage() {
   useInvestHead(IM.invest_seo_title_signals, IM.invest_seo_desc_signals)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [error, setError] = useState<string | undefined>()
+  const [tallyLine, setTallyLine] = useState<string | null>(null)
 
   const act = async (id: string, status: SignalStatus) => {
     setBusyId(id)
@@ -35,6 +38,16 @@ export function InvestSignalsPage() {
     try {
       await setSignalStatus(id, status)
       await refresh()
+      /* Tally notices the triage — best-effort; a throttled or failed
+         reaction never disturbs the status change. */
+      if (status === 'acknowledged' || status === 'dismissed') {
+        const symbol = state?.signals.find((s) => s.id === id)?.symbol
+        sendInvestReaction({ type: 'signal_updated', status, symbol }, lang, setTallyLine)
+          .then((r) => {
+            if (r.reply) setTallyLine(r.reply)
+          })
+          .catch(() => {})
+      }
     } catch {
       setError(x(IM.invest_error_generic))
     } finally {
@@ -60,6 +73,7 @@ export function InvestSignalsPage() {
           {error}
         </p>
       )}
+      {tallyLine && <TallyNote line={tallyLine} />}
       {state.signals.length === 0 ? (
         <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
           <p className="sb-empty" style={{ marginTop: 0 }}>{x(IM.invest_signals_empty)}</p>

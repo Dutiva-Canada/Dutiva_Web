@@ -652,6 +652,7 @@ export const prMessages = defineMessages({
   pr_chat_did_mention: { en: 'Mention "{name}" logged', fr: 'Retombée « {name} » notée' },
   pr_chat_did_keyword: { en: 'Now tracking "{name}"', fr: '« {name} » ajouté au suivi' },
   pr_chat_did_geo: { en: 'Now tracking the question "{name}"', fr: 'Question « {name} » ajoutée au suivi' },
+  pr_chat_did_campstatus: { en: 'Campaign "{name}" status updated', fr: 'Statut de la campagne « {name} » modifié' },
   pr_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
