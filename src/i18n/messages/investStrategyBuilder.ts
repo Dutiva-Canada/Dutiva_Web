@@ -304,6 +304,11 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'The scan failed — {error} (request {id})',
     fr: 'Le balayage a échoué — {error} (demande {id})',
   },
+  /* [FR self-authored] */
+  invest_sb_scan_empty: {
+    en: 'Nothing to scan — the scope has no symbols. Track a symbol on the watchlist or pick specific symbols above.',
+    fr: 'Rien à balayer — la portée ne contient aucun symbole. Suivez un symbole dans la liste de suivi ou choisissez des symboles précis plus haut.',
+  },
   invest_sb_scanned_line: {
     en: '{symbols} scanned · {signals} · {proposals}',
     fr: '{symbols} analysés · {signals} · {proposals}',

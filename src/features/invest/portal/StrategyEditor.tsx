@@ -40,6 +40,7 @@ type ScanState =
   | { phase: 'idle' }
   | { phase: 'running' }
   | { phase: 'done'; result: TestScanResult }
+  | { phase: 'empty' }
   | { phase: 'error'; error: BotRequestError | Error }
 
 interface Props {
@@ -108,6 +109,12 @@ export function StrategyEditor({
   const set = (patch: Partial<StrategyDraft>) => onChange({ ...draft, ...patch })
 
   const runTestScan = async () => {
+    /* An empty scope can't produce anything — say so locally instead of
+       firing a request that comes back "No symbols in scope". */
+    if (symbolCount === 0) {
+      setScan({ phase: 'empty' })
+      return
+    }
     setScan({ phase: 'running' })
     try {
       setScan({ phase: 'done', result: await onTestScan() })
@@ -403,6 +410,11 @@ export function StrategyEditor({
                 {w}
               </p>
             ))}
+          </div>
+        )}
+        {scan.phase === 'empty' && symbolCount === 0 && (
+          <div className="sb-scan-results">
+            <p className="sub">{x(IM.invest_sb_scan_empty)}</p>
           </div>
         )}
         {scan.phase === 'error' && (
