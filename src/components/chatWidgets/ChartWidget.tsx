@@ -141,7 +141,7 @@ export function ChartWidget({ spec }: { readonly spec: ChartWidgetSpec }) {
             <tbody>
               {items.map((item, i) => (
                 <tr key={i}>
-                  <td>{pickL(item.label, lang)}</td>
+                  <th scope="row">{pickL(item.label, lang)}</th>
                   <td data-align="right">{formatValue(item.value, format, lang)}</td>
                 </tr>
               ))}
