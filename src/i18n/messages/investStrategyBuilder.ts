@@ -51,6 +51,8 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_rule_many: { en: 'rules', fr: 'règles' },
   invest_sb_tracked_one: { en: 'tracked symbol', fr: 'symbole suivi' },
   invest_sb_tracked_many: { en: 'tracked symbols', fr: 'symboles suivis' },
+  invest_sb_scanned_one: { en: 'symbol scanned', fr: 'symbole analysé' },
+  invest_sb_scanned_many: { en: 'symbols scanned', fr: 'symboles analysés' },
   invest_sb_signal_one: { en: 'signal', fr: 'signal' },
   invest_sb_signal_many: { en: 'signals', fr: 'signaux' },
   invest_sb_proposal_one: { en: 'proposal', fr: 'proposition' },

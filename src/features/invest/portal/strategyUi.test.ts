@@ -164,10 +164,24 @@ describe('strategyMeta / runLine', () => {
 
   it('renders the run row with real plurals and duration', () => {
     const line = runLine('en', run)
+    expect(line).toContain('1 symbol scanned')
     expect(line).toContain('1 signal')
     expect(line).toContain('2 proposals')
     expect(line).toContain('0.4s')
     expect(line).not.toContain('(s)')
     expect(runLine('fr', { ...run, signalsEmitted: 0 })).toContain('0 signal')
+  })
+
+  it('shows 0 symbols scanned on post-0184 runs — explains empty sweeps', () => {
+    const line = runLine('en', { ...run, symbolsScanned: [], signalsEmitted: 0, proposalsCreated: 0 })
+    expect(line).toContain('0 symbols scanned')
+    expect(line).toContain('0 signals')
+  })
+
+  it('omits the scanned segment and duration on pre-0184 rows', () => {
+    const line = runLine('en', { ...run, symbolsScanned: [], durationMs: null })
+    expect(line).not.toContain('scanned')
+    expect(line).not.toContain('· —')
+    expect(line).toContain('1 signal')
   })
 })

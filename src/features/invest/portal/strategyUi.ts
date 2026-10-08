@@ -215,19 +215,28 @@ export function formatDuration(lang: Lang, ms: number | null): string {
   return `${s.toLocaleString(localeOf(lang))}s`
 }
 
-/** One run-history row — "Sep 29, 4:15 PM — Bot sweep · 1 signal ·
-    2 proposals · 0.4s". */
+/** One run-history row — "Sep 29, 4:15 PM — Agent sweep · 12 symbols
+    scanned · 1 signal · 2 proposals · 0.4s". The scanned segment explains
+    why a run fired nothing; rows recorded before 0184 (null duration,
+    no symbols_scanned) omit it rather than claim "0 scanned". */
 export function runLine(lang: Lang, run: InvestBotRun, strategyName?: string): string {
   const when = formatRunWhen(lang, run.ranAt)
   const what = run.strategyId
     ? (strategyName ?? pick(IM.invest_run_deleted_strategy, lang))
     : pick(IM.invest_sb_sweep, lang)
+  const scanned =
+    run.durationMs !== null || run.symbolsScanned.length > 0
+      ? pl(lang, run.symbolsScanned.length, IM.invest_sb_scanned_one, IM.invest_sb_scanned_many)
+      : null
   return [
     `${when} — ${what}`,
+    scanned,
     pl(lang, run.signalsEmitted, IM.invest_sb_signal_one, IM.invest_sb_signal_many),
     pl(lang, run.proposalsCreated, IM.invest_sb_proposal_one, IM.invest_sb_proposal_many),
-    formatDuration(lang, run.durationMs),
-  ].join(' · ')
+    run.durationMs !== null ? formatDuration(lang, run.durationMs) : null,
+  ]
+    .filter((s): s is string => s !== null)
+    .join(' · ')
 }
 
 /* ── Test-scan result rendering ─────────────────────────────────────────── */

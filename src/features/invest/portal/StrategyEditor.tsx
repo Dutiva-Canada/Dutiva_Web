@@ -442,6 +442,14 @@ export function StrategyEditor({
             <div className="sb-run" key={r.id}>
               <div className="sb-txt">
                 {runLine(lang, r, r.strategyId ? strategyNameById[r.strategyId] : undefined)}
+                {r.proposalsCreated > 0 && (
+                  <>
+                    {' · '}
+                    <Link to="/invest/orders" className="sb-linklike">
+                      {x(IM.invest_run_view_orders)}
+                    </Link>
+                  </>
+                )}
               </div>
               <span
                 className={`sb-pill ${
