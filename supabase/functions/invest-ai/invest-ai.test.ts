@@ -361,6 +361,16 @@ describe('Tally persona contract', () => {
     expect(p).toContain('licensed adviser')
   })
 
+  it('chat prompt permits honest opinions on ideas, never verdicts on securities', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    /* "What do you think?" deserves a real view on ideas — the refusal
+       only binds verdicts on specific securities, their book, or
+       pretending to predict prices. */
+    expect(p).toContain('what do you think')
+    expect(p).toContain('never give is a verdict on a specific security')
+    expect(p).toContain('never pretend to call where a price goes')
+  })
+
   it('every whitelisted action type appears in the grammar', () => {
     const p = investChatPrompt(EMPTY_CTX, 'en').content
     for (const t of INVEST_CHAT_ACTION_TYPES) {
