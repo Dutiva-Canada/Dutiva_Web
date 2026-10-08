@@ -225,6 +225,32 @@ describe('widgetSpecSchema — adversarial specs', () => {
       ).toBe(false)
     }
   })
+
+  it('rejects a comparison with two recommended options — the badge must be unambiguous', () => {
+    expect(
+      widgetSpecSchema.safeParse({
+        type: 'comparison',
+        data: {
+          options: [
+            { name: 'A', recommended: true, rows: [{ label: 'x', value: 'y' }] },
+            { name: 'B', recommended: true, rows: [{ label: 'x', value: 'y' }] },
+          ],
+        },
+      }).success,
+    ).toBe(false)
+    /* One recommended, or none, still validates. */
+    expect(
+      widgetSpecSchema.safeParse({
+        type: 'comparison',
+        data: {
+          options: [
+            { name: 'A', recommended: true, rows: [{ label: 'x', value: 'y' }] },
+            { name: 'B', rows: [{ label: 'x', value: 'y' }] },
+          ],
+        },
+      }).success,
+    ).toBe(true)
+  })
 })
 
 describe('parseWidgetSpec', () => {

@@ -17,7 +17,7 @@ Assistant replies embed a ```` ```dutiva-widget ```` fence containing a spec:
       "locale": "en",
       "data": {
         "items": [
-          { "label": { "en": "Signed offer letter on file", "fr": "Lettre d'offre signée au dossier" } }
+          { "id": "offer-letter", "label": { "en": "Signed offer letter on file", "fr": "Lettre d'offre signée au dossier" } }
         ]
       }
     }

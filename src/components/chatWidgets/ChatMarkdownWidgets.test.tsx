@@ -44,6 +44,19 @@ describe('ChatMarkdown × dutiva-widget fences', () => {
     expect(container.textContent).toContain('Done.')
   })
 
+  it('streaming — an unclosed widget fence hides the half-typed spec', () => {
+    localStorage.setItem(CHAT_WIDGET_FLAG_KEY, 'advisor')
+    const partial = `Here is the checklist:\n\`\`\`dutiva-widget\n${SPEC.slice(0, 30)}`
+    const { container } = render(
+      <LangProvider>
+        <ChatMarkdown streaming>{partial}</ChatMarkdown>
+      </LangProvider>,
+    )
+    expect(container.textContent).toContain('Here is the checklist:')
+    expect(container.textContent).not.toContain('"type"')
+    expect(container.textContent).not.toContain('dutiva-widget')
+  })
+
   it('flag on for a different surface only — advisor stays a code block', () => {
     localStorage.setItem(CHAT_WIDGET_FLAG_KEY, 'invest')
     const { container } = render(

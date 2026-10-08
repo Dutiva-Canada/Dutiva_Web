@@ -244,28 +244,40 @@ export type TimelineSpec = z.infer<typeof timelineSpecSchema>
 
 /* ------------------------------------------------------------ comparison */
 
-const comparisonSpecSchema = z.strictObject({
-  type: z.literal('comparison'),
-  ...widgetBase,
-  data: z.strictObject({
-    options: z
-      .array(
-        z.strictObject({
-          name: lTextSchema,
-          tagline: lTextSchema.optional(),
-          badge: lTextSchema.optional(),
-          recommended: z.boolean().optional(),
-          rows: z
-            .array(z.strictObject({ label: lTextSchema, value: lTextSchema }))
-            .min(1)
-            .max(10),
-          footnote: lTextSchema.optional(),
-        }),
-      )
-      .min(2)
-      .max(3),
-  }),
-})
+const comparisonSpecSchema = z
+  .strictObject({
+    type: z.literal('comparison'),
+    ...widgetBase,
+    data: z.strictObject({
+      options: z
+        .array(
+          z.strictObject({
+            name: lTextSchema,
+            tagline: lTextSchema.optional(),
+            badge: lTextSchema.optional(),
+            recommended: z.boolean().optional(),
+            rows: z
+              .array(z.strictObject({ label: lTextSchema, value: lTextSchema }))
+              .min(1)
+              .max(10),
+            footnote: lTextSchema.optional(),
+          }),
+        )
+        .min(2)
+        .max(3),
+    }),
+  })
+  .superRefine((spec, ctx) => {
+    /* Two "recommended" cards is no recommendation — the badge must be
+       unambiguous or absent. */
+    if (spec.data.options.filter((o) => o.recommended).length > 1) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'at most one option may be recommended',
+        path: ['data', 'options'],
+      })
+    }
+  })
 
 export type ComparisonSpec = z.infer<typeof comparisonSpecSchema>
 

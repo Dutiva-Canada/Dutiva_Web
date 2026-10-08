@@ -353,3 +353,13 @@
 .cw-option-row .cw-row-label { color: var(--cw-muted); }
 .cw-option-row .cw-row-value { font-weight: 600; text-align: right; }
 .cw-option-foot { margin-top: auto; font-size: 11.5px; color: var(--cw-faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cw-root *,
+  .cw-root *::before,
+  .cw-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -47,6 +47,7 @@ import {
   type MemoryHighlightPhrase,
 } from '@/features/app/advisor/memoryHighlights'
 import { hideIncompleteTable } from './chatMarkdownUtils'
+import { hideIncompleteWidgetFence } from '../chatWidgets/specBlocks'
 import { interactiveChatWidgetsEnabled } from '../chatWidgets/flags'
 import { CHAT_WIDGET_FENCE } from '../chatWidgets/widgetSpec'
 import './chat-markdown.css'
@@ -298,7 +299,9 @@ export function ChatMarkdown({
   memoryHighlights = [],
 }: ChatMarkdownProps) {
   const source = useMemo(
-    () => (streaming ? hideIncompleteTable(children) : children),
+    /* During streaming an unclosed dutiva-widget fence hides the same way
+       an unclosed table fence does — half-typed spec JSON never flashes. */
+    () => (streaming ? hideIncompleteWidgetFence(hideIncompleteTable(children)) : children),
     [children, streaming],
   )
 
