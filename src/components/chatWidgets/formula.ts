@@ -104,67 +104,77 @@ export function formulaRefs(expr: FormulaExpr): ReadonlySet<string> {
   return refs
 }
 
-export function evaluateFormula(expr: FormulaExpr, vars: Readonly<Record<string, number>>): number {
+/**
+ * The schema bounds depth before evaluation, but this interpreter is also
+ * callable on hand-built expressions — carry the budget internally so a
+ * deep tree degrades to NaN instead of overflowing the stack.
+ */
+function evalAt(expr: FormulaExpr, vars: Readonly<Record<string, number>>, depth: number): number {
+  if (depth > FORMULA_MAX_DEPTH) return Number.NaN
   switch (expr.op) {
     case 'num':
       return expr.value
     case 'ref':
       return vars[expr.key] ?? Number.NaN
     case 'add':
-      return expr.args.reduce((sum, arg) => sum + evaluateFormula(arg, vars), 0)
+      return expr.args.reduce((sum, arg) => sum + evalAt(arg, vars, depth + 1), 0)
     case 'mul':
-      return expr.args.reduce((product, arg) => product * evaluateFormula(arg, vars), 1)
+      return expr.args.reduce((product, arg) => product * evalAt(arg, vars, depth + 1), 1)
     case 'sub':
-      return evaluateFormula(expr.args[0], vars) - evaluateFormula(expr.args[1], vars)
+      return evalAt(expr.args[0], vars, depth + 1) - evalAt(expr.args[1], vars, depth + 1)
     case 'div': {
-      const divisor = evaluateFormula(expr.args[1], vars)
-      return divisor === 0 ? Number.NaN : evaluateFormula(expr.args[0], vars) / divisor
+      const divisor = evalAt(expr.args[1], vars, depth + 1)
+      return divisor === 0 ? Number.NaN : evalAt(expr.args[0], vars, depth + 1) / divisor
     }
     case 'pow': {
-      const result = Math.pow(evaluateFormula(expr.args[0], vars), evaluateFormula(expr.args[1], vars))
+      const result = Math.pow(evalAt(expr.args[0], vars, depth + 1), evalAt(expr.args[1], vars, depth + 1))
       return Number.isFinite(result) ? result : Number.NaN
     }
     case 'min':
-      return Math.min(...expr.args.map((arg) => evaluateFormula(arg, vars)))
+      return Math.min(...expr.args.map((arg) => evalAt(arg, vars, depth + 1)))
     case 'max':
-      return Math.max(...expr.args.map((arg) => evaluateFormula(arg, vars)))
+      return Math.max(...expr.args.map((arg) => evalAt(arg, vars, depth + 1)))
     case 'abs':
-      return Math.abs(evaluateFormula(expr.arg, vars))
+      return Math.abs(evalAt(expr.arg, vars, depth + 1))
     case 'round':
-      return Math.round(evaluateFormula(expr.arg, vars))
+      return Math.round(evalAt(expr.arg, vars, depth + 1))
     case 'floor':
-      return Math.floor(evaluateFormula(expr.arg, vars))
+      return Math.floor(evalAt(expr.arg, vars, depth + 1))
     case 'ceil':
-      return Math.ceil(evaluateFormula(expr.arg, vars))
+      return Math.ceil(evalAt(expr.arg, vars, depth + 1))
     case 'clamp':
       return Math.min(
-        Math.max(evaluateFormula(expr.value, vars), evaluateFormula(expr.min, vars)),
-        evaluateFormula(expr.max, vars),
+        Math.max(evalAt(expr.value, vars, depth + 1), evalAt(expr.min, vars, depth + 1)),
+        evalAt(expr.max, vars, depth + 1),
       )
     case 'if':
       /* Lazy branches — the untaken side never evaluates, so a guard like
          `if (divisor > 0, a / divisor, 0)` can't produce NaN from its dead
          branch. */
-      return evaluateFormula(expr.cond, vars) !== 0
-        ? evaluateFormula(expr.then, vars)
-        : evaluateFormula(expr.else, vars)
+      return evalAt(expr.cond, vars, depth + 1) !== 0
+        ? evalAt(expr.then, vars, depth + 1)
+        : evalAt(expr.else, vars, depth + 1)
     case 'gt':
-      return evaluateFormula(expr.args[0], vars) > evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) > evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'gte':
-      return evaluateFormula(expr.args[0], vars) >= evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) >= evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'lt':
-      return evaluateFormula(expr.args[0], vars) < evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) < evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'lte':
-      return evaluateFormula(expr.args[0], vars) <= evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) <= evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'eq':
-      return evaluateFormula(expr.args[0], vars) === evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) === evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'neq':
-      return evaluateFormula(expr.args[0], vars) !== evaluateFormula(expr.args[1], vars) ? 1 : 0
+      return evalAt(expr.args[0], vars, depth + 1) !== evalAt(expr.args[1], vars, depth + 1) ? 1 : 0
     case 'and':
-      return expr.args.every((arg) => evaluateFormula(arg, vars) !== 0) ? 1 : 0
+      return expr.args.every((arg) => evalAt(arg, vars, depth + 1) !== 0) ? 1 : 0
     case 'or':
-      return expr.args.some((arg) => evaluateFormula(arg, vars) !== 0) ? 1 : 0
+      return expr.args.some((arg) => evalAt(arg, vars, depth + 1) !== 0) ? 1 : 0
     case 'not':
-      return evaluateFormula(expr.arg, vars) === 0 ? 1 : 0
+      return evalAt(expr.arg, vars, depth + 1) === 0 ? 1 : 0
   }
+}
+
+export function evaluateFormula(expr: FormulaExpr, vars: Readonly<Record<string, number>>): number {
+  return evalAt(expr, vars, 0)
 }

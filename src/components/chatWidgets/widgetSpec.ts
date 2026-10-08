@@ -74,7 +74,7 @@ const boundedFormula = formulaExprSchema.refine(
   'formula exceeds depth/node budget',
 )
 
-export const calculatorSpecSchema = z
+const calculatorSpecSchema = z
   .strictObject({
     type: z.literal('calculator'),
     ...widgetBase,
@@ -123,7 +123,7 @@ export type CalculatorSpec = z.infer<typeof calculatorSpecSchema>
 
 /* ----------------------------------------------------------------- chart */
 
-export const chartSpecSchema = z
+const chartSpecSchema = z
   .strictObject({
     type: z.literal('chart'),
     ...widgetBase,
@@ -155,7 +155,7 @@ export type ChartWidgetSpec = z.infer<typeof chartSpecSchema>
 
 const tableCellSchema = z.union([z.string().max(200), z.number().finite(), lTextSchema])
 
-export const tableSpecSchema = z
+const tableSpecSchema = z
   .strictObject({
     type: z.literal('table'),
     ...widgetBase,
@@ -188,7 +188,7 @@ export type TableSpec = z.infer<typeof tableSpecSchema>
 
 /* ------------------------------------------------------------- checklist */
 
-export const checklistSpecSchema = z
+const checklistSpecSchema = z
   .strictObject({
     type: z.literal('checklist'),
     ...widgetBase,
@@ -221,7 +221,7 @@ export type ChecklistSpec = z.infer<typeof checklistSpecSchema>
 
 /* -------------------------------------------------------------- timeline */
 
-export const timelineSpecSchema = z.strictObject({
+const timelineSpecSchema = z.strictObject({
   type: z.literal('timeline'),
   ...widgetBase,
   data: z.strictObject({
@@ -244,7 +244,7 @@ export type TimelineSpec = z.infer<typeof timelineSpecSchema>
 
 /* ------------------------------------------------------------ comparison */
 
-export const comparisonSpecSchema = z.strictObject({
+const comparisonSpecSchema = z.strictObject({
   type: z.literal('comparison'),
   ...widgetBase,
   data: z.strictObject({

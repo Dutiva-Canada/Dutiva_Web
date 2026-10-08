@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   evaluateFormula,
+  FORMULA_MAX_DEPTH,
   formulaDepth,
   formulaNodeCount,
   formulaRefs,
@@ -129,5 +130,19 @@ describe('formula introspection', () => {
 
   it('collects the referenced input keys', () => {
     expect([...formulaRefs(tree)].sort()).toEqual(['salary', 'years'])
+  })
+})
+
+describe('evaluation budget', () => {
+  it('returns NaN past the depth budget instead of overflowing the stack', () => {
+    /* A hand-built tree can exceed FORMULA_MAX_DEPTH — the schema never
+       sees it, so the interpreter itself carries the guard. */
+    let deep: FormulaExpr = num(1)
+    for (let i = 0; i < FORMULA_MAX_DEPTH + 20; i++) {
+      deep = { op: 'add', args: [deep, num(1)] }
+    }
+    expect(evaluateFormula(deep, {})).toBeNaN()
+    /* …while a tree inside the budget still evaluates. */
+    expect(evaluateFormula({ op: 'add', args: [num(2), num(3)] }, {})).toBe(5)
   })
 })
