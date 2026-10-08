@@ -710,4 +710,6 @@ export const careersMessages = defineMessages({
     en: 'Something went wrong. Please try again.',
     fr: "Une erreur s'est produite. Veuillez réessayer.",
   },
+  careers_agent_keywords_placeholder: { en: 'payroll, HR coordinator', fr: 'paie, coordonnateur ou coordonnatrice RH' },
+  careers_agent_locations_placeholder: { en: 'Toronto, Montreal, Quebec', fr: 'Toronto, Montréal, Québec' },
 })

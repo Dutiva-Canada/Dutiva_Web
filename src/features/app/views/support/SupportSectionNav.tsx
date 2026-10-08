@@ -14,7 +14,7 @@ export function SupportSectionNav({ active }: { readonly active: 'new' | 'reques
     )
 
   return (
-    <nav className="mb-[20px] flex gap-[18px] border-b border-border" aria-label="Support">
+    <nav className="mb-[20px] flex gap-[18px] border-b border-border" aria-label={x(M.support_nav_label)}>
       <Link to="/app/support" className={tabClass(active === 'new')}>
         {x(M.support_new_request)}
       </Link>

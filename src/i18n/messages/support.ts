@@ -458,4 +458,5 @@ export const supportMessages = defineMessages({
     en: '{shown} of {total} shown',
     fr: '{shown} sur {total} affichés',
   },
+  support_nav_label: { en: 'Support', fr: 'Soutien' },
 })

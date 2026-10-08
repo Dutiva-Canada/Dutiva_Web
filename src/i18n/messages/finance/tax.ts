@@ -74,4 +74,6 @@ export const financeTax = defineMessages({
     fr: 'Cotisations patronales',
   },
   finance_tax_type_other: { en: 'Other', fr: 'Autre' },
+  finance_tax_period_placeholder: { en: 'Q3 2026', fr: 'T3 2026' },
+  finance_tax_law_version_placeholder: { en: 'Enacted 2025 rates', fr: 'Taux en vigueur 2025' },
 })

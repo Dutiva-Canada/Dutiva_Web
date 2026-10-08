@@ -451,4 +451,6 @@ export const hiringMessages = defineMessages({
     en: 'Create job postings and start receiving applications to build your hiring pipeline.',
     fr: "Créez des offres d'emploi et commencez à recevoir des candidatures pour construire votre pipeline de recrutement.",
   },
+  hiring_sections_nav: { en: 'Hiring sections', fr: 'Sections du recrutement' },
+  hiring_candidate_sections_nav: { en: 'Candidate sections', fr: 'Sections du candidat ou de la candidate' },
 })

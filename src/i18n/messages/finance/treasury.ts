@@ -114,4 +114,5 @@ export const financeTreasury = defineMessages({
     en: 'Could not save the sweep.',
     fr: 'Impossible d’enregistrer le virement.',
   },
+  finance_workspace_user_placeholder: { en: 'Workspace user', fr: 'Utilisateur de l’espace de travail' },
 })
