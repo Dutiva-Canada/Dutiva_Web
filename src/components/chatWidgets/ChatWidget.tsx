@@ -42,7 +42,11 @@ const ComparisonWidget = lazy(() =>
  */
 function useWidgetRenderLog(type: string) {
   useEffect(() => {
-    if (import.meta.env.DEV) console.debug(`[chat-widget] render: ${type}`)
+    /* DEV but not under vitest — the breadcrumb is for humans at the
+       console, not test output. */
+    if (import.meta.env.DEV && !import.meta.env.VITEST) {
+      console.debug(`[chat-widget] render: ${type}`)
+    }
   }, [type])
 }
 

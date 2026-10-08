@@ -58,6 +58,9 @@ override: `localStorage["dutiva:flag:interactiveChatWidgets"]`.
   widget interaction. Any future action must go through the chatbot's existing
   explicit-approval flow.
 - No `dangerouslySetInnerHTML`, no `eval`, no dynamic script injection.
+- A render error inside a widget is contained by `WidgetErrorBoundary` —
+  the card degrades to the fallback, the chat surface survives, and the
+  stack still reaches error telemetry.
 - Every user-facing string is bilingual (`{ en, fr }`) and follows the chat
   locale; switching languages re-renders visible widgets without reload.
 - The careers AI tools have no chat thread (outputs render into textareas), so
