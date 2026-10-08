@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { withCors } from '../_shared/cors.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   habitPrompt,
@@ -9,7 +10,6 @@ import {
   reflectPrompt,
 } from './handlers.ts'
 import {
-  corsHeaders,
   json,
   loadCompanionContext,
   modelRoute,
@@ -100,8 +100,8 @@ async function portalUserId(
   return { userId: userData.user.id }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -268,5 +268,11 @@ Deno.serve(async (req) => {
     return json({ habit, suggestionId: filed?.id ?? null })
   }
   return kind === 'reflect' ? json({ prompt: text }) : json({ summary: text })
-})
+}
+
+const CORS = {
+  allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))
 

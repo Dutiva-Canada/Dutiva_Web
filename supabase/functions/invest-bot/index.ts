@@ -18,6 +18,7 @@ import {
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
 import { resendSend } from '../_shared/resendSend.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Invest-bot edge function — evaluates each user's enabled strategies
@@ -49,17 +50,13 @@ import { resendSend } from '../_shared/resendSend.ts'
  * are bookkeeping that a human confirms.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -741,8 +738,8 @@ async function executeOrder(
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -806,4 +803,6 @@ Deno.serve(async (req: Request) => {
       ? (body['fill_price'] as number)
       : null
   return executeOrder(adminClient, userId, orderId, fill)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

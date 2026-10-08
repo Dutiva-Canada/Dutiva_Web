@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { extractEmailKey } from './addressKey.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Inbound email ingest — Resend `email.received` webhook (migration 0164,
@@ -19,15 +20,12 @@ import { extractEmailKey } from './addressKey.ts'
  * idempotent.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type, svix-id, svix-timestamp, svix-signature',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'content-type, svix-id, svix-timestamp, svix-signature' }
+const corsHeaders = makeCorsHeaders(CORS)
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -116,8 +114,8 @@ function truncate(value: string | null, max: number): string | null {
   return value.length > max ? value.slice(0, max) : value
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -220,4 +218,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ received: true }, 202)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

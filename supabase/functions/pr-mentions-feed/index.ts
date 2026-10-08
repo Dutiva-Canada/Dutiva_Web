@@ -6,6 +6,7 @@ import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import { parseToneList, tonePrompt, type PrSentiment } from '../pr-ai/handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * pr-mentions-feed — poll the RSS/Atom feeds a user saved (Google Alerts,
@@ -27,12 +28,8 @@ import { parseToneList, tonePrompt, type PrSentiment } from '../pr-ai/handlers.t
  * unwrapped first), so repeated polls are no-ops.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 const FETCH_TIMEOUT_MS = 10_000
 const MAX_BYTES = 1024 * 1024
@@ -43,7 +40,7 @@ const CRON_LOCK_TTL_SECONDS = 300
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -321,8 +318,8 @@ async function sendCoverageDigests(
   return outcomes
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -398,4 +395,6 @@ Deno.serve(async (req) => {
       })
     }
   }
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

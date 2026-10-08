@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bypassesPaywall } from '../_shared/adminAccess.ts'
 import { readStripeSecretKey, stripeSecretDiagnostic } from '../_shared/stripeSecret.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Starts a Stripe Checkout subscription session for the signed-in account.
@@ -17,16 +18,12 @@ import { readStripeSecretKey, stripeSecretDiagnostic } from '../_shared/stripeSe
  * PlanProvider also implements client-side.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -83,8 +80,8 @@ async function stripePost(path: string, params: Record<string, string>, secretKe
   return res.json() as Promise<{ id?: string; url?: string; error?: { message?: string } }>
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const rawStripeKey = Deno.env.get('STRIPE_SECRET_KEY')
@@ -226,4 +223,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ url: session.url })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

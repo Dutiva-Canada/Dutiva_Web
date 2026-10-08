@@ -19,13 +19,6 @@ import {
    under the repo's file-size budget. Deno-only — the pure/prompt layer
    lives in handlers.ts where vitest can reach it. */
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
 export const UPSTREAM_TIMEOUT_MS = 45_000
 const CHAT_HISTORY = 20
 const CHAT_LIST_CAP = 15
@@ -33,7 +26,7 @@ const CHAT_LIST_CAP = 15
 export function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   })
 }
 
@@ -154,7 +147,6 @@ function sseChannel() {
   return {
     response: new Response(ts.readable, {
       headers: {
-        ...corsHeaders,
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
       },

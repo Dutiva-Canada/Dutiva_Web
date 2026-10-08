@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Resend delivery webhook. Records the provider's verdict against the outbox row
@@ -18,15 +19,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * published Svix vector) — keep the two in sync.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type, svix-id, svix-timestamp, svix-signature',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'content-type, svix-id, svix-timestamp, svix-signature' }
+const corsHeaders = makeCorsHeaders(CORS)
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -99,8 +97,8 @@ const EVENT_MAP: Record<string, string> = {
   'email.delivery_delayed': 'delayed',
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -170,4 +168,6 @@ Deno.serve(async (req: Request) => {
   if (inviteError) return json({ error: inviteError.message }, 500)
 
   return json({ data: { email_id: emailId, delivery_status: deliveryStatus } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

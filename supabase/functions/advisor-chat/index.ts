@@ -33,6 +33,7 @@ import {
   userMessageContent,
 } from '../_shared/modelUpstream.ts'
 import type { AdvisorAttachment, UpstreamMessage } from '../_shared/modelUpstream.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -51,16 +52,12 @@ import type { AdvisorAttachment, UpstreamMessage } from '../_shared/modelUpstrea
  * stamped with tokens, latency and outcome when the call resolves.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json', ...extraHeaders },
   })
 }
 
@@ -698,8 +695,8 @@ async function reportOverageIfNeeded(
   if (!result.ok) console.error('advisor-chat: overage meter failed', result.reason)
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -941,4 +938,6 @@ Deno.serve(async (req: Request) => {
           : undefined,
     },
   })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

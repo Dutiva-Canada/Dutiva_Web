@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { withCors } from '../_shared/cors.ts'
 import {
   buildDraftPrompt,
   parseDraft,
@@ -10,7 +11,6 @@ import {
   validateAiAction,
 } from './handlers.ts'
 import {
-  corsHeaders,
   json,
   modelRoute,
   parseInvestReactEvent,
@@ -96,8 +96,8 @@ async function authenticateInvestUser(
   return { userId: userData.user.id, adminClient }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -240,4 +240,6 @@ Deno.serve(async (req: Request) => {
     dedupeKey: textDedupeKey(goal),
   })
   return json({ draft: shipped, suggestionId: filed?.id ?? null })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

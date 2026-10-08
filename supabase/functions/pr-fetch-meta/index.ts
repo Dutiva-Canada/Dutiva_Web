@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl, extractPageMeta } from './handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * pr-fetch-meta — the coverage log's "paste a link" helper. A signed-in PR
@@ -18,11 +19,7 @@ import { assertPublicHttpUrl, extractPageMeta } from './handlers.ts'
  * ~512KB, so this can't be turned into a network scanner.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 const FETCH_TIMEOUT_MS = 8_000
 const MAX_BYTES = 512 * 1024
@@ -30,12 +27,12 @@ const MAX_BYTES = 512 * 1024
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   /* Portal JWT → caller's user id, gated on pr_access — same contract as
@@ -120,7 +117,9 @@ Deno.serve(async (req) => {
   } finally {
     clearTimeout(timer)
   }
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))
 
 function concat(chunks: Uint8Array[]): Uint8Array {
   const total = chunks.reduce((n, c) => n + c.byteLength, 0)

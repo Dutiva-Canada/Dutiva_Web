@@ -3,23 +3,20 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { resendSend } from '../_shared/resendSend.ts'
 import { renderSigningStatusEmail, type SigningStatusEvent } from '../_shared/signingStatusEmail.ts'
 import type { Lang } from '../_shared/signingInvite.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Email org admins when a Dutiva Signature envelope is fully signed or declined.
  * Triggered internally from signing RPCs via pg_net (migration 0084).
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -39,8 +36,8 @@ function isAuthorizedInternal(req: Request): boolean {
   return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
   if (!isAuthorizedInternal(req)) return json({ error: 'Forbidden.' }, 403)
 
@@ -152,4 +149,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, event, sent, failed })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

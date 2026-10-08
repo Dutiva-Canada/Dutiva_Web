@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * PUBLIC (unauthenticated) client error telemetry sink. Deploy with
@@ -28,11 +29,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * See docs/ERROR_REPORTING.md.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'content-type' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 const KINDS = ['route-boundary', 'window-error', 'unhandled-rejection', 'recoverable-error']
 const ENVS = ['production', 'preview']
@@ -240,12 +238,12 @@ function clientIp(req: Request): string {
   return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? 'unknown'
 }
 
-const noContent = () => new Response(null, { status: 204, headers: corsHeaders })
-const serverError = () => new Response(null, { status: 500, headers: corsHeaders })
+const noContent = () => new Response(null, { status: 204, headers: corsHeaders() })
+const serverError = () => new Response(null, { status: 500, headers: corsHeaders() })
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-  if (req.method !== 'POST') return new Response(null, { status: 405, headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
+  if (req.method !== 'POST') return new Response(null, { status: 405, headers: corsHeaders(req) })
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -305,4 +303,6 @@ Deno.serve(async (req: Request) => {
   // The RPC returns 'ok' (stored) or 'rate_limited' (dropped) — both are a 204
   // to the beacon, which ignores the response either way.
   return noContent()
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

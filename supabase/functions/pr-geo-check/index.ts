@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
 import { answerExcerpt, classifyGeoAnswer } from './handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * pr-geo-check — run the tracked GEO prompts through the configured model
@@ -24,12 +25,8 @@ import { answerExcerpt, classifyGeoAnswer } from './handlers.ts'
  * checked_via='auto' to keep them distinct from human spot-checks.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 const MAX_PROMPTS_SCHEDULED = 100
 const MAX_PROMPTS_MANUAL = 25
@@ -44,7 +41,7 @@ const BRAND_NAMES = ['Dutiva']
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -82,8 +79,8 @@ interface PromptRow {
   prompt: string
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -208,4 +205,6 @@ Deno.serve(async (req) => {
       })
     }
   }
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

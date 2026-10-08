@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { withCors } from '../_shared/cors.ts'
 import { type ResolvedRoute } from '../_shared/aiRoute.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
@@ -21,7 +22,6 @@ import {
   type PromptsInput,
 } from './handlers.ts'
 import {
-  corsHeaders,
   json,
   modelRoute,
   parsePrReactEvent,
@@ -142,8 +142,8 @@ async function modelText(
   return { text: payload.choices?.[0]?.message?.content ?? '' }
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -375,4 +375,10 @@ Deno.serve(async (req) => {
   }
 
   return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", "pitch", "chat", "react", "chat_history", "chat_clear", "chat_feedback", or "chat_undo"' }, 400)
-})
+}
+
+const CORS = {
+  allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

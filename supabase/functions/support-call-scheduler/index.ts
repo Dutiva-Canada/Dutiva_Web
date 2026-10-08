@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { rowsNeedingFollowup, rowsNeedingReminder } from '../_shared/scheduledCalls.ts'
 import type { SchedulerRow } from '../_shared/scheduledCalls.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Cron sweep for confirmed scheduled calls (TODO.md D3): sends the one
@@ -17,15 +18,11 @@ import type { SchedulerRow } from '../_shared/scheduledCalls.ts'
  * partial failure never double-sends.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -60,7 +57,7 @@ function isAuthorizedTrigger(req: Request): boolean {
   return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
 }
 
-Deno.serve(async (req: Request) => {
+const handler = async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 })
   }
@@ -166,4 +163,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, checked: rows.length, results })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

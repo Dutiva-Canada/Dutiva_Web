@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import {
   coingeckoId,
   computeMa,
@@ -37,17 +38,13 @@ import {
  * Unknown tickers are skipped and reported, never fatal.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -344,8 +341,8 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -409,4 +406,6 @@ Deno.serve(async (req: Request) => {
   const result = await syncUser(authed.adminClient, authed.userId)
   const news = await refreshNews(authed.adminClient, result.targets)
   return json({ symbols: result.symbols, synced: result.synced, failed: result.failed, news })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

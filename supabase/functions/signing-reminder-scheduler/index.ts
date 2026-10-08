@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { sendInviteToRecipient, type Lang } from '../_shared/signingInvite.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Cron sweep for stale Dutiva Signature invites — emails a reminder to turn-
@@ -9,17 +10,13 @@ import { sendInviteToRecipient, type Lang } from '../_shared/signingInvite.ts'
  * interval configurable per org in migration 0085).
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -40,7 +37,7 @@ function isAuthorizedTrigger(req: Request): boolean {
   return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
 }
 
-Deno.serve(async (req: Request) => {
+const handler = async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 })
   }
@@ -141,4 +138,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, sent, failed, candidates: dueRows?.length ?? 0 })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

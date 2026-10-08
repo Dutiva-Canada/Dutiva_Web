@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { claimExportSlot, exportLimitBody, exportPolicy } from '../_shared/exportGuard.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Authorizes one export of company-generated content and writes its audit
@@ -18,16 +19,12 @@ import { claimExportSlot, exportLimitBody, exportPolicy } from '../_shared/expor
  * letting a server-side error mint unaudited *server* ids.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...headers },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json', ...headers },
   })
 }
 
@@ -106,8 +103,8 @@ async function readExportRequest(req: Request): Promise<ExportRequestBody | Resp
   return { surface, kind, title, sha256, contentChars, lang }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -142,4 +139,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ export_id: decision.exportId }, 201)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

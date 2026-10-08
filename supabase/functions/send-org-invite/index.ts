@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { resendSend } from '../_shared/resendSend.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * send-org-invite — emails an organization_invitations row to its recipient.
@@ -12,16 +13,12 @@ import { resendSend } from '../_shared/resendSend.ts'
  * JWT is only proof of identity; the membership check is the authorization).
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -36,8 +33,8 @@ interface InvitationRow {
   expires_at: string
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -131,4 +128,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, emailed: true })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

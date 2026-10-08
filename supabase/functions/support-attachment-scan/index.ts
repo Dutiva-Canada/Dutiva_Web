@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Malware-scan worker for support ticket attachments. Drains `pending` rows
@@ -29,16 +30,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  *   • src/features/support/attachmentScan.ts  (verdict + status + release rules)
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-scan-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-scan-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -128,8 +125,8 @@ function nextScanStatus(verdict: ScanVerdict, attemptsSoFar: number): string {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -273,4 +270,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ processed: queue.length, clean, flagged, skipped, retry })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { atRiskHabits, type HabitLogRow, type HabitRow } from './handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * health-habit-notify — daily streak-at-risk nudge (pg_cron 23:00 UTC,
@@ -14,12 +15,8 @@ import { atRiskHabits, type HabitLogRow, type HabitRow } from './handlers.ts'
  * wait for the evening, so a manual call would lie about the timing.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 const CRON_LOCK_JOB = 'health-streak-notify'
 const CRON_LOCK_TTL_SECONDS = 300
@@ -28,7 +25,7 @@ const LOG_LOOKBACK_DAYS = 45
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -40,8 +37,8 @@ function isAuthorizedTrigger(req: Request): boolean {
   return token !== '' && token === (Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -116,4 +113,6 @@ Deno.serve(async (req) => {
       p_instance_id: instanceId,
     })
   }
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

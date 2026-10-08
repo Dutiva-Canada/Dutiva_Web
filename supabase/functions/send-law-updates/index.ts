@@ -4,6 +4,7 @@ import { resendSend } from '../_shared/resendSend.ts'
 import { selectRelevantUpdates } from '../_shared/lawUpdateRelevance.ts'
 import { selectDigestableUpdates } from '../_shared/lawUpdateDigest.ts'
 import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Weekly law-change digest (TODO.md D1, decided 2026-08-06: internal-only,
@@ -30,16 +31,12 @@ import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
  * rather than silently dropping a week's amendments.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-notify-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-notify-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -86,8 +83,8 @@ function formatUpdate(row: LawUpdateRow): string {
 const DISCLAIMER =
   'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.'
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -179,4 +176,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, sent: true, count: digestRows.length })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))
