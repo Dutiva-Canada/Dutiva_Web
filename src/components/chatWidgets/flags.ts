@@ -17,7 +17,7 @@
  * those, so each chatbot can opt in independently.
  */
 
-export type ChatWidgetSurface = 'advisor' | 'invest' | 'health' | 'pr' | 'careers'
+export type ChatWidgetSurface = 'advisor' | 'invest' | 'health' | 'pr'
 
 export const CHAT_WIDGET_FLAG_KEY = 'dutiva:flag:interactiveChatWidgets'
 

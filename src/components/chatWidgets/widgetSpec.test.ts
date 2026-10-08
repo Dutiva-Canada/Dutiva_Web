@@ -175,6 +175,56 @@ describe('widgetSpecSchema — adversarial specs', () => {
       widgetSpecSchema.safeParse({ type: 'checklist', data: {} }).success,
     ).toBe(false)
   })
+
+  it('rejects duplicate keys that would alias widget state', () => {
+    /* Two inputs sharing a key share one field; two columns share sort. */
+    expect(
+      widgetSpecSchema.safeParse({
+        ...validCalculator,
+        data: {
+          ...validCalculator.data,
+          inputs: [
+            { key: 'hours', label: 'Hours' },
+            { key: 'hours', label: 'Also hours' },
+          ],
+        },
+      }).success,
+    ).toBe(false)
+    expect(
+      widgetSpecSchema.safeParse({
+        type: 'table',
+        data: {
+          columns: [
+            { key: 'a', label: 'A' },
+            { key: 'a', label: 'A again' },
+          ],
+          rows: [{ a: 'x' }],
+        },
+      }).success,
+    ).toBe(false)
+    expect(
+      widgetSpecSchema.safeParse({
+        type: 'checklist',
+        data: {
+          items: [
+            { id: 'a', label: 'One' },
+            { id: 'a', label: 'Two' },
+          ],
+        },
+      }).success,
+    ).toBe(false)
+  })
+
+  it('rejects item ids that could double as object internals', () => {
+    for (const id of ['__proto__', '_hidden', 'has space', 'has.dot', '9starts-digit']) {
+      expect(
+        widgetSpecSchema.safeParse({
+          type: 'checklist',
+          data: { items: [{ id, label: 'x' }] },
+        }).success,
+      ).toBe(false)
+    }
+  })
 })
 
 describe('parseWidgetSpec', () => {

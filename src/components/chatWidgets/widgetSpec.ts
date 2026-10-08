@@ -105,6 +105,9 @@ export const calculatorSpecSchema = z
   })
   .superRefine((spec, ctx) => {
     const keys = new Set(spec.data.inputs.map((input) => input.key))
+    if (keys.size !== spec.data.inputs.length) {
+      ctx.addIssue({ code: 'custom', message: 'input keys must be unique', path: ['data', 'inputs'] })
+    }
     const checkRefs = (expr: FormulaExpr, path: string) => {
       for (const ref of formulaRefs(expr)) {
         if (!keys.has(ref)) {
@@ -152,48 +155,67 @@ export type ChartWidgetSpec = z.infer<typeof chartSpecSchema>
 
 const tableCellSchema = z.union([z.string().max(200), z.number().finite(), lTextSchema])
 
-export const tableSpecSchema = z.strictObject({
-  type: z.literal('table'),
-  ...widgetBase,
-  data: z.strictObject({
-    columns: z
-      .array(
-        z.strictObject({
-          key: keySchema,
-          label: lTextSchema,
-          align: z.enum(['left', 'center', 'right']).optional(),
-        }),
-      )
-      .min(1)
-      .max(8),
-    rows: z.array(z.record(z.string(), tableCellSchema)).min(1).max(500),
-    searchable: z.boolean().optional(),
-    sortable: z.boolean().optional(),
-  }),
-})
+export const tableSpecSchema = z
+  .strictObject({
+    type: z.literal('table'),
+    ...widgetBase,
+    data: z.strictObject({
+      columns: z
+        .array(
+          z.strictObject({
+            key: keySchema,
+            label: lTextSchema,
+            align: z.enum(['left', 'center', 'right']).optional(),
+          }),
+        )
+        .min(1)
+        .max(8),
+      rows: z.array(z.record(z.string(), tableCellSchema)).min(1).max(500),
+      searchable: z.boolean().optional(),
+      sortable: z.boolean().optional(),
+    }),
+  })
+  .superRefine((spec, ctx) => {
+    /* Duplicate column keys would alias sort toggles and render the same
+       cell twice — reject rather than render ambiguously. */
+    const keys = new Set(spec.data.columns.map((col) => col.key))
+    if (keys.size !== spec.data.columns.length) {
+      ctx.addIssue({ code: 'custom', message: 'column keys must be unique', path: ['data', 'columns'] })
+    }
+  })
 
 export type TableSpec = z.infer<typeof tableSpecSchema>
 
 /* ------------------------------------------------------------- checklist */
 
-export const checklistSpecSchema = z.strictObject({
-  type: z.literal('checklist'),
-  ...widgetBase,
-  data: z.strictObject({
-    items: z
-      .array(
-        z.strictObject({
-          id: z.string().min(1).max(60),
-          label: lTextSchema,
-          done: z.boolean().optional(),
-        }),
-      )
-      .min(1)
-      .max(60),
-    showProgress: z.boolean().optional(),
-    copySummary: z.boolean().optional(),
-  }),
-})
+export const checklistSpecSchema = z
+  .strictObject({
+    type: z.literal('checklist'),
+    ...widgetBase,
+    data: z.strictObject({
+      items: z
+        .array(
+          z.strictObject({
+            /* Safe charset — the id becomes an object key and a React key,
+               so `__proto__`-style names are rejected at the boundary. */
+            id: z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,59}$/),
+            label: lTextSchema,
+            done: z.boolean().optional(),
+          }),
+        )
+        .min(1)
+        .max(60),
+      showProgress: z.boolean().optional(),
+      copySummary: z.boolean().optional(),
+    }),
+  })
+  .superRefine((spec, ctx) => {
+    /* Duplicate ids would share one checkbox state and one React key. */
+    const ids = new Set(spec.data.items.map((item) => item.id))
+    if (ids.size !== spec.data.items.length) {
+      ctx.addIssue({ code: 'custom', message: 'checklist ids must be unique', path: ['data', 'items'] })
+    }
+  })
 
 export type ChecklistSpec = z.infer<typeof checklistSpecSchema>
 

@@ -117,7 +117,7 @@ export function ChartWidget({ spec }: { readonly spec: ChartWidgetSpec }) {
   const titleText = spec.title ? pickL(spec.title, lang) : x(CW.chatw_table_region)
 
   return (
-    <WidgetFrame title={spec.title} note={undefined}>
+    <WidgetFrame title={spec.title}>
       {kind === 'bar' ? <BarChart spec={spec} /> : <PieChart spec={spec} />}
 
       <button

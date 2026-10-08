@@ -181,6 +181,9 @@ export function HealthChatPage() {
     }
   }
 
+  /* One flag read per render — the flag hits localStorage each call. */
+  const widgetsOn = interactiveChatWidgetsEnabled('health')
+
   return (
     <div className="sb hb sb-page">
       <div className="sb-head-row">
@@ -214,7 +217,7 @@ export function HealthChatPage() {
                     interactiveChatWidgets flag covers this surface — off, the
                     content renders verbatim exactly as before. User text is
                     never parsed. */}
-                {t.role === 'assistant' && interactiveChatWidgetsEnabled('health') ? (
+                {t.role === 'assistant' && widgetsOn ? (
                   <Suspense fallback={t.content}>
                     <WidgetContent text={t.content} />
                   </Suspense>
@@ -278,7 +281,7 @@ export function HealthChatPage() {
           {sending && (
             <div className="sbchat-bubble assistant">
               {streamed ? (
-                interactiveChatWidgetsEnabled('health') ? (
+                widgetsOn ? (
                   <Suspense fallback={streamed}>
                     <WidgetContent text={streamed} streaming />
                   </Suspense>

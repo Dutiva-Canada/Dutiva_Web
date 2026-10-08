@@ -184,7 +184,7 @@
 
 .cw-datatoggle {
   margin-top: 10px;
-  min-height: 32px;
+  min-height: 44px;
   padding: 5px 10px;
   border: 1px solid var(--cw-border);
   border-radius: 7px;
@@ -214,7 +214,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 32px;
+  min-height: 44px;
   padding: 2px 4px;
   border: none;
   background: none;
@@ -227,7 +227,7 @@
 .cw-table-sort:focus-visible { outline: 2px solid var(--cw-accent); outline-offset: 1px; border-radius: 4px; }
 .cw-table-sort svg { flex-shrink: 0; }
 .cw-table-search { margin-bottom: 10px; }
-.cw-table-search .cw-calc-input { min-height: 40px; }
+.cw-table-search .cw-calc-input { min-height: 44px; }
 .cw-table-empty { padding: 14px 10px; text-align: center; color: var(--cw-muted); font-size: 12.5px; }
 
 /* ----------------------------------------------------------- checklist */

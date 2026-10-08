@@ -184,6 +184,9 @@ export function PrChatPage() {
     }
   }
 
+  /* One flag read per render — the flag hits localStorage each call. */
+  const widgetsOn = interactiveChatWidgetsEnabled('pr')
+
   return (
     <div className="sb prx sb-page">
       <div className="sb-head-row">
@@ -217,7 +220,7 @@ export function PrChatPage() {
                     interactiveChatWidgets flag covers this surface — off, the
                     content renders verbatim exactly as before. User text is
                     never parsed. */}
-                {t.role === 'assistant' && interactiveChatWidgetsEnabled('pr') ? (
+                {t.role === 'assistant' && widgetsOn ? (
                   <Suspense fallback={t.content}>
                     <WidgetContent text={t.content} />
                   </Suspense>
@@ -281,7 +284,7 @@ export function PrChatPage() {
           {sending && (
             <div className="sbchat-bubble assistant">
               {streamed ? (
-                interactiveChatWidgetsEnabled('pr') ? (
+                widgetsOn ? (
                   <Suspense fallback={streamed}>
                     <WidgetContent text={streamed} streaming />
                   </Suspense>

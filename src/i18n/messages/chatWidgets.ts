@@ -17,7 +17,6 @@ export const chatWidgetMessages = defineMessages({
   }, // [FR self-authored]
 
   /* ── Calculator ───────────────────────────────────────────────────────── */
-  chatw_calc_result: { en: 'Result', fr: 'Résultat' }, // [FR self-authored]
   chatw_calc_estimate_disclaimer: {
     en: 'Estimate — verify against current legislation before relying on it.',
     fr: 'Estimation — vérifiez la législation en vigueur avant de vous y fier.',

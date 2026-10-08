@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useMemo } from 'react'
 import { parseWidgetSpec, type WidgetSpec } from './widgetSpec'
 import { WidgetFallback } from './WidgetFallback'
 import './chatWidgets.css'
@@ -94,6 +94,8 @@ export function ChatWidget({ spec }: { readonly spec: WidgetSpec }) {
  * WidgetContent on the plain-text portal chats.
  */
 export function ChatWidgetBlock({ source }: { readonly source: string }) {
-  const spec = parseWidgetSpec(source)
+  /* Parse once per source — streaming parents re-render often, and zod
+     validation isn't free even on bounded input. */
+  const spec = useMemo(() => parseWidgetSpec(source), [source])
   return spec ? <ChatWidget spec={spec} /> : <WidgetFallback />
 }
