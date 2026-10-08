@@ -45,6 +45,7 @@ import { careersMessages } from './careers'
 import { investMessages } from './invest'
 import { healthMessages } from './health'
 import { agentMessages } from './agent'
+import { chatWidgetMessages } from './chatWidgets'
 import { sharedMessages } from './shared'
 
 /**
@@ -102,6 +103,7 @@ export const workspaceMessages = {
   ...investMessages,
   ...healthMessages,
   ...agentMessages,
+  ...chatWidgetMessages,
   ...sharedMessages,
 } as const
 

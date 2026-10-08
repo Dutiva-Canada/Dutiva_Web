@@ -114,6 +114,12 @@ Canonical redirects: `/app/reports` → `/app/analytics`; `/app/templates` →
 `/app/documents/hr-library`; `/app/tasks` → `/app/planning/tasks`;
 `/app/calendar` → `/app/planning/calendar`; `/app/memory` → `/app/settings/memory`.
 
+Unlinked showcase route: `/app/chat-widgets` (also `/demo/chat-widgets`,
+`/fr/demo/chat-widgets`) — the interactive chat-widget catalog for reviewers.
+Assistant replies embed widgets as ```` ```dutiva-widget ```` fenced JSON
+specs (`src/components/chatWidgets/`); gated per surface by the
+`interactiveChatWidgets` flag (`VITE_INTERACTIVE_CHAT_WIDGETS`, default off).
+
 Navigation between entities (e.g. an Advisor tone-card action "Open case") uses
 these routes — never view-state flags.
 

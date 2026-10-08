@@ -47,6 +47,8 @@ import {
   type MemoryHighlightPhrase,
 } from '@/features/app/advisor/memoryHighlights'
 import { hideIncompleteTable } from './chatMarkdownUtils'
+import { interactiveChatWidgetsEnabled } from '../chatWidgets/flags'
+import { CHAT_WIDGET_FENCE } from '../chatWidgets/widgetSpec'
 import './chat-markdown.css'
 
 /* recharts and its d3 tree are ~420kB, and most replies have no chart in them
@@ -56,6 +58,16 @@ import './chat-markdown.css'
    out of the `vendor` group for the same reason — the two go together. */
 const ChatChart = lazy(() =>
   import('./ChatChart').then((module) => ({ default: module.ChatChart })),
+)
+
+/* ChatWidget is its own lazy boundary for the same reason — spec parsing,
+   zod, and the six widget components only download when a reply actually
+   contains a ```dutiva-widget block (and the interactiveChatWidgets flag
+   covers this surface). */
+const ChatWidgetBlock = lazy(() =>
+  import('../chatWidgets/ChatWidget').then((module) => ({
+    default: module.ChatWidgetBlock,
+  })),
 )
 
 /* ------------------------------------------------------------------ *
@@ -225,18 +237,33 @@ const components: Components = {
     </td>
   ),
 
-  // A ```chart block renders itself; everything else keeps the <pre> shell.
+  // A ```chart or enabled ```dutiva-widget block renders itself; everything
+  // else keeps the <pre> shell.
   pre: ({ node, children }) => {
-    if (languageOf(findChild(asNode(node), 'code')) === 'chart') return <>{children}</>
+    const language = languageOf(findChild(asNode(node), 'code'))
+    if (language === 'chart') return <>{children}</>
+    if (language === CHAT_WIDGET_FENCE && interactiveChatWidgetsEnabled('advisor')) {
+      return <>{children}</>
+    }
     return <pre className="cm-pre">{children}</pre>
   },
   code: ({ className, children }) => {
-    const language = /language-(\w+)/.exec(className ?? '')?.[1]
+    /* [\w-]+ — the dutiva-widget tag contains a hyphen; \w+ would stop at it. */
+    const language = /language-([\w-]+)/.exec(className ?? '')?.[1]
     const source = String(children ?? '')
     if (language === 'chart') {
       return (
         <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
           <ChatChart source={source} />
+        </Suspense>
+      )
+    }
+    /* Flag off → the fence keeps its code-block rendering, exactly as an
+       unknown language always has. Flag on → spec JSON becomes a widget. */
+    if (language === CHAT_WIDGET_FENCE && interactiveChatWidgetsEnabled('advisor')) {
+      return (
+        <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
+          <ChatWidgetBlock source={source} />
         </Suspense>
       )
     }

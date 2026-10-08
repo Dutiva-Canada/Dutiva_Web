@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Check, Loader2, Send, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
@@ -15,8 +15,17 @@ import {
   type PrChatTurn,
 } from '@/features/pr/data/chatApi'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { interactiveChatWidgetsEnabled } from '@/components/chatWidgets/flags'
 import { fmtDateTime, paigeGreeting } from './prUi'
 import { usePrHead } from './usePrHead'
+
+/* Widget rendering is a lazy chunk — with the flag off for this surface the
+   module is never fetched and the bubble renders content verbatim. */
+const WidgetContent = lazy(() =>
+  import('@/components/chatWidgets/WidgetContent').then((m) => ({
+    default: m.WidgetContent,
+  })),
+)
 
 /** What the assistant did during a turn, as a confirmation chip. The label
     keys mirror the action grammar in pr-ai/handlers.ts. */
@@ -204,7 +213,17 @@ export function PrChatPage() {
           ) : (
             turns.map((t) => (
               <div key={t.id} className={`sbchat-bubble ${t.role}`}>
-                {t.content}
+                {/* Assistant turns may carry ```dutiva-widget fences when the
+                    interactiveChatWidgets flag covers this surface — off, the
+                    content renders verbatim exactly as before. User text is
+                    never parsed. */}
+                {t.role === 'assistant' && interactiveChatWidgetsEnabled('pr') ? (
+                  <Suspense fallback={t.content}>
+                    <WidgetContent text={t.content} />
+                  </Suspense>
+                ) : (
+                  t.content
+                )}
                 {t.action && (
                   <span className="sbchat-chip" data-ok={t.action.ok ? 'true' : 'false'}>
                     <Check size={11} aria-hidden="true" />
@@ -261,7 +280,17 @@ export function PrChatPage() {
           )}
           {sending && (
             <div className="sbchat-bubble assistant">
-              {streamed || <Loader2 size={14} className="animate-spin" aria-hidden="true" />}
+              {streamed ? (
+                interactiveChatWidgetsEnabled('pr') ? (
+                  <Suspense fallback={streamed}>
+                    <WidgetContent text={streamed} streaming />
+                  </Suspense>
+                ) : (
+                  streamed
+                )
+              ) : (
+                <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+              )}
             </div>
           )}
         </div>
