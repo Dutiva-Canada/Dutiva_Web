@@ -32,7 +32,7 @@ The following files were used as context for generating this wiki page:
 
 Dutiva is a bilingual (English / French Canadian) HR compliance SaaS product built by **Dutiva Canada Inc.**, a federally incorporated Canadian company based in Ottawa. The platform helps Canadian employers manage HR compliance — documents, deadlines, and workplace decisions — with practical, AI-assisted guidance covering Ontario (ESA 2000), Québec (LNT), and federally regulated workplaces (Canada Labour Code Part III).
 
-The codebase implements three surfaces — a public marketing site at `dutiva.ca`, a **public read-only demo** at `/demo` (and `/fr/demo`), and the signed-in product workspace at `/app/*` — in a single React 19 monolith deployed on Vercel, with Supabase as the backend.
+The codebase implements three main surfaces — a public marketing site at `dutiva.ca`, a **public read-only demo** at `/demo` (and `/fr/demo`), and the signed-in product workspace at `/app/*` — plus **standalone invite-only portals** (`/health`, `/invest`, `/pr`, `/careers/portal`) with their own shells and access grants — in a single React 19 monolith deployed on Vercel, with Supabase as the backend.
 
 Sources: [README.md:1-7](), [docs/CANONICAL_FACTS.md:1-55]()
 
@@ -62,11 +62,11 @@ Sources: [package.json:1-50](), [CONVENTIONS.md:8-13](), [vite.config.ts:1-30]()
 
 ---
 
-## Three-Surface Architecture
+## Surface Architecture
 
-The application is split into three surfaces that share a codebase but differ in routing, rendering, i18n strategy, and access control.
+The application is split into surfaces that share a codebase but differ in routing, rendering, i18n strategy, and access control: the marketing site, the public demo, the signed-in workspace, and a family of standalone invite-only portals.
 
-**Three-surface route architecture**
+**Route surface architecture**
 
 ```mermaid
 graph LR
@@ -94,6 +94,13 @@ graph LR
         WORKSPACE --- MORE_APP["... ~100 view routes"]
     end
 
+    subgraph Portals["Standalone Portals (invite-only)"]
+        HEALTH["/health — Mira"]
+        INVEST["/invest — Tally"]
+        PRP["/pr — Paige"]
+        CAREERS["/careers/portal"]
+    end
+
     MarketingSurface -. "code-split boundary" .-> DemoSurface
     DemoSurface -. "code-split boundary" .-> WorkspaceSurface
 ```
@@ -102,7 +109,7 @@ Sources: [src/app/routes.tsx:198-227](), [src/app/appSurface.tsx:77-91](), [src/
 
 ### Marketing surface
 
-Public pages are bilingual via URL prefix — English at unprefixed paths (`/about`), French under `/fr` with localized slugs (`/fr/a-propos`). Language is forced by `ForcedLangProvider` wrapping each locale tree. All 19 static routes plus legal docs, help articles, and editorial articles are registered in the SEO route registry at `src/seo/routes.ts`. Pages are prerendered to static HTML at build time by `scripts/prerender.mjs` and indexed by search engines.
+Public pages are bilingual via URL prefix — English at unprefixed paths (`/about`), French under `/fr` with localized slugs (`/fr/a-propos`). Language is forced by `ForcedLangProvider` wrapping each locale tree. All 20 static routes plus legal docs, help articles, and editorial articles are registered in the SEO route registry at `src/seo/routes.ts`. Pages are prerendered to static HTML at build time by `scripts/prerender.mjs` and indexed by search engines.
 
 Sources: [src/seo/routes.ts:1-50](), [src/app/routes.tsx:80-111](), [CONVENTIONS.md:42-61]()
 
@@ -123,7 +130,7 @@ AuthProvider → PlanProvider → WorkspaceModeProvider → ToastsProvider
   → RailProvider → SearchProvider → DocStudioProvider → WorkspaceContextProvider
 ```
 
-The workspace includes multi-screen module layouts for **Communications Platform** (`/app/comms`, 8 screens) and **Finance** (`/app/finance`, 10 screens), each with their own data context providers, bilingual message catalogues, and integration-led persistence layers.
+The workspace includes multi-screen module layouts for **Communications Platform** (`/app/comms`, 10 screens) and **Finance** (`/app/finance`, 15 screens), each with their own data context providers, bilingual message catalogues, and integration-led persistence layers.
 
 Sources: [src/features/app/AppProviders.tsx:1-43](), [vercel.json:1-60](), [src/app/appViews.tsx:1-50]()
 
@@ -165,7 +172,7 @@ graph TB
 
     subgraph Backend["Supabase Backend"]
         SUPA_CLIENT["supabaseClient.ts<br>null when unconfigured"]
-        EDGE_FNS["35 edge functions"]
+        EDGE_FNS["45 edge functions"]
         SCHEMA["schema.sql<br>244 tables, 610 RLS policies"]
     end
 
@@ -249,7 +256,7 @@ Sources: [docs/CANONICAL_FACTS.md:1-35](), [src/canonicalFacts.test.ts:1-33](), 
 
 ## Backend at a Glance
 
-The Supabase backend comprises a 244-table Postgres schema with 610 RLS policies and 35 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
+The Supabase backend comprises a 244-table Postgres schema with 610 RLS policies and 45 edge functions. Edge functions are split by authentication mode — some use JWT verification, while webhooks, cron workers, and public intake forms authenticate in-band. The `supabase/config.toml` pins `verify_jwt` per function to prevent accidental lockouts during deployment.
 
 **Backend topology**
 
@@ -267,7 +274,7 @@ graph LR
     subgraph Supabase["Supabase Project"]
         AUTH["Auth (magic-link OTP)"]
         DB["Postgres<br>schema.sql — 244 tables"]
-        EDGE["Edge Functions (35)"]
+        EDGE["Edge Functions (45)"]
         VAULT["Vault secrets"]
         CRON["pg_cron schedules"]
     end
@@ -300,7 +307,7 @@ Sources: [supabase/config.toml:1-72](), [supabase/schema.sql:1-100]()
 | -------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `npm run dev`              | Vite dev server                                                                                       |
 | `npm run build`            | Full production build chain (typecheck → build → SSR → prerender → SEO validation → entry-graph → SW) |
-| `npm run check`            | Merge gate: typecheck + lint + test + migration check + RLS check + canonical facts + message scopes  |
+| `npm run check`            | Merge gate: typecheck + lint + test + migrations + RLS + facts + message scopes + brand assets + architecture + workspace links + advisor golden eval + db-types + edge-types |
 | `npm run typecheck`        | `tsc -b` (strict)                                                                                     |
 | `npm run lint`             | oxlint                                                                                                |
 | `npm run test`             | Vitest (jsdom + Testing Library)                                                                      |
@@ -340,22 +347,25 @@ Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor
 | [Conventions & Canonical Facts](Conventions-Canonical-Facts)                 | `CONVENTIONS.md` engineering standards (surface scopes, CSS tokens, i18n, routing), `CANONICAL_FACTS.md` governance, the bidirectional CI drift guards in `canonicalFacts.test.ts` and `check-canonical-facts.mjs`                                                        |
 | [Core Application Architecture](Core-Application-Architecture)               | Single-page React 19 app serving the public marketing site and the signed-in workspace from one route tree; three-surface model, provider stack, mode dispatch                                                                                                            |
 | [App Shell & Navigation](App-Shell-Navigation)                               | `AppShell` layout (sidebar, topbar, bottom tab nav below 768px), `navConfig`/`navLabels` split, mobile drawer + safe-area handling, 16px mobile form-control floor                                                                                                        |
-| [Routing & Code Splitting](Routing-Code-Splitting)                           | Three-surface route table, `SEO_ROUTES` registry (19 static entries), lazy `appViews` modules, entry-graph budget                                                                                                                                                        |
+| [Routing & Code Splitting](Routing-Code-Splitting)                           | Route table across marketing, demo, workspace, and standalone portals; `SEO_ROUTES` registry (20 static entries), lazy `appViews` modules, entry-graph budget                                                                                                            |
 | [Workspace Mode & Provider Stack](Workspace-Mode-Provider-Stack)             | Demo vs production modes, `WorkspaceModeProvider` lifecycle (invite claim → parallel fetch → onboarding hydration), member vs admin access, empty-workspace onboarding, `workspace_preferences` persistence                                                                |
-| [Workspace Modules](Workspace-Modules)                                       | The 27 feature-module directories under `src/features/app/views/`, the shared demo/production dispatch pattern, `productionApi.ts` boundaries                                                                                                                             |
+| [Workspace Modules](Workspace-Modules)                                       | The 29 feature-module directories under `src/features/app/views/`, the shared demo/production dispatch pattern, `productionApi.ts` boundaries                                                                                                                             |
 | [Employees, Cases & HR Records](Employees-Cases-HR-Records)                  | Employees and Cases modules, HR record data boundary, production views over `hr_employees`/`hr_cases`                                                                                                                                                                     |
 | [Planning, Settings & Other Modules](Planning-Settings-Other-Modules)        | Planning (Tasks + Calendar), Policies, Settings, Advisor Memory, Home command centre, Communications, Compensation, Wellbeing, Knowledge, Search                                                                                                                          |
 | [AI Advisor System](AI-Advisor-System)                                       | The Advisor at `/app/advisor`: jurisdiction-aware guidance, citation discipline, demo flows vs production edge function                                                                                                                                                   |
 | [Advisor Chat Interface & Demo Flows](Advisor-Chat-Interface-Demo-Flows)     | Full-page chat surface, `ChatPane`, composer, tone card, suggestion chips, quick forms, agent action proposal cards, crisis intercept                                                                                                                                      |
 | [Advisor Edge Function Response Contract](Advisor-Edge-Function-Response-Contract) | The `advisor-chat` edge function pipeline: request/response contract, `proposedActions` agent layer, safety backstop                                                                                                                                                  |
 | [Advisor Safety Guardrails](Advisor-Safety-Guardrails)                       | Deterministic safety rule layer on every advisor turn, statutory-figure guards, crisis signals                                                                                                                                                                            |
+| [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift)       | The deterministic eval layer: golden eval (64 cases), statute registry, corpus snapshot, live statute-drift checker                                                                                                                                                        |
+| [Portal Assistants](Portal-Assistants)                                     | Mira (`/health`), Paige (`/pr`), Tally (`/invest`) — standalone invite-only portals, shared chat contract, whitelisted actions, safety postures                                                                                                                             |
+| [Chat Widgets](Chat-Widgets)                                               | The `dutiva-widget` spec system — six widget types, validation/fallback, per-surface feature flag, demo route                                                                                                                                                              |
 | [Template Catalogue & Engine](Template-Catalogue-Engine)                     | The 50-template (T01–T50) authoring system powering the HR Document Library                                                                                                                                                                                             |
 | [Document Management System](Document-Management-System)                     | Authoring, generating, signing, and exporting HR documents; repository and library surfaces                                                                                                                                                                              |
 | [Document Studio, Signing & Export Protection](Document-Studio-Signing-Export-Protection) | `DoclibProvider`/`DoclibContext`, signing flow, `authorizeExport` pipeline                                                                                                                                                                                       |
 | [Guided Workflows & Reference Guides](Guided-Workflows-Reference-Guides)     | `FlowRunner` engine for interactive guided workflows and the Reference Guides system                                                                                                                                                                                    |
 | [Compliance Scoring & Analytics Dashboard](Compliance-Scoring-Analytics-Dashboard) | Compliance score formula (v3), `aggregation.ts` pure functions, `AnalyticsView` surfaces                                                                                                                                                                           |
 | [Law Monitoring & Compliance](Law-Monitoring-Compliance)                     | Why monitoring matters, coverage claims (ON/QC/FED supported vs 14 jurisdictions monitored), `monitoringCoverage.ts`                                                                                                                                                       |
-| [Law Change Monitor](Law-Change-Monitor)                                     | Nightly `monitor-law-changes` cron function: 43 monitored pages, four source strategies, `law_updates` log, `GuidanceSourcesPanel` surface                                                                                                                                |
+| [Law Change Monitor](Law-Change-Monitor)                                     | Nightly `monitor-law-changes` cron function: 19 monitored pages, four source strategies, `law_updates` log, `GuidanceSourcesPanel` surface                                                                                                                                |
 | [Authentication System](Authentication-System)                               | Passwordless magic-link Supabase OTP flow, admin admission, invitation claim path, beta cohort gate (5 seats)                                                                                                                                                             |
 | [Billing & Stripe Integration](Billing-Stripe-Integration)                   | Four-tier plan catalogue (Free/Starter/Growth/Pro, $0/$24/$49/$99 CAD), Stripe Checkout, annual billing (10 months billed), `PAID_PLANS_DISABLED_DURING_BETA`                                                                                                             |
 | [Support System](Support-System)                                             | Digital-first asynchronous support model, self-service defaults, scheduled calls                                                                                                                                                                                        |
@@ -363,15 +373,15 @@ Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor
 | [Attachment Scanner, Help Centre & Notifications](Attachment-Scanner-Help-Centre-Notifications) | ClamAV attachment scanning, the 13-article Help Centre, notification plumbing                                                                                                                                                                        |
 | [Fixture Data System](Fixture-Data-System)                                   | `src/data/` typed bilingual fixtures powering the Northgate Logistics demo workspace                                                                                                                                                                                    |
 | [Core i18n Types & Providers](Core-i18n-Types-Providers)                     | `Bi`/`defineMessages` bilingual system, `LangProvider`, FR self-authoring markers                                                                                                                                                                                        |
-| [Message Catalogue, Organization & Scope Enforcement](Message-Catalogue-Organization-Scope-Enforcement) | The 62 feature message modules, three-surface grouping, `check:message-scopes`                                                                                                                                                                     |
+| [Message Catalogue, Organization & Scope Enforcement](Message-Catalogue-Organization-Scope-Enforcement) | The 68 feature message modules (48 workspace + 14 marketing + 4 shared aggregate + direct-import portal modules), surface grouping, `check:message-scopes`                                                                                                            |
 | [Internationalization (i18n)](Internationalization-i18n)                     | EN/FR parity rules, message scope conventions, locale routing (`/fr`)                                                                                                                                                                                                    |
 | [Marketing Surface](Marketing-Surface)                                       | Public pages, landing section composition (`WorkspaceModuleDemos`), `/demo` public workspace tour, trust surfaces                                                                                                                                                         |
 | [Landing Page, Pricing & Beta Signup](Landing-Page-Pricing-Beta-Signup)      | `LandingPage` section order, `PricingPage`, `BetaSignup` waiting-list flow, 5-seat cohort gate                                                                                                                                                                            |
-| [SEO, Prerendering & Content Marketing](SEO-Prerendering-Content-Marketing)  | Route registry → static prerender pipeline, 19 static routes + dynamic articles, 12 editorial articles (6 guides + 6 blog), sitemap/robots                                                                                                                                 |
+| [SEO, Prerendering & Content Marketing](SEO-Prerendering-Content-Marketing)  | Route registry → static prerender pipeline, 20 static routes + dynamic articles, 12 editorial articles (6 guides + 6 blog), sitemap/robots                                                                                                                                 |
 | [Legal & Trust Pages](Legal-Trust-Pages)                                     | The Legal Hub: 26 bilingual policy documents, trust surface structure                                                                                                                                                                                                    |
 | [Database Backend Architecture](Database-Backend-Architecture)               | Supabase project `khtwpxnvziiyplaflwru`: 244 tables, 187+ functions/RPCs, ~610 RLS policies, cron jobs, views, extensions                                                                                                                                                 |
 | [Database Schema & Migrations](Database-Schema-Migrations)                   | Migration discipline (`NNNN_slug.sql`, merged ≠ applied), `check-migrations.mjs` drift detection, sequence `0024` shared-version history                                                                                                                                  |
-| [Edge Functions & Shared Modules](Edge-Functions-Shared-Modules)             | The 35 Deno edge functions, 16 shared `_shared/` modules, `verify_jwt` inventory, deploy ≠ merge caveat                                                                                                                                                                   |
+| [Edge Functions & Shared Modules](Edge-Functions-Shared-Modules)             | The 45 Deno edge functions, 22 shared `_shared/` modules, `verify_jwt` inventory, deploy ≠ merge caveat                                                                                                                                                                   |
 | [Build Scripts & Integrity Guards](Build-Scripts-Integrity-Guards)           | The `scripts/` integrity guards, `lib/secrets.mjs` credential helper, `check:*` scripts                                                                                                                                                                                   |
 | [CI Pipeline & Testing](CI-Pipeline-Testing)                                 | `npm run check` composition (typecheck + lint + test + six guard checks), Vitest/Playwright strategy                                                                                                                                                                      |
 | [Infrastructure & CI/CD](Infrastructure-CICD)                                | Vite build, Supabase backend, Vercel hosting, deployment surfaces                                                                                                                                                                                                       |

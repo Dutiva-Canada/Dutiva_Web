@@ -74,15 +74,23 @@ routes = [{ element: <Outlet />, errorElement: <RouteErrorPage />, children: rou
 
 [src/app/routes.tsx:133-142]()
 
-`routeTree()` returns these top-level branches:
+`routeTree()` returns these top-level branches (in source order):
 
 1. **`publicRoutes('en')`** — English marketing pages
 2. **`publicRoutes('fr')`** — French marketing pages with localized slugs
 3. **`/app/welcome`**, **`/app/auth/confirm`** — Auth entry points (outside the gated shell)
 4. **`/sign/:token`**, **`/fr/sign/:token`** — External signing (no login)
 5. **`/demo`**, **`/fr/demo`** — Public read-only demo workspace
-6. **`/app`** — Authenticated workspace shell with nested view routes
-7. **`*`** — Catch-all 404
+6. **`/app`** — Authenticated workspace shell with nested view routes (`appViewRoutes`)
+7. **`/careers`** (EN + `/fr/carrieres`) — `CareersSurface`: public job board with `jobs/:postingId` leaf
+8. **`/employer`** (EN + `/fr/employeur`) — `EmployerDoorPage`: employer door whose sign-in leads into `/app`
+9. **`/careers/portal`** — Candidate portal (own shell, profile/applications/AI-tools/jobs)
+10. **`/invest`** — Standalone invest portal (`invest_access` grant, own shell; public `legal/:slug` leaf)
+11. **`/health`** — Standalone wellness portal (`health_access` grant, own shell; public `legal/:slug` leaf)
+12. **`/pr`** — Standalone PR desk (`pr_access` grant, own shell; public `legal/:slug` leaf)
+13. **`*`** — Catch-all 404
+
+The three standalone portals (`/invest`, `/health`, `/pr`) each mount a lazily-composed surface (`InvestPortalSurface`, `HealthPortalSurface`, `PrPortalSurface`) that shares `AuthProvider`/`LangProvider`/`ToastsProvider` but renders its own portal layout — separate from both marketing chrome and the `/app` sidebar. See [Portal Assistants](Portal-Assistants).
 
 [src/app/routes.tsx:144-175]()
 
@@ -100,7 +108,7 @@ Each locale tree is wrapped in a `PublicShell` that provides `ForcedLangProvider
 
 [src/app/routes.tsx:50-63]()
 
-The 19 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `changelog`, `vsHrdownloads`, `vsSixfifty`, `jurisdictionTool`, `demoWorkspace`, `careers`.
+The 20 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `changelog`, `vsHrdownloads`, `vsSixfifty`, `jurisdictionTool`, `demoWorkspace`, `careers`, `investors`.
 
 [src/seo/routes.ts:29-43]()
 
@@ -385,7 +393,7 @@ The English locale uses unprefixed paths (`/about`), while French uses `/fr` wit
 
 [src/seo/routes.ts:376-382]()
 
-Beyond the 19 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
+Beyond the 20 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
 
 [src/seo/routes.ts:319-369]()
 

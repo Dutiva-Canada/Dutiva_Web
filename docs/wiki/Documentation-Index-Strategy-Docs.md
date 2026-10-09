@@ -187,7 +187,7 @@ Sources: [src/canonicalFacts.test.ts:1-107](), [scripts/check-canonical-facts.mj
 | Legal disclaimer     | Via shared `Disclaimer` component, never re-typed              |
 | Workspace mode       | Default demo; production via `useWorkspaceMode()`              |
 
-The `npm run check` command gate is the enforcement mechanism: `typecheck + lint + test + check:migrations + check:rls + check:facts + check:message-scopes` must pass before every commit.
+The `npm run check` command gate is the enforcement mechanism: `typecheck + lint + test + check:migrations + check:rls + check:facts + check:message-scopes + check:brand-assets + check:architecture + check:workspace-links + check:advisor-golden + check:db-types + check:edge-types` must pass before every commit. `check:statute-drift` stays outside the gate — it is network-bound against live government sources and runs on the `.woodpecker/statute-drift.yml` cron/manual pipeline.
 
 A key operational warning at [AGENTS.md:103-115](): _"A migration merged is not a migration applied."_ Several features shipped inert because SQL sat in `supabase/migrations/` without being applied to the live project. The same applies to edge functions.
 
@@ -325,7 +325,7 @@ Sources: [docs/AUTH_EMAIL_TEMPLATES.md:1-117]()
 
 Sources: [docs/SEO_GEO_IMPLEMENTATION.md:1-90]()
 
-**`SEO_ROUTE_MATRIX.md`** classifies every route. 126 public URLs (63 pages × 2 locales) are `PUBLIC_INDEXABLE`. The matrix is enforced by `scripts/validate-seo.mjs` at build time — the count cannot drift.
+**`SEO_ROUTE_MATRIX.md`** classifies every route. 142 public URLs (71 pages × 2 locales) are `PUBLIC_INDEXABLE`. The matrix is enforced by `scripts/validate-seo.mjs` at build time — the count cannot drift.
 
 Sources: [docs/SEO_ROUTE_MATRIX.md:1-50]()
 

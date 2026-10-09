@@ -36,7 +36,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-This page documents the 13 scripts under `scripts/`, the shared `lib/secrets.mjs` credential helper, and how they integrate into the CI pipeline and `npm run build` chain. Every script is dependency-free (Node global `fetch` and `fs` only) to avoid rotting behind package upgrades.
+This page documents the scripts under `scripts/` (31 `.mjs` utilities plus `lib/`), the shared `lib/secrets.mjs` credential helper, and how they integrate into the CI pipeline and `npm run build` chain. Every script is dependency-free (Node global `fetch` and `fs` only) to avoid rotting behind package upgrades.
 
 ## Script Inventory & Execution Context
 
@@ -48,7 +48,11 @@ This page documents the 13 scripts under `scripts/`, the shared `lib/secrets.mjs
 | `check-message-scopes.mjs`       | `npm run check:message-scopes`, CI `check` | None                                                         | `t('key')` literal crossing surface boundary          |
 | `check-brand-assets.mjs`         | `npm run check`, CI `check`                | None                                                         | Required `public/brand/` asset missing                |
 | `check-architecture.mjs`         | `npm run check`, CI `check`                | None                                                         | Marketing importing `@/data` fixtures, >800-line source, inline `*DemoView` in a `*View.tsx` shell, oversized dispatch shell |
-| `check-workspace-links.mjs`      | `npm run check`, CI `check`                | None                                                         | Literal `/app/…` navigation in components that can render under `/demo`/`/fr/demo` |
+| `check-workspace-links.mjs`      | `npm run check`                            | None                                                         | Literal `/app/…` navigation in components that can render under `/demo`/`/fr/demo` |
+| `check-advisor-golden.mjs`       | `npm run check`                            | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` (`--export-corpus` only) | Advisor golden-eval regression; `--export-corpus` refreshes the corpus snapshot |
+| `check-statute-drift.mjs`        | `npm run check:statute-drift`, Woodpecker `statute-drift` cron | Network (e-Laws, LégisQuébec, laws-lois)     | Cited statute section or figure marker absent from the live consolidated text |
+| `check-db-types.mjs`             | `npm run check`                            | None                                                         | `src/lib/supabase/database.types.ts` and `supabase/functions/_shared/database.types.ts` out of sync |
+| `check-edge-types.mjs`           | `npm run check`                            | Deno on PATH (skips loudly when absent)                      | Type errors in edge-function `index.ts` files — Deno-only code `tsc` can't see |
 | `check-entry-graph.mjs`          | `npm run build` (post-build)               | None                                                         | Budget exceeded, barred package/source in eager graph |
 | `prerender.mjs`                  | `npm run build` (post-SSR)                 | None                                                         | Missing `<Seo>`, undersized body                      |
 | `validate-seo.mjs`               | `npm run build` (post-prerender)           | None                                                         | Any SEO invariant violation                           |
@@ -57,7 +61,7 @@ This page documents the 13 scripts under `scripts/`, the shared `lib/secrets.mjs
 | `apply-auth-email-templates.mjs` | Manual `npm run auth:email-templates`      | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`              | Template not applied                                  |
 | `generate-doclib.mjs`            | One-shot (historical, not runnable)        | None                                                         | N/A                                                   |
 
-Sources: [package.json:6-26](), [.github/workflows/ci.yml:1-130]()
+Sources: [package.json:6-26](), [.woodpecker/check.yml]()
 
 ## Build Pipeline Ordering
 
@@ -103,7 +107,7 @@ Sources: [package.json:8-9]()
 
 ## CI Job ↔ Script Mapping
 
-The CI workflow (`.github/workflows/ci.yml`) runs three isolated jobs. Each script runs in exactly one job:
+The Woodpecker pipelines (`.woodpecker/*.yml`) isolate each failure class. Each script runs in exactly one pipeline:
 
 ```mermaid
 flowchart LR
@@ -129,9 +133,9 @@ flowchart LR
     end
 ```
 
-The `check` job is the required status check for merge. The `live-checks` job is isolated so a credential failure cannot block the gate — the pattern motivated by the incident where a bad `SUPABASE_ACCESS_TOKEN` reddened a required check for two days.
+`check.yml` is the merge gate. `live-checks.yml` is isolated so a credential failure cannot block the gate — the pattern motivated by the incident where a bad `SUPABASE_ACCESS_TOKEN` reddened a required check for two days. `statute-drift.yml` (cron/manual) and `e2e-auth.yml` run as separate pipelines not shown here.
 
-Sources: [.github/workflows/ci.yml:22-98]()
+Sources: [.woodpecker/check.yml](), [.woodpecker/live-checks.yml]()
 
 ## `lib/secrets.mjs` — Credential Handling
 
@@ -169,7 +173,7 @@ When `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` are present, the script 
 
 ### Loud Skipping
 
-When credentials are absent, `announceSkippedDriftCheck()` emits a GitHub Actions `::warning` annotation and writes to `GITHUB_STEP_SUMMARY` so a green check is never mistaken for a verified one. [scripts/check-migrations.mjs:156-176]()
+When credentials are absent, `announceSkippedDriftCheck()` emits a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and writes to `GITHUB_STEP_SUMMARY` when set, so a green check is never mistaken for a verified one. [scripts/check-migrations.mjs:156-176]()
 
 ```mermaid
 flowchart TD
@@ -468,7 +472,7 @@ Sources: [scripts/generate-doclib.mjs:1-13]()
 
 ### Loud Skipping
 
-All credentialed scripts follow the same pattern: when credentials are absent, they exit 0 (so forks and unconfigured checkouts pass) but emit a GitHub Actions `::warning` annotation and a `GITHUB_STEP_SUMMARY` entry. This prevents a green check from being mistaken for a verified one.
+All credentialed scripts follow the same pattern: when credentials are absent, they exit 0 (so forks and unconfigured checkouts pass) but emit a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and a `GITHUB_STEP_SUMMARY` entry when that env var is set. This prevents a green check from being mistaken for a verified one.
 
 ```mermaid
 flowchart TD

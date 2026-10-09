@@ -70,7 +70,7 @@ The `SEO_ROUTES` array is the **single source of truth** for every public URL. T
 
 ### Static Routes (14)
 
-The `SeoRouteId` union type defines 19 static route identifiers:
+The `SeoRouteId` union type defines 20 static route identifiers:
 
 | Route ID           | EN Path                     | FR Path                               |
 | ------------------ | --------------------------- | ------------------------------------- |
@@ -92,6 +92,7 @@ The `SeoRouteId` union type defines 19 static route identifiers:
 | `vsSixfifty`       | `/vs/sixfifty`              | `/fr/vs/sixfifty`                     |
 | `careers`          | `/careers`                  | `/fr/carrieres`                       |
 | `demoWorkspace`    | `/demo`                     | `/fr/demo`                            |
+| `investors`        | `/investors`                | `/fr/investisseurs`                   |
 | `jurisdictionTool` | `/tools/jurisdiction-check` | `/fr/outils/verification-juridiction` |
 
 Each `SeoRoute` carries bilingual `path`, `title`, `description`, and an `indexable` boolean.
@@ -100,7 +101,7 @@ Sources: [src/seo/routes.ts:29-227]()
 
 ### Dynamic Page Collections
 
-Beyond the 19 static routes, the registry dynamically incorporates three content collections into `allPublicPages()`:
+Beyond the 20 static routes, the registry dynamically incorporates three content collections into `allPublicPages()`:
 
 | Collection             | Count                  | Source data                               | Key prefix                           |
 | ---------------------- | ---------------------- | ----------------------------------------- | ------------------------------------ |
@@ -108,7 +109,7 @@ Beyond the 19 static routes, the registry dynamically incorporates three content
 | Help Centre articles   | 13                     | `HELP_ARTICLES` from `helpCenterData.ts`  | `helpDoc:<slug>`                     |
 | Editorial articles     | 12 (6 guides + 6 blog) | `ALL_ARTICLES` from `articles/index.ts`   | `guideDoc:<slug>` / `blogDoc:<slug>` |
 
-The `allPublicPages()` function merges all four sources into a single `PublicPage[]` array that drives prerendering and the sitemap. Total indexable page count: **63 pages × 2 locales = 126 URLs**.
+The `allPublicPages()` function merges all four sources into a single `PublicPage[]` array that drives prerendering and the sitemap. Total indexable page count: **71 pages × 2 locales = 142 URLs** (20 static + 26 policy documents + 13 help articles + 12 editorial articles).
 
 Sources: [src/seo/routes.ts:319-369](), [src/seo/seo.test.ts:29-35](), [docs/SEO_ROUTE_MATRIX.md:14-21]()
 
@@ -126,7 +127,7 @@ Sources: [src/seo/routes.ts:376-387](), [docs/SEO_GEO_IMPLEMENTATION.md:59-77]()
 
 ```mermaid
 flowchart TD
-    REG["SEO_ROUTES\n(19 static routes)"]
+    REG["SEO_ROUTES\n(20 static routes)"]
     LEGAL["LEGAL_HUB_GROUPS\n(26 policy docs)"]
     HELP["HELP_ARTICLES\n(13 help articles)"]
     ART["ALL_ARTICLES\n(12 editorial articles)"]

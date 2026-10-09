@@ -22,7 +22,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-This page covers the 35 Supabase Deno edge functions that comprise Dutiva's server-side logic, the 16 shared modules under `_shared/`, the `config.toml` JWT settings that control gateway authentication, and the Vault secrets management pattern.
+This page covers the 45 Supabase Deno edge functions that comprise Dutiva's server-side logic, the 22 shared modules under `_shared/`, the `config.toml` JWT settings that control gateway authentication, and the Vault secrets management pattern.
 
 ## Function Inventory by Authentication Mode
 
@@ -55,8 +55,14 @@ These functions handle their own authentication in-band (shared secrets, provide
 | `policy-review-scheduler`      | Cron: flag overdue policies + admin digest  | Shared secret / service key        |
 | `integration-webhook`          | Inbound webhook ingest (integrations phase 2) | Provider signature verification |
 | `inbound-email`                | Resend `email.received` inbound ingest      | Svix HMAC signature verification   |
+| `health-ai`                    | Mira — wellness-portal companion (chat, reactions, prompts) | Portal JWT validated in-band + `health_access` grant |
+| `pr-ai`                      | Paige — PR-desk assistant (chat + draft/tone/pitch kinds)   | Portal JWT validated in-band + `pr_access` grant     |
+| `health-habit-notify`        | Daily streak-at-risk nudge email (pg_cron 23:00 UTC) | pg_cron / service key                        |
+| `invest-market-sync`         | Refresh market snapshots + shared headlines from public feeds | `x-trigger-secret` / service key       |
+| `pr-mentions-feed`           | Poll saved RSS/Atom feeds into `pr_mentions`  | `x-trigger-secret` / service key / caller's portal JWT |
+| `pr-geo-check`               | Run tracked GEO prompts, record brand mentions | `x-trigger-secret` / service key / caller's portal JWT |
 
-Sources: [supabase/config.toml:25-72]()
+Sources: [supabase/config.toml:25-118]()
 
 ### `verify_jwt = true` — Authenticated User Functions
 
@@ -64,8 +70,8 @@ These functions rely on the Supabase gateway to enforce a valid JWT, then perfor
 
 | Function                    | Purpose                                    | Additional auth gate                  |
 | --------------------------- | ------------------------------------------ | ------------------------------------- |
-| `advisor-chat`              | Real AI Advisor replies                    | `current_user_is_workspace_member()`  |
-| `advisor-safety-event`      | Safety backstop telemetry                  | `current_user_is_workspace_member()`  |
+| `advisor-chat`              | Real AI Advisor replies                    | `current_user_is_workspace_member()` + `verifyOrgMembership` (`is_org_member`) when `organization_id` is supplied |
+| `advisor-safety-event`      | Safety backstop telemetry                  | `current_user_is_workspace_member()`; `organization_id` kept only when `is_org_member` verifies |
 | `support-firstline`         | AI first-line answer for support form      | Bearer JWT + `auth.getUser()`         |
 | `create-support-ticket`     | Authenticated ticket creation              | Bearer JWT + `auth.getUser()`         |
 | `support-agent-action`      | Admin ticket actions (reply, status, call) | `is_admin()`                          |
@@ -80,6 +86,10 @@ These functions rely on the Supabase gateway to enforce a valid JWT, then perfor
 | `send-org-invite`           | Emails `organization_invitations` rows      | Bearer JWT + org admin role           |
 | `workspace-integration`     | Connect/test/disconnect `workspace_integrations` | Bearer JWT + `is_org_admin()`    |
 | `candidate-ai`              | Candidate-portal AI (résumé, cover letter, match) | Bearer JWT + `auth.getUser()`   |
+| `candidate-job-agent`       | Job-board discovery agent (scan, submit drafts)   | Candidate JWT; `scan-all` uses service key / trigger secret |
+| `invest-ai`                 | Tally — invest-portal assistant (chat + draft-strategy) | Bearer JWT + `invest_access` grant (with role) |
+| `invest-bot`                | Deterministic strategy engine (run, test-scan, execute-order) | Bearer JWT + `invest_access`; `run-all` also accepts service key / trigger secret |
+| `pr-fetch-meta`             | Server-side URL metadata fetch for the coverage log | Bearer JWT + `pr_access` grant |
 
 Sources: [supabase/functions/advisor-chat/index.ts:236-266](), [supabase/functions/advisor-safety-event/index.ts:63-88](), [supabase/functions/support-agent-action/index.ts:60-64](), [supabase/functions/record-export/index.ts:63-85](), [supabase/functions/export-audit-trail/index.ts:62-78](), [supabase/functions/set-service-status/index.ts:38-49](), [supabase/functions/create-checkout-session/index.ts:99-114](), [supabase/functions/support-confirm-call/index.ts:56-63]()
 
@@ -244,18 +254,24 @@ Cron-triggered functions use `verify_jwt = false` and authenticate the caller th
 
 ## Shared Server Modules (`_shared/`)
 
-The `supabase/functions/_shared/` directory contains 16 modules reused across multiple edge functions. They are deliberately free of `npm:@supabase/supabase-js` imports so they can be unit-tested under Vitest (which cannot resolve `npm:`/`jsr:` specifiers).
+The `supabase/functions/_shared/` directory contains 22 modules reused across multiple edge functions. They are deliberately free of `npm:@supabase/supabase-js` imports so they can be unit-tested under Vitest (which cannot resolve `npm:`/`jsr:` specifiers).
 
-The ten documented below (`aiUsage`, `exportGuard`, `lawUpdateRelevance`, `lawUpdateDigest`, `resendSend`, `caslConsent`, `scheduledCalls`, `supportAnalytics`, `googleCalendar`, `adminAccess`) carry the oldest logic. Six more modules arrived with later features:
+The ten documented below (`aiUsage`, `exportGuard`, `lawUpdateRelevance`, `lawUpdateDigest`, `resendSend`, `caslConsent`, `scheduledCalls`, `supportAnalytics`, `googleCalendar`, `adminAccess`) carry the oldest logic. The rest arrived with later features:
 
 | Module                  | Purpose                                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | `modelUpstream.ts`      | Shared dispatch to OpenAI-compatible providers (`ai_model_routes`), incl. local/LAN upstreams |
-| `advisorOverageMeter.ts`| Best-effort Stripe Billing meter event for overage Advisor replies                            |
+| `advisorOverageMeter.ts`| Best-effort Stripe Billing meter event for overage Advisor replies (org path meters `organizations.stripe_customer_id`; legacy path meters `profiles`) |
 | `stripeSecret.ts`       | Sanitizes Stripe secret keys pasted into dashboards (ByteString-safe; accepts `rk_` keys)     |
 | `signingInvite.ts`      | Dutiva Signature invite send helpers shared by `send-signing-invite` and the reminder cron    |
 | `signingStatusEmail.ts` | EN/FR signing-status email renderer (mirror of the client-side copy)                          |
-| `database.types.ts`     | Generated Supabase types copy for edge functions — regenerated by `npm run db:types`          |
+| `database.types.ts`     | Generated Supabase types copy for edge functions — regenerated by `npm run db:types`; drift-guarded by `check:db-types` |
+| `aiRoute.ts`            | Shared model-route lookup for portal AI calls (`pr_ai` → `advisor_chat` fallback)            |
+| `agentQueue.ts`         | Shared write path for `agent_suggestions` — proposed → reviewed → resolved; `fileSuggestion` + `textDedupeKey` |
+| `portalNotify.ts`       | Shared portal notification emails (coverage digests, streak nudges) with honesty rules        |
+| `replyDelta.ts`         | SSE reply-delta extractor — emits reply text without action JSON scaffolding while streaming  |
+| `secretEqual.ts`        | Constant-time comparison for shared-secret checks (`x-trigger-secret`, service-role bearer)   |
+| `cors.ts`               | `withCors` / `makeCorsHeaders` — per-function CORS boundaries                                  |
 
 Sources: [supabase/functions/_shared/modelUpstream.ts](), [supabase/functions/_shared/advisorOverageMeter.ts](), [supabase/functions/_shared/stripeSecret.ts](), [supabase/functions/_shared/signingInvite.ts](), [supabase/functions/_shared/signingStatusEmail.ts]()
 

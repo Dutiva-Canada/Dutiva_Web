@@ -47,7 +47,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 170 numbered migration files under `supabase/migrations/` (sequence through `0170`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
+The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 209 numbered migration files under `supabase/migrations/` (sequence through `0208`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
 
@@ -193,7 +193,7 @@ The tables are organized into nine domains:
 | `hiring_evaluations`  | 0118      | Structured candidate evaluations            |
 | `hiring_activity_log` | 0118      | Audit trail for hiring actions              |
 
-**Finance** (migration 0119 — committed but not yet applied to the Supabase project)
+**Finance** (migration 0119, applied — plus finance depth migrations 0171–0178)
 
 | Table                         | Migration | Purpose                                                     |
 | ----------------------------- | --------- | ----------------------------------------------------------- |
@@ -540,7 +540,7 @@ Sources: [scripts/check-migrations.mjs:47]()
 
 ### Migration Timeline
 
-The 74 migrations span from the initial doclib schema (0001) through security hardening (0074):
+The migrations span from the initial doclib schema (0001) through the portal-assistant persistence layer (0204–0208). Selected milestones:
 
 ```mermaid
 timeline
@@ -574,6 +574,24 @@ timeline
         0069 : "score_formula_v3_obligations"
         0071 : "corpus_source_change_flags"
         0073 : "close_anon_rls_holes"
+    section "Advisor Memory & Workspace (0155–0170)"
+        0155 : "hr_advisor_memory_governance"
+        0169 : "workspace_onboarding_prefs"
+        0170 : "workspace_prefs_members"
+    section "Finance Depth (0171–0178)"
+        0171 : "finance_deals"
+        0173 : "finance_capital_calls"
+        0178 : "finance_call_comms_log"
+    section "Portals & Chat (0179–0208)"
+        0179 : "candidate_job_agent"
+        0180 : "invest_platform"
+        0191 : "health_portal"
+        0192 : "dutiva_pr"
+        0198 : "agent_suggestions"
+        0202 : "health_chat"
+        0203 : "pr_chat"
+        0204 : "invest_chat"
+        0208 : "advisor_turn_feedback"
 ```
 
 Sources: [supabase/migrations/0001_doclib_schema.sql](), [supabase/migrations/0074_revoke_flag_guidance_public_execute.sql]()
@@ -615,7 +633,7 @@ Sources: [supabase/migrations/0093_all_plan_signup_notifications.sql:1-61]()
 
 ## Drift Detection & CI Guards
 
-Two scripts enforce schema integrity in CI, running as the `live-checks` job in `.github/workflows/ci.yml`.
+Two scripts enforce schema integrity in CI, running as the `live-checks` pipeline in `.woodpecker/live-checks.yml` (and in the local `npm run check` chain).
 
 ### Migration Drift: `check-migrations.mjs`
 
@@ -625,7 +643,7 @@ This script has two halves:
 
 **DRIFT (credential-gated)** — queries `supabase_migrations.schema_migrations` on the live project via the Supabase Management API. Performs both forward drift (repo file not applied) and reverse drift (applied migration with no repo file). Accepted gaps are tracked in `ACCEPTED_UNAPPLIED` and `ACCEPTED_UNTRACKED` maps.
 
-When credentials are absent, the script exits 0 but emits a GitHub Actions warning annotation and job-summary entry so the skip is never mistaken for a pass.
+When credentials are absent, the script exits 0 but emits a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and a `GITHUB_STEP_SUMMARY` entry when set, so the skip is never mistaken for a pass.
 
 Sources: [scripts/check-migrations.mjs:1-95](), [scripts/check-migrations.mjs:156-176]()
 

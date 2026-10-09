@@ -30,7 +30,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva i18n message catalogue is split across **62 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (45 modules), **marketing** (13 modules), and **shared** (4 dual-surface modules). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
+The Dutiva i18n message catalogue is split across **68 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (48 modules), **marketing** (14 modules), and **shared** (4 dual-surface modules) — plus `crm.ts` and `pr.ts`, which their feature trees import directly rather than through an aggregate (the portal modules `health.ts`, `invest.ts`, `pr.ts` are also imported directly by their portal trees). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
 
 ## The `defineMessages` Pattern
 
@@ -72,7 +72,7 @@ graph TD
         helpCenter["helpCenter.ts"]
     end
 
-    subgraph "workspace.ts (29 modules)"
+    subgraph "workspace.ts (48 modules)"
         shell["shell.ts"]
         advisorCore["advisorCore.ts"]
         advisorView["advisorView.ts"]
@@ -83,16 +83,16 @@ graph TD
         doclib["doclib.ts"]
         docstudio["docstudio.ts"]
         templates["templates.ts"]
-        otherWS["... 19 more"]
+        otherWS["... 38 more"]
     end
 
-    subgraph "marketing.ts (10 modules)"
+    subgraph "marketing.ts (14 modules)"
         pricing["pricing.ts"]
         about["about.ts"]
         faq["faq.ts"]
         legalHub["legalHub.ts"]
         blog["blog.ts"]
-        otherMK["... 5 more"]
+        otherMK["... 8 more"]
     end
 
     WA["workspaceMessages"] --> shell
@@ -125,9 +125,9 @@ graph TD
 
 Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.ts:1-36](), [src/i18n/messages/shared.ts:1-32](), [src/i18n/messages/index.ts:18-43]()
 
-### Workspace Group (29 modules)
+### Workspace Group (48 modules)
 
-`workspace.ts` imports and re-exports 45 workspace-only modules plus the shared set. These modules are read exclusively from `src/features/app/**` (plus `src/components/advisor/` and `src/lib/exportProtection/`).
+`workspace.ts` imports and re-exports 48 workspace-only modules plus the shared set. These modules are read exclusively from `src/features/app/**` (plus `src/components/advisor/` and `src/lib/exportProtection/`).
 
 [src/i18n/messages/workspace.ts:1-30]()
 
@@ -165,9 +165,9 @@ Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.t
 
 Sources: [src/i18n/messages/workspace.ts:39-70]()
 
-### Marketing Group (10 modules)
+### Marketing Group (14 modules)
 
-`marketing.ts` imports 13 marketing-only modules plus the shared set. These are read exclusively from `src/features/marketing/**` and `src/seo/routes.ts`.
+`marketing.ts` imports 14 marketing-only modules plus the shared set. These are read exclusively from `src/features/marketing/**` and `src/seo/routes.ts`.
 
 [src/i18n/messages/marketing.ts:1-36]()
 
@@ -396,9 +396,11 @@ Sources: [vite.config.ts:170-253](), [src/i18n/messages/index.ts:46-60]()
 
 ## Complete Message Module Inventory
 
-The `src/i18n/messages/` directory contains 62 feature modules (45 workspace + 13 marketing + 4 shared), 3 surface aggregation files, a merged index, and a scope test — plus the `landing/` and `finance/` subdirectories that each merge section-level message files into one exported object.
+The `src/i18n/messages/` directory contains 68 feature modules (48 workspace + 14 marketing + 4 shared + 2 direct-imported: crm.ts, pr.ts), 3 surface aggregation files, a merged index, and a scope test — plus the `landing/` and `finance/` subdirectories that each merge section-level message files into one exported object.
 
-### Feature Modules (62)
+### Feature Modules (70 files; 68 aggregated)
+
+`investStrategyBuilder.ts` merges into `invest.ts` and `memoryWorkspace.ts` merges into `memory.ts`, so the table lists 70 files producing 68 aggregated modules.
 
 | #   | File                  | Surface    | Key prefix                                    | Exported constant          |
 | --- | --------------------- | ---------- | --------------------------------------------- | -------------------------- |
@@ -464,13 +466,21 @@ The `src/i18n/messages/` directory contains 62 feature modules (45 workspace + 1
 | 60  | `security.ts`         | workspace  | `sec_*`                                       | `securityMessages`         |
 | 61  | `seoMeta.ts`          | marketing  | per-route meta keys (`*_meta_description`, `*_intro`) | `seoMetaMessages`  |
 | 62  | `specialists.ts`      | workspace  | `spec_*`                                      | `specialistsMessages`      |
+| 63  | `chatWidgets.ts`      | workspace  | `chatw_*`                                     | `chatWidgetMessages`       |
+| 64  | `health.ts`           | workspace + health portal | `health_*`                          | `healthMessages`           |
+| 65  | `invest.ts`           | workspace + invest portal | `invest_*`                          | `investMessages` (merges `investStrategyBuilder.ts`) |
+| 66  | `investors.ts`        | marketing  | `investors_*`                                 | `investorsMessages`        |
+| 67  | `memoryWorkspace.ts`  | workspace (merged into `memory.ts`) | `memory_ws_*`                  | `memoryWorkspaceMessages`  |
+| 68  | `pr.ts`               | pr portal  | `pr_*`                                        | `prMessages`               |
+| 69  | `crm.ts`              | workspace (direct import) | `crm_*`                           | `crmMessages`              |
+| 70  | `investStrategyBuilder.ts` | invest portal (merged into `invest.ts`) | `invest_sb_*`       | `investStrategyBuilderMessages` |
 
 ### Infrastructure Files (5 files)
 
 | File             | Role                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------ |
-| `workspace.ts`   | Aggregates 45 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
-| `marketing.ts`   | Aggregates 13 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
+| `workspace.ts`   | Aggregates 48 workspace modules + shared into `workspaceMessages`; exports `WorkspaceMessageKey` |
+| `marketing.ts`   | Aggregates 14 marketing modules + shared into `marketingMessages`; exports `MarketingMessageKey` |
 | `shared.ts`      | Aggregates 4 dual-surface modules into `sharedMessages`; exports `SharedMessageKey`              |
 | `index.ts`       | Merges `workspaceMessages` + `marketingMessages` into `messages`; exports `MessageKey` union     |
 | `scopes.test.ts` | Compile-time disjointness assertions for the three scoped key types                              |

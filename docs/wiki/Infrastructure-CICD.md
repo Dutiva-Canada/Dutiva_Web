@@ -5,7 +5,11 @@
 
 The following files were used as context for generating this wiki page:
 
-- [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- [.woodpecker/check.yml](.woodpecker/check.yml)
+- [.woodpecker/live-checks.yml](.woodpecker/live-checks.yml)
+- [.woodpecker/e2e.yml](.woodpecker/e2e.yml)
+- [.woodpecker/e2e-auth.yml](.woodpecker/e2e-auth.yml)
+- [.woodpecker/statute-drift.yml](.woodpecker/statute-drift.yml)
 - [docs/AUTH_EMAIL_TEMPLATES.md](docs/AUTH_EMAIL_TEMPLATES.md)
 - [docs/SUPPORT_ANALYTICS.md](docs/SUPPORT_ANALYTICS.md)
 - [package.json](package.json)
@@ -22,7 +26,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-Dutiva's infrastructure spans a **Vite + React 19** client build, a **Supabase** backend (edge functions, Postgres, auth), **Vercel** static/SPA hosting, and a suite of custom build scripts that enforce correctness invariants at every stage. The CI pipeline runs on **GitHub Actions** with three isolated jobs that separate deterministic checks from credentialed live-project probes and browser-driven e2e tests.
+Dutiva's infrastructure spans a **Vite + React 19** client build, a **Supabase** backend (edge functions, Postgres, auth), **Vercel** static/SPA hosting, and a suite of custom build scripts that enforce correctness invariants at every stage. CI runs on **Woodpecker** (`.woodpecker/*.yml`) with isolated pipelines that separate deterministic checks from credentialed live-project probes and browser-driven e2e tests.
 
 This page provides a high-level map of how code moves from source to production and how operational integrity is maintained. Each subsystem is covered in depth by a child page linked below.
 
@@ -32,11 +36,12 @@ This page provides a high-level map of how code moves from source to production 
 
 ```mermaid
 flowchart LR
-    subgraph CI["GitHub Actions CI (ci.yml)"]
+    subgraph CI["Woodpecker CI (.woodpecker/)"]
         direction TB
-        Check["check job\n(typecheck, lint, test:coverage,\nbuild + SEO validation)"]
-        Live["live-checks job\n(check-migrations.mjs,\ncheck-rls.mjs)"]
-        E2E["e2e job\n(Playwright + serve-dist.mjs)"]
+        Check["check.yml\n(typecheck, lint, test:coverage,\nbuild + SEO validation)"]
+        Live["live-checks.yml\n(check-migrations.mjs,\ncheck-rls.mjs)"]
+        E2E["e2e.yml + e2e-auth.yml\n(Playwright + serve-dist.mjs)"]
+        SD["statute-drift.yml\n(cron/manual only)"]
     end
 
     subgraph Build["npm run build pipeline"]
@@ -64,25 +69,27 @@ flowchart LR
     Supabase -->|"ClamAV scan"| Scanner
 ```
 
-Sources: [.github/workflows/ci.yml:1-130](), [package.json:8-9](), [vercel.json:1-62]()
+Sources: [.woodpecker/check.yml:1-78](), [.woodpecker/live-checks.yml:1-64](), [package.json:8-9](), [vercel.json:1-62]()
 
 ## CI Pipeline & Testing
 
-The CI workflow in `.github/workflows/ci.yml` triggers on pull requests, pushes to `main`, and manual `workflow_dispatch` events. It defines three independent jobs:
+The Woodpecker pipelines trigger on pushes to `main`, pull requests, and manual runs — except `statute-drift.yml`, which is cron/manual-only (live government sources rate-limit, so it would flake as a gate). Each pipeline is an isolated failure domain:
 
-| Job           | Purpose                                                                                                                                                    | Credentials needed                              | Failure impact                                   |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
-| `check`       | Merge gate: typecheck, lint, `test:coverage`, message scopes, canonical facts, full `build` (includes SEO validation + entry-graph budget + SW generation) | None                                            | Blocks merge                                     |
-| `live-checks` | Migration drift (`check-migrations.mjs`) and RLS regression (`check-rls.mjs`) against the live Supabase project                                            | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Reports independently; never blocks `check`      |
-| `e2e`         | Playwright browser smoke tests against the built `dist/` served by `serve-dist.mjs`                                                                        | None                                            | Independent; browser flakes never block the gate |
+| Pipeline           | Purpose                                                                                                                                                    | Credentials needed                              | Failure impact                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------ |
+| `check.yml`        | Merge gate: typecheck, lint, `test:coverage`, message scopes, canonical facts, architecture, brand assets, full `build` (includes SEO validation + entry-graph budget + SW generation) | None                           | Blocks merge                                     |
+| `live-checks.yml`  | Migration drift (`check-migrations.mjs`) and RLS regression (`check-rls.mjs`) against the live Supabase project                                            | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` | Reports independently; never blocks `check`      |
+| `e2e.yml`          | Hermetic Playwright browser smoke tests against the built `dist/` served by `serve-dist.mjs`                                                               | None                                            | Independent; browser flakes never block the gate |
+| `e2e-auth.yml`     | Authenticated Playwright CRUD matrix (signed-in admin → Production mode)                                                                                   | `SUPABASE_SERVICE_ROLE_KEY`                     | Independent; auth secrets never block the gate   |
+| `statute-drift.yml`| Re-verifies every statute citation in the Advisor registry/corpus against live official sources (e-Laws, LégisQuébec, laws-lois)                           | None                                            | Cron/manual early-warning, never a merge gate    |
 
-The `check` job was deliberately isolated as the required status check after an incident (documented in `docs/TODO.md` OA19) where a broken `SUPABASE_ACCESS_TOKEN` caused two days of unverified builds to merge green. The `live-checks` job uses a "loud skipping" pattern — when credentials are absent, it exits 0 but writes a `::warning` annotation and a `GITHUB_STEP_SUMMARY` entry so a green result is never mistaken for a verified one.
+The `check` pipeline was deliberately isolated as the required status after an incident (documented in `docs/TODO.md` OA19) where a broken `SUPABASE_ACCESS_TOKEN` caused two days of unverified builds to merge green. The live checks use a "loud skipping" pattern — when credentials are absent, they exit 0 but write a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and a `GITHUB_STEP_SUMMARY` entry when set, so a green result is never mistaken for a verified one.
 
 Tests use **Vitest** (jsdom environment, V8 coverage with 80/65/75/80 thresholds) for unit/integration tests and **Playwright** (Chromium-only) for e2e. The e2e suite uses a custom `serve-dist.mjs` static server that mirrors the Vercel routing contract (`/app/*` → `app.html`, clean URLs, `404.html`).
 
-For details, see [CI Pipeline & Testing](#11.1).
+For details, see [CI Pipeline & Testing](#11.1) and [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift).
 
-Sources: [.github/workflows/ci.yml:21-130](), [vite.config.ts:255-283](), [playwright.config.ts:1-45](), [e2e/serve-dist.mjs:1-99]()
+Sources: [.woodpecker/check.yml:1-78](), [.woodpecker/live-checks.yml:1-64](), [.woodpecker/e2e.yml:1-43](), [.woodpecker/e2e-auth.yml:1-44](), [.woodpecker/statute-drift.yml:1-30](), [vite.config.ts:255-283](), [playwright.config.ts:1-45](), [e2e/serve-dist.mjs:1-99]()
 
 ## Build Pipeline
 
@@ -214,7 +221,7 @@ Sources: [src/data/data.test.ts:1-60](), [src/data/types.ts](), [src/data/index.
 
 All analytics (both GA4 and the first-party Supabase support analytics sink) are gated behind explicit visitor consent via `hasAnalyticsConsent()`, honoring Quebec Law 25 § 8.1 off-by-default requirements.
 
-Sources: [.github/workflows/ci.yml:16-19](), [vercel.json:20-21](), [src/features/marketing/analytics/ga4.ts:22-55](), [services/attachment-scanner/do-app.yaml](), [vite.config.ts:141-154]()
+Sources: [.woodpecker/check.yml:6-9](), [vercel.json:20-21](), [src/features/marketing/analytics/ga4.ts:22-55](), [services/attachment-scanner/do-app.yaml](), [vite.config.ts:141-154]()
 
 ## Configured-or-Inert Pattern
 
