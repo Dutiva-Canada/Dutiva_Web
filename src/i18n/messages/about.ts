@@ -36,7 +36,7 @@ export const aboutMessages = defineMessages({
   }, // [FR self-authored]
   about_why_p4: {
     en: 'Dutiva is compliance-led software for the people side of a business — HR compliance and documentation at the core — not a payroll provider, and not a replacement for human judgment. It names the applicable statutes, not just the province; it is bilingual; and it is meant to help employers know when professional or legal advice may be appropriate.',
-    fr: 'Dutiva est un logiciel axé sur la conformité pour le volet humain d’une entreprise — la conformité et la documentation RH au cœur — et non un fournisseur de paie, ni un substitut au jugement humain. Il nomme les lois applicables, pas seulement la province; il est bilingue; et il vise à aider les employeurs à reconnaître le moment où un avis professionnel ou juridique peut s’imposer.',
+    fr: 'Dutiva est un logiciel axé sur la conformité pour le volet humain d’une entreprise — la conformité et la documentation RH au cœur — et non un fournisseur de paie, ni un substitut au jugement humain. Il nomme les lois applicables, pas seulement la province ; il est bilingue ; et il vise à aider les employeurs à reconnaître le moment où un avis professionnel ou juridique peut s’imposer.',
   }, // [FR self-authored]
   about_founder_alt: {
     en: 'Martin Constantineau, Founder and CEO of Dutiva',

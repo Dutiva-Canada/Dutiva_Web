@@ -28,7 +28,7 @@ export const roeFilingChecklistFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Has earnings been interrupted so an ROE is required?',
-        'Les gains ont-ils été interrompus de façon à exiger un REE?',
+        'Les gains ont-ils été interrompus de façon à exiger un REE ?',
       ),
       body: bi(
         'An ROE is a federal Employment Insurance Act obligation for every employer when there is an interruption of earnings. Provincial employment standards do not replace it.',

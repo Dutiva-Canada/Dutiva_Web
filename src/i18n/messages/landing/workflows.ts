@@ -11,7 +11,7 @@ export const landingWorkflows = defineMessages({
   },
   landing_wf_sub: {
     en: 'Start a workflow and Advisor guides you through each step — the conversation, the documents, the risk flags — through to done.',
-    fr: "Démarrez un processus et le Conseiller vous guide à chaque étape — la conversation, les documents, les signaux de risque — jusqu'à la fin.",
+    fr: "Démarrez un processus et le Conseiller vous guide à chaque étape — la conversation, les documents, les signaux de risque — jusqu’à la fin.",
   },
   landing_wf1_label: {
     en: 'Hiring',
@@ -23,7 +23,7 @@ export const landingWorkflows = defineMessages({
   },
   landing_wf2_label: {
     en: 'Termination',
-    fr: "Cessation d'emploi",
+    fr: "Cessation d’emploi",
   },
   landing_wf2_sub: {
     en: 'Notice → final pay',
@@ -35,7 +35,7 @@ export const landingWorkflows = defineMessages({
   },
   landing_wf3_sub: {
     en: 'Duty to accommodate',
-    fr: "Obligation d'adaptation",
+    fr: "Obligation d’adaptation",
   },
   landing_wf4_label: {
     en: 'Performance',
@@ -79,14 +79,14 @@ export const landingWorkflows = defineMessages({
   },
   landing_wf_ex_name: {
     en: 'Termination',
-    fr: "Cessation d'emploi",
+    fr: "Cessation d’emploi",
   },
   landing_wf_ex_risk: {
     en: 'High risk',
     fr: 'Risque élevé',
   },
   landing_wf_ex_meta: {
-    en: "Ontario · Full-time · 7+ years' service",
+    en: "Ontario · Full-time · 7+ years’ service",
     fr: 'Ontario · Temps plein · 7 ans et plus de service',
   },
   landing_wf_ex_step: {

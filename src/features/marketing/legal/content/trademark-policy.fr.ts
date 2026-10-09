@@ -5,7 +5,7 @@ export default {
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Cette politique définit les conditions d'utilisation des marques de commerce de Dutiva Canada Inc., y compris les logos, les noms commerciaux et les slogans. Elle vise à protéger l'intégrité de notre marque tout en permettant des références factuelles appropriées.",
+    "Cette politique définit les conditions d’utilisation des marques de commerce de Dutiva Canada Inc., y compris les logos, les noms commerciaux et les slogans. Elle vise à protéger l’intégrité de notre marque tout en permettant des références factuelles appropriées.",
   ],
   sections: [
     {
@@ -67,7 +67,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Interdiction d'altérer, modifier ou déformer les logos ou marques de Dutiva",
+          text: "Interdiction d’altérer, modifier ou déformer les logos ou marques de Dutiva",
         },
         {
           type: 'li',
@@ -88,11 +88,11 @@ export default {
       ],
     },
     {
-      title: "4. Questions et demandes d'autorisation",
+      title: "4. Questions et demandes d’autorisation",
       blocks: [
         {
           type: 'p',
-          text: "Pour toute question relative à cette politique ou pour demander une autorisation d'utilisation spécifique, veuillez contacter notre équipe juridique.",
+          text: "Pour toute question relative à cette politique ou pour demander une autorisation d’utilisation spécifique, veuillez contacter notre équipe juridique.",
         },
         {
           type: 'li',
@@ -100,11 +100,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Incluez la description détaillée de l'utilisation prévue",
+          text: "Incluez la description détaillée de l’utilisation prévue",
         },
         {
           type: 'li',
-          text: "Indiquez le contexte, la durée et le territoire de l'utilisation",
+          text: "Indiquez le contexte, la durée et le territoire de l’utilisation",
         },
         {
           type: 'li',

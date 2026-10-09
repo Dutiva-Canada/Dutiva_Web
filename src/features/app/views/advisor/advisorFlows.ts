@@ -96,7 +96,7 @@ export const flowJurisdictions: Record<FlowKeyOrFallback, Bi> = {
 /** Prototype `startFlow('fallback')` intro. [FR self-authored] */
 export const fallbackIntro: Bi = bi(
   'I want to make sure I point you in the right direction — could you tell me a bit more? For example:',
-  'Je veux m’assurer de bien vous orienter — pouvez-vous m’en dire un peu plus? Par exemple :',
+  'Je veux m’assurer de bien vous orienter — pouvez-vous m’en dire un peu plus ? Par exemple :',
 )
 
 export interface SuggestChipSpec {
@@ -206,7 +206,7 @@ export function freshQuickForm(): QuickFormState {
       },
       {
         key: 'union',
-        label: bi('Unionized role?', 'Poste syndiqué?'),
+        label: bi('Unionized role?', 'Poste syndiqué ?'),
         value: 'No',
         options: [bi('No', 'Non'), bi('Yes', 'Oui')],
       },
@@ -251,7 +251,7 @@ export interface MessageExtras {
  * All FR from frDict.
  */
 export const terminationAssessment = {
-  text: bi("Here's the assessment for this case.", 'Voici l’évaluation pour ce dossier.'),
+  text: bi("Here’s the assessment for this case.", 'Voici l’évaluation pour ce dossier.'),
   reasoning: [
     bi(
       'Jurisdiction detected: Ontario (provincially regulated) — ESA, 2000 is the statutory floor.',
@@ -262,8 +262,8 @@ export const terminationAssessment = {
       'Aucune clause de licenciement au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
     ),
     bi(
-      "ESA minimum: 8 weeks' termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
-      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
+      "ESA minimum: 8 weeks’ termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
+      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement ; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
     ),
     bi(
       'Common law estimate for an 8-year, mid-level role: roughly 9–12 months.',
@@ -280,7 +280,7 @@ export const terminationAssessment = {
       ),
       confidence: bi(
         'Moderate — assumes a standard mid-level role; confirm payroll size for severance eligibility.',
-        'Modérée — suppose un poste intermédiaire standard; confirmez la masse salariale pour l’admissibilité à l’indemnité.',
+        'Modérée — suppose un poste intermédiaire standard ; confirmez la masse salariale pour l’admissibilité à l’indemnité.',
       ),
       citations: [
         {
@@ -300,7 +300,7 @@ export const terminationAssessment = {
       ),
       body: bi(
         'Signed employment agreement version; the ESA severance payroll calculation; treatment of bonus, commission, and benefits over the notice period; accrued vacation balance.',
-        'Version signée du contrat d’emploi; calcul de la masse salariale pour l’indemnité LNE; traitement des primes, commissions et avantages pendant le préavis; solde de vacances accumulées.',
+        'Version signée du contrat d’emploi ; calcul de la masse salariale pour l’indemnité LNE ; traitement des primes, commissions et avantages pendant le préavis ; solde de vacances accumulées.',
       ),
     },
   ],
@@ -336,7 +336,7 @@ export const estimatorFollowup = {
 
 /** In-thread ack for free-form sends (prototype `sendComposer`). [FR self-authored] */
 export const genericAck: Bi = bi(
-  "Noted — I've added that to this case. I can generate a document, calculate an estimate, or loop in counsel whenever you're ready.",
+  "Noted — I’ve added that to this case. I can generate a document, calculate an estimate, or loop in counsel whenever you’re ready.",
   'Noté — je l’ai ajouté à ce dossier. Je peux générer un document, calculer une estimation ou impliquer un conseiller juridique dès que vous êtes prêt.',
 )
 

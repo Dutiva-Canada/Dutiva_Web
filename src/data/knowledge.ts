@@ -58,7 +58,7 @@ export const knowledgeItems: KnowledgeItem[] = [
     tag: bi('Accommodation · Canada', 'Accommodement · Canada'),
     summary: bi(
       'Accommodation generally focuses on functional limitations, accommodation needs, and workplace barriers rather than diagnosis; the medical information an employer may require depends on the circumstances and applicable human rights and employment law.',
-      'L’accommodement porte généralement sur les limitations fonctionnelles, les besoins d’accommodement et les obstacles en milieu de travail plutôt que sur le diagnostic; les renseignements médicaux qu’un employeur peut demander dépendent des circonstances et des règles applicables en Ontario, au Québec, dans les milieux sous réglementation fédérale ou ailleurs.',
+      'L’accommodement porte généralement sur les limitations fonctionnelles, les besoins d’accommodement et les obstacles en milieu de travail plutôt que sur le diagnostic ; les renseignements médicaux qu’un employeur peut demander dépendent des circonstances et des règles applicables en Ontario, au Québec, dans les milieux sous réglementation fédérale ou ailleurs.',
     ),
   },
   {

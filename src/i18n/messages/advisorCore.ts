@@ -112,7 +112,7 @@ export const advisorCore = defineMessages({
 
   /* Rail acknowledgement turn (prototype `sendRailMessage`). */
   advisor_rail_ack: {
-    en: "Noted — I've logged that against this context. For document generation or a full step-by-step, open this in Advisor Home.",
+    en: "Noted — I’ve logged that against this context. For document generation or a full step-by-step, open this in Advisor Home.",
     // [FR self-authored]
     fr: 'Noté — je l’ai consigné dans ce contexte. Pour générer des documents ou obtenir la démarche complète, ouvrez ceci dans l’accueil du Conseiller.',
   },

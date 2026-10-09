@@ -120,9 +120,9 @@ export const followupReplies: Record<string, FollowupReply> = {
     ),
     docs: ['T49'],
   },
-  "Add Quebec's statutory holiday calendar": {
+  "Add Quebec’s statutory holiday calendar": {
     label: bi(
-      "Add Quebec's statutory holiday calendar",
+      "Add Quebec’s statutory holiday calendar",
       'Ajouter le calendrier des jours fériés du Québec',
     ),
     text: bi(

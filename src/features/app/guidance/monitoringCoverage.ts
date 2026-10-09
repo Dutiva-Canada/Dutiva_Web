@@ -55,7 +55,7 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     status: 'active',
     detail: {
       en: 'Ontario statutes are now read from the e-Laws act-versions API, which publishes machine-readable, byte-stable JSON. The scheduled sweep on 2026-08-10 confirmed all three Ontario pages are fetched and baselined.',
-      fr: "Les lois ontariennes sont désormais lues à partir de l'API des versions de lois d'e-Laws, qui publie du JSON stable et lisible par machine. La vérification programmée du 2026-08-10 a confirmé que les trois pages ontariennes sont récupérées et référencées.",
+      fr: "Les lois ontariennes sont désormais lues à partir de l’API des versions de lois d’e-Laws, qui publie du JSON stable et lisible par machine. La vérification programmée du 2026-08-10 a confirmé que les trois pages ontariennes sont récupérées et référencées.",
     },
   },
   {
@@ -63,8 +63,8 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     label: { en: 'Quebec', fr: 'Québec' },
     status: 'active',
     detail: {
-      en: "Québec statutes are read per-Act from Données Québec's codified-legislation zip — the monitor opens each watched Act's own text inside the archive and compares its sections, so a dataset refresh that did not touch the Act files nothing. Verified on 2026-10-04 for the LNT and the Charter.",
-      fr: "Les lois québécoises sont lues par loi à partir du zip de législation codifiée de Données Québec — le surveillant ouvre le texte de chaque loi suivie dans l'archive et compare ses articles, de sorte qu'une republication qui ne touche pas la loi ne signale rien. Vérifié le 2026-10-04 pour la LNT et la Charte.",
+      en: "Québec statutes are read per-Act from Données Québec’s codified-legislation zip — the monitor opens each watched Act’s own text inside the archive and compares its sections, so a dataset refresh that did not touch the Act files nothing. Verified on 2026-10-04 for the LNT and the Charter.",
+      fr: "Les lois québécoises sont lues par loi à partir du zip de législation codifiée de Données Québec — le surveillant ouvre le texte de chaque loi suivie dans l’archive et compare ses articles, de sorte qu’une republication qui ne touche pas la loi ne signale rien. Vérifié le 2026-10-04 pour la LNT et la Charte.",
     },
   },
   {

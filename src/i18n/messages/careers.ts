@@ -24,7 +24,7 @@ export const careersMessages = defineMessages({
   },
   careers_board_empty_body: {
     en: 'New roles are posted regularly — create a free candidate profile and you can apply the moment one opens.',
-    fr: "De nouveaux postes sont publiés régulièrement — créez un profil candidat gratuit et vous pourrez postuler dès qu'un poste est publié.",
+    fr: "De nouveaux postes sont publiés régulièrement — créez un profil candidat gratuit et vous pourrez postuler dès qu’un poste est publié.",
   },
   careers_board_empty_cta: {
     en: 'Create a free profile',
@@ -40,7 +40,7 @@ export const careersMessages = defineMessages({
   },
   careers_board_no_results_body: {
     en: 'Try different keywords or check back soon — new roles are posted regularly.',
-    fr: "Essayez d'autres mots-clés ou revenez bientôt — de nouveaux postes sont publiés régulièrement.",
+    fr: "Essayez d’autres mots-clés ou revenez bientôt — de nouveaux postes sont publiés régulièrement.",
   },
   careers_board_apply: { en: 'Apply now', fr: 'Postuler maintenant' },
   careers_board_view_detail: { en: 'View details', fr: 'Voir les détails' },
@@ -58,11 +58,11 @@ export const careersMessages = defineMessages({
   },
   careers_board_how_lead: {
     en: 'Dutiva Careers is the public job board for employers hiring through Dutiva — candidates see the same active postings the hiring team publishes.',
-    fr: "Dutiva Carrières est le tableau public d'offres d'emploi des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l'équipe de recrutement.",
+    fr: "Dutiva Carrières est le tableau public d’offres d’emploi des employeurs qui recrutent via Dutiva — les candidats y voient les mêmes postes actifs que publie l’équipe de recrutement.",
   },
   careers_board_how_1: {
     en: 'Browse every open role from employers hiring through Dutiva — no account needed to look.',
-    fr: "Parcourez tous les postes ouverts d'employeurs qui recrutent via Dutiva — aucun compte requis.",
+    fr: "Parcourez tous les postes ouverts d’employeurs qui recrutent via Dutiva — aucun compte requis.",
   },
   careers_board_how_2: {
     en: 'Create a free candidate profile once; reuse it for every application.',
@@ -99,7 +99,7 @@ export const careersMessages = defineMessages({
   careers_board_workplace_hybrid: { en: 'Hybrid', fr: 'Hybride' },
   careers_board_workplace_onsite: { en: 'On-site', fr: 'Sur place' },
   careers_board_sort_label: { en: 'Sort by', fr: 'Trier par' },
-  careers_board_sort_newest: { en: 'Newest first', fr: "Plus récents d'abord" },
+  careers_board_sort_newest: { en: 'Newest first', fr: "Plus récents d’abord" },
   careers_board_sort_relevance: { en: 'Best match', fr: 'Pertinence' },
   careers_board_chip_remove: {
     en: 'Remove filter: {label}',
@@ -128,7 +128,7 @@ export const careersMessages = defineMessages({
   careers_detail_back: { en: 'All jobs', fr: 'Tous les emplois' },
   careers_detail_not_found: {
     en: 'This position is no longer available.',
-    fr: "Ce poste n'est plus disponible.",
+    fr: "Ce poste n’est plus disponible.",
   },
   careers_detail_not_found_body: {
     en: 'It may have been closed or filled. Browse other open roles.',
@@ -141,7 +141,7 @@ export const careersMessages = defineMessages({
   careers_detail_salary: { en: 'Salary', fr: 'Salaire' },
   careers_detail_department: { en: 'Department', fr: 'Département' },
   careers_detail_location: { en: 'Location', fr: 'Lieu' },
-  careers_detail_type: { en: 'Employment type', fr: "Type d'emploi" },
+  careers_detail_type: { en: 'Employment type', fr: "Type d’emploi" },
   careers_detail_description: { en: 'About the role', fr: 'À propos du poste' },
   careers_detail_apply_cta: { en: 'Apply to this role', fr: 'Postuler à ce poste' },
   careers_detail_sign_in_to_apply: {
@@ -178,12 +178,12 @@ export const careersMessages = defineMessages({
   careers_auth_verifying: { en: 'Verifying…', fr: 'Vérification…' },
   careers_auth_error_generic: {
     en: 'Something went wrong. Please try again.',
-    fr: "Une erreur s'est produite. Veuillez réessayer.",
+    fr: "Une erreur s’est produite. Veuillez réessayer.",
   },
   careers_auth_welcome: { en: 'Welcome back', fr: 'Bon retour' },
   careers_auth_welcome_new: { en: 'Welcome to Dutiva', fr: 'Bienvenue sur Dutiva' },
   careers_auth_passwordless_hint: {
-    en: "We'll email you a 6-digit sign-in code — no password needed.",
+    en: "We’ll email you a 6-digit sign-in code — no password needed.",
     fr: 'Nous vous envoyons un code de connexion à 6 chiffres — aucun mot de passe requis.',
   },
   careers_auth_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
@@ -315,7 +315,7 @@ export const careersMessages = defineMessages({
   careers_profile_title: { en: 'Your profile', fr: 'Votre profil' },
   careers_profile_subtitle: {
     en: 'This is what employers see when you apply. Keep it up to date.',
-    fr: "C'est ce que les employeurs voient quand vous postulez. Maintenez-le à jour.",
+    fr: "C’est ce que les employeurs voient quand vous postulez. Maintenez-le à jour.",
   },
   careers_profile_name: { en: 'Full name', fr: 'Nom complet' },
   careers_profile_email: { en: 'Email', fr: 'Courriel' },
@@ -328,7 +328,7 @@ export const careersMessages = defineMessages({
   },
   careers_profile_summary: { en: 'Summary', fr: 'Sommaire' },
   careers_profile_summary_placeholder: {
-    en: "A brief pitch about your experience and what you're looking for.",
+    en: "A brief pitch about your experience and what you’re looking for.",
     fr: 'Un bref aperçu de votre expérience et de ce que vous recherchez.',
   },
   careers_profile_cover_letter: {
@@ -342,7 +342,7 @@ export const careersMessages = defineMessages({
   careers_profile_resume: { en: 'Resume', fr: 'CV' },
   careers_profile_resume_placeholder: {
     en: 'Paste your resume text here. You can tailor it for specific roles when you apply.',
-    fr: "Collez le texte de votre CV ici. Vous pourrez l'adapter à des postes spécifiques lors de votre candidature.",
+    fr: "Collez le texte de votre CV ici. Vous pourrez l’adapter à des postes spécifiques lors de votre candidature.",
   },
   careers_profile_resume_upload_label: {
     en: 'Upload resume file',
@@ -353,7 +353,7 @@ export const careersMessages = defineMessages({
     fr: 'Téléverser un PDF ou DOCX',
   },
   careers_profile_resume_upload_hint: {
-    en: "We'll extract the text and fill empty profile fields.",
+    en: "We’ll extract the text and fill empty profile fields.",
     fr: 'Nous extraierons le texte et remplirons les champs du profil vides.',
   },
   careers_profile_resume_upload_processing: {
@@ -386,7 +386,7 @@ export const careersMessages = defineMessages({
   },
   careers_file_error_corrupt: {
     en: 'The file could not be read — it may be corrupt or password-protected.',
-    fr: "Le fichier n'a pas pu être lu — il est peut-être corrompu ou protégé par mot de passe.",
+    fr: "Le fichier n’a pas pu être lu — il est peut-être corrompu ou protégé par mot de passe.",
   },
   careers_file_error_read_failed: {
     en: 'Could not read the file.',
@@ -394,7 +394,7 @@ export const careersMessages = defineMessages({
   },
   careers_file_error_generic: {
     en: 'Something went wrong. Please try again.',
-    fr: "Une erreur s'est produite. Veuillez réessayer.",
+    fr: "Une erreur s’est produite. Veuillez réessayer.",
   },
   careers_apply_cover_letter_upload_label: {
     en: 'Upload cover letter file',
@@ -405,7 +405,7 @@ export const careersMessages = defineMessages({
     fr: 'Téléverser un PDF ou DOCX',
   },
   careers_apply_cover_letter_upload_hint: {
-    en: "We'll extract the text for your cover letter.",
+    en: "We’ll extract the text for your cover letter.",
     fr: 'Nous extraierons le texte pour votre lettre de motivation.',
   },
   careers_apply_cover_letter_upload_processing: {
@@ -439,7 +439,7 @@ export const careersMessages = defineMessages({
   careers_profile_linkedin: { en: 'LinkedIn URL (optional)', fr: 'LinkedIn (optionnel)' },
   careers_profile_website: { en: 'Website URL (optional)', fr: 'Site web (optionnel)' },
   careers_profile_current_role: { en: 'Current role', fr: 'Poste actuel' },
-  careers_profile_years_experience: { en: 'Years of experience', fr: "Années d'expérience" },
+  careers_profile_years_experience: { en: 'Years of experience', fr: "Années d’expérience" },
   careers_profile_work_authorization: { en: 'Work authorization', fr: 'Autorisation de travail' },
   careers_profile_work_auth_authorized: {
     en: 'Authorized to work in Canada',
@@ -452,7 +452,7 @@ export const careersMessages = defineMessages({
   careers_profile_saved: { en: 'Profile saved', fr: 'Profil enregistré' },
   careers_profile_save_error: {
     en: 'Could not save profile. Please try again.',
-    fr: "Impossible d'enregistrer le profil. Veuillez réessayer.",
+    fr: "Impossible d’enregistrer le profil. Veuillez réessayer.",
   },
   careers_profile_not_created: {
     en: 'Complete your profile to start applying.',
@@ -482,8 +482,8 @@ export const careersMessages = defineMessages({
   /* ── Applications list ────────────────────────────────────────────────── */
   careers_applications_title: { en: 'Your applications', fr: 'Vos candidatures' },
   careers_applications_empty: {
-    en: "You haven't applied to any roles yet.",
-    fr: "Vous n'avez pas encore postulé à un poste.",
+    en: "You haven’t applied to any roles yet.",
+    fr: "Vous n’avez pas encore postulé à un poste.",
   },
   careers_applications_empty_cta: {
     en: 'Browse open jobs',
@@ -491,17 +491,17 @@ export const careersMessages = defineMessages({
   },
   careers_applications_applied: { en: 'Applied', fr: 'Candidature envoyée' },
   careers_applications_status_submitted: { en: 'Submitted', fr: 'Soumise' },
-  careers_applications_status_under_review: { en: 'Under review', fr: "En cours d'examen" },
+  careers_applications_status_under_review: { en: 'Under review', fr: "En cours d’examen" },
   careers_applications_status_shortlisted: { en: 'Shortlisted', fr: 'Présélectionné' },
   careers_applications_status_interview: { en: 'Interview', fr: 'Entretien' },
   careers_applications_status_offered: { en: 'Offer extended', fr: 'Offre envoyée' },
   careers_applications_status_hired: { en: 'Hired', fr: 'Embauché' },
   careers_applications_status_rejected: { en: 'Not selected', fr: 'Non retenu' },
   careers_applications_status_withdrawn: { en: 'Withdrawn', fr: 'Retirée' },
-  careers_applications_view_job: { en: 'View job posting', fr: "Voir l'offre" },
+  careers_applications_view_job: { en: 'View job posting', fr: "Voir l’offre" },
   careers_applications_posting_closed: {
     en: 'Posting no longer listed',
-    fr: "Offre n'est plus affichée",
+    fr: "Offre n’est plus affichée",
   },
   careers_applications_withdraw: { en: 'Withdraw', fr: 'Retirer' },
   careers_applications_withdraw_confirm: {
@@ -536,7 +536,7 @@ export const careersMessages = defineMessages({
     fr: 'Impossible de soumettre la candidature. Veuillez réessayer.',
   },
   careers_apply_already_applied: {
-    en: "You've already applied to this role.",
+    en: "You’ve already applied to this role.",
     fr: 'Vous avez déjà postulé à ce poste.',
   },
   careers_apply_confirm_title: { en: 'Review and submit', fr: 'Vérifiez et envoyez' },
@@ -555,7 +555,7 @@ export const careersMessages = defineMessages({
   },
   careers_apply_confirm_score_included: {
     en: 'AI match score included (visible to the employer)',
-    fr: "Score de correspondance IA joint (visible par l'employeur)",
+    fr: "Score de correspondance IA joint (visible par l’employeur)",
   },
   careers_apply_confirm_submit: { en: 'Confirm and submit', fr: 'Confirmer et envoyer' },
   careers_apply_confirm_edit: { en: 'Back to edit', fr: 'Retour à la modification' },
@@ -579,30 +579,30 @@ export const careersMessages = defineMessages({
     en: 'Go to profile',
     fr: 'Aller au profil',
   },
-  careers_apply_back: { en: 'Back to job', fr: "Retour à l'offre" },
+  careers_apply_back: { en: 'Back to job', fr: "Retour à l’offre" },
 
   /* ── AI features ──────────────────────────────────────────────────────── */
   careers_ai_section_title: { en: 'AI tools (optional)', fr: 'Outils IA (optionnel)' },
   careers_ai_section_subtitle: {
     en: 'Use AI to strengthen your application. Everything here is optional — you can apply without it.',
-    fr: "Utilisez l'IA pour renforcer votre candidature. Tout ici est optionnel — vous pouvez postuler sans.",
+    fr: "Utilisez l’IA pour renforcer votre candidature. Tout ici est optionnel — vous pouvez postuler sans.",
   },
   careers_ai_tailor_resume: { en: 'Tailor my resume', fr: 'Adapter mon CV' },
   careers_ai_tailor_resume_desc: {
     en: 'Highlights the experience most relevant to this role.',
-    fr: "Met en évidence l'expérience la plus pertinente pour ce poste.",
+    fr: "Met en évidence l’expérience la plus pertinente pour ce poste.",
   },
   careers_ai_cover_letter: { en: 'Draft a cover letter', fr: 'Rédiger une lettre de motivation' },
   careers_ai_cover_letter_desc: {
     en: 'Generates a first draft based on your profile and the job posting.',
-    fr: "Génère un premier brouillon basé sur votre profil et l'offre.",
+    fr: "Génère un premier brouillon basé sur votre profil et l’offre.",
   },
   careers_ai_match_score: { en: 'Check my match', fr: 'Évaluer ma correspondance' },
   careers_ai_match_score_desc: {
     en: 'See how well your profile aligns with the role. If you run this check, the score and suggestions are included with your application and visible to the employer.',
-    fr: "Voyez dans quelle mesure votre profil correspond au poste. Si vous lancez cette évaluation, le score et les suggestions sont joints à votre candidature et visibles par l'employeur.",
+    fr: "Voyez dans quelle mesure votre profil correspond au poste. Si vous lancez cette évaluation, le score et les suggestions sont joints à votre candidature et visibles par l’employeur.",
   },
-  careers_ai_interview_prep: { en: 'Interview prep', fr: "Préparation à l'entretien" },
+  careers_ai_interview_prep: { en: 'Interview prep', fr: "Préparation à l’entretien" },
   careers_ai_interview_prep_desc: {
     en: 'Practice questions and talking points for this role.',
     fr: 'Questions de pratique et points de discussion pour ce poste.',
@@ -613,7 +613,7 @@ export const careersMessages = defineMessages({
     fr: 'Outil IA indisponible. Vous pouvez toujours postuler sans.',
   },
   careers_ai_daily_limit: {
-    en: "You've reached today's AI limit. Try again tomorrow — you can still submit your application without them.",
+    en: "You’ve reached today’s AI limit. Try again tomorrow — you can still submit your application without them.",
     fr: 'Vous avez atteint la limite IA du jour. Réessayez demain — vous pouvez quand même soumettre votre candidature.',
   },
   careers_ai_match_score_label: { en: 'Match score', fr: 'Score de correspondance' },
@@ -624,7 +624,7 @@ export const careersMessages = defineMessages({
   careers_ai_interview_talking_points: { en: 'Talking points', fr: 'Points de discussion' },
   careers_ai_disclaimer: {
     en: 'AI suggestions are a starting point. Review and edit before submitting.',
-    fr: "Les suggestions de l'IA sont un point de départ. Révisez et modifiez avant de soumettre.",
+    fr: "Les suggestions de l’IA sont un point de départ. Révisez et modifiez avant de soumettre.",
   },
 
   /* ── Job search agent ─────────────────────────────────────────────────── */
@@ -708,7 +708,7 @@ export const careersMessages = defineMessages({
   careers_retry: { en: 'Try again', fr: 'Réessayer' },
   careers_error_generic: {
     en: 'Something went wrong. Please try again.',
-    fr: "Une erreur s'est produite. Veuillez réessayer.",
+    fr: "Une erreur s’est produite. Veuillez réessayer.",
   },
   careers_agent_keywords_placeholder: { en: 'payroll, HR coordinator', fr: 'paie, coordonnateur ou coordonnatrice RH' },
   careers_agent_locations_placeholder: { en: 'Toronto, Montreal, Quebec', fr: 'Toronto, Montréal, Québec' },

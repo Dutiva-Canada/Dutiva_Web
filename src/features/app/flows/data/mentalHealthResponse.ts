@@ -42,7 +42,7 @@ export const mentalHealthResponseFlow: Flow = {
     {
       id: 'situation',
       kind: 'choice',
-      title: bi('What has brought you here?', 'Qu’est-ce qui vous amène ici?'),
+      title: bi('What has brought you here?', 'Qu’est-ce qui vous amène ici ?'),
       body: bi(
         'Answer for what you actually know, not for what you suspect. The four routes below go to genuinely different places, and the one that fits is decided by how this reached you rather than by how serious you think it is.',
         'Répondez en fonction de ce que vous savez réellement, et non de ce que vous soupçonnez. Les quatre parcours ci-dessous mènent à des endroits véritablement différents, et celui qui convient dépend de la façon dont la situation vous est parvenue, non de la gravité que vous lui prêtez.',
@@ -111,7 +111,7 @@ export const mentalHealthResponseFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Performance, or something underneath it?',
-        'Rendement, ou autre chose en dessous?',
+        'Rendement, ou autre chose en dessous ?',
       ),
       body: bi(
         'This is the question the whole flow exists for, and both wrong answers are expensive. Treat a health need as underperformance and you are disciplining a disability. Treat ordinary underperformance as a health matter and the employee is never told the truth about their work, which is its own unfairness and surfaces at the worst possible moment.',
@@ -194,15 +194,15 @@ export const mentalHealthResponseFlow: Flow = {
       points: [
         bi(
           'Write down what you observed about the work — deadlines, hours, errors, meetings missed — and nothing you inferred from it. That note is defensible; a note recording your theory about someone’s mental health is not, and you should not be holding one.',
-          'Notez ce que vous avez observé du travail — échéances, horaires, erreurs, réunions manquées — et rien de ce que vous en avez déduit. Une telle note est défendable; une note consignant votre théorie sur la santé mentale d’une personne ne l’est pas, et vous ne devriez pas en détenir.',
+          'Notez ce que vous avez observé du travail — échéances, horaires, erreurs, réunions manquées — et rien de ce que vous en avez déduit. Une telle note est défendable ; une note consignant votre théorie sur la santé mentale d’une personne ne l’est pas, et vous ne devriez pas en détenir.',
         ),
         bi(
           'Open with the observation and stop. "I have noticed the last few weeks have looked different — is everything all right?" leaves them free to say nothing, which they are entitled to do.',
-          'Commencez par l’observation, puis arrêtez-vous. « J’ai remarqué que les dernières semaines semblaient différentes — est-ce que tout va bien? » laisse la personne libre de ne rien dire, ce qu’elle a le droit de faire.',
+          'Commencez par l’observation, puis arrêtez-vous. « J’ai remarqué que les dernières semaines semblaient différentes — est-ce que tout va bien ? » laisse la personne libre de ne rien dire, ce qu’elle a le droit de faire.',
         ),
         bi(
           'If they say nothing is wrong, accept it and say what is available anyway. Silence now is not the end of the conversation; a manager who pushed is.',
-          'Si la personne répond que tout va bien, acceptez-le et mentionnez tout de même ce qui est offert. Un silence aujourd’hui ne met pas fin à la conversation; un gestionnaire qui a insisté, oui.',
+          'Si la personne répond que tout va bien, acceptez-le et mentionnez tout de même ce qui est offert. Un silence aujourd’hui ne met pas fin à la conversation ; un gestionnaire qui a insisté, oui.',
         ),
         bi(
           'Do not go to anyone else first. Asking a colleague whether they have noticed anything turns a private difficulty into workplace information, and it is the step people most often regret.',
@@ -214,10 +214,10 @@ export const mentalHealthResponseFlow: Flow = {
     {
       id: 'opened',
       kind: 'choice',
-      title: bi('What came back?', 'Qu’est-ce qui est ressorti?'),
+      title: bi('What came back?', 'Qu’est-ce qui est ressorti ?'),
       body: bi(
         'The last step said to accept "everything is fine" if that is the answer, so this is where accepting it actually happens. There is nothing further to ask on that route.',
-        'L’étape précédente indiquait d’accepter un « tout va bien » si telle est la réponse; c’est donc ici que cette acceptation prend effet. Il n’y a rien de plus à demander sur ce parcours.',
+        'L’étape précédente indiquait d’accepter un « tout va bien » si telle est la réponse ; c’est donc ici que cette acceptation prend effet. Il n’y a rien de plus à demander sur ce parcours.',
       ),
       options: [
         {
@@ -284,7 +284,7 @@ export const mentalHealthResponseFlow: Flow = {
     {
       id: 'next',
       kind: 'choice',
-      title: bi('What did they say they need?', 'Qu’a dit la personne avoir besoin?'),
+      title: bi('What did they say they need?', 'Qu’a dit la personne avoir besoin ?'),
       body: bi(
         'Their answer decides the process, not your assessment of how serious it is. All three routes below are legitimate endings, including the one where nothing changes.',
         'Leur réponse détermine le processus, et non votre appréciation de la gravité. Les trois parcours ci-dessous constituent tous des fins légitimes, y compris celui où rien ne change.',

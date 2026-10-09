@@ -107,7 +107,7 @@ export const investStrategyBuilderMessages = defineMessages({
      the strategy, but abandoning it loses the draft. [FR self-authored] */
   invest_review_not_filed: {
     en: 'Draft ready — not kept for review; leaving the wizard loses it.',
-    fr: 'Brouillon prêt — non conservé pour validation; quitter l’assistant le perd.',
+    fr: 'Brouillon prêt — non conservé pour validation ; quitter l’assistant le perd.',
   },
   invest_sb_delete_strategy: { en: 'Delete strategy', fr: 'Supprimer la stratégie' },
   invest_sb_untitled: { en: 'Untitled strategy', fr: 'Stratégie sans titre' },
@@ -243,7 +243,7 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_alert: { en: 'Alert', fr: 'Alerte' },
   invest_sb_severity_help: {
     en: 'Alerts are highlighted in Signals; Insights stay quiet.',
-    fr: 'Les alertes sont mises en évidence dans Signaux; les aperçus restent discrets.',
+    fr: 'Les alertes sont mises en évidence dans Signaux ; les aperçus restent discrets.',
   },
   invest_sb_side: { en: 'Side', fr: 'Sens' },
   invest_sb_buy: { en: 'Buy', fr: 'Achat' },

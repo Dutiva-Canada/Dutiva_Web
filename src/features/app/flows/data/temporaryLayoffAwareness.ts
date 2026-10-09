@@ -28,7 +28,7 @@ export const temporaryLayoffAwarenessFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Which employment standards statute covers this role?',
-        'Quelle loi sur les normes d’emploi couvre ce poste?',
+        'Quelle loi sur les normes d’emploi couvre ce poste ?',
       ),
       body: bi(
         'Temporary layoff rules and duration caps differ by jurisdiction. Name the statute before you set an end date.',
@@ -87,7 +87,7 @@ export const temporaryLayoffAwarenessFlow: Flow = {
         ),
         bi(
           'Past the statutory cap the employment is terminated by operation of the Act; notice and severance are often calculated from the first day of the layoff — not from the day you noticed. Confirm before setting a recall date.',
-          'Au-delà du plafond légal, l’emploi prend fin par l’effet de la Loi; le préavis et l’indemnité se calculent souvent à compter du premier jour de la mise à pied — non du jour où vous vous en apercevez. Confirmez avant de fixer une date de rappel.',
+          'Au-delà du plafond légal, l’emploi prend fin par l’effet de la Loi ; le préavis et l’indemnité se calculent souvent à compter du premier jour de la mise à pied — non du jour où vous vous en apercevez. Confirmez avant de fixer une date de rappel.',
         ),
       ],
       to: 'issue',

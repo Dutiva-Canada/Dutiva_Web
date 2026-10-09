@@ -32,7 +32,7 @@ export const statutoryNoticeFederalFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Is this employee federally regulated?',
-        'Cet employé est-il de compétence fédérale?',
+        'Cet employé est-il de compétence fédérale ?',
       ),
       body: bi(
         'Banks, interprovincial transportation, telecom, and other federally regulated employers use the Canada Labour Code, Part III — not provincial ESA/LNT ladders.',

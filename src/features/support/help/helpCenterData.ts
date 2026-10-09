@@ -267,7 +267,7 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     title: bi('Recovering access to your account', 'Récupérer l’accès à votre compte'),
     summary: bi(
       'Locked out? Request a new sign-in link, or contact support if your email has changed.',
-      'Bloqué? Demandez un nouveau lien de connexion, ou communiquez avec le soutien si votre courriel a changé.',
+      'Bloqué ? Demandez un nouveau lien de connexion, ou communiquez avec le soutien si votre courriel a changé.',
     ),
     keywords: bi(
       'locked out account access recovery cannot sign in email changed reset support',

@@ -44,35 +44,35 @@ export default {
         },
         {
           type: 'li',
-          text: 'l’accessibilité au clavier pour les actions principales et les processus de base;',
+          text: 'l’accessibilité au clavier pour les actions principales et les processus de base ;',
         },
         {
           type: 'li',
-          text: 'des indicateurs de focus visibles et un ordre de focus logique pour les éléments interactifs;',
+          text: 'des indicateurs de focus visibles et un ordre de focus logique pour les éléments interactifs ;',
         },
         {
           type: 'li',
-          text: 'une structure HTML sémantique, des titres pertinents, des libellés de formulaire et un soutien ARIA lorsque le HTML natif est insuffisant;',
+          text: 'une structure HTML sémantique, des titres pertinents, des libellés de formulaire et un soutien ARIA lorsque le HTML natif est insuffisant ;',
         },
         {
           type: 'li',
-          text: 'des contrastes de couleurs conçus pour respecter les attentes du niveau AA des WCAG pour le texte courant et les principaux éléments interactifs;',
+          text: 'des contrastes de couleurs conçus pour respecter les attentes du niveau AA des WCAG pour le texte courant et les principaux éléments interactifs ;',
         },
         {
           type: 'li',
-          text: 'des mises en page adaptatives et la prise en charge du redimensionnement du texte jusqu’à 200 % sans perte des fonctionnalités essentielles;',
+          text: 'des mises en page adaptatives et la prise en charge du redimensionnement du texte jusqu’à 200 % sans perte des fonctionnalités essentielles ;',
         },
         {
           type: 'li',
-          text: 'des titres de page, formulaires, boutons, éléments de navigation et messages d’état conçus pour être compatibles avec les lecteurs d’écran lorsque mis en œuvre;',
+          text: 'des titres de page, formulaires, boutons, éléments de navigation et messages d’état conçus pour être compatibles avec les lecteurs d’écran lorsque mis en œuvre ;',
         },
         {
           type: 'li',
-          text: 'un soutien en français et en anglais dans les principales zones de la plateforme, avec des attributs de langue appropriés lorsque mis en œuvre;',
+          text: 'un soutien en français et en anglais dans les principales zones de la plateforme, avec des attributs de langue appropriés lorsque mis en œuvre ;',
         },
         {
           type: 'li',
-          text: 'une dépendance réduite à la couleur seule pour communiquer des renseignements importants;',
+          text: 'une dépendance réduite à la couleur seule pour communiquer des renseignements importants ;',
         },
         {
           type: 'li',
@@ -89,23 +89,23 @@ export default {
         },
         {
           type: 'li',
-          text: 'certains contenus de documents générés dynamiquement peuvent ne pas toujours être annoncés de façon fiable par tous les lecteurs d’écran;',
+          text: 'certains contenus de documents générés dynamiquement peuvent ne pas toujours être annoncés de façon fiable par tous les lecteurs d’écran ;',
         },
         {
           type: 'li',
-          text: 'l’interface du Conseiller par IA fait l’objet d’un examen concernant les réponses en continu, les annonces par lecteur d’écran, le comportement des régions dynamiques et la gestion du focus;',
+          text: 'l’interface du Conseiller par IA fait l’objet d’un examen concernant les réponses en continu, les annonces par lecteur d’écran, le comportement des régions dynamiques et la gestion du focus ;',
         },
         {
           type: 'li',
-          text: 'certains tableaux de données, composants de type calculateur et vues d’état des processus peuvent nécessiter des sémantiques de tableau, des annotations ARIA ou des associations d’en-têtes améliorées dans certaines combinaisons de navigateurs et de technologies d’assistance;',
+          text: 'certains tableaux de données, composants de type calculateur et vues d’état des processus peuvent nécessiter des sémantiques de tableau, des annotations ARIA ou des associations d’en-têtes améliorées dans certaines combinaisons de navigateurs et de technologies d’assistance ;',
         },
         {
           type: 'li',
-          text: 'certains processus tiers de paiement, d’authentification, d’analyse ou de services intégrés peuvent présenter des comportements d’accessibilité qui échappent au contrôle direct de Dutiva;',
+          text: 'certains processus tiers de paiement, d’authentification, d’analyse ou de services intégrés peuvent présenter des comportements d’accessibilité qui échappent au contrôle direct de Dutiva ;',
         },
         {
           type: 'li',
-          text: 'les nouvelles fonctionnalités bêta peuvent nécessiter des essais d’accessibilité supplémentaires après leur déploiement;',
+          text: 'les nouvelles fonctionnalités bêta peuvent nécessiter des essais d’accessibilité supplémentaires après leur déploiement ;',
         },
         {
           type: 'li',
@@ -126,23 +126,23 @@ export default {
         },
         {
           type: 'li',
-          text: 'rôles, états et propriétés WAI-ARIA lorsque le HTML natif est insuffisant;',
+          text: 'rôles, états et propriétés WAI-ARIA lorsque le HTML natif est insuffisant ;',
         },
         {
           type: 'li',
-          text: 'CSS pour la présentation visuelle, sans intention de transmettre une information essentielle uniquement par la couleur ou le style visuel;',
+          text: 'CSS pour la présentation visuelle, sans intention de transmettre une information essentielle uniquement par la couleur ou le style visuel ;',
         },
         {
           type: 'li',
-          text: 'React et JavaScript pour les interactions dynamiques, avec des pratiques de gestion du clavier et du focus appliquées aux principaux parcours;',
+          text: 'React et JavaScript pour les interactions dynamiques, avec des pratiques de gestion du clavier et du focus appliquées aux principaux parcours ;',
         },
         {
           type: 'li',
-          text: 'essais dans les navigateurs modernes, y compris Chrome, Firefox, Safari et Edge;',
+          text: 'essais dans les navigateurs modernes, y compris Chrome, Firefox, Safari et Edge ;',
         },
         {
           type: 'li',
-          text: 'essais avec des technologies d’assistance et des outils d’accessibilité, y compris NVDA, VoiceOver, la navigation uniquement au clavier, les inspecteurs d’accessibilité des navigateurs, les vérifications de contraste de couleurs, les vérifications de zoom adaptatif et les analyses automatisées d’accessibilité;',
+          text: 'essais avec des technologies d’assistance et des outils d’accessibilité, y compris NVDA, VoiceOver, la navigation uniquement au clavier, les inspecteurs d’accessibilité des navigateurs, les vérifications de contraste de couleurs, les vérifications de zoom adaptatif et les analyses automatisées d’accessibilité ;',
         },
         {
           type: 'li',

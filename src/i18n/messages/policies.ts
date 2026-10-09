@@ -50,7 +50,7 @@ export const policiesMessages = defineMessages({
   policies_prod_loading: { en: 'Loading…', fr: 'Chargement…' },
   policies_prod_empty_title: { en: 'No policies yet', fr: 'Aucune politique pour l’instant' },
   policies_prod_empty_body: {
-    en: "Add policies you have — or flag ones you're missing — to track what's on the books.",
+    en: "Add policies you have — or flag ones you’re missing — to track what’s on the books.",
     fr: 'Ajoutez les politiques que vous avez — ou signalez celles qui manquent — pour suivre ce qui est en vigueur.',
   },
   policies_prod_error: {

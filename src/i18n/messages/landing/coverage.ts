@@ -19,15 +19,15 @@ export const landingCoverage = defineMessages({
   },
   landing_cov_on_stat: {
     en: 'Employment Standards Act, 2000',
-    fr: "Loi de 2000 sur les normes d'emploi",
+    fr: "Loi de 2000 sur les normes d’emploi",
   },
   landing_cov_on_1: {
     en: 'Termination notice and pay in lieu',
-    fr: "Préavis de cessation d'emploi et indemnité en tenant lieu",
+    fr: "Préavis de cessation d’emploi et indemnité en tenant lieu",
   },
   landing_cov_on_2: {
     en: 'Severance pay eligibility',
-    fr: "Admissibilité à l'indemnité de licenciement",
+    fr: "Admissibilité à l’indemnité de licenciement",
   },
   landing_cov_on_3: {
     en: 'Vacation time and vacation pay',
@@ -51,7 +51,7 @@ export const landingCoverage = defineMessages({
   },
   landing_cov_qc_1: {
     en: 'Notice of termination by service',
-    fr: "Préavis de fin d'emploi selon l'ancienneté",
+    fr: "Préavis de fin d’emploi selon l’ancienneté",
   },
   landing_cov_qc_2: {
     en: 'Annual leave and vacation indemnity',
@@ -91,6 +91,6 @@ export const landingCoverage = defineMessages({
   },
   landing_cov_soon: {
     en: 'Coming soon: Alberta and British Columbia. Additional provinces and territories to follow.',
-    fr: "À venir : l'Alberta et la Colombie-Britannique. D'autres provinces et territoires suivront.",
+    fr: "À venir : l’Alberta et la Colombie-Britannique. D’autres provinces et territoires suivront.",
   },
 })

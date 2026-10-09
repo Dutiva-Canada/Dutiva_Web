@@ -29,7 +29,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Error telemetry (coarse error message, route pattern, release identifier, coarse browser and operating-system family; no user, session, or authentication identifiers and no input content): stored by Supabase Inc. (United States) in Dutiva's own error-reporting table. Dutiva does not use a third-party error-tracking service.",
+          text: "Error telemetry (coarse error message, route pattern, release identifier, coarse browser and operating-system family; no user, session, or authentication identifiers and no input content): stored by Supabase Inc. (United States) in Dutiva’s own error-reporting table. Dutiva does not use a third-party error-tracking service.",
         },
         {
           type: 'li',
@@ -54,7 +54,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Minimization: We transfer only the personal data necessary for each subprocessor's specific function.",
+          text: "Minimization: We transfer only the personal data necessary for each subprocessor’s specific function.",
         },
         {
           type: 'li',

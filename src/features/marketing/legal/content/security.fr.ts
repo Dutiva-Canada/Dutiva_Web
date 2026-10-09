@@ -5,7 +5,7 @@ export default {
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Dutiva Canada Inc. s'engage à protéger les données de nos clients avec les plus hauts standards de sécurité de l'industrie. Cette page décrit nos mesures de sécurité techniques et organisationnelles.",
+    "Dutiva Canada Inc. s’engage à protéger les données de nos clients avec les plus hauts standards de sécurité de l’industrie. Cette page décrit nos mesures de sécurité techniques et organisationnelles.",
   ],
   sections: [
     {
@@ -21,11 +21,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Surveillance continue 24/7/365 de l'infrastructure",
+          text: "Surveillance continue 24/7/365 de l’infrastructure",
         },
         {
           type: 'li',
-          text: "Pare-feu d'application web (WAF) et protection DDoS",
+          text: "Pare-feu d’application web (WAF) et protection DDoS",
         },
       ],
     },
@@ -51,7 +51,7 @@ export default {
       ],
     },
     {
-      title: "3. Contrôles d'accès",
+      title: "3. Contrôles d’accès",
       blocks: [
         {
           type: 'p',
@@ -63,11 +63,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Contrôles d'accès basés sur les rôles (RBAC) granulaires",
+          text: "Contrôles d’accès basés sur les rôles (RBAC) granulaires",
         },
         {
           type: 'li',
-          text: "Journal d'audit complet de toutes les activités d'accès",
+          text: "Journal d’audit complet de toutes les activités d’accès",
         },
         {
           type: 'li',
@@ -84,11 +84,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Analyses automatisées de vulnérabilités sur le code et l'infrastructure",
+          text: "Analyses automatisées de vulnérabilités sur le code et l’infrastructure",
         },
         {
           type: 'li',
-          text: "Tests d'intrusion annuels par des tiers indépendants",
+          text: "Tests d’intrusion annuels par des tiers indépendants",
         },
         {
           type: 'li',
@@ -130,11 +130,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva s'engage à obtenir et maintenir les certifications de conformité reconnues de l'industrie.",
+          text: "Dutiva s’engage à obtenir et maintenir les certifications de conformité reconnues de l’industrie.",
         },
         {
           type: 'li',
-          text: "Certification SOC 2 Type II : en cours d'audit, prévue pour 2026",
+          text: "Certification SOC 2 Type II : en cours d’audit, prévue pour 2026",
         },
         {
           type: 'li',

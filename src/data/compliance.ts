@@ -23,7 +23,7 @@ export const complianceItems: ComplianceItem[] = [
     tone: 'risk',
     title: bi(
       'Jordan Mensah — notice exposure; no termination clause on file',
-      'Jordan Mensah — exposition au préavis; aucune clause de licenciement au dossier',
+      'Jordan Mensah — exposition au préavis ; aucune clause de licenciement au dossier',
     ),
     detail: bi(
       'No termination clause on file limits notice. Preliminary risk estimate: 9–12 months of pay in lieu of notice under common law, against the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. Legal review recommended before finalizing.',
@@ -41,7 +41,7 @@ export const complianceItems: ComplianceItem[] = [
     ],
     action: bi(
       'Request counsel review before any offer; for internal contingency planning, model the upper end of the preliminary range pending that review.',
-      'Demandez un examen juridique avant toute offre; pour la planification interne, modélisez la limite supérieure de la fourchette préliminaire en attendant cet examen.',
+      'Demandez un examen juridique avant toute offre ; pour la planification interne, modélisez la limite supérieure de la fourchette préliminaire en attendant cet examen.',
     ),
   },
   {
@@ -62,7 +62,7 @@ export const complianceItems: ComplianceItem[] = [
     citations: [],
     action: bi(
       'Confirm functional limitations are unchanged at the July 14 review; keep diagnosis off file.',
-      'Confirmez que les limitations fonctionnelles sont inchangées à l’examen du 14 juillet; gardez le diagnostic hors dossier.',
+      'Confirmez que les limitations fonctionnelles sont inchangées à l’examen du 14 juillet ; gardez le diagnostic hors dossier.',
     ),
   },
   {
@@ -228,7 +228,7 @@ export const obligations: Obligation[] = [
     dueSoon: true,
     evidence: bi(
       '2025 training roster on file; 2026 refresh not yet scheduled.',
-      'Liste de formation 2025 au dossier; rafraîchissement 2026 non planifié.',
+      'Liste de formation 2025 au dossier ; rafraîchissement 2026 non planifié.',
     ),
   },
   {
@@ -393,7 +393,7 @@ export const regulatoryWatchlist: WatchlistItem[] = [
     tone: 'info',
     note: bi(
       'Relevant to existing federally regulated roles; monitor the 2026 framework review for changes affecting policy or training.',
-      'Pertinent pour les postes déjà sous réglementation fédérale; surveillez l’examen du cadre en 2026 pour tout changement touchant les politiques ou la formation.',
+      'Pertinent pour les postes déjà sous réglementation fédérale ; surveillez l’examen du cadre en 2026 pour tout changement touchant les politiques ou la formation.',
     ),
   },
 ]

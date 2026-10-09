@@ -62,9 +62,9 @@ describe('usageLimitReply', () => {
   it('does not blame the user for a beta-wide ceiling', () => {
     const mine = usageLimitReply(new AdvisorUsageLimitError('daily_tokens', 600))
     const platform = usageLimitReply(new AdvisorUsageLimitError('platform_daily', 600))
-    expect(mine.en).toContain("You've hit")
+    expect(mine.en).toContain("You’ve hit")
     expect(platform.en).toContain('beta-wide')
-    expect(platform.en).not.toContain("You've hit")
+    expect(platform.en).not.toContain("You’ve hit")
   })
 
   it('names the included amount and pack prices on a commercial limit', () => {

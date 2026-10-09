@@ -3,18 +3,18 @@ import { defineMessages } from '../../core'
 
 export const landingMisc = defineMessages({
   landing_cta_done_t: {
-    en: "You're on the list.",
+    en: "You’re on the list.",
     fr: 'Vous êtes inscrit.',
   },
   landing_cta_done_p: {
-    en: "We'll email you when your seat is ready.",
+    en: "We’ll email you when your seat is ready.",
     fr: 'Nous vous écrirons lorsque votre place sera prête.',
   },
   /* Postdates the design handoff: shown instead of landing_cta_done_* when
      the server reports the first cohort is already full, so a visitor who
      will wait is never promised access. [FR self-authored] */
   landing_cta_wait_t: {
-    en: "You're on the waiting list.",
+    en: "You’re on the waiting list.",
     fr: 'Vous êtes sur la liste d’attente.',
   },
   landing_cta_wait_p: {
@@ -79,7 +79,7 @@ export const landingMisc = defineMessages({
   },
   landing_fc_openapp: {
     en: 'Open app',
-    fr: "Ouvrir l'application",
+    fr: "Ouvrir l’application",
   },
   landing_fl_privacy: {
     en: 'Privacy Policy',
@@ -87,7 +87,7 @@ export const landingMisc = defineMessages({
   },
   landing_fl_terms: {
     en: 'Terms of Service',
-    fr: "Conditions d'utilisation",
+    fr: "Conditions d’utilisation",
   },
   landing_fl_cookie: {
     en: 'Cookie Policy',
@@ -131,7 +131,7 @@ export const landingMisc = defineMessages({
   },
   landing_cta_company_ph: {
     en: 'Company name',
-    fr: "Nom de l'entreprise",
+    fr: "Nom de l’entreprise",
   },
   /* The consent itself is the checkbox (landing_cta_consent_label) — CASL
      wants express consent, not consent implied by submitting. This line is
@@ -162,7 +162,7 @@ export const landingMisc = defineMessages({
   },
   landing_cta_fail: {
     en: 'Could not record your signup. Please try again, or email support@dutiva.ca.',
-    fr: "Impossible d'enregistrer votre inscription. Réessayez ou écrivez à support@dutiva.ca.",
+    fr: "Impossible d’enregistrer votre inscription. Réessayez ou écrivez à support@dutiva.ca.",
   },
   landing_cta_captcha_required: {
     en: 'Please complete the human-verification check to continue.',

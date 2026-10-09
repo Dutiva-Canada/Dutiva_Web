@@ -27,7 +27,7 @@ export const healthMessages = defineMessages({
   },
   health_crisis_note: {
     en: 'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
-    fr: 'En crise ou si vous pensez au suicide? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
+    fr: 'En crise ou si vous pensez au suicide ? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
   },
 
   /* Tabs */
@@ -83,7 +83,7 @@ export const healthMessages = defineMessages({
   health_ov_latest_entry: { en: 'Latest journal entry', fr: 'Dernière entrée de journal' },
   health_ov_new_checkin: { en: 'New check-in', fr: 'Nouveau point' },
   health_ov_new_entry: { en: 'New journal entry', fr: 'Nouvelle entrée' },
-  health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat?' },
+  health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat ?' },
   health_ov_crisis_body: {
     en: 'Call or text 9-8-8 — Canada’s suicide crisis helpline, free and available 24/7. If you’re in immediate danger, call 911.',
     fr: 'Appelez ou textez le 9-8-8 — la ligne d’aide en cas de crise suicide au Canada, gratuite et ouverte 24/7. En cas de danger immédiat, appelez le 911.',
@@ -100,9 +100,9 @@ export const healthMessages = defineMessages({
     en: 'A minute to note how things actually are — mood, energy, and anything worth remembering.',
     fr: 'Une minute pour noter comment ça va vraiment — humeur, énergie et tout ce qui vaut la peine d’être retenu.',
   },
-  health_checkin_mood: { en: 'How are you feeling?', fr: 'Comment vous sentez-vous?' },
+  health_checkin_mood: { en: 'How are you feeling?', fr: 'Comment vous sentez-vous ?' },
   health_checkin_energy: { en: 'Energy level', fr: 'Niveau d’énergie' },
-  health_checkin_note: { en: 'Anything on your mind? (optional)', fr: 'Quelque chose en tête? (facultatif)' },
+  health_checkin_note: { en: 'Anything on your mind? (optional)', fr: 'Quelque chose en tête ? (facultatif)' },
   health_checkin_note_ph: {
     en: 'A sentence or two is plenty.',
     fr: 'Une phrase ou deux suffisent.',
@@ -312,7 +312,7 @@ export const healthMessages = defineMessages({
   /* A resolve call failed — the row stays pending. [FR self-authored] */
   health_review_action_failed: {
     en: 'That didn’t save — it’s still waiting here; try again.',
-    fr: 'Ça n’a pas enregistré — c’est toujours en attente; réessayez.',
+    fr: 'Ça n’a pas enregistré — c’est toujours en attente ; réessayez.',
   },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
@@ -362,10 +362,10 @@ export const healthMessages = defineMessages({
     en: 'One small thing that went okay today — write it down.',
     fr: 'Une petite chose qui s’est bien passée aujourd’hui — notez-la.',
   },
-  health_tool_grat_p1: { en: 'What’s one thing that went a little better than expected today?', fr: 'Qu’est-ce qui s’est un peu mieux passé que prévu aujourd’hui?' },
-  health_tool_grat_p2: { en: 'Who made your day a bit easier — and how?', fr: 'Qui a rendu votre journée un peu plus facile — et comment?' },
-  health_tool_grat_p3: { en: 'What’s a small thing you have now that past-you wanted?', fr: 'Quelle petite chose avez-vous maintenant que vous souhaitiez avant?' },
-  health_tool_grat_p4: { en: 'What did you enjoy eating, seeing, or hearing recently?', fr: 'Qu’avez-vous aimé manger, voir ou entendre récemment?' },
+  health_tool_grat_p1: { en: 'What’s one thing that went a little better than expected today?', fr: 'Qu’est-ce qui s’est un peu mieux passé que prévu aujourd’hui ?' },
+  health_tool_grat_p2: { en: 'Who made your day a bit easier — and how?', fr: 'Qui a rendu votre journée un peu plus facile — et comment ?' },
+  health_tool_grat_p3: { en: 'What’s a small thing you have now that past-you wanted?', fr: 'Quelle petite chose avez-vous maintenant que vous souhaitiez avant ?' },
+  health_tool_grat_p4: { en: 'What did you enjoy eating, seeing, or hearing recently?', fr: 'Qu’avez-vous aimé manger, voir ou entendre récemment ?' },
   health_tool_grat_another: { en: 'Try another prompt', fr: 'Une autre idée' },
   health_tool_grat_ph: { en: 'A sentence or two is plenty.', fr: 'Une phrase ou deux suffit.' },
   health_tool_grat_save: { en: 'Save to journal', fr: 'Enregistrer au journal' },
@@ -458,7 +458,7 @@ export const healthMessages = defineMessages({
   },
   health_chat_hi_ask: {
     en: 'How are you arriving today?',
-    fr: 'Comment vous sentez-vous en arrivant aujourd’hui?',
+    fr: 'Comment vous sentez-vous en arrivant aujourd’hui ?',
   },
   health_chat_placeholder: {
     en: 'Tell Mira how it’s going, or what to jot down…',

@@ -38,7 +38,7 @@ const investCoreMessages = defineMessages({
   },
   invest_seo_desc_overview: {
     en: 'Track manual positions and watchlist prices; scans surface signals and order drafts you review yourself.',
-    fr: 'Suivez positions saisies à la main et cours de la liste de suivi; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
+    fr: 'Suivez positions saisies à la main et cours de la liste de suivi ; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
   },
   invest_seo_title_portfolio: {
     en: 'Dutiva Invest — Portfolios',
@@ -64,7 +64,7 @@ const investCoreMessages = defineMessages({
   },
   invest_seo_desc_strategies: {
     en: 'Describe or pick a strategy; scans create signals and draft proposals only — never placed orders.',
-    fr: 'Décrivez ou choisissez une stratégie; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
+    fr: 'Décrivez ou choisissez une stratégie ; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
   },
   invest_seo_title_notifications: {
     en: 'Dutiva Invest — Notifications',
@@ -371,7 +371,7 @@ const investCoreMessages = defineMessages({
   invest_ai_title: { en: 'Describe it instead', fr: 'Décrire plutôt' },
   invest_ai_sub: {
     en: 'Write the goal in plain words; Tally drafts a reviewable strategy — nothing runs until you save and enable it.',
-    fr: 'Décrivez l’objectif en mots simples; Tally propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
+    fr: 'Décrivez l’objectif en mots simples ; Tally propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
   },
   invest_ai_placeholder: {
     en: 'e.g. Warn me when a holding passes 25% of the book, and watch TSX ETFs for 8% dips',
@@ -589,7 +589,7 @@ const investCoreMessages = defineMessages({
   invest_chat_title: { en: 'Tally', fr: 'Tally' },
   invest_chat_sub: {
     en: 'The book’s watch clerk — ask about your positions or tell her what to record. She’s software, not a person or an advisor; never investment advice.',
-    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une conseillère; jamais de conseil en placement.',
+    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une conseillère ; jamais de conseil en placement.',
   },
   /* Her opening turn on an empty conversation — a hello, at most one thing
      she noticed from the book, and a question. Built client-side from
@@ -609,11 +609,11 @@ const investCoreMessages = defineMessages({
   },
   invest_chat_hi_ask: {
     en: 'What should the book record today?',
-    fr: 'Qu’est-ce que le carnet note aujourd’hui?',
+    fr: 'Qu’est-ce que le carnet note aujourd’hui ?',
   },
   invest_chat_empty: {
     en: 'Nothing yet. Try “what’s on my watchlist?” or “watch XEQT for me.”',
-    fr: 'Rien pour l’instant. Essayez « qu’est-ce que je surveille? » ou « ajoute XEQT à ma liste ».',
+    fr: 'Rien pour l’instant. Essayez « qu’est-ce que je surveille ? » ou « ajoute XEQT à ma liste ».',
   },
   invest_chat_placeholder: {
     en: 'Ask Tally about the book, or tell her what to record…',

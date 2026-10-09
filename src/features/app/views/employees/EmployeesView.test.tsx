@@ -87,7 +87,7 @@ describe('EmployeesView', () => {
       act(() => {
         vi.advanceTimersByTime(ADVISOR_THINK_MS + 200 * ADVISOR_STREAM_TICK_MS)
       })
-      expect(screen.getByText(/Jordan's termination is in progress/)).toBeInTheDocument()
+      expect(screen.getByText(/Jordan’s termination is in progress/)).toBeInTheDocument()
       expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Open full case' })).toBeInTheDocument()
     })

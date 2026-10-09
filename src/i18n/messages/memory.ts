@@ -305,7 +305,7 @@ export const memoryMessages = defineMessages({
   }, // FR self-authored
   memory_prod_forget_person_confirm: {
     en: 'Forget all memory for this person? This cannot be undone from the UI.',
-    fr: 'Oublier toute la mémoire pour cette personne? Impossible d’annuler depuis l’interface.',
+    fr: 'Oublier toute la mémoire pour cette personne ? Impossible d’annuler depuis l’interface.',
   }, // FR self-authored
   memory_prod_forget_person_none: {
     en: 'No person-scoped memories to erase.',

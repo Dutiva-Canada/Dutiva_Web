@@ -310,7 +310,7 @@ export const memoryWorkspaceMessages = defineMessages({
   memory_gov_data_export: { en: 'Export memory data', fr: 'Exporter les données de mémoire' }, // [FR self-authored]
   memory_gov_data_export_note: {
     en: 'Downloads the workspace memory record as JSON through the export-protection pipeline (velocity guard + audit trail). Suitable for administrative export today; a dedicated privacy/access-request package is a planned separation.',
-    fr: 'Télécharge le registre de mémoire de l’espace en JSON via le pipeline de protection des exports (garde-vitesse et piste d’audit). Conçu pour l’export administratif aujourd’hui; un volet dédié pour les demandes d’accès et de confidentialité est une séparation prévue.',
+    fr: 'Télécharge le registre de mémoire de l’espace en JSON via le pipeline de protection des exports (garde-vitesse et piste d’audit). Conçu pour l’export administratif aujourd’hui ; un volet dédié pour les demandes d’accès et de confidentialité est une séparation prévue.',
   }, // [FR self-authored]
   memory_gov_data_remove_person: {
     en: 'Remove a person’s memories',
@@ -326,11 +326,11 @@ export const memoryWorkspaceMessages = defineMessages({
   }, // [FR self-authored]
   memory_gov_data_remove_person_confirm_one: {
     en: 'Remove {count} memory for {name} from Advisor?',
-    fr: 'Retirer {count} élément pour {name} du Conseiller?',
+    fr: 'Retirer {count} élément pour {name} du Conseiller ?',
   }, // [FR self-authored]
   memory_gov_data_remove_person_confirm_many: {
     en: 'Remove {count} memories for {name} from Advisor?',
-    fr: 'Retirer {count} éléments pour {name} du Conseiller?',
+    fr: 'Retirer {count} éléments pour {name} du Conseiller ?',
   }, // [FR self-authored]
   memory_gov_data_remove_person_done_one: {
     en: 'Removed {count} memory for {name} from Advisor.',
@@ -353,7 +353,7 @@ export const memoryWorkspaceMessages = defineMessages({
   }, // [FR self-authored]
   memory_gov_danger_delete_confirm: {
     en: 'Permanently delete all workspace memories? This cannot be undone from the UI.',
-    fr: 'Supprimer définitivement tous les éléments de l’espace? Impossible d’annuler depuis l’interface.',
+    fr: 'Supprimer définitivement tous les éléments de l’espace ? Impossible d’annuler depuis l’interface.',
   }, // [FR self-authored]
   memory_gov_danger_delete_todo: {
     en: 'Full deletion (relational record, search index, vector embedding, derived summaries, cached Advisor context, and backup lifecycle) is not yet implemented. This action is disabled until the backend supports it.',

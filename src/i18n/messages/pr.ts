@@ -98,7 +98,7 @@ export const prMessages = defineMessages({
   pr_camp_objective: { en: 'Objective', fr: 'Objectif' },
   pr_camp_objective_ph: {
     en: 'What should this campaign change?',
-    fr: 'Que doit changer cette campagne?',
+    fr: 'Que doit changer cette campagne ?',
   },
   pr_camp_budget: { en: 'Budget', fr: 'Budget' },
   pr_camp_start: { en: 'Starts', fr: 'Début' },
@@ -352,7 +352,7 @@ export const prMessages = defineMessages({
   pr_ans_note: { en: 'Note (optional)', fr: 'Note (facultatif)' },
   pr_ans_note_ph: {
     en: 'e.g. named third, no link; suggested a competitor',
-    fr: 'p. ex. nommée troisième, sans lien; a suggéré un concurrent',
+    fr: 'p. ex. nommée troisième, sans lien ; a suggéré un concurrent',
   },
   pr_ans_check: { en: 'Log result', fr: 'Consigner' },
   pr_ans_checked: { en: 'Checked {date}', fr: 'Vérifié le {date}' },
@@ -516,7 +516,7 @@ export const prMessages = defineMessages({
   pr_ai_pitch_working: { en: 'Drafting…', fr: 'Rédaction…' },
   pr_ai_pitch_note: {
     en: 'AI draft — edit it and send it yourself; nothing goes out from here.',
-    fr: 'Ébauche IA — modifiez-la et envoyez-la vous-même; rien ne part d’ici.',
+    fr: 'Ébauche IA — modifiez-la et envoyez-la vous-même ; rien ne part d’ici.',
   },
   pr_ai_pitch_failed: {
     en: 'No draft right now — write it yourself for now.',
@@ -551,7 +551,7 @@ export const prMessages = defineMessages({
   /* A resolve call failed — the row stays pending. [FR self-authored] */
   pr_review_action_failed: {
     en: 'That didn’t save — it’s still waiting here; try again.',
-    fr: 'Ça n’a pas enregistré — c’est toujours en attente; réessayez.',
+    fr: 'Ça n’a pas enregistré — c’est toujours en attente ; réessayez.',
   },
   pr_review_accept_pitch_copy: { en: 'Copy', fr: 'Copier' },
   pr_review_accept_pitch_mail: { en: 'Open in email', fr: 'Ouvrir dans le courriel' },
@@ -608,7 +608,7 @@ export const prMessages = defineMessages({
   pr_chat_title: { en: 'Paige', fr: 'Paige' },
   pr_chat_sub: {
     en: 'Your press specialist — ask about your desk, or tell her what to record. She’s software, not a person or an agency; drafts always wait for your review.',
-    fr: 'Votre spécialiste presse — posez-lui une question sur vos données, ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une agence; les brouillons attendent toujours votre validation.',
+    fr: 'Votre spécialiste presse — posez-lui une question sur vos données, ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une agence ; les brouillons attendent toujours votre validation.',
   },
   /* Her opening turn on an empty conversation — a hello, at most one thing
      she noticed from the desk, and a question. Built client-side from
@@ -628,11 +628,11 @@ export const prMessages = defineMessages({
   },
   pr_chat_hi_ask: {
     en: 'What are we working on today?',
-    fr: 'Sur quoi travaille-t-on aujourd’hui?',
+    fr: 'Sur quoi travaille-t-on aujourd’hui ?',
   },
   pr_chat_empty: {
     en: 'Nothing yet. Try “what campaigns are active?” or “add a contact at a trade outlet.”',
-    fr: 'Rien pour l’instant. Essayez « quelles campagnes sont actives? » ou « ajoute un contact dans un média spécialisé ».',
+    fr: 'Rien pour l’instant. Essayez « quelles campagnes sont actives ? » ou « ajoute un contact dans un média spécialisé ».',
   },
   pr_chat_placeholder: {
     en: 'Ask Paige about the desk, or tell her what to record…',

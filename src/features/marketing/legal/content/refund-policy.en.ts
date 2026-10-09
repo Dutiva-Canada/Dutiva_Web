@@ -13,11 +13,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "To cancel your subscription, open the billing portal — from the Pricing page, select 'Manage billing' under Your plan. In the portal you can manage or cancel your subscription. Your cancellation takes effect at the end of your current billing period, and you will receive a confirmation email at the address on your account.",
+          text: "To cancel your subscription, open the billing portal — from the Pricing page, select ’Manage billing’ under Your plan. In the portal you can manage or cancel your subscription. Your cancellation takes effect at the end of your current billing period, and you will receive a confirmation email at the address on your account.",
         },
         {
           type: 'p',
-          text: "You can also cancel by emailing support@dutiva.ca from the email address associated with your account with 'Cancel Subscription' in the subject line. Include your account email and confirm that you wish to cancel. We process email cancellation requests within 2 business days.",
+          text: "You can also cancel by emailing support@dutiva.ca from the email address associated with your account with ’Cancel Subscription’ in the subject line. Include your account email and confirm that you wish to cancel. We process email cancellation requests within 2 business days.",
         },
       ],
     },
@@ -90,7 +90,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "You can downgrade your plan at any time from the billing portal (open it from the Pricing page under Your plan > Manage billing). Downgrades take effect at the end of the current billing period. You will retain access to your current plan's features until the period ends.",
+          text: "You can downgrade your plan at any time from the billing portal (open it from the Pricing page under Your plan > Manage billing). Downgrades take effect at the end of the current billing period. You will retain access to your current plan’s features until the period ends.",
         },
         {
           type: 'p',

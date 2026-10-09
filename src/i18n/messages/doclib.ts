@@ -114,7 +114,7 @@ export const doclibMessages = defineMessages({
   doclib_detail_about: { en: 'About this template', fr: 'À propos de ce modèle' },
   doclib_detail_jurisdictionNotes: { en: 'Jurisdiction notes', fr: 'Notes par juridiction' },
   doclib_detail_statutory: { en: 'Statutory references', fr: 'Références législatives' },
-  doclib_detail_includes: { en: "What's included", fr: 'Ce qui est inclus' },
+  doclib_detail_includes: { en: "What’s included", fr: 'Ce qui est inclus' },
   doclib_detail_risk: { en: 'Review level', fr: 'Niveau de révision' },
   doclib_detail_generate: { en: 'Create document', fr: 'Créer le document' },
   doclib_detail_preview: { en: 'Sample preview', fr: 'Aperçu type' },
@@ -318,7 +318,7 @@ export const doclibMessages = defineMessages({
   doclib_dm_relations: { en: 'Relations', fr: 'Relations' },
   doclib_dm_uiMapping: { en: 'Where it surfaces', fr: 'Où cela apparaît' },
   doclib_dm_rlsNote: {
-    en: "Every table is org-scoped. Row Level Security limits reads to the caller's organization_members row; role drives write capability.",
+    en: "Every table is org-scoped. Row Level Security limits reads to the caller’s organization_members row; role drives write capability.",
     fr: 'Chaque table est cloisonnée par organisation. La sécurité au niveau des lignes limite les lectures à l’organisation de l’appelant ; le rôle détermine les droits d’écriture.',
   },
   doclib_dm_legend: { en: 'Grouped by domain', fr: 'Regroupé par domaine' },
@@ -334,7 +334,7 @@ export const doclibMessages = defineMessages({
   doclib_toast_voided: { en: 'Voided', fr: 'Annulé' },
   doclib_toast_created: { en: 'Document saved to repository', fr: 'Document enregistré au dépôt' },
   doclib_toast_denied: {
-    en: "Your role can't do that",
+    en: "Your role can’t do that",
     fr: 'Votre rôle ne permet pas cette action',
   },
   doclib_toast_roleChanged: { en: 'Now viewing as', fr: 'Affiché maintenant en tant que' },

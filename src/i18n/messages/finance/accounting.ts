@@ -51,10 +51,10 @@ export const financeAccounting = defineMessages({
   finance_close_period_reopen: { en: 'Reopen', fr: 'Rouvrir' },
 
   /* Audit trail */
-  finance_audit_title: { en: 'Audit trail', fr: "Piste d'audit" },
+  finance_audit_title: { en: 'Audit trail', fr: "Piste d’audit" },
   finance_audit_no_events: {
     en: 'No audit events recorded.',
-    fr: "Aucun événement d'audit enregistré.",
+    fr: "Aucun événement d’audit enregistré.",
   },
   finance_audit_actor: { en: 'Actor', fr: 'Acteur' },
   finance_audit_action: { en: 'Action', fr: 'Action' },

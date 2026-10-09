@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This Acceptable Use Policy ("AUP") governs your use of Dutiva\'s platform, services, templates, Advisor, and generated content. By accessing or using Dutiva, you agree to comply with this AUP. Violations may result in suspension or termination of access.',
+    'This Acceptable Use Policy ("AUP") governs your use of Dutiva’s platform, services, templates, Advisor, and generated content. By accessing or using Dutiva, you agree to comply with this AUP. Violations may result in suspension or termination of access.',
   ],
   sections: [
     {
@@ -17,7 +17,7 @@ export default {
         },
         {
           type: 'p',
-          text: "This policy applies to all users, including free accounts, paid subscribers, enterprise accounts, and administrators, as well as any use of Dutiva's API or integrations.",
+          text: "This policy applies to all users, including free accounts, paid subscribers, enterprise accounts, and administrators, as well as any use of Dutiva’s API or integrations.",
         },
       ],
     },
@@ -30,7 +30,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Generate documents that discriminate against employees or applicants on the basis of a protected ground under the Canadian Human Rights Act, the Ontario Human Rights Code, Quebec's Charter of Human Rights and Freedoms, or any other applicable human rights legislation, including but not limited to race, national or ethnic origin, colour, religion, age, sex, sexual orientation, gender identity or expression, marital status, family status, or disability.",
+          text: "Generate documents that discriminate against employees or applicants on the basis of a protected ground under the Canadian Human Rights Act, the Ontario Human Rights Code, Quebec’s Charter of Human Rights and Freedoms, or any other applicable human rights legislation, including but not limited to race, national or ethnic origin, colour, religion, age, sex, sexual orientation, gender identity or expression, marital status, family status, or disability.",
         },
         {
           type: 'li',
@@ -50,7 +50,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Attempt to reverse-engineer, scrape, extract, or reproduce Dutiva's template content, AI models, guidance databases, or platform infrastructure for use outside Dutiva.",
+          text: "Attempt to reverse-engineer, scrape, extract, or reproduce Dutiva’s template content, AI models, guidance databases, or platform infrastructure for use outside Dutiva.",
         },
         {
           type: 'li',
@@ -70,7 +70,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Interfere with, disrupt, or attempt to gain unauthorized access to Dutiva's services, servers, networks, or user data.",
+          text: "Interfere with, disrupt, or attempt to gain unauthorized access to Dutiva’s services, servers, networks, or user data.",
         },
         {
           type: 'li',

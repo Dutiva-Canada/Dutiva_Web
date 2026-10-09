@@ -30,7 +30,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Factual reference: You may refer to Dutiva by name to accurately describe that you use, integrate with, or are evaluating Dutiva's services, provided the use is truthful, non-misleading, and does not imply endorsement by Dutiva.",
+          text: "Factual reference: You may refer to Dutiva by name to accurately describe that you use, integrate with, or are evaluating Dutiva’s services, provided the use is truthful, non-misleading, and does not imply endorsement by Dutiva.",
         },
         {
           type: 'li',
@@ -63,7 +63,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Use Dutiva Marks in connection with products, services, or content that violates applicable law or Dutiva's Acceptable Use Policy.",
+          text: "Use Dutiva Marks in connection with products, services, or content that violates applicable law or Dutiva’s Acceptable Use Policy.",
         },
         {
           type: 'li',
@@ -80,7 +80,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "When you use Dutiva Marks in a permitted manner, use the full wordmark 'Dutiva' or 'Dutiva Canada Inc.' on first use. Where appropriate, include a trademark notice such as 'DUTIVA is a trademark of Dutiva Canada Inc.'",
+          text: "When you use Dutiva Marks in a permitted manner, use the full wordmark ’Dutiva’ or ’Dutiva Canada Inc.’ on first use. Where appropriate, include a trademark notice such as ’DUTIVA is a trademark of Dutiva Canada Inc.’",
         },
       ],
     },

@@ -133,6 +133,6 @@ export const revenueMessages = defineMessages({
   /* Disclaimer */
   rev_disclaimer: {
     en: 'Tracks revenue streams and invoices; it does not replace your accounting records.',
-    fr: 'Fait le suivi des flux de revenus et des factures; cela ne remplace pas vos registres comptables.',
+    fr: 'Fait le suivi des flux de revenus et des factures ; cela ne remplace pas vos registres comptables.',
   },
 })

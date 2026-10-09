@@ -42,7 +42,7 @@ export default {
       ],
     },
     {
-      title: "2. Dutiva's Response to Takedown Notices",
+      title: "2. Dutiva’s Response to Takedown Notices",
       blocks: [
         {
           type: 'p',
@@ -110,11 +110,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva's designated agent for copyright infringement notices is:",
+          text: "Dutiva’s designated agent for copyright infringement notices is:",
         },
         {
           type: 'p',
-          text: "Legal Team, Dutiva Canada Inc. | Email: legal@dutiva.ca | Subject line: 'Copyright Takedown Notice'",
+          text: "Legal Team, Dutiva Canada Inc. | Email: legal@dutiva.ca | Subject line: ’Copyright Takedown Notice’",
         },
       ],
     },

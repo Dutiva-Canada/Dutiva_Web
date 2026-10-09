@@ -27,8 +27,8 @@ const s1: AdvisorScenario = {
   title: bi('Termination — Ontario, no clause', 'Licenciement — Ontario, sans clause'),
   pinned: true,
   user: bi(
-    "I need to terminate a full-time employee in Ontario — 8 years' service, no termination clause in their contract. What's our exposure?",
-    'Je dois licencier un salarié à temps plein en Ontario — 8 ans de service, aucune clause de licenciement dans son contrat. Quelle est notre exposition?',
+    "I need to terminate a full-time employee in Ontario — 8 years’ service, no termination clause in their contract. What’s our exposure?",
+    'Je dois licencier un salarié à temps plein en Ontario — 8 ans de service, aucune clause de licenciement dans son contrat. Quelle est notre exposition ?',
   ),
   turn: {
     reply: joinDisclaimer(
@@ -97,7 +97,7 @@ const s1: AdvisorScenario = {
         items: [
           {
             factId: 'demo-tenure',
-            label: bi("8 years' service", '8 ans de service'),
+            label: bi("8 years’ service", '8 ans de service'),
           },
           {
             factId: 'demo-clause',
@@ -119,7 +119,7 @@ const s1: AdvisorScenario = {
         pct: 62,
         note: bi(
           'Assumes a standard mid-level role; confirm payroll size for severance eligibility.',
-          'Suppose un poste intermédiaire standard; confirmez la masse salariale pour l’admissibilité à l’indemnité.',
+          'Suppose un poste intermédiaire standard ; confirmez la masse salariale pour l’admissibilité à l’indemnité.',
         ),
       },
       warnings: [
@@ -139,7 +139,7 @@ const s2: AdvisorScenario = {
   pinned: false,
   user: bi(
     'An employee just filed a harassment complaint against their manager. What do we do first?',
-    'Un employé vient de déposer une plainte de harcèlement contre son gestionnaire. Que faisons-nous en premier?',
+    'Un employé vient de déposer une plainte de harcèlement contre son gestionnaire. Que faisons-nous en premier ?',
   ),
   turn: {
     reply: joinDisclaimer(
@@ -230,8 +230,8 @@ const s3: AdvisorScenario = {
   title: bi('Medical accommodation request', 'Demande d’accommodement médical'),
   pinned: false,
   user: bi(
-    "An employee gave us a doctor's note and asked for modified duties. What can we ask for, and what are our obligations?",
-    'Un employé nous a remis un billet médical et demande des tâches modifiées. Que pouvons-nous demander, et quelles sont nos obligations?',
+    "An employee gave us a doctor’s note and asked for modified duties. What can we ask for, and what are our obligations?",
+    'Un employé nous a remis un billet médical et demande des tâches modifiées. Que pouvons-nous demander, et quelles sont nos obligations ?',
   ),
   turn: {
     reply: joinDisclaimer(
@@ -260,7 +260,7 @@ const s3: AdvisorScenario = {
         label: bi('Suggested: occupational-health input', 'Suggéré : avis en santé au travail'),
         reason: bi(
           'Functional-information limits and modified-duty design; not a legal escalation.',
-          'Limites de l’information fonctionnelle et conception des tâches modifiées; pas une escalade juridique.',
+          'Limites de l’information fonctionnelle et conception des tâches modifiées ; pas une escalade juridique.',
         ),
       },
       supportNotice: false,
@@ -307,15 +307,15 @@ const s3: AdvisorScenario = {
 
 const s4: AdvisorScenario = {
   id: 's4',
-  title: bi('Notice period — jurisdiction?', 'Préavis — quelle compétence?'),
+  title: bi('Notice period — jurisdiction?', 'Préavis — quelle compétence ?'),
   pinned: false,
   user: bi(
-    "What's the notice period for terminating an employee?",
-    'Quel est le préavis pour mettre fin à l’emploi d’un salarié?',
+    "What’s the notice period for terminating an employee?",
+    'Quel est le préavis pour mettre fin à l’emploi d’un salarié ?',
   ),
   turn: {
     reply: bi(
-      "Before I give you specific notice figures, I need to know the jurisdiction — the rules differ a lot across Canada. Which province is the employee in, or is the employer federally regulated (banking, telecom, interprovincial transport)? I won't cite statutory minimums until that's confirmed.",
+      "Before I give you specific notice figures, I need to know the jurisdiction — the rules differ a lot across Canada. Which province is the employee in, or is the employer federally regulated (banking, telecom, interprovincial transport)? I won’t cite statutory minimums until that’s confirmed.",
       'Avant de vous donner des chiffres de préavis précis, je dois connaître la compétence — les règles varient beaucoup au Canada. Dans quelle province l’employé travaille-t-il, ou l’employeur est-il de compétence fédérale (banques, télécommunications, transport interprovincial)? Je ne citerai aucun minimum légal avant que ce soit confirmé.',
     ),
     provincePrompt: true,
@@ -391,7 +391,7 @@ const s4: AdvisorScenario = {
         label: bi('No formal review needed yet', 'Aucune révision formelle requise pour l’instant'),
         reason: bi(
           'Routine notice-period guidance; escalate if a contract dispute emerges.',
-          'Conseils courants sur le préavis; escaladez si un différend contractuel survient.',
+          'Conseils courants sur le préavis ; escaladez si un différend contractuel survient.',
         ),
       },
       supportNotice: false,
@@ -429,14 +429,14 @@ const s5: AdvisorScenario = {
   title: bi('Feeling overwhelmed', 'Sentiment de débordement'),
   pinned: false,
   user: bi(
-    "Honestly I've been really overwhelmed and burnt out lately and I don't know how to keep up.",
+    "Honestly I’ve been really overwhelmed and burnt out lately and I don’t know how to keep up.",
     'Honnêtement, je me sens vraiment débordé et épuisé ces derniers temps et je ne sais plus comment suivre le rythme.',
   ),
   turn: {
     /* Supportive mode: human reply, crisis resource verbatim, no disclaimer
        (AGENT.md §7–8 — the disclaimer does not appear in wellbeing mode). */
     reply: bi(
-      "I'm sorry you're carrying so much right now — that sounds genuinely exhausting, and it's okay to feel this way. A few things that can help in the moment: give yourself permission to step back and take a real break, and talk to someone you trust. If this has been building for a while, reaching out to your doctor or your EAP is a solid next step. And if you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I'm here whenever you want to talk anything through.",
+      "I’m sorry you’re carrying so much right now — that sounds genuinely exhausting, and it’s okay to feel this way. A few things that can help in the moment: give yourself permission to step back and take a real break, and talk to someone you trust. If this has been building for a while, reaching out to your doctor or your EAP is a solid next step. And if you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I’m here whenever you want to talk anything through.",
       'Je suis désolé que vous portiez autant en ce moment — cela semble réellement épuisant, et c’est normal de se sentir ainsi. Quelques gestes qui peuvent aider : donnez-vous la permission de prendre un vrai recul, et parlez-en à une personne de confiance. Si cela dure depuis un moment, contacter votre médecin ou votre PAE est une bonne prochaine étape. Et si jamais vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise de suicide, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voulez en parler.',
     ),
     banner: {
@@ -505,11 +505,11 @@ const s5: AdvisorScenario = {
 
 const s6: AdvisorScenario = {
   id: 's6',
-  title: bi('What changed in ON law?', 'Quoi de neuf en droit ontarien?'),
+  title: bi('What changed in ON law?', 'Quoi de neuf en droit ontarien ?'),
   pinned: false,
   user: bi(
     'What changed in Ontario employment law this year?',
-    'Qu’est-ce qui a changé dans le droit du travail ontarien cette année?',
+    'Qu’est-ce qui a changé dans le droit du travail ontarien cette année ?',
   ),
   turn: {
     reply: joinDisclaimer(

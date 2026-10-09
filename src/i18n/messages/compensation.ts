@@ -137,7 +137,7 @@ export const compensationMessages = defineMessages({
   },
   comp_prod_delete_confirm: {
     en: 'Remove this compensation record?',
-    fr: 'Retirer ce dossier de rémunération?',
+    fr: 'Retirer ce dossier de rémunération ?',
   },
   comp_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
   comp_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },

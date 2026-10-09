@@ -34,10 +34,10 @@ function row(over: Partial<AgentSuggestion> = {}): AgentSuggestion {
 const MESSAGES = {
   empty: { en: 'Nothing waiting', fr: 'Rien en attente' },
   dismiss: { en: 'Dismiss', fr: 'Écarter' },
-  acceptFallback: { en: 'Got it', fr: "C'est noté" },
+  acceptFallback: { en: 'Got it', fr: "C’est noté" },
   loadFailed: { en: 'Failed to load', fr: 'Échec' },
   filedBy: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
-  actionFailed: { en: 'That did not save', fr: "Ça n'a pas enregistré" },
+  actionFailed: { en: 'That did not save', fr: "Ça n’a pas enregistré" },
   kindLabel: { pitch: { en: 'Pitch', fr: 'Pitch' } },
 }
 
@@ -78,7 +78,7 @@ describe('AgentReviewQueue', () => {
     const run = vi.fn().mockResolvedValue(undefined)
     const kinds: Record<string, KindRenderer> = {
       pitch: {
-        actions: [{ label: { en: 'Use it', fr: "L'utiliser" }, action: 'used', run }],
+        actions: [{ label: { en: 'Use it', fr: "L’utiliser" }, action: 'used', run }],
       },
     }
     renderQueue(kinds)

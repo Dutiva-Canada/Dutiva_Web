@@ -21,7 +21,7 @@ vi.mock('@/lib/exportProtection', async (importOriginal) => {
 
 const EXPORT_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 const OFFER_REPLY =
-  "I've got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm."
+  "I’ve got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm."
 
 const clipboardWrite = vi.fn()
 

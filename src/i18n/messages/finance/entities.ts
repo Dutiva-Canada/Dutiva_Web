@@ -45,7 +45,7 @@ export const financeEntities = defineMessages({
   finance_entity_remove: { en: 'Delete', fr: 'Supprimer' },
   finance_entity_remove_confirm: {
     en: 'Delete this legal entity?',
-    fr: 'Supprimer cette entité juridique?',
+    fr: 'Supprimer cette entité juridique ?',
   },
 
   /* Subscriptions */

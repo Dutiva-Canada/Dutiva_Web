@@ -26,7 +26,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "DigitalOcean Gradient AI — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: Canada, the United States, or the Netherlands (serverless inference; the provider routes each request to the nearest available region and does not offer region selection on serverless). Data submitted for inference is subject to the provider's data processing terms and is not used to train third-party foundation models under Dutiva's arrangement.",
+          text: "DigitalOcean Gradient AI — Purpose: AI model routing and inference services powering Dutiva Advisor responses and document generation. Data processed: Advisor message text, jurisdiction context, selected template inputs, retrieved guidance context. Processing location: Canada, the United States, or the Netherlands (serverless inference; the provider routes each request to the nearest available region and does not offer region selection on serverless). Data submitted for inference is subject to the provider’s data processing terms and is not used to train third-party foundation models under Dutiva’s arrangement.",
         },
       ],
     },
@@ -53,7 +53,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva does not use a third-party error-tracking subprocessor (such as Sentry or Datadog). When the application encounters an error, a minimized report is sent to a Dutiva-operated function and stored in Dutiva's own database (Supabase, listed in Section 1). Each report is limited to a coarse error message, the route pattern, a release identifier, coarse browser and operating-system family, and locale — it carries no user, session, or authentication identifiers and no input content. Processing and storage follow the Supabase entry above.",
+          text: "Dutiva does not use a third-party error-tracking subprocessor (such as Sentry or Datadog). When the application encounters an error, a minimized report is sent to a Dutiva-operated function and stored in Dutiva’s own database (Supabase, listed in Section 1). Each report is limited to a coarse error message, the route pattern, a release identifier, coarse browser and operating-system family, and locale — it carries no user, session, or authentication identifiers and no input content. Processing and storage follow the Supabase entry above.",
         },
       ],
     },
@@ -62,7 +62,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "First-party analytics are processed in-house. Help Centre and support-funnel events (searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function pinned to the Canada (ca-central-1) region and stored in Dutiva's own database (Supabase, Section 1). They carry a daily-rotated anonymous identifier or a workspace (organization) identifier, never an individual user identifier, and are not shared with any third-party analytics provider. These events are collected only after the visitor consents through the consent banner.",
+          text: "First-party analytics are processed in-house. Help Centre and support-funnel events (searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function pinned to the Canada (ca-central-1) region and stored in Dutiva’s own database (Supabase, Section 1). They carry a daily-rotated anonymous identifier or a workspace (organization) identifier, never an individual user identifier, and are not shared with any third-party analytics provider. These events are collected only after the visitor consents through the consent banner.",
         },
         {
           type: 'p',
@@ -75,7 +75,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "To protect public forms (such as beta-signup and support requests) from spam and automated abuse, Dutiva may use a CAPTCHA / bot-protection provider: Cloudflare, Inc. (Cloudflare Turnstile) by default, or Intuition Machines, Inc. (hCaptcha) where configured. When enabled, the provider evaluates technical signals from the visitor's browser — including IP address and interaction signals — to distinguish humans from automated clients. This protection is engaged only on public submission forms and only when bot-protection keys are configured. Cloudflare may also provide DNS, network-security, and availability services where used. Processing location: United States and global edge network.",
+          text: "To protect public forms (such as beta-signup and support requests) from spam and automated abuse, Dutiva may use a CAPTCHA / bot-protection provider: Cloudflare, Inc. (Cloudflare Turnstile) by default, or Intuition Machines, Inc. (hCaptcha) where configured. When enabled, the provider evaluates technical signals from the visitor’s browser — including IP address and interaction signals — to distinguish humans from automated clients. This protection is engaged only on public submission forms and only when bot-protection keys are configured. Cloudflare may also provide DNS, network-security, and availability services where used. Processing location: United States and global edge network.",
         },
         {
           type: 'p',
@@ -88,7 +88,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Most of Dutiva's subprocessors are based in the United States. Personal data transferred to U.S.-based subprocessors is subject to U.S. law, including potential access by U.S. government authorities under applicable surveillance laws. We select subprocessors that maintain appropriate technical and contractual safeguards, including data processing agreements aligned with PIPEDA requirements.",
+          text: "Most of Dutiva’s subprocessors are based in the United States. Personal data transferred to U.S.-based subprocessors is subject to U.S. law, including potential access by U.S. government authorities under applicable surveillance laws. We select subprocessors that maintain appropriate technical and contractual safeguards, including data processing agreements aligned with PIPEDA requirements.",
         },
         {
           type: 'p',

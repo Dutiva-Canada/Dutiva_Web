@@ -10,7 +10,7 @@ export const financeChrome = defineMessages({
   },
   finance_disclaimer: {
     en: 'Dutiva coordinates financial records and review; it does not move money, file returns, or provide tax advice.',
-    fr: 'Dutiva coordonne les dossiers financiers et les révisions; il ne transfère pas de fonds, ne produit pas de déclarations et ne fournit pas de conseils fiscaux.',
+    fr: 'Dutiva coordonne les dossiers financiers et les révisions ; il ne transfère pas de fonds, ne produit pas de déclarations et ne fournit pas de conseils fiscaux.',
   },
   finance_demo_read_only: {
     en: 'Demo mode — data is read-only sample content.',

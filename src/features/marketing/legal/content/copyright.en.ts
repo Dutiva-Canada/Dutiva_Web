@@ -60,7 +60,7 @@ export default {
         },
         {
           type: 'p',
-          text: "The platform may also incorporate open-source software components under their respective licenses. Dutiva's open-source license notices are maintained in the platform repository.",
+          text: "The platform may also incorporate open-source software components under their respective licenses. Dutiva’s open-source license notices are maintained in the platform repository.",
         },
       ],
     },

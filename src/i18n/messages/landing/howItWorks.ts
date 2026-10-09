@@ -19,7 +19,7 @@ export const landingHowItWorks = defineMessages({
   },
   landing_how1_p: {
     en: 'Ask a plain-language HR question and pick Ontario, Quebec, or federal — or start a guided workflow for multi-step processes like termination or accommodation.',
-    fr: "Posez une question RH en langage clair et choisissez l'Ontario, le Québec ou le fédéral — ou démarrez un processus guidé pour les démarches à plusieurs étapes comme une cessation d'emploi ou un accommodement.",
+    fr: "Posez une question RH en langage clair et choisissez l’Ontario, le Québec ou le fédéral — ou démarrez un processus guidé pour les démarches à plusieurs étapes comme une cessation d’emploi ou un accommodement.",
   },
   landing_how2_t: {
     en: 'Advisor assesses and flags risk',

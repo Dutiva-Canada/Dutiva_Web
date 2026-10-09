@@ -49,7 +49,7 @@ describe('document fixture normalization', () => {
       .join('\n')
     expect(fr).toContain('lettre de licenciement')
     expect(fr).toContain('Lettre de licenciement')
-    expect(fr).not.toMatch(/lettre de cessation d'emploi/i)
+    expect(fr).not.toMatch(/lettre de cessation d’emploi/i)
     expect(fr).not.toMatch(/Lettre de cessation/i)
   })
 
@@ -70,12 +70,12 @@ describe('document fixture normalization', () => {
     expect(en).not.toMatch(/employee's province|employee’s province/i)
     expect(en).not.toMatch(/provincial-specific/i)
     expect(en).not.toMatch(/Multi-province/i)
-    expect(fr).toMatch(/normes d'emploi applicables/i)
+    expect(fr).toMatch(/normes d’emploi applicables/i)
     expect(fr).toMatch(/compétence applicable/i)
     expect(fr).toMatch(/examen propre à la compétence/i)
     expect(fr).toMatch(/exécutoire dans la compétence applicable/i)
     expect(fr).not.toMatch(/exécutable/i)
-    expect(fr).not.toMatch(/province de l'employé/i)
+    expect(fr).not.toMatch(/province de l’employé/i)
   })
 
   it('preserves legal caution in the Employment Agreement termination clause', () => {
@@ -85,7 +85,7 @@ describe('document fixture normalization', () => {
     expect(clause.en).toMatch(/enforceability varies by jurisdiction/i)
     expect(clause.en).toMatch(/may not represent the employee[’']s full entitlement/i)
     expect(clause.fr).toMatch(/la force exécutoire varie selon la compétence/i)
-    expect(clause.fr).toMatch(/peuvent ne pas représenter l'ensemble des droits/i)
+    expect(clause.fr).toMatch(/peuvent ne pas représenter l’ensemble des droits/i)
   })
 
   it('keeps Devon PIP accommodation safeguards without collecting medical detail', () => {
@@ -115,7 +115,7 @@ describe('document fixture normalization', () => {
     const probationSection = offer.sections[3]
     if (!probationSection) throw new Error('Missing Offer Letter probation section')
     expect(probationSection.fr).toContain('contrat de travail')
-    expect(probationSection.fr).not.toMatch(/convention d'emploi|convention d’emploi/i)
+    expect(probationSection.fr).not.toMatch(/convention d’emploi|convention d’emploi/i)
   })
 
   it('uses jurisdiction-neutral wording in the generic Remote Work Policy', () => {
@@ -133,7 +133,7 @@ describe('document fixture normalization', () => {
     expect(en).not.toMatch(/obligations extend to home offices/i)
     expect(fr).toMatch(/loi applicable/i)
     expect(fr).not.toMatch(/loi provinciale/i)
-    expect(fr).toMatch(/peuvent s'appliquer au télétravail/i)
+    expect(fr).toMatch(/peuvent s’appliquer au télétravail/i)
   })
 
   it('keeps document template keys unique and the lookup index aligned', () => {

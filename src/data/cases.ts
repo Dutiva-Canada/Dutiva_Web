@@ -204,7 +204,7 @@ export const caseRiskByType: Record<CaseType, CaseRisk> = {
       ),
       bi(
         'Medical information should be limited to what is reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary.',
-        'Les renseignements médicaux devraient être limités à ce qui est raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile.',
+        'Les renseignements médicaux devraient être limités à ce qui est raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement ; le diagnostic est généralement inutile.',
       ),
     ],
   },
@@ -319,11 +319,11 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       'High',
       bi(
         'Counsel response outstanding; offer target is Jul 10.',
-        'Réponse du conseiller en attente; offre visée le 10 juillet.',
+        'Réponse du conseiller en attente ; offre visée le 10 juillet.',
       ),
       bi(
         'Nudge counsel today; do not schedule the meeting until review closes.',
-        'Relancez le conseiller aujourd’hui; ne planifiez pas la rencontre avant la fin de l’examen.',
+        'Relancez le conseiller aujourd’hui ; ne planifiez pas la rencontre avant la fin de l’examen.',
       ),
     ),
     axis(
@@ -335,7 +335,7 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       ),
       bi(
         'Keep documents in the case file; avoid email attachments.',
-        'Conservez les documents dans le dossier; évitez les pièces jointes par courriel.',
+        'Conservez les documents dans le dossier ; évitez les pièces jointes par courriel.',
       ),
     ),
     axis(
@@ -490,7 +490,7 @@ export const caseRiskAxesByType: Record<CaseType, CaseRiskAxis[]> = {
       'Low',
       bi(
         'French-language documentation prepared; confirm whether French versions were required.',
-        'Documentation en français préparée; confirmez si des versions françaises étaient requises.',
+        'Documentation en français préparée ; confirmez si des versions françaises étaient requises.',
       ),
       bi(
         'Record the language-requirement confirmation before archiving.',

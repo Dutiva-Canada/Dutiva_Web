@@ -265,7 +265,7 @@ export const casesMessages = defineMessages({
   cases_prod_tab_overview: { en: 'Overview', fr: 'Aperçu' },
   cases_prod_tab_risk: { en: 'Risk review', fr: 'Examen des risques' },
   cases_prod_tab_legal: { en: 'Legal review', fr: 'Révision juridique' },
-  cases_prod_tab_activity: { en: 'Activity log', fr: "Journal d'activité" },
+  cases_prod_tab_activity: { en: 'Activity log', fr: "Journal d’activité" },
   cases_prod_tab_notes: { en: 'Notes', fr: 'Notes' },
   cases_prod_tabs_aria: { en: 'Case workspace sections', fr: 'Sections du dossier' },
   cases_prod_detail_created: { en: 'Opened', fr: 'Ouvert le' },
@@ -276,7 +276,7 @@ export const casesMessages = defineMessages({
   },
   cases_prod_risk_empty_body: {
     en: 'Risk factors and mitigation notes will appear here once case management expands to include risk assessment.',
-    fr: "Les facteurs de risque et les notes d'atténuation apparaîtront ici lorsque la gestion des dossiers évoluera pour inclure l'évaluation des risques.",
+    fr: "Les facteurs de risque et les notes d’atténuation apparaîtront ici lorsque la gestion des dossiers évoluera pour inclure l’évaluation des risques.",
   },
   cases_prod_legal_empty_title: {
     en: 'Legal review not yet available',
@@ -288,6 +288,6 @@ export const casesMessages = defineMessages({
   },
   cases_prod_activity_empty: {
     en: 'No activity recorded yet — notes and status changes will appear here as the case progresses.',
-    fr: "Aucune activité enregistrée pour l'instant — les notes et les changements de statut apparaîtront ici au fil du dossier.",
+    fr: "Aucune activité enregistrée pour l’instant — les notes et les changements de statut apparaîtront ici au fil du dossier.",
   },
 })

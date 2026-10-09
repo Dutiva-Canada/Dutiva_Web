@@ -7,7 +7,7 @@ export const landingProduct = defineMessages({
   },
   landing_prod1_p: {
     en: 'Offer letters, termination letters, PIPs, and policies — generated through guided questions, not a blank-page editor.',
-    fr: "Lettres d'offre, lettres de cessation d'emploi, plans d'amélioration du rendement et politiques — générés par des questions guidées, sans éditeur à page blanche.",
+    fr: "Lettres d’offre, lettres de cessation d’emploi, plans d’amélioration du rendement et politiques — générés par des questions guidées, sans éditeur à page blanche.",
   },
   landing_prod2_t: {
     en: 'Employment-standards context',
@@ -15,7 +15,7 @@ export const landingProduct = defineMessages({
   },
   landing_prod2_p: {
     en: 'Ontario, Quebec, and federal coverage. Review the relevant standards context before use.',
-    fr: "Couverture de l'Ontario, du Québec et du fédéral. Consultez le contexte des normes applicables avant utilisation.",
+    fr: "Couverture de l’Ontario, du Québec et du fédéral. Consultez le contexte des normes applicables avant utilisation.",
   },
   landing_prod3_t: {
     en: 'AI-guided generation',
@@ -23,11 +23,11 @@ export const landingProduct = defineMessages({
   },
   landing_prod3_p: {
     en: 'Answer guided questions about the situation. Dutiva structures the draft, fills key fields, and flags what to verify.',
-    fr: "Répondez à des questions guidées sur la situation. Dutiva structure l'ébauche, remplit les champs clés et signale quoi vérifier.",
+    fr: "Répondez à des questions guidées sur la situation. Dutiva structure l’ébauche, remplit les champs clés et signale quoi vérifier.",
   },
   landing_prod4_t: {
     en: 'Workspace review',
-    fr: "Révision dans l'espace de travail",
+    fr: "Révision dans l’espace de travail",
   },
   landing_prod4_p: {
     en: 'Preview generated documents beside compliance guidance before saving or exporting.',

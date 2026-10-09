@@ -128,7 +128,7 @@ export const eapReferralGuide: ReferenceGuide = {
           ),
           bi(
             'You know we have an EAP, right? It is in the handbook.',
-            'Vous savez que nous avons un PAE, n’est-ce pas? C’est dans le manuel de l’employé.',
+            'Vous savez que nous avons un PAE, n’est-ce pas ? C’est dans le manuel de l’employé.',
           ),
         ),
         li(
@@ -166,7 +166,7 @@ export const eapReferralGuide: ReferenceGuide = {
   jurisdictionNotes: {
     ON: bi(
       'Ontario has no statute requiring an employee assistance programme; offering one is voluntary. What is not voluntary is what follows from what you learn — the Human Rights Code duty to accommodate a disability, and the Occupational Health and Safety Act duties that apply where the difficulty involves harassment or violence at work.',
-      'Aucune loi ontarienne n’exige la mise en place d’un programme d’aide aux employés; en offrir un est volontaire. Ce qui ne l’est pas, ce sont les suites de ce que vous apprenez — l’obligation d’accommoder un handicap prévue au Code des droits de la personne, et les obligations de la Loi sur la santé et la sécurité au travail lorsque la difficulté met en cause du harcèlement ou de la violence au travail.',
+      'Aucune loi ontarienne n’exige la mise en place d’un programme d’aide aux employés ; en offrir un est volontaire. Ce qui ne l’est pas, ce sont les suites de ce que vous apprenez — l’obligation d’accommoder un handicap prévue au Code des droits de la personne, et les obligations de la Loi sur la santé et la sécurité au travail lorsque la difficulté met en cause du harcèlement ou de la violence au travail.',
     ),
     QC: bi(
       'Québec likewise requires no programme, but the Act respecting labour standards obliges an employer to take reasonable steps to prevent psychological harassment and to stop it when it occurs — so where a difficulty is traced to conduct at work, a referral is not a response to it. The Charter of human rights and freedoms carries the accommodation duty.',

@@ -5,7 +5,7 @@ export default {
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Cette procédure décrit le processus de signalement et de retrait de contenu présumément contrefaisant sur la plateforme Dutiva Canada Inc., conformément à la Loi sur le droit d'auteur du Canada.",
+    "Cette procédure décrit le processus de signalement et de retrait de contenu présumément contrefaisant sur la plateforme Dutiva Canada Inc., conformément à la Loi sur le droit d’auteur du Canada.",
   ],
   sections: [
     {
@@ -13,15 +13,15 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Pour qu'une notification de retrait soit valide et traitée, elle doit contenir les éléments suivants conformément à la Loi sur le droit d'auteur du Canada.",
+          text: "Pour qu’une notification de retrait soit valide et traitée, elle doit contenir les éléments suivants conformément à la Loi sur le droit d’auteur du Canada.",
         },
         {
           type: 'li',
-          text: "Signature physique ou électronique du détenteur des droits d'auteur ou de son mandataire",
+          text: "Signature physique ou électronique du détenteur des droits d’auteur ou de son mandataire",
         },
         {
           type: 'li',
-          text: "Identification de l'œuvre protégée par le droit d'auteur présumée violée",
+          text: "Identification de l’œuvre protégée par le droit d’auteur présumée violée",
         },
         {
           type: 'li',
@@ -33,7 +33,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Déclaration de bonne foi croyant que l'utilisation n'est pas autorisée",
+          text: "Déclaration de bonne foi croyant que l’utilisation n’est pas autorisée",
         },
         {
           type: 'li',
@@ -46,7 +46,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Si vous croyez que le contenu a été retiré par erreur ou que vous avez le droit d'utiliser le contenu, vous pouvez soumettre une contre-notification.",
+          text: "Si vous croyez que le contenu a été retiré par erreur ou que vous avez le droit d’utiliser le contenu, vous pouvez soumettre une contre-notification.",
         },
         {
           type: 'li',
@@ -75,7 +75,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Les notifications de retrait et les contre-notifications doivent être envoyées à notre agent désigné pour les questions de droit d'auteur.",
+          text: "Les notifications de retrait et les contre-notifications doivent être envoyées à notre agent désigné pour les questions de droit d’auteur.",
         },
         {
           type: 'li',
@@ -91,7 +91,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Examens traités selon leur ordre d'arrivée",
+          text: "Examens traités selon leur ordre d’arrivée",
         },
       ],
     },
@@ -100,11 +100,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Cette procédure est établie conformément à la Loi sur le droit d'auteur du Canada et aux principes applicables en matière de propriété intellectuelle.",
+          text: "Cette procédure est établie conformément à la Loi sur le droit d’auteur du Canada et aux principes applicables en matière de propriété intellectuelle.",
         },
         {
           type: 'li',
-          text: "Loi sur le droit d'auteur du Canada, L.R.C. (1985), ch. C-42",
+          text: "Loi sur le droit d’auteur du Canada, L.R.C. (1985), ch. C-42",
         },
         {
           type: 'li',

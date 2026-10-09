@@ -29,12 +29,12 @@ export default {
         },
         {
           type: 'li',
-          text: "Pièce jointe : preuve d'identité (carte d'identité avec numéros masqués)",
+          text: "Pièce jointe : preuve d’identité (carte d’identité avec numéros masqués)",
         },
       ],
     },
     {
-      title: "2. Vérification de l'identité",
+      title: "2. Vérification de l’identité",
       blocks: [
         {
           type: 'p',
@@ -42,7 +42,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Vérification par courriel de confirmation envoyée à l'adresse du compte",
+          text: "Vérification par courriel de confirmation envoyée à l’adresse du compte",
         },
         {
           type: 'li',
@@ -63,7 +63,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "La suppression couvre les catégories de données suivantes lorsqu'elles s'appliquent à votre compte.",
+          text: "La suppression couvre les catégories de données suivantes lorsqu’elles s’appliquent à votre compte.",
         },
         {
           type: 'li',
@@ -75,11 +75,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Données de l'espace de travail : paramètres de l'organisation, membres de l'équipe",
+          text: "Données de l’espace de travail : paramètres de l’organisation, membres de l’équipe",
         },
         {
           type: 'li',
-          text: "Journaux d'activité : historique d'utilisation et métadonnées associées",
+          text: "Journaux d’activité : historique d’utilisation et métadonnées associées",
         },
       ],
     },
@@ -88,7 +88,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva s'engage à traiter les demandes de suppression dans les délais établis par la législation canadienne.",
+          text: "Dutiva s’engage à traiter les demandes de suppression dans les délais établis par la législation canadienne.",
         },
         {
           type: 'li',
@@ -96,7 +96,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Suppression effective dans les 30 jours suivant la vérification de l'identité",
+          text: "Suppression effective dans les 30 jours suivant la vérification de l’identité",
         },
         {
           type: 'li',
@@ -104,7 +104,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Délais prolongés possibles si des obligations légales de conservation s'appliquent",
+          text: "Délais prolongés possibles si des obligations légales de conservation s’appliquent",
         },
       ],
     },
@@ -113,7 +113,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Certaines données peuvent être conservées au-delà de la demande de suppression si la loi l'exige.",
+          text: "Certaines données peuvent être conservées au-delà de la demande de suppression si la loi l’exige.",
         },
         {
           type: 'li',
@@ -121,7 +121,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Données liées à des litiges : conservées jusqu'à la résolution du litige",
+          text: "Données liées à des litiges : conservées jusqu’à la résolution du litige",
         },
         {
           type: 'li',
@@ -129,7 +129,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Anonymisation des données lorsque la conservation complète n'est pas requise",
+          text: "Anonymisation des données lorsque la conservation complète n’est pas requise",
         },
       ],
     },
@@ -138,7 +138,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Les suppressions sont effectuées selon des procédures techniques sécurisées pour garantir l'irréversibilité.",
+          text: "Les suppressions sont effectuées selon des procédures techniques sécurisées pour garantir l’irréversibilité.",
         },
         {
           type: 'li',
@@ -150,11 +150,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Effacement sécurisé conforme aux standards de l'industrie (NIST 800-88)",
+          text: "Effacement sécurisé conforme aux standards de l’industrie (NIST 800-88)",
         },
         {
           type: 'li',
-          text: "Vérification post-suppression pour confirmer l'effacement",
+          text: "Vérification post-suppression pour confirmer l’effacement",
         },
       ],
     },

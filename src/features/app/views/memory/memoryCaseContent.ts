@@ -58,7 +58,7 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
     },
     summary: bi(
       'Full-time Ontario employee, 8 years’ service, no termination clause on file. Terminating without cause. ESA minimum: 8 weeks’ termination notice/pay; statutory severance may apply if eligibility requirements are met. Preliminary common-law exposure estimated at 9–12 months. Counsel review requested Jul 5, still outstanding. No offer issued.',
-      'Employé à temps plein en Ontario, 8 ans de service, aucune clause de licenciement au dossier. Licenciement sans motif. Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut s’appliquer si les conditions d’admissibilité sont remplies. Exposition préliminaire en common law estimée à 9–12 mois. Révision juridique demandée le 5 juill., toujours en attente. Aucune offre émise.',
+      'Employé à temps plein en Ontario, 8 ans de service, aucune clause de licenciement au dossier. Licenciement sans motif. Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement ; une indemnité de cessation d’emploi peut s’appliquer si les conditions d’admissibilité sont remplies. Exposition préliminaire en common law estimée à 9–12 mois. Révision juridique demandée le 5 juill., toujours en attente. Aucune offre émise.',
     ),
     changed: [
       bi(
@@ -71,7 +71,7 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
       ),
       bi(
         'Nothing has been sent; the drafted letter is still on hold.',
-        'Rien n’a été envoyé; la lettre rédigée est toujours retenue.',
+        'Rien n’a été envoyé ; la lettre rédigée est toujours retenue.',
       ),
     ],
     timeline: [
@@ -163,7 +163,7 @@ export const memoryCaseContent: Record<string, MemoryCaseContent> = {
     },
     summary: bi(
       'Active modified-duties accommodation for an Operations Analyst in BC. Functional limitations on file; duty to accommodate to undue hardship. 90-day review due Jul 14.',
-      'Accommodement actif en tâches modifiées pour une analyste des opérations en C.-B. Limitations fonctionnelles au dossier; obligation d’accommodement jusqu’à la contrainte excessive. Révision de 90 jours le 14 juill.',
+      'Accommodement actif en tâches modifiées pour une analyste des opérations en C.-B. Limitations fonctionnelles au dossier ; obligation d’accommodement jusqu’à la contrainte excessive. Révision de 90 jours le 14 juill.',
     ),
     changed: [
       bi(

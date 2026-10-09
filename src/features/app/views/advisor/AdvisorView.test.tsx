@@ -30,7 +30,7 @@ describe('AdvisorView', () => {
     renderApp(<AdvisorView />, { route: '/app/advisor' })
 
     expect(screen.getByText('Good to see you, Riley.')).toBeInTheDocument()
-    expect(screen.getByText("Here's what Advisor noticed since yesterday.")).toBeInTheDocument()
+    expect(screen.getByText("Here’s what Advisor noticed since yesterday.")).toBeInTheDocument()
 
     /* Conversation-first home: the daily brief + radar watch list stay, the
        duplicated Home metric tiles and action queue do not. */
@@ -54,7 +54,7 @@ describe('AdvisorView', () => {
       screen.getByRole('button', { name: /Jordan Mensah — counsel response outstanding/ }),
     )
     expect(
-      screen.getAllByText(/What's our exposure if counsel doesn't reply this week/).length,
+      screen.getAllByText(/What’s our exposure if counsel doesn’t reply this week/).length,
     ).toBeGreaterThan(0)
   })
 
@@ -118,7 +118,7 @@ describe('AdvisorView', () => {
       act(() => {
         vi.advanceTimersByTime(5000)
       })
-      expect(screen.getByText(/Noted — I've added that to this case/)).toBeInTheDocument()
+      expect(screen.getByText(/Noted — I’ve added that to this case/)).toBeInTheDocument()
     })
 
     it('routes a signed-out home-composer crisis message to the support thread, not a scenario', () => {
@@ -199,7 +199,7 @@ describe('AdvisorView', () => {
       act(() => {
         vi.advanceTimersByTime(849 + 12000)
       })
-      expect(screen.getByText("Here's the assessment for this case.")).toBeInTheDocument()
+      expect(screen.getByText("Here’s the assessment for this case.")).toBeInTheDocument()
       expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
       expect(screen.getByText('ESA s.57 — Notice of termination')).toBeInTheDocument()
       expect(screen.getByText('Termination Letter')).toBeInTheDocument()
@@ -241,7 +241,7 @@ describe('AdvisorView', () => {
 
       const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, {
-        target: { value: "What's the notice period we owe an employee?" },
+        target: { value: "What’s the notice period we owe an employee?" },
       })
       fireEvent.keyDown(composer, { key: 'Enter' })
 

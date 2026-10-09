@@ -292,7 +292,7 @@ export const initialCommsState: CommsWorkspaceState = {
       visibility: 'internal',
       summary: bi(
         'Discussed scope of submission; no lobbying obligation triggered at this stage.',
-        'Discussion sur la portée de la soumission; aucune obligation de lobbying déclenchée à ce stade.',
+        'Discussion sur la portée de la soumission ; aucune obligation de lobbying déclenchée à ce stade.',
       ),
       owner: 'Alex Dubois',
       status: 'responded',
@@ -440,7 +440,7 @@ export const initialCommsState: CommsWorkspaceState = {
       owner: 'Jordan Lee',
       notes: bi(
         'Engagement only; reach is not de-duplicated across platforms.',
-        'Engagement seulement; la portée n’est pas dédupliquée entre les plateformes.',
+        'Engagement seulement ; la portée n’est pas dédupliquée entre les plateformes.',
       ),
     },
   ],

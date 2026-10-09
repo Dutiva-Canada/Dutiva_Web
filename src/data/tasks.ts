@@ -36,7 +36,7 @@ export const tasks: Task[] = [
     jur: bi('Ontario', 'Ontario'),
     detail: bi(
       'Finance confirmed the Ontario payroll exceeds the ESA severance threshold, so severance eligibility applies to the Mensah file. Keep the confirmation with the case record.',
-      'Les Finances ont confirmé que la masse salariale en Ontario dépasse le seuil prévu par la LNE pour l’indemnité de cessation; l’admissibilité s’applique donc au dossier Mensah. Conservez la confirmation avec le dossier.', // [FR self-authored]
+      'Les Finances ont confirmé que la masse salariale en Ontario dépasse le seuil prévu par la LNE pour l’indemnité de cessation ; l’admissibilité s’applique donc au dossier Mensah. Conservez la confirmation avec le dossier.', // [FR self-authored]
     ),
     evidence: bi(
       'Finance confirmed the ESA severance payroll threshold is met',

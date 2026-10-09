@@ -53,7 +53,7 @@ export const scenarioFollowupLabels: Record<string, Bi> = {
   'Open a case file': bi('Open a case file', 'Ouvrir un dossier'),
   'What counts as undue hardship?': bi(
     'What counts as undue hardship?',
-    'Qu’est-ce qu’une contrainte excessive?',
+    'Qu’est-ce qu’une contrainte excessive ?',
   ),
   'Set a functional-review date': bi(
     'Set a functional-review date',
@@ -65,7 +65,7 @@ export const scenarioFollowupLabels: Record<string, Bi> = {
   ),
   'What are the new leave rules?': bi(
     'What are the new leave rules?',
-    'Quelles sont les nouvelles règles de congé?',
+    'Quelles sont les nouvelles règles de congé ?',
   ),
   'Cite the exact section': bi('Cite the exact section', 'Citer l’article exact'),
 }
@@ -105,19 +105,19 @@ export const scenarioSuggestions: ScenarioSuggestion[] = [
   },
   {
     scenarioId: 's6',
-    label: bi('What changed this year?', 'Quoi de neuf cette année?'),
+    label: bi('What changed this year?', 'Quoi de neuf cette année ?'),
     sub: bi('Live web sources', 'Sources Web en direct'),
   },
 ]
 
 /** In-thread ack when the user keeps typing in a demo scenario (prototype `sendChat`). */
 export const scenarioAck: Bi = bi(
-  "Noted — I've added that to this thread. I can generate a document, work out an estimate, or loop in counsel whenever you're ready.",
+  "Noted — I’ve added that to this thread. I can generate a document, work out an estimate, or loop in counsel whenever you’re ready.",
   'Noté — je l’ai ajouté à ce fil. Je peux générer un document, préparer une estimation ou impliquer un conseiller juridique dès que vous êtes prêt.',
 )
 
 /** Signed-out ack (workspace stays in preview mode). */
 export const scenarioAckSignedOut: Bi = bi(
-  "I've noted that. Sign in to run the live engine — it'll pull jurisdiction-aware guidance, risk and citations into your workspace.",
+  "I’ve noted that. Sign in to run the live engine — it’ll pull jurisdiction-aware guidance, risk and citations into your workspace.",
   'C’est noté. Connectez-vous pour lancer le moteur — il affichera dans votre espace les conseils selon la compétence, le risque et les citations.',
 )

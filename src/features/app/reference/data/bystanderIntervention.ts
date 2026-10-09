@@ -94,7 +94,7 @@ export const bystanderInterventionGuide: ReferenceGuide = {
         contrast(
           bi(
             'I saw what happened in that meeting and it was not okay. Are you all right? Tell me if there is something you want me to do — including nothing.',
-            'J’ai vu ce qui s’est passé pendant la réunion et ce n’était pas correct. Est-ce que ça va? Dis-moi s’il y a quelque chose que tu veux que je fasse — y compris rien.',
+            'J’ai vu ce qui s’est passé pendant la réunion et ce n’était pas correct. Est-ce que ça va ? Dis-moi s’il y a quelque chose que tu veux que je fasse — y compris rien.',
           ),
           bi(
             'You should report that. I would report that.',
