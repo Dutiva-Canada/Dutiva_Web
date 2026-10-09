@@ -627,11 +627,11 @@ const investCoreMessages = defineMessages({
   },
   /* Confirmation chips under a reply that did something. The {name} slot is
      the subject the action touched. [FR self-authored] */
-  invest_chat_did_watch: { en: 'Now watching "{name}"', fr: '« {name} » ajouté à la liste' },
-  invest_chat_did_unwatch: { en: '"{name}" removed from the watchlist', fr: '« {name} » retiré de la liste' },
+  invest_chat_did_watch: { en: 'Now watching “{name}”', fr: '« {name} » ajouté à la liste' },
+  invest_chat_did_unwatch: { en: '“{name}” removed from the watchlist', fr: '« {name} » retiré de la liste' },
   invest_chat_did_order: { en: 'Draft order queued — {name}', fr: 'Ordre mis en file — {name}' },
-  invest_chat_did_signal: { en: 'Signal "{name}" updated', fr: 'Signal « {name} » mis à jour' },
-  invest_chat_did_strategy: { en: 'Strategy "{name}" filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
+  invest_chat_did_signal: { en: 'Signal “{name}” updated', fr: 'Signal « {name} » mis à jour' },
+  invest_chat_did_strategy: { en: 'Strategy “{name}” filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
   invest_chat_did_position: { en: 'Position logged — {name}', fr: 'Position notée — {name}' },
   invest_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',

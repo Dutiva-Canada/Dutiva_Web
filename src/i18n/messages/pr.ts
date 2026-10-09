@@ -646,13 +646,13 @@ export const prMessages = defineMessages({
   },
   /* Confirmation chips under a reply that did something. The {name} slot is
      the subject the action touched. [FR self-authored] */
-  pr_chat_did_campaign: { en: 'Campaign "{name}" created as draft', fr: 'Campagne « {name} » créée en brouillon' },
-  pr_chat_did_content: { en: 'Draft "{name}" saved to Content', fr: 'Brouillon « {name} » enregistré au contenu' },
-  pr_chat_did_contact: { en: 'Contact "{name}" added', fr: 'Contact « {name} » ajouté' },
-  pr_chat_did_mention: { en: 'Mention "{name}" logged', fr: 'Retombée « {name} » notée' },
-  pr_chat_did_keyword: { en: 'Now tracking "{name}"', fr: '« {name} » ajouté au suivi' },
-  pr_chat_did_geo: { en: 'Now tracking the question "{name}"', fr: 'Question « {name} » ajoutée au suivi' },
-  pr_chat_did_campstatus: { en: 'Campaign "{name}" status updated', fr: 'Statut de la campagne « {name} » modifié' },
+  pr_chat_did_campaign: { en: 'Campaign “{name}” created as draft', fr: 'Campagne « {name} » créée en brouillon' },
+  pr_chat_did_content: { en: 'Draft “{name}” saved to Content', fr: 'Brouillon « {name} » enregistré au contenu' },
+  pr_chat_did_contact: { en: 'Contact “{name}” added', fr: 'Contact « {name} » ajouté' },
+  pr_chat_did_mention: { en: 'Mention “{name}” logged', fr: 'Retombée « {name} » notée' },
+  pr_chat_did_keyword: { en: 'Now tracking “{name}”', fr: '« {name} » ajouté au suivi' },
+  pr_chat_did_geo: { en: 'Now tracking the question “{name}”', fr: 'Question « {name} » ajoutée au suivi' },
+  pr_chat_did_campstatus: { en: 'Campaign “{name}” status updated', fr: 'Statut de la campagne « {name} » modifié' },
   pr_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',

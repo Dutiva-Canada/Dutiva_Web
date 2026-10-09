@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This Acceptable Use Policy ("AUP") governs your use of Dutiva’s platform, services, templates, Advisor, and generated content. By accessing or using Dutiva, you agree to comply with this AUP. Violations may result in suspension or termination of access.',
+    'This Acceptable Use Policy (“AUP”) governs your use of Dutiva’s platform, services, templates, Advisor, and generated content. By accessing or using Dutiva, you agree to comply with this AUP. Violations may result in suspension or termination of access.',
   ],
   sections: [
     {

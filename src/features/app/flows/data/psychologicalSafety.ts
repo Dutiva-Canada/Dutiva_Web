@@ -85,7 +85,7 @@ export const psychologicalSafetyFlow: Flow = {
           'Répondez selon ce qui est vrai aujourd’hui, non selon ce qui est prévu. Une réponse complaisante produit un score qui ne vous apprend rien.',
         ),
         bi(
-          '"Written down" means someone new could find it and follow it without asking you.',
+          '“Written down” means someone new could find it and follow it without asking you.',
           '« Consigné » signifie qu’une personne nouvellement arrivée pourrait le trouver et l’appliquer sans vous consulter.',
         ),
         bi(

@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'August 26, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva") uses third-party service providers ("subprocessors") to operate and improve the platform. This page lists the subprocessors we currently use, their purpose, the location of their data processing operations, and the categories of data they may access. This list is updated when we add or change subprocessors.',
+    'Dutiva Canada Inc. (“Dutiva”) uses third-party service providers (“subprocessors”) to operate and improve the platform. This page lists the subprocessors we currently use, their purpose, the location of their data processing operations, and the categories of data they may access. This list is updated when we add or change subprocessors.',
   ],
   sections: [
     {

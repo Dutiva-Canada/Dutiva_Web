@@ -97,7 +97,7 @@ describe('PrChatPage', () => {
       ),
     )
     expect(await screen.findByText('Draft filed.')).toBeInTheDocument()
-    expect(screen.getByText('Contact "Jo at CBC" added')).toBeInTheDocument()
+    expect(screen.getByText('Contact “Jo at CBC” added')).toBeInTheDocument()
     /* A completed action writes to the pr_* tables — the shared provider
        must refresh so the other tabs reflect it. */
     expect(refresh).toHaveBeenCalled()
@@ -126,7 +126,7 @@ describe('PrChatPage', () => {
 
     expect(await screen.findByText('track the keyword hr compliance')).toBeInTheDocument()
     expect(screen.getByText('Tracking it now.')).toBeInTheDocument()
-    expect(screen.getByText('Now tracking "hr compliance"')).toBeInTheDocument()
+    expect(screen.getByText('Now tracking “hr compliance”')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
   })
 

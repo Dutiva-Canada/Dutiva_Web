@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. owns the DUTIVA trademark and associated logos, wordmarks, and brand assets (collectively, "Dutiva Marks"). This policy governs how third parties may use Dutiva Marks. Unauthorized use of Dutiva Marks may constitute trademark infringement and unfair competition under Canadian law.',
+    'Dutiva Canada Inc. owns the DUTIVA trademark and associated logos, wordmarks, and brand assets (collectively, “Dutiva Marks”). This policy governs how third parties may use Dutiva Marks. Unauthorized use of Dutiva Marks may constitute trademark infringement and unfair competition under Canadian law.',
   ],
   sections: [
     {

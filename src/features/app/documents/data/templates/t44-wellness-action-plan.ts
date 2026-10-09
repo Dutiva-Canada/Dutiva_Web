@@ -84,7 +84,7 @@ export const tplT44: DocTemplate = {
       fr: 'Les deux mêmes mises en garde s’appliquent, par la Charte des droits et libertés de la personne pour l’accommodement et par la Loi sur les normes du travail pour le harcèlement psychologique — et notez que la Loi oblige l’employeur à agir sur le harcèlement dès qu’il en est informé : un plan décrivant les comportements d’un collègue est donc une information sur laquelle agir plutôt qu’à classer. La Loi 25 régit les renseignements personnels recueillis ici : ne recueillez que le nécessaire, indiquez l’usage prévu et conservez-les séparément. Le formulaire doit être disponible en français.',
     },
     FED: {
-      en: 'The Canadian Human Rights Act carries the accommodation duty on the same "knew or ought to have known" footing. Where what the employee describes is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set a prescribed process with its own timelines — a plan is not that process and does not start it. PIPEDA governs the personal information collected.',
+      en: 'The Canadian Human Rights Act carries the accommodation duty on the same “knew or ought to have known” footing. Where what the employee describes is a harassment or violence occurrence, the Work Place Harassment and Violence Prevention Regulations set a prescribed process with its own timelines — a plan is not that process and does not start it. PIPEDA governs the personal information collected.',
       fr: 'La Loi canadienne sur les droits de la personne porte l’obligation d’accommodement sur le même fondement du « savait ou aurait dû savoir ». Lorsque ce que décrit la personne constitue un incident de harcèlement ou de violence, le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail prévoit un processus assorti de ses propres délais — un plan n’est pas ce processus et ne le déclenche pas. La LPRPDE régit les renseignements personnels recueillis.',
     },
   },
@@ -233,7 +233,7 @@ export const tplT44: DocTemplate = {
         fr: 'Ce que je souhaite que vous fassiez alors',
       },
       text: {
-        en: 'Who should speak to you, how, and what you would rather they did not do. Written now, this is the instruction your future self would struggle to give — "ask me directly and privately" and "do not raise it in a team meeting" are both useful answers.',
+        en: 'Who should speak to you, how, and what you would rather they did not do. Written now, this is the instruction your future self would struggle to give — “ask me directly and privately” and “do not raise it in a team meeting” are both useful answers.',
         fr: 'Qui doit vous en parler, comment, et ce que vous préféreriez qu’on ne fasse pas. Rédigée maintenant, c’est la consigne que vous auriez du mal à donner le moment venu — « parlez-m’en directement et en privé » et « n’abordez pas le sujet en réunion d’équipe » sont deux réponses utiles.',
       },
     },
@@ -246,7 +246,7 @@ export const tplT44: DocTemplate = {
         fr: 'Qui j’accepte de laisser consulter ce plan',
       },
       text: {
-        en: 'Name them — "my manager only" is a complete answer. Your choice is respected. If it later has to go further, to arrange cover or because someone else has to act, you are told before that happens.',
+        en: 'Name them — “my manager only” is a complete answer. Your choice is respected. If it later has to go further, to arrange cover or because someone else has to act, you are told before that happens.',
         fr: 'Nommez-les — « mon gestionnaire seulement » est une réponse complète. Votre choix est respecté. Si le plan doit ensuite circuler davantage, pour organiser un remplacement ou parce qu’une autre personne doit agir, vous en serez informé(e) au préalable.',
       },
     },

@@ -213,7 +213,7 @@ export const tplT35: DocTemplate = {
         fr: 'Commencez par là',
       },
       text: {
-        en: '"I have difficult news, and I am going to give it to you first. {{scope}} This takes effect {{effective_date}}, and it affects {{affected_count}} roles." Say this before any explanation. A room that senses bad news coming stops listening while it waits, and everything you say before the news is heard as evasion.',
+        en: '“I have difficult news, and I am going to give it to you first. {{scope}} This takes effect {{effective_date}}, and it affects {{affected_count}} roles.” Say this before any explanation. A room that senses bad news coming stops listening while it waits, and everything you say before the news is heard as evasion.',
         fr: '« J’ai une nouvelle difficile à vous annoncer, et je vais commencer par elle. {{scope}} Cela prend effet le {{effective_date}} et touche {{affected_count}} postes. » Dites-le avant toute explication. Une salle qui pressent une mauvaise nouvelle cesse d’écouter en l’attendant, et tout ce qui précède l’annonce est reçu comme une dérobade.',
       },
     },
@@ -237,7 +237,7 @@ export const tplT35: DocTemplate = {
         fr: 'Dites ce qui est fait pour elles',
       },
       text: {
-        en: '"Everyone affected has already been spoken to individually and has their details in writing. {{support}}" Keep it general. Do not describe any individual package, do not compare one to another, and do not answer a question about what a specific person received — that is their information, not the group’s, and the person asking usually knows that.',
+        en: '“Everyone affected has already been spoken to individually and has their details in writing. {{support}}” Keep it general. Do not describe any individual package, do not compare one to another, and do not answer a question about what a specific person received — that is their information, not the group’s, and the person asking usually knows that.',
         fr: '« Chaque personne visée a déjà été rencontrée individuellement et a reçu ses modalités par écrit. {{support}} » Restez général. Ne décrivez aucune indemnité individuelle, n’en comparez pas, et ne répondez pas à une question sur ce qu’une personne précise a reçu — cette information lui appartient et ne regarde pas le groupe, ce que la personne qui pose la question sait généralement.',
       },
     },
@@ -249,7 +249,7 @@ export const tplT35: DocTemplate = {
         fr: 'Ne nommez personne',
       },
       text: {
-        en: 'Do not read a list, confirm a name, or answer "is so-and-so affected?". Say: "I am not going to name anyone. People will tell their own colleagues in their own time, and that is theirs to decide." This holds even when the answer is obvious to everyone in the room. Naming someone turns their departure into an announcement about them, and it is the part people remember years later.',
+        en: 'Do not read a list, confirm a name, or answer “is so-and-so affected?”. Say: “I am not going to name anyone. People will tell their own colleagues in their own time, and that is theirs to decide.” This holds even when the answer is obvious to everyone in the room. Naming someone turns their departure into an announcement about them, and it is the part people remember years later.',
         fr: 'Ne lisez aucune liste, ne confirmez aucun nom et ne répondez pas à « est-ce que untel est touché ? ». Dites : « Je ne nommerai personne. Chacun en parlera à ses collègues au moment qui lui convient, et cela lui appartient. » Cela vaut même lorsque la réponse est évidente pour toute la salle. Nommer quelqu’un transforme son départ en une annonce à son sujet, et c’est ce dont les gens se souviennent des années plus tard.',
       },
     },
@@ -261,7 +261,7 @@ export const tplT35: DocTemplate = {
         fr: 'Ce qui arrive au reste de l’équipe',
       },
       text: {
-        en: '"{{whats_next}}" The question underneath every question in this room is whether more is coming. Answer it honestly. If you do not know, say you do not know and say when you will — a promise that this is the end, made to calm a room and broken in March, costs more than the layoff did.',
+        en: '“{{whats_next}}” The question underneath every question in this room is whether more is coming. Answer it honestly. If you do not know, say you do not know and say when you will — a promise that this is the end, made to calm a room and broken in March, costs more than the layoff did.',
         fr: '« {{whats_next}} » La question qui sous-tend toutes les autres dans cette salle est de savoir si d’autres suivront. Répondez honnêtement. Si vous l’ignorez, dites-le et précisez quand vous saurez — une promesse que c’est terminé, faite pour apaiser une salle et rompue en mars, coûte plus cher que le licenciement lui-même.',
       },
     },
@@ -273,7 +273,7 @@ export const tplT35: DocTemplate = {
         fr: 'Prenez les questions, et accordez-vous le droit de ne pas répondre',
       },
       text: {
-        en: 'Stay in the room for questions even if there are none, and let the silence sit. Three answers are always available and all three are better than improvising: "I do not know", "I know, and it is not mine to share", and "I will find out and tell you by Friday" — which then obliges you to. Do not speculate about anything, and end by saying where to go next.',
+        en: 'Stay in the room for questions even if there are none, and let the silence sit. Three answers are always available and all three are better than improvising: “I do not know”, “I know, and it is not mine to share”, and “I will find out and tell you by Friday” — which then obliges you to. Do not speculate about anything, and end by saying where to go next.',
         fr: 'Restez dans la salle pour les questions même s’il n’y en a pas, et laissez le silence s’installer. Trois réponses sont toujours disponibles et valent mieux que l’improvisation : « je ne sais pas », « je sais, mais ce n’est pas à moi de le divulguer » et « je vais me renseigner et vous répondre d’ici vendredi » — ce qui vous y oblige ensuite. Ne spéculez sur rien et terminez en indiquant où s’adresser.',
       },
     },

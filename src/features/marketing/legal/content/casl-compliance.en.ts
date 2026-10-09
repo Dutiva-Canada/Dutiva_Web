@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") designs its commercial electronic message practices around Canada’s Anti-Spam Legislation (CASL): consent, clear sender identification, truthful content, and a working unsubscribe mechanism.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) designs its commercial electronic message practices around Canada’s Anti-Spam Legislation (CASL): consent, clear sender identification, truthful content, and a working unsubscribe mechanism.',
     'This Policy explains how Dutiva manages commercial electronic messages sent by or on behalf of Dutiva, including beta access communications, product updates, lifecycle campaigns, promotional messages, customer announcements, partner communications, and event-related outreach.',
     "This Policy should be read with Dutiva’s Privacy Policy, Cookie Policy, Terms of Service, AI Usage Disclosure, and related legal pages. It is a public-facing operational policy and does not replace legal review for specific campaigns, channels, jurisdictions, or partner arrangements.",
   ],

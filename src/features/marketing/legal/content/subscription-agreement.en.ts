@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This SaaS Subscription Agreement ("Agreement") governs subscriptions to Dutiva’s platform between Dutiva Canada Inc. ("Dutiva") and the subscribing customer ("Customer"). By subscribing to a paid plan, Customer agrees to the terms of this Agreement, the Dutiva Terms of Service, the Privacy Policy, and (where applicable) the Data Processing Agreement, all of which are incorporated by reference.',
+    'This SaaS Subscription Agreement (“Agreement”) governs subscriptions to Dutiva’s platform between Dutiva Canada Inc. (“Dutiva”) and the subscribing customer (“Customer”). By subscribing to a paid plan, Customer agrees to the terms of this Agreement, the Dutiva Terms of Service, the Privacy Policy, and (where applicable) the Data Processing Agreement, all of which are incorporated by reference.',
   ],
   sections: [
     {
@@ -104,7 +104,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'THE DUTIVA PLATFORM IS PROVIDED "AS IS" AND "AS AVAILABLE." DUTIVA DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF HARMFUL COMPONENTS. THE PLATFORM DOES NOT PROVIDE LEGAL ADVICE. CUSTOMER IS SOLELY RESPONSIBLE FOR REVIEWING AND VERIFYING ALL GENERATED OUTPUTS BEFORE USE.',
+          text: 'THE DUTIVA PLATFORM IS PROVIDED “AS IS” AND “AS AVAILABLE.” DUTIVA DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE OF HARMFUL COMPONENTS. THE PLATFORM DOES NOT PROVIDE LEGAL ADVICE. CUSTOMER IS SOLELY RESPONSIBLE FOR REVIEWING AND VERIFYING ALL GENERATED OUTPUTS BEFORE USE.',
         },
         {
           type: 'p',

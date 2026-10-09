@@ -122,7 +122,7 @@ describe('InvestChatPage', () => {
 
     expect(await screen.findByText('watch XEQT')).toBeInTheDocument()
     expect(screen.getByText('Watching it.')).toBeInTheDocument()
-    expect(screen.getByText('Now watching "XEQT"')).toBeInTheDocument()
+    expect(screen.getByText('Now watching “XEQT”')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
   })
 

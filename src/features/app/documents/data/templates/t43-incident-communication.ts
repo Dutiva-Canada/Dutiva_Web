@@ -64,7 +64,7 @@ export const tplT43: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'The Occupational Health and Safety Act sets notice and reporting obligations that run to the Ministry of Labour, the joint health and safety committee and, where applicable, the union — with the most serious categories carrying immediate notice and a written report within a prescribed period. Where a critical injury or fatality has occurred, the scene must not be disturbed until released, except for the narrow reasons the Act allows: to save life or relieve human suffering, to maintain an essential public utility or public transportation system, or to prevent unnecessary damage to equipment or other property. That is narrower than "protecting property" — read it as written before moving anything. On the privacy side, do not reach for PHIPA by default: its breach duties bind health information custodians and their agents, and holding employee medical records does not make an ordinary employer one. Where you are a custodian they apply. Where you are not, Ontario has no general private-sector breach-notification statute covering employee personal information — check whether PIPEDA catches the information at all before assuming a duty exists, and take advice rather than reporting to the wrong regulator.',
+      en: 'The Occupational Health and Safety Act sets notice and reporting obligations that run to the Ministry of Labour, the joint health and safety committee and, where applicable, the union — with the most serious categories carrying immediate notice and a written report within a prescribed period. Where a critical injury or fatality has occurred, the scene must not be disturbed until released, except for the narrow reasons the Act allows: to save life or relieve human suffering, to maintain an essential public utility or public transportation system, or to prevent unnecessary damage to equipment or other property. That is narrower than “protecting property” — read it as written before moving anything. On the privacy side, do not reach for PHIPA by default: its breach duties bind health information custodians and their agents, and holding employee medical records does not make an ordinary employer one. Where you are a custodian they apply. Where you are not, Ontario has no general private-sector breach-notification statute covering employee personal information — check whether PIPEDA catches the information at all before assuming a duty exists, and take advice rather than reporting to the wrong regulator.',
       fr: 'La Loi sur la santé et la sécurité au travail impose des obligations d’avis et de rapport envers le ministère du Travail, le comité mixte de santé et sécurité et, le cas échéant, le syndicat — les catégories les plus graves exigeant un avis immédiat et un rapport écrit dans un délai prescrit. En cas de blessure critique ou de décès, les lieux ne doivent pas être modifiés jusqu’à leur libération, sauf pour les motifs restreints que prévoit la Loi : sauver une vie ou soulager des souffrances humaines, maintenir un service public essentiel ou un réseau de transport public, ou prévenir des dommages inutiles à de l’équipement ou à d’autres biens. C’est plus étroit que « protéger des biens » — lisez le texte tel quel avant de déplacer quoi que ce soit. Sur le plan de la vie privée, ne présumez pas l’application de la LPRPS : ses obligations en cas d’atteinte visent les dépositaires de renseignements sur la santé et leurs mandataires, et détenir des dossiers médicaux d’employés ne fait pas d’un employeur ordinaire un dépositaire. Si vous en êtes un, elles s’appliquent. Sinon, l’Ontario ne dispose d’aucune loi générale du secteur privé imposant un avis d’atteinte visant les renseignements personnels des employés — vérifiez d’abord si la LPRPDE vise ces renseignements et prenez conseil plutôt que de signaler au mauvais organisme.',
     },
     QC: {
@@ -158,7 +158,7 @@ export const tplT43: DocTemplate = {
         fr: 'Zones à éviter, systèmes à ne pas utiliser, présence sur les lieux, à qui signaler quelque chose.',
       },
       hint: {
-        en: 'The reason most people open the message. Put it high and make it specific — "please be careful" tells nobody anything.',
+        en: 'The reason most people open the message. Put it high and make it specific — “please be careful” tells nobody anything.',
         fr: 'La raison pour laquelle la plupart ouvriront le message. Placez-la en évidence et soyez précis — « soyez prudents » n’informe personne.',
       },
     },
@@ -213,7 +213,7 @@ export const tplT43: DocTemplate = {
       type: 'text',
       required: true,
       placeholder: {
-        en: 'A time, even if the update will be "nothing further yet".',
+        en: 'A time, even if the update will be “nothing further yet”.',
         fr: 'Un moment précis, même si la mise à jour se résumera à « rien de nouveau ».',
       },
       hint: {

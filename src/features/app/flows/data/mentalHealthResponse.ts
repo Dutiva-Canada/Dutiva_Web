@@ -68,7 +68,7 @@ export const mentalHealthResponseFlow: Flow = {
             'La personne m’a dit qu’elle éprouve des difficultés',
           ),
           detail: bi(
-            'In any words. They do not have to have named a condition or used the word "accommodation".',
+            'In any words. They do not have to have named a condition or used the word “accommodation”.',
             'Quels que soient les mots employés. Elle n’a pas à avoir nommé un trouble ni prononcé le mot « accommodement ».',
           ),
           to: 'listen',
@@ -197,7 +197,7 @@ export const mentalHealthResponseFlow: Flow = {
           'Notez ce que vous avez observé du travail — échéances, horaires, erreurs, réunions manquées — et rien de ce que vous en avez déduit. Une telle note est défendable ; une note consignant votre théorie sur la santé mentale d’une personne ne l’est pas, et vous ne devriez pas en détenir.',
         ),
         bi(
-          'Open with the observation and stop. "I have noticed the last few weeks have looked different — is everything all right?" leaves them free to say nothing, which they are entitled to do.',
+          'Open with the observation and stop. “I have noticed the last few weeks have looked different — is everything all right?” leaves them free to say nothing, which they are entitled to do.',
           'Commencez par l’observation, puis arrêtez-vous. « J’ai remarqué que les dernières semaines semblaient différentes — est-ce que tout va bien ? » laisse la personne libre de ne rien dire, ce qu’elle a le droit de faire.',
         ),
         bi(
@@ -216,7 +216,7 @@ export const mentalHealthResponseFlow: Flow = {
       kind: 'choice',
       title: bi('What came back?', 'Qu’est-ce qui est ressorti ?'),
       body: bi(
-        'The last step said to accept "everything is fine" if that is the answer, so this is where accepting it actually happens. There is nothing further to ask on that route.',
+        'The last step said to accept “everything is fine” if that is the answer, so this is where accepting it actually happens. There is nothing further to ask on that route.',
         'L’étape précédente indiquait d’accepter un « tout va bien » si telle est la réponse ; c’est donc ici que cette acceptation prend effet. Il n’y a rien de plus à demander sur ce parcours.',
       ),
       options: [
@@ -275,7 +275,7 @@ export const mentalHealthResponseFlow: Flow = {
           'Demandez ce qui rendrait les deux prochaines semaines gérables, et attendez-vous à une réponse modeste. Ce qui aide relève le plus souvent d’une échéance reportée ou d’une réunion annulée, non d’un arrangement formel.',
         ),
         bi(
-          'Fix a date to speak again before you leave the conversation. "Come and find me any time" puts the work of returning on the person least able to do it.',
+          'Fix a date to speak again before you leave the conversation. “Come and find me any time” puts the work of returning on the person least able to do it.',
           'Fixez une date pour vous reparler avant de clore la conversation. « Viens me voir quand tu veux » fait porter l’effort du retour à la personne la moins en mesure de le fournir.',
         ),
       ],

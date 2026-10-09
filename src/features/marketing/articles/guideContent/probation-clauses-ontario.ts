@@ -49,7 +49,7 @@ export const sections: readonly ArticleSection[] = [
     ],
   },
   {
-    heading: bi('What "suitability" actually means', 'Ce que signifie réellement l’« aptitude »'),
+    heading: bi('What “suitability” actually means', 'Ce que signifie réellement l’« aptitude »'),
     blocks: [
       p(
         'Where a probationary clause is valid, the employer is generally expected to have assessed the employee’s suitability in good faith: to have given them a fair opportunity to demonstrate they could do the job, measured against expectations they were actually told about. Suitability is broader than competence — it can take in reliability, judgement, and fit with the way the team works — but it is not a licence to dismiss for any reason or none.',

@@ -137,7 +137,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'To the maximum extent permitted by law, Dutiva content, features, templates, calculators, checklists, risk flags, compliance scores, AI responses, workflows, and related materials are provided "as is" and "as available" without warranties of any kind, whether express, implied, statutory, or otherwise.',
+          text: 'To the maximum extent permitted by law, Dutiva content, features, templates, calculators, checklists, risk flags, compliance scores, AI responses, workflows, and related materials are provided “as is” and “as available” without warranties of any kind, whether express, implied, statutory, or otherwise.',
         },
         {
           type: 'p',

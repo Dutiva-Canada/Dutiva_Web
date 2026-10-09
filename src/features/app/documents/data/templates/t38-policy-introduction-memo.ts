@@ -127,7 +127,7 @@ export const tplT38: DocTemplate = {
         fr: 'Une ou deux phrases sur le problème qu’elle vise.',
       },
       hint: {
-        en: 'If the honest answer is "a regulator requires it", say that. It is a better reason than an invented one, and people can tell the difference.',
+        en: 'If the honest answer is “a regulator requires it”, say that. It is a better reason than an invented one, and people can tell the difference.',
         fr: 'Si la réponse honnête est « un organisme de réglementation l’exige », dites-le. C’est une meilleure raison qu’une raison inventée, et les gens font la différence.',
       },
     },
@@ -148,7 +148,7 @@ export const tplT38: DocTemplate = {
         fr: 'Ce qu’une personne devra faire autrement dès lundi — ou rien, si c’est le cas.',
       },
       hint: {
-        en: 'The only paragraph most people will read. "Nothing changes for most of you; this writes down what we already do" is a complete and useful answer where it is true.',
+        en: 'The only paragraph most people will read. “Nothing changes for most of you; this writes down what we already do” is a complete and useful answer where it is true.',
         fr: 'Le seul paragraphe que la plupart liront. « Rien ne change pour la plupart d’entre vous ; cette politique consigne ce que nous faisons déjà » est une réponse complète et utile lorsqu’elle est exacte.',
       },
     },

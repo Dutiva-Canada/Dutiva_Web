@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This PIPEDA Compliance Statement explains how Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") designs its privacy program around the 10 fair information principles under the Personal Information Protection and Electronic Documents Act (PIPEDA).',
+    'This PIPEDA Compliance Statement explains how Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) designs its privacy program around the 10 fair information principles under the Personal Information Protection and Electronic Documents Act (PIPEDA).',
     'This Statement summarizes program controls, public commitments, and operating practices that support responsible handling of personal information in Dutiva’s website, application, Advisor, document workflows, beta access, support, and related services.',
     'This Statement should be read with Dutiva’s Privacy Policy, Data Processing Agreement, Data Retention and Deletion Policy, Incident and Breach Response Policy, Cookie Policy, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms. It is not an independent audit, certification, or legal opinion.',
   ],

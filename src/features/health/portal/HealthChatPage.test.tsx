@@ -121,7 +121,7 @@ describe('HealthChatPage', () => {
       expect(sendHealthChat).toHaveBeenCalledWith('mark Walk done', 'en', expect.any(Function)),
     )
     expect(await screen.findByText('Done — marked for today.')).toBeInTheDocument()
-    expect(screen.getByText('Marked "Walk" done today')).toBeInTheDocument()
+    expect(screen.getByText('Marked “Walk” done today')).toBeInTheDocument()
     /* A completed action writes to the health tables — the shared provider
        must refresh so Habits/Insights reflect it. */
     expect(refresh).toHaveBeenCalled()
@@ -150,7 +150,7 @@ describe('HealthChatPage', () => {
 
     expect(await screen.findByText('add a habit called Stretch')).toBeInTheDocument()
     expect(screen.getByText('Stretch is on your list now.')).toBeInTheDocument()
-    expect(screen.getByText('Now tracking "Stretch"')).toBeInTheDocument()
+    expect(screen.getByText('Now tracking “Stretch”')).toBeInTheDocument()
     /* The undo affordance only rides on persisted (uuid-id) assistant turns
        — 'a1' is not one, so no Undo button appears. */
     expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()

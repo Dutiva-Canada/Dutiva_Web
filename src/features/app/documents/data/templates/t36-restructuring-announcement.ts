@@ -109,7 +109,7 @@ export const tplT36: DocTemplate = {
         fr: 'Le changement structurel, en deux ou trois phrases.',
       },
       hint: {
-        en: 'Structure, not people. "Operations and logistics have merged into one team" — not who is no longer here.',
+        en: 'Structure, not people. “Operations and logistics have merged into one team” — not who is no longer here.',
         fr: 'La structure, pas les personnes. « Les opérations et la logistique sont fusionnées en une seule équipe » — et non qui n’est plus là.',
       },
     },

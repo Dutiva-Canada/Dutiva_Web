@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This Incident and Breach Response Policy explains how Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") identifies, escalates, contains, assesses, documents, communicates, and learns from security incidents, privacy breaches, confidentiality incidents, and related provider incidents involving Dutiva systems or personal information.',
+    'This Incident and Breach Response Policy explains how Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) identifies, escalates, contains, assesses, documents, communicates, and learns from security incidents, privacy breaches, confidentiality incidents, and related provider incidents involving Dutiva systems or personal information.',
     "This Policy should be read with Dutiva’s Privacy Policy, Data Processing Agreement, Data Retention and Deletion Policy, Terms of Service, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms.",
   ],
   sections: [
@@ -310,7 +310,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'Security concerns or suspected misuse of Dutiva can also be reported through support channels at support@dutiva.ca with the subject line "Security Incident".',
+          text: 'Security concerns or suspected misuse of Dutiva can also be reported through support channels at support@dutiva.ca with the subject line “Security Incident”.',
         },
       ],
     },

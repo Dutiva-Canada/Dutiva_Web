@@ -472,9 +472,9 @@ export const healthMessages = defineMessages({
   },
   /* Confirmation chips under a reply that did something. The {name} slot is
      the subject the action touched. [FR self-authored] */
-  health_chat_did_mark: { en: 'Marked "{name}" done today', fr: '« {name} » marqué pour aujourd’hui' },
-  health_chat_did_unmark: { en: 'Unmarked "{name}" for today', fr: '« {name} » retiré pour aujourd’hui' },
-  health_chat_did_habit: { en: 'Now tracking "{name}"', fr: '« {name} » ajouté au suivi' },
+  health_chat_did_mark: { en: 'Marked “{name}” done today', fr: '« {name} » marqué pour aujourd’hui' },
+  health_chat_did_unmark: { en: 'Unmarked “{name}” for today', fr: '« {name} » retiré pour aujourd’hui' },
+  health_chat_did_habit: { en: 'Now tracking “{name}”', fr: '« {name} » ajouté au suivi' },
   health_chat_did_checkin: { en: 'Check-in logged — {name}', fr: 'Point du jour noté — {name}' },
   health_chat_did_journal: { en: 'Journal entry saved', fr: 'Entrée de journal enregistrée' },
   health_chat_action_failed: {

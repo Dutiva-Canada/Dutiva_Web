@@ -273,13 +273,13 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_sells: { en: 'Sells', fr: 'Vend' },
   invest_sb_adds_pct: {
     en: 'Adds {n}% to your existing position',
-    fr: 'Ajoute {n} % à votre position existante',
+    fr: 'Ajoute {n} % à votre position existante',
   },
   invest_sb_reduces_pct: {
     en: 'Reduces your existing position by {n}%',
-    fr: 'Réduit votre position existante de {n} %',
+    fr: 'Réduit votre position existante de {n} %',
   },
-  invest_sb_qty_worth: { en: '{side} ${n} worth', fr: '{side} pour {n} $' },
+  invest_sb_qty_worth: { en: '{side} ${n} worth', fr: '{side} pour {n} $' },
 
   /* Strategy health + test scan (real dry run against live data). */
   invest_sb_health_h: { en: 'Strategy health', fr: 'Santé de la stratégie' },
@@ -317,21 +317,21 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   invest_sb_match_line: {
     en: 'Matched rule “{title}” — {detail}.',
-    fr: 'Règle correspondante « {title} » — {detail}.',
+    fr: 'Règle correspondante « {title} » — {detail}.',
   },
   invest_sb_metric_at: { en: '{label} is at {value}', fr: '{label} est à {value}' },
   invest_sb_balance_at: { en: 'balance {value}', fr: 'solde de {value}' },
   invest_sb_outcome_insight: {
     en: 'Outcome: insight notification',
-    fr: 'Résultat : notification d’aperçu',
+    fr: 'Résultat : notification d’aperçu',
   },
   invest_sb_outcome_alert: {
     en: 'Outcome: alert notification',
-    fr: 'Résultat : notification d’alerte',
+    fr: 'Résultat : notification d’alerte',
   },
   invest_sb_outcome_order: {
     en: 'Outcome: would propose order — {detail} · awaiting your approval',
-    fr: 'Résultat : proposerait un ordre — {detail} · en attente de votre approbation',
+    fr: 'Résultat : proposerait un ordre — {detail} · en attente de votre approbation',
   },
 
   /* Run history */
@@ -356,7 +356,7 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_wiz_step1_t: { en: 'Describe your strategy', fr: 'Décrivez votre stratégie' },
   invest_sb_wiz_what: {
     en: 'What should the agent watch for?',
-    fr: 'Que doit surveiller l’agent ?',
+    fr: 'Que doit surveiller l’agent ?',
   },
   invest_sb_wiz_placeholder: {
     en: 'e.g. Alert me when tech stocks dip hard, and propose a small buy if the dip is deep.',

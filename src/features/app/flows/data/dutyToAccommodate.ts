@@ -37,7 +37,7 @@ export const dutyToAccommodateFlow: Flow = {
       kind: 'choice',
       title: bi('What has happened so far?', 'Où en êtes-vous ?'),
       body: bi(
-        'The duty starts when you know, or reasonably should know, that someone needs an adjustment. It does not wait for a form, a diagnosis, or the word "accommodation".',
+        'The duty starts when you know, or reasonably should know, that someone needs an adjustment. It does not wait for a form, a diagnosis, or the word “accommodation”.',
         'L’obligation naît dès que vous savez, ou devriez raisonnablement savoir, qu’une personne a besoin d’un ajustement. Elle n’attend ni formulaire, ni diagnostic, ni l’emploi du mot « accommodement ».',
       ),
       caution: bi(
@@ -257,7 +257,7 @@ export const dutyToAccommodateFlow: Flow = {
         'La contrainte excessive est la limite ultime de l’obligation et le seuil en est élevé : il revient à l’employeur de la prouver par une preuve. Laquelle de ces situations correspond à la vôtre ?',
       ),
       caution: bi(
-        'Business inconvenience will not carry a refusal, and neither will customer or co-worker preference or "we have never done that here". Which further factors count is jurisdictional — Ontario and the federal regime name theirs in statute, Québec weighs the whole of the circumstances — so read the undue hardship assessment (T24) for the test that applies to you before concluding.',
+        'Business inconvenience will not carry a refusal, and neither will customer or co-worker preference or “we have never done that here”. Which further factors count is jurisdictional — Ontario and the federal regime name theirs in statute, Québec weighs the whole of the circumstances — so read the undue hardship assessment (T24) for the test that applies to you before concluding.',
         'Les inconvénients d’affaires ne soutiennent pas un refus, pas plus que les préférences de la clientèle ou des collègues, ni « cela ne s’est jamais fait ici ». Les autres facteurs pertinents varient selon la juridiction — l’Ontario et le régime fédéral énumèrent les leurs dans la loi, le Québec apprécie l’ensemble des circonstances — consultez donc l’évaluation de la contrainte excessive (T24) pour connaître le test applicable avant de conclure.',
       ),
       options: [
