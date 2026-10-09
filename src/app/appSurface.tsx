@@ -33,6 +33,16 @@ const AuthConfirm = lazy(() =>
   import('@/features/app/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })),
 )
 
+/* This chunk is the gateway for every /app* route, and each of its children
+   is one more lazy hop — warm all four the moment it evaluates so the auth
+   check and the next render never wait on a serial round trip. Same
+   specifier as the lazy() calls above, so those resolve from the in-flight
+   import rather than starting a second fetch. */
+void import('@/features/app/auth/RequireAdminSession')
+void import('@/features/app/shell/AppShell')
+void import('@/features/app/shell/EntryStage')
+void import('@/features/app/auth/AuthConfirm')
+
 /** /app/auth/confirm — magic-link landing: verifies the token_hash (see
     AuthConfirm) and enters the workspace. Ungated by design — the visitor is
     mid-sign-in and has no session yet. */

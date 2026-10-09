@@ -77,10 +77,20 @@ export function warmViewsOnIdle(keys: readonly string[]): () => void {
        the critical path. */
     pending = ric ? ric(step, { timeout: 4000 }) : (setTimeout(step, 1200) as unknown as number)
   }
-  schedule(0)
+  const start = () => schedule(0)
+
+  /* Hold warm-up until the current load finishes — firing mid-boot steals
+     bandwidth from the chunk the user is actually waiting on. */
+  const waitForLoad =
+    typeof document !== 'undefined' &&
+    typeof window !== 'undefined' &&
+    document.readyState !== 'complete'
+  if (waitForLoad) window.addEventListener('load', start, { once: true })
+  else start()
 
   return () => {
     cancelled = true
+    if (waitForLoad) window.removeEventListener('load', start)
     if (pending === 0) return
     if (ric && cic) cic(pending)
     else if (!ric) clearTimeout(pending)
