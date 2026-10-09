@@ -414,6 +414,7 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
         }
       }
     }
+    return null
   } catch {
     return null
   }

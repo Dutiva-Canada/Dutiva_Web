@@ -121,7 +121,7 @@ export function validatePayload(
     }
   }
 
-  return { ok: true, value: p as FeaturePayload }
+  return { ok: true, value: p as unknown as FeaturePayload }
 }
 
 /* --- User message building ------------------------------------------------ */

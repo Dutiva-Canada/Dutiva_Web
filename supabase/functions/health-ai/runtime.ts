@@ -1,6 +1,10 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import { postChatCompletion, readUpstreamText } from '../_shared/modelUpstream.ts'
-import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import {
+  postChatCompletion,
+  readUpstreamText,
+  type ApiKeyResult,
+} from '../_shared/modelUpstream.ts'
+import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
 import {
   buildCompanionSignals,
   buildHabitStatuses,
@@ -126,7 +130,9 @@ export async function loadCompanionContext(
 }
 
 /** Model-route + key resolution, shared by the model-backed kinds. */
-export async function modelRoute(admin: SupabaseClient) {
+export async function modelRoute(
+  admin: SupabaseClient,
+): Promise<{ error: Response } | { found: ResolvedRoute; keyResult: Extract<ApiKeyResult, { apiKey: unknown }> }> {
   const found = await activeModelRoute(admin, ['health_ai', 'advisor_chat'])
   if ('error' in found) {
     return {

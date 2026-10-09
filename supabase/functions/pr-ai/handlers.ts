@@ -512,6 +512,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         }
       }
     }
+    return null
   } catch {
     return null
   }

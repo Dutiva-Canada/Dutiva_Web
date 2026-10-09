@@ -66,7 +66,7 @@ export interface SchedulerRow {
 }
 
 /** Confirmed calls starting within REMINDER_WINDOW_HOURS that haven't been reminded yet. */
-export function rowsNeedingReminder(rows: SchedulerRow[], now: Date): SchedulerRow[] {
+export function rowsNeedingReminder<T extends SchedulerRow>(rows: T[], now: Date): T[] {
   const cutoff = new Date(now.getTime() + REMINDER_WINDOW_HOURS * 60 * 60 * 1000)
   return rows.filter(
     (r) =>
@@ -78,7 +78,7 @@ export function rowsNeedingReminder(rows: SchedulerRow[], now: Date): SchedulerR
 }
 
 /** Confirmed calls whose end time is more than FOLLOWUP_GRACE_HOURS in the past, not yet flagged. */
-export function rowsNeedingFollowup(rows: SchedulerRow[], now: Date): SchedulerRow[] {
+export function rowsNeedingFollowup<T extends SchedulerRow>(rows: T[], now: Date): T[] {
   const cutoff = new Date(now.getTime() - FOLLOWUP_GRACE_HOURS * 60 * 60 * 1000)
   return rows.filter(
     (r) =>

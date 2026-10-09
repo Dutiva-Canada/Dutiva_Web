@@ -124,7 +124,14 @@ async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
       c.close()
     },
   })
-  const reader = src.pipeThrough(new DecompressionStream('deflate-raw')).getReader()
+  /* DecompressionStream's writable is typed BufferSource-wide; the lib's
+     pipeThrough wants an exact Uint8Array pair — the stream only ever
+     receives the bytes we enqueue, so the narrower pair is accurate. */
+  const inflate = new DecompressionStream('deflate-raw') as unknown as ReadableWritablePair<
+    Uint8Array,
+    Uint8Array
+  >
+  const reader = src.pipeThrough(inflate).getReader()
   const chunks: Uint8Array[] = []
   for (;;) {
     const { done, value } = await reader.read()

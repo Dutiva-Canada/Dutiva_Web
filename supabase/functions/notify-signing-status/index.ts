@@ -89,7 +89,7 @@ const handler = async (req: Request) => {
   if (!org || !doc) return json({ error: 'Document not found' }, 404)
 
   const emails = (adminEmails ?? []).filter(
-    (e): e is string => typeof e === 'string' && e.includes('@'),
+    (e: unknown): e is string => typeof e === 'string' && e.includes('@'),
   )
   if (emails.length === 0) return json({ ok: true, skipped: true, reason: 'no_admin_emails' })
 

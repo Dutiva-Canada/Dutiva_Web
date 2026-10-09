@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
@@ -28,7 +30,7 @@ function json(body: unknown, status = 200) {
 /** The only actions the client backstop can emit (safety/safetyBackstop.ts). */
 const ALLOWED_ACTIONS = new Set(['crisis-intercept', 'legal-basis-withheld', 'figure-mismatch'])
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -64,7 +66,7 @@ async function authenticateRequest(
   const authHeader = req.headers.get('Authorization') ?? ''
   if (!authHeader.startsWith('Bearer ')) return json({ error: 'Missing bearer token' }, 401)
 
-  const userClient = createClient(config.supabaseUrl, config.anonKey, {
+  const userClient = createClient<Database>(config.supabaseUrl, config.anonKey, {
     global: { headers: { Authorization: authHeader } },
   })
   const token = authHeader.replace('Bearer ', '')
@@ -81,7 +83,7 @@ async function authenticateRequest(
     return json({ error: 'Access to this workspace is invite-only.' }, 403)
   }
 
-  return { user, adminClient: createClient(config.supabaseUrl, config.serviceRoleKey) }
+  return { user, adminClient: createClient<Database>(config.supabaseUrl, config.serviceRoleKey) }
 }
 
 async function readSafetyEventRequest(req: Request): Promise<SafetyEventRequest | Response> {

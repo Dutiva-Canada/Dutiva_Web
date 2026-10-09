@@ -31,7 +31,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-const handler = async (req) => {
+const handler = async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 

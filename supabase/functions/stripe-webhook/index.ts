@@ -86,7 +86,7 @@ async function updateProfileByIdOrEmail(
   supabase: SupabaseClient<Database>,
   userId: string | null,
   email: string | null,
-  updates: Record<string, unknown>,
+  updates: ProfileUpdate,
 ): Promise<{ ok: boolean; userId: string | null }> {
   if (userId) {
     const result = await applyProfileUpdate(
