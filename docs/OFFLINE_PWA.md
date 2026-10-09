@@ -52,7 +52,14 @@ using the existing `public/site.webmanifest`.
   enumerates the hashed `dist/assets/*`, brand images, and the prerendered
   shells (`/`, `/app.html`, `/404.html`) into a precache list, and derives the
   cache version from a hash of that list — deterministic, no build timestamps,
-  and any asset change rotates the cache automatically.
+  and any asset change rotates the cache automatically. Assets over ~1 MB
+  (e.g. the ONNX wasm, the PDF worker bundle) are excluded from the install
+  precache — they lazy-load when their feature runs and land in the runtime
+  cache on first use, so they never stall the SW install.
+- **Install timing:** `install` precaches only the app shells, then the bulk
+  asset list is filled ~3 s after `activate` — a deploy can't saturate the
+  connection while the page is still booting. Anything the deferred pass
+  misses is still runtime-cached by the fetch handler on first use.
 - **`src/lib/registerServiceWorker.ts`** registers `/sw.js` from `main.tsx`,
   guarded to production browser builds only.
 - **Caching strategy** (in `sw.js`):
