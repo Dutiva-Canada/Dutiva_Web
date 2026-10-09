@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import { isVercelPreview } from '@/lib/deployEnv'
@@ -44,6 +44,15 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
      the provider there is no mode window to hold for. */
   const workspace = useContext(WorkspaceModeContext)
   const resolving = workspace?.resolving ?? false
+
+  /* The moment a session exists, start fetching the shell — it resolves in
+     parallel with the membership/mode checks below instead of after them.
+     Signed-out visitors skip this entirely (same specifier as the lazy()
+     in appSurface, so no duplicate fetch). */
+  useEffect(() => {
+    if (status === 'signed-in')
+      void import('@/features/app/shell/AppShell').catch(() => {})
+  }, [status])
 
   if (!supabase) return children
 
