@@ -7,6 +7,7 @@ import type { Lang } from '@/i18n/core'
 import { useTheme } from '@/lib/themeContext'
 import { usePublicPath } from '@/seo/usePublicPath'
 import type { SeoRouteId } from '@/seo/routes'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { LeafTile, Wordmark } from '../Brand'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
@@ -42,7 +43,12 @@ function NavLink({
   const { home, p } = usePublicPath()
   if (item.route) {
     return (
-      <Link to={p(item.route)} className={className} onClick={onClick}>
+      <Link
+        to={p(item.route)}
+        className={className}
+        onClick={onClick}
+        {...viewIntentProps(`mkt.${item.route}`)}
+      >
         {lt(item.key)}
         {children}
       </Link>
@@ -152,11 +158,19 @@ export function Header() {
             >
               <ThemeIcon size={15} />
             </button>
-            <Link to="/app/welcome" className="ghost-button ghost-button-md">
+            <Link
+              to="/app/welcome"
+              className="ghost-button ghost-button-md"
+              {...viewIntentProps('mkt.app')}
+            >
               <LogIn size={15} />
               {lt('landing_signin')}
             </Link>
-            <Link to={p('pricing')} className="gold-button gold-button-md">
+            <Link
+              to={p('pricing')}
+              className="gold-button gold-button-md"
+              {...viewIntentProps('mkt.pricing')}
+            >
               {lt('landing_start_free')}
               <ArrowRight size={14} />
             </Link>
@@ -237,11 +251,21 @@ export function Header() {
             ))}
           </nav>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
-            <Link to="/app/welcome" className="ghost-button ghost-button-block" onClick={closeMenu}>
+            <Link
+              to="/app/welcome"
+              className="ghost-button ghost-button-block"
+              onClick={closeMenu}
+              {...viewIntentProps('mkt.app')}
+            >
               <LogIn size={16} />
               {lt('landing_signin')}
             </Link>
-            <Link to={p('pricing')} className="gold-button gold-button-block" onClick={closeMenu}>
+            <Link
+              to={p('pricing')}
+              className="gold-button gold-button-block"
+              onClick={closeMenu}
+              {...viewIntentProps('mkt.pricing')}
+            >
               {lt('landing_start_free')}
               <ArrowRight size={16} />
             </Link>

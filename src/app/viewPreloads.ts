@@ -105,22 +105,62 @@ export function preloadSettingsView() {
   ] as const)
 }
 
-/** Keys match navConfig `NavItem.key` for sidebar prefetch. */
-export const workspaceViewPreloads: Record<string, () => Promise<unknown>> = {
-  home: preloadHomeView,
-  advisor: preloadAdvisorView,
-  workflows: preloadWorkflowsView,
-  employees: preloadEmployeesView,
-  cases: preloadCasesView,
-  documents: preloadDocumentsView,
-  knowledge: preloadKnowledgeView,
-  compliance: preloadComplianceView,
-  compensation: preloadCompensationView,
-  communications: preloadCommunicationsView,
-  comms: preloadCommsView,
-  finance: preloadFinanceView,
-  wellbeing: preloadWellbeingView,
-  planning: preloadPlanningView,
-  analytics: preloadAnalyticsView,
-  settings: preloadSettingsView,
+export function preloadRevenueView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/revenue/RevenueView').then((m) => ({
+    default: m.RevenueView,
+  }))
 }
+
+export function preloadCrmView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/crm/CrmView').then((m) => ({ default: m.CrmView }))
+}
+
+export function preloadOperationsView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/operations/OperationsView').then((m) => ({
+    default: m.OperationsView,
+  }))
+}
+
+export function preloadGovernanceView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/governance/GovernanceView').then((m) => ({
+    default: m.GovernanceView,
+  }))
+}
+
+export function preloadSecurityView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/security/SecurityView').then((m) => ({
+    default: m.SecurityView,
+  }))
+}
+
+export function preloadSpecialistsView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/specialists/SpecialistsView').then((m) => ({
+    default: m.SpecialistsView,
+  }))
+}
+
+export function preloadHiringView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/hiring/HiringView').then((m) => ({ default: m.HiringView }))
+}
+
+export function preloadPoliciesView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/policies/PoliciesView').then((m) => ({
+    default: m.PoliciesView,
+  }))
+}
+
+export function preloadSupportView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/support/SupportView').then((m) => ({
+    default: m.SupportView,
+  }))
+}
+
+export function preloadChatWidgetsView(): Promise<ViewDefaultExport> {
+  return import('@/features/app/views/chatwidgets/ChatWidgetsView').then((m) => ({
+    default: m.ChatWidgetsView,
+  }))
+}
+
+/* The nav prefetch registries live in ./viewPrefetchRegistry — this module is
+   reachable from the eager entry graph via appViews.tsx, so only the per-view
+   thunk functions (which lazy() needs) belong here. */

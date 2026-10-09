@@ -8,6 +8,7 @@ import { useAuth } from '@/features/app/auth/authContext'
 import { PrDataProvider } from '@/features/pr/data/PrDataProvider'
 import { hasPrAccess } from '@/features/pr/data/api'
 import { ThemeCycleButton } from '@/features/invest/portal/InvestPortalLayout'
+import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { PrAuthPanel } from './PrAuthPanel'
 import { PrFooter } from './PrFooter'
 
@@ -119,7 +120,13 @@ export function PrPortalLayout() {
               </NavLink>
               <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[920px]:flex">
                 {NAV.map((item) => (
-                  <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={navLinkClass}
+                    {...viewIntentProps(portalNavKey(item.to))}
+                  >
                     {x(item.label)}
                   </NavLink>
                 ))}
@@ -189,6 +196,7 @@ export function PrPortalLayout() {
                     end={item.end}
                     className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
                     onClick={() => setMobileMenuOpen(false)}
+                    {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
                   </NavLink>

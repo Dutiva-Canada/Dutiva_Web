@@ -20,6 +20,7 @@ import { Seo } from '@/seo/Seo'
 import { jobPostingNode } from '@/seo/jsonld'
 import { seoRoute } from '@/seo/routes'
 import { useAuth } from '@/features/app/auth/authContext'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { useCareersPath } from './useCareersPath'
 import { formatCareersDate } from './dates'
 import { seoDescription } from './seo'
@@ -356,6 +357,7 @@ function ApplyCta({ postingId }: { readonly postingId: string }) {
         <Link
           to={paths.apply(postingId)}
           className="inline-flex items-center gap-2 rounded-[10px] bg-navy px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          {...viewIntentProps('careers.apply')}
         >
           {x(M.careers_detail_apply_cta)}
           <ArrowRight size={15} aria-hidden="true" />

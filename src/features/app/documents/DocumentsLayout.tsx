@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { UserRound } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -11,6 +12,7 @@ import {
   workspaceSegments,
 } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { viewIntentProps, warmViewsOnIdle } from '@/app/viewPrefetch'
 import { DoclibProvider } from './DoclibProvider'
 import { useDoclib } from './doclibContext'
 import { workspaceRoles } from './data'
@@ -47,6 +49,7 @@ function DocumentsTabs() {
         to={workspacePath(root, 'documents/studio')}
         aria-current={studio || hrLibrary ? 'page' : undefined}
         className={linkClass(studio || hrLibrary)}
+        {...viewIntentProps('documents.studio')}
       >
         {x(M.shell_hr_studio_studio)}
       </Link>
@@ -54,6 +57,7 @@ function DocumentsTabs() {
         to={workspacePath(root, 'documents')}
         aria-current={myDocuments ? 'page' : undefined}
         className={linkClass(myDocuments)}
+        {...viewIntentProps('documents.repository')}
       >
         {x(M.shell_hr_studio_library)}
       </Link>
@@ -114,6 +118,20 @@ function DocumentsChrome() {
 }
 
 export function DocumentsLayout() {
+  /* Warm every screen chunk in the module — template detail, generate,
+     repository, document detail, signing — while the browser idles. */
+  useEffect(
+    () =>
+      warmViewsOnIdle([
+        'documents.studio',
+        'documents.template',
+        'documents.generate',
+        'documents.repository',
+        'documents.detail',
+        'documents.signing',
+      ]),
+    [],
+  )
   return (
     <DoclibProvider>
       {/* Shared scroll chrome so tabs and Templates content share one left edge.

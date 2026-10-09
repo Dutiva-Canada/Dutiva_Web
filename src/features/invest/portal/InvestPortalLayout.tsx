@@ -11,6 +11,7 @@ import { useAuth } from '@/features/app/auth/authContext'
 import { InvestDataProvider } from '@/features/invest/data/InvestDataProvider'
 import { InvestDataContext } from '@/features/invest/data/InvestDataContext'
 import { hasInvestAccess } from '@/features/invest/data/api'
+import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { InvestAuthPanel } from './InvestAuthPanel'
 import { InvestFooter } from './InvestFooter'
 
@@ -160,7 +161,13 @@ export function InvestPortalLayout() {
               </NavLink>
               <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
                 {NAV.map((item) => (
-                  <NavLink key={item.to} to={item.to} end={item.end} className={navLinkClass}>
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={navLinkClass}
+                    {...viewIntentProps(portalNavKey(item.to))}
+                  >
                     {x(item.label)}
                   </NavLink>
                 ))}
@@ -181,6 +188,7 @@ export function InvestPortalLayout() {
                 to="/invest/notifications"
                 className="relative inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset"
                 aria-label={x(IM.invest_tab_notifications)}
+                {...viewIntentProps('invest.notifications')}
               >
                 <Bell size={14} strokeWidth={2} aria-hidden="true" />
                 <PendingBadge />
@@ -189,6 +197,7 @@ export function InvestPortalLayout() {
                 to="/invest/settings"
                 className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset"
                 aria-label={x(IM.invest_tab_settings)}
+                {...viewIntentProps('invest.settings')}
               >
                 <Settings size={14} strokeWidth={2} aria-hidden="true" />
               </NavLink>
@@ -245,6 +254,7 @@ export function InvestPortalLayout() {
                     end={item.end}
                     className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
                     onClick={() => setMobileMenuOpen(false)}
+                    {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
                   </NavLink>
@@ -255,6 +265,7 @@ export function InvestPortalLayout() {
                     to={item.to}
                     className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
                     onClick={() => setMobileMenuOpen(false)}
+                    {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
                   </NavLink>

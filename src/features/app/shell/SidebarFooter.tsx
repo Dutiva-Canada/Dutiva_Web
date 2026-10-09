@@ -13,7 +13,7 @@ import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootCont
 import { SidebarTooltip } from './SidebarTooltip'
 import { navItemActiveClasses } from './SidebarNavItem'
 import { cx } from './cx'
-import { usePrefetchIntent } from './viewPrefetch'
+import { usePrefetchIntent } from '@/app/viewPrefetch'
 
 interface SidebarFooterProps {
   readonly expanded: boolean

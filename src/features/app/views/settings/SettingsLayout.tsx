@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 import { useI18n } from '@/i18n/context'
@@ -27,6 +28,7 @@ function SettingsTabs() {
       <Link
         to="/app/settings"
         aria-current={!memory ? 'page' : undefined}
+        {...viewIntentProps('settings')}
         className={linkClass(!memory)}
       >
         {x(M.shell_settings_general)}
@@ -34,6 +36,7 @@ function SettingsTabs() {
       <Link
         to="/app/settings/memory"
         aria-current={memory ? 'page' : undefined}
+        {...viewIntentProps('settings.memory')}
         className={linkClass(memory)}
       >
         {x(MEM.memory_nav_memory)}

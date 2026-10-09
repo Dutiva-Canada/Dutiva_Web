@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { viewIntentProps } from '@/app/viewPrefetch'
 
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
@@ -155,12 +156,14 @@ export function SupportAdminView() {
           <Link
             to="/app/support/admin/exports"
             className="rounded-[8px] border border-border bg-surface px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:bg-inset"
+            {...viewIntentProps('support.exports')}
           >
             {x(M.export_audit_title)}
           </Link>
           <Link
             to="/app/support/admin/directory"
             className="rounded-[8px] border border-border bg-surface px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 hover:bg-inset"
+            {...viewIntentProps('support.directory')}
           >
             {x(M.support_admin_directory_link)}
           </Link>
@@ -276,7 +279,11 @@ export function SupportAdminView() {
                   {tickets.map((t) => (
                     <tr key={t.id} className="border-b border-inset hover:bg-inset">
                       <td className="py-[10px] pr-[12px]">
-                        <Link to={`/app/support/admin/${t.id}`} className="font-semibold text-navy">
+                        <Link
+                          to={`/app/support/admin/${t.id}`}
+                          className="font-semibold text-navy"
+                          {...viewIntentProps('support.admin-ticket')}
+                        >
                           {t.subject}
                         </Link>
                         <div className="text-[11.5px] text-text-muted">
@@ -317,6 +324,7 @@ export function SupportAdminView() {
                   key={t.id}
                   to={`/app/support/admin/${t.id}`}
                   className="block rounded-[12px] border border-border bg-surface p-[14px]"
+                  {...viewIntentProps('support.admin-ticket')}
                 >
                   <div className="font-semibold text-navy">{t.subject}</div>
                   <div className="mt-[4px] text-[11.5px] text-text-muted">

@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { securityMessages as M } from '@/i18n/messages/security'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { viewIntentProps, warmViewsOnIdle } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const TABS = [
@@ -20,6 +22,7 @@ export function SecurityLayout() {
   const { root } = useWorkspaceRoot()
   const { pathname } = useLocation()
   const { mode } = useWorkspaceMode()
+  useEffect(() => warmViewsOnIdle(TABS.map((tab) => `security.${tab.key}`)), [])
 
   return (
     <AppPage width="default" responsivePad>
@@ -42,6 +45,7 @@ export function SecurityLayout() {
             <Link
               key={tab.key}
               to={to}
+              {...viewIntentProps(`security.${tab.key}`)}
               className={
                 active
                   ? 'rounded-t-[6px] border-b-2 border-accent px-3 py-1.5 text-[13.5px] font-semibold text-accent'

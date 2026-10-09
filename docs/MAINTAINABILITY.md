@@ -9,7 +9,7 @@ and periodic owner tasks.
 - **Surface-scoped i18n:** `workspace.ts` / `marketing.ts` / `shared.ts` + `npm run check:message-scopes`
 - **Colocated tests:** `*.test.ts(x)` beside the unit under test
 - **Custom CI guards:** migrations, RLS, facts, brand assets, entry-graph budget, architecture (`check:architecture`)
-- **Lazy workspace routes:** `viewPreloads.ts` shared by routes and nav prefetch
+- **Lazy workspace routes:** `viewPreloads.ts` shared by routes and nav prefetch — four registries (`workspaceViewPreloads`, `screenViewPreloads`, `portalViewPreloads`, `marketingViewPreloads`) resolved by `viewPrefetchRegistry.ts` + `viewPrefetch.ts`; nav links spread `viewIntentProps(key)` and layouts warm their tab chunks with `warmViewsOnIdle()` (idle-time, Save-Data/metered-aware). When adding a lazy view or portal page, add its import to the matching registry and wire the link — otherwise it cold-loads to a blank `Suspense`.
 
 ## Maintainability program (stages 1–10, complete)
 

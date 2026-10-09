@@ -1,4 +1,5 @@
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { viewIntentProps } from '@/app/viewPrefetch'
 
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
@@ -15,10 +16,14 @@ export function SupportSectionNav({ active }: { readonly active: 'new' | 'reques
 
   return (
     <nav className="mb-[20px] flex gap-[18px] border-b border-border" aria-label={x(M.support_nav_label)}>
-      <Link to="/app/support" className={tabClass(active === 'new')}>
+      <Link to="/app/support" className={tabClass(active === 'new')} {...viewIntentProps('support')}>
         {x(M.support_new_request)}
       </Link>
-      <Link to="/app/support/requests" className={tabClass(active === 'requests')}>
+      <Link
+        to="/app/support/requests"
+        className={tabClass(active === 'requests')}
+        {...viewIntentProps('support.requests')}
+      >
         {x(M.support_my_requests)}
       </Link>
     </nav>

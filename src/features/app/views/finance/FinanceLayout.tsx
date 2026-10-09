@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
   Banknote,
@@ -22,6 +22,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { common } from '@/i18n/messages/common'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { viewIntentProps, warmViewsOnIdle } from '@/app/viewPrefetch'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useFinanceData } from './data/useFinanceData'
@@ -80,6 +81,8 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
           return flags[tab.key] !== false
         })
 
+  useEffect(() => warmViewsOnIdle(TABS.map((tab) => `finance.${tab.key}`)), [])
+
   const modeMessage = (() => {
     if (mode === 'demo') return x(M.finance_demo_read_only)
     if (hasSupabase) return x(M.finance_production_workspace)
@@ -112,6 +115,7 @@ export function FinanceLayout({ mode }: FinanceLayoutProps) {
               key={tab.key}
               to={tab.to}
               end={tab.key === 'overview'}
+              {...viewIntentProps(`finance.${tab.key}`)}
               className={({ isActive }) =>
                 `flex items-center gap-[6px] rounded-[10px] px-[12px] py-[8px] text-[12.5px] font-semibold transition-colors ${
                   isActive
