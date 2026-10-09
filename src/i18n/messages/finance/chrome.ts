@@ -26,7 +26,7 @@ export const financeChrome = defineMessages({
   },
 
   /* Navigation tabs */
-  finance_tab_overview: { en: 'Overview', fr: 'Vue d’ensemble' },
+  finance_tab_overview: { en: 'Overview', fr: 'Aperçu' },
   finance_tab_transactions: { en: 'Transactions', fr: 'Transactions' },
   finance_tab_sales: { en: 'Sales & collections', fr: 'Ventes et recouvrement' },
   finance_tab_purchases: { en: 'Purchases & expenses', fr: 'Achats et dépenses' },

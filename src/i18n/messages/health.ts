@@ -341,7 +341,7 @@ export const healthMessages = defineMessages({
   health_tool_breath_hold: { en: 'Hold', fr: 'Retenez' },
   health_tool_breath_out: { en: 'Breathe out', fr: 'Expirez' },
   health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
-  health_tool_ground_title: { en: 'Grounding: 5–4–3–2–1', fr: 'Ancrage : 5-4-3-2-1' },
+  health_tool_ground_title: { en: 'Grounding: 5–4–3–2–1', fr: 'Ancrage : 5–4–3–2–1' },
   health_tool_ground_body: {
     en: 'Name things around you, counting down through the senses.',
     fr: 'Nommez ce qui vous entoure, en descendant les sens un à un.',

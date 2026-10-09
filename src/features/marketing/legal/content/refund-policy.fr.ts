@@ -80,7 +80,7 @@ export default {
       ],
     },
     {
-      title: '4. Éligibilité aux remboursements - Forfaits mensuels',
+      title: '4. Éligibilité aux remboursements — Forfaits mensuels',
       blocks: [
         {
           type: 'p',
@@ -105,7 +105,7 @@ export default {
       ],
     },
     {
-      title: '5. Éligibilité aux remboursements - Forfaits annuels',
+      title: '5. Éligibilité aux remboursements — Forfaits annuels',
       blocks: [
         {
           type: 'p',

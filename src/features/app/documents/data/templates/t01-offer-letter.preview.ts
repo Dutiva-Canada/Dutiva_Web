@@ -31,8 +31,8 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
   {
     type: 'para',
     text: {
-      en: '**Re:** Offer of Employment - {{position_title}}',
-      fr: "**Objet :** Offre d’emploi - {{position_title}}",
+      en: '**Re:** Offer of Employment — {{position_title}}',
+      fr: "**Objet :** Offre d’emploi — {{position_title}}",
     },
   },
   {
@@ -46,14 +46,14 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
     type: 'para',
     text: {
       en: 'We are pleased to offer you employment with {{org}} (the "Company") in the position of {{position_title}}. This letter summarizes the individualized business terms of the offer. The attached Employment Agreement contains the complete legal terms of your employment and must be signed before employment begins.\n\nThis bilingual document is provided in English and French. Both versions are intended to be consistent. If there is any discrepancy between the English and French versions, the English version prevails to the extent permitted by applicable law, unless the Company expressly agrees otherwise in writing.',
-      fr: 'Nous avons le plaisir de vous offrir un emploi auprès de {{org}} (la "Société") au poste de {{position_title}}. La présente lettre résume les conditions d’affaires propres à cette offre. Le contrat de travail ci-joint contient les conditions juridiques complètes de votre emploi et doit être signé avant le début de votre emploi.\n\nLe présent document bilingue est fourni en anglais et en français. Les deux versions sont censées être cohérentes. En cas de divergence entre les versions anglaise et française, la version anglaise prévaut dans la mesure permise par la loi applicable, sauf accord écrit contraire exprès de la Société.',
+      fr: 'Nous avons le plaisir de vous offrir un emploi auprès de {{org}} (la « Société ») au poste de {{position_title}}. La présente lettre résume les conditions d’affaires propres à cette offre. Le contrat de travail ci-joint contient les conditions juridiques complètes de votre emploi et doit être signé avant le début de votre emploi.\n\nLe présent document bilingue est fourni en anglais et en français. Les deux versions sont censées être cohérentes. En cas de divergence entre les versions anglaise et française, la version anglaise prévaut dans la mesure permise par la loi applicable, sauf accord écrit contraire exprès de la Société.',
     },
   },
   {
     type: 'clause',
     text: {
-      en: "The following information is included to support Ontario employment standards requirements where applicable, including the written employment information required for employers with 25 or more employees on the employee’s first day of work.\nLegal name: {{org}}\nOperating/business name: {{employer_business_name}}\nEmployer address: {{employer_address}}\nEmployer telephone: {{employer_phone}}\nEmployer contact: {{hr_contact_name}} - {{hr_contact_email}}",
-      fr: "Les renseignements suivants sont inclus afin d’appuyer les exigences ontariennes en matière de normes d’emploi, le cas échéant, y compris les renseignements écrits sur l’emploi exigés des employeurs qui comptent 25 employés ou plus le premier jour de travail de l’employé.\nDénomination sociale: {{org}}\nNom commercial: {{employer_business_name}}\nAdresse de l’employeur: {{employer_address}}\nTéléphone de l’employeur: {{employer_phone}}\nPersonne-ressource: {{hr_contact_name}} - {{hr_contact_email}}",
+      en: "The following information is included to support Ontario employment standards requirements where applicable, including the written employment information required for employers with 25 or more employees on the employee’s first day of work.\nLegal name: {{org}}\nOperating/business name: {{employer_business_name}}\nEmployer address: {{employer_address}}\nEmployer telephone: {{employer_phone}}\nEmployer contact: {{hr_contact_name}} — {{hr_contact_email}}",
+      fr: "Les renseignements suivants sont inclus afin d’appuyer les exigences ontariennes en matière de normes d’emploi, le cas échéant, y compris les renseignements écrits sur l’emploi exigés des employeurs qui comptent 25 employés ou plus le premier jour de travail de l’employé.\nDénomination sociale : {{org}}\nNom commercial : {{employer_business_name}}\nAdresse de l’employeur : {{employer_address}}\nTéléphone de l’employeur : {{employer_phone}}\nPersonne-ressource : {{hr_contact_name}} — {{hr_contact_email}}",
     },
     n: 1,
     heading: {
@@ -89,7 +89,7 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
     type: 'clause',
     text: {
       en: "Your base salary will be {{annual_base_salary}} per year, paid {{pay_frequency}} by direct deposit, less statutory deductions and authorized withholdings.\nStarting wage or salary: {{annual_base_salary}}\nPay period: {{pay_period}}\nRegular pay day: {{pay_day}}\nPay frequency: {{pay_frequency}}\nYour compensation will be reviewed as part of the Company’s regular performance and compensation cycle. A review does not guarantee an increase or adjustment.",
-      fr: 'Votre salaire de base sera de {{annual_base_salary}} par année, payé {{pay_frequency}} par dépôt direct, moins les retenues prévues par la loi et les retenues autorisées.\nSalaire ou taux de départ: {{annual_base_salary}}\nPériode de paie: {{pay_period}}\nJour de paie régulier: {{pay_day}}\nFréquence de paie: {{pay_frequency}}\nVotre rémunération sera examinée dans le cadre du cycle régulier de gestion du rendement et de rémunération de la Société. Un tel examen ne garantit aucune augmentation ni rajustement.',
+      fr: 'Votre salaire de base sera de {{annual_base_salary}} par année, payé {{pay_frequency}} par dépôt direct, moins les retenues prévues par la loi et les retenues autorisées.\nSalaire ou taux de départ : {{annual_base_salary}}\nPériode de paie : {{pay_period}}\nJour de paie régulier : {{pay_day}}\nFréquence de paie : {{pay_frequency}}\nVotre rémunération sera examinée dans le cadre du cycle régulier de gestion du rendement et de rémunération de la Société. Un tel examen ne garantit aucune augmentation ni rajustement.',
     },
     n: 4,
     heading: {
@@ -225,8 +225,8 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
   {
     type: 'clause',
     text: {
-      en: 'This offer letter, the Employment Agreement and any attached schedules form the entire agreement concerning your employment and replace all prior discussions, representations or understandings about the same subject matter.\nIf there is a conflict between this offer letter and the Employment Agreement, the Employment Agreement prevails for legal terms, including termination, confidentiality, intellectual property, policies, governing law, severability and temporary layoff. The individualized business terms in this offer letter - including position, start date, reporting, initial work location, initial anticipated hours and starting compensation - prevail unless the Employment Agreement expressly states otherwise.\nThis offer is governed by the laws of Ontario and the laws of Canada applicable in Ontario. The ESA provides minimum statutory employment standards and nothing in this offer is intended to contract out of or waive those minimum standards.',
-      fr: "La présente lettre d’offre, le contrat de travail et les annexes jointes constituent l’intégralité de l’entente concernant votre emploi et remplacent toutes les discussions, déclarations ou ententes antérieures portant sur le même objet.\nEn cas de conflit entre la présente lettre d’offre et le contrat de travail, le contrat de travail prévaut quant aux conditions juridiques, notamment la fin de l’emploi, la confidentialité, la propriété intellectuelle, les politiques, le droit applicable, la divisibilité et la mise à pied temporaire. Les conditions d’affaires individualisées contenues dans la présente lettre d’offre - notamment le poste, la date de début, la supervision, le lieu initial de travail, les heures initialement prévues et la rémunération de départ - prévalent, sauf disposition expresse contraire du contrat de travail.\nLa présente offre est régie par les lois de l’Ontario et les lois du Canada applicables en Ontario. La LNE établit les normes minimales d’emploi prévues par la loi et rien dans la présente offre n’a pour objet de renoncer à ces normes minimales ou d’y déroger.",
+      en: 'This offer letter, the Employment Agreement and any attached schedules form the entire agreement concerning your employment and replace all prior discussions, representations or understandings about the same subject matter.\nIf there is a conflict between this offer letter and the Employment Agreement, the Employment Agreement prevails for legal terms, including termination, confidentiality, intellectual property, policies, governing law, severability and temporary layoff. The individualized business terms in this offer letter — including position, start date, reporting, initial work location, initial anticipated hours and starting compensation — prevail unless the Employment Agreement expressly states otherwise.\nThis offer is governed by the laws of Ontario and the laws of Canada applicable in Ontario. The ESA provides minimum statutory employment standards and nothing in this offer is intended to contract out of or waive those minimum standards.',
+      fr: "La présente lettre d’offre, le contrat de travail et les annexes jointes constituent l’intégralité de l’entente concernant votre emploi et remplacent toutes les discussions, déclarations ou ententes antérieures portant sur le même objet.\nEn cas de conflit entre la présente lettre d’offre et le contrat de travail, le contrat de travail prévaut quant aux conditions juridiques, notamment la fin de l’emploi, la confidentialité, la propriété intellectuelle, les politiques, le droit applicable, la divisibilité et la mise à pied temporaire. Les conditions d’affaires individualisées contenues dans la présente lettre d’offre — notamment le poste, la date de début, la supervision, le lieu initial de travail, les heures initialement prévues et la rémunération de départ — prévalent, sauf disposition expresse contraire du contrat de travail.\nLa présente offre est régie par les lois de l’Ontario et les lois du Canada applicables en Ontario. La LNE établit les normes minimales d’emploi prévues par la loi et rien dans la présente offre n’a pour objet de renoncer à ces normes minimales ou d’y déroger.",
     },
     n: 14,
     heading: {
@@ -250,11 +250,11 @@ export const t01OfferLetterPreview: PreviewBlock[] = [
     type: 'clause',
     text: {
       en: 'Position title: {{position_title}}\nDepartment/team: {{department}}\nKey responsibilities: {{job_responsibilities}}\nRequired qualifications: {{required_qualifications}}\nPhysical, travel or other role requirements, if any: {{role_requirements}}',
-      fr: 'Titre du poste: {{position_title}}\nService/équipe: {{department}}\nResponsabilités principales: {{job_responsibilities}}\nQualifications requises: {{required_qualifications}}\nExigences physiques, déplacements ou autres exigences liées au poste, le cas échéant: {{role_requirements}}',
+      fr: 'Titre du poste : {{position_title}}\nService/équipe : {{department}}\nResponsabilités principales : {{job_responsibilities}}\nQualifications requises : {{required_qualifications}}\nExigences physiques, déplacements ou autres exigences liées au poste, le cas échéant : {{role_requirements}}',
     },
     heading: {
-      en: 'Schedule A - Job Description',
-      fr: 'Annexe A - Description du poste',
+      en: 'Schedule A — Job Description',
+      fr: 'Annexe A — Description du poste',
     },
   },
   {

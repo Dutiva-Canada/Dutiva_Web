@@ -127,8 +127,8 @@ export const hiringMessages = defineMessages({
     fr: "Évaluation de l’échantillon de travail",
   },
   hiring_work_sample_description: {
-    en: 'Job-realistic work sample (20-45 minutes). AI tools are allowed and evaluated.',
-    fr: 'Échantillon de travail réaliste (20-45 minutes). Les outils IA sont autorisés et évalués.',
+    en: 'Job-realistic work sample (20–45 minutes). AI tools are allowed and evaluated.',
+    fr: 'Échantillon de travail réaliste (20–45 minutes). Les outils IA sont autorisés et évalués.',
   },
   hiring_work_sample_scenario: { en: 'Scenario', fr: 'Scénario' },
   hiring_work_sample_submission: { en: 'Candidate submission', fr: 'Soumission du candidat' },

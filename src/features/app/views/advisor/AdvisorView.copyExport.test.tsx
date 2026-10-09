@@ -112,7 +112,7 @@ describe('AdvisorView copy/export actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
-    expect(await screen.findByText('Drafting document...')).toBeInTheDocument()
+    expect(await screen.findByText('Drafting document…')).toBeInTheDocument()
     expect(await screen.findByText('Remote & hybrid work policy')).toBeInTheDocument()
     expect(await screen.findByText(OFFER_REPLY, undefined, { timeout: 2000 })).toBeInTheDocument()
   })

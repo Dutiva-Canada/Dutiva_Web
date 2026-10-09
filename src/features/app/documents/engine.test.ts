@@ -104,13 +104,13 @@ describe('conditional clauses (template × jurisdiction × headcount × union)',
     const ctx = { jurisdiction: 'ON' as const, headcount: 30, unionized: false }
     const headings = (has_enhanced_termination: string) =>
       resolveBlocks(t, { ...ctx, answers: { has_enhanced_termination } }).map((b) => b.heading?.en)
-    expect(headings('yes')).toContain('Schedule B - Additional Contractual Termination Entitlement')
+    expect(headings('yes')).toContain('Schedule B — Additional Contractual Termination Entitlement')
     expect(headings('no')).not.toContain(
-      'Schedule B - Additional Contractual Termination Entitlement',
+      'Schedule B — Additional Contractual Termination Entitlement',
     )
     /* Unanswered reads as undecided — visible in the template detail preview,
        same convention as every other answer-gated block. */
-    expect(headings('')).toContain('Schedule B - Additional Contractual Termination Entitlement')
+    expect(headings('')).toContain('Schedule B — Additional Contractual Termination Entitlement')
   })
 })
 

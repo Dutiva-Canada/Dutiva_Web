@@ -59,7 +59,7 @@ export const financeTax = defineMessages({
   finance_tax_scenario_assumptions: { en: 'Assumptions', fr: 'Hypothèses' },
   finance_tax_scenario_law_version: { en: 'Law version', fr: 'Version de la loi' },
   finance_tax_scenario_enacted: { en: 'Enacted', fr: 'Promulguée' },
-  finance_tax_scenario_proposed: { en: 'Proposed', fr: 'Proposée' },
+  finance_tax_scenario_proposed: { en: 'Proposed', fr: 'Proposé' },
 
   /* Tax types */
   finance_tax_type_income_tax: { en: 'Income tax', fr: 'Impôt sur le revenu' },

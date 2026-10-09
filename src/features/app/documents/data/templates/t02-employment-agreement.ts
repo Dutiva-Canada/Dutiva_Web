@@ -524,8 +524,8 @@ export const tplT02: DocTemplate = {
         fr: '{{job_description}}',
       },
       heading: {
-        en: 'Schedule A - Job Description',
-        fr: 'Annexe A - Description du poste',
+        en: 'Schedule A — Job Description',
+        fr: 'Annexe A — Description du poste',
       },
     },
     {
@@ -535,8 +535,8 @@ export const tplT02: DocTemplate = {
         fr: 'Complétez cette annexe uniquement si l’Employeur offre un montant ou un avantage contractuel supérieur aux droits minimaux de la LNE.\n\nDroit additionnel, s’il y a lieu : {{without_cause_notice}}\n\nMéthode de calcul / conditions : {{termination_enhancement_terms}}',
       },
       heading: {
-        en: 'Schedule B - Additional Contractual Termination Entitlement',
-        fr: 'Annexe B - Droit contractuel additionnel à la cessation d’emploi',
+        en: 'Schedule B — Additional Contractual Termination Entitlement',
+        fr: 'Annexe B — Droit contractuel additionnel à la cessation d’emploi',
       },
       when: {
         answer: { id: 'has_enhanced_termination', equals: ['yes'] },
