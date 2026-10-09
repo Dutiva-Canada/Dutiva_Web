@@ -4,8 +4,16 @@
  */
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import { configure } from '@testing-library/dom'
 import { webcrypto } from 'node:crypto'
 import { afterEach } from 'vitest'
+
+/* findBy and waitFor default to a 1s asyncUtilTimeout — under vmThreads the
+   parallel-suite import+render path (dynamic `await import()` inside portal
+   tests) routinely exceeds it on a loaded machine, producing flakes that
+   always pass in isolation. 5s keeps the intent (fail on genuinely absent
+   content) while absorbing transform contention. */
+configure({ asyncUtilTimeout: 5000 })
 
 // Node ≥25 defines a global `localStorage` that is broken unless Node is
 // started with --localstorage-file, and it shadows jsdom's implementation
