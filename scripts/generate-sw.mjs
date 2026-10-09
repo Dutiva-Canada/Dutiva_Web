@@ -23,7 +23,7 @@
  * produces an identical sw.js, and any asset change rotates the cache.
  */
 
-import { readdir, writeFile } from 'node:fs/promises'
+import { readdir, writeFile, stat } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
@@ -63,10 +63,24 @@ const shell = ['/', '/app.html', '/404.html', '/site.webmanifest'].filter((url) 
 
 /* Never precache source maps: build.sourcemap is 'hidden' and
    relocate-sourcemaps.mjs already moves them out of dist/ before this runs, but
-   filter defensively so a stray .map can never end up in the offline cache. */
-const precache = Array.from(new Set([...shell, ...assetUrls, ...brandUrls]))
+   filter defensively so a stray .map can never end up in the offline cache.
+
+   Also never precache very large assets (the ONNX wasm is ~27 MB, the PDF
+   worker ~1.3 MB — two files were ~70% of the install payload). They load
+   lazily when their feature runs and land in the runtime cache via the
+   cache-first fetch handler, so offline still covers them after first use. */
+const MAX_PRECACHE_BYTES = 1_000_000
+const tooBig = []
+const candidates = Array.from(new Set([...shell, ...assetUrls, ...brandUrls]))
   .filter((url) => !url.endsWith('.map'))
   .sort((a, b) => a.localeCompare(b))
+const precache = []
+for (const url of candidates) {
+  const file = path.join(dist, url === '/' ? 'index.html' : url.replace(/^\//, ''))
+  const size = existsSync(file) ? (await stat(file)).size : 0
+  if (size > MAX_PRECACHE_BYTES) tooBig.push(url)
+  else precache.push(url)
+}
 
 if (assetUrls.length === 0) {
   console.error('generate-sw: no files under dist/assets — did `vite build` run first?')
@@ -84,16 +98,20 @@ const CACHE_VERSION = '${version}'
 const PRECACHE = 'dutiva-precache-' + CACHE_VERSION
 const RUNTIME = 'dutiva-runtime-' + CACHE_VERSION
 const PAGES = 'dutiva-pages-' + CACHE_VERSION
+const SHELL_URLS = ${JSON.stringify(shell)}
 const PRECACHE_URLS = ${JSON.stringify(precache)}
 
-/* Install: fill the precache so a single online visit makes the whole app
-   available offline, then take over from any previous worker immediately. */
+/* Install: precache only the app shells (a few KB) and take over — the bulk
+   asset set is deferred until after activation + a settle delay, so the SW
+   update can never saturate the connection while the page is still booting.
+   Offline coverage still reaches the same full set; it just arrives a few
+   seconds later instead of during first paint. */
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches
       .open(PRECACHE)
       .then(function (cache) {
-        return cache.addAll(PRECACHE_URLS)
+        return cache.addAll(SHELL_URLS)
       })
       .then(function () {
         return self.skipWaiting()
@@ -115,6 +133,19 @@ self.addEventListener('activate', function (event) {
       })
       .then(function () {
         return self.clients.claim()
+      })
+      .then(function () {
+        self.setTimeout(function () {
+          caches
+            .open(PRECACHE)
+            .then(function (cache) {
+              return cache.addAll(PRECACHE_URLS)
+            })
+            .catch(function () {
+              /* Best-effort bulk warm — anything missed is runtime-cached
+                 by the fetch handler on first use. */
+            })
+        }, 3000)
       }),
   )
 })
@@ -206,4 +237,8 @@ self.addEventListener('fetch', function (event) {
 `
 
 await writeFile(path.join(dist, 'sw.js'), sw)
-console.log(`generate-sw: wrote dist/sw.js (${precache.length} precached URLs, version ${version})`)
+console.log(
+  `generate-sw: wrote dist/sw.js (${precache.length} precached URLs` +
+    (tooBig.length ? `, ${tooBig.length} oversized deferred to runtime cache` : '') +
+    `, version ${version})`,
+)
