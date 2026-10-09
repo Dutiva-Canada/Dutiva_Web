@@ -14,7 +14,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'This Cookie Policy explains how Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") uses cookies, local storage, session storage, and similar technologies on our website and application. These technologies store or read small pieces of information in your browser so the service can remember session, preference, security, and workflow state.',
+          text: 'This Cookie Policy explains how Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) uses cookies, local storage, session storage, and similar technologies on our website and application. These technologies store or read small pieces of information in your browser so the service can remember session, preference, security, and workflow state.',
         },
         {
           type: 'p',
@@ -39,7 +39,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Public-site security trustmark: the marketing site loads TrustedSite (Halo Security) so visitors can see website security-scan status. That script may set cookies or similar storage on TrustedSite's domain. It is not loaded in the signed-in workspace and is not used for advertising.",
+          text: "Public-site security trustmark: the marketing site loads TrustedSite (Halo Security) so visitors can see website security-scan status. That script may set cookies or similar storage on TrustedSite’s domain. It is not loaded in the signed-in workspace and is not used for advertising.",
         },
         {
           type: 'li',
@@ -73,7 +73,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Tag Manager / Google Analytics 4). Both are optional and off by default — nothing is collected until you accept analytics through the consent banner, and you can change your choice at any time from the "Cookie preferences" link in the footer. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
+          text: 'Dutiva uses two kinds of analytics: first-party support analytics and optional third-party website analytics (Google Tag Manager / Google Analytics 4). Both are optional and off by default — nothing is collected until you accept analytics through the consent banner, and you can change your choice at any time from the “Cookie preferences” link in the footer. First-party support analytics (Help Centre searches, article views, helpfulness votes, and support ticket events) are sent to a Dutiva-operated edge function in Canada and do not use third-party cookies. These events carry a daily-rotated anonymous visitor identifier for Help Centre activity or the workspace (organization) identifier for authenticated ticket events, never an individual user identifier. Raw event data is retained for 90 days; daily aggregates are retained indefinitely.',
         },
         {
           type: 'p',

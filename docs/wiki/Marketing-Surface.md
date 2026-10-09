@@ -120,7 +120,7 @@ Sources: [src/features/marketing/landing.css](), [src/features/marketing/demos/T
 
 ## SEO, Prerendering & Content Marketing
 
-Every public URL is registered in the `SEO_ROUTES` array in `src/seo/routes.ts` — 19 static page entries plus dynamic generators for 26 legal documents, help articles, and editorial articles. The `Seo` component renders page-specific `<head>` metadata including title, description, canonical, hreflang alternates (en-CA/fr-CA), Open Graph tags, and a JSON-LD `@graph` (containing `Organization`, `WebSite`, `WebPage`, `BreadcrumbList`, and optionally `FAQPage` and `WebApplication` nodes).
+Every public URL is registered in the `SEO_ROUTES` array in `src/seo/routes.ts` — 20 static page entries plus dynamic generators for 26 legal documents, help articles, and editorial articles. The `Seo` component renders page-specific `<head>` metadata including title, description, canonical, hreflang alternates (en-CA/fr-CA), Open Graph tags, and a JSON-LD `@graph` (containing `Organization`, `WebSite`, `WebPage`, `BreadcrumbList`, and optionally `FAQPage` and `WebApplication` nodes).
 
 Sources: [src/seo/routes.ts:29-227](), [src/seo/Seo.tsx:62-112](), [src/seo/jsonld.ts:22-87]()
 

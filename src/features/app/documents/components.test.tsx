@@ -36,7 +36,7 @@ describe('DocPaper letter formatting', () => {
       {
         type: 'para',
         text: {
-          en: '**Re:** Offer of Employment - {{position_title}}',
+          en: '**Re:** Offer of Employment — {{position_title}}',
           fr: '…',
         },
       },

@@ -44,7 +44,7 @@ export const legalHubMessages = defineMessages({
   },
   legalHub_row5_title: { en: 'Accessibility Statement', fr: 'Déclaration d’accessibilité' },
   legalHub_row5_desc: {
-    en: "Dutiva's commitment to accessible HR software",
+    en: "Dutiva’s commitment to accessible HR software",
     fr: 'L’engagement de Dutiva envers un logiciel RH accessible',
   },
   legalHub_row6_title: {
@@ -65,7 +65,7 @@ export const legalHubMessages = defineMessages({
   },
   legalHub_row8_title: { en: 'CASL Compliance Policy', fr: 'Politique de conformité à la LCAP' },
   legalHub_row8_desc: {
-    en: "Anti-spam law and Dutiva's commercial electronic messages",
+    en: "Anti-spam law and Dutiva’s commercial electronic messages",
     fr: 'Loi anti-pourriel et messages électroniques commerciaux de Dutiva',
   },
   legalHub_row9_title: {
@@ -144,7 +144,7 @@ export const legalHubMessages = defineMessages({
   },
   legalHub_row19_title: { en: 'Subprocessor List', fr: 'Liste des sous-traitants' },
   legalHub_row19_desc: {
-    en: "Third parties that process data on Dutiva's behalf",
+    en: "Third parties that process data on Dutiva’s behalf",
     fr: 'Tiers qui traitent des données pour le compte de Dutiva',
   },
   legalHub_row20_title: { en: 'SaaS Subscription Agreement', fr: 'Entente d’abonnement SaaS' },
@@ -175,7 +175,7 @@ export const legalHubMessages = defineMessages({
   },
   legalHub_row24_title: { en: 'Copyright Policy', fr: 'Politique de droit d’auteur' },
   legalHub_row24_desc: {
-    en: "Ownership of your content and Dutiva's platform",
+    en: "Ownership of your content and Dutiva’s platform",
     fr: 'Propriété de votre contenu et de la plateforme Dutiva',
   },
   legalHub_row25_title: {

@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Records when the client-side Advisor safety backstop fired
@@ -15,16 +16,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * best-effort from the client and never blocks or breaks a reply.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -130,8 +127,8 @@ async function activeRouteAttribution(
   }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -143,8 +140,21 @@ Deno.serve(async (req: Request) => {
 
   const attribution = await activeRouteAttribution(authenticated.adminClient)
 
+  /* The org id on a telemetry row is caller-supplied attribution: keep it
+     only when the caller is a verified member of that org (same posture as
+     create-support-ticket's workspace_id — silently dropped, never an
+     error, telemetry stays best-effort). */
+  let organizationId: string | null = null
+  if (request.organizationId) {
+    const { data: isMember } = await authenticated.adminClient.rpc('is_org_member', {
+      check_org_id: request.organizationId,
+      check_user_id: authenticated.user.id,
+    })
+    if (isMember === true) organizationId = request.organizationId
+  }
+
   const { error } = await authenticated.adminClient.from('ai_telemetry_events').insert({
-    organization_id: request.organizationId,
+    organization_id: organizationId,
     user_id: authenticated.user.id,
     provider: attribution.provider,
     model: attribution.model,
@@ -156,4 +166,6 @@ Deno.serve(async (req: Request) => {
   if (error) return json({ error: error.message }, 500)
 
   return json({ data: { recorded: request.actions.length } }, 202)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

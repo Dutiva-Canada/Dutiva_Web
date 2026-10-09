@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  assessCurrencyDate,
   assessOntarioActVersions,
   looksLikeCurrencyDate,
   ontarioFingerprintPayload,
@@ -196,5 +197,32 @@ describe('looksLikeCurrencyDate', () => {
   it('rejects a JSON or HTML error page', () => {
     expect(looksLikeCurrencyDate('{"error":"not found"}')).toBe(false)
     expect(looksLikeCurrencyDate('<html>404</html>')).toBe(false)
+  })
+})
+
+describe('assessCurrencyDate', () => {
+  const NOW = Date.parse('2026-10-04T00:00:00Z')
+  const STALE_MS = 90 * 86_400_000
+
+  it('reads a live "laws current to" stamp as fresh', () => {
+    const verdict = assessCurrencyDate('October 2, 2026', NOW, STALE_MS)
+    expect(verdict).toEqual({ kind: 'fresh', claimText: 'October 2, 2026' })
+  })
+
+  it('flags a claimed date that has not advanced past the bound', () => {
+    /* The endpoint answers fine — but the corpus it claims to be current
+       to stopped moving ~4 months ago: dead-but-answering. */
+    const verdict = assessCurrencyDate('June 1, 2026', NOW, STALE_MS)
+    expect(verdict.kind).toBe('stale')
+    if (verdict.kind === 'stale') expect(verdict.ageDays).toBeGreaterThan(90)
+  })
+
+  it('treats an unreadable or missing response as dead', () => {
+    expect(assessCurrencyDate(null, NOW, STALE_MS).kind).toBe('dead')
+    expect(assessCurrencyDate('<html>Just a moment</html>', NOW, STALE_MS).kind).toBe('dead')
+    expect(assessCurrencyDate('{"error":"gone"}', NOW, STALE_MS).kind).toBe('dead')
+    /* Date-shaped but unparsable is still dead — garbage that only
+       looks like the heartbeat must not reset the failure counter. */
+    expect(assessCurrencyDate('Not a real date at all', NOW, STALE_MS).kind).toBe('dead')
   })
 })

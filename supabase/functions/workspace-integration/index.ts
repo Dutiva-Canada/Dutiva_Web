@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Connect / test / disconnect boundary for `workspace_integrations` (0161).
@@ -33,16 +34,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * org admins can drive this function — same gating as the table writes.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...headers },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json', ...headers },
   })
 }
 
@@ -139,8 +136,8 @@ async function probeProvider(
   }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -319,4 +316,6 @@ Deno.serve(async (req: Request) => {
   })
   if (failed) return failed
   return json({ status: 'connected', account: probe.account })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

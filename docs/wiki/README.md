@@ -37,4 +37,4 @@ Set `WIKI_REPO` if your wiki clone is not at `../Dutiva_Web-wiki`.
 
 This folder’s **`README.md`** is repo-only (not copied to GitHub wiki). All other `*.md` files mirror the wiki one-to-one.
 
-**Last synced from wiki commit:** `cfac255` (2026-09-06 — Comms Platform, Finance workspace, and Hiring module documentation; migrations through 0119).
+**Last synced to wiki commit:** `7aa4b3a` (pushed 2026-10-09 — portal assistants, chat widgets, advisor evaluation layer; Woodpecker CI correction; counts refreshed: 45 edge functions, 71 SEO pages / 142 localized URLs, 209 migrations, 68 message modules, 19 monitored law pages).

@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'August 30, 2026',
   effectiveDate: 'June 2, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") provides HR compliance software for Canadian employers, HR professionals, and business operators. This Privacy Policy explains how we collect, use, disclose, retain, and protect personal information when you use Dutiva, including our website, application, Advisor, document workflows, beta access, support, and related services.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) provides HR compliance software for Canadian employers, HR professionals, and business operators. This Privacy Policy explains how we collect, use, disclose, retain, and protect personal information when you use Dutiva, including our website, application, Advisor, document workflows, beta access, support, and related services.',
     'This Policy is designed to support compliance with the Personal Information Protection and Electronic Documents Act (PIPEDA) and applicable provincial privacy laws, including Quebec privacy requirements where they apply. It does not replace any separate Data Processing Agreement, subscription agreement, or organization-specific privacy obligations that may apply to your use of Dutiva.',
   ],
   sections: [
@@ -129,7 +129,7 @@ export default {
         },
         {
           type: 'li',
-          text: "AI inference — DigitalOcean Gradient AI processes Advisor message content and limited context to generate responses. Data is sent only as needed for inference. Under Dutiva's arrangement, customer content is not used to train third-party foundation models.",
+          text: "AI inference — DigitalOcean Gradient AI processes Advisor message content and limited context to generate responses. Data is sent only as needed for inference. Under Dutiva’s arrangement, customer content is not used to train third-party foundation models.",
         },
         {
           type: 'li',
@@ -339,7 +339,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Regulators — you may contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d'accès à l'information du Québec at cai.gouv.qc.ca.",
+          text: "Regulators — you may contact the Office of the Privacy Commissioner of Canada at priv.gc.ca or the Commission d’accès à l’information du Québec at cai.gouv.qc.ca.",
         },
         {
           type: 'p',

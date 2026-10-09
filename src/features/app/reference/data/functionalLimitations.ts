@@ -44,14 +44,14 @@ export const functionalLimitationsGuide: ReferenceGuide = {
         contrast(
           bi(
             'Cannot lift more than a set weight; cannot sit longer than about an hour without a break; expected to last three months.',
-            'Ne peut soulever plus d’un certain poids; ne peut demeurer assis plus d’une heure environ sans pause; durée prévue de trois mois.',
+            'Ne peut soulever plus d’un certain poids ; ne peut demeurer assis plus d’une heure environ sans pause ; durée prévue de trois mois.',
           ),
           bi('Has a herniated disc.', 'Souffre d’une hernie discale.'),
         ),
         contrast(
           bi(
             'Cannot work rotating shifts at present; can work a fixed daytime schedule; to be reviewed in eight weeks.',
-            'Ne peut travailler en rotation d’horaire pour l’instant; peut travailler selon un horaire de jour fixe; à réviser dans huit semaines.',
+            'Ne peut travailler en rotation d’horaire pour l’instant ; peut travailler selon un horaire de jour fixe ; à réviser dans huit semaines.',
           ),
           bi(
             'Is being treated for a mental health condition.',

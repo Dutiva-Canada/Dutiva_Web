@@ -29,7 +29,7 @@ import type { ChipTone } from '@/components/chips'
  */
 
 /** Date of the audit these statuses describe. Shown to the reader. */
-export const COVERAGE_AUDITED_ON = '2026-08-10'
+export const COVERAGE_AUDITED_ON = '2026-10-04'
 
 export type CoverageStatus =
   /** Verified to be fetching real legislation and able to detect a change. */
@@ -55,7 +55,7 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     status: 'active',
     detail: {
       en: 'Ontario statutes are now read from the e-Laws act-versions API, which publishes machine-readable, byte-stable JSON. The scheduled sweep on 2026-08-10 confirmed all three Ontario pages are fetched and baselined.',
-      fr: "Les lois ontariennes sont désormais lues à partir de l'API des versions de lois d'e-Laws, qui publie du JSON stable et lisible par machine. La vérification programmée du 2026-08-10 a confirmé que les trois pages ontariennes sont récupérées et référencées.",
+      fr: "Les lois ontariennes sont désormais lues à partir de l’API des versions de lois d’e-Laws, qui publie du JSON stable et lisible par machine. La vérification programmée du 2026-08-10 a confirmé que les trois pages ontariennes sont récupérées et référencées.",
     },
   },
   {
@@ -63,8 +63,8 @@ export const MONITORING_COVERAGE: readonly JurisdictionCoverage[] = [
     label: { en: 'Quebec', fr: 'Québec' },
     status: 'active',
     detail: {
-      en: "Québec statutes are now read from Données Québec's codified-legislation CKAN dataset, which publishes a first-party, byte-stable zip. The scheduled sweep on 2026-08-10 confirmed both the LNT and Charter pages are fetched and baselined.",
-      fr: "Les lois québécoises sont désormais lues à partir du jeu de données CKAN Législation codifiée de Données Québec, qui publie un zip stable et provenant d'une source officielle. La vérification programmée du 2026-08-10 a confirmé que les pages de la LNT et de la Charte sont récupérées et référencées.",
+      en: "Québec statutes are read per-Act from Données Québec’s codified-legislation zip — the monitor opens each watched Act’s own text inside the archive and compares its sections, so a dataset refresh that did not touch the Act files nothing. Verified on 2026-10-04 for the LNT and the Charter.",
+      fr: "Les lois québécoises sont lues par loi à partir du zip de législation codifiée de Données Québec — le surveillant ouvre le texte de chaque loi suivie dans l’archive et compare ses articles, de sorte qu’une republication qui ne touche pas la loi ne signale rien. Vérifié le 2026-10-04 pour la LNT et la Charte.",
     },
   },
   {

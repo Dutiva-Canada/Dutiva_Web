@@ -21,7 +21,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Vercel : hébergement et mise en réseau de l'application, localisé aux États-Unis",
+          text: "Vercel : hébergement et mise en réseau de l’application, localisé aux États-Unis",
         },
         {
           type: 'li',
@@ -30,7 +30,7 @@ export default {
         {
           type: 'li',
           // [FR self-authored]
-          text: "TrustedSite (Halo Security) : signaux de balayage de sécurité du site public (adresse IP du visiteur et signaux du navigateur ou de l'appareil sur les pages marketing), localisé aux États-Unis. L'espace de travail authentifié ne charge pas ce script.",
+          text: "TrustedSite (Halo Security) : signaux de balayage de sécurité du site public (adresse IP du visiteur et signaux du navigateur ou de l’appareil sur les pages marketing), localisé aux États-Unis. L’espace de travail authentifié ne charge pas ce script.",
         },
       ],
     },
@@ -51,7 +51,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Évaluations de l'impact sur la vie privée (EIPV/PIA) effectuées conformément à la Loi 25 du Québec",
+          text: "Évaluations de l’impact sur la vie privée (EIPV/PIA) effectuées conformément à la Loi 25 du Québec",
         },
         {
           type: 'li',
@@ -76,7 +76,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Notification aux utilisateurs conformément à l'alinéa 4.3 de l'annexe 1 de la PIPEDA",
+          text: "Notification aux utilisateurs conformément à l’alinéa 4.3 de l’annexe 1 de la PIPEDA",
         },
         {
           type: 'li',
@@ -89,7 +89,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Conformément à la Loi 25 sur la protection des renseignements personnels au Québec, Dutiva a effectué des évaluations d'impact sur la vie privée (EIPV) pour les transferts transfrontaliers.",
+          text: "Conformément à la Loi 25 sur la protection des renseignements personnels au Québec, Dutiva a effectué des évaluations d’impact sur la vie privée (EIPV) pour les transferts transfrontaliers.",
         },
         {
           type: 'li',
@@ -97,15 +97,15 @@ export default {
         },
         {
           type: 'li',
-          text: "Documentation des risques et des mesures d'atténuation",
+          text: "Documentation des risques et des mesures d’atténuation",
         },
         {
           type: 'li',
-          text: "Révision annuelle des évaluations d'impact",
+          text: "Révision annuelle des évaluations d’impact",
         },
         {
           type: 'li',
-          text: "Disponibilité sur demande d'un résumé des EIPV pour les utilisateurs",
+          text: "Disponibilité sur demande d’un résumé des EIPV pour les utilisateurs",
         },
       ],
     },
@@ -118,7 +118,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Droit d'accès à vos données personnelles",
+          text: "Droit d’accès à vos données personnelles",
         },
         {
           type: 'li',

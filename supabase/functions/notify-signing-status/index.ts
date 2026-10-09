@@ -3,23 +3,21 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { resendSend } from '../_shared/resendSend.ts'
 import { renderSigningStatusEmail, type SigningStatusEvent } from '../_shared/signingStatusEmail.ts'
 import type { Lang } from '../_shared/signingInvite.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Email org admins when a Dutiva Signature envelope is fully signed or declined.
  * Triggered internally from signing RPCs via pg_net (migration 0084).
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -27,7 +25,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function isAuthorizedInternal(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -36,11 +34,11 @@ function isAuthorizedInternal(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
   if (!isAuthorizedInternal(req)) return json({ error: 'Forbidden.' }, 403)
 
@@ -152,4 +150,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, event, sent, failed })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

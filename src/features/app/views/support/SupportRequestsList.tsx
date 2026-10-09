@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { viewIntentProps } from '@/app/viewPrefetch'
 
 import { useI18n } from '@/i18n/context'
 import { supportMessages as M } from '@/i18n/messages/support'
@@ -71,6 +72,7 @@ export function SupportRequestsList() {
                 <Link
                   to={`/app/support/requests/${t.id}`}
                   className="flex flex-wrap items-center justify-between gap-[10px] rounded-[12px] border border-border bg-surface px-[18px] py-[14px] transition-colors hover:bg-inset"
+                  {...viewIntentProps('support.ticket')}
                 >
                   <div className="min-w-0">
                     <div className="truncate text-[14px] font-semibold text-text">{t.subject}</div>

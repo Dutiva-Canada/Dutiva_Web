@@ -11,7 +11,7 @@ import {
   railViewKeyFromPathname,
 } from '@/features/app/rail/useAskAdvisorBriefing'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
-import { usePrefetchIntent } from './viewPrefetch'
+import { usePrefetchIntent } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 /**

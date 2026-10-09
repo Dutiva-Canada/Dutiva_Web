@@ -64,7 +64,7 @@ export const chats: ChatThread[] = [
         id: 'm4',
         role: 'advisor',
         text: bi(
-          "Here's the assessment for Jordan Mensah.",
+          "Here’s the assessment for Jordan Mensah.",
           'Voici l’évaluation pour Jordan Mensah.',
         ),
         reasoning: [
@@ -77,8 +77,8 @@ export const chats: ChatThread[] = [
             'Aucune clause de licenciement au dossier → le préavis raisonnable de common law peut s’appliquer au-delà des minimums LNE.',
           ),
           bi(
-            "ESA minimum: 8 weeks' termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
-            'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
+            "ESA minimum: 8 weeks’ termination notice/pay; statutory severance may also apply if eligibility requirements are met.",
+            'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement ; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies.',
           ),
           bi(
             'Common law estimate for an 8-year, mid-level role: roughly 9–12 months.',
@@ -90,12 +90,12 @@ export const chats: ChatThread[] = [
             tone: 'risk',
             title: bi('Notice exposure risk', 'Risque d’exposition au préavis'),
             body: bi(
-              "Jordan's contract has no termination clause on file. The preliminary estimate is 9–12 months of pay in lieu of notice under common law — well beyond the 8-week ESA termination notice/pay minimum. Legal review recommended before an offer is made. This is compliance-oriented HR guidance, not legal advice.",
+              "Jordan’s contract has no termination clause on file. The preliminary estimate is 9–12 months of pay in lieu of notice under common law — well beyond the 8-week ESA termination notice/pay minimum. Legal review recommended before an offer is made. This is compliance-oriented HR guidance, not legal advice.",
               'Le contrat de Jordan ne comporte aucune clause de licenciement au dossier. L’estimation préliminaire est de 9 à 12 mois d’indemnité en tenant lieu de préavis en common law — bien au-delà du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Un examen juridique est recommandé avant de faire une offre. Il s’agit de conseils RH axés sur la conformité, et non d’un avis juridique.',
             ),
             confidence: bi(
               'Moderate — assumes a standard mid-level role; confirm ESA severance eligibility, including the applicable payroll or permanent-closure criteria.',
-              'Modérée — suppose un poste intermédiaire standard; confirmez l’admissibilité à l’indemnité de cessation d’emploi (LNE), y compris les critères applicables de masse salariale ou de fermeture permanente.',
+              'Modérée — suppose un poste intermédiaire standard ; confirmez l’admissibilité à l’indemnité de cessation d’emploi (LNE), y compris les critères applicables de masse salariale ou de fermeture permanente.',
             ),
             citations: [
               {
@@ -120,7 +120,7 @@ export const chats: ChatThread[] = [
             ),
             body: bi(
               'Signed employment agreement version; the ESA severance payroll calculation; treatment of bonus, commission, and benefits over the notice period; accrued vacation balance.',
-              'Version signée du contrat d’emploi; calcul de la masse salariale pour l’indemnité LNE; traitement des primes, commissions et avantages pendant le préavis; solde de vacances accumulées.',
+              'Version signée du contrat d’emploi ; calcul de la masse salariale pour l’indemnité LNE ; traitement des primes, commissions et avantages pendant le préavis ; solde de vacances accumulées.',
             ),
           },
         ],
@@ -143,7 +143,7 @@ export const chats: ChatThread[] = [
             tone: 'success',
             title: bi('Escalation logged', 'Escalade consignée'),
             body: bi(
-              "Jordan Mensah's case file was shared securely with Dutiva's partner employment counsel. Expect a response within 1 business day. A task was added to track this.",
+              "Jordan Mensah’s case file was shared securely with Dutiva’s partner employment counsel. Expect a response within 1 business day. A task was added to track this.",
               'Le dossier de Jordan Mensah a été partagé de façon sécurisée avec le conseiller juridique partenaire de Dutiva. Réponse attendue dans un jour ouvrable. Une tâche a été ajoutée pour en faire le suivi.',
             ),
             citations: [],
@@ -176,7 +176,7 @@ export const chats: ChatThread[] = [
         id: 'm7',
         role: 'advisor',
         text: bi(
-          "I've got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm.",
+          "I’ve got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm.",
           'J’ai assez d’information pour rédiger une offre de base — le salaire et la date de début peuvent rester des espaces réservés jusqu’à votre confirmation.',
         ),
         reasoning: [
@@ -226,7 +226,7 @@ export const chats: ChatThread[] = [
         role: 'user',
         text: bi(
           'We need a remote work policy — what should it cover?',
-          'Nous avons besoin d’une politique de télétravail — que devrait-elle couvrir?',
+          'Nous avons besoin d’une politique de télétravail — que devrait-elle couvrir ?',
         ),
       },
       {
@@ -251,7 +251,7 @@ export const chats: ChatThread[] = [
             tone: 'warning',
             title: bi('Policy is overdue', 'Politique en retard'),
             body: bi(
-              "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
+              "Your current Remote Work Policy hasn’t been reviewed in 14 months, and you’ve added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
               'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles compétences d’emploi depuis. Une mise à jour ce mois-ci est recommandée.',
             ),
             citations: [],
@@ -275,8 +275,8 @@ export const chats: ChatThread[] = [
         id: 'm10',
         role: 'user',
         text: bi(
-          "One of my employees has ongoing attendance issues — what's the right way to handle this?",
-          'Un de mes employés a des problèmes d’assiduité persistants — quelle est la bonne façon de gérer cela?',
+          "One of my employees has ongoing attendance issues — what’s the right way to handle this?",
+          'Un de mes employés a des problèmes d’assiduité persistants — quelle est la bonne façon de gérer cela ?',
         ),
       },
       {
@@ -345,7 +345,7 @@ export const chats: ChatThread[] = [
         role: 'advisor',
         text: bi(
           'Good instinct to loop me in early. Keep any medical-information request focused on the information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
-          'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
+          'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement ; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
         ),
         reasoning: [
           bi(
@@ -354,7 +354,7 @@ export const chats: ChatThread[] = [
           ),
           bi(
             'Employers should request only the medical information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
-            'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
+            'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement ; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
           ),
         ],
         docs: ['T19', 'T20'],
@@ -414,7 +414,7 @@ export const chats: ChatThread[] = [
           },
         ],
         docs: ['T49'],
-        followups: ['Generate French version', "Add Quebec's statutory holiday calendar"],
+        followups: ['Generate French version', "Add Quebec’s statutory holiday calendar"],
       },
     ],
   },

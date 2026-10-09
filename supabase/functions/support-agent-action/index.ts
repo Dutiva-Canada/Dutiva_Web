@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import {
   MAX_DURATION_MINUTES,
   MIN_DURATION_MINUTES,
@@ -17,15 +18,11 @@ import {
  * action writes an audit event.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -46,8 +43,8 @@ function has<T extends string>(list: readonly T[], v: unknown): v is T {
   return typeof v === 'string' && (list as readonly string[]).includes(v)
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -230,4 +227,6 @@ Deno.serve(async (req: Request) => {
     data: { to: priority },
   })
   return json({ data: { priority } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

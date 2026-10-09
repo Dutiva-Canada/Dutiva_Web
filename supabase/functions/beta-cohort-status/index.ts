@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * PUBLIC (unauthenticated) read of beta cohort fill — aggregate seats taken
@@ -16,23 +17,20 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * src/canonicalFacts.test.ts fails the build on drift.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-}
+const CORS = { methods: 'GET, POST, OPTIONS' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
 const BETA_COHORT_LIMIT = 5
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'GET' && req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
@@ -55,4 +53,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ taken: count ?? 0, limit: BETA_COHORT_LIMIT })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

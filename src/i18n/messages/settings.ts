@@ -113,7 +113,7 @@ export const settingsMessages = defineMessages({
   },
   settings_role_member: { en: 'Member', fr: 'Membre' }, // [FR self-authored]
   settings_role_professional: { en: 'Professional', fr: 'Professionnel·le' }, // [FR self-authored]
-  settings_role_consultant: { en: 'Consultant', fr: 'Consultant·e' }, // [FR self-authored]
+  settings_role_consultant: { en: 'Consultant', fr: 'Consultant(e)' }, // [FR self-authored]
 
   /* Team management (production) — [FR self-authored] */
   settings_team_pending_heading: {
@@ -153,7 +153,7 @@ export const settingsMessages = defineMessages({
   settings_team_remove: { en: 'Remove {name}', fr: 'Retirer {name}' },
   settings_team_remove_confirm: {
     en: 'Remove {name} from this workspace? They’ll lose access immediately.',
-    fr: 'Retirer {name} de cet espace de travail? L’accès sera révoqué immédiatement.',
+    fr: 'Retirer {name} de cet espace de travail ? L’accès sera révoqué immédiatement.',
   },
   settings_team_removed: { en: 'Member removed.', fr: 'Membre retiré.' },
   settings_team_remove_error: {
@@ -320,7 +320,7 @@ export const settingsMessages = defineMessages({
   },
   settings_toggle_ai_context_locked: {
     en: 'Cross-record Advisor memory injects on Growth. Your preference is kept; injection stays off until you upgrade.',
-    fr: 'La mémoire transversale du Conseiller s’injecte avec Croissance. Votre préférence est conservée; l’injection reste inactive jusqu’à une mise à niveau.', // [FR self-authored]
+    fr: 'La mémoire transversale du Conseiller s’injecte avec Croissance. Votre préférence est conservée ; l’injection reste inactive jusqu’à une mise à niveau.', // [FR self-authored]
   },
   settings_toggle_ai_citations: {
     en: 'Show sources on compliance answers',

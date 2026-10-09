@@ -158,7 +158,7 @@ describe('ApplyToJobPage', () => {
     const { ApplyToJobPage } = await import('./ApplyToJobPage')
     renderCareers(<ApplyToJobPage />)
 
-    expect(await screen.findByText(/You've already applied to this role/i)).toBeInTheDocument()
+    expect(await screen.findByText(/You’ve already applied to this role/i)).toBeInTheDocument()
   })
 
   it('requires an explicit confirm step — submit does not fire on the first click', async () => {

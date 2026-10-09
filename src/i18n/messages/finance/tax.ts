@@ -59,7 +59,7 @@ export const financeTax = defineMessages({
   finance_tax_scenario_assumptions: { en: 'Assumptions', fr: 'Hypothèses' },
   finance_tax_scenario_law_version: { en: 'Law version', fr: 'Version de la loi' },
   finance_tax_scenario_enacted: { en: 'Enacted', fr: 'Promulguée' },
-  finance_tax_scenario_proposed: { en: 'Proposed', fr: 'Proposée' },
+  finance_tax_scenario_proposed: { en: 'Proposed', fr: 'Proposé' },
 
   /* Tax types */
   finance_tax_type_income_tax: { en: 'Income tax', fr: 'Impôt sur le revenu' },
@@ -74,4 +74,6 @@ export const financeTax = defineMessages({
     fr: 'Cotisations patronales',
   },
   finance_tax_type_other: { en: 'Other', fr: 'Autre' },
+  finance_tax_period_placeholder: { en: 'Q3 2026', fr: 'T3 2026' },
+  finance_tax_law_version_placeholder: { en: 'Enacted 2025 rates', fr: 'Taux en vigueur 2025' },
 })

@@ -464,7 +464,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         ),
         evidence: bi(
           'Managed 42-account portfolio; implemented Salesforce automation; reported $2.3M annual recurring revenue increase',
-          "Géré un portefeuille de 42 comptes; mis en œuvre l'automatisation Salesforce; rapporté une augmentation de 2,3 M$ de revenus récurrents annuels",
+          "Géré un portefeuille de 42 comptes ; mis en œuvre l’automatisation Salesforce ; rapporté une augmentation de 2,3 M$ de revenus récurrents annuels",
         ),
         confidence: 'high',
         specificity: 'specific',
@@ -476,7 +476,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         ),
         evidence: bi(
           'Product manager for SaaS platform features; managed cross-functional teams of 8-12; all products shipped on schedule',
-          'Gestionnaire de produit pour les fonctionnalités de la plateforme SaaS; géré des équipes interfonctionnelles de 8 à 12; tous les produits livrés à temps',
+          'Gestionnaire de produit pour les fonctionnalités de la plateforme SaaS ; géré des équipes interfonctionnelles de 8 à 12; tous les produits livrés à temps',
         ),
         confidence: 'high',
         specificity: 'specific',
@@ -496,7 +496,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         claim: bi('Increased enterprise sales 35%', 'Augmentation des ventes entreprises de 35 %'),
         evidence: bi(
           '42-account portfolio; Salesforce automation; $2.3M ARR increase',
-          'Portefeuille de 42 comptes; automatisation Salesforce; augmentation de 2,3 M$ en revenus récurrents annuels',
+          'Portefeuille de 42 comptes ; automatisation Salesforce ; augmentation de 2,3 M$ en revenus récurrents annuels',
         ),
         metrics: ['35% growth', '$2.3M ARR', '42 accounts'],
         confidence: 'high',
@@ -509,7 +509,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         demonstrated: true,
         evidence: bi(
           'Defined product roadmaps for 3 major releases; conducted market research and competitive analysis',
-          'Défini les feuilles de route produit pour 3 versions majeures; effectué des recherches sur le marché et une analyse concurrentielle',
+          'Défini les feuilles de route produit pour 3 versions majeures ; effectué des recherches sur le marché et une analyse concurrentielle',
         ),
         proficiency: 'advanced',
       },
@@ -518,7 +518,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         demonstrated: true,
         evidence: bi(
           'Used SQL and Tableau to analyze user behavior; A/B tested features; measured conversion funnels',
-          'Utilisé SQL et Tableau pour analyser le comportement des utilisateurs; testé A/B les fonctionnalités; mesuré les entonnoirs de conversion',
+          'Utilisé SQL et Tableau pour analyser le comportement des utilisateurs ; testé A/B les fonctionnalités ; mesuré les entonnoirs de conversion',
         ),
         proficiency: 'advanced',
       },
@@ -527,7 +527,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
         demonstrated: true,
         evidence: bi(
           'Led cross-functional teams of 8-12; presented to executive leadership; managed conflicting priorities',
-          'Dirigé des équipes interfonctionnelles de 8 à 12; présenté à la direction générale; géré les priorités conflictuelles',
+          'Dirigé des équipes interfonctionnelles de 8 à 12; présenté à la direction générale ; géré les priorités conflictuelles',
         ),
         proficiency: 'advanced',
       },
@@ -536,11 +536,11 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
       progression: 'strong',
       evidence: bi(
         'Progressed from Business Analyst to Senior Product Manager over 7 years; increasing scope and responsibility',
-        "Progression d'analyste commercial à gestionnaire de produit principal sur 7 ans; portée et responsabilités croissantes",
+        "Progression d’analyste commercial à gestionnaire de produit principal sur 7 ans ; portée et responsabilités croissantes",
       ),
       learning: bi(
         'Completed product management certification; learned SQL and data visualization; attended industry conferences',
-        "Certification en gestion de produit achevée; apprentissage de SQL et de la visualisation de données; participation à des conférences de l'industrie",
+        "Certification en gestion de produit achevée ; apprentissage de SQL et de la visualisation de données ; participation à des conférences de l’industrie",
       ),
       confidence: 'high',
     },
@@ -549,7 +549,7 @@ export const demoEvidenceScreening: EvidenceScreening[] = [
       level: 'expert',
       evidence: bi(
         '5 years in B2B SaaS; deep understanding of enterprise sales cycles, SaaS metrics, and customer success',
-        '5 ans dans le SaaS B2B; compréhension approfondie des cycles de vente entreprises, des métriques SaaS et du succès client',
+        '5 ans dans le SaaS B2B ; compréhension approfondie des cycles de vente entreprises, des métriques SaaS et du succès client',
       ),
       confidence: 'high',
     },
@@ -565,12 +565,12 @@ export const demoWorkSamples: WorkSampleAssessment[] = [
     candidateId: 'c2',
     assessmentType: 'sales',
     scenario: bi(
-      "Here's a prospect account in the manufacturing sector. They use a legacy system and have 500 employees. Give us your 10-minute approach to winning this account.",
+      "Here’s a prospect account in the manufacturing sector. They use a legacy system and have 500 employees. Give us your 10-minute approach to winning this account.",
       'Voici un compte prospect dans le secteur manufacturier. Ils utilisent un système hérité et ont 500 employés. Donnez-nous votre approche de 10 minutes pour gagner ce compte.',
     ),
     submission: bi(
       'I would start by researching their current pain points with legacy systems, then craft a personalized outreach highlighting our ROI. My approach would be: 1) Research the decision-makers, 2) Identify specific operational inefficiencies, 3) Quantify potential cost savings, 4) Schedule a demo focused on their use case, 5) Provide a customized pilot proposal. I used ChatGPT to refine my value proposition messaging.',
-      "Je commencerais par rechercher leurs points actuels de douleur avec les systèmes hérités, puis rédigerais une approche personnalisée mettant en évidence notre ROI. Mon approche serait: 1) Rechercher les décideurs, 2) Identifier les inefficacités opérationnelles spécifiques, 3) Quantifier les économies potentielles, 4) Planifier une démonstration axée sur leur cas d'usage, 5) Fournir une proposition de pilote personnalisée. J'ai utilisé ChatGPT pour affiner mon message de proposition de valeur.",
+      "Je commencerais par rechercher leurs points actuels de douleur avec les systèmes hérités, puis rédigerais une approche personnalisée mettant en évidence notre ROI. Mon approche serait: 1) Rechercher les décideurs, 2) Identifier les inefficacités opérationnelles spécifiques, 3) Quantifier les économies potentielles, 4) Planifier une démonstration axée sur leur cas d’usage, 5) Fournir une proposition de pilote personnalisée. J’ai utilisé ChatGPT pour affiner mon message de proposition de valeur.",
     ),
     aiAllowed: true,
     aiDetected: true,
@@ -581,16 +581,16 @@ export const demoWorkSamples: WorkSampleAssessment[] = [
       quality: 'good',
       approach: bi(
         'Structured approach with clear methodology. Good use of AI for messaging refinement while maintaining strategic thinking.',
-        "Approche structurée avec une méthodologie claire. Bonne utilisation de l'IA pour l'affichage des messages tout en maintenant une réflexion stratégique.",
+        "Approche structurée avec une méthodologie claire. Bonne utilisation de l’IA pour l’affichage des messages tout en maintenant une réflexion stratégique.",
       ),
       aiUsage: bi(
         'Used AI appropriately for communication refinement. Strategic thinking appears to be their own.',
-        "Utilisation appropriée de l'IA pour l'affinement de la communication. La réflexion stratégique semble être la leur.",
+        "Utilisation appropriée de l’IA pour l’affinement de la communication. La réflexion stratégique semble être la leur.",
       ),
       capability: 'medium',
       feedback: bi(
         'Strong methodology and appropriate AI use. Could be more specific about manufacturing sector challenges and ROI calculations.',
-        "Méthodologie solide et utilisation appropriée de l'IA. Pourrait être plus spécifique sur les défis du secteur manufacturier et les calculs de ROI.",
+        "Méthodologie solide et utilisation appropriée de l’IA. Pourrait être plus spécifique sur les défis du secteur manufacturier et les calculs de ROI.",
       ),
       recommendation: 'advance',
     },
@@ -612,11 +612,11 @@ export const demoInterviews: DefenseInterview[] = [
       {
         question: bi(
           'Walk me through how you arrived at this technical solution for the API performance issue.',
-          "Expliquez-moi comment vous êtes arrivé à cette solution technique pour le problème de performance de l'API.",
+          "Expliquez-moi comment vous êtes arrivé à cette solution technique pour le problème de performance de l’API.",
         ),
         response: bi(
           'I started by analyzing the API response times using monitoring tools. I identified that the bottleneck was in the database query. I considered caching versus query optimization, and chose query optimization because the data changes frequently. I implemented an index which reduced response time by 60%.',
-          "J'ai commencé par analyser les temps de réponse de l'API à l'aide d'outils de surveillance. J'ai identifié que le goulot d'étranglement était dans la requête de base de données. J'ai envisagé la mise en cache par rapport à l'optimisation des requêtes, et j'ai choisi l'optimisation des requêtes car les données changent fréquemment. J'ai mis en œuvre un index qui a réduit le temps de réponse de 60 %.",
+          "J’ai commencé par analyser les temps de réponse de l’API à l’aide d’outils de surveillance. J’ai identifié que le goulot d’étranglement était dans la requête de base de données. J’ai envisagé la mise en cache par rapport à l’optimisation des requêtes, et j’ai choisi l’optimisation des requêtes car les données changent fréquemment. J’ai mis en œuvre un index qui a réduit le temps de réponse de 60 %.",
         ),
         depth: 'deep',
         reasoning: 'strong',
@@ -629,17 +629,17 @@ export const demoInterviews: DefenseInterview[] = [
       {
         question: bi(
           'What assumption are you least confident about in your approach?',
-          'Quelle hypothèse êtes-vous le moins confiant dans votre approche?',
+          'Quelle hypothèse êtes-vous le moins confiant dans votre approche ?',
         ),
         response: bi(
-          "I'm least confident about the long-term scalability of this solution. If data volume grows 10x, the index might not be sufficient. I would then need to consider partitioning or a different database architecture.",
-          "Je suis le moins confiant quant à l'évolutivité à long terme de cette solution. Si le volume de données augmente de 10 fois, l'index pourrait ne pas suffire. Je devrais alors envisager le partitionnement ou une architecture de base de données différente.",
+          "I’m least confident about the long-term scalability of this solution. If data volume grows 10x, the index might not be sufficient. I would then need to consider partitioning or a different database architecture.",
+          "Je suis le moins confiant quant à l’évolutivité à long terme de cette solution. Si le volume de données augmente de 10 fois, l’index pourrait ne pas suffire. Je devrais alors envisager le partitionnement ou une architecture de base de données différente.",
         ),
         depth: 'deep',
         reasoning: 'strong',
         alternatives: bi(
-          "Already thinking about next-level solutions if current approach doesn't scale.",
-          "Pense déjà aux solutions de niveau supérieur si l'approche actuelle ne s'adapte pas.",
+          "Already thinking about next-level solutions if current approach doesn’t scale.",
+          "Pense déjà aux solutions de niveau supérieur si l’approche actuelle ne s’adapte pas.",
         ),
         confidence: 'high',
       },
@@ -654,7 +654,7 @@ export const demoInterviews: DefenseInterview[] = [
       reasons: [
         bi(
           'Demonstrated deep technical understanding and ability to explain decisions',
-          "Démontré une compréhension technique approfondie et la capacité d'expliquer les décisions",
+          "Démontré une compréhension technique approfondie et la capacité d’expliquer les décisions",
         ),
         bi(
           'Clearly considered alternatives and trade-offs',
@@ -662,7 +662,7 @@ export const demoInterviews: DefenseInterview[] = [
         ),
         bi(
           'Shows forward thinking about scalability',
-          "Montre une réflexion prospective sur l'évolutivité",
+          "Montre une réflexion prospective sur l’évolutivité",
         ),
         bi(
           'High confidence in responses with no evasiveness',
@@ -688,7 +688,7 @@ export const demoAuthenticityScores: AuthenticityScores[] = [
         score: 'high',
         evidence: bi(
           'Meets all technical requirements: 5 years development, React/TypeScript expertise, API development experience',
-          "Répond à toutes les exigences techniques: 5 ans de développement, expertise React/TypeScript, expérience en développement d'API",
+          "Répond à toutes les exigences techniques: 5 ans de développement, expertise React/TypeScript, expérience en développement d’API",
         ),
         confidence: 'high',
       },
@@ -706,7 +706,7 @@ export const demoAuthenticityScores: AuthenticityScores[] = [
         score: 'high',
         evidence: bi(
           'Work sample demonstrates strong problem-solving and appropriate AI use; interview shows deep technical reasoning',
-          "L'échantillon de travail démontre une forte résolution de problèmes et une utilisation appropriée de l'IA; l'entretien montre un raisonnement technique approfondi",
+          "L’échantillon de travail démontre une forte résolution de problèmes et une utilisation appropriée de l’IA ; l’entretien montre un raisonnement technique approfondi",
         ),
         confidence: 'high',
       },
@@ -715,7 +715,7 @@ export const demoAuthenticityScores: AuthenticityScores[] = [
         score: 'high',
         evidence: bi(
           'Interview demonstrates ability to explain decisions, consider alternatives, and defend technical choices with confidence',
-          "L'entretien démontre la capacité d'expliquer les décisions, d'envisager des alternatives et de défendre les choix techniques avec confiance",
+          "L’entretien démontre la capacité d’expliquer les décisions, d’envisager des alternatives et de défendre les choix techniques avec confiance",
         ),
         confidence: 'high',
       },
@@ -724,7 +724,7 @@ export const demoAuthenticityScores: AuthenticityScores[] = [
         score: 'medium',
         evidence: bi(
           'Expressed interest in the role but limited specific knowledge about our company and product',
-          "A exprimé de l'intérêt pour le poste mais une connaissance limitée de notre entreprise et de notre produit",
+          "A exprimé de l’intérêt pour le poste mais une connaissance limitée de notre entreprise et de notre produit",
         ),
         confidence: 'medium',
       },
@@ -741,11 +741,11 @@ export const demoJobPostings: JobPosting[] = [
     location: bi('Toronto, ON (Hybrid)', 'Toronto, ON (Hybride)'),
     type: bi('Full-time', 'Temps plein'),
     description: bi(
-      "We're looking for a Senior Product Manager to lead our B2B SaaS product strategy. You'll work with cross-functional teams to deliver features that drive customer success and business growth.",
-      "Nous recherchons un gestionnaire de produit principal pour diriger notre stratégie de produit SaaS B2B. Vous travaillerez avec des équipes interfonctionnelles pour livrer des fonctionnalités qui favorisent le succès des clients et la croissance de l'entreprise.",
+      "We’re looking for a Senior Product Manager to lead our B2B SaaS product strategy. You’ll work with cross-functional teams to deliver features that drive customer success and business growth.",
+      "Nous recherchons un gestionnaire de produit principal pour diriger notre stratégie de produit SaaS B2B. Vous travaillerez avec des équipes interfonctionnelles pour livrer des fonctionnalités qui favorisent le succès des clients et la croissance de l’entreprise.",
     ),
     requirements: [
-      bi('5+ years of product management experience', "5+ ans d'expérience en gestion de produit"),
+      bi('5+ years of product management experience', "5+ ans d’expérience en gestion de produit"),
       bi('B2B SaaS experience required', 'Expérience en SaaS B2B requise'),
       bi('Strong data analysis and SQL skills', 'Solides compétences en analyse de données et SQL'),
       bi(
@@ -759,8 +759,8 @@ export const demoJobPostings: JobPosting[] = [
     ],
     knockoutCriteria: ['5+ years PM experience', 'B2B SaaS experience', 'Data analysis skills'],
     workSampleScenario: bi(
-      "Here's a real product problem and some customer data. What would you do?",
-      'Voici un problème de produit réel et des données client. Que feriez-vous?',
+      "Here’s a real product problem and some customer data. What would you do?",
+      'Voici un problème de produit réel et des données client. Que feriez-vous ?',
     ),
     status: 'active',
     postedDate: 'Aug 1, 2026',

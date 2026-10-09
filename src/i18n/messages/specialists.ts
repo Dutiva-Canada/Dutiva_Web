@@ -67,6 +67,6 @@ export const specialistsMessages = defineMessages({
   spec_upcoming_followup: { en: 'Follow-up', fr: 'Suivi' },
   spec_disclaimer: {
     en: 'A directory and activity log; it does not replace a contract or engagement management system.',
-    fr: 'Un répertoire et un journal d’activité; il ne remplace pas un système de contrats ou de gestion d’engagements.',
+    fr: 'Un répertoire et un journal d’activité ; il ne remplace pas un système de contrats ou de gestion d’engagements.',
   },
 })

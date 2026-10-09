@@ -48,10 +48,10 @@ export const documentTemplates: DocumentTemplate[] = [
       bi('Private & Confidential\n\nDate: July 5, 2026', 'Confidentiel\n\nDate : 5 juillet 2026'),
       bi(
         'Dear Jordan,\n\nThis letter confirms that your employment with Northgate Logistics Inc. will end effective July 19, 2026, as a result of a restructuring of the Operations team. This decision is not a reflection of your performance or conduct.',
-        "Cher Jordan,\n\nLa présente confirme que votre emploi chez Northgate Logistics Inc. prendra fin le 19 juillet 2026, à la suite d'une restructuration de l'équipe des opérations. Cette décision ne reflète en rien votre rendement ni votre conduite.",
+        "Cher Jordan,\n\nLa présente confirme que votre emploi chez Northgate Logistics Inc. prendra fin le 19 juillet 2026, à la suite d’une restructuration de l’équipe des opérations. Cette décision ne reflète en rien votre rendement ni votre conduite.",
       ),
       bi(
-        "In recognition of your service, you will receive the following in lieu of working notice: 9 months' base salary, continuation of benefits through the notice period, and a pro-rated payment of any earned incentive. A full calculation is attached separately.",
+        "In recognition of your service, you will receive the following in lieu of working notice: 9 months’ base salary, continuation of benefits through the notice period, and a pro-rated payment of any earned incentive. A full calculation is attached separately.",
         'En reconnaissance de vos services, vous recevrez ce qui suit en tenant lieu de préavis travaillé : 9 mois de salaire de base, le maintien des avantages sociaux pendant la période de préavis et le paiement au prorata de toute prime acquise. Un calcul complet est joint séparément.',
       ),
       bi(
@@ -77,11 +77,11 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       assumptions: bi(
         'Assumes provincially regulated Ontario employment; the enhanced package is contingent on a signed release.',
-        'Suppose un emploi réglementé par l’Ontario; l’indemnité bonifiée est conditionnelle à une quittance signée.',
+        'Suppose un emploi réglementé par l’Ontario ; l’indemnité bonifiée est conditionnelle à une quittance signée.',
       ),
       missing: bi(
         'Signed agreement version; ESA severance payroll calculation; final vacation balance.',
-        'Version signée du contrat; calcul de la masse salariale (LNE); solde de vacances final.',
+        'Version signée du contrat ; calcul de la masse salariale (LNE); solde de vacances final.',
       ),
     },
   },
@@ -97,15 +97,15 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'In exchange for the enhanced payment described in the accompanying termination letter, the employee agrees to release the employer from all claims arising from their employment or its end, to the extent permitted by law.',
-        "En échange du paiement bonifié décrit dans la lettre de licenciement ci-jointe, l'employé accepte de libérer l'employeur de toute réclamation découlant de son emploi ou de sa fin, dans la mesure permise par la loi.",
+        "En échange du paiement bonifié décrit dans la lettre de licenciement ci-jointe, l’employé accepte de libérer l’employeur de toute réclamation découlant de son emploi ou de sa fin, dans la mesure permise par la loi.",
       ),
       bi(
         'This release does not affect any claim that cannot be waived by law, including certain human rights or workers’ compensation claims.',
-        "Cette quittance n'affecte aucune réclamation qui ne peut être levée par la loi, y compris certaines réclamations relatives aux droits de la personne ou à l'indemnisation des accidents du travail.",
+        "Cette quittance n’affecte aucune réclamation qui ne peut être levée par la loi, y compris certaines réclamations relatives aux droits de la personne ou à l’indemnisation des accidents du travail.",
       ),
       bi(
         'Recommended: the employee should obtain independent legal advice before signing. A standard acknowledgement clause confirming this has been included.',
-        "Recommandé : l'employé devrait obtenir un avis juridique indépendant avant de signer. Une clause de reconnaissance standard confirmant cela a été incluse.",
+        "Recommandé : l’employé devrait obtenir un avis juridique indépendant avant de signer. Une clause de reconnaissance standard confirmant cela a été incluse.",
       ),
     ],
     meta: {
@@ -126,7 +126,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       missing: bi(
         'Final amounts; date of the independent-legal-advice acknowledgment.',
-        'Montants finaux; date de l’attestation de conseil juridique indépendant.',
+        'Montants finaux ; date de l’attestation de conseil juridique indépendant.',
       ),
     },
   },
@@ -142,7 +142,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         '• Final pay + accrued vacation calculated and scheduled\n• Benefits end-date confirmed with provider\n• Company equipment & access revoked on last day\n• Record of Employment (ROE) issued within 5 calendar days\n• Exit interview scheduled\n• Reference contact designated',
-        "• Paie finale + vacances accumulées calculées et planifiées\n• Date de fin des avantages confirmée avec le fournisseur\n• Équipement et accès de l'entreprise révoqués le dernier jour\n• Relevé d'emploi (RE) émis dans les 5 jours civils\n• Entrevue de départ planifiée\n• Personne-ressource de référence désignée",
+        "• Paie finale + vacances accumulées calculées et planifiées\n• Date de fin des avantages confirmée avec le fournisseur\n• Équipement et accès de l’entreprise révoqués le dernier jour\n• Relevé d’emploi (RE) émis dans les 5 jours civils\n• Entrevue de départ planifiée\n• Personne-ressource de référence désignée",
       ),
     ],
     meta: {
@@ -150,7 +150,7 @@ export const documentTemplates: DocumentTemplate[] = [
       jur: bi('Ontario · ESA, 2000', 'Ontario · LNE, 2000'),
       missing: bi(
         'ROE issue date; benefits end date confirmation.',
-        'Date d’émission du RE; confirmation de la date de fin des avantages.',
+        'Date d’émission du RE ; confirmation de la date de fin des avantages.',
       ),
     },
   },
@@ -164,14 +164,14 @@ export const documentTemplates: DocumentTemplate[] = [
     category: catHiring,
     highRisk: false,
     sections: [
-      bi('Offer of Employment — Senior Analyst', "Offre d'emploi — Analyste principale"),
+      bi('Offer of Employment — Senior Analyst', "Offre d’emploi — Analyste principale"),
       bi(
         'Northgate Logistics Inc. is pleased to offer you the position of Senior Analyst, reporting to Liam Fraser, Regional Sales Manager, based in Ontario. This offer is contingent on standard background checks.',
-        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d'analyste principale, relevant de Liam Fraser, directeur régional des ventes, basé en Ontario. Cette offre est conditionnelle à des vérifications d'antécédents standards.",
+        "Northgate Logistics Inc. a le plaisir de vous offrir le poste d’analyste principale, relevant de Liam Fraser, directeur régional des ventes, basé en Ontario. Cette offre est conditionnelle à des vérifications d’antécédents standards.",
       ),
       bi(
         'Compensation: [base salary] annually, paid biweekly, plus eligibility for the company benefits plan after 3 months.',
-        "Rémunération : [salaire de base] par année, versé aux deux semaines, plus l'admissibilité au régime d'avantages sociaux de l'entreprise après 3 mois.",
+        "Rémunération : [salaire de base] par année, versé aux deux semaines, plus l’admissibilité au régime d’avantages sociaux de l’entreprise après 3 mois.",
       ),
       bi(
         'This role includes a 3-month probationary period as set out in the attached employment agreement.',
@@ -179,7 +179,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'Please confirm your acceptance by [date]. We’re looking forward to having you on the team.',
-        "Veuillez confirmer votre acceptation d'ici [date]. Nous avons hâte de vous compter dans l'équipe.",
+        "Veuillez confirmer votre acceptation d’ici [date]. Nous avons hâte de vous compter dans l’équipe.",
       ),
     ],
     meta: {
@@ -189,7 +189,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       assumptions: bi(
         'Populated hiring demo — Ontario Senior Analyst scenario data only; not linked to an employee file or case.',
-        'Démo d’embauche préremplie — données de scénario pour analyste principale en Ontario seulement; non liée à un dossier d’employé ou à un dossier.',
+        'Démo d’embauche préremplie — données de scénario pour analyste principale en Ontario seulement ; non liée à un dossier d’employé ou à un dossier.',
       ),
       missing: bi(
         'Non-solicitation or non-competition clauses need Ontario-specific review.',
@@ -210,7 +210,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'Termination clause: drafted to limit entitlements to applicable employment-standards minimums where enforceable under the employee’s employment jurisdiction. Advisor recommends jurisdiction-specific review before signing — enforceability varies by jurisdiction, and statutory minimums may not represent the employee’s full entitlement.',
-        "Clause de licenciement : rédigée pour limiter les droits aux minimums des normes d'emploi applicables dans la mesure où elle est exécutoire dans la compétence applicable. Le Conseiller recommande un examen propre à la compétence avant la signature — la force exécutoire varie selon la compétence, et les minimums légaux peuvent ne pas représenter l'ensemble des droits de l'employé.",
+        "Clause de licenciement : rédigée pour limiter les droits aux minimums des normes d’emploi applicables dans la mesure où elle est exécutoire dans la compétence applicable. Le Conseiller recommande un examen propre à la compétence avant la signature — la force exécutoire varie selon la compétence, et les minimums légaux peuvent ne pas représenter l’ensemble des droits de l’employé.",
       ),
     ],
     meta: {
@@ -234,15 +234,15 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'Health & safety: occupational health and safety obligations may apply to remote work and can vary by jurisdiction and circumstances. Employees must complete the home office safety checklist before starting remote work.',
-        "Santé et sécurité : les obligations en matière de santé et sécurité au travail peuvent s'appliquer au télétravail et varier selon la compétence et les circonstances. Les employés doivent remplir la liste de vérification de sécurité du bureau à domicile avant de commencer le télétravail.",
+        "Santé et sécurité : les obligations en matière de santé et sécurité au travail peuvent s’appliquer au télétravail et varier selon la compétence et les circonstances. Les employés doivent remplir la liste de vérification de sécurité du bureau à domicile avant de commencer le télétravail.",
       ),
       bi(
         'Equipment & expenses: the company provides a laptop and a one-time home office allowance; ongoing internet costs are the employee’s responsibility unless otherwise required by applicable law.',
-        "Équipement et dépenses : l'entreprise fournit un ordinateur portable et une allocation unique pour le bureau à domicile; les frais Internet récurrents sont à la charge de l'employé sauf disposition contraire de la loi applicable.",
+        "Équipement et dépenses : l’entreprise fournit un ordinateur portable et une allocation unique pour le bureau à domicile ; les frais Internet récurrents sont à la charge de l’employé sauf disposition contraire de la loi applicable.",
       ),
       bi(
         'Data security: company data must stay within approved, encrypted devices and storage.',
-        "Sécurité des données : les données de l'entreprise doivent demeurer sur des appareils et supports de stockage approuvés et chiffrés.",
+        "Sécurité des données : les données de l’entreprise doivent demeurer sur des appareils et supports de stockage approuvés et chiffrés.",
       ),
     ],
   },
@@ -254,11 +254,11 @@ export const documentTemplates: DocumentTemplate[] = [
     sections: [
       bi(
         'Performance Improvement Plan — Devon Clarke',
-        "Plan d'amélioration du rendement — Devon Clarke",
+        "Plan d’amélioration du rendement — Devon Clarke",
       ),
       bi(
         'Area for improvement: attendance reliability. Expectation: adherence to scheduled shifts, with advance notice for exceptions, consistent with the attendance policy.',
-        "Point à améliorer : fiabilité de l'assiduité. Attente : respect des quarts planifiés, avec préavis pour les exceptions, conformément à la politique d'assiduité.",
+        "Point à améliorer : fiabilité de l’assiduité. Attente : respect des quarts planifiés, avec préavis pour les exceptions, conformément à la politique d’assiduité.",
       ),
       bi(
         '30-day check-in: July 22, 2026. Progress will be reviewed against the expectations above.',
@@ -266,7 +266,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'Note: before finalizing, confirm whether accommodation obligations or other protected needs may affect how the attendance issue should be handled. Keep sensitive accommodation information separate from the performance record.',
-        "Note : avant de finaliser, confirmez si des obligations d'accommodement ou d'autres besoins protégés peuvent influer sur la façon de traiter le problème d'assiduité. Gardez les renseignements d'accommodement sensibles à l'écart du dossier de rendement.",
+        "Note : avant de finaliser, confirmez si des obligations d’accommodement ou d’autres besoins protégés peuvent influer sur la façon de traiter le problème d’assiduité. Gardez les renseignements d’accommodement sensibles à l’écart du dossier de rendement.",
       ),
     ],
     meta: {
@@ -281,7 +281,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       assumptions: bi(
         'Attendance issue may require a separate accommodation assessment — keep sensitive accommodation information out of this performance record.',
-        "Le problème d'assiduité peut exiger une évaluation d'accommodement distincte — excluez les renseignements d'accommodement sensibles de ce dossier de rendement.",
+        "Le problème d’assiduité peut exiger une évaluation d’accommodement distincte — excluez les renseignements d’accommodement sensibles de ce dossier de rendement.",
       ),
       missing: bi(
         'Measurable targets and check-in dates confirmed with the manager.',
@@ -295,14 +295,14 @@ export const documentTemplates: DocumentTemplate[] = [
     category: catAccommodation,
     highRisk: true,
     sections: [
-      bi('Accommodation Record — Confidential', "Dossier d'accommodement — Confidentiel"),
+      bi('Accommodation Record — Confidential', "Dossier d’accommodement — Confidentiel"),
       bi(
         'Modified duties are in place based on documented functional limitations. The file holds functional limitations only — no diagnosis — consistent with human rights obligations.',
         'Des tâches modifiées sont en place selon des limitations fonctionnelles documentées. Le dossier ne contient que les limitations fonctionnelles — aucun diagnostic — conformément aux obligations en matière de droits de la personne.',
       ),
       bi(
         'Accommodation plan: modified duties reviewed every 90 days or as functional limitations change. Next review: July 14, 2026.',
-        "Plan d'accommodement : tâches modifiées révisées tous les 90 jours ou lorsque les limitations fonctionnelles changent. Prochain examen : 14 juillet 2026.",
+        "Plan d’accommodement : tâches modifiées révisées tous les 90 jours ou lorsque les limitations fonctionnelles changent. Prochain examen : 14 juillet 2026.",
       ),
     ],
     meta: {
@@ -339,7 +339,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       bi(
         'This information will be kept confidential and used only to determine appropriate workplace accommodation.',
-        "Ces renseignements demeureront confidentiels et ne serviront qu'à déterminer l'accommodement approprié en milieu de travail.",
+        "Ces renseignements demeureront confidentiels et ne serviront qu’à déterminer l’accommodement approprié en milieu de travail.",
       ),
     ],
     meta: {
@@ -356,7 +356,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       missing: bi(
         'Treating provider details; reply-by date.',
-        'Coordonnées du professionnel traitant; date limite de réponse.',
+        'Coordonnées du professionnel traitant ; date limite de réponse.',
       ),
     },
   },
@@ -369,11 +369,11 @@ export const documentTemplates: DocumentTemplate[] = [
       bi('Written Warning', 'Avertissement écrit'),
       bi(
         'This letter confirms our conversation regarding [issue]. This is a formal warning: continued issues of this nature may lead to further discipline, up to and including termination.',
-        "La présente confirme notre conversation concernant [problème]. Il s'agit d'un avertissement formel : la persistance de problèmes de cette nature pourrait entraîner d'autres mesures disciplinaires, pouvant aller jusqu'au congédiement.",
+        "La présente confirme notre conversation concernant [problème]. Il s’agit d’un avertissement formel : la persistance de problèmes de cette nature pourrait entraîner d’autres mesures disciplinaires, pouvant aller jusqu’au congédiement.",
       ),
       bi(
         'We’re committed to supporting your improvement — please speak with your manager if there are barriers we should know about.',
-        "Nous nous engageons à soutenir votre amélioration — veuillez parler à votre gestionnaire s'il existe des obstacles dont nous devrions être informés.",
+        "Nous nous engageons à soutenir votre amélioration — veuillez parler à votre gestionnaire s’il existe des obstacles dont nous devrions être informés.",
       ),
     ],
     meta: {
@@ -387,7 +387,7 @@ export const documentTemplates: DocumentTemplate[] = [
       ),
       missing: bi(
         'Incident dates; the policy provision engaged; prior warnings on file.',
-        'Dates des incidents; disposition de la politique en cause; avertissements antérieurs au dossier.',
+        'Dates des incidents ; disposition de la politique en cause ; avertissements antérieurs au dossier.',
       ),
     },
   },

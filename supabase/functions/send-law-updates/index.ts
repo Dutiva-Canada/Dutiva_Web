@@ -4,6 +4,8 @@ import { resendSend } from '../_shared/resendSend.ts'
 import { selectRelevantUpdates } from '../_shared/lawUpdateRelevance.ts'
 import { selectDigestableUpdates } from '../_shared/lawUpdateDigest.ts'
 import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Weekly law-change digest (TODO.md D1, decided 2026-08-06: internal-only,
@@ -30,16 +32,12 @@ import type { DigestCandidateRow } from '../_shared/lawUpdateDigest.ts'
  * rather than silently dropping a week's amendments.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-notify-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-notify-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -58,6 +56,8 @@ interface LawUpdateRow {
   jurisdiction: string
   law_name: string
   url: string
+  reference_url: string | null
+  ai_analysis_en: string | null
   change_summary: string | null
   detected_at: string | null
   event_type: string | null
@@ -71,7 +71,12 @@ function formatUpdate(row: LawUpdateRow): string {
   const lines = [
     `${row.jurisdiction} — ${row.law_name} (detected ${date})`,
     row.change_summary ?? '(no summary recorded)',
-    row.url,
+    /* The AI interpretation goes out labelled — it reads the detector's
+       facts, it is not the detector's record itself. */
+    ...(row.ai_analysis_en ? [`AI read: ${row.ai_analysis_en}`] : []),
+    /* The reader-facing page — `url` on some rows is a machine endpoint
+       (a CKAN API call, a raw XML file) nobody can read in a browser. */
+    row.reference_url ?? row.url,
   ]
   return lines.join('\n')
 }
@@ -79,8 +84,8 @@ function formatUpdate(row: LawUpdateRow): string {
 const DISCLAIMER =
   'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.'
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -88,7 +93,7 @@ Deno.serve(async (req: Request) => {
   if (!supabaseUrl || !serviceRoleKey) return json({ error: 'Server configuration missing' }, 500)
 
   const requiredSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET')
-  if (requiredSecret && req.headers.get('x-notify-secret') !== requiredSecret) {
+  if (requiredSecret && !secretEquals(req.headers.get('x-notify-secret') ?? '', requiredSecret)) {
     return json({ error: 'Unauthorized' }, 401)
   }
 
@@ -100,7 +105,7 @@ Deno.serve(async (req: Request) => {
   const { data: rows, error } = await admin
     .from('law_updates')
     .select(
-      'id, jurisdiction, law_name, url, change_summary, detected_at, event_type, review_status',
+      'id, jurisdiction, law_name, url, reference_url, ai_analysis_en, change_summary, detected_at, event_type, review_status',
     )
     .eq('event_type', 'change')
     .eq('review_status', 'reviewed')
@@ -172,4 +177,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, sent: true, count: digestRows.length })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

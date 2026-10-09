@@ -1,11 +1,11 @@
 import type { PolicyEdition } from '../policyContent'
 
 export default {
-  title: "Cadre de divulgation des risques liés à l'IA",
+  title: "Cadre de divulgation des risques liés à l’IA",
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Dutiva Canada Inc. utilise des technologies d'intelligence artificielle pour générer du contenu et fournir des services. Ce document divulgue les risques associés à l'utilisation de ces technologies afin que vous puissiez prendre des décisions éclairées.",
+    "Dutiva Canada Inc. utilise des technologies d’intelligence artificielle pour générer du contenu et fournir des services. Ce document divulgue les risques associés à l’utilisation de ces technologies afin que vous puissiez prendre des décisions éclairées.",
   ],
   sections: [
     {
@@ -13,7 +13,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Les systèmes d'IA, y compris ceux utilisés par Dutiva, peuvent produire des résultats inexacts ou incomplets.",
+          text: "Les systèmes d’IA, y compris ceux utilisés par Dutiva, peuvent produire des résultats inexacts ou incomplets.",
         },
         {
           type: 'li',
@@ -25,7 +25,7 @@ export default {
         },
         {
           type: 'li',
-          text: "L'IA ne remplace pas l'expertise professionnelle qualifiée",
+          text: "L’IA ne remplace pas l’expertise professionnelle qualifiée",
         },
         {
           type: 'li',
@@ -34,15 +34,15 @@ export default {
       ],
     },
     {
-      title: "2. Risques d'hallucination",
+      title: "2. Risques d’hallucination",
       blocks: [
         {
           type: 'p',
-          text: "Les modèles d'IA peuvent parfois générer des informations fictives ou inventées qui semblent plausibles, un phénomène connu sous le nom d'hallucination.",
+          text: "Les modèles d’IA peuvent parfois générer des informations fictives ou inventées qui semblent plausibles, un phénomène connu sous le nom d’hallucination.",
         },
         {
           type: 'li',
-          text: "L'IA peut inventer des références juridiques, des articles ou des précédents inexistants",
+          text: "L’IA peut inventer des références juridiques, des articles ou des précédents inexistants",
         },
         {
           type: 'li',
@@ -63,7 +63,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Les modèles d'IA peuvent refléter et perpétuer des biais présents dans leurs données d'entraînement.",
+          text: "Les modèles d’IA peuvent refléter et perpétuer des biais présents dans leurs données d’entraînement.",
         },
         {
           type: 'li',
@@ -75,20 +75,20 @@ export default {
         },
         {
           type: 'li',
-          text: "L'IA peut ne pas être adaptée à tous les contextes juridictionnels ou culturels",
+          text: "L’IA peut ne pas être adaptée à tous les contextes juridictionnels ou culturels",
         },
         {
           type: 'li',
-          text: "Vérifiez que le contenu respecte les principes d'équité et d'inclusion de votre organisation",
+          text: "Vérifiez que le contenu respecte les principes d’équité et d’inclusion de votre organisation",
         },
       ],
     },
     {
-      title: "4. Risque d'obsolescence",
+      title: "4. Risque d’obsolescence",
       blocks: [
         {
           type: 'p',
-          text: "Les modèles d'IA ont une date de connaissance fixe et peuvent ne pas avoir accès aux informations les plus récentes.",
+          text: "Les modèles d’IA ont une date de connaissance fixe et peuvent ne pas avoir accès aux informations les plus récentes.",
         },
         {
           type: 'li',
@@ -113,7 +113,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Certaines situations exigent obligatoirement l'examen par un professionnel qualifié et ne doivent pas reposer uniquement sur l'IA.",
+          text: "Certaines situations exigent obligatoirement l’examen par un professionnel qualifié et ne doivent pas reposer uniquement sur l’IA.",
         },
         {
           type: 'li',
@@ -138,15 +138,15 @@ export default {
       ],
     },
     {
-      title: "6. Responsabilités de l'utilisateur",
+      title: "6. Responsabilités de l’utilisateur",
       blocks: [
         {
           type: 'p',
-          text: "En utilisant les services d'IA de Dutiva, vous reconnaissez et acceptez vos responsabilités.",
+          text: "En utilisant les services d’IA de Dutiva, vous reconnaissez et acceptez vos responsabilités.",
         },
         {
           type: 'li',
-          text: "Vérifiez tout le contenu généré avant de l'utiliser, le partager ou le signer",
+          text: "Vérifiez tout le contenu généré avant de l’utiliser, le partager ou le signer",
         },
         {
           type: 'li',
@@ -154,7 +154,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Ne saisissez pas d'informations confidentielles, sensibles ou personnelles non nécessaires",
+          text: "Ne saisissez pas d’informations confidentielles, sensibles ou personnelles non nécessaires",
         },
         {
           type: 'li',

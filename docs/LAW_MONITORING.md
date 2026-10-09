@@ -158,6 +158,23 @@ directly beneath the block stating that Ontario and Québec are not monitored.
 
 Monitoring stays wider than coverage on purpose; **the panel is what filters.**
 
+### The AI read (`ai_analysis_en` / `ai_analysis_fr`)
+
+Rows with `event_type = 'change'` can carry a model-written brief in the
+two `ai_analysis_*` columns (migration 0201). Separation of duties is
+deliberate: `change_summary` / `raw_diff` are the detector's factual record;
+the analysis is interpretation, written by a model over _only_ the facts the
+detector recorded — provision numbers, in-force dates, amending instruments,
+and ~160-char excerpts of each moved provision's own text
+(`lawChangeAnalysis.ts`, `StatuteSection.excerpt`). The prompt forbids
+inventing provisions and requires "substance unknown" wording when the facts
+are a metadata move alone. Both locales are generated in one JSON call; a
+reply that is unparseable or one-sided stores `null`, and a missing model
+route never blocks the row. The card renders the analysis inside "More",
+prefixed "AI read — interpretation, not legal advice"; the digest includes
+the English field under the same label. `first_seen`, `redirect` and `broken`
+rows get no analysis — there is nothing to interpret.
+
 ## In-product freshness
 
 The panel states its own currency rather than letting undated rows imply they
@@ -301,15 +318,42 @@ session does not re-probe any of it.
 described below is now built: `MONITORED_PAGES` carries Ontario's three
 statutes on the `ontario-api` source and Quebec's two on `quebec-ckan` (see
 `supabase/functions/monitor-law-changes/ontarioApi.ts` and `quebecCkan.ts`).
-**Still open:** the two health checks (`versions.length > 0`, polling
-`currency-date`) are implemented as part of the per-fetch verdict but not as
-independent liveness alarms; the Quebec side watches the dataset's "Lois"
+**Still open:** the Quebec side watches the dataset's "Lois"
 resource at the whole-resource level, not yet the per-statute drill into the
 zip's `Statutes_EN_Status.txt`; and — most importantly — **no live sweep has
 run**, so `monitoringCoverage.ts` still correctly tells customers ON/QC are
 not monitored. Don't flip that claim until a real scheduled run proves the
 code against the live APIs, the same discipline OA2 already applies to
 Federal.
+
+**Update 2026-10-04 — per-statute drill built, deployed and proven live.**
+The Quebec branch now opens the zip by HTTP Range (zipRange.ts — the 45 MB
+archive costs ~4 small fetches): `Statutes_EN_Status.txt` names each Act's
+consolidation stamp, and the Act's own XML is compared by its
+section→`date-eev` map, stored in `law_page_hashes.meta` between runs. A
+corpus refresh that leaves a watched Act untouched files nothing — the old
+every-refresh double-alert is gone — and a real change names the provisions
+that moved plus their latest amending instrument from `HistoricalNote`.
+`law_updates.reference_url` carries the human page (LégisQuébec/e-Laws/
+Justice Laws) so cards and the digest link somewhere readable instead of the
+machine endpoint. **Live proof the same day:** a real `trigger_law_monitor()`
+sweep on the deployed function rekeyed both Québec rows to the `qck2:`
+fingerprint and stored their section baselines (LNT 354 sections, Charter
+165) without filing a single false update — the first attributed read worked
+exactly as designed against production.
+
+### Source liveness — built 2026-10-04
+
+Two heartbeats now run
+independently of the per-page verdicts, closing the "answering but frozen"
+gap. Once per sweep the monitor polls e-Laws' `currency-date` endpoint and
+files a `broken` row if the claimed "laws current to" date is unreadable
+(three consecutive checks) or older than ~90 days; a pseudo
+`law_page_hashes` row (`heartbeat:ontario-elaws-currency-date`) dedupes so a
+freeze alerts once and re-arms on recovery. The Québec branch separately
+checks the dataset's own `last_modified` stamp and alerts past 120 days —
+the corpus republishes roughly fortnightly, and a 71-day gap is on record,
+so the threshold sits well above normal cadence.
 
 Everything below was probed live, and every candidate was **fetched twice and
 diffed** to rule out sources that churn on every request — the failure mode that

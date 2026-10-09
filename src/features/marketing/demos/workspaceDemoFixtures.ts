@@ -52,7 +52,7 @@ export const LANDING_WORKSPACE_FIXTURES = {
     owner: bi('Priya Sharma', 'Priya Sharma'),
     note: bi(
       'Content calendar item linked to an initiative. Body drafted in Markdown; scheduled send and approvals are tracked.',
-      'Élément du calendrier de contenu lié à une initiative. Corps rédigé en Markdown; envoi planifié et approbations suivis.',
+      'Élément du calendrier de contenu lié à une initiative. Corps rédigé en Markdown ; envoi planifié et approbations suivis.',
     ),
     bulkImport: bi(
       'Import contacts, organizations, and content from CSV or Excel.',

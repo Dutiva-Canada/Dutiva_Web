@@ -19,7 +19,7 @@ export const watchlistItem: FinanceWorkspaceState['watchlistItems'][number] = {
   assetClass: 'fund',
   thesis: bi(
     'Parking operating surplus beyond the GIC ladder; reviewed quarterly against the cash forecast.',
-    'Placement du surplus d’exploitation au-delà de l’échelle de CPG; révisé chaque trimestre par rapport aux prévisions de trésorerie.',
+    'Placement du surplus d’exploitation au-delà de l’échelle de CPG ; révisé chaque trimestre par rapport aux prévisions de trésorerie.',
   ),
   targetLow: '28.00',
   targetHigh: '32.00',
@@ -51,7 +51,7 @@ export const decisionEntry: FinanceWorkspaceState['decisionEntries'][number] = {
   decidedAt: '2026-09-01',
   summary: bi(
     'Renew the 90-day GIC at maturity; keep $30k in the instrument.',
-    'Renouveler le CPG de 90 jours à l’échéance; conserver 30 000 $ dans l’instrument.',
+    'Renouveler le CPG de 90 jours à l’échéance ; conserver 30 000 $ dans l’instrument.',
   ),
   rationale: bi(
     'Rate holds above the money-market sweep and the reserve goal is already funded.',
@@ -72,7 +72,7 @@ export const decisionEntry2: FinanceWorkspaceState['decisionEntries'][number] = 
   ),
   rationale: bi(
     'Surplus is real but lumpy; wait until the payroll reserve goal is fully funded.',
-    'Le surplus est réel mais irrégulier; attendre que l’objectif de réserve de paie soit entièrement financé.',
+    'Le surplus est réel mais irrégulier ; attendre que l’objectif de réserve de paie soit entièrement financé.',
   ),
   reviewDate: '2026-10-15',
 }
@@ -157,7 +157,7 @@ export const dealAcquisition: FinanceWorkspaceState['deals'][number] = {
   owner: 'Martin Constantineau',
   notes: bi(
     'Fleet overlaps the QC corridor; diligence focused on contracts and equipment liens.',
-    'La flotte recoupe le corridor québécois; la vérification porte sur les contrats et les privilèges sur l’équipement.',
+    'La flotte recoupe le corridor québécois ; la vérification porte sur les contrats et les privilèges sur l’équipement.',
   ),
 }
 
@@ -177,7 +177,7 @@ export const dealInvestment: FinanceWorkspaceState['deals'][number] = {
   owner: 'Martin Constantineau',
   notes: bi(
     'Term sheet circulated; board approval needed before signature.',
-    'La convention de principe circule; l’approbation du conseil est requise avant la signature.',
+    'La convention de principe circule ; l’approbation du conseil est requise avant la signature.',
   ),
 }
 
@@ -194,7 +194,7 @@ export const dealFinancing: FinanceWorkspaceState['deals'][number] = {
   owner: 'Jordan Lee',
   notes: bi(
     'Secured against holdco assets; funds earmarked for the Verdun closing.',
-    'Garantie sur les actifs de la société de portefeuille; fonds réservés à la clôture de Verdun.',
+    'Garantie sur les actifs de la société de portefeuille ; fonds réservés à la clôture de Verdun.',
   ),
 }
 

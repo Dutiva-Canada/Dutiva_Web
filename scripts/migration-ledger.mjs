@@ -17,6 +17,17 @@ export const ACCEPTED_DUPLICATE_SEQUENCES = new Map([
         'discipline blocked new collisions. Do not renumber either file.',
     },
   ],
+  [
+    '0194',
+    {
+      files: ['0194_dutiva_pr_growth.sql', '0194_pr_access_dutiva_staff.sql'],
+      reason:
+        '0194_dutiva_pr_growth.sql was applied via the Management API while a ' +
+        'parallel MR merged 0194_pr_access_dutiva_staff.sql; both ran on the ' +
+        'live project under sequence 0194. The staff-grant SQL is idempotent ' +
+        'and both sides were verified applied. Do not renumber either file.',
+    },
+  ],
 ])
 
 /** @returns {ReadonlySet<string>} */

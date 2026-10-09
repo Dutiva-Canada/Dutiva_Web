@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { useI18n } from '@/i18n/context'
 import { specialistsMessages as M } from '@/i18n/messages/specialists'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { viewIntentProps, warmViewsOnIdle } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const TABS = [
@@ -15,6 +17,7 @@ export function SpecialistsLayout() {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { pathname } = useLocation()
+  useEffect(() => warmViewsOnIdle(TABS.map((tab) => `specialists.${tab.key}`)), [])
 
   return (
     <AppPage width="default" responsivePad>
@@ -33,6 +36,7 @@ export function SpecialistsLayout() {
             <Link
               key={tab.key}
               to={to}
+              {...viewIntentProps(`specialists.${tab.key}`)}
               className={
                 active
                   ? 'rounded-t-[6px] border-b-2 border-accent px-3 py-1.5 text-[13.5px] font-semibold text-accent'

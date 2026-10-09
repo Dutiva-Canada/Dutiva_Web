@@ -38,7 +38,7 @@ export const financeDeals = defineMessages({
   finance_deals_remove: { en: 'Delete', fr: 'Supprimer' },
   finance_deals_remove_confirm: {
     en: 'Delete this deal from the pipeline?',
-    fr: 'Supprimer cette transaction du pipeline?',
+    fr: 'Supprimer cette transaction du pipeline ?',
   },
   finance_deals_save_failed: {
     en: 'Couldn’t save the deal. Try again.',
@@ -95,7 +95,7 @@ export const financeDeals = defineMessages({
   finance_commitment_remove: { en: 'Delete commitment', fr: 'Supprimer l’engagement' },
   finance_commitment_remove_confirm: {
     en: 'Delete this commitment?',
-    fr: 'Supprimer cet engagement?',
+    fr: 'Supprimer cet engagement ?',
   },
   finance_commitment_save_failed: {
     en: 'Couldn’t save the commitment. Try again.',
@@ -119,7 +119,7 @@ export const financeDeals = defineMessages({
   finance_call_remove: { en: 'Delete call', fr: 'Supprimer l’appel' },
   finance_call_remove_confirm: {
     en: 'Delete this capital call?',
-    fr: 'Supprimer cet appel de fonds?',
+    fr: 'Supprimer cet appel de fonds ?',
   },
   finance_call_reference: { en: 'Reference', fr: 'Référence' },
   finance_call_received_on: { en: 'Received', fr: 'Reçu le' },

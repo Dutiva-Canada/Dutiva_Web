@@ -5,7 +5,11 @@
 
 The following files were used as context for generating this wiki page:
 
-- [.github/workflows/ci.yml](.github/workflows/ci.yml)
+- [.woodpecker/check.yml](.woodpecker/check.yml)
+- [.woodpecker/live-checks.yml](.woodpecker/live-checks.yml)
+- [.woodpecker/e2e.yml](.woodpecker/e2e.yml)
+- [.woodpecker/e2e-auth.yml](.woodpecker/e2e-auth.yml)
+- [.woodpecker/statute-drift.yml](.woodpecker/statute-drift.yml)
 - [.gitignore](.gitignore)
 - [docs/SUPPORT_ANALYTICS.md](docs/SUPPORT_ANALYTICS.md)
 - [e2e/app.spec.ts](e2e/app.spec.ts)
@@ -27,60 +31,64 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The GitHub Actions CI workflow (`.github/workflows/ci.yml`) defines three isolated jobs — `check`, `live-checks`, and `e2e` — each targeting a distinct failure class. The separation ensures that credential problems or browser flakes never block the merge gate. Test infrastructure uses Vitest (jsdom) for unit/integration tests and Playwright (Chromium) for end-to-end smoke tests, with a custom static server that mirrors the production Vercel routing contract.
+CI runs on Woodpecker as five isolated pipelines under `.woodpecker/` — `check.yml` (the deterministic merge gate), `live-checks.yml` (credentialed Supabase probes), `e2e.yml` (hermetic Playwright smoke), `e2e-auth.yml` (authenticated Playwright CRUD), and `statute-drift.yml` (cron/manual statute-source verification). Each is a separate `when:`/`steps:` file targeting a distinct failure class. The separation ensures that credential problems or browser flakes never block the merge gate. Test infrastructure uses Vitest (jsdom) for unit/integration tests and Playwright (Chromium) for end-to-end smoke tests, with a custom static server that mirrors the production Vercel routing contract.
 
-## Workflow Triggers & Environment
+## Pipeline Triggers & Environment
 
-The CI workflow fires on pull requests, pushes to `main`, and manual `workflow_dispatch` events [.github/workflows/ci.yml:4-11](). Manual dispatch is explicitly justified: the live-project checks can go red without any code change (e.g. someone applying a migration directly to the database), so re-running should not require inventing a commit [.github/workflows/ci.yml:7-11]().
+Every pipeline fires on pushes to `main`, pull requests, and manual runs [.woodpecker/check.yml:11-15](). `statute-drift.yml` instead fires only on `cron` and `manual` — deliberately never on push/PR, because it depends on live government sites that rate-limit and would flake as a gate [.woodpecker/statute-drift.yml:1-14](). Manual triggers are explicitly justified: live-project checks can go red without any code change (e.g. someone applying a migration directly to the database), so re-running should not require inventing a commit.
 
-Three public (non-secret) environment variables are set at workflow level [.github/workflows/ci.yml:16-19]():
+Public (non-secret) environment variables are declared per-pipeline via YAML anchors:
 
-| Variable                 | Value                                      | Purpose                              |
-| ------------------------ | ------------------------------------------ | ------------------------------------ |
-| `SUPABASE_URL`           | `https://khtwpxnvziiyplaflwru.supabase.co` | Project endpoint for live checks     |
-| `SUPABASE_ANON_KEY`      | `sb_publishable_…`                         | Publishable anon key for RLS probing |
-| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL`                             | GA4 measurement ID (public in HTML)  |
+| Variable                 | Value                                      | Set in                              | Purpose                                    |
+| ------------------------ | ------------------------------------------ | ----------------------------------- | ------------------------------------------ |
+| `SUPABASE_URL`           | `https://khtwpxnvziiyplaflwru.supabase.co` | `live-checks.yml`, `e2e-auth.yml`   | Project endpoint for live checks           |
+| `SUPABASE_ANON_KEY`      | `sb_publishable_…`                         | `live-checks.yml`, `e2e-auth.yml`   | Publishable anon key for RLS probing       |
+| `VITE_GA_MEASUREMENT_ID` | `G-V85ZQ75EWL`                             | `check.yml`, `e2e.yml`, `e2e-auth.yml` | GA4 measurement ID (public in HTML)     |
+| `VITE_GTM_CONTAINER_ID`  | `GTM-P3C7386R`                             | `check.yml`, `e2e.yml`, `e2e-auth.yml` | GTM container ID (public in HTML)       |
 
-Sources: [.github/workflows/ci.yml:1-19]()
+Secrets (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_SERVICE_ROLE_KEY`) are pulled through Woodpecker `from_secret:` — only the pipelines that need them declare them.
+
+Sources: [.woodpecker/check.yml:1-15](), [.woodpecker/live-checks.yml:10-21](), [.woodpecker/e2e-auth.yml:11-22](), [.woodpecker/statute-drift.yml:1-16]()
 
 ## Job Architecture
 
-**CI workflow job dependency diagram**
+**Pipeline dependency diagram**
 
 ```mermaid
 graph LR
-    subgraph "ci.yml"
-        A["check"]
-        B["live-checks"]
-        C["e2e"]
+    subgraph ".woodpecker/"
+        A["check.yml"]
+        B["live-checks.yml"]
+        C["e2e.yml"]
+        D2["e2e-auth.yml"]
     end
-    A --- D["Required status\n(merge gate)"]
+    A --- G["Required status\n(merge gate)"]
     B -. "independent" .- A
     C -. "independent" .- A
+    D2 -. "independent" .- A
     B -.->|"credential\nfailure OK"| E["Never blocks gate"]
     C -.->|"browser flake\nOK"| E
+    D2 -.->|"auth secrets\nmissing"| E
 ```
 
-All three jobs run independently on `ubuntu-latest` with Node 22. There are no `needs` dependencies between them — each is an isolated failure domain. Only `check` is the required status for merging [.github/workflows/ci.yml:22-27]().
+The pipelines are independent files — each is an isolated failure domain, so a credential gap in `live-checks` or a Chromium flake in `e2e` cannot abort the gate. Within a pipeline, steps run on `node:22` images chained by `depends_on`. A fifth pipeline, `statute-drift.yml`, fires only on cron/manual (see [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift)).
 
-Sources: [.github/workflows/ci.yml:21-130]()
+Sources: [.woodpecker/check.yml:1-15](), [.woodpecker/live-checks.yml:1-19](), [.woodpecker/e2e.yml:1-16](), [.woodpecker/e2e-auth.yml:1-22](), [.woodpecker/statute-drift.yml:1-16]()
 
-## Job 1: `check` (Merge Gate)
+## Pipeline 1: `check.yml` (Merge Gate)
 
-The `check` job is the deterministic, credential-free gate. It runs seven steps in sequence; any failure blocks the PR.
+The `check` pipeline is the deterministic, credential-free gate. Steps run in sequence via `depends_on`; any failure blocks the PR.
 
-**`check` job step pipeline**
+**`check` pipeline step chain**
 
 ```mermaid
 flowchart TD
-    A["actions/checkout"] --> B["actions/setup-node\n(node 22, npm cache)"]
-    B --> C["npm ci"]
-    C --> D["npm run typecheck\n(tsc -b)"]
+    A["install\n(node:22, npm ci)"] --> D["npm run typecheck\n(tsc -b)"]
     D --> E["npm run lint\n(oxlint)"]
     E --> F["npm run test:coverage\n(vitest run --coverage)"]
     F --> G["npm run check:message-scopes\n(check-message-scopes.mjs)"]
     G --> H["npm run check:facts\n(check-canonical-facts.mjs)"]
-    H --> H2["check:brand-assets → check:architecture → check:workspace-links"]
+    H --> H2["check:architecture → check:brand-assets"]
     H2 --> I["npm run build\n(build + SEO validation)"]
 ```
 
@@ -93,8 +101,9 @@ flowchart TD
 | Canonical facts    | `npm run check:facts`          | `check-canonical-facts.mjs`                                             | Brand palette drift vs CSS                         |
 | Brand assets       | `npm run check:brand-assets`   | `check-brand-assets.mjs`                                                | Missing `public/brand/` asset                      |
 | Architecture       | `npm run check:architecture`   | `check-architecture.mjs`                                                | Marketing→`@/data` fixture import, file-size budget, inline demo views |
-| Workspace links    | `npm run check:workspace-links`| `check-workspace-links.mjs`                                             | `/app/…` link reachable from the public `/demo` tree |
 | Build + SEO        | `npm run build`                | vite build → prerender → validate-seo → check-entry-graph → generate-sw | Build, metadata, sitemap, entry-graph budget drift |
+
+The CI `check` pipeline runs the deterministic subset above. Four `npm run check` steps are **local-gate only** (not in `.woodpecker/check.yml`): `check:migrations` + `check:rls` (in the credentialed `live-checks` job instead), `check:workspace-links`, `check:advisor-golden`, `check:db-types`, and `check:edge-types`. The network-bound `check:statute-drift` runs on its own `.woodpecker/statute-drift.yml` cron/manual pipeline.
 
 The build script is a multi-step chain defined in `package.json` [package.json:8]():
 
@@ -103,13 +112,13 @@ tsc -b && vite build && relocate-sourcemaps.mjs && build:ssr && prerender.mjs
        && validate-seo.mjs && check-entry-graph.mjs && generate-sw.mjs
 ```
 
-The comment at [.github/workflows/ci.yml:22-27]() explains the rationale for `check` being its own job: a failure in the credentialed `live-checks` must never abort build/SEO/test verification — the failure mode that caused two days of unverified builds to merge green when the `SUPABASE_ACCESS_TOKEN` secret expired (docs/TODO.md OA19).
+The header comment in `check.yml` states the rationale for `check` being its own pipeline: a failure in the credentialed `live-checks` must never abort build/SEO/test verification — the failure mode that caused two days of unverified builds to merge green when the `SUPABASE_ACCESS_TOKEN` secret expired (docs/TODO.md OA19) [.woodpecker/check.yml:1-4]().
 
-Sources: [.github/workflows/ci.yml:28-64](), [package.json:6-18]()
+Sources: [.woodpecker/check.yml:14-78](), [package.json:6-18]()
 
-## Job 2: `live-checks` (Live Supabase Guards)
+## Pipeline 2: `live-checks.yml` (Live Supabase Guards)
 
-The `live-checks` job hits the real Supabase project and contains two steps that report independently via `if: ${{ !cancelled() }}` — so an RLS check still runs even when migration drift fails [.github/workflows/ci.yml:69-70]().
+The `live-checks` pipeline hits the real Supabase project with two steps — `migration-drift` then `rls-regression` — where the RLS step declares `when: status: [success, failure]` so it still runs even when migration drift fails [.woodpecker/live-checks.yml:52-64]().
 
 **`live-checks` data flow diagram**
 
@@ -150,14 +159,14 @@ Probes the live database as the anonymous PostgREST role [scripts/check-rls.mjs:
 
 2. **Negative controls**: reads each table in `SENSITIVE_TABLES` (`beta_signups`, `hr_documents`, `signatures`) [scripts/check-rls.mjs:50-51](). Any row returned means a world-open RLS policy is live [scripts/check-rls.mjs:217-223]().
 
-Sources: [.github/workflows/ci.yml:71-98](), [scripts/check-migrations.mjs:1-291](), [scripts/check-rls.mjs:1-238](), [scripts/lib/secrets.mjs:1-68]()
+Sources: [.woodpecker/live-checks.yml:28-64](), [scripts/check-migrations.mjs:1-291](), [scripts/check-rls.mjs:1-238](), [scripts/lib/secrets.mjs:1-68]()
 
 ## Loud Skipping Pattern
 
-Both live-check scripts implement a "loud skipping" pattern when credentials are missing. They exit 0 (do not fail the build), but on GitHub Actions they:
+Both live-check scripts implement a "loud skipping" pattern when credentials are missing. They exit 0 (do not fail the build), but announce the skip loudly [scripts/check-migrations.mjs:35-36]():
 
-1. Emit a `::warning` annotation visible on the run and on the PR [scripts/check-migrations.mjs:159](), [scripts/check-rls.mjs:71]()
-2. Append a `### … UNCHECKED` entry to `GITHUB_STEP_SUMMARY` [scripts/check-migrations.mjs:164-176](), [scripts/check-rls.mjs:75-86]()
+1. Emit a `::warning` annotation — the format GitHub Actions surfaces on the run and on the PR (on Woodpecker it lands as a loud log line) [scripts/check-migrations.mjs:159](), [scripts/check-rls.mjs:71]()
+2. Append a `### … UNCHECKED` entry to `GITHUB_STEP_SUMMARY` when that env var is set (GitHub Actions runs; a no-op elsewhere) [scripts/check-migrations.mjs:164-176](), [scripts/check-rls.mjs:75-86]()
 
 This ensures that a green check is never mistaken for a verified one — the philosophy is stated directly: "a skipped drift check must not read as a passed one" [scripts/check-migrations.mjs:142-154]().
 
@@ -165,9 +174,9 @@ The `describeSecret()` helper provides safe diagnostics when a credential is rej
 
 Sources: [scripts/check-migrations.mjs:140-176](), [scripts/check-rls.mjs:62-106](), [scripts/lib/secrets.mjs:47-58]()
 
-## Job 3: `e2e` (Playwright Browser Smoke Tests)
+## Pipeline 3: `e2e.yml` (Playwright Browser Smoke Tests)
 
-The e2e job builds the production bundle, installs Chromium, then runs Playwright against the built `dist/` [.github/workflows/ci.yml:107-130]().
+The e2e pipeline builds the production bundle, installs Chromium, then runs the hermetic Playwright suite against the built `dist/` [.woodpecker/e2e.yml:20-43]().
 
 ```mermaid
 flowchart TD
@@ -178,11 +187,15 @@ flowchart TD
     E --> F["dist/\n(static files)"]
     D --> G["marketing.spec.ts"]
     D --> H["app.spec.ts"]
+    D --> I["auth-forwarder.spec.ts\ncsp.spec.ts"]
     G -->|"HTTP"| E
     H -->|"HTTP"| E
+    I -->|"HTTP"| E
 ```
 
-Sources: [.github/workflows/ci.yml:107-130]()
+A fourth pipeline, `e2e-auth.yml`, runs the authenticated Playwright suite (`npm run test:e2e:auth` → `e2e/auth/run-or-skip.mjs`): signed-in admin → Production mode → production CRUD matrix over employees, cases, tasks, communications, and memory. It needs `SUPABASE_SERVICE_ROLE_KEY` (Woodpecker secret) plus the `VITE_SUPABASE_*`/`SUPABASE_*` vars so the built SPA talks to Supabase — isolated from `e2e.yml` so missing auth secrets never charge against the credential-free gate [.woodpecker/e2e-auth.yml:1-44](). Additional hermetic specs (`auth-forwarder.spec.ts`, `csp.spec.ts`) cover the auth-forwarding edge and CSP headers against the same `dist/` contract.
+
+Sources: [.woodpecker/e2e.yml:1-43](), [.woodpecker/e2e-auth.yml:1-44]()
 
 ### Playwright Configuration (`playwright.config.ts`)
 
@@ -292,7 +305,7 @@ Sources: [src/test/setup.ts:1-41]()
 
 ### Test File Inventory
 
-The project contains 150+ test files across the codebase. A representative sample by area:
+The project contains 360+ test files across the codebase (~3,900 tests, colocated as `*.test.ts(x)` next to the unit under test). A representative sample by area:
 
 | Area             | Example Files                                                                                       | Count |
 | ---------------- | --------------------------------------------------------------------------------------------------- | ----- |
@@ -326,7 +339,7 @@ Checks the brand palette rows of `docs/CANONICAL_FACTS.md` against actual CSS to
 
 The companion test `src/canonicalFacts.test.ts` handles the TypeScript-backed rows (template count, plan prices, jurisdictions, beta flag, etc.) [src/canonicalFacts.test.ts:1-33](). Together they provide bidirectional enforcement of the canonical facts document.
 
-Sources: [.github/workflows/ci.yml:47-57](), [scripts/check-message-scopes.mjs:1-87](), [scripts/check-canonical-facts.mjs:1-65](), [src/canonicalFacts.test.ts:1-33]()
+Sources: [.woodpecker/check.yml:40-57](), [scripts/check-message-scopes.mjs:1-87](), [scripts/check-canonical-facts.mjs:1-65](), [src/canonicalFacts.test.ts:1-33]()
 
 ## End-to-End Architecture Overview
 
@@ -357,7 +370,7 @@ flowchart TB
     end
 
     TC --> LN --> VT --> MS --> CF --> BD
-    MD -.->|"if: !cancelled()"| RL
+    MD -.->|"when: status\n[success, failure]"| RL
     BD -.->|"same dist/"| DIST
     PW --> SD
     SD --> DIST
@@ -368,7 +381,7 @@ flowchart TB
     RL -->|"fetch"| PREST["PostgREST\n(anon role)"]
 ```
 
-Sources: [.github/workflows/ci.yml:1-130](), [package.json:6-26](), [playwright.config.ts:1-45](), [e2e/serve-dist.mjs:1-99]()
+Sources: [.woodpecker/check.yml:1-78](), [.woodpecker/live-checks.yml:1-64](), [.woodpecker/e2e.yml:1-43](), [package.json:6-26](), [playwright.config.ts:1-45](), [e2e/serve-dist.mjs:1-99]()
 
 ## `serve-dist.mjs` Routing Logic
 
@@ -394,16 +407,18 @@ Sources: [e2e/serve-dist.mjs:54-82]()
 
 | Decision                                   | Rationale                                                                                                              | Reference                                                         |
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `check` is isolated from `live-checks`     | Credential failure (expired token) must never abort build/test verification — the OA19 incident                        | [.github/workflows/ci.yml:22-27]()                                |
-| `e2e` is isolated from `check`             | Browser download/flake should never charge against the merge gate                                                      | [.github/workflows/ci.yml:104-106]()                              |
-| `live-checks` steps use `if: !cancelled()` | Each live check reports independently; migration drift failure doesn't skip RLS                                        | [.github/workflows/ci.yml:97]()                                   |
-| `workflow_dispatch` trigger                | Live-project checks can go red without a code change (out-of-band DB changes)                                          | [.github/workflows/ci.yml:7-11]()                                 |
+| `check.yml` isolated from `live-checks.yml` | Credential failure (expired token) must never abort build/test verification — the OA19 incident                       | [.woodpecker/check.yml:1-4]()                                     |
+| `e2e.yml` isolated from `check.yml`        | Browser download/flake should never charge against the merge gate                                                      | [.woodpecker/e2e.yml:1-13]()                                      |
+| `e2e-auth.yml` isolated from `e2e.yml`     | Missing auth secrets never charge against the credential-free gate                                                     | [.woodpecker/e2e-auth.yml:1-6]()                                  |
+| `rls-regression` uses `when: status`       | Each live check reports independently; migration drift failure doesn't skip RLS                                        | [.woodpecker/live-checks.yml:54-56]()                             |
+| `manual` event on every pipeline           | Live-project checks can go red without a code change (out-of-band DB changes)                                          | [.woodpecker/check.yml:11-15]()                                   |
+| `statute-drift.yml` is cron/manual only    | Live government sources rate-limit — would flake as a merge gate                                                       | [.woodpecker/statute-drift.yml:1-14]()                            |
 | Vitest `env` blanks Supabase vars          | Forces doclib onto bundled fixtures, prevents test ordering from varying by `.env`                                     | [vite.config.ts:269-270]()                                        |
 | Coverage thresholds are below baseline     | Normal fluctuation doesn't flake CI; real regression still fails                                                       | [vite.config.ts:273-283]()                                        |
-| Pinned action SHAs                         | `actions/checkout@34e114…` and `actions/setup-node@49933…` pinned by commit hash, not tag                              | [.github/workflows/ci.yml:31-32]()                                |
+| Steps pin `image: node:22`                 | Same runtime on every pipeline; no mutable runner tag                                                                  | [.woodpecker/check.yml:18-22]()                                   |
 | Dependency-free scripts                    | `check-migrations.mjs` and `check-rls.mjs` use Node's global `fetch` only, so they cannot rot behind a package upgrade | [scripts/check-migrations.mjs:37](), [scripts/check-rls.mjs:36]() |
 
-Sources: [.github/workflows/ci.yml:1-130](), [vite.config.ts:255-284](), [scripts/check-migrations.mjs:36-37](), [scripts/check-rls.mjs:34-36]()
+Sources: [.woodpecker/check.yml:1-78](), [.woodpecker/e2e-auth.yml:1-44](), [.woodpecker/statute-drift.yml:1-30](), [vite.config.ts:255-284](), [scripts/check-migrations.mjs:36-37](), [scripts/check-rls.mjs:34-36]()
 
 ## Artifacts & Outputs
 

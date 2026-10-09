@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import {
   coingeckoId,
   computeMa,
@@ -15,6 +16,7 @@ import {
   validateSyncAction,
   type SyncTarget,
 } from './handlers.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * invest-market-sync — refreshes invest_market_snapshots from free public
@@ -37,17 +39,13 @@ import {
  * Unknown tickers are skipped and reported, never fatal.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -72,7 +70,7 @@ function serverConfig(): ServerConfig | Response {
 /** Same contract as invest-bot / candidate-job-agent. */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -80,7 +78,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 /** Portal JWT → user id, gated on invest_access; admin tier for sync-all. */
@@ -344,8 +342,8 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -409,4 +407,6 @@ Deno.serve(async (req: Request) => {
   const result = await syncUser(authed.adminClient, authed.userId)
   const news = await refreshNews(authed.adminClient, result.targets)
   return json({ symbols: result.symbols, synced: result.synced, failed: result.failed, news })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

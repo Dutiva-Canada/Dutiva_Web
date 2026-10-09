@@ -122,6 +122,86 @@ export async function postChatCompletion(
   })
 }
 
+/* ── Streaming ───────────────────────────────────────────────────────────
+   When a request goes out with `stream: true`, the provider answers with
+   `text/event-stream`: `data: {…}` lines whose `choices[].delta.content`
+   carry the text piece by piece, ended by `data: [DONE]`. These helpers
+   parse that wire shape; callers decide which pieces reach the client. */
+
+/**
+ * Incremental parser for upstream SSE. Feed decoded chunks; it fires
+ * `onDelta` per content piece and accumulates the full text. `data:` lines
+ * split across chunks are buffered until their newline arrives; anything
+ * that is not a `data:` JSON object (keepalives, comments, `[DONE]`) is
+ * skipped.
+ */
+export function createSseDeltaParser(onDelta: (text: string) => void): {
+  push: (chunk: string) => void
+  readonly text: string
+} {
+  let buffer = ''
+  let full = ''
+  return {
+    push(chunk) {
+      buffer += chunk
+      let idx: number
+      while ((idx = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, idx).trim()
+        buffer = buffer.slice(idx + 1)
+        if (!line.startsWith('data:')) continue
+        const data = line.slice(5).trim()
+        if (data === '[DONE]') continue
+        try {
+          const obj = JSON.parse(data) as {
+            choices?: { delta?: { content?: unknown } }[]
+          }
+          const piece = obj.choices?.[0]?.delta?.content
+          if (typeof piece === 'string' && piece !== '') {
+            full += piece
+            onDelta(piece)
+          }
+        } catch {
+          /* partial or non-JSON keepalive line — skip */
+        }
+      }
+    },
+    get text() {
+      return full
+    },
+  }
+}
+
+/**
+ * Read a streaming upstream response to completion, forwarding each text
+ * piece to `onDelta` and resolving with the full text. Falls back cleanly
+ * when a provider ignored `stream: true` and answered plain JSON — the
+ * whole content arrives as a single delta.
+ */
+export async function readUpstreamText(
+  upstream: Response,
+  onDelta: (text: string) => void,
+): Promise<string> {
+  const contentType = upstream.headers.get('content-type') ?? ''
+  if (!contentType.includes('text/event-stream') || !upstream.body) {
+    const payload = (await upstream.json()) as {
+      choices?: { message?: { content?: string } }[]
+    }
+    const text = payload.choices?.[0]?.message?.content ?? ''
+    if (text) onDelta(text)
+    return text
+  }
+  const parser = createSseDeltaParser(onDelta)
+  const reader = upstream.body.getReader()
+  const decoder = new TextDecoder()
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    parser.push(decoder.decode(value, { stream: true }))
+  }
+  parser.push(decoder.decode())
+  return parser.text
+}
+
 /* ── Attachments ───────────────────────────────────────────────────────── */
 
 export type AttachmentError =

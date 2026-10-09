@@ -5,9 +5,9 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") designs its commercial electronic message practices around Canada\'s Anti-Spam Legislation (CASL): consent, clear sender identification, truthful content, and a working unsubscribe mechanism.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) designs its commercial electronic message practices around Canada’s Anti-Spam Legislation (CASL): consent, clear sender identification, truthful content, and a working unsubscribe mechanism.',
     'This Policy explains how Dutiva manages commercial electronic messages sent by or on behalf of Dutiva, including beta access communications, product updates, lifecycle campaigns, promotional messages, customer announcements, partner communications, and event-related outreach.',
-    "This Policy should be read with Dutiva's Privacy Policy, Cookie Policy, Terms of Service, AI Usage Disclosure, and related legal pages. It is a public-facing operational policy and does not replace legal review for specific campaigns, channels, jurisdictions, or partner arrangements.",
+    "This Policy should be read with Dutiva’s Privacy Policy, Cookie Policy, Terms of Service, AI Usage Disclosure, and related legal pages. It is a public-facing operational policy and does not replace legal review for specific campaigns, channels, jurisdictions, or partner arrangements.",
   ],
   sections: [
     {
@@ -32,11 +32,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva's commercial electronic message practices are designed around CASL's three core requirements: obtain a valid consent basis or permitted exception, clearly identify the sender and any person on whose behalf the message is sent, and include a working unsubscribe mechanism.",
+          text: "Dutiva’s commercial electronic message practices are designed around CASL’s three core requirements: obtain a valid consent basis or permitted exception, clearly identify the sender and any person on whose behalf the message is sent, and include a working unsubscribe mechanism.",
         },
         {
           type: 'p',
-          text: "Dutiva also aims to ensure that commercial message content is accurate, not misleading, and consistent with Dutiva's public product, legal, privacy, AI, and compliance statements.",
+          text: "Dutiva also aims to ensure that commercial message content is accurate, not misleading, and consistent with Dutiva’s public product, legal, privacy, AI, and compliance statements.",
         },
         {
           type: 'p',
@@ -61,7 +61,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Implied consent may apply where CASL permits it, such as certain existing business relationships, certain inquiries or applications, business contact information that is conspicuously published without a no-solicitation statement and is relevant to the recipient's role, or other circumstances recognized by CASL. When Dutiva relies on implied consent, the basis and any review or expiry date should be documented.",
+          text: "Implied consent may apply where CASL permits it, such as certain existing business relationships, certain inquiries or applications, business contact information that is conspicuously published without a no-solicitation statement and is relevant to the recipient’s role, or other circumstances recognized by CASL. When Dutiva relies on implied consent, the basis and any review or expiry date should be documented.",
         },
         {
           type: 'p',
@@ -184,7 +184,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Claims about Dutiva's HR compliance support, legal boundaries, AI use, privacy posture, Quebec Law 25 readiness, PIPEDA alignment, or document-generation capabilities should be accurate, reviewable, and consistent with Dutiva's public legal pages.",
+          text: "Claims about Dutiva’s HR compliance support, legal boundaries, AI use, privacy posture, Quebec Law 25 readiness, PIPEDA alignment, or document-generation capabilities should be accurate, reviewable, and consistent with Dutiva’s public legal pages.",
         },
         {
           type: 'p',
@@ -221,7 +221,7 @@ export default {
         },
         {
           type: 'li',
-          text: "The message content is accurate, not misleading, and consistent with Dutiva's legal, privacy, AI, and product positioning.",
+          text: "The message content is accurate, not misleading, and consistent with Dutiva’s legal, privacy, AI, and product positioning.",
         },
         {
           type: 'li',
@@ -238,7 +238,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Personnel or contractors involved in marketing, beta access, lifecycle messaging, customer communications, or partner campaigns should receive reasonable guidance on CASL basics and Dutiva's internal approval process.",
+          text: "Personnel or contractors involved in marketing, beta access, lifecycle messaging, customer communications, or partner campaigns should receive reasonable guidance on CASL basics and Dutiva’s internal approval process.",
         },
         {
           type: 'p',
@@ -251,7 +251,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva may update this Policy from time to time to reflect changes in CASL guidance, communication channels, product flows, marketing practices, service providers, or internal controls. Material changes to Dutiva's commercial electronic message practices should be reflected in this Policy or related public-facing materials.",
+          text: "Dutiva may update this Policy from time to time to reflect changes in CASL guidance, communication channels, product flows, marketing practices, service providers, or internal controls. Material changes to Dutiva’s commercial electronic message practices should be reflected in this Policy or related public-facing materials.",
         },
       ],
     },
@@ -260,7 +260,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Reference points include the text of Canada's Anti-Spam Legislation, CRTC guidance and FAQs on commercial electronic messages, consent, identification, unsubscribe mechanisms, and CRTC guidance on information to be included in commercial electronic messages and requests for consent.",
+          text: "Reference points include the text of Canada’s Anti-Spam Legislation, CRTC guidance and FAQs on commercial electronic messages, consent, identification, unsubscribe mechanisms, and CRTC guidance on information to be included in commercial electronic messages and requests for consent.",
         },
       ],
     },
@@ -269,7 +269,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Questions about Dutiva's commercial electronic message practices can be sent to:",
+          text: "Questions about Dutiva’s commercial electronic message practices can be sent to:",
         },
         {
           type: 'p',

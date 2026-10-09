@@ -21,7 +21,7 @@ vi.mock('@/lib/exportProtection', async (importOriginal) => {
 
 const EXPORT_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
 const OFFER_REPLY =
-  "I've got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm."
+  "I’ve got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm."
 
 const clipboardWrite = vi.fn()
 
@@ -112,7 +112,7 @@ describe('AdvisorView copy/export actions', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Export' }))
 
-    expect(await screen.findByText('Drafting document...')).toBeInTheDocument()
+    expect(await screen.findByText('Drafting document…')).toBeInTheDocument()
     expect(await screen.findByText('Remote & hybrid work policy')).toBeInTheDocument()
     expect(await screen.findByText(OFFER_REPLY, undefined, { timeout: 2000 })).toBeInTheDocument()
   })

@@ -263,7 +263,7 @@ export function ExportAuditView() {
                       {row.user_id ? shortId(row.user_id) : '—'}
                     </td>
                     <td className="px-[12px] py-[8px] text-text-muted">
-                      {row.content_chars.toLocaleString()}
+                      {row.content_chars.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                     </td>
                     <td className="px-[12px] py-[8px] text-text-muted">
                       {formatDateTime(row.created_at, lang)}
@@ -303,7 +303,7 @@ export function ExportAuditView() {
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-text-muted">{x(M.export_audit_col_chars)}</dt>
-                    <dd className="m-0 text-text-muted">{row.content_chars.toLocaleString()}</dd>
+                    <dd className="m-0 text-text-muted">{row.content_chars.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
                     <dt className="text-text-muted">{x(M.export_audit_col_created)}</dt>
@@ -367,7 +367,7 @@ function ExportRowDetail({
       <dt className="font-semibold text-text-muted">{x(M.export_audit_col_user)}</dt>
       <dd className="m-0 font-mono text-text">{row.user_id ?? '—'}</dd>
       <dt className="font-semibold text-text-muted">{x(M.export_audit_col_chars)}</dt>
-      <dd className="m-0 text-text">{row.content_chars.toLocaleString()}</dd>
+      <dd className="m-0 text-text">{row.content_chars.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}</dd>
       <dt className="font-semibold text-text-muted">{x(M.export_audit_col_lang)}</dt>
       <dd className="m-0 text-text">{row.lang}</dd>
       <dt className="font-semibold text-text-muted">{x(M.export_audit_col_created)}</dt>

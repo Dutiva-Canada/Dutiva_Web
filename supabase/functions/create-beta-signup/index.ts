@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildConsentRecord } from '../_shared/caslConsent.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * PUBLIC (unauthenticated) beta waiting-list intake for the landing page's
@@ -32,16 +33,12 @@ import { buildConsentRecord } from '../_shared/caslConsent.ts'
  * — see AGENTS.md on the two halves of a server-side change.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -157,8 +154,8 @@ const BETA_COHORT_LIMIT = 5
 
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -332,4 +329,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ data: { ok: true, cohort_full: cohortFull } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

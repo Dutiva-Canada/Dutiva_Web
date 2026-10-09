@@ -15,7 +15,7 @@ export const commsMessages = defineMessages({
   },
   comms_disclaimer: {
     en: 'Dutiva helps coordinate communications; it does not send messages or file on your behalf.',
-    fr: 'Dutiva aide à coordonner les communications; il n’envoie pas de messages ni ne dépose de documents en votre nom.',
+    fr: 'Dutiva aide à coordonner les communications ; il n’envoie pas de messages ni ne dépose de documents en votre nom.',
   },
 
   /* Navigation tabs */
@@ -282,7 +282,7 @@ export const commsMessages = defineMessages({
   comms_segments_remove_contact: { en: 'Remove from segment', fr: 'Retirer du segment' },
   comms_segments_delete_confirm: {
     en: 'Delete this segment? Its contacts stay in your list.',
-    fr: 'Supprimer ce segment? Ses contacts restent dans votre liste.',
+    fr: 'Supprimer ce segment ? Ses contacts restent dans votre liste.',
   },
   comms_segments_filter_all: { en: 'All segments', fr: 'Tous les segments' },
   comms_segments_filter_by: { en: 'Filter by segment', fr: 'Filtrer par segment' },

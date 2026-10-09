@@ -44,7 +44,7 @@ export const landingHero = defineMessages({
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',
-    fr: "Des conseils RH adaptés à la compétence et des documents prêts à réviser tout au long du cycle de vie de l'employé — ancrés dans les normes du travail applicables, en français ou en anglais.",
+    fr: "Des conseils RH adaptés à la compétence et des documents prêts à réviser tout au long du cycle de vie de l’employé — ancrés dans les normes du travail applicables, en français ou en anglais.",
   },
   landing_sub_q: {
     en: 'Dutiva gives Canadian employers jurisdiction-aware HR guidance and review-ready documents — grounded in the actual employment standards, in English or French.',
@@ -103,6 +103,6 @@ export const landingHero = defineMessages({
   },
   landing_hero_check3: {
     en: 'Work in English or French across document workflows',
-    fr: "Travaillez en français ou en anglais dans l'ensemble des processus documentaires",
+    fr: "Travaillez en français ou en anglais dans l’ensemble des processus documentaires",
   },
 })

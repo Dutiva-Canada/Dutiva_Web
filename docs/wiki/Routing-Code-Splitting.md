@@ -74,15 +74,23 @@ routes = [{ element: <Outlet />, errorElement: <RouteErrorPage />, children: rou
 
 [src/app/routes.tsx:133-142]()
 
-`routeTree()` returns these top-level branches:
+`routeTree()` returns these top-level branches (in source order):
 
 1. **`publicRoutes('en')`** — English marketing pages
 2. **`publicRoutes('fr')`** — French marketing pages with localized slugs
 3. **`/app/welcome`**, **`/app/auth/confirm`** — Auth entry points (outside the gated shell)
 4. **`/sign/:token`**, **`/fr/sign/:token`** — External signing (no login)
 5. **`/demo`**, **`/fr/demo`** — Public read-only demo workspace
-6. **`/app`** — Authenticated workspace shell with nested view routes
-7. **`*`** — Catch-all 404
+6. **`/app`** — Authenticated workspace shell with nested view routes (`appViewRoutes`)
+7. **`/careers`** (EN + `/fr/carrieres`) — `CareersSurface`: public job board with `jobs/:postingId` leaf
+8. **`/employer`** (EN + `/fr/employeur`) — `EmployerDoorPage`: employer door whose sign-in leads into `/app`
+9. **`/careers/portal`** — Candidate portal (own shell, profile/applications/AI-tools/jobs)
+10. **`/invest`** — Standalone invest portal (`invest_access` grant, own shell; public `legal/:slug` leaf)
+11. **`/health`** — Standalone wellness portal (`health_access` grant, own shell; public `legal/:slug` leaf)
+12. **`/pr`** — Standalone PR desk (`pr_access` grant, own shell; public `legal/:slug` leaf)
+13. **`*`** — Catch-all 404
+
+The three standalone portals (`/invest`, `/health`, `/pr`) each mount a lazily-composed surface (`InvestPortalSurface`, `HealthPortalSurface`, `PrPortalSurface`) that shares `AuthProvider`/`LangProvider`/`ToastsProvider` but renders its own portal layout — separate from both marketing chrome and the `/app` sidebar. See [Portal Assistants](Portal-Assistants).
 
 [src/app/routes.tsx:144-175]()
 
@@ -100,7 +108,7 @@ Each locale tree is wrapped in a `PublicShell` that provides `ForcedLangProvider
 
 [src/app/routes.tsx:50-63]()
 
-The 19 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `changelog`, `vsHrdownloads`, `vsSixfifty`, `jurisdictionTool`, `demoWorkspace`, `careers`.
+The 20 static `SeoRouteId` values are: `home`, `about`, `faq`, `blog`, `pricing`, `templates`, `guides`, `templateUsage`, `knownLimitations`, `legal`, `help`, `contact`, `status`, `changelog`, `vsHrdownloads`, `vsSixfifty`, `jurisdictionTool`, `demoWorkspace`, `careers`, `investors`.
 
 [src/seo/routes.ts:29-43]()
 
@@ -207,6 +215,32 @@ The `vite.config.ts` configures `codeSplitting.groups` to control chunk boundari
 The `messages-workspace` group uses `includeDependenciesRecursively: false` to prevent `shell.ts` and `workspaceMode.ts` from being dragged into the workspace message chunk (they belong in the eager graph as dependencies of the allowlisted workspace-mode modules).
 
 [vite.config.ts:171-252]()
+
+### Intent Prefetch and Idle Warm-Up
+
+Code splitting only helps if the next chunk arrives before the user needs it. Because every `Suspense` boundary renders `fallback={null}`, a cold chunk shows a blank panel — so the shell warms chunks on **nav intent** (hover / focus / touchstart) and during **browser idle**.
+
+Two modules implement it. `src/app/viewPreloads.ts` holds only the per-view `preload*View()` thunks that `appViews.tsx`'s `lazy()` calls need — it is reachable from the eager entry graph (`routes.tsx` → `appViews.tsx`), so nothing else may live there. `src/app/viewPrefetchRegistry.ts` holds the four flat lookup maps, each entry an `import()` over the same specifier string the matching `lazy()` uses (identical specifiers share the chunk):
+
+| Registry                 | Key shape                                   | Coverage                                                                                          |
+| ------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `workspaceViewPreloads`  | `NavItem.key` (`cases`, `finance`, …)       | All 23 sidebar modules. Drill-in chunks ride along — e.g. `cases` also warms `cases.detail`, `hiring` warms candidate and job-posting details. |
+| `screenViewPreloads`     | `module.tab` / `view.detail`                | Every multi-screen module tab (comms, finance, revenue, governance, security, operations, specialists), documents screens, support screens, planning/settings sub-tabs, memory detail pages. |
+| `portalViewPreloads`     | `portal.page` (`invest.chat`, `pr.seo`, …)  | Every page of the invest, health, PR, and careers portals.                                          |
+| `marketingViewPreloads`  | `mkt.<page>`                                 | Header destinations — including `mkt.app`, which warms the entire workspace surface chunk behind the Sign-in CTA. |
+
+`src/app/viewPrefetch.ts` resolves all four maps through one deduplicated registry and exposes:
+
+- `prefetchView(key)` — fetch once per key; a failed fetch resets so retries work.
+- `viewIntentProps(key)` — `{ onMouseEnter, onFocus, onTouchStart }` for `.map()` loops (no hooks); `usePrefetchIntent(key)` is the single-link variant used by `SidebarNavItem`/`MobileNav`.
+- `warmViewsOnIdle(keys)` — warms one chunk per `requestIdleCallback` slice (4s timeout; `setTimeout` fallback on Safari), cancellable via the returned cleanup.
+- `portalNavKey(to)` — maps a portal path to its key (`/invest/chat` → `invest.chat`, `/careers/portal/profile` → `careers.profile`).
+
+Both paths respect `navigator.connection.saveData` and `effectiveType` `2g`/`slow-2g` — constrained clients prefetch nothing.
+
+Wiring: `SidebarNavItem`/`MobileNav` (top-level keys), each module `*Layout` (`viewIntentProps` on every tab + `warmViewsOnIdle` on mount), `DocumentsLayout`, `PlanningLayout`, `SettingsLayout`, the four portal layouts, the marketing `Header`, and the careers board → detail → apply chain.
+
+[src/app/viewPreloads.ts](), [src/app/viewPrefetchRegistry.ts](), [src/app/viewPrefetch.ts](), [src/app/viewPrefetch.test.ts]()
 
 ## Workspace Route Table: `appViewRoutes`
 
@@ -385,7 +419,7 @@ The English locale uses unprefixed paths (`/about`), while French uses `/fr` wit
 
 [src/seo/routes.ts:376-382]()
 
-Beyond the 19 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
+Beyond the 20 static routes, the registry also generates pages for 26 legal policy documents, help centre articles, and editorial articles (blog + guides) via `allPublicPages()`:
 
 [src/seo/routes.ts:319-369]()
 

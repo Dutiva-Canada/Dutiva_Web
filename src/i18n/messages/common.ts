@@ -15,7 +15,7 @@ export const common = defineMessages({
   /* Prototype `disclaimer_full` — near generated documents and legal records. */
   disclaimer_full: {
     en: 'Dutiva provides compliance-oriented HR workflow support and does not provide legal advice. For high-risk employment decisions, consult qualified legal counsel.',
-    fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d'emploi à risque élevé, consultez un conseiller juridique qualifié.",
+    fr: "Dutiva fournit un soutien opérationnel en matière de conformité RH et ne fournit pas de conseils juridiques. Pour les décisions d’emploi à risque élevé, consultez un conseiller juridique qualifié.",
   },
   theme_toggle_aria: { en: 'Toggle dark mode', fr: 'Basculer le mode sombre' },
   /* Generic data-refresh action shared by workspace and marketing surfaces. */

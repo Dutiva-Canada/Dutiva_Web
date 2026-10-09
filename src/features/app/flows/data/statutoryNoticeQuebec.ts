@@ -32,7 +32,7 @@ export const statutoryNoticeQuebecFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Is this employee under Québec provincial standards?',
-        'Cet employé relève-t-il des normes provinciales du Québec?',
+        'Cet employé relève-t-il des normes provinciales du Québec ?',
       ),
       body: bi(
         'Most Québec workplaces fall under the Act respecting labour standards (LNT). Federally regulated employers use the Canada Labour Code instead — use the federal notice workflow for those roles.',
@@ -78,7 +78,7 @@ export const statutoryNoticeQuebecFlow: Flow = {
         ),
         bi(
           'Separately consider Civil Code of Québec art. 2091 reasonable notice. A statutory floor is a floor; reasonable notice can sit above it and is fact-dependent.',
-          'Examinez séparément le préavis raisonnable de l’art. 2091 du Code civil du Québec. Un plancher légal est un plancher; le préavis raisonnable peut le dépasser et dépend des faits.',
+          'Examinez séparément le préavis raisonnable de l’art. 2091 du Code civil du Québec. Un plancher légal est un plancher ; le préavis raisonnable peut le dépasser et dépend des faits.',
         ),
         bi(
           'Contract, policy, and past practice can also set a higher period. Do not treat any software estimate as the amount to put in a letter.',

@@ -15,7 +15,7 @@ export const financeEntities = defineMessages({
   finance_entity_legal_form_trust: { en: 'Trust', fr: 'Fiducie' },
   finance_entity_fiscal_year_start: { en: 'Fiscal year start', fr: 'Début d’exercice' },
   finance_entity_functional_currency: { en: 'Functional currency', fr: 'Devise fonctionnelle' },
-  finance_entity_jurisdictions: { en: 'Jurisdictions', fr: 'Territoires de compétence' },
+  finance_entity_jurisdictions: { en: 'Jurisdictions', fr: 'Juridictions' },
   finance_entity_accounting_source_id: { en: 'Accounting source ID', fr: 'ID source comptable' },
   finance_entity_payroll_source_id: { en: 'Payroll source ID', fr: 'ID source paie' },
   finance_entity_active: { en: 'Active', fr: 'Actif' },
@@ -45,7 +45,7 @@ export const financeEntities = defineMessages({
   finance_entity_remove: { en: 'Delete', fr: 'Supprimer' },
   finance_entity_remove_confirm: {
     en: 'Delete this legal entity?',
-    fr: 'Supprimer cette entité juridique?',
+    fr: 'Supprimer cette entité juridique ?',
   },
 
   /* Subscriptions */

@@ -13,6 +13,8 @@ import {
 import { useI18n } from '@/i18n/context'
 import { commsMessages as M } from '@/i18n/messages/comms'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { viewIntentProps, warmViewsOnIdle } from '@/app/viewPrefetch'
+import { useEffect } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 interface CommsTab {
@@ -41,6 +43,7 @@ interface CommsLayoutProps {
 
 export function CommsLayout({ mode }: CommsLayoutProps) {
   const { x } = useI18n()
+  useEffect(() => warmViewsOnIdle(TABS.map((tab) => `comms.${tab.key}`)), [])
   return (
     <AppPage width="comfort">
       <div className="mb-[18px]">
@@ -56,6 +59,7 @@ export function CommsLayout({ mode }: CommsLayoutProps) {
               key={tab.key}
               to={tab.to}
               end={tab.key === 'overview'}
+              {...viewIntentProps(`comms.${tab.key}`)}
               className={({ isActive }) =>
                 `flex items-center gap-[6px] rounded-[10px] px-[12px] py-[8px] text-[12.5px] font-semibold transition-colors ${
                   isActive

@@ -59,7 +59,7 @@ export const tplT37: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'Be careful with answers about pay and benefits: what the Employment Standards Act, 2000 requires as a minimum is not the whole of what an employee may be owed, and common-law reasonable notice can substantially exceed it. Saying "everyone receives the statutory minimum" in an FAQ both understates the position and reads as the employer’s final answer.',
+      en: 'Be careful with answers about pay and benefits: what the Employment Standards Act, 2000 requires as a minimum is not the whole of what an employee may be owed, and common-law reasonable notice can substantially exceed it. Saying “everyone receives the statutory minimum” in an FAQ both understates the position and reads as the employer’s final answer.',
       fr: 'Soyez prudent dans les réponses portant sur la rémunération et les avantages : le minimum exigé par la Loi de 2000 sur les normes d’emploi ne représente pas tout ce qui peut être dû, et le préavis raisonnable de common law peut le dépasser largement. Écrire « chacun reçoit le minimum prévu par la loi » dans une FAQ sous-estime la situation et se lit comme la réponse finale de l’employeur.',
     },
     QC: {
@@ -151,7 +151,7 @@ export const tplT37: DocTemplate = {
         },
       ],
       hint: {
-        en: 'Answer this as it actually is. "No further changes are planned" said to settle a room, and contradicted in two months, is the single most expensive sentence in a restructuring.',
+        en: 'Answer this as it actually is. “No further changes are planned” said to settle a room, and contradicted in two months, is the single most expensive sentence in a restructuring.',
         fr: 'Répondez selon la réalité. « Aucun autre changement n’est prévu », dit pour apaiser une salle puis démenti deux mois plus tard, est la phrase la plus coûteuse d’une réorganisation.',
       },
     },

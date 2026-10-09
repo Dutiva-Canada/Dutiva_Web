@@ -278,7 +278,7 @@ function ProviderCard({
   readonly minted: Record<string, MintedRevealData>
   readonly onDismissMinted: (id: string) => void
 }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const Icon = spec.icon
   const planned = spec.auth === 'planned'
   const isWebhook = spec.key === 'inbound_webhook'
@@ -335,7 +335,7 @@ function ProviderCard({
                 {row.last_checked_at
                   ? x(M.integ_last_checked).replace(
                       '{when}',
-                      new Date(row.last_checked_at).toLocaleString(),
+                      new Date(row.last_checked_at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
                     )
                   : x(M.integ_never_checked)}
               </div>
@@ -483,7 +483,7 @@ function MintedReveal({
  * matching what the notification body carries.
  */
 function RecentEvents({ integrationId }: { readonly integrationId: string }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const [events, setEvents] = useState<IntegrationEventRow[] | null>(null)
 
   useEffect(() => {
@@ -531,7 +531,7 @@ function RecentEvents({ integrationId }: { readonly integrationId: string }) {
                   <span className="text-[12px] text-text-muted"> — {detail(e)}</span>
                 ) : null}
                 <div className="text-[11px] text-text-faint">
-                  {new Date(e.received_at).toLocaleString()}
+                  {new Date(e.received_at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                 </div>
               </div>
               <span className={statusChipClass(e.processed_at ? 'success' : 'neutral')}>
@@ -549,7 +549,7 @@ function RecentEvents({ integrationId }: { readonly integrationId: string }) {
 
 /** Last deliveries to a connected inbound address (inbound_emails, 0164). */
 function RecentMail({ integrationId }: { readonly integrationId: string }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const [mails, setMails] = useState<InboundEmailRow[] | null>(null)
 
   useEffect(() => {
@@ -585,7 +585,7 @@ function RecentMail({ integrationId }: { readonly integrationId: string }) {
                 </span>
                 <span className="text-[12px] text-text-muted"> — {m.from_address}</span>
                 <div className="text-[11px] text-text-faint">
-                  {new Date(m.received_at).toLocaleString()}
+                  {new Date(m.received_at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                   {Array.isArray(m.attachments) && m.attachments.length > 0
                     ? ` · ${m.attachments.length} attachment${m.attachments.length > 1 ? 's' : ''}`
                     : ''}

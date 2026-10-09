@@ -11,7 +11,7 @@ export const hiringMessages = defineMessages({
   hiring_module_title: { en: 'Hiring', fr: 'Recrutement' },
   hiring_module_description: {
     en: 'Evidence-based recruitment with AI-resistant evaluation',
-    fr: "Recrutement fondé sur des preuves avec évaluation résistante à l'IA",
+    fr: "Recrutement fondé sur des preuves avec évaluation résistante à l’IA",
   },
 
   /* ── Candidates List View ─────────────────────────────────────────────── */
@@ -40,7 +40,7 @@ export const hiringMessages = defineMessages({
   hiring_status_hired: { en: 'Hired', fr: 'Embauché' },
   hiring_status_rejected: { en: 'Rejected', fr: 'Rejeté' },
 
-  hiring_no_candidates: { en: 'No candidates yet', fr: "Aucun candidat pour l'instant" },
+  hiring_no_candidates: { en: 'No candidates yet', fr: "Aucun candidat pour l’instant" },
   hiring_no_candidates_body: {
     en: 'Candidates will appear here once applications are received.',
     fr: 'Les candidats apparaîtront ici une fois les candidatures reçues.',
@@ -51,14 +51,14 @@ export const hiringMessages = defineMessages({
   hiring_candidate_back: { en: 'All candidates', fr: 'Tous les candidats' },
   hiring_candidate_not_found: {
     en: 'This candidate doesn’t exist or was removed.',
-    fr: "Ce candidat n'existe pas ou a été retiré.",
+    fr: "Ce candidat n’existe pas ou a été retiré.",
   },
 
   hiring_tab_overview: { en: 'Overview', fr: 'Aperçu' },
   hiring_tab_evidence: { en: 'Evidence screening', fr: 'Analyse des preuves' },
   hiring_tab_work_sample: { en: 'Work sample', fr: 'Échantillon de travail' },
   hiring_tab_interview: { en: 'Interview', fr: 'Entretien' },
-  hiring_tab_scores: { en: 'Authenticity scores', fr: "Scores d'authenticité" },
+  hiring_tab_scores: { en: 'Authenticity scores', fr: "Scores d’authenticité" },
 
   /* Overview section */
   hiring_overview_application: { en: 'Application details', fr: 'Détails de la candidature' },
@@ -69,7 +69,7 @@ export const hiringMessages = defineMessages({
   hiring_overview_location: { en: 'Location', fr: 'Lieu' },
   hiring_overview_position: { en: 'Position applied for', fr: 'Poste demandé' },
   hiring_overview_current_role: { en: 'Current role', fr: 'Poste actuel' },
-  hiring_overview_experience: { en: 'Years of experience', fr: "Années d'expérience" },
+  hiring_overview_experience: { en: 'Years of experience', fr: "Années d’expérience" },
   hiring_overview_authorization: { en: 'Work authorization', fr: 'Autorisation de travail' },
   hiring_overview_compensation: { en: 'Compensation expectations', fr: 'Attentes salariales' },
 
@@ -77,7 +77,7 @@ export const hiringMessages = defineMessages({
   hiring_auth_needs_sponsorship: { en: 'Needs sponsorship', fr: 'Nécessite un parrainage' },
   hiring_auth_unknown: { en: 'Unknown', fr: 'Inconnu' },
 
-  hiring_overview_knockout: { en: 'Knockout criteria', fr: "Critères d'élimination" },
+  hiring_overview_knockout: { en: 'Knockout criteria', fr: "Critères d’élimination" },
   hiring_overview_requirements: { en: 'Required qualifications', fr: 'Qualifications requises' },
   hiring_overview_missing: { en: 'Missing requirements', fr: 'Exigences manquantes' },
   hiring_overview_meets_requirements: {
@@ -92,11 +92,11 @@ export const hiringMessages = defineMessages({
   /* Evidence screening section */
   hiring_evidence_title: { en: 'Evidence screening', fr: 'Analyse des preuves' },
   hiring_evidence_description: {
-    en: "AI-extracted structured evidence from the candidate's resume and application.",
-    fr: "Preuves structurées extraites par l'IA du CV et de la candidature du candidat.",
+    en: "AI-extracted structured evidence from the candidate’s resume and application.",
+    fr: "Preuves structurées extraites par l’IA du CV et de la candidature du candidat.",
   },
   hiring_evidence_quality: { en: 'Evidence quality', fr: 'Qualité des preuves' },
-  hiring_evidence_confidence: { en: 'Assessment confidence', fr: "Confiance de l'évaluation" },
+  hiring_evidence_confidence: { en: 'Assessment confidence', fr: "Confiance de l’évaluation" },
   hiring_evidence_missing: { en: 'Missing information', fr: 'Informations manquantes' },
 
   hiring_evidence_relevant_experience: { en: 'Relevant experience', fr: 'Expérience pertinente' },
@@ -124,11 +124,11 @@ export const hiringMessages = defineMessages({
   /* Work sample section */
   hiring_work_sample_title: {
     en: 'Work sample assessment',
-    fr: "Évaluation de l'échantillon de travail",
+    fr: "Évaluation de l’échantillon de travail",
   },
   hiring_work_sample_description: {
-    en: 'Job-realistic work sample (20-45 minutes). AI tools are allowed and evaluated.',
-    fr: 'Échantillon de travail réaliste (20-45 minutes). Les outils IA sont autorisés et évalués.',
+    en: 'Job-realistic work sample (20–45 minutes). AI tools are allowed and evaluated.',
+    fr: 'Échantillon de travail réaliste (20–45 minutes). Les outils IA sont autorisés et évalués.',
   },
   hiring_work_sample_scenario: { en: 'Scenario', fr: 'Scénario' },
   hiring_work_sample_submission: { en: 'Candidate submission', fr: 'Soumission du candidat' },
@@ -145,12 +145,12 @@ export const hiringMessages = defineMessages({
   hiring_work_sample_evaluation: { en: 'Evaluation', fr: 'Évaluation' },
   hiring_work_sample_quality: { en: 'Work quality', fr: 'Qualité du travail' },
   hiring_work_sample_approach: { en: 'Approach', fr: 'Approche' },
-  hiring_work_sample_ai_usage: { en: 'AI usage', fr: "Utilisation de l'IA" },
+  hiring_work_sample_ai_usage: { en: 'AI usage', fr: "Utilisation de l’IA" },
   hiring_work_sample_capability: { en: 'Demonstrated capability', fr: 'Capacité démontrée' },
   hiring_work_sample_feedback: { en: 'Feedback', fr: 'Commentaires' },
   hiring_work_sample_recommendation: { en: 'Recommendation', fr: 'Recommandation' },
 
-  hiring_work_sample_assign: { en: 'Assign work sample', fr: "Assigner l'échantillon de travail" },
+  hiring_work_sample_assign: { en: 'Assign work sample', fr: "Assigner l’échantillon de travail" },
   hiring_work_sample_view_submission: { en: 'View submission', fr: 'Voir la soumission' },
   hiring_work_sample_evaluate: { en: 'Evaluate', fr: 'Évaluer' },
 
@@ -158,7 +158,7 @@ export const hiringMessages = defineMessages({
   hiring_interview_title: { en: 'Defense interview', fr: 'Entretien de défense' },
   hiring_interview_description: {
     en: 'Deep-dive conversation to defend the work sample and demonstrate reasoning capability.',
-    fr: "Conversation approfondie pour défendre l'échantillon de travail et démontrer la capacité de raisonnement.",
+    fr: "Conversation approfondie pour défendre l’échantillon de travail et démontrer la capacité de raisonnement.",
   },
   hiring_interview_format: { en: 'Format', fr: 'Format' },
   hiring_interview_scheduled: { en: 'Scheduled', fr: 'Planifié' },
@@ -166,7 +166,7 @@ export const hiringMessages = defineMessages({
 
   hiring_interview_format_defend: {
     en: 'Defend work sample',
-    fr: "Défendre l'échantillon de travail",
+    fr: "Défendre l’échantillon de travail",
   },
   hiring_interview_format_technical: {
     en: 'Technical deep-dive',
@@ -182,7 +182,7 @@ export const hiringMessages = defineMessages({
   hiring_interview_alternatives: { en: 'Alternatives considered', fr: 'Alternatives envisagées' },
   hiring_interview_confidence: { en: 'Response confidence', fr: 'Confiance dans la réponse' },
 
-  hiring_interview_assessment: { en: 'Interview assessment', fr: "Évaluation de l'entretien" },
+  hiring_interview_assessment: { en: 'Interview assessment', fr: "Évaluation de l’entretien" },
   hiring_interview_reasoning_capability: {
     en: 'Reasoning capability',
     fr: 'Capacité de raisonnement',
@@ -190,17 +190,17 @@ export const hiringMessages = defineMessages({
   hiring_interview_defense_ability: { en: 'Defense ability', fr: 'Capacité de défense' },
   hiring_interview_knowledge_depth: { en: 'Knowledge depth', fr: 'Profondeur des connaissances' },
   hiring_interview_communication: { en: 'Communication clarity', fr: 'Clarté de la communication' },
-  hiring_interview_authenticity: { en: 'Authenticity score', fr: "Score d'authenticité" },
+  hiring_interview_authenticity: { en: 'Authenticity score', fr: "Score d’authenticité" },
   hiring_interview_recommendation: { en: 'Recommendation', fr: 'Recommandation' },
   hiring_interview_reasons: { en: 'Reasons', fr: 'Raisons' },
 
-  hiring_interview_schedule: { en: 'Schedule interview', fr: "Planifier l'entretien" },
-  hiring_interview_conduct: { en: 'Conduct interview', fr: "Conduire l'entretien" },
+  hiring_interview_schedule: { en: 'Schedule interview', fr: "Planifier l’entretien" },
+  hiring_interview_conduct: { en: 'Conduct interview', fr: "Conduire l’entretien" },
 
   /* Authenticity scores section */
   hiring_scores_title: {
     en: 'Five-score authenticity evaluation',
-    fr: "Évaluation d'authenticité à cinq scores",
+    fr: "Évaluation d’authenticité à cinq scores",
   },
   hiring_scores_description: {
     en: 'Explainable scores based on job-related evidence across five dimensions.',
@@ -210,27 +210,27 @@ export const hiringMessages = defineMessages({
   hiring_scores_qualification: { en: 'Qualification', fr: 'Qualification' },
   hiring_scores_qualification_desc: {
     en: 'Can they meet the basic requirements?',
-    fr: 'Peuvent-ils répondre aux exigences de base?',
+    fr: 'Peuvent-ils répondre aux exigences de base ?',
   },
   hiring_scores_evidence: { en: 'Evidence', fr: 'Preuves' },
   hiring_scores_evidence_desc: {
     en: 'Have they actually done similar things?',
-    fr: 'Ont-ils réellement fait des choses similaires?',
+    fr: 'Ont-ils réellement fait des choses similaires ?',
   },
   hiring_scores_capability: { en: 'Capability', fr: 'Capacité' },
   hiring_scores_capability_desc: {
     en: 'Can they perform the work?',
-    fr: 'Peuvent-ils effectuer le travail?',
+    fr: 'Peuvent-ils effectuer le travail ?',
   },
   hiring_scores_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
   hiring_scores_reasoning_desc: {
     en: 'Can they explain and defend their decisions?',
-    fr: 'Peuvent-ils expliquer et défendre leurs décisions?',
+    fr: 'Peuvent-ils expliquer et défendre leurs décisions ?',
   },
   hiring_scores_motivation: { en: 'Motivation', fr: 'Motivation' },
   hiring_scores_motivation_desc: {
     en: 'Do they actually want this job?',
-    fr: 'Veulent-ils vraiment ce poste?',
+    fr: 'Veulent-ils vraiment ce poste ?',
   },
 
   hiring_scores_overall: { en: 'Overall authenticity', fr: 'Authenticité globale' },
@@ -239,8 +239,8 @@ export const hiringMessages = defineMessages({
   hiring_scores_low: { en: 'Low', fr: 'Faible' },
   hiring_scores_insufficient: { en: 'Insufficient', fr: 'Insuffisant' },
 
-  hiring_scores_evidence_label: { en: 'Supporting evidence', fr: "Preuves à l'appui" },
-  hiring_scores_confidence: { en: 'Assessment confidence', fr: "Confiance de l'évaluation" },
+  hiring_scores_evidence_label: { en: 'Supporting evidence', fr: "Preuves à l’appui" },
+  hiring_scores_confidence: { en: 'Assessment confidence', fr: "Confiance de l’évaluation" },
 
   /* ── Funnel Analytics ─────────────────────────────────────────────────── */
   hiring_funnel_title: { en: 'Hiring funnel', fr: 'Entonnoir de recrutement' },
@@ -257,13 +257,13 @@ export const hiringMessages = defineMessages({
   hiring_funnel_hires: { en: 'Hires', fr: 'Embauches' },
 
   hiring_funnel_conversion: { en: 'Conversion rate', fr: 'Taux de conversion' },
-  hiring_funnel_time_to_hire: { en: 'Average time to hire', fr: "Temps moyen d'embauche" },
-  hiring_funnel_stage_duration: { en: 'Stage duration', fr: "Durée de l'étape" },
+  hiring_funnel_time_to_hire: { en: 'Average time to hire', fr: "Temps moyen d’embauche" },
+  hiring_funnel_stage_duration: { en: 'Stage duration', fr: "Durée de l’étape" },
 
   /* ── Job Postings ─────────────────────────────────────────────────────── */
-  hiring_postings_title: { en: 'Job postings', fr: "Offres d'emploi" },
-  hiring_postings_create: { en: 'Create job posting', fr: "Créer une offre d'emploi" },
-  hiring_postings_no_postings: { en: 'No active job postings', fr: "Aucune offre d'emploi active" },
+  hiring_postings_title: { en: 'Job postings', fr: "Offres d’emploi" },
+  hiring_postings_create: { en: 'Create job posting', fr: "Créer une offre d’emploi" },
+  hiring_postings_no_postings: { en: 'No active job postings', fr: "Aucune offre d’emploi active" },
 
   hiring_posting_title: { en: 'Title', fr: 'Titre' },
   hiring_posting_department: { en: 'Department', fr: 'Département' },
@@ -278,8 +278,8 @@ export const hiringMessages = defineMessages({
   hiring_posting_draft: { en: 'Draft', fr: 'Brouillon' },
 
   hiring_posting_create: { en: 'Create posting', fr: 'Créer une offre' },
-  hiring_posting_edit: { en: 'Edit posting', fr: "Modifier l'offre" },
-  hiring_posting_delete: { en: 'Delete posting', fr: "Supprimer l'offre" },
+  hiring_posting_edit: { en: 'Edit posting', fr: "Modifier l’offre" },
+  hiring_posting_delete: { en: 'Delete posting', fr: "Supprimer l’offre" },
   hiring_posting_description: { en: 'Description', fr: 'Description' },
   hiring_posting_responsibilities_label: { en: 'Responsibilities', fr: 'Responsabilités' },
   hiring_posting_benefits_label: { en: 'Benefits', fr: 'Avantages' },
@@ -291,33 +291,33 @@ export const hiringMessages = defineMessages({
   hiring_posting_salary_per_hour: { en: 'Per hour', fr: 'Par heure' },
   hiring_posting_employer_blurb: {
     en: 'About the employer (shown on the public posting)',
-    fr: "À propos de l'employeur (affiché sur l'offre publique)",
+    fr: "À propos de l’employeur (affiché sur l’offre publique)",
   },
-  hiring_posting_save: { en: 'Save posting', fr: "Enregistrer l'offre" },
+  hiring_posting_save: { en: 'Save posting', fr: "Enregistrer l’offre" },
   hiring_posting_cancel: { en: 'Cancel', fr: 'Annuler' },
   hiring_posting_delete_confirm: {
-    en: "Delete this job posting? This can't be undone.",
-    fr: "Supprimer cette offre d'emploi? Cette action est irréversible.",
+    en: "Delete this job posting? This can’t be undone.",
+    fr: "Supprimer cette offre d’emploi ? Cette action est irréversible.",
   },
-  hiring_posting_created: { en: 'Job posting created.', fr: "Offre d'emploi créée." },
-  hiring_posting_updated: { en: 'Job posting updated.', fr: "Offre d'emploi mise à jour." },
-  hiring_posting_deleted: { en: 'Job posting deleted.', fr: "Offre d'emploi supprimée." },
+  hiring_posting_created: { en: 'Job posting created.', fr: "Offre d’emploi créée." },
+  hiring_posting_updated: { en: 'Job posting updated.', fr: "Offre d’emploi mise à jour." },
+  hiring_posting_deleted: { en: 'Job posting deleted.', fr: "Offre d’emploi supprimée." },
   hiring_posting_create_error: {
-    en: "Couldn't create job posting.",
-    fr: "Impossible de créer l'offre.",
+    en: "Couldn’t create job posting.",
+    fr: "Impossible de créer l’offre.",
   },
   hiring_posting_update_error: {
-    en: "Couldn't update job posting.",
-    fr: "Impossible de mettre à jour l'offre.",
+    en: "Couldn’t update job posting.",
+    fr: "Impossible de mettre à jour l’offre.",
   },
   hiring_posting_delete_error: {
-    en: "Couldn't delete job posting.",
-    fr: "Impossible de supprimer l'offre.",
+    en: "Couldn’t delete job posting.",
+    fr: "Impossible de supprimer l’offre.",
   },
 
   /* ── Applications inbox (candidate portal submissions) ────────────────── */
   hiring_inbox_title: { en: 'Applications', fr: 'Candidatures' },
-  hiring_inbox_empty: { en: 'No applications yet', fr: "Aucune candidature pour l'instant" },
+  hiring_inbox_empty: { en: 'No applications yet', fr: "Aucune candidature pour l’instant" },
   hiring_inbox_empty_body: {
     en: 'Applications submitted through your active job postings appear here.',
     fr: 'Les candidatures soumises via vos offres actives apparaîtront ici.',
@@ -325,35 +325,35 @@ export const hiringMessages = defineMessages({
   hiring_inbox_match: { en: 'Match', fr: 'Correspondance' },
   hiring_inbox_cover_letter: { en: 'Cover letter', fr: 'Lettre de motivation' },
   hiring_inbox_resume: { en: 'Submitted resume', fr: 'CV soumis' },
-  hiring_inbox_ai_suggestions: { en: 'AI suggestions', fr: "Suggestions de l'IA" },
+  hiring_inbox_ai_suggestions: { en: 'AI suggestions', fr: "Suggestions de l’IA" },
   hiring_inbox_view_details: { en: 'View details', fr: 'Voir les détails' },
 
   /* ── Job Posting Detail View ───────────────────────────────────────────── */
-  hiring_open_posting: { en: 'Open job posting', fr: "Ouvrir l'offre d'emploi" },
-  hiring_posting_back: { en: 'All job postings', fr: "Toutes les offres d'emploi" },
+  hiring_open_posting: { en: 'Open job posting', fr: "Ouvrir l’offre d’emploi" },
+  hiring_posting_back: { en: 'All job postings', fr: "Toutes les offres d’emploi" },
   hiring_posting_not_found: {
     en: 'This job posting doesn’t exist or was removed.',
-    fr: "Cette offre d'emploi n'existe pas ou a été retirée.",
+    fr: "Cette offre d’emploi n’existe pas ou a été retirée.",
   },
   hiring_posting_description_label: { en: 'Description', fr: 'Description' },
   hiring_posting_requirements_label: { en: 'Requirements', fr: 'Exigences' },
-  hiring_posting_knockout_label: { en: 'Knockout criteria', fr: "Critères d'élimination" },
+  hiring_posting_knockout_label: { en: 'Knockout criteria', fr: "Critères d’élimination" },
   hiring_posting_work_sample_label: {
     en: 'Work sample scenario',
-    fr: "Scénario d'échantillon de travail",
+    fr: "Scénario d’échantillon de travail",
   },
-  hiring_posting_view_board: { en: 'View on job board', fr: "Voir sur le tableau d'emplois" },
+  hiring_posting_view_board: { en: 'View on job board', fr: "Voir sur le tableau d’emplois" },
 
   /* ── Actions ─────────────────────────────────────────────────────────── */
-  hiring_advance_stage: { en: 'Advance to next stage', fr: "Avancer à l'étape suivante" },
+  hiring_advance_stage: { en: 'Advance to next stage', fr: "Avancer à l’étape suivante" },
   hiring_reject_candidate: { en: 'Reject candidate', fr: 'Rejeter le candidat' },
   hiring_assign_recruiter: { en: 'Assign recruiter', fr: 'Assigner un recruteur' },
-  hiring_send_work_sample: { en: 'Send work sample', fr: "Envoyer l'échantillon de travail" },
-  hiring_schedule_interview: { en: 'Schedule interview', fr: "Planifier l'entretien" },
+  hiring_send_work_sample: { en: 'Send work sample', fr: "Envoyer l’échantillon de travail" },
+  hiring_schedule_interview: { en: 'Schedule interview', fr: "Planifier l’entretien" },
   hiring_make_offer: { en: 'Make offer', fr: 'Faire une offre' },
 
   hiring_candidate_status: { en: 'Status', fr: 'Statut' },
-  hiring_candidate_advance: { en: 'Advance stage', fr: "Avancer l'étape" },
+  hiring_candidate_advance: { en: 'Advance stage', fr: "Avancer l’étape" },
   hiring_candidate_assign: { en: 'Assign to', fr: 'Assigner à' },
   hiring_candidate_unassign: { en: 'Unassigned', fr: 'Non assigné' },
   hiring_candidate_status_updated: {
@@ -361,22 +361,22 @@ export const hiringMessages = defineMessages({
     fr: 'Statut du candidat mis à jour.',
   },
   hiring_candidate_status_error: {
-    en: "Couldn't update candidate status.",
+    en: "Couldn’t update candidate status.",
     fr: 'Impossible de mettre à jour le statut.',
   },
   hiring_candidate_assigned: { en: 'Candidate assigned.', fr: 'Candidat assigné.' },
   hiring_candidate_assign_error: {
-    en: "Couldn't assign candidate.",
-    fr: "Impossible d'assigner le candidat.",
+    en: "Couldn’t assign candidate.",
+    fr: "Impossible d’assigner le candidat.",
   },
   hiring_candidate_delete: { en: 'Delete candidate', fr: 'Supprimer le candidat' },
   hiring_candidate_delete_confirm: {
-    en: "Delete this candidate? This can't be undone.",
-    fr: 'Supprimer ce candidat? Cette action est irréversible.',
+    en: "Delete this candidate? This can’t be undone.",
+    fr: 'Supprimer ce candidat ? Cette action est irréversible.',
   },
   hiring_candidate_deleted: { en: 'Candidate deleted.', fr: 'Candidat supprimé.' },
   hiring_candidate_delete_error: {
-    en: "Couldn't delete candidate.",
+    en: "Couldn’t delete candidate.",
     fr: 'Impossible de supprimer le candidat.',
   },
 
@@ -390,7 +390,7 @@ export const hiringMessages = defineMessages({
   hiring_add_candidate_location: { en: 'Location', fr: 'Lieu' },
   hiring_add_candidate_position: { en: 'Position', fr: 'Poste' },
   hiring_add_candidate_current_role: { en: 'Current role', fr: 'Poste actuel' },
-  hiring_add_candidate_years_experience: { en: 'Years of experience', fr: "Années d'expérience" },
+  hiring_add_candidate_years_experience: { en: 'Years of experience', fr: "Années d’expérience" },
   hiring_add_candidate_work_authorization: {
     en: 'Work authorization',
     fr: 'Autorisation de travail',
@@ -398,8 +398,8 @@ export const hiringMessages = defineMessages({
   hiring_add_candidate_resume: { en: 'Resume text or URL', fr: 'Texte du CV ou URL' },
   hiring_add_candidate_success: { en: 'Candidate added.', fr: 'Candidat ajouté.' },
   hiring_add_candidate_error: {
-    en: "Couldn't add candidate.",
-    fr: "Impossible d'ajouter le candidat.",
+    en: "Couldn’t add candidate.",
+    fr: "Impossible d’ajouter le candidat.",
   },
 
   /* ── Empty States ─────────────────────────────────────────────────────── */
@@ -409,14 +409,14 @@ export const hiringMessages = defineMessages({
   },
   hiring_empty_evidence_body: {
     en: 'Evidence screening will be available once the candidate passes basic qualification.',
-    fr: "L'analyse des preuves sera disponible une fois le candidat aura passé la qualification de base.",
+    fr: "L’analyse des preuves sera disponible une fois le candidat aura passé la qualification de base.",
   },
   hiring_empty_work_sample: {
     en: 'No work sample assigned',
     fr: 'Aucun échantillon de travail assigné',
   },
   hiring_empty_work_sample_body: {
-    en: "Assign a job-realistic work sample to assess the candidate's actual capability.",
+    en: "Assign a job-realistic work sample to assess the candidate’s actual capability.",
     fr: 'Assignez un échantillon de travail réaliste pour évaluer la capacité réelle du candidat.',
   },
   hiring_empty_interview: {
@@ -424,8 +424,8 @@ export const hiringMessages = defineMessages({
     fr: 'Aucun entretien planifié',
   },
   hiring_empty_interview_body: {
-    en: "Schedule a defense interview to assess the candidate's reasoning and authenticity.",
-    fr: "Planifiez un entretien de défense pour évaluer le raisonnement et l'authenticité du candidat.",
+    en: "Schedule a defense interview to assess the candidate’s reasoning and authenticity.",
+    fr: "Planifiez un entretien de défense pour évaluer le raisonnement et l’authenticité du candidat.",
   },
   hiring_empty_scores: {
     en: 'Scores not yet calculated',
@@ -433,7 +433,7 @@ export const hiringMessages = defineMessages({
   },
   hiring_empty_scores_body: {
     en: 'Authenticity scores will be calculated after the interview stage.',
-    fr: "Les scores d'authenticité seront calculés après l'étape de l'entretien.",
+    fr: "Les scores d’authenticité seront calculés après l’étape de l’entretien.",
   },
 
   /* ── Production Mode Messages ─────────────────────────────────────────── */
@@ -449,6 +449,8 @@ export const hiringMessages = defineMessages({
   },
   hiring_prod_empty_body: {
     en: 'Create job postings and start receiving applications to build your hiring pipeline.',
-    fr: "Créez des offres d'emploi et commencez à recevoir des candidatures pour construire votre pipeline de recrutement.",
+    fr: "Créez des offres d’emploi et commencez à recevoir des candidatures pour construire votre pipeline de recrutement.",
   },
+  hiring_sections_nav: { en: 'Hiring sections', fr: 'Sections du recrutement' },
+  hiring_candidate_sections_nav: { en: 'Candidate sections', fr: 'Sections du candidat ou de la candidate' },
 })

@@ -130,7 +130,7 @@ export const tplT31: DocTemplate = {
       type: 'textarea',
       required: true,
       hint: {
-        en: 'Federally regulated: use role descriptors only — "principal party", "responding party" — and no names, here or in any later field. The Work Place Harassment and Violence Prevention Regulations require the investigator’s report not to reveal, directly or indirectly, who was involved.',
+        en: 'Federally regulated: use role descriptors only — “principal party”, “responding party” — and no names, here or in any later field. The Work Place Harassment and Violence Prevention Regulations require the investigator’s report not to reveal, directly or indirectly, who was involved.',
         fr: 'Compétence fédérale : n’employez que des désignations fonctionnelles — « partie principale », « partie intimée » — sans aucun nom, ici comme dans les champs suivants. Le Règlement sur la prévention du harcèlement et de la violence dans le lieu de travail exige que le rapport de l’enquêteur ne révèle, directement ou indirectement, l’identité d’aucune personne en cause.',
       },
       placeholder: {

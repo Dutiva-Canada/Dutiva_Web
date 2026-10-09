@@ -48,6 +48,34 @@ export const guidanceMessages = defineMessages({
     en: 'Detected',
     fr: 'Détecté le',
   },
+  /* The card's link to the official consolidated text — the monitored url can
+     be a machine endpoint, so this points readers at the human page instead.
+     [FR self-authored] */
+  guidance_update_read_source: {
+    en: 'Read the current text',
+    fr: 'Lire le texte à jour',
+  },
+  /* Expands the monitor's full detail under a change card — every provision
+     that moved, when the summary only names the first few.
+     [FR self-authored] */
+  guidance_update_more: {
+    en: 'More',
+    fr: 'Plus de détails',
+  },
+  /* The model-written read inside "More". Prefixed "AI" so the interpretation
+     is never mistaken for the detector's own record; the hedge is part of the
+     label. [FR self-authored] */
+  guidance_update_ai_label: {
+    en: 'AI read — interpretation, not legal advice:',
+    fr: 'Lecture IA — une interprétation, pas un avis juridique :',
+  },
+  /* Pages the same filtered update set — older detections, same coverage
+     rules. "Earlier" names what the reader actually gets.
+     [FR self-authored] */
+  guidance_updates_show_more: {
+    en: 'Show earlier changes',
+    fr: 'Voir les changements antérieurs',
+  },
   /* Monitoring coverage. A 2026-07-30 audit found Ontario and Québec sources
      unusable for change detection (docs/LAW_MONITORING.md). The panel states
      that rather than letting "law-change tracking" imply it covers everywhere.
@@ -62,10 +90,10 @@ export const guidanceMessages = defineMessages({
   },
   guidance_coverage_none_active: {
     en: 'Automated law-change detection is not currently confirmed for any supported jurisdiction. Keep verifying legislation against the official source — do not rely on this panel to tell you an amendment has happened.',
-    fr: "La détection automatisée des changements législatifs n'est actuellement confirmée pour aucune juridiction prise en charge. Continuez de vérifier la législation auprès de la source officielle — ne comptez pas sur ce panneau pour vous signaler une modification.",
+    fr: "La détection automatisée des changements législatifs n’est actuellement confirmée pour aucune juridiction prise en charge. Continuez de vérifier la législation auprès de la source officielle — ne comptez pas sur ce panneau pour vous signaler une modification.",
   },
   guidance_updates_stale: {
     en: 'Law-change monitoring has not reported in over a week. These entries may not reflect the current state of the legislation — check the official source before relying on them.',
-    fr: "La surveillance des changements législatifs n'a rien signalé depuis plus d'une semaine. Ces entrées peuvent ne pas refléter l'état actuel de la législation — vérifiez la source officielle avant de vous y fier.",
+    fr: "La surveillance des changements législatifs n’a rien signalé depuis plus d’une semaine. Ces entrées peuvent ne pas refléter l’état actuel de la législation — vérifiez la source officielle avant de vous y fier.",
   },
 })

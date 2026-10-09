@@ -13,7 +13,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "To request deletion of your personal information, email privacy@dutiva.ca with the subject line 'Deletion Request'. Include your full name and the email address associated with your Dutiva account. You may also specify whether you are requesting deletion of all personal data or a specific category of data.",
+          text: "To request deletion of your personal information, email privacy@dutiva.ca with the subject line ’Deletion Request’. Include your full name and the email address associated with your Dutiva account. You may also specify whether you are requesting deletion of all personal data or a specific category of data.",
         },
         {
           type: 'p',
@@ -39,7 +39,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "A full deletion request will result in deletion of the following data associated with your account: account credentials and profile data; workspace configuration and preferences; generated documents and document history; Advisor conversation logs; billing history and payment method references (payment card data is stored by Stripe and subject to Stripe's data deletion terms); usage logs attributable to your account; and support communications except where retention is required.",
+          text: "A full deletion request will result in deletion of the following data associated with your account: account credentials and profile data; workspace configuration and preferences; generated documents and document history; Advisor conversation logs; billing history and payment method references (payment card data is stored by Stripe and subject to Stripe’s data deletion terms); usage logs attributable to your account; and support communications except where retention is required.",
         },
         {
           type: 'p',
@@ -78,7 +78,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Data deletion is implemented as a cascading deletion across Dutiva's database tables, file storage, and related records. Primary database records are deleted by hard deletion (not soft deletion) following verification. File storage objects (such as exported documents stored server-side) are purged from the storage bucket.",
+          text: "Data deletion is implemented as a cascading deletion across Dutiva’s database tables, file storage, and related records. Primary database records are deleted by hard deletion (not soft deletion) following verification. File storage objects (such as exported documents stored server-side) are purged from the storage bucket.",
         },
         {
           type: 'p',
@@ -91,7 +91,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "If you are unsatisfied with our response to a deletion request, you may file a complaint with the Office of the Privacy Commissioner of Canada (OPC) at priv.gc.ca. Quebec residents may also file a complaint with the Commission d'accès à l'information (CAI) at cai.gouv.qc.ca.",
+          text: "If you are unsatisfied with our response to a deletion request, you may file a complaint with the Office of the Privacy Commissioner of Canada (OPC) at priv.gc.ca. Quebec residents may also file a complaint with the Commission d’accès à l’information (CAI) at cai.gouv.qc.ca.",
         },
         {
           type: 'p',

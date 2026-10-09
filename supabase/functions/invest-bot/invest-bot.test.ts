@@ -156,6 +156,30 @@ describe('parseRules', () => {
     expect(rules[1]).toMatchObject({ qty_unit: 'percent_of_position' })
   })
 
+  it('between requires a finite second bound', () => {
+    const rules = parseRules([
+      {
+        metric: 'day_change_pct',
+        op: 'between',
+        value: -10,
+        value2: -3,
+        type: 'signal',
+        severity: 'alert',
+        title: 'Range',
+      },
+      {
+        metric: 'day_change_pct',
+        op: 'between',
+        value: -10,
+        type: 'signal',
+        severity: 'alert',
+        title: 'No bound',
+      },
+    ])
+    expect(rules).toHaveLength(1)
+    expect(rules[0]).toMatchObject({ op: 'between', value: -10, value2: -3 })
+  })
+
   it('returns [] for non-array input', () => {
     expect(parseRules(null)).toEqual([])
     expect(parseRules({ metric: 'x' })).toEqual([])
@@ -190,6 +214,24 @@ describe('ruleMatches', () => {
   it('day_change_pct lt/gt', () => {
     expect(ruleMatches(signalRule(), snap, position, ctx)).toBe(true)
     expect(ruleMatches(signalRule({ op: 'gt' }), snap, position, ctx)).toBe(false)
+  })
+
+  it('between is an inclusive range and order-agnostic', () => {
+    /* snap.day_change_pct = -6 */
+    expect(
+      ruleMatches(signalRule({ op: 'between', value: -10, value2: -3 }), snap, position, ctx),
+    ).toBe(true)
+    expect(
+      ruleMatches(signalRule({ op: 'between', value: -3, value2: 0 }), snap, position, ctx),
+    ).toBe(false)
+    /* reversed bounds normalize to min/max */
+    expect(
+      ruleMatches(signalRule({ op: 'between', value: 0, value2: -10 }), snap, position, ctx),
+    ).toBe(true)
+    /* edge values are inclusive */
+    expect(
+      ruleMatches(signalRule({ op: 'between', value: -6, value2: -3 }), snap, position, ctx),
+    ).toBe(true)
   })
 
   it('vs_ma50 derives from price and ma50', () => {
@@ -429,6 +471,94 @@ describe('planRun', () => {
     expect(plan.proposals).toHaveLength(0)
     expect(plan.warnings).toHaveLength(1)
     expect(plan.ruleHits['Buy with idle cash']).toBe(1)
+  })
+
+  it('summary mode collapses signal hits into one row per scan', () => {
+    const other: MarketSnapshot = { ...snap, symbol: 'BETA' }
+    const strategy: Strategy = {
+      ...baseStrategy,
+      scope_symbols: ['ACME', 'BETA'],
+      multi_match: 'summary',
+      rules: [
+        signalRule({ title: 'Dip', severity: 'alert' }),
+        signalRule({ title: 'Idle cash', metric: 'cash_above', op: 'gt', value: 1000, severity: 'insight' }),
+      ],
+    }
+    /* ACME and BETA both dip — plus one cash hit: three hits, ONE signal. */
+    const plan = planRun([strategy], [snap, other], [position], new Set(), {
+      cashTotal: 5000,
+    })
+    expect(plan.ruleHits).toEqual({ Dip: 2, 'Idle cash': 1 })
+    expect(plan.signals).toHaveLength(1)
+    expect(plan.signals[0]).toMatchObject({
+      kind: 'alert', /* strongest severity wins */
+      symbol: '',
+      title: '3 rules matched',
+      title_fr: '3 règles déclenchées',
+    })
+    expect(plan.signals[0].body).toContain('ACME — Dip')
+    expect(plan.signals[0].body).toContain('Idle cash')
+    /* Per-rule hit diagnostics are unaffected by the collapse. */
+    expect(plan.perStrategy[0].ruleHits).toEqual({ Dip: 2, 'Idle cash': 1 })
+  })
+
+  it('summary mode still emits every order proposal', () => {
+    /* Proposals are never merged — each is a distinct draft needing its
+       own approval, even when notifications collapse to one. */
+    const strategy: Strategy = {
+      ...baseStrategy,
+      multi_match: 'summary',
+      rules: [
+        proposalRule({ title: 'Buy A' }),
+        proposalRule({ title: 'Buy B', qty: 4 }),
+      ],
+    }
+    const plan = planRun([strategy], [snap], [position], new Set())
+    expect(plan.proposals).toHaveLength(2)
+    expect(plan.signals).toHaveLength(0)
+  })
+
+  it('collectMatches reports per-rule outcomes without writing anything', () => {
+    const strategy: Strategy = {
+      ...baseStrategy,
+      rules: [
+        signalRule({ title: 'Dip', severity: 'alert' }),
+        signalRule({ title: 'Miss', op: 'gt', value: 99 }),
+        proposalRule({ title: 'Buy the dip', qty: 2 }),
+      ],
+    }
+    const plan = planRun([strategy], [snap], [position], new Set(), {
+      collectMatches: true,
+    })
+    expect(plan.matches).toHaveLength(2)
+    expect(plan.matches[0]).toMatchObject({
+      ruleIndex: 0,
+      ruleTitle: 'Dip',
+      symbol: 'ACME',
+      metricValue: -6,
+      outcome: { kind: 'signal', severity: 'alert' },
+    })
+    expect(plan.matches[1]).toMatchObject({
+      ruleIndex: 2,
+      outcome: { kind: 'order', side: 'buy', quantity: 2 },
+    })
+    /* Non-matching rules produce no row; the dry run still plans drafts
+       in memory only — nothing is inserted here or in test-scan. */
+    const off = planRun([strategy], [snap], [position], new Set())
+    expect(off.matches).toHaveLength(0)
+  })
+
+  it('evaluates rules in array order — order is the persisted priority', () => {
+    /* ruleHits preserve insertion order; a reorder survives a round-trip
+       through parseRules untouched, so save order = evaluation order. */
+    const raw = [
+      { metric: 'day_change_pct', op: 'lt', value: -5, type: 'signal', severity: 'alert', title: 'First' },
+      { metric: 'vs_ma50', op: 'lt', value: 0, type: 'signal', severity: 'insight', title: 'Second' },
+    ]
+    const parsed = parseRules(raw)
+    expect(parsed.map((r) => r.title)).toEqual(['First', 'Second'])
+    const reversed = parseRules([...raw].reverse())
+    expect(reversed.map((r) => r.title)).toEqual(['Second', 'First'])
   })
 })
 

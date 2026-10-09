@@ -44,6 +44,7 @@ import './lib/env.mjs'
 import { appendFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { managementQuery } from './lib/managementApi.mjs'
 import { ACCESS_TOKEN_HELP, cleanSecret, describeSecret } from './lib/secrets.mjs'
 import {
   ACCEPTED_DUPLICATE_SEQUENCES,
@@ -410,18 +411,15 @@ if (!token || !projectRef) {
   let appliedRows
   let credentialsRejected = false
   try {
-    const response = await fetch(
-      `https://api.supabase.com/v1/projects/${projectRef}/database/query`,
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: 'select version, name from supabase_migrations.schema_migrations order by version',
-        }),
-      },
+    /* managementQuery falls back to curl when the API edge refuses Node's
+       TLS handshake — a bare 401 on some machines despite a valid token. */
+    const response = await managementQuery(
+      projectRef,
+      token,
+      'select version, name from supabase_migrations.schema_migrations order by version',
     )
-    if (!response.ok) {
-      const body = (await response.text()).slice(0, 200)
+    if (!response || !response.ok) {
+      const body = response ? (await response.text()).slice(0, 200) : 'no response'
       /* GitHub masks the secret inside the provider's reply, so a bad token
          reads as `401 {"message":"Format is Authorization: ***"}` — a message
          that names neither the cause nor the fix. Say both, describing the
@@ -433,7 +431,7 @@ if (!token || !projectRef) {
          `npm run check`. A stale token on a developer machine must not block
          the rest of the gate; the CI warning annotation keeps the skip
          visible where results are read. */
-      if (response.status === 401 || response.status === 403) {
+      if (response?.status === 401 || response?.status === 403) {
         credentialsRejected = true
         console.error(
           `check-migrations: drift check skipped — SUPABASE_ACCESS_TOKEN rejected (${response.status} ${body})\n` +
@@ -445,7 +443,7 @@ if (!token || !projectRef) {
             'not compared against the live project. Rotate or unset the token secret.',
         )
       } else {
-        throw new Error(`${response.status} ${body}`)
+        throw new Error(`${response?.status ?? 'no response'} ${body}`)
       }
     } else {
       appliedRows = await response.json()

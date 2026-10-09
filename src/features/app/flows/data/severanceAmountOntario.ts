@@ -61,7 +61,7 @@ export const severanceAmountOntarioFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Have you confirmed ESA severance likely applies?',
-        'Avez-vous confirmé que l’indemnité LNE s’applique probablement?',
+        'Avez-vous confirmé que l’indemnité LNE s’applique probablement ?',
       ),
       body: bi(
         'This calculator assumes both gates are met (five or more years with this employer, plus global payroll of at least $2.5 million or the 50-employee permanent-closure test) and that no ESA exclusion applies. Use the eligibility workflow if you have not checked.',
@@ -76,7 +76,7 @@ export const severanceAmountOntarioFlow: Flow = {
           id: 'yes',
           label: bi(
             'Yes — eligibility confirmed; continue to amount',
-            'Oui — admissibilité confirmée; passer au montant',
+            'Oui — admissibilité confirmée ; passer au montant',
           ),
           to: 'years',
         },
@@ -129,7 +129,7 @@ export const severanceAmountOntarioFlow: Flow = {
       ),
       body: bi(
         'Use the employee’s regular weekly wages in Canadian dollars — the same concept the ESA guide uses for the severance formula. Confirm from payroll; do not guess.',
-        'Utilisez le salaire hebdomadaire régulier de l’employé en dollars canadiens — le même concept que le guide de la LNE pour la formule d’indemnité. Confirmez auprès de la paie; ne devinez pas.',
+        'Utilisez le salaire hebdomadaire régulier de l’employé en dollars canadiens — le même concept que le guide de la LNE pour la formule d’indemnité. Confirmez auprès de la paie ; ne devinez pas.',
       ),
       label: bi('Regular weekly wages', 'Salaire hebdomadaire régulier'),
       unit: bi('CAD / week', 'CAD / semaine'),

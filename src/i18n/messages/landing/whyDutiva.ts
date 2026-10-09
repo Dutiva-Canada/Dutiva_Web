@@ -31,7 +31,7 @@ export const landingWhyDutiva = defineMessages({
   },
   landing_why1_p: {
     en: 'Employment Standards Act, 2000 · Canada Labour Code, Part III · Act respecting labour standards.',
-    fr: "Loi de 2000 sur les normes d'emploi · Code canadien du travail, Partie III · Loi sur les normes du travail.",
+    fr: "Loi de 2000 sur les normes d’emploi · Code canadien du travail, Partie III · Loi sur les normes du travail.",
   },
   landing_why2_t: {
     en: 'Bilingual by default',
@@ -47,6 +47,6 @@ export const landingWhyDutiva = defineMessages({
   },
   landing_why3_p: {
     en: 'PIPEDA-conscious and Quebec Law 25-aware, with escalation cues on high-risk guidance.',
-    fr: "Conscient de la LPRPDE et tient compte de la Loi 25 du Québec, avec des indications d'escalade sur les conseils à risque élevé.",
+    fr: "Conscient de la LPRPDE et tient compte de la Loi 25 du Québec, avec des indications d’escalade sur les conseils à risque élevé.",
   },
 })

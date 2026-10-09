@@ -66,7 +66,7 @@ export const statutoryNoticeOntarioFlow: Flow = {
     {
       id: 'method',
       kind: 'choice',
-      title: bi('How do you want to look up tenure?', 'Comment voulez-vous repérer l’ancienneté?'),
+      title: bi('How do you want to look up tenure?', 'Comment voulez-vous repérer l’ancienneté ?'),
       body: bi(
         'ESA s. 57 steps on completed service. Use completed months and years — do not round up. This tool only covers Ontario individual termination notice under the Employment Standards Act, 2000.',
         'L’art. 57 de la LNE s’applique selon le service complété. Comptez les mois et années complétés — n’arrondissez pas à la hausse. Cet outil ne couvre que le préavis individuel de cessation en Ontario sous la Loi de 2000 sur les normes d’emploi.',
@@ -110,7 +110,7 @@ export const statutoryNoticeOntarioFlow: Flow = {
       kind: 'choice',
       title: bi(
         'How much service has the employee completed?',
-        'Quelle ancienneté l’employé a-t-il complétée?',
+        'Quelle ancienneté l’employé a-t-il complétée ?',
       ),
       body: bi(
         'Choose the band that matches completed service. Do not round up into the next band.',

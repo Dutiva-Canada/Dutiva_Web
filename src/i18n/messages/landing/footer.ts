@@ -3,7 +3,7 @@ import { defineMessages } from '../../core'
 export const landingFooter = defineMessages({
   landing_foot_disclaimer: {
     en: 'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal, tax, medical, or financial advice.',
-    fr: "Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. L'entreprise ne fournit pas d'avis juridique, fiscal, médical ou financier.",
+    fr: "Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. L’entreprise ne fournit pas d’avis juridique, fiscal, médical ou financier.",
   },
   landing_foot_desc: {
     en: 'Compliance-led workspace for Canadian employers — HR guidance, review-ready documents, and the day-to-day operations around your people.',

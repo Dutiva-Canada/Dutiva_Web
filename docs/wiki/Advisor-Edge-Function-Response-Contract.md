@@ -79,10 +79,11 @@ Sources: [supabase/functions/advisor-chat/index.ts:434-554](), [src/features/app
 
 ## Authentication & Authorization
 
-The edge function requires a bearer JWT in the `Authorization` header. Two checks gate access:
+The edge function requires a bearer JWT in the `Authorization` header. Three checks gate access:
 
 1. **Token validation** — `auth.getUser(token)` via a user-scoped Supabase client verifies the JWT is valid and extracts the user identity. [supabase/functions/advisor-chat/index.ts:236-249]()
 2. **Workspace membership** — `current_user_is_workspace_member()` RPC, called through the user's own JWT client so the RPC resolves `auth.jwt()` correctly. This is the same invite-only gate used by `AuthProvider` client-side and by RLS policies (migration 0026). [supabase/functions/advisor-chat/index.ts:258-263]()
+3. **Organization membership** — `verifyOrgMembership()` runs *after* request parsing but *before* any org-scoped work. When the caller supplies `organization_id`, the `is_org_member` RPC must confirm the caller belongs to it — the workspace gate says *who* may chat, not *which org's* context they may use. It fails closed: an unverifiable or false membership answer refuses the turn (400/403/500 depending on the failure shape) rather than silently widening scope. Downstream, that org id keys the org-pooled usage claim, org plan, org memory injection, and memory-fact writes — all through a service-role client that bypasses RLS. [supabase/functions/advisor-chat/requestSetup.ts:95-121](), [supabase/functions/advisor-chat/index.ts:74-82]()
 
 On success, a service-role `adminClient` is created for all subsequent DB operations (bypasses RLS). [supabase/functions/advisor-chat/index.ts:265]()
 

@@ -85,7 +85,7 @@ export const psychologicalSafetyFlow: Flow = {
           'Répondez selon ce qui est vrai aujourd’hui, non selon ce qui est prévu. Une réponse complaisante produit un score qui ne vous apprend rien.',
         ),
         bi(
-          '"Written down" means someone new could find it and follow it without asking you.',
+          '“Written down” means someone new could find it and follow it without asking you.',
           '« Consigné » signifie qu’une personne nouvellement arrivée pourrait le trouver et l’appliquer sans vous consulter.',
         ),
         bi(
@@ -95,7 +95,7 @@ export const psychologicalSafetyFlow: Flow = {
       ],
       caution: bi(
         'This is a self-check, not an audit against CSA Z1003-13 and not a measure of conformance with it. The Standard is published by the CSA Group and is the authoritative source; working to it means obtaining it.',
-        'Il s’agit d’une autoévaluation, et non d’un audit au regard de la norme CSA Z1003-13 ni d’une mesure de conformité à celle-ci. La norme est publiée par le Groupe CSA et constitue la source faisant autorité; s’y conformer suppose de se la procurer.',
+        'Il s’agit d’une autoévaluation, et non d’un audit au regard de la norme CSA Z1003-13 ni d’une mesure de conformité à celle-ci. La norme est publiée par le Groupe CSA et constitue la source faisant autorité ; s’y conformer suppose de se la procurer.',
       ),
       to: 'q_support',
     },

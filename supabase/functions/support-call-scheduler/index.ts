@@ -2,6 +2,8 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { rowsNeedingFollowup, rowsNeedingReminder } from '../_shared/scheduledCalls.ts'
 import type { SchedulerRow } from '../_shared/scheduledCalls.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Cron sweep for confirmed scheduled calls (TODO.md D3): sends the one
@@ -17,15 +19,11 @@ import type { SchedulerRow } from '../_shared/scheduledCalls.ts'
  * partial failure never double-sends.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -46,7 +44,7 @@ const CRON_LOCK_TTL_SECONDS = 300
  */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -57,10 +55,10 @@ function isAuthorizedTrigger(req: Request): boolean {
   // anything the caller controls.
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
-Deno.serve(async (req: Request) => {
+const handler = async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 })
   }
@@ -166,4 +164,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ ok: true, checked: rows.length, results })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

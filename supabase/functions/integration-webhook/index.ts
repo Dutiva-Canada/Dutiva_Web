@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { verifyDutivaSignature } from './verify-signature.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Public inbound-webhook ingest — phase 2 of workspace integrations
@@ -22,16 +23,13 @@ import { verifyDutivaSignature } from './verify-signature.ts'
  * stored row stays unprocessed for a later consumer.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type, x-dutiva-signature, x-dutiva-event',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'content-type, x-dutiva-signature, x-dutiva-event' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -41,8 +39,8 @@ interface IntegrationRow {
   secret_ref: string | null
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -114,4 +112,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ received: true }, 202)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

@@ -176,7 +176,7 @@ On phones, `AdvisorView` stacks vertically: mobile thread access bar, then chat.
 
 The Advisor applies a **deterministic safety layer** on both client and server. The rules are monotonic — they can only tighten a gate, never loosen one. The three main checks:
 
-1. **Crisis intercept** — `detectCrisisSignal` scans every user message against a maintained, bilingual set of 35 crisis phrases (e.g. `"suicidal"`, `"me suicider"`). When triggered, all structured surfaces are gated off and the user sees the 9-8-8 Suicide Crisis Helpline resource. This runs both on the client and server (mirrored lists, enforced by a drift test).
+1. **Crisis intercept** — `detectCrisisSignal` scans every user message against a maintained, bilingual set of 37 crisis phrases (e.g. `"suicidal"`, `"me suicider"`). When triggered, all structured surfaces are gated off and the user sees the 9-8-8 Suicide Crisis Helpline resource. This runs both on the client and server (mirrored lists, enforced by a drift test).
 
 2. **Jurisdiction / statutory-figure gate** — If the model's reply mentions a statutory figure (e.g. "8 weeks' notice") but the jurisdiction is unconfirmed, `applySafetyBackstop` forces `legalBasisAllowed = false` and adds a warning to the operator.
 
@@ -195,19 +195,34 @@ Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-78](), [src/featur
 The `advisor-chat` Supabase edge function handles real AI turns. The pipeline in summary:
 
 1. **JWT auth** — Bearer token validated, workspace membership checked via `current_user_is_workspace_member` RPC
-2. **Parse request** — Extract `message`, `conversationId`, `timezone`
-3. **Resolve model route** — Look up `ai_model_routes` / `ai_model_providers` for `route_key = 'advisor_chat'`
-4. **Load/create conversation** — Retrieve or create a `conversations` row
-5. **Retrieve guidance chunks** — `match_advisor_guidance` RPC over `advisor_guidance_chunks` using a `buildRetrievalQuery` that includes the previous user turn for context
-6. **Claim usage** — `claimAiUsage` atomically checks burst/daily/token/platform ceilings
-7. **Call upstream LLM** — OpenAI-compatible completion with `SYSTEM_PROMPT` + notice schedule injection + retrieved chunks
-8. **Finalize usage** — `finalizeAiUsage` stamps the telemetry row with tokens, latency, outcome
-9. **Build response payload** — `buildAdvisorResponse` deterministically computes routing, jurisdiction, risk, legal basis, confidence
-10. **Save & return** — Persist the turn to `conversations`, return the `advisorResponse` payload
+2. **Parse request** — Extract `message`, `conversationId`, `timezone`, `organization_id`
+3. **Org membership check** — `verifyOrgMembership` (`requestSetup.ts`) verifies `is_org_member` when `organization_id` is supplied, **before** any org-scoped work — the org id keys the pooled usage claim, org plan, memory injection, and memory writes through a service-role client that bypasses RLS. Non-membership → 403; unverifiable → 500 (fail-closed)
+4. **Resolve model route** — Look up `ai_model_routes` / `ai_model_providers` for `route_key = 'advisor_chat'`
+5. **Load/create conversation** — Retrieve or create a `conversations` row
+6. **Retrieve guidance chunks** — `match_advisor_guidance` RPC over `advisor_guidance_chunks` using a `buildRetrievalQuery` that includes the previous user turn for context
+7. **Claim usage** — `claimAiUsage` atomically checks burst/daily/token/platform ceilings (org-pooled when `organization_id` present)
+8. **Call upstream LLM** — OpenAI-compatible completion with `SYSTEM_PROMPT` + notice schedule injection + retrieved chunks + org memory facts
+9. **Finalize usage** — `finalizeAiUsage` stamps the telemetry row with tokens, latency, outcome
+10. **Build response payload** — `buildAdvisorResponse` deterministically computes routing, jurisdiction, risk, legal basis, confidence; `memory.items` echoes the confirmed facts injected this turn
+11. **Save & return** — Persist the turn to `conversations`, return the `advisorResponse` payload
 
 The `SYSTEM_PROMPT` establishes the Advisor's identity: compliance-oriented HR assistant for Canadian employers, not a lawyer, never cites specific section/regulation numbers from memory, asks for jurisdiction when it changes the answer.
 
-For the full pipeline and response contract, see [Advisor Edge Function & Response Contract](#3.3).
+For the full pipeline and response contract, see [Advisor Edge Function & Response Contract](#3.3). For the deterministic eval layer that regression-tests these gates, see [Advisor Evaluation & Statute Drift](#3.4).
+
+### Org Memory: Governance Filters
+
+Confirmed org facts (`hr_advisor_memory_facts`) are injected into the prompt and echoed back on `advisor_response.memory.items`. The loader (`memoryPersistence.ts` `loadOrgMemoryFacts`) honors the migration-0155 governance columns, not just the lifecycle flags: `advisor_usable` (admin toggle), `status` (`confirmed` only — `expired`/`removed`/`needs_review` excluded), `sensitivity` (`standard` only — `restricted` excluded), and `expiry_date` (passed dates excluded). `NULL` means eligible, matching the Memory UI's `effective*` derivations.
+
+Memory extraction is `inferred`-only — deduped, capped at 3 per turn, written with audit rows, and **never auto-confirmed**: a human must confirm a fact before it can be injected, which breaks the prompt-injection → memory-poisoning chain. The extraction pass burns a bounded model call (~400 max tokens) without a usage claim — a deliberate, documented choice.
+
+Sources: [supabase/functions/advisor-chat/memoryPersistence.ts:55-70](), [supabase/functions/advisor-chat/memoryExtract.ts](), [supabase/functions/advisor-chat/memoryFacts.ts]()
+
+### Org Overage Attribution
+
+Org-pooled overage billing meters `organizations.stripe_customer_id` — matching the eligibility check `claim_ai_usage` runs against the org — while the legacy per-user path meters `profiles.stripe_customer_id`. Before this fix the org path metered the *calling user's* Stripe customer, which silently no-billed (or billed the wrong account) when a member drove org overage.
+
+Sources: [supabase/functions/_shared/advisorOverageMeter.ts](), [supabase/functions/_shared/aiUsage.ts]()
 
 Sources: [supabase/functions/advisor-chat/index.ts:43-103](), [supabase/functions/advisor-chat/responsePayload.ts:1-21](), [supabase/functions/advisor-chat/retrievalQuery.ts:27-33](), [supabase/functions/_shared/aiUsage.ts:1-28]()
 
@@ -312,5 +327,6 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:126-139](), [src/featur
 | [Advisor Chat Interface & Demo Flows](#3.1)       | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `ThreadList`, `AdvisorHome`, the streaming engine (`useAdvisorEngine`), demo scenarios (`advisorScenarios`), light flows, the termination quick form, suggestion chips, province prompt, `AdvisorRail`                                              |
 | [Advisor Safety & Guardrails](#3.2)               | Crisis intercept (`detectCrisisSignal`, 9-8-8 resource), `applySafetyBackstop` (monotonic tightening), `mentionsStatutoryFigure`, jurisdiction gate, `statutoryCrossCheck`, safety telemetry (`advisor-safety-event`), AI usage metering (`claimAiUsage`/`finalizeAiUsage`, `AdvisorUsageLimitError`) |
 | [Advisor Edge Function & Response Contract](#3.3) | The `advisor-chat` edge function pipeline, `buildAdvisorResponse` deterministic payload builder, `advisorResponseSchema` Zod contract, response modes, workspace state kinds, `match_advisor_guidance` RPC, notice schedule injection, `ChatMarkdown` renderer, `ChatChart` fenced blocks             |
+| [Advisor Evaluation & Statute Drift](#3.4)       | `runGoldenEval` over the 64-case versioned golden set, `statuteRegistry` citation refs, `advisorCorpusSnapshot` frozen corpus, the live-source statute-drift checker (e-Laws / LégisQuébec / laws-lois), and the `--export-corpus` refresh workflow                                                     |
 
 ---

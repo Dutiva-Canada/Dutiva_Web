@@ -20,6 +20,7 @@ import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { Seo } from '@/seo/Seo'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { useCareersPath } from './useCareersPath'
 import { formatCareersDate } from './dates'
 import { listActiveJobPostings } from './data/jobBoardApi'
@@ -524,6 +525,7 @@ function JobCard({ posting }: { readonly posting: PublicJobPosting }) {
       /* Carry the board's query string so the detail page's breadcrumb
          returns to the same filtered view. */
       state={{ boardSearch: location.search }}
+      {...viewIntentProps('careers.job')}
       className="flex flex-col rounded-[12px] border border-border bg-surface p-5 transition-[border-color] hover:border-gold-border focus-visible:border-gold-border focus-visible:outline-none"
     >
       <h2 className="text-base font-semibold text-text">{posting.title}</h2>

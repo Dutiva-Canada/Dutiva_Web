@@ -24,7 +24,7 @@ describe('EmployeeProfileView', () => {
     expect(screen.getByText(/8 yrs · Manager: Riley Summers · Since Mar 2018/)).toBeInTheDocument()
 
     /* Overview: insight, record rows (jurisdiction + statute), risk card, tiles. */
-    expect(screen.getByText(/Jordan's termination is in progress/)).toBeInTheDocument()
+    expect(screen.getByText(/Jordan’s termination is in progress/)).toBeInTheDocument()
     expect(screen.getByText('Ontario · Employment Standards Act, 2000')).toBeInTheDocument()
     expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
     expect(screen.getByText('$118,000')).toBeInTheDocument()

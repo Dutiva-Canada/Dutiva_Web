@@ -5,8 +5,8 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This Incident and Breach Response Policy explains how Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") identifies, escalates, contains, assesses, documents, communicates, and learns from security incidents, privacy breaches, confidentiality incidents, and related provider incidents involving Dutiva systems or personal information.',
-    "This Policy should be read with Dutiva's Privacy Policy, Data Processing Agreement, Data Retention and Deletion Policy, Terms of Service, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms.",
+    'This Incident and Breach Response Policy explains how Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) identifies, escalates, contains, assesses, documents, communicates, and learns from security incidents, privacy breaches, confidentiality incidents, and related provider incidents involving Dutiva systems or personal information.',
+    "This Policy should be read with Dutiva’s Privacy Policy, Data Processing Agreement, Data Retention and Deletion Policy, Terms of Service, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms.",
   ],
   sections: [
     {
@@ -64,7 +64,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva's incident response process generally follows these phases. Some phases may run in parallel where urgency requires immediate containment or notification support:",
+          text: "Dutiva’s incident response process generally follows these phases. Some phases may run in parallel where urgency requires immediate containment or notification support:",
         },
         {
           type: 'li',
@@ -113,7 +113,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Under PIPEDA, reportable breaches must be reported to the Office of the Privacy Commissioner of Canada and affected individuals must be notified as soon as feasible after Dutiva determines that the breach creates a real risk of significant harm. Quebec confidentiality incidents that present a risk of serious injury must be reported to the Commission d'accès à l'information du Québec and affected persons with diligence, subject to applicable investigation limits.",
+          text: "Under PIPEDA, reportable breaches must be reported to the Office of the Privacy Commissioner of Canada and affected individuals must be notified as soon as feasible after Dutiva determines that the breach creates a real risk of significant harm. Quebec confidentiality incidents that present a risk of serious injury must be reported to the Commission d’accès à l’information du Québec and affected persons with diligence, subject to applicable investigation limits.",
         },
       ],
     },
@@ -122,7 +122,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "For personal information under Dutiva's control, Dutiva assesses whether a breach of security safeguards creates a real risk of significant harm by considering the sensitivity of the personal information involved and the probability that the information has been, is being, or will be misused. Dutiva may also consider the circumstances of the breach, exposure duration, threat actor indicators, mitigation already taken, likelihood of identity theft, financial loss, humiliation, reputational harm, employment harm, or other reasonably foreseeable harms.",
+          text: "For personal information under Dutiva’s control, Dutiva assesses whether a breach of security safeguards creates a real risk of significant harm by considering the sensitivity of the personal information involved and the probability that the information has been, is being, or will be misused. Dutiva may also consider the circumstances of the breach, exposure duration, threat actor indicators, mitigation already taken, likelihood of identity theft, financial loss, humiliation, reputational harm, employment harm, or other reasonably foreseeable harms.",
         },
         {
           type: 'p',
@@ -163,7 +163,7 @@ export default {
         },
         {
           type: 'li',
-          text: "notify the Commission d'accès à l'information du Québec with diligence;",
+          text: "notify the Commission d’accès à l’information du Québec with diligence;",
         },
         {
           type: 'li',
@@ -175,11 +175,11 @@ export default {
         },
         {
           type: 'li',
-          text: "provide supplementary information to the Commission d'accès à l'information du Québec with diligence if Dutiva becomes aware of additional required information after the initial notice;",
+          text: "provide supplementary information to the Commission d’accès à l’information du Québec with diligence if Dutiva becomes aware of additional required information after the initial notice;",
         },
         {
           type: 'li',
-          text: "record the incident in Dutiva's confidentiality-incident register; and",
+          text: "record the incident in Dutiva’s confidentiality-incident register; and",
         },
         {
           type: 'li',
@@ -213,7 +213,7 @@ export default {
         },
         {
           type: 'p',
-          text: "When Dutiva receives notice of a provider incident, Dutiva will assess the incident in the context of Dutiva's service, determine whether Dutiva systems, Customer Data, or personal information may be affected, request information reasonably needed for Dutiva's assessment, and coordinate customer or regulator communications where required.",
+          text: "When Dutiva receives notice of a provider incident, Dutiva will assess the incident in the context of Dutiva’s service, determine whether Dutiva systems, Customer Data, or personal information may be affected, request information reasonably needed for Dutiva’s assessment, and coordinate customer or regulator communications where required.",
         },
         {
           type: 'p',
@@ -271,7 +271,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Incident and breach records are retained according to Dutiva's Data Retention and Deletion Policy and applicable legal requirements, including statutory breach-record and confidentiality-incident register periods.",
+          text: "Incident and breach records are retained according to Dutiva’s Data Retention and Deletion Policy and applicable legal requirements, including statutory breach-record and confidentiality-incident register periods.",
         },
       ],
     },
@@ -293,7 +293,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Reference points include guidance from the Office of the Privacy Commissioner of Canada on mandatory PIPEDA breach reporting and guidance from the Commission d'accès à l'information du Québec on confidentiality incidents for private enterprises.",
+          text: "Reference points include guidance from the Office of the Privacy Commissioner of Canada on mandatory PIPEDA breach reporting and guidance from the Commission d’accès à l’information du Québec on confidentiality incidents for private enterprises.",
         },
         {
           type: 'p',
@@ -310,7 +310,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'Security concerns or suspected misuse of Dutiva can also be reported through support channels at support@dutiva.ca with the subject line "Security Incident".',
+          text: 'Security concerns or suspected misuse of Dutiva can also be reported through support channels at support@dutiva.ca with the subject line “Security Incident”.',
         },
       ],
     },

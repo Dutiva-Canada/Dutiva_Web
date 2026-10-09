@@ -60,13 +60,23 @@ export function normalizeRules(raw: unknown): StrategyRule[] {
     if (item === null || typeof item !== 'object') continue
     const o = item as Record<string, unknown>
     if (typeof o.metric !== 'string' || !RULE_METRICS.includes(o.metric as RuleMetric)) continue
+    const value2 = Number(o.value2)
     const base = {
       metric: o.metric as RuleMetric,
-      op: (o.op === 'lt' ? 'lt' : 'gt') as 'lt' | 'gt',
+      op: (o.op === 'lt' ? 'lt' : o.op === 'between' ? 'between' : 'gt') as
+        | 'lt'
+        | 'gt'
+        | 'between',
       value: Number(o.value),
+      ...(Number.isFinite(value2) ? { value2 } : {}),
       title: typeof o.title === 'string' ? o.title.trim() : '',
     }
-    if (!Number.isFinite(base.value) || base.title === '') continue
+    if (
+      !Number.isFinite(base.value) ||
+      base.title === '' ||
+      (base.op === 'between' && !Number.isFinite(value2))
+    )
+      continue
     const isProposal =
       o.type === 'order_proposal' ||
       (o.type !== 'signal' && (o.side === 'buy' || o.side === 'sell') && Number(o.qty) > 0)
@@ -109,6 +119,11 @@ export function ruleSentence(rule: StrategyRule, label: (m: RuleMetric) => Bi): 
   const metric = label(rule.metric)
   if (rule.op === 'lt') {
     return { en: `${metric.en} is below ${rule.value}`, fr: `${metric.fr} est sous ${rule.value}` }
+  }
+  if (rule.op === 'between') {
+    const lo = Math.min(rule.value, rule.value2 ?? rule.value)
+    const hi = Math.max(rule.value, rule.value2 ?? rule.value)
+    return { en: `${metric.en} is between ${lo} and ${hi}`, fr: `${metric.fr} est entre ${lo} et ${hi}` }
   }
   return { en: `${metric.en} is above ${rule.value}`, fr: `${metric.fr} dépasse ${rule.value}` }
 }

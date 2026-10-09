@@ -7,7 +7,7 @@ import { computeAdvisorViewPresentation } from './advisorViewPresentation'
 
 const groupLabels = {
   pinned: { en: 'Pinned', fr: 'Épinglés' },
-  today: { en: 'Today', fr: "Aujourd'hui" },
+  today: { en: 'Today', fr: "Aujourd’hui" },
   week: { en: 'This week', fr: 'Cette semaine' },
   older: { en: 'Older', fr: 'Plus ancien' },
 }

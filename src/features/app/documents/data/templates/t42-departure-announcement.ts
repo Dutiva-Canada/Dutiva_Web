@@ -223,7 +223,7 @@ export const tplT42: DocTemplate = {
         fr: 'Ce que nous vous demandons',
       },
       text: {
-        en: 'Please do not speculate, and please do not repeat speculation. If someone asks you why, "I do not know, and it is not mine to say" is a complete answer. {{person_name}} may talk about it themselves or may not — either way, that is theirs to decide, and it stays theirs.',
+        en: 'Please do not speculate, and please do not repeat speculation. If someone asks you why, “I do not know, and it is not mine to say” is a complete answer. {{person_name}} may talk about it themselves or may not — either way, that is theirs to decide, and it stays theirs.',
         fr: 'Merci de ne pas spéculer et de ne pas relayer de spéculations. Si l’on vous demande pourquoi, « je l’ignore, et ce n’est pas à moi de le dire » constitue une réponse complète. {{person_name}} en parlera ou non — dans un cas comme dans l’autre, cela lui appartient et continuera de lui appartenir.',
       },
     },
@@ -231,7 +231,7 @@ export const tplT42: DocTemplate = {
       type: 'note',
       tone: 'risk',
       text: {
-        en: 'Add nothing to this. A reason, a characterisation, a "we wish them well" that will be conspicuously absent from the next one, or a warm note here that a colleague reads against the terse one they got — each of those publishes something about a person to an audience with no need for it, and the employer would have to stand behind it. Where a departure follows a complaint, an investigation or a leave, say less rather than more: an announcement that lets colleagues connect the two can be reprisal even though it names nothing.',
+        en: 'Add nothing to this. A reason, a characterisation, a “we wish them well” that will be conspicuously absent from the next one, or a warm note here that a colleague reads against the terse one they got — each of those publishes something about a person to an audience with no need for it, and the employer would have to stand behind it. Where a departure follows a complaint, an investigation or a leave, say less rather than more: an announcement that lets colleagues connect the two can be reprisal even though it names nothing.',
         fr: 'N’ajoutez rien. Un motif, une qualification, un « nous lui souhaitons bonne continuation » dont l’absence sera remarquée la prochaine fois, ou un mot chaleureux ici qu’un collègue comparera au ton sec reçu pour le sien — chacun publie quelque chose sur une personne à un public qui n’en a pas besoin, et l’employeur devrait en répondre. Lorsqu’un départ suit une plainte, une enquête ou un congé, dites-en moins plutôt que plus : une annonce permettant aux collègues d’établir le lien peut constituer des représailles même sans rien nommer.',
       },
     },

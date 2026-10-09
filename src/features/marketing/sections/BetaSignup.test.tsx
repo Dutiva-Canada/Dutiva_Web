@@ -72,7 +72,7 @@ describe('BetaSignup', () => {
         consent: true,
       }),
     )
-    expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
+    expect(await screen.findByText("You’re on the list.")).toBeInTheDocument()
     expect(screen.getByText('4 of 15 spots currently taken')).toBeInTheDocument()
   })
 
@@ -86,10 +86,10 @@ describe('BetaSignup', () => {
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
-    expect(await screen.findByText("You're on the waiting list.")).toBeInTheDocument()
+    expect(await screen.findByText("You’re on the waiting list.")).toBeInTheDocument()
     /* The admitted-cohort promise ("we'll email your beta access") must not
        show — a full cohort means there is no access to email yet. */
-    expect(screen.queryByText("You're on the list.")).toBeNull()
+    expect(screen.queryByText("You’re on the list.")).toBeNull()
     expect(screen.queryByText(/beta access/)).toBeNull()
   })
 
@@ -105,7 +105,7 @@ describe('BetaSignup', () => {
     await user.click(screen.getByRole('checkbox'))
     await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
-    expect(await screen.findByText("You're on the list.")).toBeInTheDocument()
+    expect(await screen.findByText("You’re on the list.")).toBeInTheDocument()
     expect(screen.getByText('4 of 15 spots currently taken')).toBeInTheDocument()
   })
 
@@ -141,6 +141,6 @@ describe('BetaSignup', () => {
     await user.click(screen.getByRole('button', { name: /Join the waitlist/ }))
 
     expect(await screen.findByText(/Could not record your signup/)).toBeInTheDocument()
-    expect(screen.queryByText("You're on the list.")).toBeNull()
+    expect(screen.queryByText("You’re on the list.")).toBeNull()
   })
 })

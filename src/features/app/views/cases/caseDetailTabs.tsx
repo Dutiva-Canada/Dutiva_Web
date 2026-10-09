@@ -168,9 +168,9 @@ export function CaseOverviewTab({
             <div className="pt-[12px] pb-[4px] text-[12px] font-bold tracking-[0.04em] text-text-muted uppercase">
               {x(M.cases_timeline)}
             </div>
-            {timeline.map((ev) => (
+            {timeline.map((ev, i) => (
               <div
-                key={`${ev.date}-${ev.kind}`}
+                key={`${ev.date}-${ev.kind}-${i}`}
                 className="flex gap-[12px] border-t border-inset py-[11px]"
               >
                 <div
@@ -193,8 +193,8 @@ export function CaseOverviewTab({
             {x(M.cases_people_involved)}
           </div>
           <div className="flex flex-col gap-[10px]">
-            {people.map((p) => (
-              <div key={p.initials} className="flex items-center gap-[9px]">
+            {people.map((p, i) => (
+              <div key={`${p.initials}-${i}`} className="flex items-center gap-[9px]">
                 <div className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[10.5px] font-bold text-accent">
                   {p.initials}
                 </div>

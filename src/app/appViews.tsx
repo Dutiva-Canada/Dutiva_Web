@@ -70,6 +70,7 @@ import {
 /* prettier-ignore */ const SecurityView = lazy(() => import('@/features/app/views/security/SecurityView').then((m) => ({ default: m.SecurityView })))
 /* prettier-ignore */ const SpecialistsView = lazy(() => import('@/features/app/views/specialists/SpecialistsView').then((m) => ({ default: m.SpecialistsView })))
 /* prettier-ignore */ const CompensationView = lazy(preloadCompensationView)
+/* prettier-ignore */ const ChatWidgetsView = lazy(() => import('@/features/app/views/chatwidgets/ChatWidgetsView').then((m) => ({ default: m.ChatWidgetsView })))
 
 /* Governance workspace screens */
 /* prettier-ignore */ const GovernanceOverview = lazy(() => import('@/features/app/views/governance/screens/Overview').then((m) => ({ default: m.Overview })))
@@ -303,6 +304,9 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'hiring', element: <HiringView /> },
     { path: 'hiring/candidates/:candidateId', element: <CandidateDetailView /> },
     { path: 'hiring/postings/:postingId', element: <JobPostingDetailView /> },
+    /* Unlinked showcase route for the interactive chat-widget catalog —
+       /app/chat-widgets, /demo/chat-widgets, /fr/demo/chat-widgets. */
+    { path: 'chat-widgets', element: <ChatWidgetsView /> },
     { path: 'tasks', loader: () => redirect(r('planning/tasks')) },
     { path: 'calendar', loader: () => redirect(r('planning/calendar')) },
     { path: 'memory', loader: () => redirect(r('settings/memory')) },

@@ -44,6 +44,8 @@ export const financePurchases = defineMessages({
   finance_expense_reimburse: { en: 'Mark reimbursed', fr: 'Marquer remboursée' },
   finance_expense_submit: { en: 'Submit', fr: 'Soumettre' },
 
+  finance_purchases_renewal_placeholder: { en: 'Annual', fr: 'Annuel' },
+
   /* Approval actions */
   finance_approve: { en: 'Approve', fr: 'Approuver' },
   finance_reject: { en: 'Reject', fr: 'Rejeter' },

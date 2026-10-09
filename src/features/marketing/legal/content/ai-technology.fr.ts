@@ -45,23 +45,23 @@ export default {
         },
         {
           type: 'li',
-          text: 'le message de l’utilisateur;',
+          text: 'le message de l’utilisateur ;',
         },
         {
           type: 'li',
-          text: 'un historique récent et limité de la conversation;',
+          text: 'un historique récent et limité de la conversation ;',
         },
         {
           type: 'li',
-          text: 'la province, le territoire ou le régime fédéral sélectionné;',
+          text: 'la province, le territoire ou le régime fédéral sélectionné ;',
         },
         {
           type: 'li',
-          text: 'le contexte d’accompagnement RH récupéré;',
+          text: 'le contexte d’accompagnement RH récupéré ;',
         },
         {
           type: 'li',
-          text: 'l’identifiant du processus actif ou le contexte du modèle;',
+          text: 'l’identifiant du processus actif ou le contexte du modèle ;',
         },
         {
           type: 'li',
@@ -103,23 +103,23 @@ export default {
         },
         {
           type: 'li',
-          text: 'des appels côté serveur aux fournisseurs afin que les secrets des fournisseurs de modèles ne soient pas exposés dans le navigateur;',
+          text: 'des appels côté serveur aux fournisseurs afin que les secrets des fournisseurs de modèles ne soient pas exposés dans le navigateur ;',
         },
         {
           type: 'li',
-          text: 'la minimisation des instructions et du contexte lorsque cela est raisonnablement possible;',
+          text: 'la minimisation des instructions et du contexte lorsque cela est raisonnablement possible ;',
         },
         {
           type: 'li',
-          text: 'des limites de longueur des messages, un historique limité de conversation et des limites de débit;',
+          text: 'des limites de longueur des messages, un historique limité de conversation et des limites de débit ;',
         },
         {
           type: 'li',
-          text: 'des instructions système qui demandent des notes relatives à la province ou au régime applicable, des niveaux de risque, des prochaines étapes, un fondement juridique et des indications de révision professionnelle, lorsque pertinent;',
+          text: 'des instructions système qui demandent des notes relatives à la province ou au régime applicable, des niveaux de risque, des prochaines étapes, un fondement juridique et des indications de révision professionnelle, lorsque pertinent ;',
         },
         {
           type: 'li',
-          text: 'des mesures de protection, de prévention des abus et de mise en forme;',
+          text: 'des mesures de protection, de prévention des abus et de mise en forme ;',
         },
         {
           type: 'li',
@@ -211,7 +211,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva utilise l’automatisation pour soutenir la génération d’ébauches, la récupération du contexte d’accompagnement, les limites de débit, la surveillance de la sécurité et l’état des processus. Dutiva est conçu pour assister les processus des employeurs et des RH; il n’est pas conçu pour prendre des décisions finales d’embauche, de discipline, d’accommodement, de cessation d’emploi, de rémunération ou d’autres décisions d’emploi au nom des clients.',
+          text: 'Dutiva utilise l’automatisation pour soutenir la génération d’ébauches, la récupération du contexte d’accompagnement, les limites de débit, la surveillance de la sécurité et l’état des processus. Dutiva est conçu pour assister les processus des employeurs et des RH ; il n’est pas conçu pour prendre des décisions finales d’embauche, de discipline, d’accommodement, de cessation d’emploi, de rémunération ou d’autres décisions d’emploi au nom des clients.',
         },
         {
           type: 'p',

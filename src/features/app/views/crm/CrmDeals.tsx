@@ -220,7 +220,7 @@ export function CrmDeals({ crm }: { readonly crm: UseCrmDataReturn }) {
               </div>
               <div className="flex items-center gap-[8px]">
                 <span className="text-[13px] font-semibold text-text">
-                  ${(deal.value ?? 0).toLocaleString()}
+                  ${(deal.value ?? 0).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                 </span>
                 <span className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2">
                   {x(M[`crm_stage_${deal.stage}` as keyof typeof M])}

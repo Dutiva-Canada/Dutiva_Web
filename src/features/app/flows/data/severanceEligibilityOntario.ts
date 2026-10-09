@@ -36,7 +36,7 @@ export const severanceEligibilityOntarioFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Has the employee completed five or more years with this employer?',
-        'L’employé a-t-il complété cinq ans ou plus chez cet employeur?',
+        'L’employé a-t-il complété cinq ans ou plus chez cet employeur ?',
       ),
       body: bi(
         'ESA severance (distinct from termination notice) generally requires five or more years of employment with the employer. This is the first gate — both gates must be met.',
@@ -69,7 +69,7 @@ export const severanceEligibilityOntarioFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Does either employer condition apply?',
-        'L’une des conditions liées à l’employeur s’applique-t-elle?',
+        'L’une des conditions liées à l’employeur s’applique-t-elle ?',
       ),
       body: bi(
         'Alongside five years’ service, ESA severance generally also requires one of: the employer’s global payroll is at least $2.5 million, or the employer severed 50 or more employees in a six-month period because all or part of the business permanently closed.',
@@ -113,7 +113,7 @@ export const severanceEligibilityOntarioFlow: Flow = {
       kind: 'choice',
       title: bi(
         'Does an ESA exclusion likely apply?',
-        'Une exclusion de la LNE s’applique-t-elle probablement?',
+        'Une exclusion de la LNE s’applique-t-elle probablement ?',
       ),
       body: bi(
         'Even when the two gates are met, ESA severance can be excluded — for example refusing reasonable alternative employment, retiring on a full pension, certain construction or on-site building-maintenance roles, wilful misconduct, or where performance of the contract becomes impossible. Confirm the current statute list before relying on an exclusion.',

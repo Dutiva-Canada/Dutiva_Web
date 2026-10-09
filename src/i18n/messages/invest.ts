@@ -1,4 +1,5 @@
 import { defineMessages } from '../core'
+import { investStrategyBuilderMessages } from './investStrategyBuilder'
 
 /**
  * Invest portal chrome — the standalone, invite-only multi-asset
@@ -9,7 +10,7 @@ import { defineMessages } from '../core'
  *
  * [FR self-authored — not from a design handoff; reviewed against the blueprint.]
  */
-export const investMessages = defineMessages({
+const investCoreMessages = defineMessages({
   invest_title: { en: 'Invest', fr: 'Investir' },
   invest_subtitle: {
     en: 'Portfolio analysis, signals, and order tracking across asset classes.',
@@ -25,19 +26,19 @@ export const investMessages = defineMessages({
   invest_tab_portfolios: { en: 'Portfolios', fr: 'Portefeuilles' },
   invest_tab_orders: { en: 'Orders', fr: 'Ordres' },
   invest_tab_signals: { en: 'Signals', fr: 'Signaux' },
-  invest_tab_strategies: { en: 'Bot', fr: 'Robot' },
+  invest_tab_strategies: { en: 'Agent', fr: 'Agent' },
   invest_tab_notifications: { en: 'Notifications', fr: 'Notifications' },
   invest_tab_settings: { en: 'Settings', fr: 'Paramètres' },
 
   /* Per-route document head (auth-gated → noindex; titles are what the
      browser tab and shared links actually show). */
   invest_seo_title_overview: {
-    en: 'Dutiva Invest — Portfolio tracking and strategy bot',
-    fr: 'Dutiva Invest — Suivi de portefeuille et robot de stratégies',
+    en: 'Dutiva Invest — Portfolio tracking and strategy agent',
+    fr: 'Dutiva Invest — Suivi de portefeuille et agent de stratégies',
   },
   invest_seo_desc_overview: {
     en: 'Track manual positions and watchlist prices; scans surface signals and order drafts you review yourself.',
-    fr: 'Suivez positions saisies à la main et cours de la liste de suivi; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
+    fr: 'Suivez positions saisies à la main et cours de la liste de suivi ; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
   },
   invest_seo_title_portfolio: {
     en: 'Dutiva Invest — Portfolios',
@@ -49,8 +50,8 @@ export const investMessages = defineMessages({
   },
   invest_seo_title_orders: { en: 'Dutiva Invest — Orders', fr: 'Dutiva Invest — Ordres' },
   invest_seo_desc_orders: {
-    en: 'Bot-proposed order drafts and manual order intents — nothing executes without your approval.',
-    fr: 'Ébauches d’ordres proposées par le robot et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
+    en: 'Agent-proposed order drafts and manual order intents — nothing executes without your approval.',
+    fr: 'Ébauches d’ordres proposées par l’agent et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
   },
   invest_seo_title_signals: { en: 'Dutiva Invest — Signals', fr: 'Dutiva Invest — Signaux' },
   invest_seo_desc_signals: {
@@ -58,12 +59,12 @@ export const investMessages = defineMessages({
     fr: 'Historique des signaux de vos stratégies activées — à titre informatif seulement.',
   },
   invest_seo_title_strategies: {
-    en: 'Dutiva Invest — Strategy bot',
-    fr: 'Dutiva Invest — Robot de stratégies',
+    en: 'Dutiva Invest — Strategy agent',
+    fr: 'Dutiva Invest — Agent de stratégies',
   },
   invest_seo_desc_strategies: {
     en: 'Describe or pick a strategy; scans create signals and draft proposals only — never placed orders.',
-    fr: 'Décrivez ou choisissez une stratégie; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
+    fr: 'Décrivez ou choisissez une stratégie ; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
   },
   invest_seo_title_notifications: {
     en: 'Dutiva Invest — Notifications',
@@ -140,8 +141,8 @@ export const investMessages = defineMessages({
   invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   invest_delivery_title: { en: 'Delivery per strategy', fr: 'Envoi par stratégie' },
   invest_delivery_note: {
-    en: 'Where each strategy sends what it finds. Change destinations on the Bot tab.',
-    fr: 'Où chaque stratégie envoie ses trouvailles. Les canaux se règlent dans l’onglet Robot.',
+    en: 'Where each strategy sends what it finds. Change destinations on the Agent tab.',
+    fr: 'Où chaque stratégie envoie ses trouvailles. Les canaux se règlent dans l’onglet Agent.',
   },
   invest_delivery_empty: {
     en: 'No strategies yet — delivery options appear once you create one.',
@@ -191,12 +192,12 @@ export const investMessages = defineMessages({
   },
   invest_tour_step4_title: { en: 'Turn on a strategy', fr: 'Activer une stratégie' },
   invest_tour_step4_body: {
-    en: 'Pick a template on the Bot tab and run a scan. Scans create signals and draft proposals only — never orders.',
-    fr: 'Choisissez un modèle dans l’onglet Robot et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
+    en: 'Pick a template on the Agent tab and run a scan. Scans create signals and draft proposals only — never orders.',
+    fr: 'Choisissez un modèle dans l’onglet Agent et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
   },
   invest_tour_dismiss: { en: 'Dismiss', fr: 'Fermer' },
   invest_tour_cta_portfolio: { en: 'Open Portfolios', fr: 'Ouvrir Portefeuilles' },
-  invest_tour_cta_strategies: { en: 'Open the Bot tab', fr: 'Ouvrir l’onglet Robot' },
+  invest_tour_cta_strategies: { en: 'Open the Agent tab', fr: 'Ouvrir l’onglet Agent' },
 
   /* Asset classes */
   invest_asset_equity: { en: 'Equity', fr: 'Action' },
@@ -210,7 +211,7 @@ export const investMessages = defineMessages({
   invest_ov_total_value: { en: 'Portfolio value', fr: 'Valeur du portefeuille' },
   invest_ov_cash: { en: 'Cash', fr: 'Encaisse' },
   invest_ov_open_signals: { en: 'Open signals', fr: 'Signaux ouverts' },
-  invest_ov_last_run: { en: 'Last bot run', fr: 'Dernière exécution du robot' },
+  invest_ov_last_run: { en: 'Last agent run', fr: 'Dernière exécution de l’agent' },
   invest_ov_allocation: { en: 'Allocation by asset class', fr: 'Répartition par classe d’actifs' },
   invest_ov_recent_signals: { en: 'Latest signals', fr: 'Derniers signaux' },
   invest_ov_never_run: { en: 'Not run yet', fr: 'Jamais exécuté' },
@@ -307,13 +308,13 @@ export const investMessages = defineMessages({
   invest_acknowledge: { en: 'Acknowledge', fr: 'Accuser réception' },
   invest_dismiss: { en: 'Dismiss', fr: 'Écarter' },
   invest_signals_empty: {
-    en: 'No signals yet — enable a strategy and run the bot.',
-    fr: 'Aucun signal — activez une stratégie et lancez le robot.',
+    en: 'No signals yet — enable a strategy and run the agent.',
+    fr: 'Aucun signal — activez une stratégie et lancez l’agent.',
   },
   invest_score: { en: 'Score', fr: 'Score' },
 
-  /* Strategies / bot */
-  invest_strategies_title: { en: 'Bot strategies', fr: 'Stratégies du robot' },
+  /* Strategies / agent */
+  invest_strategies_title: { en: 'Agent strategies', fr: 'Stratégies de l’agent' },
   invest_add_strategy: { en: 'New strategy', fr: 'Nouvelle stratégie' },
   invest_create_sub: {
     en: 'Describe it in words, pick a template, or start blank.',
@@ -326,8 +327,8 @@ export const investMessages = defineMessages({
   invest_rule_notify: { en: 'Notify me', fr: 'M’avertir' },
   invest_rule_propose: { en: 'Propose an order', fr: 'Proposer un ordre' },
   invest_proposal_guarantee: {
-    en: 'Order proposals always require your approval. The bot never trades on its own.',
-    fr: 'Les propositions d’ordre exigent toujours votre approbation. Le robot ne transige jamais seul.',
+    en: 'Order proposals always require your approval. The agent never trades on its own.',
+    fr: 'Les propositions d’ordre exigent toujours votre approbation. L’agent ne transige jamais seul.',
   },
   invest_rule_severity: { en: 'Severity', fr: 'Importance' },
   invest_strategy_enabled: { en: 'Enabled', fr: 'Activée' },
@@ -336,16 +337,22 @@ export const investMessages = defineMessages({
   invest_strategy_disable: { en: 'Disable', fr: 'Désactiver' },
   invest_edit: { en: 'Edit', fr: 'Modifier' },
   invest_enabled_hint: {
-    en: 'Enabled — the bot evaluates this strategy on its schedule',
-    fr: 'Activée — le robot évalue cette stratégie selon son calendrier',
+    en: 'Enabled — the agent evaluates this strategy on its schedule',
+    fr: 'Activée — l’agent évalue cette stratégie selon son calendrier',
   },
   invest_rule_metric: { en: 'Metric', fr: 'Mesure' },
-  invest_rule_metric_day_change: { en: 'Day change %', fr: 'Variation quotidienne %' },
-  invest_rule_metric_vs_ma50: { en: 'Price vs 50-day avg %', fr: 'Cours vs moyenne 50 j %' },
-  invest_rule_metric_value_floor: { en: 'Position value below', fr: 'Valeur de position sous' },
-  invest_rule_metric_weight: { en: 'Book weight %', fr: 'Poids dans le portefeuille %' },
-  invest_rule_metric_gain: { en: 'Gain vs cost %', fr: 'Gain vs coût %' },
-  invest_rule_metric_cash: { en: 'Cash balance', fr: 'Solde de l’encaisse' },
+  invest_rule_metric_day_change: { en: 'Day change', fr: 'Variation du jour' },
+  invest_rule_metric_vs_ma50: {
+    en: 'Price vs 50-day average',
+    fr: 'Prix vs moyenne mobile 50 j',
+  },
+  invest_rule_metric_value_floor: { en: 'Position value', fr: 'Valeur de position' },
+  invest_rule_metric_weight: {
+    en: 'Portfolio weight',
+    fr: 'Poids dans le portefeuille',
+  },
+  invest_rule_metric_gain: { en: 'Gain vs cost', fr: 'Gain vs coût' },
+  invest_rule_metric_cash: { en: 'Cash balance', fr: 'Solde en espèces' },
   invest_cadence_label: { en: 'Scan cadence', fr: 'Fréquence d’analyse' },
   invest_cadence_daily: { en: 'Daily', fr: 'Quotidienne' },
   invest_cadence_weekly: { en: 'Weekly', fr: 'Hebdomadaire' },
@@ -363,8 +370,8 @@ export const investMessages = defineMessages({
   invest_template_badge: { en: 'Template', fr: 'Modèle' },
   invest_ai_title: { en: 'Describe it instead', fr: 'Décrire plutôt' },
   invest_ai_sub: {
-    en: 'Write the goal in plain words; the assistant drafts a reviewable strategy — nothing runs until you save and enable it.',
-    fr: 'Décrivez l’objectif en mots simples; l’assistant propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
+    en: 'Write the goal in plain words; Tally drafts a reviewable strategy — nothing runs until you save and enable it.',
+    fr: 'Décrivez l’objectif en mots simples ; Tally propose une stratégie à réviser — rien ne s’exécute avant votre enregistrement et activation.',
   },
   invest_ai_placeholder: {
     en: 'e.g. Warn me when a holding passes 25% of the book, and watch TSX ETFs for 8% dips',
@@ -412,6 +419,21 @@ export const investMessages = defineMessages({
   invest_news_empty: {
     en: 'No headlines yet — they arrive with the daily market sync and the Refresh prices button.',
     fr: 'Aucune manchette pour l’instant — elles arrivent avec la synchronisation quotidienne et le bouton Actualiser les cours.',
+  },
+  /* [FR self-authored] */
+  invest_news_more: {
+    en: 'Show all {count} headlines',
+    fr: 'Afficher les {count} manchettes',
+  },
+  /* [FR self-authored] */
+  invest_news_less: {
+    en: 'Show fewer',
+    fr: 'Réduire la liste',
+  },
+  /* [FR self-authored] */
+  invest_news_count: {
+    en: '{count} headlines',
+    fr: '{count} manchettes',
   },
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
@@ -484,9 +506,6 @@ export const investMessages = defineMessages({
     en: '{symbols} symbol(s) scanned · {signals} signal(s) · {proposals} proposal(s)',
     fr: '{symbols} symbole(s) analysé(s) · {signals} signal(s) · {proposals} proposition(s)',
   },
-  invest_run_scanned: { en: '{count} symbol(s) scanned', fr: '{count} symbole(s) analysé(s)' },
-  invest_run_duration: { en: '{seconds}s', fr: '{seconds} s' },
-  invest_run_sweep: { en: 'Bot sweep', fr: 'Balayage général' },
   invest_run_deleted_strategy: { en: 'deleted strategy', fr: 'stratégie supprimée' },
   invest_run_view_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   invest_time_now: { en: 'just now', fr: 'à l’instant' },
@@ -507,8 +526,8 @@ export const investMessages = defineMessages({
   },
   invest_scope_summary_watchlist: { en: 'All tracked symbols', fr: 'Tous les symboles suivis' },
   invest_strategies_empty: {
-    en: 'No strategies yet — the bot evaluates enabled strategies each day.',
-    fr: 'Aucune stratégie — le robot évalue chaque jour les stratégies activées.',
+    en: 'No strategies yet — the agent evaluates enabled strategies each day.',
+    fr: 'Aucune stratégie — l’agent évalue chaque jour les stratégies activées.',
   },
 
   /* Portal chrome */
@@ -560,4 +579,104 @@ export const investMessages = defineMessages({
     fr: 'Une erreur s’est produite. Veuillez réessayer.',
   },
   invest_loading: { en: 'Loading…', fr: 'Chargement…' },
+
+  /* Chat — the book assistant. Answers over the user's own rows (accounts,
+     positions, watchlist, signals, orders, strategies) and can record what
+     the user asks — watchlist changes, a QUEUED draft order, a signal
+     status, a strategy draft for review. Never investment advice; nothing
+     executes itself. [FR self-authored] */
+  invest_tab_chat: { en: 'Tally', fr: 'Tally' },
+  invest_chat_title: { en: 'Tally', fr: 'Tally' },
+  invest_chat_sub: {
+    en: 'The book’s watch clerk — ask about your positions or tell her what to record. She’s software, not a person or an advisor; never investment advice.',
+    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une conseillère ; jamais de conseil en placement.',
+  },
+  /* Her opening turn on an empty conversation — a hello, at most one thing
+     she noticed from the book, and a question. Built client-side from
+     InvestState so it costs no call and stays bilingual. [FR self-authored] */
+  invest_chat_hi: { en: 'Hi — I’m Tally, the book’s watch clerk.', fr: 'Bonjour — je suis Tally, la surveillante du carnet.' },
+  invest_chat_hi_watch: {
+    en: '{count} symbols are on the watchlist.',
+    fr: '{count} symboles sont sous surveillance.',
+  },
+  invest_chat_hi_orders: {
+    en: '{count} orders are queued waiting on you.',
+    fr: '{count} ordres attendent votre validation.',
+  },
+  invest_chat_hi_signals: {
+    en: '{count} open signals on the board.',
+    fr: '{count} signaux ouverts au tableau.',
+  },
+  invest_chat_hi_ask: {
+    en: 'What should the book record today?',
+    fr: 'Qu’est-ce que le carnet note aujourd’hui ?',
+  },
+  invest_chat_empty: {
+    en: 'Nothing yet. Try “what’s on my watchlist?” or “watch XEQT for me.”',
+    fr: 'Rien pour l’instant. Essayez « qu’est-ce que je surveille ? » ou « ajoute XEQT à ma liste ».',
+  },
+  invest_chat_placeholder: {
+    en: 'Ask Tally about the book, or tell her what to record…',
+    fr: 'Demandez à Tally sur le carnet, ou dites-lui quoi noter…',
+  },
+  invest_chat_send: { en: 'Send', fr: 'Envoyer' },
+  invest_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  invest_chat_error: {
+    en: 'That didn’t go through — try again.',
+    fr: 'Ça n’a pas fonctionné — réessayez.',
+  },
+  /* Confirmation chips under a reply that did something. The {name} slot is
+     the subject the action touched. [FR self-authored] */
+  invest_chat_did_watch: { en: 'Now watching “{name}”', fr: '« {name} » ajouté à la liste' },
+  invest_chat_did_unwatch: { en: '“{name}” removed from the watchlist', fr: '« {name} » retiré de la liste' },
+  invest_chat_did_order: { en: 'Draft order queued — {name}', fr: 'Ordre mis en file — {name}' },
+  invest_chat_did_signal: { en: 'Signal “{name}” updated', fr: 'Signal « {name} » mis à jour' },
+  invest_chat_did_strategy: { en: 'Strategy “{name}” filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
+  invest_chat_did_position: { en: 'Position logged — {name}', fr: 'Position notée — {name}' },
+  invest_chat_action_failed: {
+    en: 'That write didn’t save — the reply above still stands.',
+    fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
+  },
+  /* Undo on an action chip — reverses the write while it's still
+     reversible (a queued order untouched, a watch row, a signal status,
+     a filed draft); the chip then reads Undone. [FR self-authored] */
+  invest_chat_undo: { en: 'Undo', fr: 'Annuler' },
+  invest_chat_undone: { en: 'Undone', fr: 'Annulé' },
+  invest_chat_undo_failed: {
+    en: 'Couldn’t undo that — try again.',
+    fr: 'Impossible d’annuler — réessayez.',
+  },
+  /* Thumbs rating under an assistant reply — stored on the turn.
+     [FR self-authored] */
+  invest_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
+  invest_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Overview strip — one thing she noticed, built locally (no call).
+     [FR self-authored] */
+  invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },
+  invest_home_tally_orders: {
+    en: '{count} orders are queued waiting on you.',
+    fr: '{count} ordres attendent votre validation.',
+  },
+  invest_home_tally_signals: {
+    en: '{count} open signals on the board.',
+    fr: '{count} signaux ouverts au tableau.',
+  },
+  invest_home_tally_watch: {
+    en: 'Watching {count} symbols.',
+    fr: '{count} symboles sous surveillance.',
+  },
+  invest_home_tally_open: { en: 'Chat with Tally', fr: 'Discuter avec Tally' },
+  invest_seo_title_chat: { en: 'Tally — Dutiva Invest', fr: 'Tally — Dutiva Invest' },
+  invest_seo_desc_chat: {
+    en: 'Chat with Tally — the book’s watch clerk — about your own book data.',
+    fr: 'Discutez avec Tally — la surveillante du carnet — de vos propres données.',
+  },
 })
+
+/* The strategy-builder block lives in investStrategyBuilder.ts (this file
+   crossed the 800-line architecture budget); `investMessages` stays the
+   combined export so existing consumers keep one import. */
+export const investMessages = {
+  ...investCoreMessages,
+  ...investStrategyBuilderMessages,
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T06:44:28.137Z",
+  "generatedAt": "2026-10-09T02:54:52.922Z",
   "sources": [
     {
       "url": "https://www.ontario.ca/laws/statute/00e41",
@@ -19,7 +19,7 @@
     {
       "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/N-1.1",
       "status": "fetched",
-      "bytes": 828123
+      "bytes": 828553
     },
     {
       "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/C-12",
@@ -34,7 +34,7 @@
     {
       "url": "https://www.legisquebec.gouv.qc.ca/en/document/rc/N-1.1,%20r.%206",
       "status": "fetched",
-      "bytes": 44360
+      "bytes": 44361
     },
     {
       "url": "https://www.legisquebec.gouv.qc.ca/en/document/cs/F-1.1",
@@ -44,22 +44,22 @@
     {
       "url": "https://laws-lois.justice.gc.ca/eng/acts/L-2/",
       "status": "fetched",
-      "bytes": 1301331
+      "bytes": 1301332
     },
     {
       "url": "https://laws-lois.justice.gc.ca/eng/regulations/C.R.C.,_c._986/",
       "status": "fetched",
-      "bytes": 312270
+      "bytes": 312271
     },
     {
       "url": "https://laws-lois.justice.gc.ca/eng/acts/H-6/",
       "status": "fetched",
-      "bytes": 195782
+      "bytes": 195783
     },
     {
       "url": "https://laws-lois.justice.gc.ca/eng/acts/G-5/",
       "status": "fetched",
-      "bytes": 51212
+      "bytes": 51213
     },
     {
       "url": "https://www.ontario.ca/laws/regulation/010288",

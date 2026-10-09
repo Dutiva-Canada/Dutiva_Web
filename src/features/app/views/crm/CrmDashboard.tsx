@@ -32,7 +32,7 @@ export function CrmDashboard({ crm }: { readonly crm: UseCrmDataReturn }) {
   return (
     <div className="grid gap-[16px]">
       <div className="grid grid-cols-1 gap-[12px] sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label={x(M.crm_total_pipeline)} value={`$${pipeline.toLocaleString()}`} />
+        <StatCard label={x(M.crm_total_pipeline)} value={`$${pipeline.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}`} />
         <StatCard label={x(M.crm_open_deals)} value={String(openDeals.length)} />
         <StatCard label={x(M.crm_won_deals)} value={String(wonDeals.length)} />
         <StatCard label={x(M.crm_upcoming_followups)} value={String(upcoming.length)} />
@@ -54,7 +54,7 @@ export function CrmDashboard({ crm }: { readonly crm: UseCrmDataReturn }) {
                     {deal.title}
                   </span>
                   <span className="text-[13px] text-text-2">
-                    ${(deal.value ?? 0).toLocaleString()}
+                    ${(deal.value ?? 0).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                   </span>
                   <span className="rounded-[6px] bg-inset px-[8px] py-[3px] text-[11px] font-semibold text-text-2">
                     {x(M[`crm_stage_${deal.stage}` as keyof typeof M])}

@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    "This policy defines when AI-generated outputs on the Dutiva platform are reviewed by Dutiva personnel or flagged for human attention, the criteria that trigger review, the standards applied, response timelines, and how users are notified. This policy is part of Dutiva's responsible AI use framework.",
+    "This policy defines when AI-generated outputs on the Dutiva platform are reviewed by Dutiva personnel or flagged for human attention, the criteria that trigger review, the standards applied, response timelines, and how users are notified. This policy is part of Dutiva’s responsible AI use framework.",
   ],
   sections: [
     {
@@ -13,7 +13,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva's AI features — including Dutiva Advisor and the document generator — are designed to operate autonomously in most situations. However, Dutiva recognizes that AI outputs can cause harm if they are factually wrong, biased, unsafe, or used to make high-risk employment decisions without qualified review.",
+          text: "Dutiva’s AI features — including Dutiva Advisor and the document generator — are designed to operate autonomously in most situations. However, Dutiva recognizes that AI outputs can cause harm if they are factually wrong, biased, unsafe, or used to make high-risk employment decisions without qualified review.",
         },
         {
           type: 'p',
@@ -26,7 +26,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "The following types of content or interactions may trigger automatic escalation to Dutiva's content or safety review queue:",
+          text: "The following types of content or interactions may trigger automatic escalation to Dutiva’s content or safety review queue:",
         },
         {
           type: 'li',
@@ -59,7 +59,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Emailing support@dutiva.ca with the subject line 'AI Output Review Request', including a description of the output you believe is problematic and why. Do not include sensitive personal data beyond what is necessary to describe the issue.",
+          text: "Emailing support@dutiva.ca with the subject line ’AI Output Review Request’, including a description of the output you believe is problematic and why. Do not include sensitive personal data beyond what is necessary to describe the issue.",
         },
       ],
     },
@@ -68,7 +68,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Human review of escalated AI outputs is conducted by Dutiva personnel with appropriate knowledge of Canadian HR compliance, employment standards, and the platform's intended use cases. Reviewers apply the following standards:",
+          text: "Human review of escalated AI outputs is conducted by Dutiva personnel with appropriate knowledge of Canadian HR compliance, employment standards, and the platform’s intended use cases. Reviewers apply the following standards:",
         },
         {
           type: 'li',
@@ -84,7 +84,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Is the output consistent with Dutiva's Acceptable Use Policy, AI Usage Disclosure, and AI Risk Disclosure Framework?",
+          text: "Is the output consistent with Dutiva’s Acceptable Use Policy, AI Usage Disclosure, and AI Risk Disclosure Framework?",
         },
       ],
     },
@@ -127,7 +127,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "This policy governs Dutiva's internal review processes. It does not guarantee that every AI output error will be caught, escalated, or corrected. Users remain responsible for reviewing all AI-generated outputs before use and for seeking qualified professional advice for high-risk employment decisions.",
+          text: "This policy governs Dutiva’s internal review processes. It does not guarantee that every AI output error will be caught, escalated, or corrected. Users remain responsible for reviewing all AI-generated outputs before use and for seeking qualified professional advice for high-risk employment decisions.",
         },
         {
           type: 'p',

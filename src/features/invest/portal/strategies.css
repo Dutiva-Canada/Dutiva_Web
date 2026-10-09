@@ -1,0 +1,23 @@
+/**
+ * Strategy-builder surface — a scoped port of the approved redesign
+ * prototype's stylesheet. Everything sits under `.sb` so the palette and
+ * geometry stay inside /invest/strategies and never leak into the portal
+ * chrome or other tabs.
+ *
+ * Token drift vs .surface-app (deliberate, handoff rule: match the
+ * prototype): the prototype's gold accent replaces the workspace teal,
+ * surfaces use a warmer cream ramp, and headings are serif (the repo's
+ * --font-serif — Newsreader isn't shipped, Georgia is its own fallback).
+ * Resolved themes only: the provider always stamps data-theme="light|dark",
+ * so no `html:not([data-theme])` fallback block is needed here.
+ *
+ * The sheet is split into section partials under ./strategies/ for
+ * navigability; @import order preserves the original cascade
+ * (responsive last).
+ */
+
+@import './strategies/shell.css';
+@import './strategies/editor.css';
+@import './strategies/runs.css';
+@import './strategies/responsive.css';
+@import './strategies/pages.css';

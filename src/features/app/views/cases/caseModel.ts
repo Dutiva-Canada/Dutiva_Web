@@ -195,7 +195,7 @@ const intakeStatus = bi('Intake', 'Ouverture du dossier')
 
 const intakeSummary = bi(
   'Intake started — record the key facts and Advisor will assess risk and recommend next steps.',
-  'Ouverture du dossier — consignez les faits essentiels; le Conseiller évaluera le risque et recommandera les prochaines étapes.',
+  'Ouverture du dossier — consignez les faits essentiels ; le Conseiller évaluera le risque et recommandera les prochaines étapes.',
 )
 
 const intakeSteps: Bi[] = [

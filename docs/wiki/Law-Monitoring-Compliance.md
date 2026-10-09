@@ -39,7 +39,7 @@ The three systems form a pipeline: the **Law Change Monitor** watches legislatio
 ```mermaid
 flowchart LR
   subgraph LawMonitor["monitor-law-changes"]
-    PAGES["MONITORED_PAGES\n(43 pages × 14 jurisdictions)"]
+    PAGES["MONITORED_PAGES\n(19 pages × 14 jurisdictions)"]
     STRATS["Source strategies:\nhtml · justice-xml\nontario-api · quebec-ckan"]
   end
 
@@ -85,7 +85,7 @@ Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](), [src/features
 
 ## Law Change Monitor
 
-The `monitor-law-changes` edge function sweeps 43 legislation pages across all 14 Canadian jurisdictions on a nightly cron and records what it finds in two tables: `law_page_hashes` (current state per page) and `law_updates` (append-only event log). Four source strategies are used depending on what each government publishes: plain HTML hashing, the Ontario e-Laws API (`ontarioApi.ts`), Québec's CKAN dataset (`quebecCkan.ts`), and Justice Canada XML (`justiceXml.ts`).
+The `monitor-law-changes` edge function sweeps 19 legislation pages across all 14 Canadian jurisdictions on a nightly cron and records what it finds in two tables: `law_page_hashes` (current state per page) and `law_updates` (append-only event log). Four source strategies are used depending on what each government publishes: plain HTML hashing, the Ontario e-Laws API (`ontarioApi.ts`), Québec's CKAN dataset (`quebecCkan.ts`), and Justice Canada XML (`justiceXml.ts`).
 
 The monitor deliberately watches more jurisdictions than the product supports (ON, QC, FED). The customer-facing `GuidanceSourcesPanel` filters what users see — showing only supported jurisdictions — and the `monitoringCoverage.ts` module explicitly declares each jurisdiction's detection status as `active`, `unavailable`, or `unverified`. Staleness is detected by `updatesAreStale()`, which flags when no update has arrived for 7+ days.
 

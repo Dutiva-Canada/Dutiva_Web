@@ -39,7 +39,7 @@ const PRIORITY_TONE: Record<ProductionTaskPriority, 'neutral' | 'info' | 'warnin
 }
 
 export function TaskDetailProductionView() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { showToast } = useToasts()
   const { organizationId } = useWorkspaceMode()
   const { taskId } = useParams<{ taskId: string }>()
@@ -242,7 +242,7 @@ export function TaskDetailProductionView() {
                   >
                     {note.text}
                     <div className="mt-[4px] text-[11px] text-text-faint">
-                      {new Date(note.at).toLocaleString()}
+                      {new Date(note.at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                     </div>
                   </li>
                 ))}

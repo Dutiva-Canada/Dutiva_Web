@@ -1,11 +1,11 @@
 import type { PolicyEdition } from '../policyContent'
 
 export default {
-  title: "Politique sur le droit d'auteur",
+  title: "Politique sur le droit d’auteur",
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Cette politique décrit la propriété des droits d'auteur relatifs à la plateforme Dutiva Canada Inc. et aux contenus créés par nos utilisateurs. Elle explique également comment signaler une violation présumée du droit d'auteur.",
+    "Cette politique décrit la propriété des droits d’auteur relatifs à la plateforme Dutiva Canada Inc. et aux contenus créés par nos utilisateurs. Elle explique également comment signaler une violation présumée du droit d’auteur.",
   ],
   sections: [
     {
@@ -17,7 +17,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Le code source, l'architecture et les algorithmes sont la propriété exclusive de Dutiva",
+          text: "Le code source, l’architecture et les algorithmes sont la propriété exclusive de Dutiva",
         },
         {
           type: 'li',
@@ -25,7 +25,7 @@ export default {
         },
         {
           type: 'li',
-          text: "La mise en page, les designs d'interface et les éléments visuels sont protégés",
+          text: "La mise en page, les designs d’interface et les éléments visuels sont protégés",
         },
         {
           type: 'li',
@@ -34,7 +34,7 @@ export default {
       ],
     },
     {
-      title: "2. Droits de l'utilisateur sur ses entrées",
+      title: "2. Droits de l’utilisateur sur ses entrées",
       blocks: [
         {
           type: 'p',
@@ -42,7 +42,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Vous conservez la propriété de vos documents, textes et données d'entrée",
+          text: "Vous conservez la propriété de vos documents, textes et données d’entrée",
         },
         {
           type: 'li',
@@ -54,7 +54,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Dutiva n'utilise pas vos entrées pour entraîner nos modèles d'IA sans consentement explicite",
+          text: "Dutiva n’utilise pas vos entrées pour entraîner nos modèles d’IA sans consentement explicite",
         },
       ],
     },
@@ -67,7 +67,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Vous êtes propriétaire des documents générés par l'IA à partir de vos entrées",
+          text: "Vous êtes propriétaire des documents générés par l’IA à partir de vos entrées",
         },
         {
           type: 'li',
@@ -75,7 +75,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Vous êtes responsable de la vérification et de l'utilisation appropriée des documents générés",
+          text: "Vous êtes responsable de la vérification et de l’utilisation appropriée des documents générés",
         },
         {
           type: 'li',
@@ -84,11 +84,11 @@ export default {
       ],
     },
     {
-      title: "4. Signalement des violations de droit d'auteur (DMCA)",
+      title: "4. Signalement des violations de droit d’auteur (DMCA)",
       blocks: [
         {
           type: 'p',
-          text: "Si vous croyez qu'un contenu sur notre plateforme viole vos droits d'auteur, vous pouvez soumettre une notification de retrait conformément à la Loi sur le droit d'auteur du Canada.",
+          text: "Si vous croyez qu’un contenu sur notre plateforme viole vos droits d’auteur, vous pouvez soumettre une notification de retrait conformément à la Loi sur le droit d’auteur du Canada.",
         },
         {
           type: 'li',
@@ -96,7 +96,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Incluez : identification de l'œuvre protégée, identification du contenu présumément contrefait, vos coordonnées, déclaration de bonne foi",
+          text: "Incluez : identification de l’œuvre protégée, identification du contenu présumément contrefait, vos coordonnées, déclaration de bonne foi",
         },
         {
           type: 'li',

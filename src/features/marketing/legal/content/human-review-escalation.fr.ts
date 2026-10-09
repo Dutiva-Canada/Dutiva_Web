@@ -1,23 +1,23 @@
 import type { PolicyEdition } from '../policyContent'
 
 export default {
-  title: "Politique d'escalade vers la révision humaine",
+  title: "Politique d’escalade vers la révision humaine",
   lastUpdated: '1 juin 2026',
   effectiveDate: '1 juin 2026',
   callout: [
-    "Dutiva Canada Inc. maintient une politique d'escalade vers la révision humaine pour examiner les sorties de l'intelligence artificielle dans des situations spécifiques. Cette politique assure la qualité et la sûreté des contenus générés.",
+    "Dutiva Canada Inc. maintient une politique d’escalade vers la révision humaine pour examiner les sorties de l’intelligence artificielle dans des situations spécifiques. Cette politique assure la qualité et la sûreté des contenus générés.",
   ],
   sections: [
     {
-      title: "1. Quand l'escalade a lieu",
+      title: "1. Quand l’escalade a lieu",
       blocks: [
         {
           type: 'p',
-          text: "Certains résultats de l'IA sont automatiquement ou manuellement escaladés vers un examen humain pour garantir leur qualité et leur conformité.",
+          text: "Certains résultats de l’IA sont automatiquement ou manuellement escaladés vers un examen humain pour garantir leur qualité et leur conformité.",
         },
         {
           type: 'li',
-          text: "Signalement par l'utilisateur d'un contenu problématique ou douteux",
+          text: "Signalement par l’utilisateur d’un contenu problématique ou douteux",
         },
         {
           type: 'li',
@@ -29,7 +29,7 @@ export default {
         },
         {
           type: 'li',
-          text: "Requêtes inhabituelles ou hors du domaine de compétence normal de l'IA",
+          text: "Requêtes inhabituelles ou hors du domaine de compétence normal de l’IA",
         },
       ],
     },
@@ -38,11 +38,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Les critères suivants déterminent si une sortie de l'IA doit être examinée par un être humain.",
+          text: "Les critères suivants déterminent si une sortie de l’IA doit être examinée par un être humain.",
         },
         {
           type: 'li',
-          text: "Drapeau utilisateur : l'utilisateur marque explicitement le contenu pour révision",
+          text: "Drapeau utilisateur : l’utilisateur marque explicitement le contenu pour révision",
         },
         {
           type: 'li',
@@ -71,11 +71,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Vérification de l'exactitude factuelle et juridique du contenu",
+          text: "Vérification de l’exactitude factuelle et juridique du contenu",
         },
         {
           type: 'li',
-          text: "Évaluation de la pertinence et de l'adéquation au contexte canadien",
+          text: "Évaluation de la pertinence et de l’adéquation au contexte canadien",
         },
         {
           type: 'li',
@@ -83,11 +83,11 @@ export default {
         },
         {
           type: 'li',
-          text: "Validation de l'absence de biais discriminatoires ou de contenu inapproprié",
+          text: "Validation de l’absence de biais discriminatoires ou de contenu inapproprié",
         },
         {
           type: 'li',
-          text: "Documentation des décisions pour l'amélioration continue des modèles",
+          text: "Documentation des décisions pour l’amélioration continue des modèles",
         },
       ],
     },
@@ -96,11 +96,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "Dutiva s'engage à traiter les demandes d'escalade dans des délais raisonnables.",
+          text: "Dutiva s’engage à traiter les demandes d’escalade dans des délais raisonnables.",
         },
         {
           type: 'li',
-          text: "Accusé de réception automatique dans l'heure suivant le signalement",
+          text: "Accusé de réception automatique dans l’heure suivant le signalement",
         },
         {
           type: 'li',
@@ -117,15 +117,15 @@ export default {
       ],
     },
     {
-      title: "5. Notification à l'utilisateur",
+      title: "5. Notification à l’utilisateur",
       blocks: [
         {
           type: 'p',
-          text: "Les utilisateurs sont informés du statut et des résultats du processus d'escalade.",
+          text: "Les utilisateurs sont informés du statut et des résultats du processus d’escalade.",
         },
         {
           type: 'li',
-          text: "Notification de réception de la demande d'escalade",
+          text: "Notification de réception de la demande d’escalade",
         },
         {
           type: 'li',

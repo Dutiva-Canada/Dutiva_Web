@@ -16,10 +16,10 @@ export const advisorViewMessages = defineMessages({
   /* ── Advisor home (empty state) ─────────────────────────────────────────── */
   advisorview_greeting: { en: 'Good to see you, Riley.', fr: 'Bonjour, Riley.' },
   advisorview_digest_sub: {
-    en: "Here's what Advisor noticed since yesterday.",
+    en: "Here’s what Advisor noticed since yesterday.",
     fr: 'Voici ce que le Conseiller a remarqué depuis hier.',
   },
-  advisorview_daily_brief: { en: "Advisor's daily brief", fr: 'Bilan quotidien du Conseiller' },
+  advisorview_daily_brief: { en: "Advisor’s daily brief", fr: 'Bilan quotidien du Conseiller' },
   /* Watch-list title — the priorities are rendered as conversation starters
      (each row's ask prompt), not as Home's action queue. Matches the brief's
      "signals are on my radar" phrasing. [FR self-authored] */
@@ -50,7 +50,7 @@ export const advisorViewMessages = defineMessages({
      ({title} is the record's own title, not translated). */
   advisorview_prod_ask_item: {
     en: 'Catch me up on {title} — what should I do next?',
-    fr: 'Fais le point sur {title} — que devrais-je faire ensuite?', // [FR self-authored]
+    fr: 'Fais le point sur {title} — que devrais-je faire ensuite ?', // [FR self-authored]
   },
   advisorview_composer_msg: { en: 'Message Advisor…', fr: 'Écrire au Conseiller…' },
 
@@ -93,6 +93,8 @@ export const advisorViewMessages = defineMessages({
   /* ── Transcript chrome ──────────────────────────────────────────────────── */
   advisorview_copy: { en: 'Copy', fr: 'Copier' },
   advisorview_export: { en: 'Export', fr: 'Exporter' },
+  advisorview_rate_up: { en: 'Helpful', fr: 'Utile' },
+  advisorview_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
   advisorview_generate: { en: 'Generate', fr: 'Générer' }, // [FR self-authored]
 
   /* Escalation toast (prototype `handleFollowup` → pushToast). */
@@ -117,11 +119,11 @@ export const advisorViewMessages = defineMessages({
      invite a second refusal. `{wait}` is filled from the server's Retry-After
      by usageLimitReply() in ../../features/app/advisor/usageLimit.ts. */
   advisorview_usage_limit_personal: {
-    en: "You've hit the beta Advisor limit — back in about {wait}. Everything else in Dutiva still works.",
+    en: "You’ve hit the beta Advisor limit — back in about {wait}. Everything else in Dutiva still works.",
     fr: 'Vous avez atteint la limite bêta du Conseiller — de retour dans environ {wait}. Tout le reste de Dutiva fonctionne encore.', // [FR self-authored]
   },
   advisorview_usage_limit_platform: {
-    en: "Advisor's at its beta-wide limit — back in about {wait}. On us. Rest of Dutiva still works.",
+    en: "Advisor’s at its beta-wide limit — back in about {wait}. On us. Rest of Dutiva still works.",
     fr: 'Le Conseiller a atteint son plafond pour toute la bêta — de retour dans environ {wait}. C’est de notre côté. Le reste de Dutiva fonctionne encore.', // [FR self-authored]
   },
   advisorview_usage_wait_minute: { en: 'a minute', fr: 'une minute' }, // [FR self-authored]
@@ -130,7 +132,7 @@ export const advisorViewMessages = defineMessages({
   advisorview_usage_wait_hours: { en: '{count} hours', fr: '{count} heures' }, // [FR self-authored]
 
   advisorview_usage_limit_commercial: {
-    en: "You've used this month's {included} included Advisor replies. Packs of {pack50} are ${price50} CAD, or {pack200} for ${price200} CAD. Packs are not a plan feature — paying for a plan still buys support, not extra modules.",
+    en: "You’ve used this month’s {included} included Advisor replies. Packs of {pack50} are ${price50} CAD, or {pack200} for ${price200} CAD. Packs are not a plan feature — paying for a plan still buys support, not extra modules.",
     fr: 'Vous avez utilisé les {included} réponses du Conseiller incluses ce mois-ci. Un forfait de {pack50} réponses coûte {price50} $ CA, ou {pack200} pour {price200} $ CA. Ces forfaits ne sont pas une fonction d’abonnement — payer un forfait achète du soutien, pas des modules supplémentaires.', // [FR self-authored]
   },
   advisorview_pack_buy_heading: {
@@ -156,7 +158,7 @@ export const advisorViewMessages = defineMessages({
      public sources, never model-generated. Single literals on purpose — the
      maintained sentence must stay greppable in full. */
   advisorview_crisis_support: {
-    en: "I'm really sorry you're going through this — thank you for saying it here. What you're feeling matters, and you don't have to carry it alone. It can help to step back for a moment and talk to someone you trust — a friend, a family member, your doctor, or an employee assistance program if one is available to you. If you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I'm here when you're ready to continue, at whatever pace works for you.",
+    en: "I’m really sorry you’re going through this — thank you for saying it here. What you’re feeling matters, and you don’t have to carry it alone. It can help to step back for a moment and talk to someone you trust — a friend, a family member, your doctor, or an employee assistance program if one is available to you. If you ever feel you might be in crisis, please contact 9-8-8 — the Suicide Crisis Helpline, available 24/7 by call or text. I’m here when you’re ready to continue, at whatever pace works for you.",
     fr: 'Je suis vraiment désolé que vous traversiez cela — merci de l’avoir dit ici. Ce que vous ressentez compte, et vous n’avez pas à porter tout cela sans soutien. Il peut être utile de prendre un moment de recul et de parler à une personne de confiance — un ami, un proche, votre médecin, ou un programme d’aide aux employés si vous y avez accès. Si vous sentez que vous pourriez être en crise, veuillez contacter le 9-8-8 — la Ligne d’aide en cas de crise de suicide, offerte 24 h sur 24, 7 jours sur 7, par appel ou texto. Je suis là quand vous voudrez continuer, à votre rythme.', // [FR self-authored]
   },
   advisorview_crisis_thread_title: { en: 'Support', fr: 'Soutien' }, // [FR self-authored]

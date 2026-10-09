@@ -13,7 +13,10 @@ to run it), [AGENTS.md](../AGENTS.md) (AI coding agents start here),
 | Document                         | What it settles                                                                                                                                  |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [wiki/README.md](wiki/README.md) | **In-repo mirror** of the [GitHub wiki](https://github.com/Dutiva-Canada/Dutiva_Web/wiki) — how to sync, and how this folder relates to `docs/`. |
-| [wiki/Home.md](wiki/Home.md)     | Platform overview: three surfaces, tech stack, module index. Start here for the big picture.                                                     |
+| [wiki/Home.md](wiki/Home.md)     | Platform overview: marketing + workspace + standalone portals, tech stack, module index. Start here for the big picture.                          |
+| [wiki/Portal-Assistants.md](wiki/Portal-Assistants.md) | Mira (`/health`), Paige (`/pr`), Tally (`/invest`) — portal shells, access grants, edge-function APIs, safety postures.                      |
+| [wiki/Chat-Widgets.md](wiki/Chat-Widgets.md) | `dutiva-widget` fenced-block protocol, widget types, feature flags, showcase routes. See also [chat-widgets/README.md](chat-widgets/README.md). |
+| [wiki/Advisor-Evaluation-Statute-Drift.md](wiki/Advisor-Evaluation-Statute-Drift.md) | Golden evaluation (64 cases), statute registry, corpus snapshot, and the network-bound drift checker.                                         |
 
 The wiki is copied from `Dutiva_Web.wiki` via `npm run wiki:sync`. Edit the GitHub wiki (or this mirror and `npm run wiki:sync -- --push`), then sync into the main repo when publishing.
 
@@ -66,6 +69,8 @@ govern what the product is allowed to assert.
 | [advisor-guidance-corpus-2026-07-26.md](advisor-guidance-corpus-2026-07-26.md) | Grounding corpus seed — ON/QC/FED termination notice. Machine-curated, pending human review.                                                                                                         |
 | [advisor-guidance-corpus-2026-07-27.md](advisor-guidance-corpus-2026-07-27.md) | Second tranche — leaves, public holidays, hours of work, accommodation.                                                                                                                              |
 | [advisor-guidance-corpus-2026-07-29.md](advisor-guidance-corpus-2026-07-29.md) | Third tranche — pay & deductions, records retention, layoffs & recall, constructive dismissal, workplace injury.                                                                                     |
+| [advisor-guidance-corpus-2026-08-04.md](advisor-guidance-corpus-2026-08-04.md) | Fourth tranche — the amendment batch recorded as blocked in the 2026-08-02 verification cycle; the block was environmental (egress proxy), not substantive.                                        |
+| [advisor-corpus-verification-2026-08-02.md](advisor-corpus-verification-2026-08-02.md) | Corpus verification cycle record — outcome: BLOCKED, zero chunk changes. Documents the discipline: stop rather than guess when official sources are unreachable.                                |
 
 Editorial rule for public articles — no statutory figures, ever — is stated in
 `src/features/marketing/articles/articleModel.ts` and enforced by
@@ -87,8 +92,12 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)         | How the live Supabase schema is tracked against the repo.                                                                                                   |
 | [DATABASE_STRUCTURE.md](DATABASE_STRUCTURE.md)   | Generated map of the live DB — every table, RLS flag, policy, function, trigger, cron job — plus the replication recipe. Regenerate: `npm run db:document`. |
 | [MIGRATION_LEDGER.md](MIGRATION_LEDGER.md)       | Known migration filename exceptions (e.g. applied duplicate `0024`).                                                                                        |
+| [../supabase/legacy-migrations/README.md](../supabase/legacy-migrations/README.md) | Archive notice for the six pre-repo SQL files recovered from a separate Supabase CLI project — kept for audit, **do not run**.                          |
+| [../services/attachment-scanner/README.md](../services/attachment-scanner/README.md) | The ClamAV malware-scan endpoint behind `SUPPORT_ATTACHMENT_SCAN_URL` (TODO OA5) — one dependency-free Node container.                                    |
 | [DATA_MODEL.md](DATA_MODEL.md)                   | HR Documents Library data model, transcribed from the handoff.                                                                                              |
 | [AUTH_MAGIC_LINK.md](AUTH_MAGIC_LINK.md)         | Magic-link sign-in and the Supabase configuration it needs.                                                                                                 |
+| [AUTH_EMAIL_TEMPLATES.md](AUTH_EMAIL_TEMPLATES.md) | Auth email templates live in project config (not migrations) — the one-command Management API apply (`npm run auth:email-templates`) and the link-scanner fix (`{{ .Token }}` fallback code). |
+| [ORGANIZATION_CAPACITY.md](ORGANIZATION_CAPACITY.md) | Controlled admission: org-count capacity limit and admission mode from a single config row, changed without deploy.                                        |
 | [LOCAL_ENDPOINTS.md](LOCAL_ENDPOINTS.md)         | Operator runbook: pointing Advisor routes at a self-hosted OpenAI-compatible endpoint (Ollama, LM Studio, vLLM) — reachability, `/v1`, secrets, rollback.   |
 | [FS_ACCESS_MODELS.md](FS_ACCESS_MODELS.md)       | The File System Access prototype: importing on-device model files from a user-picked drive/folder — layout, permissions, and what it deliberately is not.   |
 | [SELF_HOSTING.md](SELF_HOSTING.md)               | Self-host runbook: `deploy/self-host/` web bundle + compose, Supabase cloud vs self-hosted backend, env surface, and what still points outside.             |
@@ -128,6 +137,19 @@ Editorial rule for public articles — no statutory figures, ever — is stated 
 | [SUPPORT_RUNBOOK.md](SUPPORT_RUNBOOK.md)                 | Operating support solo, in structured review blocks.                                 |
 | [SUPPORT_CALL_SCHEDULING.md](SUPPORT_CALL_SCHEDULING.md) | Propose/confirm/remind/follow-up for scheduled calls, and the Google Calendar setup. |
 | [SUPPORT_ANALYTICS.md](SUPPORT_ANALYTICS.md)             | Support funnel analytics: privacy model, data schema, and how to query the data.     |
+| [oa12-gcp-calendar-cleanup.md](oa12-gcp-calendar-cleanup.md) | OA12 owner action — delete the idle Google Calendar GCP project; calendar sync was deliberately abandoned 2026-08-07 (propose/confirm still works). |
+
+## Feature specs
+
+| Document                                       | What it settles                                                                                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [chat-widgets/README.md](chat-widgets/README.md) | The `dutiva-widget` fenced-block spec every chatbot shares — typed widget schema, supported types, feature flags.                                |
+
+## Assessments
+
+| Document                                  | What it settles                                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ASSESSMENT/](ASSESSMENT/)                | Open-source / open-core feasibility reads: architecture boundary, dependency-licence audit, IP and data boundary, public-release security audit. Advisory — no decision shipped from these alone. |
 
 ## Consumer product family
 
@@ -142,6 +164,14 @@ they produced (AGENTS.md § Design handoffs):
 
 - [design-handoff-hr-documents-library/](design-handoff-hr-documents-library/) — Document Studio, template detail, repository, generate wizard.
 - [design-handoff-advisor-chat/](design-handoff-advisor-chat/) — Advisor response experience, memory, engineering roadmap. Its `AGENT.md` is the contract for how the Advisor communicates.
+- [design-handoff-analytics/](design-handoff-analytics/) — Analytics dashboard and score presentation.
+- [design-handoff-business-functions/](design-handoff-business-functions/) — Business-function agent surfaces.
+- [design-handoff-careers/](design-handoff-careers/) — Candidate portal.
+- [design-handoff-comms-platform/](design-handoff-comms-platform/) — Communications workspace (single `.docx` spec — no README).
+- [design-handoff-invest-strategies/](design-handoff-invest-strategies/) — Invest strategy builder.
+- [design-handoff-t01-offer-letter-on/](design-handoff-t01-offer-letter-on/) — T01 offer letter (Ontario).
+- [design-handoff-t02-employment-agreement-on/](design-handoff-t02-employment-agreement-on/) — T02 employment agreement (Ontario).
+- [design-handoff-t04-employee-handbook-on/](design-handoff-t04-employee-handbook-on/) — T04 employee handbook (Ontario).
 
 ## Adding a document
 

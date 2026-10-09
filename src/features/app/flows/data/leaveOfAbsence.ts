@@ -35,7 +35,7 @@ export const leaveOfAbsenceFlow: Flow = {
     {
       id: 'which',
       kind: 'choice',
-      title: bi('What kind of leave is this?', 'De quel type de congé s’agit-il?'),
+      title: bi('What kind of leave is this?', 'De quel type de congé s’agit-il ?'),
       body: bi(
         'Name the leave as your employment standards act names it. That name decides the protections, the evidence you may ask for, whether any of it is paid, and what you owe on the return.',
         'Nommez le congé comme le fait votre loi sur les normes du travail. Cette appellation détermine les protections, la preuve exigible, le caractère rémunéré ou non et vos obligations au retour.',

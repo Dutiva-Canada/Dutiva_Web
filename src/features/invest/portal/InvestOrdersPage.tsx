@@ -1,3 +1,4 @@
+import './strategies.css'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Info, Loader2, Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -13,16 +14,16 @@ import {
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
+import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
 
-const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
-const fieldClass =
-  'h-[38px] w-full rounded-[9px] border border-border bg-bg px-[11px] text-[13px] text-text outline-none focus:border-navy'
-const labelClass = 'mb-[4px] block text-[11.5px] font-semibold text-text-2'
-const btnClass =
-  'inline-flex min-h-[44px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border-none bg-navy px-[14px] text-[13px] font-semibold text-white disabled:opacity-50'
+const cardClass = 'sb-card sb-card-pad'
+const fieldClass = 'sb-input'
+const labelClass = 'sb-flabel'
+const btnClass = 'sb-btn sb-btn-primary'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -57,6 +58,7 @@ export function InvestOrdersPage() {
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
+  const [tallyLine, setTallyLine] = useState<string | null>(null)
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -73,53 +75,70 @@ export function InvestOrdersPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-[24px]">
-      <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
-        {x(IM.invest_orders_title)}
-      </h1>
+    <div className="sb sb-page">
+      <div className="sb-head-row">
+        <h1>{x(IM.invest_orders_title)}</h1>
+      </div>
       {error && (
-        <p role="alert" className="m-0 text-[12.5px] text-risk-fg">
+        <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}
         </p>
       )}
 
-      <div className="flex items-start gap-[8px] rounded-[12px] border border-border bg-surface px-[14px] py-[11px] text-[12px] leading-normal text-text-muted">
-        <Info size={15} strokeWidth={1.7} className="mt-px shrink-0" aria-hidden="true" />
+      <div className="sb-note">
+        <Info size={16} strokeWidth={1.7} aria-hidden="true" />
         <span>{x(IM.invest_live_note)}</span>
       </div>
 
       {state.accounts.length > 0 && (
-        <section className={cardClass}>
+        <section className={cardClass} style={{ marginBottom: 16 }}>
           <OrderForm
             busy={busy}
             accounts={state.accounts}
-            onCreate={(input) => run(() => createOrder(input))}
+            onCreate={(input) =>
+              run(async () => {
+                await createOrder(input)
+                /* Tally notices — best-effort: a throttled or failed
+                   reaction returns null and never disturbs the save. Her
+                   line also lands in the chat thread. */
+                sendInvestReaction(
+                  { type: 'order_queued', symbol: input.symbol, side: input.side, quantity: input.quantity },
+                  lang,
+                  setTallyLine,
+                )
+                  .then((r) => {
+                    if (r.reply) setTallyLine(r.reply)
+                  })
+                  .catch(() => {})
+              })
+            }
           />
+          {tallyLine && <TallyNote line={tallyLine} />}
         </section>
       )}
 
       <section className={cardClass}>
         {state.orders.length === 0 ? (
-          <p className="m-0 text-[12.5px] text-text-muted">{x(IM.invest_orders_empty)}</p>
+          <p className="sb-empty" style={{ marginTop: 0 }}>{x(IM.invest_orders_empty)}</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] border-collapse text-left text-[12.5px]">
+          <div className="sb-table-wrap">
+            <table className="sb-table">
               <thead>
-                <tr className="border-b border-border text-[11px] font-semibold uppercase tracking-[0.05em] text-text-muted">
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_field_symbol)}</th>
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_order_side)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_field_quantity)}</th>
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_order_type)}</th>
-                  <th className="py-[8px] pr-[12px]">{x(IM.invest_order_status)}</th>
-                  <th className="py-[8px] pr-[12px] text-right">{x(IM.invest_order_fill_price)}</th>
-                  <th className="py-[8px]" />
+                <tr>
+                  <th>{x(IM.invest_field_symbol)}</th>
+                  <th>{x(IM.invest_order_side)}</th>
+                  <th className="num">{x(IM.invest_field_quantity)}</th>
+                  <th>{x(IM.invest_order_type)}</th>
+                  <th>{x(IM.invest_order_status)}</th>
+                  <th className="num">{x(IM.invest_order_fill_price)}</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -160,38 +179,38 @@ function OrderRow({
   const actionable = o.status === 'queued' || o.status === 'draft'
 
   return (
-    <tr className="border-b border-border/60">
-      <td className="py-[9px] pr-[12px]">
-        <span className="font-semibold text-text">{o.symbol}</span>
-        <span className="ml-[6px] text-[11px] text-text-muted">
+    <tr>
+      <td>
+        <span className="strong">{o.symbol}</span>
+        <span className="dim" style={{ marginLeft: 6 }}>
           {x(o.mode === 'paper' ? IM.invest_mode_paper : IM.invest_mode_live)}
         </span>
       </td>
-      <td className="py-[9px] pr-[12px] text-text-2">
-        {x(o.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)}
-      </td>
-      <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">{o.quantity}</td>
-      <td className="py-[9px] pr-[12px] text-text-2">
+      <td>{x(o.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)}</td>
+      <td className="num">{o.quantity}</td>
+      <td>
         {x(o.orderType === 'market' ? IM.invest_order_market : IM.invest_order_limit)}
         {o.limitPrice !== null && ` · ${fmt.format(o.limitPrice)}`}
       </td>
-      <td className="py-[9px] pr-[12px]">
+      <td>
         <StatusChip status={o.status} />
         {(o.status === 'draft' || o.status === 'expired') && relTimeLabel(o.createdAt, x) && (
-          <p className="m-0 mt-[2px] text-[10.5px] text-text-muted">
+          <p className="dim" style={{ margin: '2px 0 0' }}>
             {fillSlots(x(IM.invest_order_proposed), { ago: relTimeLabel(o.createdAt, x) ?? '' })}
           </p>
         )}
         {o.error && (
-          <p className="m-0 mt-[2px] max-w-[180px] text-[10.5px] text-risk-fg">{o.error}</p>
+          <p className="dim" style={{ margin: '2px 0 0', color: 'var(--sb-danger)', maxWidth: 180 }}>
+            {o.error}
+          </p>
         )}
       </td>
-      <td className="py-[9px] pr-[12px] text-right tabular-nums text-text-2">
+      <td className="num">
         {o.executedPrice !== null ? fmt.format(o.executedPrice) : '—'}
       </td>
-      <td className="py-[9px]">
+      <td>
         {actionable && (
-          <span className="flex items-center justify-end gap-[6px]">
+          <span className="sb-row-actions">
             {o.mode === 'live' && (
               <input
                 type="number"
@@ -200,14 +219,14 @@ function OrderRow({
                 value={fill}
                 onChange={(e) => setFill(e.target.value)}
                 placeholder={x(IM.invest_order_fill_price)}
-                className="h-[38px] w-[90px] rounded-[7px] border border-border bg-bg px-[8px] text-[12px] text-text outline-none focus:border-navy"
+                className="sb-input sb-input-sm"
               />
             )}
             <button
               type="button"
               disabled={busy || (o.mode === 'live' && !fill)}
               onClick={() => void onExecute(o.mode === 'live' ? Number(fill) : undefined)}
-              className="min-h-[44px] cursor-pointer rounded-[7px] border-none bg-navy px-[12px] text-[12px] font-semibold text-white disabled:opacity-50"
+              className="sb-btn sb-btn-primary sb-btn-sm"
             >
               {x(IM.invest_mark_executed)}
             </button>
@@ -215,7 +234,7 @@ function OrderRow({
               type="button"
               disabled={busy}
               onClick={() => void onCancel()}
-              className="min-h-[44px] cursor-pointer rounded-[7px] border border-border bg-transparent px-[12px] text-[12px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+              className="sb-btn sb-btn-secondary sb-btn-sm"
             >
               {x(IM.invest_cancel_order)}
             </button>
@@ -230,17 +249,11 @@ function StatusChip({ status }: { status: OrderStatus }) {
   const { x } = useI18n()
   const tone =
     status === 'executed'
-      ? 'bg-gold-bg text-gold-fg'
+      ? 'sb-pill-ok'
       : status === 'failed' || status === 'cancelled' || status === 'expired'
-        ? 'bg-inset text-text-muted'
-        : 'bg-surface text-text-2 border border-border'
-  return (
-    <span
-      className={`inline-block rounded-full px-[8px] py-[2px] text-[10.5px] font-semibold ${tone}`}
-    >
-      {x(IM[statusLabel[status]])}
-    </span>
-  )
+        ? 'sb-pill-fail'
+        : 'sb-pill-warn'
+  return <span className={`sb-pill ${tone}`}>{x(IM[statusLabel[status]])}</span>
 }
 
 function OrderForm({
@@ -291,8 +304,9 @@ function OrderForm({
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-wrap items-end gap-[10px]">
-      <div className="min-w-[130px]">
+    <form onSubmit={submit}>
+      <div className="sb-form-grid">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-acc">
           {x(IM.invest_accounts_title)}
         </label>
@@ -309,7 +323,7 @@ function OrderForm({
           ))}
         </select>
       </div>
-      <div className="w-[120px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-class">
           {x(IM.invest_field_asset_class)}
         </label>
@@ -326,7 +340,7 @@ function OrderForm({
           ))}
         </select>
       </div>
-      <div className="w-[100px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-symbol">
           {x(IM.invest_field_symbol)}
         </label>
@@ -338,7 +352,7 @@ function OrderForm({
           required
         />
       </div>
-      <div className="w-[90px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-side">
           {x(IM.invest_order_side)}
         </label>
@@ -352,7 +366,7 @@ function OrderForm({
           <option value="sell">{x(IM.invest_order_sell)}</option>
         </select>
       </div>
-      <div className="w-[90px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-qty">
           {x(IM.invest_field_quantity)}
         </label>
@@ -367,7 +381,7 @@ function OrderForm({
           required
         />
       </div>
-      <div className="w-[110px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-type">
           {x(IM.invest_order_type)}
         </label>
@@ -382,7 +396,7 @@ function OrderForm({
         </select>
       </div>
       {orderType === 'limit' && (
-        <div className="w-[110px]">
+        <div className="sb-field">
           <label className={labelClass} htmlFor="inv-ord-limit">
             {x(IM.invest_order_limit_price)}
           </label>
@@ -398,7 +412,7 @@ function OrderForm({
           />
         </div>
       )}
-      <div className="w-[100px]">
+      <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-mode">
           {x(IM.invest_account_kind)}
         </label>
@@ -412,14 +426,17 @@ function OrderForm({
           <option value="live">{x(IM.invest_mode_live)}</option>
         </select>
       </div>
-      <button
-        type="submit"
-        disabled={busy || !accountId || !symbol.trim() || !quantity}
-        className={btnClass}
-      >
-        <Plus size={14} aria-hidden="true" />
-        {x(IM.invest_new_order)}
-      </button>
+      <div className="sb-form-actions">
+        <button
+          type="submit"
+          disabled={busy || !accountId || !symbol.trim() || !quantity}
+          className={btnClass}
+        >
+          <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          {x(IM.invest_new_order)}
+        </button>
+      </div>
+      </div>
     </form>
   )
 }

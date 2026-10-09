@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") keeps personal information and Customer Data only as long as needed to provide, secure, support, and administer the Dutiva service; meet legal, tax, accounting, security, audit, and dispute-resolution obligations; and maintain accurate business records.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) keeps personal information and Customer Data only as long as needed to provide, secure, support, and administer the Dutiva service; meet legal, tax, accounting, security, audit, and dispute-resolution obligations; and maintain accurate business records.',
     'This Policy explains how Dutiva approaches retention, deletion, anonymization, backups, account deletion, and privacy requests. It should be read with the Privacy Policy, Terms of Service, Data Processing Agreement, Cookie Policy, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms.',
     'Retention periods may vary depending on the type of information, the customer’s configuration, legal requirements, product functionality, security needs, and whether the information is controlled by an individual user, an organization, or Dutiva.',
   ],

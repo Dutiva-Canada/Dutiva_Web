@@ -64,7 +64,7 @@ const RECALL_TURNS: RecallTurn[] = [
     kind: 'user',
     text: bi(
       'Any update on where we landed with Jordan’s notice?',
-      'Du nouveau sur où nous en sommes avec le préavis de Jordan?',
+      'Du nouveau sur où nous en sommes avec le préavis de Jordan ?',
     ),
   },
   {
@@ -94,7 +94,7 @@ const RECALL_TURNS: RecallTurn[] = [
     kind: 'user',
     text: bi(
       'Remind me why common-law and not just the ESA minimum?',
-      'Rappelez-moi pourquoi la common law et pas seulement le minimum de la LNE?',
+      'Rappelez-moi pourquoi la common law et pas seulement le minimum de la LNE ?',
     ),
   },
   {

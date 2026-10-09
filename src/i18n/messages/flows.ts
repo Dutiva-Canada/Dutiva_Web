@@ -37,7 +37,7 @@ export const flowsMessages = defineMessages({
   flows_restart: { en: 'Start over', fr: 'Recommencer' },
   flows_restart_confirm: {
     en: 'Start this process over? Your answers so far will be cleared.',
-    fr: 'Recommencer ce processus? Vos réponses jusqu’ici seront effacées.', // [FR self-authored]
+    fr: 'Recommencer ce processus ? Vos réponses jusqu’ici seront effacées.', // [FR self-authored]
   },
   flows_step_of: { en: 'Step', fr: 'Étape' },
   flows_step_of_sep: { en: 'of', fr: 'sur' }, // [FR self-authored]

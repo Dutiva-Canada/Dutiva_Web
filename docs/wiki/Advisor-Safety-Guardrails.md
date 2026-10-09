@@ -96,7 +96,7 @@ The crisis intercept is the highest-priority safety rule. It detects first-perso
 
 ### How It Works
 
-`detectCrisisSignal` in [src/features/app/advisor/safety/crisisSignals.ts:74-78]() normalizes the input via `normalizeText()` and checks for substring matches against `CRISIS_PHRASES` — 35 phrases covering English and French:
+`detectCrisisSignal` in [src/features/app/advisor/safety/crisisSignals.ts:74-78]() normalizes the input via `normalizeText()` and checks for substring matches against `CRISIS_PHRASES` — 37 phrases covering English and French:
 
 ```
 kill myself, ending my life, suicidal, cant go on, ...
@@ -317,7 +317,8 @@ The `advisor-safety-event` edge function at [supabase/functions/advisor-safety-e
 1. Authenticates via bearer JWT and checks `current_user_is_workspace_member`
 2. Validates `actions` against `ALLOWED_ACTIONS`: `crisis-intercept`, `legal-basis-withheld`, `figure-mismatch`
 3. Looks up the active `advisor_chat` model route for attribution
-4. Inserts one `ai_telemetry_events` row with `operation = 'safety_backstop'`, `status = 'completed'`, and actions in `metadata`
+4. Keeps the caller-supplied `organization_id` **only when `is_org_member` verifies** — telemetry attribution follows the same silent-drop posture as `create-support-ticket`'s `workspace_id` (never an error, best-effort only)
+5. Inserts one `ai_telemetry_events` row with `operation = 'safety_backstop'`, `status = 'completed'`, and actions in `metadata`
 
 Importantly, `safety_backstop` is excluded from `METERED_OPERATIONS` — being kept safe must never consume a user's AI budget.
 

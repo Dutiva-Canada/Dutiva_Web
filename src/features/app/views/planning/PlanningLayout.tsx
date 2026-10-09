@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 import { useI18n } from '@/i18n/context'
@@ -26,6 +27,7 @@ function PlanningTabs() {
     >
       <Link
         to="/app/planning/tasks"
+        {...viewIntentProps('planning')}
         aria-current={!calendar ? 'page' : undefined}
         className={linkClass(!calendar)}
       >
@@ -33,6 +35,7 @@ function PlanningTabs() {
       </Link>
       <Link
         to="/app/planning/calendar"
+        {...viewIntentProps('planning.calendar')}
         aria-current={calendar ? 'page' : undefined}
         className={linkClass(calendar)}
       >

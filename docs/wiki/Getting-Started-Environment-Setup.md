@@ -49,7 +49,7 @@ npm ci          # deterministic install from package-lock.json
 
 The project is declared `"private": true` with `"type": "module"` (ESM throughout). Node 22 is used in CI.
 
-Sources: [package.json:1-4](), [.github/workflows/ci.yml:33-35]()
+Sources: [package.json:1-4](), [.woodpecker/check.yml:17-20]()
 
 ## Tech Stack at a Glance
 
@@ -110,7 +110,11 @@ Sources: [tsconfig.json:1-11](), [tsconfig.app.json:1-35](), [tsconfig.node.json
 | `check:brand-assets`   | `node scripts/check-brand-assets.mjs`                                                                                  | Brand asset presence/integrity               |
 | `check:architecture`   | `node scripts/check-architecture.mjs`                                                                                  | Demo/production file-split guards            |
 | `check:workspace-links`| `node scripts/check-workspace-links.mjs`                                                                               | Workspace internal-link integrity            |
-| `check`                | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes → check:brand-assets → check:architecture → check:workspace-links | Local pre-commit gate                        |
+| `check:advisor-golden` | `node scripts/check-advisor-golden.mjs`                                                                                | Deterministic Advisor eval (64 golden cases) |
+| `check:db-types`       | `node scripts/check-db-types.mjs`                                                                                      | `database.types.ts` src ↔ `_shared` drift    |
+| `check:edge-types`     | `node scripts/check-edge-types.mjs`                                                                                    | `deno check` on edge functions (skips loudly if Deno absent) |
+| `check:statute-drift`  | `node scripts/check-statute-drift.mjs`                                                                                 | Live statute re-verification — **not** in `check` (network-bound; cron pipeline) |
+| `check`                | typecheck → lint → test → check:migrations → check:rls → check:facts → check:message-scopes → check:brand-assets → check:architecture → check:workspace-links → check:advisor-golden → check:db-types → check:edge-types | Local pre-commit gate                        |
 | `db:snapshot`          | `supabase db dump -f supabase/schema.sql`                                                                              | Dump live schema to repo                     |
 | `auth:email-templates` | `node scripts/apply-auth-email-templates.mjs`                                                                          | Push auth email templates                    |
 
@@ -391,7 +395,7 @@ Sources: [supabase/config.toml:24-72]()
 
 ### CI Credentials for Live Checks
 
-Two CI jobs probe the live Supabase project. Both use the **loud skipping** pattern: when credentials are absent, the step passes but emits a GitHub Actions warning annotation and job summary entry so a green check is never mistaken for a verified one.
+Two checks in the `.woodpecker/live-checks.yml` pipeline probe the live Supabase project. Both use the **loud skipping** pattern: when credentials are absent, the step passes but emits a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and a `GITHUB_STEP_SUMMARY` entry when set, so a green check is never mistaken for a verified one.
 
 | Check              | Credentials Needed                              | What It Verifies                                                                                       |
 | ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -400,7 +404,7 @@ Two CI jobs probe the live Supabase project. Both use the **loud skipping** patt
 
 The RLS check includes a **positive control**: it first confirms the anon key can read `service_status` (a table meant to be public). If that fails, the key is wrong and all negative results are meaningless — the check errors out rather than reporting a false all-clear.
 
-Sources: [scripts/check-rls.mjs:50-60](), [scripts/check-rls.mjs:161-177](), [scripts/check-migrations.mjs:27-36](), [.github/workflows/ci.yml:65-99]()
+Sources: [scripts/check-rls.mjs:50-60](), [scripts/check-rls.mjs:161-177](), [scripts/check-migrations.mjs:27-36](), [.woodpecker/live-checks.yml:28-64]()
 
 ### Credential Cleaning
 
@@ -470,42 +474,49 @@ Sources: [vercel.json:3-14](), [scripts/prerender.mjs:99-110]()
 
 ## CI Pipeline Overview
 
-The GitHub Actions workflow (`.github/workflows/ci.yml`) runs three independent jobs:
+The Woodpecker pipelines (`.woodpecker/*.yml`) isolate each failure class — three run on every push/PR/manual, plus a cron-only statute-drift pipeline:
 
 ```mermaid
 flowchart TD
-    PR["Push / PR / Dispatch"]
-    PR --> Check["check (merge gate)"]
-    PR --> Live["live-checks"]
-    PR --> E2E["e2e"]
+    PR["Push / PR / Manual"]
+    PR --> Check["check.yml (merge gate)"]
+    PR --> Live["live-checks.yml"]
+    PR --> E2E["e2e.yml"]
+    PR --> E2EA["e2e-auth.yml"]
+    Cron["Cron / Manual"] --> SD["statute-drift.yml"]
 
     Check --> TC["npm run typecheck"]
     TC --> Lint["npm run lint"]
     Lint --> Test["npm run test:coverage"]
     Test --> Scopes["npm run check:message-scopes"]
     Scopes --> Facts["npm run check:facts"]
-    Facts --> Brand["npm run check:brand-assets"]
-    Brand --> Arch["npm run check:architecture"]
-    Arch --> Links["npm run check:workspace-links"]
-    Links --> Build["npm run build (+ SEO validation)"]
+    Facts --> Arch["npm run check:architecture"]
+    Arch --> Brand["npm run check:brand-assets"]
+    Brand --> Build["npm run build (+ SEO validation)"]
 
     Live --> Drift["check:migrations (needs SUPABASE_ACCESS_TOKEN)"]
-    Drift --> RLS["check:rls (needs SUPABASE_ANON_KEY)"]
+    Drift -.->|"when: success or failure"| RLS["check:rls (needs SUPABASE_ANON_KEY)"]
 
     E2E --> InstallBrowser["Install Chromium"]
     InstallBrowser --> BuildE2E["npm run build"]
     BuildE2E --> Playwright["npm run test:e2e"]
+
+    E2EA --> AuthCRUD["npm run test:e2e:auth\n(production CRUD)"]
+
+    SD --> Statutes["check:statute-drift\n(official statute sources)"]
 ```
 
-| Job           | Required for Merge | Needs Credentials          | Deterministic               |
-| ------------- | ------------------ | -------------------------- | --------------------------- |
-| `check`       | Yes                | No                         | Yes                         |
-| `live-checks` | No                 | Yes (loud-skip if missing) | No (probes live DB)         |
-| `e2e`         | No                 | No                         | Yes (but browser-dependent) |
+| Pipeline           | Required for Merge | Needs Credentials             | Deterministic               |
+| ------------------ | ------------------ | ----------------------------- | --------------------------- |
+| `check.yml`        | Yes                | No                            | Yes                         |
+| `live-checks.yml`  | No                 | Yes (loud-skip if missing)    | No (probes live DB)         |
+| `e2e.yml`          | No                 | No                            | Yes (but browser-dependent) |
+| `e2e-auth.yml`     | No                 | Yes (`SUPABASE_SERVICE_ROLE_KEY`) | No (probes live DB)      |
+| `statute-drift.yml`| No                 | No                            | No (fetches live statutes)  |
 
-The `check` job is the required status check. `live-checks` is isolated so credential problems never block the merge gate — the failure mode that let unverified builds merge when the access token expired.
+`check.yml` is the required status check. `live-checks.yml` is isolated so credential problems never block the merge gate — the failure mode that let unverified builds merge when the access token expired. `check:workspace-links`, `check:advisor-golden`, `check:db-types`, and `check:edge-types` run in the local `npm run check` chain only, not in `.woodpecker/check.yml`.
 
-Sources: [.github/workflows/ci.yml:1-130]()
+Sources: [.woodpecker/check.yml:1-78](), [.woodpecker/live-checks.yml:1-64](), [.woodpecker/e2e.yml:1-43](), [.woodpecker/e2e-auth.yml:1-44](), [.woodpecker/statute-drift.yml:1-30]()
 
 ## Application Entry Points
 

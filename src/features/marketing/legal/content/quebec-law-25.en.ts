@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'June 1, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") provides Canadian HR compliance software. The Dutiva platform is designed to support Quebec-facing privacy obligations under the Act respecting the protection of personal information in the private sector, as modernized by Law 25. This Documentation summarizes Dutiva’s public governance position, product controls, and operating practices relevant to Quebec Personal Information.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) provides Canadian HR compliance software. The Dutiva platform is designed to support Quebec-facing privacy obligations under the Act respecting the protection of personal information in the private sector, as modernized by Law 25. This Documentation summarizes Dutiva’s public governance position, product controls, and operating practices relevant to Quebec Personal Information.',
     'This Documentation is a public transparency statement. It should be read with the Privacy Policy, Data Processing Agreement, Data Retention and Deletion Policy, Cookie Policy, Incident and Breach Response Policy, AI Usage Disclosure, AI & Technology Policy, Legal Disclaimer, CASL documentation, Terms of Service, and any applicable subscription or order terms.',
     'This Documentation is not an audit, certification, legal opinion, or guarantee of compliance. Customers remain responsible for their own Quebec privacy, employment, French-language, workplace-document, and internal governance obligations.',
   ],
