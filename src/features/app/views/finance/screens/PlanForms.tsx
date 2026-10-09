@@ -95,7 +95,7 @@ export function BudgetForm({
         <input
           value={owner}
           onChange={(e) => setOwner(e.target.value)}
-          placeholder="Workspace user"
+          placeholder={x(M.finance_workspace_user_placeholder)}
           className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
         />
       </label>
@@ -382,12 +382,12 @@ export function ForecastForm({
           <input
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
-            placeholder="Workspace user"
+            placeholder={x(M.finance_workspace_user_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>
         <label className="flex flex-col gap-[4px]">
-          <span className="text-[12px] text-text-muted">Baseline scenario</span>
+          <span className="text-[12px] text-text-muted">{x(M.finance_forecast_baseline_scenario)}</span>
           <select
             value={baselineScenarioId}
             onChange={(e) => setBaselineScenarioId(e.target.value)}

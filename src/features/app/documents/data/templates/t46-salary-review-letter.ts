@@ -183,7 +183,7 @@ export const tplT46: DocTemplate = {
       type: 'date',
       required: true,
       hint: {
-        en: 'Say the date even where nothing changed — "your rate is unchanged from 1 April" answers the question the reader is actually asking.',
+        en: 'Say the date even where nothing changed — “your rate is unchanged from 1 April” answers the question the reader is actually asking.',
         fr: 'Indiquez la date même en l’absence de changement — « votre taux demeure inchangé à compter du 1er avril » répond à la question que le lecteur se pose réellement.',
       },
     },
@@ -204,7 +204,7 @@ export const tplT46: DocTemplate = {
         fr: 'La raison réelle — le rendement au regard de ce qui avait été fixé, le positionnement du poste sur le marché, le budget disponible.',
       },
       hint: {
-        en: 'Give the real one. "Business conditions" tells the reader nothing and reads as a decision they cannot influence. If the reason is the budget, say so — that is a better answer than an invented performance concern, and it does not become an argument about their work.',
+        en: 'Give the real one. “Business conditions” tells the reader nothing and reads as a decision they cannot influence. If the reason is the budget, say so — that is a better answer than an invented performance concern, and it does not become an argument about their work.',
         fr: 'Donnez la vraie. « La conjoncture » n’apprend rien au lecteur et se lit comme une décision sur laquelle il n’a aucune prise. Si la raison est budgétaire, dites-le — c’est une meilleure réponse qu’une préoccupation de rendement inventée, et cela ne se transforme pas en débat sur son travail.',
       },
     },
@@ -225,7 +225,7 @@ export const tplT46: DocTemplate = {
         fr: 'Ce qui relève de la personne, la date de la prochaine révision et à qui s’adresser d’ici là.',
       },
       hint: {
-        en: 'Do not promise next year’s outcome. "If X, then an increase" is a commitment you may not be able to keep; "X is what the next review will look at" is not.',
+        en: 'Do not promise next year’s outcome. “If X, then an increase” is a commitment you may not be able to keep; “X is what the next review will look at” is not.',
         fr: 'Ne promettez pas le résultat de l’an prochain. « Si X, alors une augmentation » est un engagement que vous pourriez ne pas pouvoir tenir ; « X est ce que la prochaine révision examinera » ne l’est pas.',
       },
     },

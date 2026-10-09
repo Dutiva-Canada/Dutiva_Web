@@ -270,6 +270,12 @@ Short for **Document Library** — the HR document management system. Managed by
 
 Sources: [src/features/app/documents/]()
 
+### `dutiva-widget`
+
+The fenced-block language tag a bot emits to attach an interactive widget spec to a chat reply. The spec is a Zod-validated JSON discriminated union (`widgetSpecSchema`) with six types — `calculator`, `chart`, `table`, `checklist`, `timeline`, `comparison` — admitting data only (no markup, URLs, or code). Renders on surfaces covered by the `interactiveChatWidgets` flag (`advisor` via `ChatMarkdown`; `invest`/`health`/`pr` via `WidgetContent`); elsewhere the fence shows as a plain code block.
+
+Sources: [src/components/chatWidgets/fence.ts](), [src/components/chatWidgets/widgetSpec.ts]()
+
 ---
 
 ## E
@@ -329,6 +335,12 @@ Sources: [src/features/app/flows/flowModel.ts:158-159](), [docs/CANONICAL_FACTS.
 ---
 
 ## G
+
+### Golden eval
+
+The deterministic Advisor regression harness — `runGoldenEval()` in `src/features/app/advisor/eval/` runs the versioned golden case set (64 cases across ON/QC/FED + cross-jurisdiction) against `detectJurisdictions`, the committed corpus snapshot, `buildAdvisorResponse`, and `crossCheckNoticeFigure`. No LLM runs, so it gates `npm run check` on every model/prompt/corpus change. Runner: `scripts/check-advisor-golden.mjs`; records to `eval-results/`.
+
+Sources: [src/features/app/advisor/eval/goldenEval.ts](), [scripts/check-advisor-golden.mjs]()
 
 ### `GuidanceSourcesPanel`
 
@@ -412,6 +424,12 @@ In-view empty-state primitive used inside production views that keep their chrom
 
 Sources: [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
+### Mira
+
+The wellness portal's companion — the assistant persona served by the `health-ai` edge function at `/health`. Warm and non-clinical: reads only the caller's own check-ins and explicitly shared journal excerpts, can execute whitelisted writes (habits, check-ins, journal entries), and answers with the 9-8-8 line when content hints at crisis. Persists to `health_chat_messages`. See [Portal Assistants](Portal-Assistants).
+
+Sources: [supabase/functions/health-ai/index.ts](), [src/features/health/data/types.ts]()
+
 ---
 
 ## N–O
@@ -429,6 +447,12 @@ Sources: [src/features/app/workspaceMode/roles.ts:1-33]()
 ---
 
 ## P
+
+### Paige
+
+The PR desk's press specialist — the assistant persona served by the `pr-ai` edge function at `/pr`. Drafts and logs communications (campaigns, content, contacts, mentions, keywords, GEO prompts) but never publishes or sends anything. Persists to `pr_chat_messages`. See [Portal Assistants](Portal-Assistants).
+
+Sources: [supabase/functions/pr-ai/index.ts]()
 
 ### PIPEDA
 
@@ -508,6 +532,12 @@ Type `'expanded' | 'compact' | 'drawer'` controlling the sidebar's visual state.
 
 Sources: [src/features/app/shell/Sidebar.tsx:19]()
 
+### Statute registry / statute drift
+
+`STATUTE_REGISTRY` (`src/features/app/advisor/eval/statuteRegistry.ts`) is the canonical list of statute refs the Advisor may cite — each pairs a stable ref (`ON_ESA:57`, `FED_CLC:230`) with its act, section, and `sourceUrl` to the official consolidated text. `statuteDrift.ts` periodically re-verifies those citations against the live texts (e-Laws, LégisQuébec, laws-lois) via `npm run check:statute-drift` — network-bound, so it runs on a Woodpecker cron pipeline, not the commit gate. See [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift).
+
+Sources: [src/features/app/advisor/eval/statuteRegistry.ts](), [src/features/app/advisor/eval/statuteDrift.ts]()
+
 ### Supported jurisdictions (ON / QC / FED)
 
 The three Canadian jurisdictions Dutiva provides compliance coverage for:
@@ -539,6 +569,12 @@ The three i18n resolution functions returned by `useI18n()`:
 All three resolve to the current `lang` from context.
 
 Sources: [src/i18n/context.ts:8-13]()
+
+### Tally
+
+The invest portal's watch clerk — the assistant persona served by `invest-ai` at `/invest`. Plain, numbers-first, "software not a person and not an adviser": may discuss general investing concepts but never recommends buys/sells/holds, never predicts, never calls an order "good" or "right for them". Whitelisted writes land as drafts/queued rows — the deterministic `invest-bot` engine executes strategies and only the user-invoked `execute-order` action fills a paper order. Persists to `invest_chat_messages`. See [Portal Assistants](Portal-Assistants).
+
+Sources: [supabase/functions/invest-ai/index.ts](), [supabase/functions/invest-ai/handlers.ts]()
 
 ### Usage counters
 

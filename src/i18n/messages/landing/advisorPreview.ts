@@ -47,15 +47,15 @@ export const landingAdvisorPreview = defineMessages({
   },
   landing_adv_user_q: {
     en: 'What should I prepare before terminating an employee in Ontario?',
-    fr: "Que dois-je préparer avant de mettre fin à l'emploi d'un salarié en Ontario ?",
+    fr: "Que dois-je préparer avant de mettre fin à l’emploi d’un salarié en Ontario ?",
   },
   landing_adv_answer: {
     en: 'Dutiva can help you identify the applicable Ontario employment standards, prepare a termination checklist, and flag issues that may need legal review. Complex or high-risk situations should be reviewed with qualified counsel.',
-    fr: "Dutiva peut vous aider à repérer les normes du travail applicables en Ontario, à préparer une liste de vérification de cessation d'emploi et à signaler les enjeux pouvant nécessiter un examen juridique. Les situations complexes ou à risque élevé devraient être révisées avec un conseiller juridique qualifié.",
+    fr: "Dutiva peut vous aider à repérer les normes du travail applicables en Ontario, à préparer une liste de vérification de cessation d’emploi et à signaler les enjeux pouvant nécessiter un examen juridique. Les situations complexes ou à risque élevé devraient être révisées avec un conseiller juridique qualifié.",
   },
   landing_adv_chip1: {
     en: 'Termination Letter',
-    fr: "Lettre de cessation d'emploi",
+    fr: "Lettre de cessation d’emploi",
   },
   landing_adv_chip2: {
     en: 'Offboarding Checklist',
@@ -71,6 +71,6 @@ export const landingAdvisorPreview = defineMessages({
   },
   landing_adv_source: {
     en: 'Source: Employment Standards Act, 2000 (ON), Part XV',
-    fr: "Source : Loi de 2000 sur les normes d'emploi (ON), partie XV",
+    fr: "Source : Loi de 2000 sur les normes d’emploi (ON), partie XV",
   },
 })

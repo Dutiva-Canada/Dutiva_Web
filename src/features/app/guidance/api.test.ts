@@ -9,6 +9,7 @@ interface FakeResult {
 interface RecordedFilters {
   eq: [string, unknown][]
   in: [string, readonly unknown[]][]
+  range: [number, number][]
 }
 
 /** Chainable, thenable stand-in for a supabase-js PostgrestFilterBuilder. */
@@ -25,6 +26,10 @@ function chain(result: FakeResult, filters?: RecordedFilters) {
     },
     order: () => builder,
     limit: () => builder,
+    range: (from: number, to: number) => {
+      filters?.range.push([from, to])
+      return builder
+    },
     then: (onfulfilled: (value: FakeResult) => unknown) =>
       Promise.resolve(result).then(onfulfilled),
   }
@@ -93,7 +98,11 @@ describe('guidance api', () => {
       id: 'u1',
       jurisdiction: 'QC',
       law_name: 'Loi 25',
-      url: 'https://example.com',
+      url: 'https://example.com/api',
+      reference_url: 'https://example.com/human-page',
+      raw_diff: 'Amended (1):\n  s. 12 — in force 2026-05-01',
+      ai_analysis_en: 'Section 12 moved; check the text.',
+      ai_analysis_fr: null,
       change_summary: 'Amended s.12',
       detected_at: '2026-05-01T00:00:00Z',
       event_type: 'change',
@@ -106,7 +115,11 @@ describe('guidance api', () => {
         id: 'u1',
         jurisdiction: 'QC',
         lawName: 'Loi 25',
-        url: 'https://example.com',
+        url: 'https://example.com/api',
+        referenceUrl: 'https://example.com/human-page',
+        rawDiff: 'Amended (1):\n  s. 12 — in force 2026-05-01',
+        aiAnalysisEn: 'Section 12 moved; check the text.',
+        aiAnalysisFr: null,
         changeSummary: 'Amended s.12',
         detectedAt: '2026-05-01T00:00:00Z',
         eventType: 'change',
@@ -131,7 +144,7 @@ describe('guidance api', () => {
    */
   describe('fetchRecentLawUpdates filtering', () => {
     const filtersFor = async () => {
-      const filters: RecordedFilters = { eq: [], in: [] }
+      const filters: RecordedFilters = { eq: [], in: [], range: [] }
       const { fetchRecentLawUpdates } = await loadApiWithFakeClient(() =>
         chain({ data: [], error: null }, filters),
       )
@@ -172,6 +185,23 @@ describe('guidance api', () => {
       for (const code of ['ON', 'QC', 'FED']) {
         expect(values).not.toContain(code)
       }
+    })
+
+    it('pages the same filtered set for earlier detections', async () => {
+      const filters: RecordedFilters = { eq: [], in: [], range: [] }
+      const { fetchRecentLawUpdates } = await loadApiWithFakeClient(() =>
+        chain({ data: [], error: null }, filters),
+      )
+      await fetchRecentLawUpdates()
+      await fetchRecentLawUpdates(10, 10)
+      await fetchRecentLawUpdates(10, 20)
+      expect(filters.range).toEqual([
+        [0, 9],
+        [10, 19],
+        [20, 29],
+      ])
+      // Paging must not widen scope — every page carries the same filters.
+      expect(filters.eq.every(([col, v]) => col === 'event_type' && v === 'change')).toBe(true)
     })
   })
 })

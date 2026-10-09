@@ -1,38 +1,49 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
 import { buildAdvisorResponse, detectJurisdictions } from './responsePayload.ts'
 import type { AdvisorResponsePayload } from './responsePayload.ts'
 import { agentActionsEnabled, extractActions, looksActionable } from './agentPropose.ts'
 import { noticeScheduleBlock } from './noticeSchedule.ts'
 import { buildRetrievalQuery } from './retrievalQuery.ts'
 import { memoryBlock, selectMemoryFactsForPrompt } from './memoryFacts.ts'
-import type { MemoryFactForPrompt } from './memoryFacts.ts'
 import { memoryExtractionPromptAppendix, extractMemoryCandidates } from './memoryExtract.ts'
 import type { ExtractedMemoryCandidate } from './memoryExtract.ts'
-import {
-  normalizeOrgPlan,
-  planAllowsAdvisorMemory,
-  planFeatureGatesEnabled,
-  type OrgPlanId,
-} from './planEntitlements.ts'
+import { planAllowsAdvisorMemory, planFeatureGatesEnabled } from './planEntitlements.ts'
 import {
   advisorChatPolicy,
   claimAiUsage,
-  finalizeAiUsage,
   usageLimitBody,
+  type UsageDbClient,
 } from '../_shared/aiUsage.ts'
-import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
-import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
 import {
   missingModality,
-  parseAttachments,
   persistedUserContent,
-  postChatCompletion,
-  resolveApiKey,
   routeModalities,
   userMessageContent,
 } from '../_shared/modelUpstream.ts'
-import type { AdvisorAttachment, UpstreamMessage } from '../_shared/modelUpstream.ts'
+import type { UpstreamMessage } from '../_shared/modelUpstream.ts'
+import { withCors } from '../_shared/cors.ts'
+import type { ChatMessage } from './chatTypes.ts'
+import { guidanceBlock, retrieveGuidance } from './guidance.ts'
+import {
+  loadOrganizationPlan,
+  loadOrgMemoryFacts,
+  persistExtractedFacts,
+} from './memoryPersistence.ts'
+import {
+  activeModelRoute,
+  authenticateRequest,
+  readChatRequest,
+  serverConfig,
+  verifyOrgMembership,
+} from './requestSetup.ts'
+import {
+  loadConversation,
+  recordCompletion,
+  reportOverageIfNeeded,
+  requestCompletion,
+  saveConversation,
+} from './completion.ts'
+import { corsHeaders, json } from './respond.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -51,655 +62,8 @@ import type { AdvisorAttachment, UpstreamMessage } from '../_shared/modelUpstrea
  * stamped with tokens, latency and outcome when the call resolves.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
-  })
-}
-
-const SYSTEM_PROMPT =
-  'You are the Dutiva AI Advisor, a compliance-oriented HR assistant for Canadian ' +
-  'employers. Give practical, jurisdiction-aware HR guidance (Ontario, Quebec, and ' +
-  'federally regulated workplaces). You are not a lawyer and do not provide legal ' +
-  'advice — for high-risk employment decisions (termination, discipline, ' +
-  'accommodation), tell the user to consult qualified legal counsel.\n\n' +
-  'Be factual and grounded at all times. Do not go along with statements just to be ' +
-  'agreeable: if the user says something inaccurate — even something small, like ' +
-  'greeting you with "Good evening" when it is morning — respond with the correct ' +
-  'fact (e.g., "Good morning") rather than echoing the mistake, then continue ' +
-  'helping. When you are unsure of a fact, say so instead of guessing.\n\n' +
-  'Statutory precision: never cite bill numbers, section or regulation numbers, or ' +
-  'court cases from memory — name the governing law in general terms instead (e.g., ' +
-  '"the Ontario Employment Standards Act", "the Loi sur les normes du travail", ' +
-  '"the Canada Labour Code"). Only state a specific statutory figure (weeks of ' +
-  'notice, dollar thresholds, percentages) when you are confident it is current; ' +
-  'otherwise say you are not certain and point the user to the official source ' +
-  '(Ontario.ca, the CNESST, or Canada.ca). When the jurisdiction is unknown and it ' +
-  'changes the answer, ask for it before giving figures. Employment rules change — ' +
-  'when giving figures, remind the user to verify against the official source.\n\n' +
-  /* The client renders replies with GitHub-flavored Markdown (see
-     src/components/advisor/ChatMarkdown.tsx), so tables, lists and a fenced
-     `chart` block all become real elements. Formatting only improves if the
-     model reaches for it, hence this section. Raw HTML is deliberately not
-     rendered (no rehype-raw), which is why the last line matters. */
-  'Formatting\n' +
-  '- Use a Markdown table whenever you compare three or more items across two or ' +
-  'more attributes (jurisdictions, thresholds, deadlines, entitlements).\n' +
-  '- Keep table cells to a short phrase. Put reasoning and caveats in prose before ' +
-  'or after the table, never inside a cell.\n' +
-  '- Give every table a bold lead-in line saying what it compares.\n' +
-  '- Put the entity being compared in the first column — it becomes the row title ' +
-  'on mobile.\n' +
-  '- For four or more numeric values that invite comparison, add a chart after the ' +
-  'table using a ```chart fenced block: {"type","title","x","format",' +
-  '"series":[{"key","label"}],"data":[…]}. type is bar, hbar, line, area, or donut. ' +
-  'Emit the chart in addition to the table, never instead of it.\n' +
-  '- Never emit raw HTML — it is not rendered.'
-
-/* The model has no clock — without an explicit timestamp it can only infer the
-   time of day from what the user says, which is how "Good evening" gets
-   mirrored back in the morning. The client sends its IANA timezone; anything
-   invalid falls back to UTC (Intl throws on bad zone names, which also keeps
-   unvetted client input out of the prompt). */
-function currentTimeLine(timezone: string | null): string {
-  let tz = 'UTC'
-  if (timezone) {
-    try {
-      new Intl.DateTimeFormat('en-CA', { timeZone: timezone })
-      tz = timezone
-    } catch {
-      /* invalid timezone from client — keep UTC */
-    }
-  }
-  const formatted = new Intl.DateTimeFormat('en-CA', {
-    dateStyle: 'full',
-    timeStyle: 'short',
-    timeZone: tz,
-  }).format(new Date())
-  return `Current date and time for the user: ${formatted} (${tz}).`
-}
-
-interface ChatMessage {
-  role: 'system' | 'user' | 'assistant'
-  content: string
-}
-
-type SupabaseClient = ReturnType<typeof createClient>
-
-interface ServerConfig {
-  supabaseUrl: string
-  anonKey: string
-  serviceRoleKey: string
-}
-
-interface AuthenticatedRequest {
-  adminClient: SupabaseClient
-  user: { id: string; email?: string }
-}
-
-interface ChatRequest {
-  message: string
-  conversationId: string | null
-  organizationId: string | null
-  timezone: string | null
-  attachments: AdvisorAttachment[]
-}
-
-interface ModelProvider {
-  id: string
-  provider_key: string
-  base_url: string
-  secret_ref: string | null
-  status: string
-}
-
-interface ModelRoute {
-  model_name: string
-  config: {
-    max_tokens?: number
-    temperature?: number
-    /** Modalities the routed model accepts (e.g. ["text","image"]). Absent →
-     *  text-only; attachments needing more get refused before metering. */
-    modalities?: unknown
-    /** Per-route override for the upstream fetch timeout (local models are
-     *  slow to warm). */
-    timeout_ms?: number
-  } | null
-}
-
-interface ActiveModelRoute {
-  route: ModelRoute
-  provider: ModelProvider
-}
-
-interface Conversation {
-  id: string
-  messages: ChatMessage[]
-}
-
-interface Completion {
-  choices?: { message?: { content?: string } }[]
-  usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
-}
-
-interface GuidanceChunk {
-  title: string
-  content: string
-  source_url: string
-  source_name: string
-  jurisdiction: string
-  effective_note: string | null
-  topic?: string
-  review_status?: string
-  /** Set when the law monitor saw the chunk's jurisdiction change (0071). */
-  source_changed_at?: string | null
-}
-
-interface RetrievalResult {
-  chunks: GuidanceChunk[]
-  /** True when the RPC errored — distinct from a genuine zero-hit, so the
-   *  payload and telemetry can say "retrieval was unavailable" instead of
-   *  "nothing matched" (the 0058 tsquery bug hid behind exactly this
-   *  conflation for ten days). */
-  failed: boolean
-}
-
-/**
- * Ranked full-text retrieval over the curated grounding corpus — the
- * match_advisor_guidance RPC (migration 0023: OR-ed lexemes ordered by
- * ts_rank; strict websearch matching returns zero rows on conversational
- * questions). Additive: any failure returns no chunks and the reply
- * proceeds under the prompt's statutory-precision fallback rules —
- * retrieval must never take the Advisor down. Failures are still
- * distinguished from zero-hits for telemetry and the structured payload.
- */
-async function retrieveGuidance(
-  adminClient: SupabaseClient,
-  query: string,
-): Promise<RetrievalResult> {
-  try {
-    const { data, error } = await adminClient.rpc('match_advisor_guidance', {
-      q: query,
-      k: 4,
-    })
-    if (error) {
-      console.error('advisor-chat: retrieval failed —', error.message)
-      return { chunks: [], failed: true }
-    }
-    return { chunks: (data as GuidanceChunk[] | null) ?? [], failed: false }
-  } catch (error) {
-    console.error('advisor-chat: retrieval failed —', error)
-    return { chunks: [], failed: true }
-  }
-}
-
-function guidanceBlock(chunks: GuidanceChunk[]): string {
-  if (chunks.length === 0) return ''
-  const items = chunks
-    .map((c) => {
-      const effective = c.effective_note ? `; ${c.effective_note}` : ''
-      return `- [${c.jurisdiction}] ${c.title}: ${c.content} (Source: ${c.source_name}, ${c.source_url}${effective})`
-    })
-    .join('\n')
-  return (
-    "\n\nRetrieved guidance from Dutiva's curated corpus — each entry carries its official " +
-    'source. Treat these entries as the ONLY authoritative basis for statutory figures this ' +
-    'turn: when they cover the question, answer from them and name the source; when they do ' +
-    'not cover it, follow the statutory-precision rules above.\n' +
-    items
-  )
-}
-
-/**
- * Effective org plan for feature gates. Failures → free (fail closed for
- * premium injection, not for chat itself).
- */
-async function loadOrganizationPlan(
-  adminClient: SupabaseClient,
-  organizationId: string | null,
-): Promise<OrgPlanId> {
-  if (!organizationId) return 'free'
-  try {
-    const { data, error } = await adminClient
-      .from('organizations')
-      .select('plan, subscription_status')
-      .eq('id', organizationId)
-      .maybeSingle()
-    if (error || !data) return 'free'
-    const status = String((data as { subscription_status?: string }).subscription_status ?? '')
-    if (status !== 'active' && status !== 'trialing') return 'free'
-    return normalizeOrgPlan((data as { plan?: string }).plan)
-  } catch {
-    return 'free'
-  }
-}
-
-/**
- * Load confirmed org memory for prompt injection. Failures return [] — memory
- * must never take the Advisor down (same posture as corpus retrieval).
- * When plan feature gates are on, Free/Starter never receive cross-record
- * memory in the prompt (facts remain stored for privacy/export paths).
- */
-async function loadOrgMemoryFacts(
-  adminClient: SupabaseClient,
-  organizationId: string | null,
-  allowInjection: boolean,
-): Promise<MemoryFactForPrompt[]> {
-  if (!organizationId || !allowInjection) return []
-  try {
-    const { data, error } = await adminClient
-      .from('hr_advisor_memory_facts')
-      .select(
-        'id, scope, entity_id, category, statement_en, statement_fr, source_type, visibility, sensitive, confidence',
-      )
-      .eq('organization_id', organizationId)
-      .eq('confidence', 'confirmed')
-      .eq('sensitive', false)
-      .is('forgotten_at', null)
-      .order('learned_at', { ascending: false })
-      .limit(40)
-    if (error) {
-      console.error('advisor-chat: memory facts load failed —', error.message)
-      return []
-    }
-    const rows = (data ?? []) as Array<{
-      id: string
-      scope: MemoryFactForPrompt['scope']
-      entity_id: string
-      category: string
-      statement_en: string
-      statement_fr: string
-      source_type: string
-      visibility: MemoryFactForPrompt['visibility']
-      sensitive: boolean
-      confidence: MemoryFactForPrompt['confidence']
-    }>
-    return rows.map((r) => ({
-      id: r.id,
-      scope: r.scope,
-      entityId: r.entity_id,
-      category: r.category,
-      statementEn: r.statement_en,
-      statementFr: r.statement_fr,
-      sourceType: r.source_type,
-      visibility: r.visibility,
-      sensitive: r.sensitive,
-      confidence: r.confidence,
-    }))
-  } catch (error) {
-    console.error('advisor-chat: memory facts load failed —', error)
-    return []
-  }
-}
-
-/**
- * Persist inferred candidates from a dutiva-memory fence. Dedupes exact
- * statement_en matches for the same org+scope+entity. Failures are logged
- * and swallowed — extraction must never fail the user-visible reply.
- */
-async function persistExtractedFacts(
-  adminClient: SupabaseClient,
-  organizationId: string,
-  conversationId: string,
-  actorUserId: string,
-  candidates: readonly ExtractedMemoryCandidate[],
-): Promise<
-  Array<{
-    factId: string
-    scope: 'person' | 'case' | 'thread'
-    entityId: string
-    statementEn: string
-    statementFr: string
-  }>
-> {
-  if (candidates.length === 0) return []
-  const created: Array<{
-    factId: string
-    scope: 'person' | 'case' | 'thread'
-    entityId: string
-    statementEn: string
-    statementFr: string
-  }> = []
-  try {
-    const { data: existing, error: readError } = await adminClient
-      .from('hr_advisor_memory_facts')
-      .select('statement_en, scope, entity_id')
-      .eq('organization_id', organizationId)
-      .is('forgotten_at', null)
-      .limit(200)
-    if (readError) {
-      console.error('advisor-chat: extract dedupe read failed —', readError.message)
-      return []
-    }
-    const seen = new Set(
-      ((existing ?? []) as Array<{ statement_en: string; scope: string; entity_id: string }>).map(
-        (r) => `${r.scope}:${r.entity_id}:${r.statement_en.trim().toLowerCase()}`,
-      ),
-    )
-    const now = new Date().toISOString()
-    for (const c of candidates) {
-      const key = `${c.scope}:${c.entityId}:${c.statementEn.trim().toLowerCase()}`
-      if (seen.has(key)) continue
-      seen.add(key)
-      const entityId = c.entityId || conversationId
-      const { data: inserted, error: insertError } = await adminClient
-        .from('hr_advisor_memory_facts')
-        .insert({
-          organization_id: organizationId,
-          scope: c.scope,
-          entity_id: entityId,
-          category: c.category,
-          statement_en: c.statementEn,
-          statement_fr: c.statementFr || c.statementEn,
-          confidence: 'inferred',
-          source_type: 'chat',
-          source_detail_en: 'Extracted from Advisor conversation',
-          source_detail_fr: 'Extrait d’une conversation avec le Conseiller',
-          learned_at: now,
-          confirmed_at: null,
-          visibility: c.sensitive ? 'restricted' : 'hr',
-          sensitive: c.sensitive,
-          created_by: actorUserId,
-          updated_by: actorUserId,
-        })
-        .select('id, statement_en, statement_fr, scope, entity_id')
-        .single()
-      if (insertError || !inserted) {
-        console.error('advisor-chat: extract insert failed —', insertError?.message)
-        continue
-      }
-      const row = inserted as {
-        id: string
-        statement_en: string
-        statement_fr: string
-        scope: 'person' | 'case' | 'thread'
-        entity_id: string
-      }
-      await adminClient.from('hr_advisor_memory_audit').insert({
-        organization_id: organizationId,
-        fact_id: row.id,
-        actor_user_id: actorUserId,
-        action: 'create',
-        statement_en: row.statement_en,
-        statement_fr: row.statement_fr,
-      })
-      created.push({
-        factId: row.id,
-        scope: row.scope,
-        entityId: row.entity_id,
-        statementEn: row.statement_en,
-        statementFr: row.statement_fr,
-      })
-    }
-  } catch (error) {
-    console.error('advisor-chat: extract persist failed —', error)
-  }
-  return created
-}
-
-function serverConfig(): ServerConfig | Response {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!supabaseUrl || !anonKey || !serviceRoleKey) {
-    return json({ error: 'Server configuration missing' }, 500)
-  }
-  return { supabaseUrl, anonKey, serviceRoleKey }
-}
-
-async function authenticateRequest(
-  req: Request,
-  config: ServerConfig,
-): Promise<AuthenticatedRequest | Response> {
-  const authHeader = req.headers.get('Authorization') ?? ''
-  if (!authHeader.startsWith('Bearer ')) return json({ error: 'Missing bearer token' }, 401)
-
-  const userClient = createClient(config.supabaseUrl, config.anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  })
-  const token = authHeader.replace('Bearer ', '')
-  const { data: userData, error: userError } = await userClient.auth.getUser(token)
-  const user = userData?.user
-  if (userError || !user) return json({ error: 'Invalid user token' }, 401)
-
-  /* Invite-only — the admin account, or anyone on the beta list. Same
-     check as the RLS layer for direct guidance_sources/law_updates reads
-     (supabase/migrations/0026_open_workspace_to_beta_list.sql) and
-     AuthProvider client-side: one Postgres function, called here through
-     `userClient` so `auth.jwt()` inside it resolves to this caller's own
-     token. This function otherwise uses a service-role client that bypasses
-     RLS, so it needs its own check regardless. */
-  const { data: isMember, error: membershipError } = await userClient.rpc(
-    'current_user_is_workspace_member',
-  )
-  if (membershipError || isMember !== true) {
-    return json({ error: 'Access to this workspace is invite-only.' }, 403)
-  }
-
-  return { user, adminClient: createClient(config.supabaseUrl, config.serviceRoleKey) }
-}
-
-async function readChatRequest(req: Request): Promise<ChatRequest | Response> {
-  let body: Record<string, unknown> = {}
-  try {
-    body = await req.json()
-  } catch {
-    body = {}
-  }
-  const message = typeof body.message === 'string' ? body.message.trim() : ''
-  const parsed = parseAttachments(body.attachments)
-  if ('error' in parsed) {
-    return json({ error: `Invalid attachments (${parsed.error})`, code: 'bad_attachments' }, 400)
-  }
-  /* A turn can be only attachments — a photo of a job posting with no caption
-     is a legitimate question. Substitute a minimal prompt so the message
-     still has text for retrieval and history. */
-  const effectiveMessage = message || (parsed.attachments.length > 0 ? 'See attached.' : '')
-  if (!effectiveMessage) return json({ error: 'message is required' }, 400)
-  return {
-    message: effectiveMessage,
-    conversationId: typeof body.conversation_id === 'string' ? body.conversation_id : null,
-    organizationId: typeof body.organization_id === 'string' ? body.organization_id : null,
-    timezone: typeof body.timezone === 'string' ? body.timezone : null,
-    attachments: parsed.attachments,
-  }
-}
-
-async function activeModelRoute(adminClient: SupabaseClient): Promise<ActiveModelRoute | Response> {
-  const { data: route, error: routeError } = await adminClient
-    .from('ai_model_routes')
-    .select(
-      'id, model_name, config, provider:ai_model_providers(id, provider_key, base_url, secret_ref, status)',
-    )
-    .eq('route_key', 'advisor_chat')
-    .eq('status', 'active')
-    .order('priority', { ascending: true })
-    .limit(1)
-    .maybeSingle()
-  if (routeError) return json({ error: routeError.message }, 500)
-  const provider = route?.provider as ModelProvider | null | undefined
-  if (!route || !provider || provider.status !== 'active') {
-    return json({ error: 'No active model route configured for advisor_chat' }, 503)
-  }
-  return { route, provider }
-}
-
-async function loadConversation(
-  adminClient: SupabaseClient,
-  userId: string,
-  organizationId: string | null,
-  conversationId: string | null,
-): Promise<Conversation | Response> {
-  if (conversationId) {
-    const { data, error } = await adminClient
-      .from('conversations')
-      .select('id, messages')
-      .eq('id', conversationId)
-      .eq('user_id', userId)
-      .single()
-    if (error || !data) return json({ error: 'Conversation not found' }, 404)
-    return data as Conversation
-  }
-
-  const { data, error } = await adminClient
-    .from('conversations')
-    .insert({ user_id: userId, organization_id: organizationId, messages: [] })
-    .select('id, messages')
-    .single()
-  if (error) return json({ error: error.message }, 500)
-  return data as Conversation
-}
-
-/* Closes out the claimed telemetry row on an upstream failure. The claim is
-   deliberately NOT refunded: a client hammering a broken provider is exactly
-   what the burst ceiling is for, and a refund path is a way to spend the
-   budget for free. */
-async function recordUpstreamError(
-  adminClient: SupabaseClient,
-  claimId: string,
-  started: number,
-  error: unknown,
-): Promise<Response> {
-  const errorMessage = error instanceof Error ? error.message : String(error)
-  await finalizeAiUsage(adminClient, claimId, {
-    status: 'failed',
-    latencyMs: Date.now() - started,
-    metadata: { error: errorMessage },
-  })
-  return json({ error: 'The AI Advisor is temporarily unavailable. Try again shortly.' }, 502)
-}
-
-async function requestCompletion(
-  adminClient: SupabaseClient,
-  claimId: string,
-  request: ChatRequest,
-  route: ModelRoute,
-  provider: ModelProvider,
-  history: ChatMessage[],
-  userMessage: UpstreamMessage,
-  guidance: string,
-): Promise<{ completion: Completion; latencyMs: number } | Response> {
-  const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
-  if ('missingSecret' in keyResult) {
-    await finalizeAiUsage(adminClient, claimId, { status: 'failed', latencyMs: 0 })
-    return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
-  }
-
-  const started = Date.now()
-  try {
-    const upstream = await postChatCompletion(
-      provider,
-      keyResult.apiKey,
-      {
-        model: route.model_name,
-        messages: [
-          {
-            role: 'system',
-            content: `${SYSTEM_PROMPT}\n\n${currentTimeLine(request.timezone)}${guidance}`,
-          },
-          ...history,
-          userMessage,
-        ],
-        max_tokens: route.config?.max_tokens ?? 800,
-        /* DB-tunable so a model that pins sampling (some reasoning models
-           reject temperature != 1) needs a config change, not a deploy. The
-           typeof guard keeps a jsonb null or string from reaching the wire. */
-        ...(typeof route.config?.temperature === 'number'
-          ? { temperature: route.config.temperature }
-          : {}),
-      },
-      typeof route.config?.timeout_ms === 'number' ? route.config.timeout_ms : undefined,
-    )
-    if (!upstream.ok) {
-      const errText = await upstream.text()
-      throw new Error(`Upstream ${upstream.status}: ${errText.slice(0, 500)}`)
-    }
-    return { completion: await upstream.json(), latencyMs: Date.now() - started }
-  } catch (error) {
-    return recordUpstreamError(adminClient, claimId, started, error)
-  }
-}
-
-async function saveConversation(
-  adminClient: SupabaseClient,
-  conversation: Conversation,
-  messages: ChatMessage[],
-  lastAdvisorResponse: unknown | null = null,
-): Promise<Response | null> {
-  const { error } = await adminClient
-    .from('conversations')
-    .update({
-      messages,
-      last_advisor_response: lastAdvisorResponse,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', conversation.id)
-  return error ? json({ error: error.message }, 500) : null
-}
-
-/* Same telemetry this function has always written — now an update of the row
-   the claim already reserved, so the token counts land on the row the daily
-   token ceiling reads. */
-async function recordCompletion(
-  adminClient: SupabaseClient,
-  claimId: string,
-  completion: Completion,
-  latencyMs: number,
-  retrieval: RetrievalResult,
-  commercialSource?: string,
-) {
-  const usage = completion.usage ?? {}
-  await finalizeAiUsage(adminClient, claimId, {
-    status: 'completed',
-    latencyMs,
-    promptTokens: usage.prompt_tokens ?? null,
-    completionTokens: usage.completion_tokens ?? null,
-    totalTokens: usage.total_tokens ?? null,
-    /* retrieval_failed distinguishes an infrastructure failure from a
-       genuine no-match — `retrieved_chunks: 0` alone cannot. */
-    metadata: {
-      retrieved_chunks: retrieval.chunks.length,
-      retrieval_failed: retrieval.failed,
-      ...(commercialSource ? { commercial: commercialSource } : {}),
-    },
-  })
-}
-
-async function reportOverageIfNeeded(
-  adminClient: SupabaseClient,
-  userId: string,
-  commercialSource: string | undefined,
-) {
-  if (commercialSource !== 'overage') return
-  const eventName = (Deno.env.get('STRIPE_ADVISOR_METER_EVENT_NAME') ?? '').trim()
-  const secret = readStripeSecretKey(Deno.env.get('STRIPE_SECRET_KEY'))
-  if (!eventName || !secret) {
-    console.error('advisor-chat: overage claimed but meter is not configured')
-    return
-  }
-  const { data } = await adminClient
-    .from('profiles')
-    .select('stripe_customer_id')
-    .eq('id', userId)
-    .maybeSingle()
-  const customerId = typeof data?.stripe_customer_id === 'string' ? data.stripe_customer_id : ''
-  const result = await reportAdvisorOverageMeter({
-    stripeCustomerId: customerId,
-    secretKey: secret,
-    eventName,
-  })
-  if (!result.ok) console.error('advisor-chat: overage meter failed', result.reason)
-}
-
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -708,6 +72,14 @@ Deno.serve(async (req: Request) => {
   if (authenticated instanceof Response) return authenticated
   const request = await readChatRequest(req)
   if (request instanceof Response) return request
+  /* Tenant boundary before any org-scoped work — the request's
+     organization_id is caller-supplied. */
+  const orgCheck = await verifyOrgMembership(
+    authenticated.adminClient,
+    authenticated.user.id,
+    request.organizationId,
+  )
+  if (orgCheck) return orgCheck
   const activeRoute = await activeModelRoute(authenticated.adminClient)
   if (activeRoute instanceof Response) return activeRoute
   /* Modality gate — refuse before metering: a turn the routed model cannot
@@ -760,12 +132,16 @@ Deno.serve(async (req: Request) => {
   /* Meter as late as possible — right before the only step that costs money.
      Everything above is Postgres work, and a turn that dies loading its own
      conversation should not spend the caller's beta budget. */
-  const decision = await claimAiUsage(authenticated.adminClient, advisorChatPolicy(), {
-    userId: authenticated.user.id,
-    organizationId: request.organizationId,
-    provider: activeRoute.provider.provider_key,
-    model: activeRoute.route.model_name,
-  })
+  const decision = await claimAiUsage(
+    authenticated.adminClient as unknown as UsageDbClient,
+    advisorChatPolicy(),
+    {
+      userId: authenticated.user.id,
+      organizationId: request.organizationId,
+      provider: activeRoute.provider.provider_key,
+      model: activeRoute.route.model_name,
+    },
+  )
   if (decision.kind === 'denied') {
     /* Not stored as a row (see the migration): denials belong in the function
        log, where tuning the beta ceilings can read them without them counting
@@ -858,6 +234,7 @@ Deno.serve(async (req: Request) => {
   await reportOverageIfNeeded(
     authenticated.adminClient,
     authenticated.user.id,
+    request.organizationId,
     decision.commercialSource,
   )
 
@@ -924,6 +301,11 @@ Deno.serve(async (req: Request) => {
     data: {
       reply,
       conversation_id: conversation.id,
+      /* Index of the assistant turn just persisted in messages[] — the key
+         advisor_turn_feedback rates against. Only user/assistant rows are
+         ever appended, so the raw index equals the client's filtered
+         transcript index (productionTranscript). */
+      turn_index: nextMessages.length - 1,
       advisor_response: wireAdvisorResponse,
       memory_created:
         memoryCreated.length > 0
@@ -936,4 +318,6 @@ Deno.serve(async (req: Request) => {
           : undefined,
     },
   })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

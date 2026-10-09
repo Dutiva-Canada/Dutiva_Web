@@ -473,7 +473,7 @@ function TaxObligationForm({
           <input
             value={period}
             onChange={(e) => setPeriod(e.target.value)}
-            placeholder="Q3 2026"
+            placeholder={x(M.finance_tax_period_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>
@@ -627,7 +627,7 @@ function TaxScenarioForm({
           <input
             value={lawVersion}
             onChange={(e) => setLawVersion(e.target.value)}
-            placeholder="Enacted 2025 rates"
+            placeholder={x(M.finance_tax_law_version_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>

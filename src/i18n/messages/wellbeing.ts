@@ -137,7 +137,7 @@ export const wellbeingMessages = defineMessages({
   },
   wellbeing_prod_delete_confirm: {
     en: 'Remove this initiative from the register?',
-    fr: 'Retirer cette initiative du registre?',
+    fr: 'Retirer cette initiative du registre ?',
   },
   wellbeing_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
   wellbeing_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },

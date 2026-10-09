@@ -1,5 +1,30 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import {
+  acknowledgementKind,
+  applyPaidSupportFloor,
+  CAPTCHA_VERIFY_ENDPOINTS,
+  CATEGORIES,
+  type CaptchaResult,
+  type Category,
+  clientIp,
+  EMAIL_RE,
+  type Impact,
+  IMPACTS,
+  interpretSiteverify,
+  LANGUAGES,
+  normalizePlan,
+  oneOf,
+  PUBLIC_CATEGORIES,
+  RESPONSE_METHODS,
+  RESTRICTED_CATEGORIES,
+  sha256hex,
+  str,
+  suggestPriority,
+  type Urgency,
+  URGENCIES,
+} from './intakeLogic.ts'
 
 /**
  * PUBLIC (unauthenticated) support intake. This is the signed-out path for the
@@ -26,130 +51,12 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * src/features/support/captcha.ts (siteverify handling) — keep in sync.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
-}
-
-const CATEGORIES = [
-  'account_access',
-  'billing',
-  'technical',
-  'product_question',
-  'privacy',
-  'security',
-  'accessibility',
-  'complaint',
-  'sales',
-  'other',
-] as const
-type Category = (typeof CATEGORIES)[number]
-
-/** Only these may be submitted without an account (mirror allowPublic in config). */
-const PUBLIC_CATEGORIES = new Set<Category>([
-  'product_question',
-  'privacy',
-  'security',
-  'accessibility',
-  'sales',
-])
-/** Restricted handling: requester + admin only, off the ordinary product queue. */
-const RESTRICTED_CATEGORIES = new Set<Category>([
-  'privacy',
-  'security',
-  'accessibility',
-  'complaint',
-])
-
-const IMPACTS = ['blocking', 'major', 'minor', 'none'] as const
-type Impact = (typeof IMPACTS)[number]
-const URGENCIES = ['urgent', 'soon', 'whenever'] as const
-type Urgency = (typeof URGENCIES)[number]
-const RESPONSE_METHODS = ['email', 'scheduled_call'] as const
-const LANGUAGES = ['en', 'fr'] as const
-
-const PRIORITIES = ['low', 'standard', 'high', 'critical'] as const
-const PAID_FLOOR_PLANS = new Set(['growth', 'pro'])
-const RESTRICTED_FROM_PAID_FLOOR = new Set<Category>([
-  'privacy',
-  'security',
-  'accessibility',
-  'complaint',
-])
-
-function applyPaidSupportFloor(priority: string, plan: string | null, category: Category): string {
-  if (!plan || !PAID_FLOOR_PLANS.has(plan)) return priority
-  if (RESTRICTED_FROM_PAID_FLOOR.has(category)) return priority
-  if (priority === 'high' || priority === 'critical') return priority
-  return 'high'
-}
-
-function normalizePlan(value: unknown): string | null {
-  const plan = String(value ?? '').toLowerCase()
-  return plan === 'free' || plan === 'starter' || plan === 'growth' || plan === 'pro' ? plan : null
-}
-
-/** Server-side priority — capped at 'high'; 'critical' is a human triage call. */
-function suggestPriority(category: Category, impact: Impact, urgency: Urgency): string {
-  const impactRank = impact === 'blocking' ? 2 : impact === 'major' || impact === 'minor' ? 1 : 0
-  const categoryFloor =
-    category === 'security'
-      ? 2
-      : category === 'account_access' ||
-          category === 'accessibility' ||
-          category === 'privacy' ||
-          category === 'billing' ||
-          category === 'complaint'
-        ? 1
-        : 0
-  let rank = Math.max(impactRank, categoryFloor)
-  if (urgency === 'urgent' && impact !== 'none') rank += 1
-  return PRIORITIES[Math.min(rank, 2)]
-}
-
-/** Customer acknowledgement kind by category (mirror notifications.ts). */
-function acknowledgementKind(category: Category): string {
-  if (category === 'privacy') return 'privacy_ack'
-  if (category === 'security') return 'security_ack'
-  if (category === 'accessibility') return 'accessibility_ack'
-  if (category === 'complaint') return 'complaint_ack'
-  return 'ticket_received'
-}
-
-function oneOf<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
-  return typeof value === 'string' && (allowed as readonly string[]).includes(value)
-    ? (value as T)
-    : fallback
-}
-
-function str(value: unknown, max: number): string | null {
-  if (typeof value !== 'string') return null
-  const trimmed = value.trim()
-  return trimmed.length >= 1 && trimmed.length <= max ? trimmed : null
-}
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-async function sha256hex(input: string): Promise<string> {
-  const bytes = new TextEncoder().encode(input)
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-/** Best-effort client IP from the usual proxy headers. */
-function clientIp(req: Request): string {
-  const fwd = req.headers.get('x-forwarded-for')
-  if (fwd) return fwd.split(',')[0]!.trim()
-  return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? 'unknown'
 }
 
 const IP_WINDOW_MIN = 15
@@ -157,44 +64,13 @@ const IP_LIMIT = 3
 const EMAIL_WINDOW_MIN = 60
 const EMAIL_LIMIT = 3
 
-// ── CAPTCHA (mirror of src/features/support/captcha.ts) ──────────────────
-// Turnstile and hCaptcha share one siteverify request/response shape, so the
-// provider is a config value rather than a second code path.
-
-const CAPTCHA_VERIFY_ENDPOINTS: Record<string, string> = {
-  turnstile: 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-  hcaptcha: 'https://api.hcaptcha.com/siteverify',
-}
-
+/* CAPTCHA env reads stay here — intakeLogic holds only the pure parts
+   (endpoint table, verdict interpretation) so it runs in plain vitest. */
 const CAPTCHA_SECRET = Deno.env.get('CAPTCHA_SECRET_KEY') ?? ''
 const CAPTCHA_PROVIDER = (() => {
   const raw = (Deno.env.get('CAPTCHA_PROVIDER') ?? '').trim().toLowerCase()
   return raw === 'hcaptcha' ? 'hcaptcha' : 'turnstile'
 })()
-
-type CaptchaResult = { ok: true } | { ok: false; reason: string }
-
-function interpretSiteverify(payload: unknown): CaptchaResult {
-  if (typeof payload !== 'object' || payload === null)
-    return { ok: false, reason: 'provider_error' }
-  const record = payload as { success?: unknown; 'error-codes'?: unknown }
-  if (record.success === true) return { ok: true }
-  const codes = Array.isArray(record['error-codes'])
-    ? record['error-codes'].filter((c): c is string => typeof c === 'string')
-    : []
-  // Our own misconfiguration ranks above the caller's token — a wrong secret
-  // makes every token "fail", and blaming the token hides the real cause.
-  if (codes.includes('missing-input-secret') || codes.includes('invalid-input-secret')) {
-    return { ok: false, reason: 'bad_secret' }
-  }
-  if (codes.includes('missing-input-response')) return { ok: false, reason: 'missing_token' }
-  if (codes.includes('timeout-or-duplicate')) return { ok: false, reason: 'duplicate_token' }
-  if (codes.includes('invalid-input-response')) return { ok: false, reason: 'invalid_token' }
-  if (codes.includes('bad-request') || codes.includes('internal-error')) {
-    return { ok: false, reason: 'provider_error' }
-  }
-  return { ok: false, reason: 'invalid_token' }
-}
 
 async function verifyCaptcha(token: string, remoteIp: string): Promise<CaptchaResult> {
   if (!CAPTCHA_SECRET) return { ok: false, reason: 'bad_secret' }
@@ -216,8 +92,8 @@ async function verifyCaptcha(token: string, remoteIp: string): Promise<CaptchaRe
 
 const OPERATOR_EMAIL = Deno.env.get('SUPPORT_OPERATOR_EMAIL') ?? 'support@dutiva.ca'
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -400,4 +276,6 @@ Deno.serve(async (req: Request) => {
   ])
 
   return json({ data: { public_reference: ticket.public_reference } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

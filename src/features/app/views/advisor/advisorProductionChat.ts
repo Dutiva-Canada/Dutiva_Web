@@ -86,6 +86,11 @@ export function applyRealChatResult(options: {
       ...prev[turnId],
       ...(result.response?.memory != null ? { memory: result.response.memory } : {}),
       ...(navChips.length > 0 ? { navChips } : {}),
+      /* The turn index the function persisted — lets thumbs appear on this
+         reply now, not only after the thread rehydrates. */
+      ...(result.turnIndex != null
+        ? { ratingKey: { conversationId: result.conversationId, turnIndex: result.turnIndex } }
+        : {}),
     },
   }))
 

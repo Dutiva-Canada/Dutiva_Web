@@ -147,7 +147,7 @@ export const jordanMemoryFacts: MemoryFact[] = [
     category: 'matter',
     statement: bi(
       'Preliminary common-law reasonable-notice estimate: 9–12 months; subject to additional employee and labour-market factors and counsel review',
-      'Estimation préliminaire du préavis raisonnable en common law : 9 à 12 mois; sous réserve de facteurs additionnels liés à l’employé et au marché du travail ainsi que d’une révision juridique',
+      'Estimation préliminaire du préavis raisonnable en common law : 9 à 12 mois ; sous réserve de facteurs additionnels liés à l’employé et au marché du travail ainsi que d’une révision juridique',
     ),
     confidence: 'inferred',
     source: {

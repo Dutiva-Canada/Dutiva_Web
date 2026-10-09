@@ -175,7 +175,7 @@ export function CandidateDetailProductionView() {
 
           <div
             role="tablist"
-            aria-label="Candidate sections"
+            aria-label={x(M.hiring_candidate_sections_nav)}
             className="mb-[20px] inline-flex max-w-full gap-[2px] overflow-x-auto rounded-[10px] border border-border bg-inset p-[3px]"
           >
             <button

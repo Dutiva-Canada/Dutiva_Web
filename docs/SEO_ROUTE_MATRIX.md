@@ -16,7 +16,7 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
 
-67 pages × 2 locales: 17 static routes, the 26 policy documents, the 13 Help
+71 pages × 2 locales: 20 static routes, the 26 policy documents, the 13 Help
 Centre articles, and the 12 editorial articles (6 guides + 6 blog posts).
 `scripts/validate-seo.mjs` compares `dist/` against the route registry entry
 by entry, so this count cannot drift from the build.

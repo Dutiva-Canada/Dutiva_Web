@@ -49,7 +49,7 @@ export const tplT21: DocTemplate = {
   ],
   jurisdictionNotes: {
     ON: {
-      en: 'A request does not have to be in writing, or use the word "accommodation", to trigger the duty under the Human Rights Code. This form documents a request you already have — it is not a precondition to one.',
+      en: 'A request does not have to be in writing, or use the word “accommodation”, to trigger the duty under the Human Rights Code. This form documents a request you already have — it is not a precondition to one.',
       fr: 'Une demande n’a pas à être écrite, ni à employer le mot « accommodement », pour déclencher l’obligation prévue au Code des droits de la personne. Le présent formulaire documente une demande déjà reçue ; il n’en est pas une condition préalable.',
     },
     QC: {

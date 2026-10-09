@@ -223,7 +223,7 @@ export function AgentSettingsCard() {
             value={keywordsText}
             onChange={(e) => setKeywordsText(e.target.value)}
             className={`${fieldClass} mt-[4px]`}
-            placeholder="payroll, HR coordinator"
+            placeholder={x(M.careers_agent_keywords_placeholder)}
           />
           <div className={hintClass}>{x(M.careers_agent_keywords_hint)}</div>
         </div>
@@ -236,7 +236,7 @@ export function AgentSettingsCard() {
             value={locationsText}
             onChange={(e) => setLocationsText(e.target.value)}
             className={`${fieldClass} mt-[4px]`}
-            placeholder="Toronto, Montreal, Quebec"
+            placeholder={x(M.careers_agent_locations_placeholder)}
           />
           <div className={hintClass}>{x(M.careers_agent_locations_hint)}</div>
         </div>

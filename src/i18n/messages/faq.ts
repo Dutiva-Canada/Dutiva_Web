@@ -121,7 +121,7 @@ export const faqMessages = defineMessages({
   }, // [FR self-authored]
   faq_closing_t: { en: 'Still have questions?', fr: 'D’autres questions ?' },
   faq_closing_p: {
-    en: "Email our team and we'll help you get set up.",
+    en: "Email our team and we’ll help you get set up.",
     fr: 'Écrivez à notre équipe et nous vous aiderons à démarrer.',
   },
   faq_closing_btn: { en: 'Contact support', fr: 'Contacter le soutien' },

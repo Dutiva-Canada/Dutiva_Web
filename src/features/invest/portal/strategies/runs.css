@@ -1,0 +1,258 @@
+/* Split from strategies.css — see that file for the import manifest. */
+
+/* ---------- health / run history ---------- */
+.sb-health {
+  padding: 16px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.sb-health .sb-empty {
+  color: var(--sb-muted);
+  font-size: 15px;
+  margin: 4px 0 14px;
+}
+.sb-health .sb-fire-stat {
+  color: var(--sb-ink);
+  font-size: 15px;
+  margin: 4px 0 14px;
+}
+.sb-scan-progress {
+  margin: 4px auto 14px;
+  max-width: 320px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--sb-input);
+  border: 1px solid var(--sb-line);
+  font-weight: 700;
+  color: var(--sb-ink);
+}
+.sb-scan-bar {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--sb-card-deep);
+  margin-top: 12px;
+  overflow: hidden;
+}
+.sb-scan-bar i {
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 99px;
+  background: var(--sb-accent);
+  animation: sb-scanmove 1.1s ease-in-out infinite alternate;
+}
+@keyframes sb-scanmove {
+  from {
+    margin-left: 0;
+  }
+  to {
+    margin-left: 60%;
+  }
+}
+.sb-scan-results {
+  text-align: left;
+  border-top: 1px solid var(--sb-line);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+.sb-scan-results h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.sb-match {
+  background: var(--sb-input);
+  border: 1px solid var(--sb-line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.sb-match .sb-sym {
+  font-weight: 700;
+  color: var(--sb-ink);
+  font-size: 16px;
+}
+.sb-match .sb-detail {
+  font-size: 14.5px;
+  margin-top: 4px;
+}
+.sb-match .sb-outcome {
+  font-size: 14.5px;
+  margin-top: 6px;
+  color: var(--sb-accent-ink);
+  font-weight: 700;
+}
+.sb-scan-error {
+  background: var(--sb-input);
+  border: 1px solid var(--sb-danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--sb-danger);
+  font-size: 14.5px;
+}
+.sb-runs {
+  background: var(--sb-card);
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-radius);
+  box-shadow: var(--sb-shadow);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.sb-run {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--sb-line);
+}
+.sb-run:last-child {
+  border-bottom: 0;
+}
+.sb-run .sb-txt {
+  flex: 1;
+  font-size: 14.5px;
+  color: var(--sb-body);
+}
+.sb-pill-ok {
+  background: var(--sb-ok-soft);
+  color: var(--sb-ok);
+  font-size: 12.5px;
+  padding: 3px 11px;
+}
+.sb-pill-warn {
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+  font-size: 12.5px;
+  padding: 3px 11px;
+}
+.sb-pill-fail {
+  background: transparent;
+  border: 1px solid var(--sb-danger);
+  color: var(--sb-danger);
+  font-size: 12.5px;
+  padding: 3px 11px;
+}
+.sb-runs-foot {
+  color: var(--sb-muted);
+  font-size: 13.5px;
+  margin: 8px 2px 6px;
+  text-align: center;
+}
+
+/* ---------- sticky save bar ---------- */
+.sb-savebar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  background: var(--sb-card);
+  border-top: 1px solid var(--sb-line);
+  padding: 10px 0 calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.sb-savebar .sb-col {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sb-dirty-ind {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--sb-muted);
+}
+.sb-dirty-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sb-accent);
+  flex-shrink: 0;
+  display: none;
+}
+.sb-savebar .sb-col.sb-is-dirty .sb-dirty-dot {
+  display: block;
+}
+.sb-savebar .sb-col.sb-is-dirty .sb-dirty-txt {
+  color: var(--sb-accent-ink);
+}
+.sb-savebar .sb-btn {
+  min-height: 46px;
+  padding: 8px 18px;
+}
+
+/* Toasts must clear the save bar — the shared host parks bottom-right. */
+body.sb-has-savebar [data-toast-host] {
+  bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ---------- wizard ---------- */
+.sb-steps {
+  display: flex;
+  gap: 6px;
+  margin: 22px 0 18px;
+}
+.sb-steps .sb-st {
+  flex: 1;
+  text-align: center;
+}
+.sb-steps .sb-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--sb-card-deep);
+  border: 1px solid var(--sb-line);
+  overflow: hidden;
+}
+.sb-steps .sb-bar i {
+  display: block;
+  height: 100%;
+  background: transparent;
+}
+.sb-steps .sb-st.sb-done .sb-bar i,
+.sb-steps .sb-st.sb-now .sb-bar i {
+  background: var(--sb-accent);
+}
+.sb-steps .sb-lb {
+  font-size: 12.5px;
+  color: var(--sb-muted);
+  margin-top: 6px;
+  font-weight: 700;
+}
+.sb-steps .sb-st.sb-now .sb-lb {
+  color: var(--sb-ink);
+}
+.sb-wiz-nav {
+  display: flex;
+  gap: 10px;
+  margin: 22px 0 8px;
+}
+.sb-wiz-nav .sb-btn {
+  flex: 1;
+}
+.sb-template-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0 4px;
+}
+.sb-template-chips button {
+  border: 1px solid var(--sb-line);
+  background: var(--sb-card);
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--sb-ink);
+  cursor: pointer;
+}
+.sb-template-chips button[aria-pressed='true'] {
+  border-color: var(--sb-accent);
+  background: var(--sb-accent-soft);
+}
+textarea.sb-input {
+  min-height: 130px;
+  resize: vertical;
+  line-height: 1.5;
+}

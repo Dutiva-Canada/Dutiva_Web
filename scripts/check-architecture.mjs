@@ -23,6 +23,7 @@ const MARKETING_DATA_ALLOW = /from ['"]@\/data\/documents['"]/
 const SIZE_ALLOWLIST = new Set([
   'src/lib/supabase/database.types.ts',
   'src/features/app/documents/data/documents.ts',
+  'supabase/functions/_shared/database.types.ts',
 ])
 
 const MAX_SOURCE_LINES = 800
@@ -163,6 +164,18 @@ for (const r of contentByRel.keys()) {
   }
 }
 
+/* The size budget applies to edge functions too — src-only rules above don't
+   run there, but a monolithic index.ts is the same maintenance problem. */
+const functionFiles = await walk(path.join(root, 'supabase', 'functions'))
+for (const file of functionFiles) {
+  const content = await readFile(file, 'utf8')
+  const r = rel(file)
+  const lines = content.split('\n').length
+  if (lines > MAX_SOURCE_LINES && !SIZE_ALLOWLIST.has(r)) {
+    warnings.push(`${r}: ${lines} lines (>${MAX_SOURCE_LINES}) — consider splitting`)
+  }
+}
+
 if (warnings.length > 0) {
   console.warn('check-architecture: warnings')
   for (const w of warnings) console.warn(`  ${w}`)
@@ -175,5 +188,5 @@ if (errors.length > 0) {
 }
 
 console.log(
-  `check-architecture: OK (${files.length} source files scanned${warnings.length ? `, ${warnings.length} warning(s)` : ''})`,
+  `check-architecture: OK (${files.length + functionFiles.length} source files scanned${warnings.length ? `, ${warnings.length} warning(s)` : ''})`,
 )

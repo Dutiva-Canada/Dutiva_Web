@@ -232,7 +232,7 @@ export const tplT24: DocTemplate = {
         fr: 'Autres circonstances qui rendraient la situation irréalisable — et la preuve de chacune.',
       },
       hint: {
-        en: 'In Ontario and federally the analysis is confined to the factors above, so "nothing further" is usually the right answer — and recording that you had nothing further is itself worth having. In Québec the assessment is global, and operational disruption or the effect on the team belongs here, evidenced like everything else.',
+        en: 'In Ontario and federally the analysis is confined to the factors above, so “nothing further” is usually the right answer — and recording that you had nothing further is itself worth having. In Québec the assessment is global, and operational disruption or the effect on the team belongs here, evidenced like everything else.',
         fr: 'En Ontario et au fédéral, l’analyse se limite aux facteurs ci-dessus : « rien de plus » est donc habituellement la bonne réponse — et consigner que vous n’aviez rien d’autre a sa valeur. Au Québec, l’évaluation est globale, et la perturbation des activités ou l’effet sur l’équipe trouvent leur place ici, avec preuve à l’appui comme le reste.',
       },
     },

@@ -10,7 +10,7 @@ import type { LightFlow } from './types'
 export const lightFlows: Record<string, LightFlow> = {
   hiring: {
     text: bi(
-      "I've got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm.",
+      "I’ve got enough to draft a baseline offer — salary and start date can stay as placeholders until you confirm.",
       'J’ai assez d’information pour rédiger une offre de base — le salaire et la date de début peuvent rester des espaces réservés jusqu’à votre confirmation.',
     ),
     reasoning: [
@@ -74,7 +74,7 @@ export const lightFlows: Record<string, LightFlow> = {
       },
     ],
     docs: ['T49'],
-    followups: ['Generate French version', "Add Quebec's statutory holiday calendar"],
+    followups: ['Generate French version', "Add Quebec’s statutory holiday calendar"],
   },
   performance: {
     text: bi(
@@ -119,7 +119,7 @@ export const lightFlows: Record<string, LightFlow> = {
   accommodation: {
     text: bi(
       'Good instinct to loop me in early. Keep any medical-information request focused on the information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
-      'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
+      'Bon réflexe de m’impliquer tôt. Limitez toute demande de renseignements médicaux à l’information raisonnablement nécessaire pour évaluer les limitations fonctionnelles et les besoins d’accommodement ; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
     ),
     reasoning: [
       bi(
@@ -128,7 +128,7 @@ export const lightFlows: Record<string, LightFlow> = {
       ),
       bi(
         'Employers should request only the medical information reasonably necessary to assess functional limitations and accommodation needs; diagnosis is generally unnecessary unless the circumstances justify additional information.',
-        'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
+        'Les employeurs ne devraient demander que les renseignements médicaux raisonnablement nécessaires pour évaluer les limitations fonctionnelles et les besoins d’accommodement ; le diagnostic est généralement inutile, sauf si les circonstances justifient des renseignements additionnels.',
       ),
     ],
     docs: ['T19', 'T20'],
@@ -154,7 +154,7 @@ export const lightFlows: Record<string, LightFlow> = {
         tone: 'warning',
         title: bi('Policy is overdue', 'Politique en retard'),
         body: bi(
-          "Your current Remote Work Policy hasn't been reviewed in 14 months, and you've added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
+          "Your current Remote Work Policy hasn’t been reviewed in 14 months, and you’ve added employees in 3 new employment jurisdictions since. Recommend a refresh this month.",
           'Votre politique de télétravail actuelle n’a pas été révisée depuis 14 mois, et vous avez ajouté des employés dans 3 nouvelles compétences d’emploi depuis. Une mise à jour ce mois-ci est recommandée.',
         ),
         citations: [],
@@ -167,6 +167,6 @@ export const lightFlows: Record<string, LightFlow> = {
 
 /** Advisor fallback when a light flow has no canned content (FR self-authored). */
 export const lightFlowFallbackText: Bi = bi(
-  "Tell me a bit more about the situation and I'll point you in the right direction.",
+  "Tell me a bit more about the situation and I’ll point you in the right direction.",
   'Dites-m’en un peu plus sur la situation et je vous orienterai dans la bonne direction.',
 )

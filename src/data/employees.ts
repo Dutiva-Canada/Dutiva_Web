@@ -29,7 +29,7 @@ export const employees: Employee[] = [
     tone: 'risk',
     tenure: bi('8 yrs', '8 ans'),
     insight: bi(
-      "Jordan's termination is in progress. No termination clause is on file, so the preliminary notice estimate runs well above the ESA minimum — legal review is in progress.",
+      "Jordan’s termination is in progress. No termination clause is on file, so the preliminary notice estimate runs well above the ESA minimum — legal review is in progress.",
       'Le licenciement de Jordan est en cours. Aucune clause de licenciement au dossier, donc l’estimation préliminaire dépasse largement le minimum LNE — l’examen juridique est en cours.',
     ),
     risk: {
@@ -629,7 +629,7 @@ export const compChanges: CompChange[] = [
     requestedBy: 'Riley Summers',
     note: bi(
       'Two comparators on file; add at least one more before HR/Finance review.',
-      'Deux comparateurs au dossier; ajoutez-en au moins un avant l’examen RH/Finances.',
+      'Deux comparateurs au dossier ; ajoutez-en au moins un avant l’examen RH/Finances.',
     ),
   },
 ]
@@ -678,7 +678,7 @@ export const supportSignals: SupportSignal[] = [
     confidence: bi('High — scheduled', 'Élevée — planifié'),
     why: bi(
       'The 90-day modified-duties review is due Jul 14; functional fit should be reconfirmed.',
-      'L’examen des tâches modifiées à 90 jours est dû le 14 juillet; l’adéquation fonctionnelle doit être reconfirmée.',
+      'L’examen des tâches modifiées à 90 jours est dû le 14 juillet ; l’adéquation fonctionnelle doit être reconfirmée.',
     ),
     action: bi(
       'Confirm modified duties still fit at the Jul 14 review.',
@@ -699,11 +699,11 @@ export const supportSignals: SupportSignal[] = [
     confidence: bi('Medium', 'Moyenne'),
     why: bi(
       'Attendance conversations are underway; a support dimension may exist. Handle support resources separately from the performance process to avoid feeding sensitive support information into discipline.',
-      'Des conversations sur l’assiduité sont en cours; une dimension de soutien peut exister. Traitez les ressources de soutien séparément du processus de rendement afin d’éviter que des renseignements sensibles liés au soutien alimentent la discipline.',
+      'Des conversations sur l’assiduité sont en cours ; une dimension de soutien peut exister. Traitez les ressources de soutien séparément du processus de rendement afin d’éviter que des renseignements sensibles liés au soutien alimentent la discipline.',
     ),
     action: bi(
       'Share support resources; do not feed this signal into the PIP.',
-      'Partagez les ressources de soutien; n’intégrez pas ce signal au PAR.',
+      'Partagez les ressources de soutien ; n’intégrez pas ce signal au PAR.',
     ),
     sensitivity: bi('High — do not link to discipline', 'Élevée — ne pas lier à la discipline'),
   },

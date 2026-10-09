@@ -29,7 +29,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-Dutiva is a single-page React 19 application that serves two distinct surfaces from one route tree: a **public marketing site** (bilingual, prerendered to static HTML) and a **private workspace** (client-rendered, invite-only, `noindex`). This page describes the high-level structure that ties these surfaces together: the application entry point, the React provider hierarchy, the routing system, the authentication gate, and the workspace mode system. Each sub-topic has a dedicated child page for in-depth coverage.
+Dutiva is a single-page React 19 application that serves several surfaces from one route tree: a **public marketing site** (bilingual, prerendered to static HTML), a **public read-only demo** (`/demo`), a **private workspace** (client-rendered, invite-only, `noindex`), and **standalone invite-only portals** (`/health`, `/invest`, `/pr`, `/careers/portal`) that share auth but render their own shells. This page describes the high-level structure that ties these surfaces together: the application entry point, the React provider hierarchy, the routing system, the authentication gate, and the workspace mode system. Each sub-topic has a dedicated child page for in-depth coverage.
 
 ## Application Entry Point
 

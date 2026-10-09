@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    "Dutiva uses artificial intelligence to power the Dutiva Advisor and document generation features. This framework discloses the risks associated with AI-generated outputs, explains the limitations of the technology, identifies scenarios where human professional review is required, and describes the responsibilities of users who rely on Dutiva's AI features.",
+    "Dutiva uses artificial intelligence to power the Dutiva Advisor and document generation features. This framework discloses the risks associated with AI-generated outputs, explains the limitations of the technology, identifies scenarios where human professional review is required, and describes the responsibilities of users who rely on Dutiva’s AI features.",
   ],
   sections: [
     {
@@ -13,11 +13,11 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "AI language models generate outputs based on statistical patterns in training data and retrieved context. This means Dutiva's AI outputs may be factually incorrect, incomplete, internally inconsistent, or unsuitable for a specific workplace situation even when they appear confident and well-formatted.",
+          text: "AI language models generate outputs based on statistical patterns in training data and retrieved context. This means Dutiva’s AI outputs may be factually incorrect, incomplete, internally inconsistent, or unsuitable for a specific workplace situation even when they appear confident and well-formatted.",
         },
         {
           type: 'p',
-          text: "Dutiva's AI features are grounded with retrieved guidance from Canadian employment standards and HR compliance sources, which reduces but does not eliminate the risk of inaccurate outputs. Users must verify all AI-generated content before relying on it.",
+          text: "Dutiva’s AI features are grounded with retrieved guidance from Canadian employment standards and HR compliance sources, which reduces but does not eliminate the risk of inaccurate outputs. Users must verify all AI-generated content before relying on it.",
         },
       ],
     },
@@ -26,7 +26,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "AI language models can 'hallucinate' — generating plausible-sounding but factually incorrect information, including citations to laws or cases that do not exist, incorrect statutory thresholds, or fabricated policy references.",
+          text: "AI language models can ’hallucinate’ — generating plausible-sounding but factually incorrect information, including citations to laws or cases that do not exist, incorrect statutory thresholds, or fabricated policy references.",
         },
         {
           type: 'p',
@@ -56,7 +56,7 @@ export default {
         },
         {
           type: 'p',
-          text: "Dutiva updates its guidance content on a rolling basis but cannot guarantee that all content reflects the current state of the law at all times. For matters involving recent legislative changes, check the primary source before relying on Dutiva's output.",
+          text: "Dutiva updates its guidance content on a rolling basis but cannot guarantee that all content reflects the current state of the law at all times. For matters involving recent legislative changes, check the primary source before relying on Dutiva’s output.",
         },
       ],
     },
@@ -106,7 +106,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: "By using Dutiva's AI features, you acknowledge that: (1) AI outputs are drafting aids, not legal advice; (2) you are responsible for reviewing and verifying all outputs before use; (3) you will not rely on AI outputs as a substitute for qualified professional advice in high-risk situations; and (4) you accept responsibility for any workplace decisions you make using Dutiva outputs.",
+          text: "By using Dutiva’s AI features, you acknowledge that: (1) AI outputs are drafting aids, not legal advice; (2) you are responsible for reviewing and verifying all outputs before use; (3) you will not rely on AI outputs as a substitute for qualified professional advice in high-risk situations; and (4) you accept responsibility for any workplace decisions you make using Dutiva outputs.",
         },
         {
           type: 'p',

@@ -75,7 +75,7 @@ export const caseFileMemoryFacts: MemoryFact[] = [
     category: 'case',
     statement: bi(
       'ESA minimum: 8 weeks’ termination notice/pay; statutory severance may also apply if eligibility requirements are met',
-      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies',
+      'Minimum LNE : 8 semaines de préavis ou d’indemnité de licenciement ; une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies',
     ),
     confidence: 'inferred',
     source: {
@@ -171,7 +171,7 @@ export const caseFileMemoryFacts: MemoryFact[] = [
     category: 'matter',
     statement: bi(
       'Modified-duties accommodation established; 90-day review scheduled for Jul 14',
-      'Accommodement en tâches modifiées établi; révision de 90 jours prévue le 14 juill.',
+      'Accommodement en tâches modifiées établi ; révision de 90 jours prévue le 14 juill.',
     ),
     confidence: 'confirmed',
     source: { type: 'case', detail: caseAmara },
@@ -187,7 +187,7 @@ export const caseFileMemoryFacts: MemoryFact[] = [
     category: 'matter',
     statement: bi(
       'On a performance improvement plan; 30-day check-in Jul 22',
-      'Sous plan d’amélioration du rendement; suivi de 30 jours le 22 juill.',
+      'Sous plan d’amélioration du rendement ; suivi de 30 jours le 22 juill.',
     ),
     confidence: 'confirmed',
     source: { type: 'case', detail: bi('Case note', 'Note de dossier') },

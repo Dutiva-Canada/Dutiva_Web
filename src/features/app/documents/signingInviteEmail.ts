@@ -42,7 +42,7 @@ export function buildExternalSigningUrl(siteUrl: string, token: string, language
 
 const DISCLAIMER = {
   en: 'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice. Electronic signatures are captured by Dutiva Signature with consent and an audit trail; suitability for your use case is your organization’s responsibility.',
-  fr: 'Dutiva offre un soutien pratique aux flux de travail RH et des conseils axés sur la conformité. Il ne fournit pas de conseils juridiques. Les signatures électroniques sont capturées par Signature Dutiva avec consentement et journal d’audit; la pertinence pour votre usage relève de votre organisation.',
+  fr: 'Dutiva offre un soutien pratique aux flux de travail RH et des conseils axés sur la conformité. Il ne fournit pas de conseils juridiques. Les signatures électroniques sont capturées par Signature Dutiva avec consentement et journal d’audit ; la pertinence pour votre usage relève de votre organisation.',
 }
 
 export function renderSigningInviteEmail(

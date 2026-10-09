@@ -11,6 +11,7 @@ import {
   validatePayload,
   type AiFeature,
 } from './handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Candidate-ai edge function — optional AI features for the candidate portal
@@ -25,16 +26,12 @@ import {
  * when the dedicated route is not configured.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json', ...extraHeaders },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json', ...extraHeaders },
   })
 }
 
@@ -160,8 +157,8 @@ async function callModel(
   }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -228,4 +225,6 @@ Deno.serve(async (req: Request) => {
   if (!parsed.ok) return json({ error: parsed.error }, 502)
 
   return json(parsed.value)
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

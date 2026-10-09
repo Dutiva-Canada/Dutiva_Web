@@ -416,7 +416,7 @@ function ReserveGoalForm({
           <input
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
-            placeholder="Workspace user"
+            placeholder={x(M.finance_workspace_user_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>

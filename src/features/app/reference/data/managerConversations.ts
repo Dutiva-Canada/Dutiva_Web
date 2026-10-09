@@ -52,11 +52,11 @@ export const managerConversationsGuide: ReferenceGuide = {
         contrast(
           bi(
             'I have noticed the last few weeks have been different — deadlines slipping, and you have been quieter in the planning meetings. How are things?',
-            'J’ai remarqué que les dernières semaines étaient différentes — des échéances reportées, et vous êtes plus discret dans les réunions de planification. Comment ça va?',
+            'J’ai remarqué que les dernières semaines étaient différentes — des échéances reportées, et vous êtes plus discret dans les réunions de planification. Comment ça va ?',
           ),
           bi(
             'You have not seemed yourself. Is everything OK at home? Are you depressed?',
-            'Vous ne semblez pas dans votre assiette. Est-ce que tout va bien à la maison? Faites-vous une dépression?',
+            'Vous ne semblez pas dans votre assiette. Est-ce que tout va bien à la maison ? Faites-vous une dépression ?',
           ),
         ),
         p(
@@ -96,11 +96,11 @@ export const managerConversationsGuide: ReferenceGuide = {
         contrast(
           bi(
             'Thank you for telling me. What would make the work manageable right now?',
-            'Merci de m’en avoir parlé. Qu’est-ce qui rendrait le travail gérable en ce moment?',
+            'Merci de m’en avoir parlé. Qu’est-ce qui rendrait le travail gérable en ce moment ?',
           ),
           bi(
             'What exactly is the diagnosis? How long have you had it?',
-            'Quel est exactement le diagnostic? Depuis combien de temps l’avez-vous?',
+            'Quel est exactement le diagnostic ? Depuis combien de temps l’avez-vous ?',
           ),
         ),
         contrast(

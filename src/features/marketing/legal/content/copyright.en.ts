@@ -26,7 +26,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'You retain ownership of all content you provide to Dutiva, including company names, employee details, workplace policy choices, and Advisor message content ("User Content"). By submitting User Content to Dutiva, you grant Dutiva a limited, non-exclusive license to process, store, and use your User Content solely as required to operate and provide the platform services to you.',
+          text: 'You retain ownership of all content you provide to Dutiva, including company names, employee details, workplace policy choices, and Advisor message content (“User Content”). By submitting User Content to Dutiva, you grant Dutiva a limited, non-exclusive license to process, store, and use your User Content solely as required to operate and provide the platform services to you.',
         },
         {
           type: 'p',
@@ -39,7 +39,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Documents generated through the Dutiva platform using your inputs ("Generated Content") are owned by you, subject to the terms of this policy and the Terms of Service. Dutiva does not claim copyright in the specific textual output of documents you generate using your own inputs.',
+          text: 'Documents generated through the Dutiva platform using your inputs (“Generated Content”) are owned by you, subject to the terms of this policy and the Terms of Service. Dutiva does not claim copyright in the specific textual output of documents you generate using your own inputs.',
         },
         {
           type: 'p',
@@ -60,7 +60,7 @@ export default {
         },
         {
           type: 'p',
-          text: "The platform may also incorporate open-source software components under their respective licenses. Dutiva's open-source license notices are maintained in the platform repository.",
+          text: "The platform may also incorporate open-source software components under their respective licenses. Dutiva’s open-source license notices are maintained in the platform repository.",
         },
       ],
     },

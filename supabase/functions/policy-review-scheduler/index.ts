@@ -1,6 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { resendSend } from '../_shared/resendSend.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Daily cron: flag overdue policies as needs_review, then email org admins
@@ -8,17 +10,13 @@ import { resendSend } from '../_shared/resendSend.ts'
  * Scheduled by trigger_policy_review_scheduler() (migration 0117).
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -27,7 +25,7 @@ const CRON_LOCK_TTL_SECONDS = 300
 
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -36,7 +34,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 function policyReminderEmail(input: {
@@ -68,8 +66,8 @@ function policyReminderEmail(input: {
   }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response('Method not allowed', { status: 405 })
   }
@@ -181,4 +179,6 @@ Deno.serve(async (req: Request) => {
     failed,
     candidates: dueRows?.length ?? 0,
   })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))

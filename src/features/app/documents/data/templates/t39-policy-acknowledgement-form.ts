@@ -165,7 +165,7 @@ export const tplT39: DocTemplate = {
         fr: 'Une par ligne, chacune avec sa version ou sa date d’entrée en vigueur.',
       },
       hint: {
-        en: 'Name the version. An acknowledgement of "the code of conduct" proves nothing once the code has been revised twice — what makes this evidence is that it identifies which text was read.',
+        en: 'Name the version. An acknowledgement of “the code of conduct” proves nothing once the code has been revised twice — what makes this evidence is that it identifies which text was read.',
         fr: 'Indiquez la version. Un accusé visant « le code de conduite » ne prouve rien une fois le code révisé deux fois — c’est l’identification du texte lu qui en fait une preuve.',
       },
     },

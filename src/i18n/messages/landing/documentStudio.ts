@@ -7,7 +7,7 @@ export const landingDocumentStudio = defineMessages({
   },
   landing_mod_title: {
     en: 'Advisor sits on top of the records and programs that run HR day to day.',
-    fr: "Le Conseiller s'appuie sur les dossiers et les programmes qui font fonctionner les RH au quotidien.",
+    fr: "Le Conseiller s’appuie sur les dossiers et les programmes qui font fonctionner les RH au quotidien.",
   },
   landing_mod_roadmap: {
     en: 'Roadmap',
@@ -35,7 +35,7 @@ export const landingDocumentStudio = defineMessages({
   },
   landing_cat_termination: {
     en: 'Termination',
-    fr: "Cessation d'emploi",
+    fr: "Cessation d’emploi",
   },
   landing_cat_browse: {
     en: 'Browse all templates',

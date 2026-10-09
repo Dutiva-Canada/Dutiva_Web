@@ -118,7 +118,6 @@ import {
   specialistsTiles,
 } from './statTiles'
 import {
-  FINDING_SEVERITY_WEIGHTS,
   SCORE_FORMULA_VERSION,
   applyCriticalCeiling,
   blendScore,
@@ -126,12 +125,10 @@ import {
   daysBetweenISO,
   expiryBuckets,
   flattenBuckets,
-  isProvenancedTask,
   monthStartISO,
-  scoreComponent,
   scoreDelta,
-  weightedComponent,
 } from './aggregation'
+import { buildScoreComponents } from './scoreComponents'
 import { formatDayISO, intlLocale } from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
 
@@ -242,112 +239,45 @@ export function AnalyticsProductionView() {
     revenueInvoices.state.status === 'ready' &&
     specialistEngagements.state.status === 'ready'
 
-  const components = useMemo(() => {
-    const policyRows = rowsOf(policies.state)
-    /* v3 scope: provenanced rows only (a hand-added to-do is real work but
-       not compliance posture); cancelled tasks are neither done nor pending
-       work — the same exclusion the backend's own overdue count applies. */
-    const taskRows = rowsOf(tasks.state).filter(
-      (t) => isProvenancedTask(t.category, t.linkedKind) && t.status !== 'cancelled',
-    )
-    const findingRows = rowsOf(findings.state)
-    const obligationRows = rowsOf(obligations.state)
-    const issueRows = rowsOf(commsIssues.state)
-    const submissionRows = rowsOf(commsSubmissions.state)
-    const brandClaimRows = rowsOf(commsBrandClaims.state)
-    const policyFileRows = rowsOf(commsPolicyFiles.state)
-    const securityIncidentRows = rowsOf(securityIncidents.state)
-    const securityRiskRows = rowsOf(securityRisks.state)
-    const operationsProjectRows = rowsOf(operationsProjects.state)
-    const governanceDecisionRows = rowsOf(governanceDecisions.state)
-    const revenueInvoiceRows = rowsOf(revenueInvoices.state)
-    const specialistEngagementRows = rowsOf(specialistEngagements.state)
-    return [
-      scoreComponent(
-        'policies',
-        policyRows.filter((p) => p.status === 'up_to_date').length,
-        policyRows.length,
+  const components = useMemo(
+    () =>
+      buildScoreComponents(
+        {
+          policies: rowsOf(policies.state),
+          tasks: rowsOf(tasks.state),
+          findings: rowsOf(findings.state),
+          obligations: rowsOf(obligations.state),
+          commsIssues: rowsOf(commsIssues.state),
+          commsSubmissions: rowsOf(commsSubmissions.state),
+          commsBrandClaims: rowsOf(commsBrandClaims.state),
+          commsPolicyFiles: rowsOf(commsPolicyFiles.state),
+          securityIncidents: rowsOf(securityIncidents.state),
+          securityRisks: rowsOf(securityRisks.state),
+          operationsProjects: rowsOf(operationsProjects.state),
+          governanceDecisions: rowsOf(governanceDecisions.state),
+          revenueInvoices: rowsOf(revenueInvoices.state),
+          specialistEngagements: rowsOf(specialistEngagements.state),
+        },
+        todayISO,
       ),
-      scoreComponent('tasks', taskRows.filter((t) => t.done).length, taskRows.length),
-      weightedComponent(
-        'findings',
-        findingRows.map((f) => ({
-          done: f.resolved,
-          weight: FINDING_SEVERITY_WEIGHTS[f.severity],
-        })),
-      ),
-      scoreComponent(
-        'obligations',
-        obligationRows.filter((o) => o.status === 'ok').length,
-        obligationRows.length,
-      ),
-      scoreComponent(
-        'comms_issues',
-        issueRows.filter((i) => i.status === 'resolved' || i.status === 'closed').length,
-        issueRows.length,
-      ),
-      scoreComponent(
-        'comms_submissions',
-        submissionRows.filter((s) => s.status === 'submitted' || s.status === 'recorded').length,
-        submissionRows.length,
-      ),
-      scoreComponent(
-        'comms_brand_claims',
-        brandClaimRows.filter((c) => c.status === 'active').length,
-        brandClaimRows.length,
-      ),
-      scoreComponent(
-        'comms_policy_files',
-        policyFileRows.filter((p) => p.stage === 'in_force' || p.stage === 'consultation_closed')
-          .length,
-        policyFileRows.length,
-      ),
-      scoreComponent(
-        'security',
-        securityIncidentRows.filter((i) => i.status === 'resolved').length +
-          securityRiskRows.filter((r) => r.status === 'mitigated' || r.status === 'closed').length,
-        securityIncidentRows.length + securityRiskRows.length,
-      ),
-      scoreComponent(
-        'operations',
-        operationsProjectRows.filter((p) => p.status === 'completed').length,
-        operationsProjectRows.length,
-      ),
-      scoreComponent(
-        'governance',
-        governanceDecisionRows.filter((d) => d.status !== 'proposed').length,
-        governanceDecisionRows.length,
-      ),
-      scoreComponent(
-        'revenue',
-        revenueInvoiceRows.filter((i) => i.status === 'paid').length,
-        revenueInvoiceRows.length,
-      ),
-      scoreComponent(
-        'specialists',
-        specialistEngagementRows.filter(
-          (e) => !(e.follow_up_date !== null && e.follow_up_date < todayISO),
-        ).length,
-        specialistEngagementRows.length,
-      ),
-    ]
-  }, [
-    policies.state,
-    tasks.state,
-    findings.state,
-    obligations.state,
-    commsIssues.state,
-    commsSubmissions.state,
-    commsBrandClaims.state,
-    commsPolicyFiles.state,
-    securityIncidents.state,
-    securityRisks.state,
-    operationsProjects.state,
-    governanceDecisions.state,
-    revenueInvoices.state,
-    specialistEngagements.state,
-    todayISO,
-  ])
+    [
+      policies.state,
+      tasks.state,
+      findings.state,
+      obligations.state,
+      commsIssues.state,
+      commsSubmissions.state,
+      commsBrandClaims.state,
+      commsPolicyFiles.state,
+      securityIncidents.state,
+      securityRisks.state,
+      operationsProjects.state,
+      governanceDecisions.state,
+      revenueInvoices.state,
+      specialistEngagements.state,
+      todayISO,
+    ],
+  )
 
   const openCriticalCount = useMemo(
     () => rowsOf(findings.state).filter((f) => !f.resolved && f.severity === 'critical').length,

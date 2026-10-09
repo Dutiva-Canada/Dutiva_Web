@@ -8,6 +8,7 @@
 import './lib/env.mjs'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { managementQuery } from './lib/managementApi.mjs'
 
 const token = process.env.SUPABASE_ACCESS_TOKEN?.trim()
 const projectRef = process.env.SUPABASE_PROJECT_REF?.trim()
@@ -146,17 +147,10 @@ const statements = splitStatements(sql)
 
 const query = `INSERT INTO supabase_migrations.schema_migrations (version, name, statements) VALUES ('${version.replace(/'/g, "''")}', '${slug.replace(/'/g, "''")}', ARRAY[${statements.map((s) => `'${s.replace(/'/g, "''")}'`).join(', ')}]) ON CONFLICT (version) DO UPDATE SET name = EXCLUDED.name, statements = EXCLUDED.statements`
 
-const response = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/query`, {
-  method: 'POST',
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({ query }),
-})
+const response = await managementQuery(projectRef, token, query)
 
-if (!response.ok) {
-  console.error('record-migration update failed:', response.status, await response.text())
+if (!response || !response.ok) {
+  console.error('record-migration update failed:', response?.status ?? 'no response', response ? await response.text() : '')
   process.exit(1)
 }
 

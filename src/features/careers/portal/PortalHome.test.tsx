@@ -127,7 +127,7 @@ describe('PortalHome', () => {
     const { PortalHome } = await import('./PortalHome')
     renderCareers(<PortalHome />)
 
-    expect(await screen.findByText(/You haven't applied to any roles yet/i)).toBeInTheDocument()
+    expect(await screen.findByText(/You haven’t applied to any roles yet/i)).toBeInTheDocument()
   })
 
   it('shows the error state when the API fails', async () => {

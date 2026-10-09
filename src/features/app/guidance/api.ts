@@ -25,6 +25,15 @@ export interface LawUpdate {
   jurisdiction: string
   lawName: string
   url: string
+  /** Human-facing official statute page — `url` may be a machine endpoint. */
+  referenceUrl: string | null
+  /** The monitor's full detail — every provision that moved, uncapped. */
+  rawDiff: string | null
+  /** Plain-language AI read of the change, per locale. Null when the model
+      route was unavailable or produced nothing parseable — the factual
+      summary always stands on its own. */
+  aiAnalysisEn: string | null
+  aiAnalysisFr: string | null
   changeSummary: string | null
   detectedAt: string | null
   eventType: string | null
@@ -45,6 +54,10 @@ const lawUpdateRowSchema = z.object({
   jurisdiction: z.string(),
   law_name: z.string(),
   url: z.string(),
+  reference_url: z.string().nullable(),
+  raw_diff: z.string().nullable(),
+  ai_analysis_en: z.string().nullable(),
+  ai_analysis_fr: z.string().nullable(),
   change_summary: z.string().nullable(),
   detected_at: z.string().nullable(),
   event_type: z.string().nullable(),
@@ -72,11 +85,20 @@ export async function fetchGuidanceSources(): Promise<GuidanceSource[]> {
     }))
 }
 
-export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
+/** Page size for the law-updates list — the panel pages the same filtered
+    set when the reader asks for earlier detections. */
+export const LAW_UPDATES_PAGE_SIZE = 10
+
+export async function fetchRecentLawUpdates(
+  limit = LAW_UPDATES_PAGE_SIZE,
+  offset = 0,
+): Promise<LawUpdate[]> {
   if (!supabase) return []
   const { data, error } = await supabase
     .from('law_updates')
-    .select('id, jurisdiction, law_name, url, change_summary, detected_at, event_type')
+    .select(
+      'id, jurisdiction, law_name, url, reference_url, raw_diff, ai_analysis_en, ai_analysis_fr, change_summary, detected_at, event_type',
+    )
     /* Only real amendments, only in jurisdictions Dutiva supports. Unfiltered,
        this panel showed customers URL-move notices for provinces the product
        does not cover — of the ten newest rows on 2026-07-30, none were from a
@@ -86,7 +108,7 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
     .eq('event_type', CUSTOMER_FACING_EVENT_TYPE)
     .in('jurisdiction', MONITOR_JURISDICTION_NAMES)
     .order('detected_at', { ascending: false })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
   if (error) throw error
   return z
     .array(lawUpdateRowSchema)
@@ -96,6 +118,10 @@ export async function fetchRecentLawUpdates(limit = 10): Promise<LawUpdate[]> {
       jurisdiction: r.jurisdiction,
       lawName: r.law_name,
       url: r.url,
+      referenceUrl: r.reference_url,
+      rawDiff: r.raw_diff,
+      aiAnalysisEn: r.ai_analysis_en,
+      aiAnalysisFr: r.ai_analysis_fr,
       changeSummary: r.change_summary,
       detectedAt: r.detected_at,
       eventType: r.event_type,

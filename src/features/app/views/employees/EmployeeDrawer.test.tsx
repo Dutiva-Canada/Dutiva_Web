@@ -25,7 +25,7 @@ describe('EmployeeDrawer', () => {
     expect(screen.getByText('Jordan Mensah')).toBeInTheDocument()
     expect(screen.getByText('Senior Operations Manager · Ontario')).toBeInTheDocument()
     expect(screen.getByText('Offboarding')).toBeInTheDocument()
-    expect(screen.getByText(/Jordan's termination is in progress/)).toBeInTheDocument()
+    expect(screen.getByText(/Jordan’s termination is in progress/)).toBeInTheDocument()
     expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Open full case' })).toBeInTheDocument()
     expect(

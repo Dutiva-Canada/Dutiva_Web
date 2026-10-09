@@ -24,7 +24,7 @@ export const CHANGELOG_ENTRIES: readonly ChangelogEntry[] = [
     ),
     body: bi(
       'The free-seat cohort is now 5 seats, down from 15. Accounts already admitted keep their access. New free signups join the waitlist until a seat opens; a paid plan remains the immediate way in.',
-      'La cohorte de places gratuites passe de 15 à 5 places. Les comptes déjà admis conservent leur accès. Les nouvelles inscriptions gratuites rejoignent la liste d’attente jusqu’à l’ouverture d’une place; un forfait payant reste la voie immédiate.',
+      'La cohorte de places gratuites passe de 15 à 5 places. Les comptes déjà admis conservent leur accès. Les nouvelles inscriptions gratuites rejoignent la liste d’attente jusqu’à l’ouverture d’une place ; un forfait payant reste la voie immédiate.',
     ),
   },
   {

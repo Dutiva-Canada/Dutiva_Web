@@ -125,7 +125,7 @@ export const communicationsMessages = defineMessages({
   },
   comms_prod_delete_confirm: {
     en: 'Remove this message from the log?',
-    fr: 'Retirer ce message du registre?',
+    fr: 'Retirer ce message du registre ?',
   },
   comms_prod_delete_cancel: { en: 'Cancel', fr: 'Annuler' },
   comms_prod_confirm_delete: { en: 'Remove', fr: 'Retirer' },

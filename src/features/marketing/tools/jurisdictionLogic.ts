@@ -68,7 +68,7 @@ export const QUESTIONS: readonly Question[] = [
     id: 'employerType',
     prompt: bi(
       'Is the employer a federally regulated undertaking — such as a bank, airline, railway, telecom, interprovincial or international trucking company, radio/TV broadcaster, or Crown corporation?',
-      'L’employeur est-il une entreprise sous réglementation fédérale — par exemple une banque, une compagnie aérienne, une entreprise ferroviaire, une entreprise de télécommunications, une entreprise de camionnage interprovincial ou international, un radiodiffuseur ou une société d’État?',
+      'L’employeur est-il une entreprise sous réglementation fédérale — par exemple une banque, une compagnie aérienne, une entreprise ferroviaire, une entreprise de télécommunications, une entreprise de camionnage interprovincial ou international, un radiodiffuseur ou une société d’État ?',
     ),
     options: [
       { id: 'federal', label: bi('Yes, federally regulated', 'Oui, réglementation fédérale') },
@@ -79,7 +79,7 @@ export const QUESTIONS: readonly Question[] = [
     id: 'workProvince',
     prompt: bi(
       'In which province does the employee primarily work?',
-      'Dans quelle province l’employé travaille-t-il principalement?',
+      'Dans quelle province l’employé travaille-t-il principalement ?',
     ),
     options: [
       { id: 'ON', label: bi('Ontario', 'Ontario') },
@@ -94,7 +94,7 @@ export const QUESTIONS: readonly Question[] = [
     id: 'qcLanguage',
     prompt: bi(
       'Is French the predominant language of the workplace?',
-      'Le français est-il la langue prédominante du milieu de travail?',
+      'Le français est-il la langue prédominante du milieu de travail ?',
     ),
     options: [
       { id: 'yes', label: bi('Yes', 'Oui') },

@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { parseSlotIndex } from '../_shared/scheduledCalls.ts'
 import { createCalendarEvent, parseServiceAccountKey } from '../_shared/googleCalendar.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Customer confirms one of the call times an admin proposed
@@ -24,15 +25,11 @@ import { createCalendarEvent, parseServiceAccountKey } from '../_shared/googleCa
  * docs/SUPPORT_CALL_SCHEDULING.md.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -40,8 +37,8 @@ const CALL_DESCRIPTION_TEMPLATE = (reference: string, ticketUrl: string) =>
   `Dutiva support call for ticket ${reference}.\n\n${ticketUrl}\n\n` +
   'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.'
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -179,4 +176,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ data: { start: chosen.start, end: chosen.end, meet_link: meetLink } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

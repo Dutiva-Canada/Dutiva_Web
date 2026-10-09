@@ -91,8 +91,8 @@ export const homePriorities: HomePriority[] = [
     actionLabel: bi('Open case', 'Ouvrir le dossier'),
     action: { kind: 'route', to: '/app/cases/case1' },
     ask: bi(
-      "What's our exposure if counsel doesn't reply this week on Jordan Mensah's termination?",
-      'Quelle est notre exposition si le conseiller juridique ne répond pas cette semaine au sujet de Jordan Mensah?',
+      "What’s our exposure if counsel doesn’t reply this week on Jordan Mensah’s termination?",
+      'Quelle est notre exposition si le conseiller juridique ne répond pas cette semaine au sujet de Jordan Mensah ?',
     ),
     askFlowKey: 'fallback',
   },
@@ -116,7 +116,7 @@ export const homePriorities: HomePriority[] = [
     action: { kind: 'doc', templateKey: 'T10' },
     ask: bi(
       'What should the refreshed Remote Work Policy cover across our employment jurisdictions?',
-      'Que doit couvrir la politique de télétravail mise à jour selon nos compétences d’emploi?',
+      'Que doit couvrir la politique de télétravail mise à jour selon nos compétences d’emploi ?',
     ),
     askFlowKey: 'policy',
   },
@@ -139,8 +139,8 @@ export const homePriorities: HomePriority[] = [
     actionLabel: bi('Open case', 'Ouvrir le dossier'),
     action: { kind: 'route', to: '/app/cases/case3' },
     ask: bi(
-      "What should we confirm before Amara Okafor's accommodation review on Jul 14?",
-      'Que devrions-nous confirmer avant l’examen d’accommodement d’Amara Okafor le 14 juillet?',
+      "What should we confirm before Amara Okafor’s accommodation review on Jul 14?",
+      'Que devrions-nous confirmer avant l’examen d’accommodement d’Amara Okafor le 14 juillet ?',
     ), // [FR self-authored]
     askFlowKey: 'fallback',
     due: { label: bi('7d', '7 j'), warn: true },
@@ -164,8 +164,8 @@ export const homePriorities: HomePriority[] = [
     actionLabel: bi('Open case', 'Ouvrir le dossier'),
     action: { kind: 'route', to: '/app/cases/case2' },
     ask: bi(
-      "What should Devon Clarke's PIP check-in cover to stay defensible?",
-      'Que doit couvrir le suivi du PAR de Devon Clarke pour demeurer défendable?',
+      "What should Devon Clarke’s PIP check-in cover to stay defensible?",
+      'Que doit couvrir le suivi du PAR de Devon Clarke pour demeurer défendable ?',
     ), // [FR self-authored]
     askFlowKey: 'fallback',
     due: { label: bi('15d', '15 j'), warn: false },
@@ -190,7 +190,7 @@ export const homePriorities: HomePriority[] = [
     action: { kind: 'comp-rail', employeeId: 'e10' },
     ask: bi(
       'How should we model a pay adjustment for Théo Lavoie at the next comp cycle?',
-      'Comment modéliser un ajustement salarial pour Théo Lavoie au prochain cycle de rémunération?',
+      'Comment modéliser un ajustement salarial pour Théo Lavoie au prochain cycle de rémunération ?',
     ), // [FR self-authored]
     askFlowKey: 'fallback',
     due: { label: bi('Cycle', 'Cycle'), warn: false },
@@ -212,7 +212,7 @@ export const homePriorities: HomePriority[] = [
     action: { kind: 'wellbeing-rail', employeeId: 'e11' },
     ask: bi(
       'How should we open a workload conversation with Grace Osei?',
-      'Comment amorcer une conversation sur la charge de travail avec Grace Osei?',
+      'Comment amorcer une conversation sur la charge de travail avec Grace Osei ?',
     ), // [FR self-authored]
     askFlowKey: 'fallback',
   },
@@ -291,5 +291,5 @@ export const homeMetricChips: HomeMetricChip[] = [
 /** Prototype `onAskBrief` — "Ask about this brief" flow prompt (explicit 'fallback' key, 4826). */
 export const askBriefPrompt: Bi = bi(
   'Walk me through today’s brief — what should I do first?',
-  'Explique-moi le résumé d’aujourd’hui — par quoi devrais-je commencer?',
+  'Explique-moi le résumé d’aujourd’hui — par quoi devrais-je commencer ?',
 )

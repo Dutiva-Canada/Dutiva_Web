@@ -52,7 +52,7 @@ export function useAdvisorMessageActions() {
   const handleExportMessage = useCallback(
     (text: string) => {
       openCatalogueDocument('T10', { initialContent: text })
-      showToast({ en: 'Drafting document...', fr: 'Rédaction du document...' }, 'ok')
+      showToast({ en: 'Drafting document…', fr: 'Rédaction du document…' }, 'ok')
     },
     [openCatalogueDocument, showToast],
   )

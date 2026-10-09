@@ -21,6 +21,8 @@ import {
   type BoardConfig,
   type DiscoveredPosting,
 } from './handlers.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
  * Candidate job-search agent — discovers postings on the external job
@@ -46,11 +48,10 @@ import {
  * the portal never reports a submission that did not happen.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+const CORS = {
+  allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
 }
+const corsHeaders = makeCorsHeaders(CORS)
 
 const MAX_JOBS_PER_SCAN = 25
 const FETCH_TIMEOUT_MS = 15000
@@ -58,7 +59,7 @@ const FETCH_TIMEOUT_MS = 15000
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -101,7 +102,7 @@ function serverConfig(): ServerConfig | Response {
  */
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && req.headers.get('x-trigger-secret') === sharedSecret) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
 
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
@@ -109,7 +110,7 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && token === serviceKey) || (secretKey !== '' && token === secretKey)
+  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
 }
 
 async function authenticateCandidate(
@@ -456,8 +457,8 @@ async function applyOutcome(
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -564,7 +565,9 @@ Deno.serve(async (req: Request) => {
   const outcome = await attemptSubmission(app as ApplicationRow, job, profile as ProfileRow, board)
   await applyOutcome(adminClient, app.id as string, app.discovered_job_id as string, outcome)
   return json({ status: outcome.status, channel: outcome.channel, error: outcome.error })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req), CORS))
 
 function parseBoardsForSource(raw: unknown, source: string): string | null {
   if (!Array.isArray(raw)) return null

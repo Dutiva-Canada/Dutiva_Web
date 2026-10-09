@@ -10,7 +10,7 @@ export const financeExternal = defineMessages({
   finance_external_idempotency_key: { en: 'Idempotency key', fr: 'Clé d’idempotence' },
 
   /* External action transitions */
-  finance_external_prepare_export: { en: 'Prepare export', fr: "Préparer l'export" },
+  finance_external_prepare_export: { en: 'Prepare export', fr: "Préparer l’export" },
   finance_external_mark_accepted: { en: 'Mark accepted', fr: 'Marquer accepté' },
   finance_external_mark_settled: { en: 'Mark settled', fr: 'Marquer réglé' },
   finance_external_mark_failed: { en: 'Mark failed', fr: 'Marquer échoué' },

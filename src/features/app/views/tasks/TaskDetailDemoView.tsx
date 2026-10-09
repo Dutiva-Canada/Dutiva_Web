@@ -37,7 +37,7 @@ function loadNotes(): Record<string, DemoNote[]> {
 
 /** Northgate task detail — fixture plan + per-device notes. `/demo` and demo mode. */
 export function TaskDetailDemoView() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
   const { taskId } = useParams<{ taskId: string }>()
   const task = tasks.find((t) => t.id === taskId)
@@ -191,7 +191,7 @@ export function TaskDetailDemoView() {
               >
                 {note.text}
                 <div className="mt-[4px] text-[11px] text-text-faint">
-                  {new Date(note.at).toLocaleString()}
+                  {new Date(note.at).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                 </div>
               </li>
             ))}

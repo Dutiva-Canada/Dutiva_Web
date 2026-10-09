@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'April 8, 2026',
   effectiveDate: 'April 8, 2026',
   callout: [
-    'Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") is committed to making Dutiva usable by people with disabilities and by users who rely on assistive technologies. We are actively working toward conformance with the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA across core website and application flows, and we continue to monitor WCAG 2.2 as the platform evolves.',
+    'Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) is committed to making Dutiva usable by people with disabilities and by users who rely on assistive technologies. We are actively working toward conformance with the Web Content Accessibility Guidelines (WCAG) 2.1 Level AA across core website and application flows, and we continue to monitor WCAG 2.2 as the platform evolves.',
   ],
   sections: [
     {

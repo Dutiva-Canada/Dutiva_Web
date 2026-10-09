@@ -18,7 +18,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'Le soutien est en libre-service et asynchrone par défaut. Notre centre d’aide et les indications intégrées au produit règlent la plupart des questions immédiatement; lorsque vous avez besoin d’une personne, une demande de soutien écrite est examinée et traitée par notre équipe.',
+          text: 'Le soutien est en libre-service et asynchrone par défaut. Notre centre d’aide et les indications intégrées au produit règlent la plupart des questions immédiatement ; lorsque vous avez besoin d’une personne, une demande de soutien écrite est examinée et traitée par notre équipe.',
         },
         {
           type: 'p',
@@ -133,7 +133,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva peut mettre à jour la présente Politique à mesure que ses activités de soutien évoluent; les changements importants sont reflétés par la mise à jour de la date ci-dessus. Les questions concernant la présente Politique peuvent être envoyées à support@dutiva.ca.',
+          text: 'Dutiva peut mettre à jour la présente Politique à mesure que ses activités de soutien évoluent ; les changements importants sont reflétés par la mise à jour de la date ci-dessus. Les questions concernant la présente Politique peuvent être envoyées à support@dutiva.ca.',
         },
       ],
     },

@@ -1,0 +1,181 @@
+/* Dutiva PR portal styles — sits on top of the shared `.sb` design system
+   (invest/portal/strategies.css, imported by each page). `.prx` overrides
+   only the token palette: a violet accent for the communications desk
+   instead of the invest gold or the health sage. Pages mount `.prx` beside
+   `.sb` on their root element so every existing component just inherits it. */
+
+.sb.prx {
+  --sb-accent: #6b4fa8;
+  --sb-accent-ink: #4f3686;
+  --sb-accent-soft: #e8e0f5;
+  --sb-primary: #4f3686;
+  --sb-primary-text: #f6f2fc;
+  --sb-ok: #3d7a5e;
+  --sb-ok-soft: #dcece1;
+  --sb-ink: #302347;
+  --sb-ink-soft: #5a4d78;
+  --sb-card-deep: #e4dfec;
+  --sb-shadow: 0 1px 2px rgba(48, 35, 71, 0.07), 0 4px 14px rgba(48, 35, 71, 0.07);
+}
+
+[data-theme='dark'] .sb.prx {
+  --sb-accent: #b9a2ee;
+  --sb-accent-ink: #cdbcf7;
+  --sb-accent-soft: #2e2344;
+  --sb-primary: #b9a2ee;
+  --sb-primary-text: #1d1530;
+  --sb-ok: #7fc4a2;
+  --sb-ok-soft: #1e3026;
+  --sb-ink: #ece6f8;
+  --sb-ink-soft: #c6bbd9;
+  --sb-card-deep: #292040;
+  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Kind + channel chips — small square chips for content/campaign metadata. */
+.prx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+  white-space: nowrap;
+}
+.prx-chip[data-plain] {
+  background: transparent;
+  border: 1px solid var(--sb-line);
+  color: var(--sb-muted);
+}
+
+/* Sentiment pills — positive/negative reuse the shared ok/danger tokens. */
+.prx-sent-pos {
+  background: var(--sb-ok-soft);
+  color: var(--sb-ok);
+}
+.prx-sent-neu {
+  background: var(--sb-card-deep);
+  color: var(--sb-muted);
+  border: 1px solid var(--sb-line);
+}
+.prx-sent-neg {
+  background: transparent;
+  border: 1px solid var(--sb-danger);
+  color: var(--sb-danger);
+}
+
+/* Rank delta — SEO position moved up/down since the previous check.
+   Direction is carried by the arrow + label, color is reinforcement. */
+.prx-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.prx-delta[data-dir='up'] {
+  color: var(--sb-ok);
+}
+.prx-delta[data-dir='down'] {
+  color: var(--sb-danger);
+}
+.prx-delta[data-dir='flat'] {
+  color: var(--sb-muted);
+}
+
+/* Desk rows (content items) — on phones the actions drop under the copy so
+   titles keep their full width; on tablets+ they sit flush-right. */
+.prx-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--sb-line);
+}
+.prx-item:last-child {
+  border-bottom: none;
+}
+.prx-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.prx-item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (min-width: 720px) {
+  .prx-item {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .prx-item-actions {
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+}
+
+/* Mention rows — coverage entries read like a clipped-headlines list. */
+.prx-mention {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--sb-line);
+}
+.prx-mention:last-child {
+  border-bottom: none;
+}
+.prx-mention-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.prx-mention-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--sb-ink);
+}
+.prx-mention-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.prx-mention-title a:hover {
+  text-decoration: underline;
+}
+.prx-mention-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--sb-muted);
+}
+.prx-mention-side {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+@media (min-width: 720px) {
+  .prx-mention {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .prx-mention-side {
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+  }
+}

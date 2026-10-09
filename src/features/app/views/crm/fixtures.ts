@@ -31,7 +31,7 @@ export const initialCrmState: CrmState = {
       size: '10–50',
       notes: bi(
         'Referral from existing customer; evaluating team plan.',
-        'Référence d’un client existant; évalue le plan équipe.',
+        'Référence d’un client existant ; évalue le plan équipe.',
       ),
     },
     {
@@ -53,7 +53,7 @@ export const initialCrmState: CrmState = {
       status: 'prospect',
       notes: bi(
         'Met at Ontario HR summit; follow-up scheduled.',
-        'Rencontrée au sommet RH de l’Ontario; suivi planifié.',
+        'Rencontrée au sommet RH de l’Ontario ; suivi planifié.',
       ),
     },
     {
@@ -87,7 +87,7 @@ export const initialCrmState: CrmState = {
       closeDate: '2026-10-15',
       notes: bi(
         'Security review pending; reference check requested.',
-        'Examen de sécurité en cours; vérification de référence demandée.',
+        'Examen de sécurité en cours ; vérification de référence demandée.',
       ),
     },
     {
@@ -126,7 +126,7 @@ export const initialCrmState: CrmState = {
       date: '2026-09-05',
       summary: bi(
         'Demoed the Advisor and document studio; questions on RTO policy.',
-        'Démonstration du Conseiller et du studio de documents; questions sur la politique de retour au bureau.',
+        'Démonstration du Conseiller et du studio de documents ; questions sur la politique de retour au bureau.',
       ),
       followUpDate: inDays(3),
     },
@@ -151,7 +151,7 @@ export const initialCrmState: CrmState = {
       date: '2026-09-04',
       summary: bi(
         'Renewal call; customer is happy but wants volume pricing.',
-        'Appel de renouvellement; client satisfait mais veut un prix de volume.',
+        'Appel de renouvellement ; client satisfait mais veut un prix de volume.',
       ),
     },
   ],

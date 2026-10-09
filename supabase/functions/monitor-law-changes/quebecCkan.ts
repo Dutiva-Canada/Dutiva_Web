@@ -24,13 +24,13 @@
  * `last_modified` timestamp and the date embedded in its filename both move
  * when a new release lands.
  *
- * This module watches the dataset at that level — it does not yet download
- * and open the zip to read `Statutes_EN_Status.txt`, which is what would
- * name the *specific* statutes that changed (docs/LAW_MONITORING.md records
- * this as the next layer, not built here). Today: any change to the "Lois"
- * resource is reported against every Quebec law_name configured to watch it,
- * same as an `html` source reports "something on this page changed" without
- * saying what.
+ * Detection is per-statute, not dataset-level. A republish of the "Lois"
+ * resource triggers a drill-down (zipRange.ts — a few Range requests, not a
+ * 45 MB download): `Statutes_EN_Status.txt` says which Act's consolidation
+ * stamp moved, and the Act's own XML (`Statutes\<CODE>\EN\<CODE>_EN.xml`)
+ * carries a `date-eev` per section so the change row can name the provisions
+ * that actually moved. A corpus refresh that leaves the Act's section map
+ * untouched files nothing — dataset noise is not a law change.
  */
 
 interface CkanResource {
@@ -124,4 +124,126 @@ export function assessQuebecPackage(
  */
 export function quebecFingerprint(facts: QuebecPackageFacts): string {
   return `quebec-ckan:${facts.lastModified}|${facts.url}`
+}
+
+// ── Per-statute drill-down ──────────────────────────────────────────────────
+/* The dataset fingerprint above can only say "the corpus moved" — the first
+   version of this monitor therefore filed the same change row against every
+   Québec law on every release. The zip itself answers better: its manifest
+   (`Statutes_EN_Status.txt`) gives each Act's own consolidation stamp, and
+   each Act's XML carries a `date-eev` per section plus a HistoricalNote
+   trail naming the amending instrument. The functions below read those —
+   via zipRange.ts, so a check costs a few kilobytes, not a 45 MB download. */
+
+export interface StatuteStatus {
+  /** Alphanumeric codification — 'N-1.1', 'C-12'. */
+  code: string
+  /** Publisher's own words — 'Updated to 10 June 2026', 'Repealed on …'. */
+  statusText: string
+  /** J = à jour/current, A = abrogée/repealed, R = remplacée/replaced. */
+  flag: string
+  /** Compact date — '20260610'. */
+  ymd: string
+}
+
+/**
+ * The manifest is a flat list of `"CODE", "English status", "FLAG", "YYYYMMDD"`
+ * lines. Quotes are literal in the file and dates arrive pre-normalized in
+ * the fourth column, so no date parsing is needed.
+ */
+export function parseStatuteStatus(text: string): Map<string, StatuteStatus> {
+  const map = new Map<string, StatuteStatus>()
+  const row = /^"([^"]+)"\s*,\s*"([^"]*)"\s*,\s*"([A-Z])"\s*,\s*"(\d{8})"/gm
+  let m: RegExpExecArray | null
+  while ((m = row.exec(text)) !== null) {
+    map.set(m[1], { code: m[1], statusText: m[2], flag: m[3], ymd: m[4] })
+  }
+  return map
+}
+
+export interface StatuteSection {
+  /** Display label — '81.1', 'SCHEDULE I'. */
+  number: string
+  /** In-force date of the section's current text — '20251028'. */
+  eev: string
+  /** Last HistoricalNote ref — the most recent amending instrument
+      ('2025, c. 12, s. 3'). Null when the section carries none. */
+  latestRef: string | null
+  /** First ~160 chars of the section's own text — enough for the change
+      analyst to describe substance without carrying the whole statute. */
+  excerpt: string | null
+}
+
+export interface StatuteXmlFacts {
+  /** Document-level in-force stamp — the newest amendment date in the Act. */
+  docEev: string | null
+  /** The Act's own English title, from its Identification block. */
+  title: string | null
+  sections: StatuteSection[]
+}
+
+/**
+ * Extract the legally meaningful skeleton of a statute XML: which sections
+ * exist, when each one's current text entered into force, and what amended
+ * it last. `date-eev` appears only on LegislativeDocument, Section and
+ * Schedule elements — verified against the published corpus — so those are
+ * the only elements scanned.
+ */
+export function parseStatuteXml(xml: string): StatuteXmlFacts {
+  const docEev = /<LegislativeDocument\b[^>]*\bdate-eev="(\d{8})"/.exec(xml)?.[1] ?? null
+  const title = /<LongTitle\b[^>]*>([^<]+)<\/LongTitle>/.exec(xml)?.[1] ?? null
+
+  const sections: StatuteSection[] = []
+  const el = /<(Section|Schedule)\b[^>]*\bdate-eev="(\d{8})"[^>]*>([\s\S]*?)<\/\1>/g
+  let m: RegExpExecArray | null
+  while ((m = el.exec(xml)) !== null) {
+    const body = m[3]
+    const number =
+      /<Label\b[^>]*>([^<]+)<\/Label>/.exec(body)?.[1]?.trim() ||
+      /* A Schedule without a Label still diffs — name it by kind. */
+      (m[1] === 'Schedule' ? 'SCHEDULE' : '?')
+    const refs = [...body.matchAll(/<RefFreeForm>([^<]+)<\/RefFreeForm>/g)].map((r) => r[1].trim())
+    const textBlock = /<Text\b[^>]*>([\s\S]*?)<\/Text>/.exec(body)?.[1]
+    const excerpt = textBlock
+      ? textBlock.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 160) || null
+      : null
+    sections.push({ number, eev: m[2], latestRef: refs.at(-1) ?? null, excerpt })
+  }
+  return { docEev, title, sections }
+}
+
+/** The serialized per-section map is itself the fingerprint input — a
+    cosmetic republish that preserves every section's in-force date cannot
+    raise an alert. */
+export function sectionFingerprint(sections: readonly StatuteSection[]): string {
+  return sections
+    .map((s) => `${s.number}:${s.eev}`)
+    .sort()
+    .join('|')
+}
+
+export interface SectionDiff {
+  /** Sections present now that were absent before. */
+  added: StatuteSection[]
+  /** Sections whose in-force date moved later. */
+  amended: StatuteSection[]
+  /** Sections present before that are gone — repealed or renumbered. */
+  removedNumbers: string[]
+}
+
+export function diffStatuteSections(
+  prev: readonly StatuteSection[] | null,
+  cur: readonly StatuteSection[],
+): SectionDiff {
+  const prevByNum = new Map((prev ?? []).map((s) => [s.number, s.eev]))
+  const curNums = new Set(cur.map((s) => s.number))
+  const added: StatuteSection[] = []
+  const amended: StatuteSection[] = []
+  for (const s of cur) {
+    const before = prevByNum.get(s.number)
+    if (before === undefined) added.push(s)
+    else if (s.eev > before) amended.push(s)
+  }
+  const removedNumbers = prev === null ? [] : [...prevByNum.keys()].filter((n) => !curNums.has(n))
+  return { added, amended, removedNumbers }
 }

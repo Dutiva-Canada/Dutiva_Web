@@ -19,7 +19,7 @@ export const integrationsMessages = defineMessages({
   },
   integ_deferred_note: {
     en: 'Gmail, Outlook and Signal need OAuth sign-in or a supported API, so they stay planned until those flows exist — no unofficial workarounds.',
-    fr: 'Gmail, Outlook et Signal exigent une connexion OAuth ou une API prise en charge; ils restent donc planifiés tant que ces flux n’existent pas — aucun contournement non officiel.', // [FR self-authored]
+    fr: 'Gmail, Outlook et Signal exigent une connexion OAuth ou une API prise en charge ; ils restent donc planifiés tant que ces flux n’existent pas — aucun contournement non officiel.', // [FR self-authored]
   },
 
   integ_status_connected: { en: 'Connected', fr: 'Connectée' }, // [FR self-authored]

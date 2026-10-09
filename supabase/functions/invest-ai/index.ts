@@ -1,9 +1,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from 'npm:@supabase/supabase-js@2'
-import {
-  postChatCompletion,
-  resolveApiKey,
-} from '../_shared/modelUpstream.ts'
+import { createClient, type SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
+import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
+import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { withCors } from '../_shared/cors.ts'
 import {
   buildDraftPrompt,
   parseDraft,
@@ -11,32 +11,51 @@ import {
   SYSTEM_PROMPT,
   validateAiAction,
 } from './handlers.ts'
+import {
+  json,
+  modelRoute,
+  runChat,
+  runChatUndo,
+  UPSTREAM_TIMEOUT_MS,
+} from './runtime.ts'
+import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
 
 /**
- * invest-ai — AI assistance for the invest portal. Deliberately narrow: the
- * model *authors* strategy drafts; the deterministic invest-bot engine
- * executes them. A draft is validated server-side, returned disabled, and
- * only reaches the book after the user reviews and saves it.
+ * invest-ai — AI assistance for the invest portal, in Tally's voice.
+ * Deliberately narrow: the model *authors* strategy drafts; the
+ * deterministic invest-bot engine executes them. A draft is validated
+ * server-side, returned disabled, and only reaches the book after the user
+ * reviews and saves it.
  *
  * Actions (POST body, portal JWT + invest_access grant required):
  *   { action: 'draft-strategy', goal: string, lang?: 'en'|'fr' }
  *     → { draft: { name, cadence, asset_classes, rules } }
+ *
+ *   { kind: 'chat', message, lang?, today? } → { reply, action, assistantId }
+ *     — Tally, the book's watch clerk: answers over the book's own rows and
+ *     executes whitelisted additive writes (watchlist add/remove, a QUEUED
+ *     draft order — never a fill, signal status, a strategy draft filed for
+ *     review). Both turns persist to invest_chat_messages.
+ *   { kind: 'react', event, lang? } → { reply }
+ *     — she reacts when the person does something: watched a symbol,
+ *     queued a draft order. Her line persists to invest_chat_messages.
+ *   { kind: 'chat_history', limit? } → { turns }
+ *   { kind: 'chat_clear' }           → { cleared: true }
+ *   { kind: 'chat_feedback', messageId, rating } → { ok }
+ *   { kind: 'chat_undo', messageId } → { ok }
+ *     — reverses an assistant turn's write while it's still reversible
+ *     (queued order untouched, watch row, signal status, filed draft).
+ *
+ * `stream: true` on the chat/react kinds switches the response to
+ * text/event-stream — same event contract as health-ai: delta events carry
+ * reply text (never the action JSON), one done event carries the parsed
+ * payload.
+ *
+ * The chat/react/undo handlers live in ./runtime.ts — this file is auth +
+ * routing + the draft-strategy one-shot.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
-
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -62,7 +81,7 @@ async function authenticateInvestUser(
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
 
-  const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+  const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
   const { data: userData, error: userError } = await adminClient.auth.getUser(token)
   if (userError || !userData?.user) return json({ error: 'Invalid user token' }, 401)
 
@@ -77,31 +96,8 @@ async function authenticateInvestUser(
   return { userId: userData.user.id, adminClient }
 }
 
-/** Route lookup — `invest_ai` first, `advisor_chat` as the shared fallback
-    (same contract as candidate-ai). */
-async function activeModelRoute(adminClient: SupabaseClient) {
-  for (const routeKey of ['invest_ai', 'advisor_chat']) {
-    const { data: route, error } = await adminClient
-      .from('ai_model_routes')
-      .select(
-        'id, model_name, config, provider:ai_model_providers(id, provider_key, base_url, secret_ref, status)',
-      )
-      .eq('route_key', routeKey)
-      .eq('status', 'active')
-      .order('priority', { ascending: true })
-      .limit(1)
-      .maybeSingle()
-    if (error) return json({ error: error.message }, 500)
-    const provider = route?.provider as { status?: string } | null | undefined
-    if (route && provider && provider.status === 'active') {
-      return { route, provider }
-    }
-  }
-  return json({ error: 'No active model route configured' }, 503)
-}
-
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const config = serverConfig()
@@ -109,13 +105,79 @@ Deno.serve(async (req: Request) => {
 
   const authed = await authenticateInvestUser(req, config)
   if (authed instanceof Response) return authed
-  const { adminClient } = authed
+  const { userId, adminClient } = authed
 
   let body: Record<string, unknown> = {}
   try {
     body = await req.json()
   } catch {
     body = {}
+  }
+  const lang = body['lang'] === 'fr' ? 'fr' : 'en'
+
+  /* History read/clear/feedback/undo need no model — they run through this
+     function so the table's only writer is this code path (a client can't
+     file its own 'assistant' rows under the owner policy). */
+  if (body['kind'] === 'chat_history') {
+    const limit =
+      typeof body['limit'] === 'number' && Number.isInteger(body['limit'])
+        ? Math.min(Math.max(body['limit'], 1), 120)
+        : 60
+    const { data, error } = await adminClient
+      .from('invest_chat_messages')
+      .select('id, role, content, action, feedback, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (error) return json({ error: error.message }, 500)
+    return json({ turns: (data ?? []).reverse() })
+  }
+  if (body['kind'] === 'chat_clear') {
+    const { error } = await adminClient
+      .from('invest_chat_messages')
+      .delete()
+      .eq('user_id', userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ cleared: true })
+  }
+  if (body['kind'] === 'chat_feedback') {
+    const messageId = typeof body['messageId'] === 'string' ? body['messageId'] : ''
+    const rating = body['rating']
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId) ||
+      (rating !== 1 && rating !== -1 && rating !== 0 && rating !== null)
+    ) {
+      return json({ error: 'messageId (uuid) and rating (-1|0|1) required' }, 400)
+    }
+    const { error } = await adminClient
+      .from('invest_chat_messages')
+      .update({ feedback: rating === 0 ? null : rating })
+      .eq('id', messageId)
+      .eq('user_id', userId)
+      .eq('role', 'assistant')
+    if (error) return json({ error: error.message }, 500)
+    return json({ ok: true })
+  }
+  if (body['kind'] === 'chat_undo') {
+    const messageId = typeof body['messageId'] === 'string' ? body['messageId'] : ''
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId)) {
+      return json({ error: 'messageId (uuid) required' }, 400)
+    }
+    return await runChatUndo(adminClient, userId, messageId)
+  }
+
+  /* stream:true answers Server-Sent Events instead of one JSON payload —
+     see the module header for the event shapes. */
+  const stream = body['stream'] === true
+  if (body['kind'] === 'chat') {
+    const message = typeof body['message'] === 'string' ? body['message'].trim().slice(0, 1200) : ''
+    if (!message) return json({ error: 'message is required' }, 400)
+    return await runChat(adminClient, userId, message, lang, stream)
+  }
+  if (body['kind'] === 'react') {
+    const event = parseInvestReactEvent(body['event'])
+    if (!event) return json({ error: 'bad event' }, 400)
+    return await runReact(adminClient, userId, event, lang, stream)
   }
 
   const actionCheck = validateAiAction(body['action'])
@@ -124,22 +186,16 @@ Deno.serve(async (req: Request) => {
   /* draft-strategy */
   const goal = sanitizeGoal(body['goal'])
   if (!goal) return json({ error: 'goal must be at least 10 characters' }, 400)
-  const lang = body['lang'] === 'fr' ? 'fr' : 'en'
 
-  const routed = await activeModelRoute(adminClient)
-  if (routed instanceof Response) return routed
-  const { route, provider } = routed
-
-  const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
-  if ('missingSecret' in keyResult) {
-    return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
-  }
+  const routed = await modelRoute(adminClient)
+  if ('error' in routed) return routed.error
+  const { route, provider, apiKey } = routed
 
   let upstream: Response
   try {
     upstream = await postChatCompletion(
       provider,
-      keyResult.apiKey,
+      apiKey,
       {
         model: route.model_name,
         messages: [
@@ -149,7 +205,7 @@ Deno.serve(async (req: Request) => {
         max_tokens: route.config?.max_tokens ?? 900,
         temperature: 0.3,
       },
-      45_000,
+      UPSTREAM_TIMEOUT_MS,
     )
   } catch (error) {
     console.error('invest-ai: model call failed', error)
@@ -170,6 +226,20 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'Could not turn that goal into a strategy — try describing it differently.', code: 'no_draft' }, 422)
   }
 
-  /* The draft ships disabled: the user reviews, then enables. */
-  return json({ draft: { ...draft, enabled: false, autonomy: 'suggest', template: 'ai-draft' } })
-})
+  /* File the draft for review — a wizard abandoned mid-edit shouldn't lose
+     it. Deduped on the normalized goal so re-describing the same strategy
+     returns the pending row instead of a twin; the draft itself ships
+     disabled either way — the user reviews, then enables. */
+  const shipped = { ...draft, enabled: false, autonomy: 'suggest', template: 'ai-draft' }
+  const filed = await fileSuggestion(adminClient, {
+    userId,
+    surface: 'invest',
+    kind: 'strategy',
+    title: shipped.name,
+    payload: { goal, draft: shipped },
+    dedupeKey: textDedupeKey(goal),
+  })
+  return json({ draft: shipped, suggestionId: filed?.id ?? null })
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

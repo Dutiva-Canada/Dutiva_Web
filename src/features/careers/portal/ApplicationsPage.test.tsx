@@ -119,7 +119,7 @@ describe('ApplicationsPage', () => {
     const { ApplicationsPage } = await import('./ApplicationsPage')
     renderCareers(<ApplicationsPage />)
 
-    expect(await screen.findByText(/You haven't applied to any roles yet/i)).toBeInTheDocument()
+    expect(await screen.findByText(/You haven’t applied to any roles yet/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Browse open jobs/i })).toBeInTheDocument()
   })
 

@@ -6,7 +6,7 @@ export default {
   effectiveDate: 'June 1, 2026',
   callout: [
     'Important Notice. Dutiva is a software platform, not a law firm. Dutiva content, workflows, document templates, calculators, checklists, risk flags, compliance scores, and AI-generated responses are provided for general HR compliance support and workflow assistance only. They are not legal advice, legal opinions, or a substitute for advice from a qualified lawyer or other appropriate professional.',
-    "This Disclaimer should be read together with Dutiva's Terms of Service, Privacy Policy, AI Usage Disclosure, and any applicable Data Processing Agreement.",
+    "This Disclaimer should be read together with Dutiva’s Terms of Service, Privacy Policy, AI Usage Disclosure, and any applicable Data Processing Agreement.",
   ],
   sections: [
     {
@@ -137,7 +137,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'To the maximum extent permitted by law, Dutiva content, features, templates, calculators, checklists, risk flags, compliance scores, AI responses, workflows, and related materials are provided "as is" and "as available" without warranties of any kind, whether express, implied, statutory, or otherwise.',
+          text: 'To the maximum extent permitted by law, Dutiva content, features, templates, calculators, checklists, risk flags, compliance scores, AI responses, workflows, and related materials are provided “as is” and “as available” without warranties of any kind, whether express, implied, statutory, or otherwise.',
         },
         {
           type: 'p',

@@ -4,7 +4,7 @@ import type { NavItem } from './navConfig'
 import { cx } from './cx'
 import { SidebarBadge } from './SidebarBadge'
 import { SidebarTooltip } from './SidebarTooltip'
-import { usePrefetchIntent } from './viewPrefetch'
+import { usePrefetchIntent } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 interface SidebarNavItemProps {

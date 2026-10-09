@@ -241,7 +241,7 @@ export function SubscriptionForm({
           <input
             value={renewalTerm}
             onChange={(e) => setRenewalTerm(e.target.value)}
-            placeholder="Annual"
+            placeholder={x(M.finance_purchases_renewal_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>
@@ -274,7 +274,7 @@ export function SubscriptionForm({
           <input
             value={owner}
             onChange={(e) => setOwner(e.target.value)}
-            placeholder="Workspace user"
+            placeholder={x(M.finance_workspace_user_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>
@@ -356,7 +356,7 @@ export function SpendRequestForm({
           <input
             value={requester}
             onChange={(e) => setRequester(e.target.value)}
-            placeholder="Workspace user"
+            placeholder={x(M.finance_workspace_user_placeholder)}
             className="rounded-[6px] border border-border bg-surface px-[8px] py-[4px] text-[13px]"
           />
         </label>

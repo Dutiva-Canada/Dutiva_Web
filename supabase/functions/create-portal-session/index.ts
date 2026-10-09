@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bypassesPaywall } from '../_shared/adminAccess.ts'
 import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Opens a Stripe billing portal session for the signed-in account's Stripe
@@ -10,16 +11,12 @@ import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
  * shared auth + admin-bypass pattern.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -36,8 +33,8 @@ async function stripePost(path: string, params: Record<string, string>, secretKe
   return res.json()
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const stripeKey = readStripeSecretKey(Deno.env.get('STRIPE_SECRET_KEY'))
@@ -87,4 +84,6 @@ Deno.serve(async (req: Request) => {
   if (!portalSession.url) return json({ error: 'Failed to create portal session.' }, 502)
 
   return json({ url: portalSession.url })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

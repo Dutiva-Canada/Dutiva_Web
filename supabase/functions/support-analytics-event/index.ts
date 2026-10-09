@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { parseEvent } from '../_shared/supportAnalytics.ts'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Support analytics event sink (TODO.md D2). Receives fire-and-forget
@@ -24,15 +25,11 @@ import { parseEvent } from '../_shared/supportAnalytics.ts'
  * silently drops the invalid ones — analytics is best-effort, never blocking.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
@@ -68,8 +65,8 @@ function clientIp(req: Request): string {
   return req.headers.get('cf-connecting-ip') ?? req.headers.get('x-real-ip') ?? 'unknown'
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -160,4 +157,6 @@ Deno.serve(async (req: Request) => {
   }
 
   return json({ data: { inserted: rows.length } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

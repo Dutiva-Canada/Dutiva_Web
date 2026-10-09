@@ -219,7 +219,7 @@ const catalogEntries: readonly Omit<WorkflowCatalogItem, 'flowKey'>[] = [
     icon: TrendingUp,
     query: bi(
       'I want to promote an employee — what should the package cover?',
-      'Je veux promouvoir un employé — que doit couvrir l’offre?',
+      'Je veux promouvoir un employé — que doit couvrir l’offre ?',
     ),
   },
   {

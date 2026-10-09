@@ -20,6 +20,8 @@ import { PublicDemoBanner } from '@/features/app/demo/PublicDemoBanner'
 import { WorkspaceContextBanner } from './WorkspaceContextBanner'
 import { ModuleContextBanner } from './ModuleContextBanner'
 import { moduleLabelFor, viewLabelFor } from './navConfig'
+import { warmViewsOnIdle } from '@/app/viewPrefetch'
+import { workspaceViewPreloads } from '@/app/viewPrefetchRegistry'
 
 /**
  * Workspace shell — App v2 app frame.
@@ -119,6 +121,11 @@ export function AppShell() {
   useEffect(() => {
     if (isPublicDemo) setSidebarExpanded(false)
   }, [isPublicDemo])
+
+  /* Warm every top-level workspace chunk during browser idle — one per idle
+     slice, so nav targets the user never hovered still mount instantly.
+     No-ops on Save-Data and metered connections. */
+  useEffect(() => warmViewsOnIdle(Object.keys(workspaceViewPreloads)), [])
 
   const title = x(
     /* Production uses module labels so fixture employee names never leak into

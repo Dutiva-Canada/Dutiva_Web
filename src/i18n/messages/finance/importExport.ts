@@ -33,7 +33,7 @@ export const financeImportExport = defineMessages({
   },
   finance_import_failed: { en: 'Import failed.', fr: 'L’import a échoué.' },
   finance_import_history: { en: 'Import history', fr: 'Historique des imports' },
-  finance_import_no_history: { en: 'No imports yet.', fr: "Aucun import pour l'instant." },
+  finance_import_no_history: { en: 'No imports yet.', fr: "Aucun import pour l’instant." },
   finance_import_file_name: { en: 'File', fr: 'Fichier' },
   finance_import_date: { en: 'Date', fr: 'Date' },
   finance_import_rows: { en: 'Rows', fr: 'Lignes' },
@@ -62,7 +62,7 @@ export const financeImportExport = defineMessages({
   finance_import_delete: { en: 'Delete', fr: 'Supprimer' },
   finance_import_delete_confirm: {
     en: 'Delete this import and its {count} transactions?',
-    fr: 'Supprimer cet import et ses {count} transactions?',
+    fr: 'Supprimer cet import et ses {count} transactions ?',
   },
 
   /* Auto-categorization */
@@ -133,7 +133,7 @@ export const financeImportExport = defineMessages({
   },
   finance_export_workspace: {
     en: 'Export full workspace (JSON)',
-    fr: "Exporter l'espace de travail complet (JSON)",
+    fr: "Exporter l’espace de travail complet (JSON)",
   },
 
   /* Rule suggestions */
@@ -174,15 +174,15 @@ export const financeImportExport = defineMessages({
   /* AI import analysis */
   finance_ai_note_matched: {
     en: 'AI matched to {account} ({code}). Confidence: {confidence}.',
-    fr: "L'IA a associé à {account} ({code}). Confiance : {confidence}.",
+    fr: "L’IA a associé à {account} ({code}). Confiance : {confidence}.",
   },
   finance_ai_note_feedback: {
     en: 'Matched to {account} ({code}) based on a previous correction. Confidence: {confidence}.',
-    fr: "Associé à {account} ({code}) d'après une correction antérieure. Confiance : {confidence}.",
+    fr: "Associé à {account} ({code}) d’après une correction antérieure. Confiance : {confidence}.",
   },
   finance_ai_note_review: {
     en: 'Could not confidently match. Review recommended.',
-    fr: "Impossible d'associer avec confiance. Révision recommandée.",
+    fr: "Impossible d’associer avec confiance. Révision recommandée.",
   },
   finance_ai_settings_title: { en: 'AI import analysis', fr: 'Analyse des imports par IA' },
   finance_ai_settings_description: {
@@ -209,11 +209,11 @@ export const financeImportExport = defineMessages({
   },
   finance_ai_import_result: {
     en: 'AI analysed {count} transaction(s). {matched} matched, {suggested} suggested for review.',
-    fr: "L'IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.",
+    fr: "L’IA a analysé {count} transaction(s). {matched} associée(s), {suggested} en attente de révision.",
   },
   finance_ai_import_result_none: {
     en: 'AI could not confidently match any imported transactions.',
-    fr: "L'IA n'a pu associer aucune transaction importée avec confiance.",
+    fr: "L’IA n’a pu associer aucune transaction importée avec confiance.",
   },
   finance_ai_import_result_rules: {
     en: '{count} new categorization rule(s) created.',

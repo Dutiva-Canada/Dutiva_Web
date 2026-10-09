@@ -98,6 +98,6 @@ export const operationsMessages = defineMessages({
   },
   ops_disclaimer: {
     en: 'Tracks operational work and renewal dates; it is not an ERP or inventory system.',
-    fr: 'Fait le suivi du travail opérationnel et des échéances de renouvellement; ce n’est pas un ERP ou un système d’inventaire.',
+    fr: 'Fait le suivi du travail opérationnel et des échéances de renouvellement ; ce n’est pas un ERP ou un système d’inventaire.',
   },
 })

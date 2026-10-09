@@ -14,18 +14,22 @@
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
 export type RuleMetric =
   'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
-export type RuleOp = 'lt' | 'gt'
+export type RuleOp = 'lt' | 'gt' | 'between'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
 export type SignalSeverity = 'insight' | 'alert'
 export type OrderSide = 'buy' | 'sell'
 export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
 export type RuleType = 'signal' | 'order_proposal'
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
+/** How a strategy surfaces multiple rule hits in one scan — see planRun. */
+export type MultiMatch = 'each' | 'summary'
 
 interface RuleBase {
   metric: RuleMetric
   op: RuleOp
   value: number
+  /** Second bound for 'between' — required then, ignored otherwise. */
+  value2?: number
   title: string
 }
 
@@ -63,6 +67,9 @@ export interface Strategy {
   notify_email?: boolean
   /** notify.in_app — persist hits to the in-app signal feed. */
   notify_in_app?: boolean
+  /** 0190 column — 'summary' collapses the scan's signal hits into one
+      in-app signal; absent (pre-0190 schemas/fixtures) behaves as 'each'. */
+  multi_match?: MultiMatch
 }
 
 export interface MarketSnapshot {
@@ -89,7 +96,12 @@ export interface NewSignal {
   name: string
   kind: SignalKind
   title: string
+  /** French twin of `title` — only summary-mode signals populate it; per-rule
+      signals keep null because their titles are user-authored text. */
+  title_fr?: string | null
   body: string
+  /** French twin of `body` — same contract as title_fr. */
+  body_fr?: string | null
   score: number | null
 }
 
@@ -124,7 +136,7 @@ export const DRAFT_EXPIRY_DAYS = 7
 export function draftExpiryCutoff(now: Date = new Date()): string {
   return new Date(now.getTime() - DRAFT_EXPIRY_DAYS * 86_400_000).toISOString()
 }
-const OPS: readonly string[] = ['lt', 'gt']
+const OPS: readonly string[] = ['lt', 'gt', 'between']
 const SEVERITIES: readonly string[] = ['insight', 'alert']
 const SIDES: readonly string[] = ['buy', 'sell']
 const QTY_UNITS: readonly string[] = ['shares', 'percent_of_position', 'currency']
@@ -154,6 +166,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
     const metric = o['metric']
     const op = o['op']
     const value = num(o['value'])
+    const value2 = num(o['value2'])
     const title = o['title']
     if (
       typeof metric !== 'string' ||
@@ -161,6 +174,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
       typeof op !== 'string' ||
       !OPS.includes(op) ||
       value === null ||
+      (op === 'between' && value2 === null) ||
       typeof title !== 'string' ||
       title.trim() === ''
     ) {
@@ -170,6 +184,7 @@ export function parseRules(raw: unknown): StrategyRule[] {
       metric: metric as RuleMetric,
       op: op as RuleOp,
       value,
+      ...(value2 !== null ? { value2 } : {}),
       title: title.trim(),
     }
 
@@ -249,6 +264,23 @@ function metricValue(
   }
 }
 
+/** Single point of truth for the op comparison — 'between' is inclusive
+    and order-agnostic (bounds normalize to min/max at eval time). */
+export function opMatches(rule: RuleBase, m: number): boolean {
+  switch (rule.op) {
+    case 'lt':
+      return m < rule.value
+    case 'gt':
+      return m > rule.value
+    case 'between': {
+      if (rule.value2 === undefined) return false
+      const lo = Math.min(rule.value, rule.value2)
+      const hi = Math.max(rule.value, rule.value2)
+      return m >= lo && m <= hi
+    }
+  }
+}
+
 export function ruleMatches(
   rule: RuleBase,
   snap: MarketSnapshot,
@@ -257,7 +289,7 @@ export function ruleMatches(
 ): boolean {
   const m = metricValue(rule.metric, snap, position, ctx)
   if (m === null) return false
-  return rule.op === 'lt' ? m < rule.value : m > rule.value
+  return opMatches(rule, m)
 }
 
 /** Resolves an order-proposal quantity to shares at the snapshot price.
@@ -301,6 +333,20 @@ export function strategyDue(
 
 /* --- Run planning ------------------------------------------------------------ */
 
+/** One rule×symbol evaluation that came out true — the per-rule result
+    rows a test scan reports. `symbol` is '' for book-level metrics. */
+export interface RuleMatch {
+  /** Position of the rule in the strategy's rules array (priority order). */
+  ruleIndex: number
+  ruleTitle: string
+  symbol: string
+  /** The evaluated metric reading that crossed the threshold. */
+  metricValue: number
+  outcome:
+    | { kind: 'signal'; severity: SignalSeverity }
+    | { kind: 'order'; side: OrderSide; quantity: number | null }
+}
+
 export interface RunPlan {
   signals: NewSignal[]
   proposals: NewOrderProposal[]
@@ -308,6 +354,10 @@ export interface RunPlan {
   symbolsScanned: string[]
   /** Rule title → number of matches across all strategies, counted before dedupe. */
   ruleHits: Record<string, number>
+  /** Per-rule match detail — populated only when opts.collectMatches is
+      set (the test-scan dry run); runs leave it empty to keep run memory
+      proportional to output. */
+  matches: RuleMatch[]
   /** Per-strategy diagnostics — run history is recorded per strategy so
       rules sharing a title never mix across strategies. */
   perStrategy: {
@@ -342,6 +392,9 @@ export function planRun(
     now?: Date
     force?: boolean
     openDraftKeys?: ReadonlySet<string>
+    /** Collect per-rule match detail for the dry-run diagnostic surface
+        (test-scan). Off by default — scheduled runs don't need it. */
+    collectMatches?: boolean
   } = {},
 ): RunPlan {
   const plan: RunPlan = {
@@ -349,10 +402,12 @@ export function planRun(
     proposals: [],
     symbolsScanned: [],
     ruleHits: {},
+    matches: [],
     perStrategy: [],
     warnings: [],
     evaluated: 0,
   }
+  const collect = opts.collectMatches === true
   const now = opts.now ?? new Date()
   const openDraftKeys = new Set(opts.openDraftKeys ?? [])
   const positionBySymbol = new Map<string, Position>()
@@ -391,8 +446,19 @@ export function planRun(
        backfill widened them to every watched/held symbol. Honor the legacy
        restriction so an equity-only strategy never fires on crypto. */
     const classes = new Set(strategy.asset_classes ?? [])
-    const symbolRules = strategy.rules.filter((r) => !BOOK_METRICS.includes(r.metric))
-    const bookRules = strategy.rules.filter((r) => BOOK_METRICS.includes(r.metric))
+    const summaryMode = strategy.multi_match === 'summary'
+    /* 'One summary' holds the scan's signal hits for a single feed row
+       emitted after the loops. Order proposals never join it — each draft
+       needs its own approval, so merging them would hide a proposal. */
+    const summaryHits: { rule: SignalRule; snap: MarketSnapshot; position: Position | null }[] = []
+    /* Rules keep their array index so match rows can point back to the
+       rule in the strategy's priority order. */
+    const symbolRules = strategy.rules
+      .map((rule, i) => [i, rule] as const)
+      .filter(([, r]) => !BOOK_METRICS.includes(r.metric))
+    const bookRules = strategy.rules
+      .map((rule, i) => [i, rule] as const)
+      .filter(([, r]) => BOOK_METRICS.includes(r.metric))
 
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
@@ -401,11 +467,25 @@ export function planRun(
       diag.symbolsScanned.push(snap.symbol.toUpperCase())
       plan.evaluated += 1
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
-      for (const rule of symbolRules) {
-        if (!ruleMatches(rule, snap, position, ctx)) continue
+      for (const [ruleIndex, rule] of symbolRules) {
+        const m = metricValue(rule.metric, snap, position, ctx)
+        if (m === null || !opMatches(rule, m)) continue
         hit(diag, rule)
 
         if (rule.type === 'signal') {
+          if (collect) {
+            plan.matches.push({
+              ruleIndex,
+              ruleTitle: rule.title,
+              symbol: snap.symbol,
+              metricValue: m,
+              outcome: { kind: 'signal', severity: rule.severity },
+            })
+          }
+          if (summaryMode) {
+            summaryHits.push({ rule, snap, position })
+            continue
+          }
           const key = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
           if (existingKeys.has(key)) continue
           plan.signals.push({
@@ -427,6 +507,15 @@ export function planRun(
            sharing a title must not produce two identical orders), and only
            ever PLAN a draft; execution stays with the user. */
         const qty = resolveQuantity(rule, snap, position)
+        if (collect) {
+          plan.matches.push({
+            ruleIndex,
+            ruleTitle: rule.title,
+            symbol: snap.symbol,
+            metricValue: m,
+            outcome: { kind: 'order', side: rule.side, quantity: qty },
+          })
+        }
         if (qty === null) {
           plan.warnings.push(
             `${rule.title}: quantity not resolvable for ${snap.symbol} (${rule.qty_unit})`,
@@ -453,13 +542,29 @@ export function planRun(
 
     /* Book-level rules (cash_above) fire once per strategy — no symbol, so
        they can only ever produce signals, never order proposals. */
-    for (const rule of bookRules) {
+    for (const [ruleIndex, rule] of bookRules) {
       const m = metricValue(rule.metric, EMPTY_SNAP, null, ctx)
       if (m === null) continue
-      if (rule.op === 'lt' ? m >= rule.value : m <= rule.value) continue
+      if (!opMatches(rule, m)) continue
       hit(diag, rule)
+      if (collect) {
+        plan.matches.push({
+          ruleIndex,
+          ruleTitle: rule.title,
+          symbol: '',
+          metricValue: m,
+          outcome:
+            rule.type === 'order_proposal'
+              ? { kind: 'order', side: rule.side, quantity: null }
+              : { kind: 'signal', severity: rule.severity },
+        })
+      }
       if (rule.type === 'order_proposal') {
         plan.warnings.push(`${rule.title}: order proposals need a symbol-level metric`)
+        continue
+      }
+      if (summaryMode) {
+        summaryHits.push({ rule, snap: EMPTY_SNAP, position: null })
         continue
       }
       const key = `${strategy.id}::${rule.severity}:${rule.title}`
@@ -476,6 +581,36 @@ export function planRun(
       })
       diag.signals += 1
       plan.evaluated += 1
+    }
+
+    /* Summary mode emits one feed row per scan that matched anything —
+       kind follows the strongest hit, the body lists each matched rule.
+       Bilingual titles because the row is engine-authored chrome, not
+       user text. Dedupe on (strategy, kind, title) keeps an unread
+       summary from restacking identical repeats. */
+    if (summaryHits.length > 0) {
+      const anyAlert = summaryHits.some((h) => h.rule.severity === 'alert')
+      const n = summaryHits.length
+      const title = n === 1 ? '1 rule matched' : `${n} rules matched`
+      const key = `${strategy.id}::${anyAlert ? 'alert' : 'insight'}:${title}`
+      if (!existingKeys.has(key)) {
+        const lines = summaryHits.map((h) =>
+          h.snap.symbol ? `${h.snap.symbol} — ${h.rule.title}` : h.rule.title,
+        )
+        plan.signals.push({
+          strategy_id: strategy.id,
+          asset_class: 'other',
+          symbol: '',
+          name: strategy.name ?? '',
+          kind: anyAlert ? 'alert' : 'insight',
+          title,
+          title_fr: n <= 1 ? '1 règle déclenchée' : `${n} règles déclenchées`,
+          body: lines.join('\n'),
+          score: null,
+        })
+        diag.signals += 1
+        plan.evaluated += 1
+      }
     }
   }
   plan.symbolsScanned = [...scanned].sort()

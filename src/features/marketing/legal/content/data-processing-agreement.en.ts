@@ -5,7 +5,7 @@ export default {
   lastUpdated: 'July 15, 2026',
   effectiveDate: 'June 1, 2026',
   callout: [
-    'This Data Processing Agreement ("DPA") applies when Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") processes Customer Personal Information on behalf of a customer through the Dutiva service, unless the parties sign a separate written data processing agreement.',
+    'This Data Processing Agreement (“DPA”) applies when Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) processes Customer Personal Information on behalf of a customer through the Dutiva service, unless the parties sign a separate written data processing agreement.',
     'This DPA forms part of Dutiva’s Terms of Service and should be read with the Privacy Policy, Data Retention and Deletion Policy, AI Usage Disclosure, AI & Technology Policy, and any applicable subscription or order terms.',
   ],
   sections: [
@@ -22,7 +22,7 @@ export default {
         },
         {
           type: 'p',
-          text: 'For this DPA, "Customer Personal Information" means personal information contained in Customer Data that Dutiva processes on behalf of a customer through the service. "Customer Data" has the meaning given in the Terms of Service.',
+          text: 'For this DPA, “Customer Personal Information” means personal information contained in Customer Data that Dutiva processes on behalf of a customer through the service. “Customer Data” has the meaning given in the Terms of Service.',
         },
         {
           type: 'p',

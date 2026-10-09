@@ -18,7 +18,10 @@ export function ToastHost() {
   const { toasts, dismissToast } = useToasts()
   const { lang } = useI18n()
   return (
-    <div className="pointer-events-none fixed right-[20px] bottom-[20px] z-400 flex max-w-[340px] flex-col gap-[8px]">
+    <div
+      data-toast-host
+      className="pointer-events-none fixed right-[20px] bottom-[20px] z-400 flex max-w-[340px] flex-col gap-[8px]"
+    >
       {/* Deliberate deviation: the prototype fills with var(--ink), which is
           #c4c9d9 in the light theme — white text at ~1.65:1. The pill is
           pinned to --toast-bg (#2a313d) in both themes: identical to the

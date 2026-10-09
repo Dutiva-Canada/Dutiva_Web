@@ -7,7 +7,7 @@ import { common } from '@/i18n/messages/common'
 import { statusChipClass } from '@/components/chips'
 import { useAuth } from '../auth/authContext'
 import { AuthSignInForm } from '../auth/AuthSignInForm'
-import { fetchGuidanceSources, fetchRecentLawUpdates } from './api'
+import { fetchGuidanceSources, fetchRecentLawUpdates, LAW_UPDATES_PAGE_SIZE } from './api'
 import type { GuidanceSource, LawUpdate } from './api'
 import { updatesAreStale } from './updatesAreStale'
 import {
@@ -51,6 +51,10 @@ export function GuidanceSourcesPanel() {
   const { x, lang } = useI18n()
   const { status: authStatus, signOut } = useAuth()
   const [load, setLoad] = useState<LoadState>({ status: 'idle' })
+  const [more, setMore] = useState<{ loading: boolean; exhausted: boolean }>({
+    loading: false,
+    exhausted: false,
+  })
   const requestRef = useRef(0)
 
   const reload = useCallback(() => {
@@ -58,13 +62,33 @@ export function GuidanceSourcesPanel() {
     setLoad({ status: 'loading' })
     Promise.all([fetchGuidanceSources(), fetchRecentLawUpdates()])
       .then(([sources, updates]) => {
-        if (requestRef.current === request) setLoad({ status: 'ready', sources, updates })
+        if (requestRef.current !== request) return
+        setLoad({ status: 'ready', sources, updates })
+        setMore({ loading: false, exhausted: updates.length < LAW_UPDATES_PAGE_SIZE })
       })
       .catch((error: unknown) => {
         console.error('guidance: failed to load live legal sources', error)
         if (requestRef.current === request) setLoad({ status: 'error' })
       })
   }, [])
+
+  const loadEarlierUpdates = () => {
+    if (load.status !== 'ready' || more.loading || more.exhausted) return
+    const request = requestRef.current
+    setMore((m) => ({ ...m, loading: true }))
+    fetchRecentLawUpdates(LAW_UPDATES_PAGE_SIZE, load.updates.length)
+      .then((rows) => {
+        if (requestRef.current !== request) return
+        setLoad((prev) =>
+          prev.status === 'ready' ? { ...prev, updates: [...prev.updates, ...rows] } : prev,
+        )
+        setMore({ loading: false, exhausted: rows.length < LAW_UPDATES_PAGE_SIZE })
+      })
+      .catch((error: unknown) => {
+        console.error('guidance: failed to load earlier law updates', error)
+        setMore((m) => ({ ...m, loading: false }))
+      })
+  }
 
   useEffect(() => {
     if (authStatus !== 'signed-in') {
@@ -253,14 +277,68 @@ export function GuidanceSourcesPanel() {
                       {update.changeSummary && (
                         <p className="mt-[3px] text-[12.5px] text-text-2">{update.changeSummary}</p>
                       )}
-                      {update.detectedAt && (
-                        <p className="mt-[4px] text-[11.5px] text-text-muted">
-                          {x(M.guidance_detected_on)} {formatDate(update.detectedAt, lang)}
-                        </p>
-                      )}
+                      {(() => {
+                        const aiAnalysis =
+                          lang === 'fr' ? update.aiAnalysisFr : update.aiAnalysisEn
+                        return (
+                          (update.rawDiff || aiAnalysis) && (
+                            <details className="mt-[4px]">
+                              <summary className="w-fit cursor-pointer text-[11.5px] font-semibold text-text-3 underline underline-offset-2">
+                                {x(M.guidance_update_more)}
+                              </summary>
+                              {aiAnalysis && (
+                                <p className="mt-[4px] text-[12px] leading-[1.55] text-text-2">
+                                  <span className="font-semibold text-text-3">
+                                    {x(M.guidance_update_ai_label)}
+                                  </span>{' '}
+                                  {aiAnalysis}
+                                </p>
+                              )}
+                              {update.rawDiff && (
+                                <pre className="mt-[4px] font-sans text-[11.5px] leading-[1.55] whitespace-pre-wrap text-text-muted">
+                                  {update.rawDiff}
+                                </pre>
+                              )}
+                            </details>
+                          )
+                        )
+                      })()}
+                      <div className="mt-[4px] flex flex-wrap items-center gap-x-[12px] gap-y-[4px]">
+                        {update.detectedAt && (
+                          <p className="text-[11.5px] text-text-muted">
+                            {x(M.guidance_detected_on)} {formatDate(update.detectedAt, lang)}
+                          </p>
+                        )}
+                        {(update.referenceUrl ?? update.url) && (
+                          <a
+                            href={update.referenceUrl ?? update.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-[4px] text-[11.5px] font-semibold text-text-3 underline underline-offset-2"
+                          >
+                            {x(M.guidance_update_read_source)}
+                            <ExternalLink size={11} aria-hidden="true" />
+                          </a>
+                        )}
+                      </div>
                     </li>
                   ))}
                 </ul>
+                {/* Pages the same filtered set — older detections in the
+                    supported jurisdictions, not a wider scope. */}
+                {!more.exhausted && (
+                  <button
+                    type="button"
+                    onClick={loadEarlierUpdates}
+                    disabled={more.loading}
+                    className="mt-[10px] flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[12.5px] font-semibold text-text-2 disabled:opacity-50"
+                  >
+                    {more.loading && (
+                      <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                    )}
+                    {x(M.guidance_updates_show_more)}
+                  </button>
+                )}
               </>
             )}
           </section>

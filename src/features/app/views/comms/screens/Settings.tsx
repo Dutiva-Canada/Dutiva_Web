@@ -261,7 +261,7 @@ function RolesAndApprovals() {
                         </div>
                       </div>
                       <div className="mt-[4px] text-[12px] text-text-muted">
-                        {approval.approver} · {new Date(approval.decidedAt).toLocaleDateString()}
+                        {approval.approver} · {new Date(approval.decidedAt).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                       </div>
                       {approval.rationale && (
                         <div className="mt-[6px] text-[12px] text-text-2">

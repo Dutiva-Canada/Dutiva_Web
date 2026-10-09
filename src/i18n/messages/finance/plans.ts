@@ -47,6 +47,7 @@ export const financePlans = defineMessages({
   finance_forecast_label: { en: 'Label', fr: 'Libellé' },
   finance_forecast_type: { en: 'Type', fr: 'Type' },
   finance_forecast_owner: { en: 'Owner', fr: 'Responsable' },
+  finance_forecast_baseline_scenario: { en: 'Baseline scenario', fr: 'Scénario de base' },
   finance_forecast_freeze: { en: 'Freeze', fr: 'Geler' },
 
   /* Budget variance */

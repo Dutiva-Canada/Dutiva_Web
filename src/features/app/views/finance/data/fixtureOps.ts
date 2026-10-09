@@ -185,7 +185,7 @@ export const externalAction: FinanceWorkspaceState['externalActions'][number] = 
   providerRef: 'ADP-2026-18-001',
   notes: bi(
     'Pay run submitted to ADP; results imported.',
-    'Traitement de paie soumis à ADP; résultats importés.',
+    'Traitement de paie soumis à ADP ; résultats importés.',
   ),
 }
 

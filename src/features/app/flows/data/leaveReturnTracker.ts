@@ -25,7 +25,7 @@ export const leaveReturnTrackerFlow: Flow = {
     {
       id: 'timing',
       kind: 'choice',
-      title: bi('Where are you in the return?', 'Où en êtes-vous dans le retour?'),
+      title: bi('Where are you in the return?', 'Où en êtes-vous dans le retour ?'),
       body: bi(
         'Leave lengths and notice-to-return rules differ by leave type and statute. Confirm those dates from the leave you approved and the current employment standards text — not from this checklist.',
         'Les durées de congé et les règles de préavis de retour diffèrent selon le type de congé et la loi. Confirmez ces dates d’après le congé approuvé et le texte actuel des normes d’emploi — pas d’après cette liste.',

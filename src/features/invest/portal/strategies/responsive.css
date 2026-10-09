@@ -1,0 +1,94 @@
+/* Split from strategies.css — see that file for the import manifest. */
+
+/* ---------- responsive: tablet (720px+) ---------- */
+@media (min-width: 720px) {
+  .sb-col {
+    max-width: 860px;
+    padding: 0 24px;
+  }
+  .sb-list h1 {
+    font-size: 36px;
+    margin-top: 28px;
+  }
+  .sb-list-actions {
+    max-width: 560px;
+    margin: 22px 0 4px;
+  }
+  .sb-caption {
+    text-align: left;
+    max-width: 560px;
+  }
+  .sb-strat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+  }
+  .sb-strat-card {
+    margin: 0;
+  }
+  .sb-settings {
+    padding: 22px 22px 10px;
+  }
+  .sb-wizard {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+}
+
+/* tablet editor: two-column strategy settings — fields marked .sb-span
+   (section head, name, enabled toggle, safety, delete) take the full row,
+   matching the prototype's nth-child spans without depending on count. */
+@media (min-width: 720px) and (max-width: 1079.98px) {
+  .sb-editor .sb-settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 22px;
+    align-items: start;
+  }
+  .sb-editor .sb-settings > .sb-span {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- responsive: desktop (1080px+) ---------- */
+@media (min-width: 1080px) {
+  .sb-col {
+    max-width: 1180px;
+    padding: 0 32px;
+  }
+  .sb-ed-head h1 {
+    font-size: 32px;
+  }
+  /* editor: sticky settings column left, rules + health + runs right */
+  .sb-editor {
+    display: grid;
+    grid-template-columns: minmax(330px, 380px) minmax(0, 1fr);
+    column-gap: 36px;
+    align-items: start;
+  }
+  .sb-editor > .sb-backlink,
+  .sb-editor > .sb-ed-head,
+  .sb-editor > .sb-draft-banner {
+    grid-column: 1 / -1;
+  }
+  .sb-editor > .sb-settings {
+    grid-column: 1;
+    grid-row: span 9;
+    position: sticky;
+    top: 78px;
+  }
+  .sb-wizard {
+    max-width: 720px;
+  }
+  .sb-list h1 {
+    font-size: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -76,31 +76,31 @@ export default {
         },
         {
           type: 'li',
-          text: 'fournir, authentifier, exploiter, maintenir et sécuriser le service Dutiva;',
+          text: 'fournir, authentifier, exploiter, maintenir et sécuriser le service Dutiva ;',
         },
         {
           type: 'li',
-          text: 'créer des comptes, gérer les accès, appliquer les limites des forfaits et soutenir l’administration au niveau de l’organisation;',
+          text: 'créer des comptes, gérer les accès, appliquer les limites des forfaits et soutenir l’administration au niveau de l’organisation ;',
         },
         {
           type: 'li',
-          text: 'générer, enregistrer, réviser, exporter et administrer des documents RH et des processus de signature électronique;',
+          text: 'générer, enregistrer, réviser, exporter et administrer des documents RH et des processus de signature électronique ;',
         },
         {
           type: 'li',
-          text: 'fournir les réponses du Conseiller, récupérer le contexte d’accompagnement pertinent et améliorer la fiabilité et la sécurité des processus de conformité RH;',
+          text: 'fournir les réponses du Conseiller, récupérer le contexte d’accompagnement pertinent et améliorer la fiabilité et la sécurité des processus de conformité RH ;',
         },
         {
           type: 'li',
-          text: 'traiter les abonnements, factures, reçus, avis de compte, demandes de soutien et mises à jour du service;',
+          text: 'traiter les abonnements, factures, reçus, avis de compte, demandes de soutien et mises à jour du service ;',
         },
         {
           type: 'li',
-          text: 'mesurer l’utilisation globale des fonctionnalités, résoudre les erreurs, prévenir les abus, appliquer les limites de débit et surveiller le rendement du service;',
+          text: 'mesurer l’utilisation globale des fonctionnalités, résoudre les erreurs, prévenir les abus, appliquer les limites de débit et surveiller le rendement du service ;',
         },
         {
           type: 'li',
-          text: 'protéger la sécurité, la disponibilité, l’intégrité et l’exploitation licite de Dutiva;',
+          text: 'protéger la sécurité, la disponibilité, l’intégrité et l’exploitation licite de Dutiva ;',
         },
         {
           type: 'li',
@@ -190,7 +190,7 @@ export default {
         },
         {
           type: 'li',
-          text: 'Conseiller — le Conseiller Dutiva est une fonctionnalité principale du produit. Vous ne pouvez pas refuser le traitement du Conseiller tout en l’utilisant; vous pouvez choisir de ne pas utiliser le Conseiller. Voir les sections 7 et 8 pour les avis relatifs à l’IA et au traitement automatisé.',
+          text: 'Conseiller — le Conseiller Dutiva est une fonctionnalité principale du produit. Vous ne pouvez pas refuser le traitement du Conseiller tout en l’utilisant ; vous pouvez choisir de ne pas utiliser le Conseiller. Voir les sections 7 et 8 pour les avis relatifs à l’IA et au traitement automatisé.',
         },
       ],
     },
@@ -249,7 +249,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva peut utiliser des systèmes automatisés pour générer des ébauches, récupérer un contexte d’accompagnement, suggérer des prochaines étapes, appliquer des limites de débit, surveiller la sécurité et soutenir les fonctionnalités du produit. Dutiva est conçu pour assister les processus des employeurs et des RH; il n’est pas conçu pour prendre des décisions finales d’embauche, de discipline, d’accommodement, de cessation d’emploi, de rémunération ou d’autres décisions d’emploi au nom des clients.',
+          text: 'Dutiva peut utiliser des systèmes automatisés pour générer des ébauches, récupérer un contexte d’accompagnement, suggérer des prochaines étapes, appliquer des limites de débit, surveiller la sécurité et soutenir les fonctionnalités du produit. Dutiva est conçu pour assister les processus des employeurs et des RH ; il n’est pas conçu pour prendre des décisions finales d’embauche, de discipline, d’accommodement, de cessation d’emploi, de rémunération ou d’autres décisions d’emploi au nom des clients.',
         },
         {
           type: 'p',

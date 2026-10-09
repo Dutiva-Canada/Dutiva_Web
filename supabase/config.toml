@@ -88,6 +88,28 @@ verify_jwt = false
 [functions.policy-review-scheduler]
 verify_jwt = false
 
+# PR cron workers — x-trigger-secret in-band (migration 0195 schedules both);
+# they additionally accept a portal JWT + pr_access grant for the in-app
+# "Sync now" / "Run checks" buttons.
+[functions.pr-mentions-feed]
+verify_jwt = false
+
+[functions.pr-geo-check]
+verify_jwt = false
+
+# Health cron worker — x-trigger-secret in-band (migration 0196 schedules it).
+# Trigger-only: no portal button, so no JWT path.
+[functions.health-habit-notify]
+verify_jwt = false
+
+# Portal AI endpoints — user-invoked only; in-handler JWT + access-grant
+# checks (pr_access / health_access), no scheduled path.
+[functions.pr-ai]
+verify_jwt = false
+
+[functions.health-ai]
+verify_jwt = false
+
 [functions.notify-signing-status]
 verify_jwt = false
 

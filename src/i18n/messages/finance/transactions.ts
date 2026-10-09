@@ -25,7 +25,7 @@ export const financeTransactions = defineMessages({
   finance_reconciliation_mark_exception: { en: 'Mark exception', fr: 'Marquer comme exception' },
 
   /* Row triage and selection */
-  finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: "Suggestion de l'IA :" },
+  finance_transactions_ai_suggestion: { en: 'AI suggestion:', fr: "Suggestion de l’IA :" },
   finance_transactions_note: { en: 'Note', fr: 'Note' },
   finance_transactions_change_account: { en: 'Change account', fr: 'Changer de compte' },
   finance_transactions_categorize: { en: 'Categorize', fr: 'Catégoriser' },

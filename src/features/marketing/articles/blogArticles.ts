@@ -42,7 +42,7 @@ export const BLOG_ARTICLES: readonly Article[] = [
     updated: '2026-08-01',
     title: bi(
       'Is your workplace federally regulated?',
-      'Votre entreprise est-elle de compétence fédérale?',
+      'Votre entreprise est-elle de compétence fédérale ?',
     ),
     summary: bi(
       'A small share of Canadian employers fall under the Canada Labour Code instead of provincial standards — and applying the wrong regime affects nearly every HR obligation you have.',

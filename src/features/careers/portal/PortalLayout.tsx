@@ -6,6 +6,7 @@ import type { Lang } from '@/i18n/core'
 import { careersMessages as M } from '@/i18n/messages/careers'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useCareersPath } from '@/features/careers/useCareersPath'
+import { viewIntentProps } from '@/app/viewPrefetch'
 import { CandidateAuthPanel } from './CandidateAuthPanel'
 
 /**
@@ -84,16 +85,32 @@ export function PortalLayout() {
               Dutiva
             </Link>
             <nav className="hidden items-center gap-[3px] rounded-[10px] bg-inset p-[3px] min-[720px]:flex">
-              <NavLink to="/careers/portal/profile" className={navLinkClass}>
+              <NavLink
+                to="/careers/portal/profile"
+                className={navLinkClass}
+                {...viewIntentProps('careers.profile')}
+              >
                 {x(M.careers_portal_nav_profile)}
               </NavLink>
-              <NavLink to="/careers/portal/applications" className={navLinkClass}>
+              <NavLink
+                to="/careers/portal/applications"
+                className={navLinkClass}
+                {...viewIntentProps('careers.applications')}
+              >
                 {x(M.careers_portal_nav_applications)}
               </NavLink>
-              <NavLink to="/careers/portal/ai-tools" className={navLinkClass}>
+              <NavLink
+                to="/careers/portal/ai-tools"
+                className={navLinkClass}
+                {...viewIntentProps('careers.ai-tools')}
+              >
                 {x(M.careers_portal_nav_ai_tools)}
               </NavLink>
-              <NavLink to={paths.board} className={navLinkClass}>
+              <NavLink
+                to={paths.board}
+                className={navLinkClass}
+                {...viewIntentProps('careers.board')}
+              >
                 {x(M.careers_portal_nav_browse)}
               </NavLink>
             </nav>
@@ -113,6 +130,7 @@ export function PortalLayout() {
               className="inline-flex h-[34px] w-[34px] items-center justify-center rounded-[8px] border border-border text-text-2 no-underline transition-colors hover:bg-inset"
               aria-label={x(M.careers_portal_nav_settings)}
               title={x(M.careers_portal_nav_settings)}
+              {...viewIntentProps('careers.settings')}
             >
               <Settings size={15} strokeWidth={2} aria-hidden="true" />
             </NavLink>
@@ -165,6 +183,7 @@ export function PortalLayout() {
                 to="/careers/portal/profile"
                 className={navLinkClass}
                 onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.profile')}
               >
                 {x(M.careers_portal_nav_profile)}
               </NavLink>
@@ -172,6 +191,7 @@ export function PortalLayout() {
                 to="/careers/portal/applications"
                 className={navLinkClass}
                 onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.applications')}
               >
                 {x(M.careers_portal_nav_applications)}
               </NavLink>
@@ -179,6 +199,7 @@ export function PortalLayout() {
                 to="/careers/portal/ai-tools"
                 className={navLinkClass}
                 onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.ai-tools')}
               >
                 {x(M.careers_portal_nav_ai_tools)}
               </NavLink>
@@ -186,6 +207,7 @@ export function PortalLayout() {
                 to={paths.board}
                 className={navLinkClass}
                 onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.board')}
               >
                 {x(M.careers_portal_nav_browse)}
               </NavLink>
@@ -193,6 +215,7 @@ export function PortalLayout() {
                 to="/careers/portal/settings"
                 className={navLinkClass}
                 onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.settings')}
               >
                 {x(M.careers_portal_nav_settings)}
               </NavLink>

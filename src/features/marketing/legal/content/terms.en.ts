@@ -13,7 +13,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'These Terms of Service ("Terms") are an agreement between Dutiva Canada Inc. ("Dutiva," "we," "us," or "our") and the person or organization accessing or using the Dutiva platform ("Customer," "User," "you," or "your").',
+          text: 'These Terms of Service (“Terms”) are an agreement between Dutiva Canada Inc. (“Dutiva,” “we,” “us,” or “our”) and the person or organization accessing or using the Dutiva platform (“Customer,” “User,” “you,” or “your”).',
         },
         {
           type: 'p',
@@ -134,7 +134,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'You retain ownership of the data, documents, prompts, files, answers, and other content you submit to Dutiva ("Customer Data"). You grant Dutiva a limited right to process Customer Data only as needed to provide, secure, support, improve, administer, and operate the Service, enforce these Terms, and comply with law.',
+          text: 'You retain ownership of the data, documents, prompts, files, answers, and other content you submit to Dutiva (“Customer Data”). You grant Dutiva a limited right to process Customer Data only as needed to provide, secure, support, improve, administer, and operate the Service, enforce these Terms, and comply with law.',
         },
         {
           type: 'p',
@@ -248,7 +248,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'THE SERVICE IS PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS. TO THE MAXIMUM EXTENT PERMITTED BY LAW, DUTIVA DISCLAIMS ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, AVAILABILITY, AND RELIABILITY.',
+          text: 'THE SERVICE IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS. TO THE MAXIMUM EXTENT PERMITTED BY LAW, DUTIVA DISCLAIMS ALL WARRANTIES, EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, AVAILABILITY, AND RELIABILITY.',
         },
         {
           type: 'p',

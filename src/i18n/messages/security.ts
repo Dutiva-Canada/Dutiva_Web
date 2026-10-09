@@ -114,6 +114,6 @@ export const securityMessages = defineMessages({
   },
   sec_disclaimer: {
     en: 'Tracks posture and points to specialists; it does not make the organization secure.',
-    fr: 'Fait le suivi de la posture et oriente vers des spécialistes; cela ne rend pas l’organisation sécurisée.',
+    fr: 'Fait le suivi de la posture et oriente vers des spécialistes ; cela ne rend pas l’organisation sécurisée.',
   },
 })

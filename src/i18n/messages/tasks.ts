@@ -63,7 +63,7 @@ export const tasksMessages = defineMessages({
   /* Sent to advisor-chat when the detail page drafts a plan. {title} is the
      task title. */
   tasks_detail_generate_prompt: {
-    en: 'Draft a practical work plan for this task: "{title}". Give the steps, what to check, and what done looks like — under 200 words.',
+    en: 'Draft a practical work plan for this task: “{title}”. Give the steps, what to check, and what done looks like — under 200 words.',
     fr: 'Rédigez un plan de travail pratique pour cette tâche : « {title} ». Donnez les étapes, ce qu’il faut vérifier et le critère de fin — moins de 200 mots.',
   },
   tasks_detail_notes_title: { en: 'Notes', fr: 'Notes' },

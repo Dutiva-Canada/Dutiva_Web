@@ -74,8 +74,36 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
 /* prettier-ignore */ const InvestNotificationsPage = lazy(() => import('@/features/invest/portal/InvestNotificationsPage').then((m) => ({ default: m.InvestNotificationsPage })))
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
+/* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
+/* Health surface — standalone invite-only wellness portal (/health), see healthSurface.tsx. */
+/* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
+/* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
+/* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))
+/* prettier-ignore */ const HealthHabitsPage = lazy(() => import('@/features/health/portal/HealthHabitsPage').then((m) => ({ default: m.HealthHabitsPage })))
+/* prettier-ignore */ const HealthJournalPage = lazy(() => import('@/features/health/portal/HealthJournalPage').then((m) => ({ default: m.HealthJournalPage })))
+/* prettier-ignore */ const HealthToolsPage = lazy(() => import('@/features/health/portal/HealthToolsPage').then((m) => ({ default: m.HealthToolsPage })))
+/* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
+/* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
+/* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
+/* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
+/* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
+/* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
+/* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
+/* prettier-ignore */ const PrPortalSurface = lazy(() => import('./prSurface').then((m) => ({ default: m.PrPortalSurface })))
+/* prettier-ignore */ const PrHomePage = lazy(() => import('@/features/pr/portal/PrHomePage').then((m) => ({ default: m.PrHomePage })))
+/* prettier-ignore */ const PrCampaignsPage = lazy(() => import('@/features/pr/portal/PrCampaignsPage').then((m) => ({ default: m.PrCampaignsPage })))
+/* prettier-ignore */ const PrContentPage = lazy(() => import('@/features/pr/portal/PrContentPage').then((m) => ({ default: m.PrContentPage })))
+/* prettier-ignore */ const PrMediaPage = lazy(() => import('@/features/pr/portal/PrMediaPage').then((m) => ({ default: m.PrMediaPage })))
+/* prettier-ignore */ const PrSeoPage = lazy(() => import('@/features/pr/portal/PrSeoPage').then((m) => ({ default: m.PrSeoPage })))
+/* prettier-ignore */ const PrAnswersPage = lazy(() => import('@/features/pr/portal/PrAnswersPage').then((m) => ({ default: m.PrAnswersPage })))
+/* prettier-ignore */ const PrMentionsPage = lazy(() => import('@/features/pr/portal/PrMentionsPage').then((m) => ({ default: m.PrMentionsPage })))
+/* prettier-ignore */ const PrReportPage = lazy(() => import('@/features/pr/portal/PrReportPage').then((m) => ({ default: m.PrReportPage })))
+/* prettier-ignore */ const PrReviewPage = lazy(() => import('@/features/pr/portal/PrReviewPage').then((m) => ({ default: m.PrReviewPage })))
+/* prettier-ignore */ const PrChatPage = lazy(() => import('@/features/pr/portal/PrChatPage').then((m) => ({ default: m.PrChatPage })))
+/* prettier-ignore */ const PrLegalPage = lazy(() => import('@/features/pr/portal/PrLegalPage').then((m) => ({ default: m.PrLegalPage })))
+/* prettier-ignore */ const PrPortalLayout = lazy(() => import('@/features/pr/portal/PrPortalLayout').then((m) => ({ default: m.PrPortalLayout })))
 
 /**
  * Layout wrapper for the public marketing surface: the URL decides the
@@ -195,8 +223,28 @@ function NotFoundRoute() {
  *                           gated by an invest_access grant (invite-only)
  *   /invest/portfolio       accounts + positions + price updates
  *   /invest/orders          order log — record, execute, cancel
- *   /invest/signals         bot-emitted signals with acknowledge/dismiss
- *   /invest/strategies      rules-based bot strategies + run history
+ *   /invest/signals         agent-emitted signals with acknowledge/dismiss
+ *   /invest/strategies      rules-based agent strategies + run history
+ *   /health                 health portal — standalone shell, shared auth,
+ *                           gated by a health_access grant (invite-only);
+ *                           non-clinical self-tracking + journal
+ *   /health/check-in        daily mood/energy check-in + history
+ *   /health/habits          daily habit toggles + streaks (non-clinical)
+ *   /health/journal         private journal entries
+ *   /health/tools           self-guided pauses — breathing, grounding, gratitude
+ *   /health/insights        trends derived from the user's own check-ins
+ *   /health/resources       crisis + support resources (real services)
+ *   /pr                     PR portal — standalone shell, shared auth,
+ *                           gated by a pr_access grant (invite-only);
+ *                           communications desk: campaigns, content,
+ *                           media contacts, SEO tracking, coverage log
+ *   /pr/campaigns           campaigns across social/search/press/etc.
+ *   /pr/content             content desk — posts, releases, ad copy, briefs
+ *   /pr/media               media-contact list (outlets, beats, emails)
+ *   /pr/seo                 keyword position tracker (manual snapshots)
+ *   /pr/answers             GEO tracker — brand presence in AI answers
+ *   /pr/mentions            coverage/mentions log with tone tagging
+ *   /pr/report              monthly desk summary + Markdown export
  *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
@@ -357,12 +405,74 @@ function routeTree(): RouteObject[] {
           element: <InvestPortalLayout />,
           children: [
             { index: true, element: <InvestHomePage /> },
+            { path: 'chat', element: <InvestChatPage /> },
             { path: 'portfolio', element: <InvestPortfolioPage /> },
             { path: 'orders', element: <InvestOrdersPage /> },
             { path: 'signals', element: <InvestSignalsPage /> },
             { path: 'strategies', element: <InvestStrategiesPage /> },
             { path: 'notifications', element: <InvestNotificationsPage /> },
             { path: 'settings', element: <InvestSettingsPage /> },
+          ],
+        },
+      ],
+    },
+    /* Standalone health portal — shared auth + health_access grant, own
+       shell. Invite-only; a self-tracking/reflection tool, not a clinical
+       or crisis service (see the wellness notice legal doc). */
+    {
+      path: '/health',
+      element: (
+        <Suspense fallback={null}>
+          <HealthPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        /* Public legal pages — outside the gated layout so the sign-in
+           wall's footer links work for signed-out visitors. */
+        { path: 'legal/:slug', element: <HealthLegalPage /> },
+        {
+          element: <HealthPortalLayout />,
+          children: [
+            { index: true, element: <HealthHomePage /> },
+            { path: 'chat', element: <HealthChatPage /> },
+            { path: 'check-in', element: <HealthCheckInPage /> },
+            { path: 'habits', element: <HealthHabitsPage /> },
+            { path: 'journal', element: <HealthJournalPage /> },
+            { path: 'tools', element: <HealthToolsPage /> },
+            { path: 'insights', element: <HealthInsightsPage /> },
+            { path: 'review', element: <HealthReviewPage /> },
+            { path: 'resources', element: <HealthResourcesPage /> },
+          ],
+        },
+      ],
+    },
+    /* Standalone PR portal — shared auth + pr_access grant, own shell.
+       Invite-only; a planning/tracking desk for the communications
+       function — it records intent, it never publishes anything. */
+    {
+      path: '/pr',
+      element: (
+        <Suspense fallback={null}>
+          <PrPortalSurface />
+        </Suspense>
+      ),
+      children: [
+        /* Public legal pages — outside the gated layout so the sign-in
+           wall's footer links work for signed-out visitors. */
+        { path: 'legal/:slug', element: <PrLegalPage /> },
+        {
+          element: <PrPortalLayout />,
+          children: [
+            { index: true, element: <PrHomePage /> },
+            { path: 'chat', element: <PrChatPage /> },
+            { path: 'campaigns', element: <PrCampaignsPage /> },
+            { path: 'content', element: <PrContentPage /> },
+            { path: 'media', element: <PrMediaPage /> },
+            { path: 'seo', element: <PrSeoPage /> },
+            { path: 'answers', element: <PrAnswersPage /> },
+            { path: 'mentions', element: <PrMentionsPage /> },
+            { path: 'report', element: <PrReportPage /> },
+            { path: 'review', element: <PrReviewPage /> },
           ],
         },
       ],

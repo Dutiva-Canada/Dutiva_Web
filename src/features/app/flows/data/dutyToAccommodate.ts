@@ -35,9 +35,9 @@ export const dutyToAccommodateFlow: Flow = {
     {
       id: 'disclosure',
       kind: 'choice',
-      title: bi('What has happened so far?', 'Où en êtes-vous?'),
+      title: bi('What has happened so far?', 'Où en êtes-vous ?'),
       body: bi(
-        'The duty starts when you know, or reasonably should know, that someone needs an adjustment. It does not wait for a form, a diagnosis, or the word "accommodation".',
+        'The duty starts when you know, or reasonably should know, that someone needs an adjustment. It does not wait for a form, a diagnosis, or the word “accommodation”.',
         'L’obligation naît dès que vous savez, ou devriez raisonnablement savoir, qu’une personne a besoin d’un ajustement. Elle n’attend ni formulaire, ni diagnostic, ni l’emploi du mot « accommodement ».',
       ),
       caution: bi(
@@ -111,7 +111,7 @@ export const dutyToAccommodateFlow: Flow = {
       title: bi('Run the injury process alongside', 'Mener le processus de lésion en parallèle'),
       body: bi(
         'A workplace injury brings its own return-to-work process, with its own timelines and its own decision-maker. It runs alongside the duty to accommodate; it does not replace it.',
-        'Une lésion professionnelle déclenche son propre processus de retour au travail, avec ses délais et son décideur. Il se déroule parallèlement à l’obligation d’accommodement; il ne s’y substitue pas.',
+        'Une lésion professionnelle déclenche son propre processus de retour au travail, avec ses délais et son décideur. Il se déroule parallèlement à l’obligation d’accommodement ; il ne s’y substitue pas.',
       ),
       points: [
         bi(
@@ -190,7 +190,7 @@ export const dutyToAccommodateFlow: Flow = {
     {
       id: 'workable',
       kind: 'choice',
-      title: bi('Is any of it workable?', 'Une option est-elle réalisable?'),
+      title: bi('Is any of it workable?', 'Une option est-elle réalisable ?'),
       body: bi(
         'Workable means it lets the person do the job and the organization can carry it. Inconvenient is not the same as unworkable.',
         'Réalisable signifie que l’option permet à la personne d’accomplir son travail et que l’organisation peut l’assumer. Contraignant n’est pas synonyme d’irréalisable.',
@@ -254,10 +254,10 @@ export const dutyToAccommodateFlow: Flow = {
       ),
       body: bi(
         'Undue hardship is the outer limit of the duty and the threshold is high — the employer has to prove it on evidence. Which of these describes your position?',
-        'La contrainte excessive est la limite ultime de l’obligation et le seuil en est élevé : il revient à l’employeur de la prouver par une preuve. Laquelle de ces situations correspond à la vôtre?',
+        'La contrainte excessive est la limite ultime de l’obligation et le seuil en est élevé : il revient à l’employeur de la prouver par une preuve. Laquelle de ces situations correspond à la vôtre ?',
       ),
       caution: bi(
-        'Business inconvenience will not carry a refusal, and neither will customer or co-worker preference or "we have never done that here". Which further factors count is jurisdictional — Ontario and the federal regime name theirs in statute, Québec weighs the whole of the circumstances — so read the undue hardship assessment (T24) for the test that applies to you before concluding.',
+        'Business inconvenience will not carry a refusal, and neither will customer or co-worker preference or “we have never done that here”. Which further factors count is jurisdictional — Ontario and the federal regime name theirs in statute, Québec weighs the whole of the circumstances — so read the undue hardship assessment (T24) for the test that applies to you before concluding.',
         'Les inconvénients d’affaires ne soutiennent pas un refus, pas plus que les préférences de la clientèle ou des collègues, ni « cela ne s’est jamais fait ici ». Les autres facteurs pertinents varient selon la juridiction — l’Ontario et le régime fédéral énumèrent les leurs dans la loi, le Québec apprécie l’ensemble des circonstances — consultez donc l’évaluation de la contrainte excessive (T24) pour connaître le test applicable avant de conclure.',
       ),
       options: [
@@ -331,7 +331,7 @@ export const dutyToAccommodateFlow: Flow = {
         ),
         bi(
           'Ask the employee what they think would work; they often know.',
-          'Demandez à l’employé(e) ce qui fonctionnerait selon lui ou elle; c’est souvent la personne la mieux placée.',
+          'Demandez à l’employé(e) ce qui fonctionnerait selon lui ou elle ; c’est souvent la personne la mieux placée.',
         ),
         bi(
           'Consider a trial period rather than deciding in the abstract.',

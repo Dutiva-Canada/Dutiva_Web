@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 
 /**
  * Updates one component's row in public.service_status (the /status board).
@@ -8,23 +9,19 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
  * Keep the component/status vocab in sync with migration 0017 and src/config.
  */
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const corsHeaders = makeCorsHeaders()
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(), 'Content-Type': 'application/json' },
   })
 }
 
 const COMPONENTS = ['platform', 'advisor', 'documents', 'support']
 const STATUSES = ['operational', 'degraded', 'maintenance', 'outage']
 
-Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+const handler = async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -73,4 +70,6 @@ Deno.serve(async (req: Request) => {
   if (error) return json({ error: error.message }, 500)
 
   return json({ data: { component, status } })
-})
+}
+
+Deno.serve(async (req) => withCors(req, await handler(req)))

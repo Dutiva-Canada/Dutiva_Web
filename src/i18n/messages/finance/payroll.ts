@@ -24,7 +24,7 @@ export const financePayroll = defineMessages({
   },
   finance_payroll_admin_only: {
     en: 'Payroll records are visible to admins only. Ask a workspace admin to grant access or review pay runs.',
-    fr: "Les dossiers de paie sont visibles par les administrateurs uniquement. Demandez à un administrateur de l'espace d'accorder l'accès ou de réviser les traitements.",
+    fr: "Les dossiers de paie sont visibles par les administrateurs uniquement. Demandez à un administrateur de l’espace d’accorder l’accès ou de réviser les traitements.",
   },
 
   /* Payroll liability settlement */

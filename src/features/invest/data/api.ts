@@ -12,8 +12,10 @@ import type {
   InvestStrategy,
   InvestWatchItem,
   MarketSnapshot,
+  MultiMatch,
   OrderStatus,
   SignalStatus,
+  TestScanMatch,
 } from './types'
 
 /**
@@ -301,9 +303,55 @@ export async function executeOrder(orderId: string, fillPrice?: number): Promise
 
 /* ── Strategies / bot ────────────────────────────────────────────────────── */
 
+/** Edge-function failure carrying the server's error message, its machine
+    `code`, and the correlation id the client sent — the strategies UI shows
+    the id so support can line the failure up with function logs. */
+export class BotRequestError extends Error {
+  code?: string
+  /** The request id we sent (echoed back by the function on JSON errors);
+      always set client-side even when the server never saw the call. */
+  requestId?: string
+}
+
+/** Shared invoker for the read-side bot actions (run, test-scan). Not used
+    by execute-order — the fill path keeps its own call untouched. */
+async function invokeBot(
+  body: Record<string, unknown>,
+  requestId?: string,
+): Promise<unknown> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-bot', {
+    body: requestId ? { ...body, request_id: requestId } : body,
+  })
+  if (error) {
+    const e = new BotRequestError(error.message)
+    e.requestId = requestId
+    /* FunctionsHttpError carries the Response — the function answers
+       {error, code, request_id} json, which beats the transport message. */
+    const ctx = (error as { context?: Response }).context
+    if (ctx) {
+      try {
+        const payload = (await ctx.json()) as {
+          error?: string
+          code?: string
+          request_id?: string
+        }
+        if (typeof payload.error === 'string' && payload.error) e.message = payload.error
+        if (typeof payload.code === 'string') e.code = payload.code
+        if (typeof payload.request_id === 'string') e.requestId = payload.request_id
+      } catch {
+        /* non-JSON error body — keep the transport message */
+      }
+    }
+    throw e
+  }
+  return data
+}
+
 export async function saveStrategy(
   strategy: Omit<InvestStrategy, 'id'> & { id?: string },
-): Promise<void> {
+): Promise<string | undefined> {
   const { client, userId } = await requireUserId()
   if (!strategy.scope.watchlist && strategy.scope.symbols.length === 0) {
     throw new Error('Strategy needs a scope: the watchlist or at least one symbol')
@@ -321,16 +369,33 @@ export async function saveStrategy(
       watchlist: strategy.scope.watchlist,
       symbols: strategy.scope.symbols.map((s) => s.toUpperCase()),
     },
+    /* Rule order in this array is evaluation priority — the engine walks
+       it top to bottom, so the UI's reorder controls persist as-is. */
     rules: rulesToWire(strategy.rules),
     notify: { in_app: strategy.notify.inApp, email: strategy.notify.email },
     cadence: strategy.cadence,
     template: strategy.template,
     updated_at: new Date().toISOString(),
   }
-  const { error } = strategy.id
-    ? await client.from('invest_strategies').update(payload).eq('id', strategy.id)
-    : await client.from('invest_strategies').insert(payload)
-  if (error) throw error
+  /* 0190 column — spread outside the literal so the generated Insert type
+     (pre-regen) doesn't flag it; the spread dissolves once db:types runs
+     against the migrated schema. */
+  const payloadWithMode = { ...payload, multi_match: strategy.multiMatch }
+  /* Inserts select id back so the caller can open the editor on the new
+     row without a round-trip guess. */
+  let res = strategy.id
+    ? await client.from('invest_strategies').update(payloadWithMode).eq('id', strategy.id)
+    : await client.from('invest_strategies').insert(payloadWithMode).select('id').single()
+  if (res.error && /multi_match/.test(res.error.message)) {
+    /* Migration 0190 not applied yet — save everything else rather than
+       failing; the mode defaults to 'each' server-side until the column
+       lands. Mirrors loadStrategies' column fallback in invest-bot. */
+    res = strategy.id
+      ? await client.from('invest_strategies').update(payload).eq('id', strategy.id)
+      : await client.from('invest_strategies').insert(payload).select('id').single()
+  }
+  if (res.error) throw res.error
+  return strategy.id ?? (res.data as { id?: string } | null)?.id
 }
 
 export async function setStrategyEnabled(id: string, enabled: boolean): Promise<void> {
@@ -364,21 +429,20 @@ export interface ScanResult {
 /** Scan the caller's strategies on demand. Scanning never places orders —
     order proposals become drafts awaiting approval in the Orders tab. */
 export async function scanNow(): Promise<ScanResult> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.functions.invoke('invest-bot', {
-    body: { action: 'run' },
-  })
-  if (error) throw error
-  return data as ScanResult
+  return (await invokeBot({ action: 'run' }, crypto.randomUUID())) as ScanResult
 }
 
 export interface TestScanResult {
+  /** Correlation id for this dry run — echoed by the server, generated
+      client-side so even a network-level failure has an id to report. */
+  requestId: string
   symbolsScanned: string[]
   ruleHits: Record<string, number>
   signals: number
   proposals: number
   warnings: string[]
+  /** Per-rule×symbol match detail — what would have fired. */
+  matches: TestScanMatch[]
 }
 
 /** Dry-run a draft strategy's rules against current snapshots — diagnostic
@@ -386,14 +450,27 @@ export interface TestScanResult {
 export async function testScan(input: {
   rules: InvestStrategy['rules']
   symbols: string[]
+  multiMatch: MultiMatch
 }): Promise<TestScanResult> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.functions.invoke('invest-bot', {
-    body: { action: 'test-scan', rules: rulesToWire(input.rules), symbols: input.symbols },
-  })
-  if (error) throw error
-  return data as TestScanResult
+  const requestId = crypto.randomUUID()
+  const data = (await invokeBot(
+    {
+      action: 'test-scan',
+      rules: rulesToWire(input.rules),
+      symbols: input.symbols,
+      multi_match: input.multiMatch,
+    },
+    requestId,
+  )) as Record<string, unknown>
+  return {
+    requestId: typeof data.request_id === 'string' ? data.request_id : requestId,
+    symbolsScanned: Array.isArray(data.symbolsScanned) ? (data.symbolsScanned as string[]) : [],
+    ruleHits: (data.ruleHits ?? {}) as Record<string, number>,
+    signals: Number(data.signals) || 0,
+    proposals: Number(data.proposals) || 0,
+    warnings: Array.isArray(data.warnings) ? (data.warnings as string[]) : [],
+    matches: Array.isArray(data.matches) ? (data.matches as TestScanMatch[]) : [],
+  }
 }
 
 /* Wire shape for the rules jsonb column and the edge function — snake_case
@@ -406,6 +483,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           metric: r.metric,
           op: r.op,
           value: r.value,
+          ...(r.op === 'between' ? { value2: r.value2 } : {}),
           title: r.title,
           severity: r.severity,
         }
@@ -414,6 +492,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           metric: r.metric,
           op: r.op,
           value: r.value,
+          ...(r.op === 'between' ? { value2: r.value2 } : {}),
           title: r.title,
           side: r.side,
           qty: r.qty,
@@ -433,23 +512,12 @@ export async function syncPrices(): Promise<{ symbols: number; synced: number; f
   return data as { symbols: number; synced: number; failed: string[] }
 }
 
-/**
- * Ask the model to author a strategy draft from a plain-language goal.
- * Returns a disabled draft — the user reviews, picks the scope, and saves
- * before anything reaches the book.
- */
-export async function draftStrategy(
-  goal: string,
-  lang: 'en' | 'fr',
-): Promise<Omit<InvestStrategy, 'id'>> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { data, error } = await client.functions.invoke('invest-ai', {
-    body: { action: 'draft-strategy', goal, lang },
-  })
-  if (error) throw error
-  const d = (data as { draft?: Record<string, unknown> }).draft
-  if (!d) throw new Error('No draft returned')
+/** invest-ai draft → save-ready wire strategy. Shared by the wizard and the
+    review-queue "Add it" path, so a filed draft creates the same strategy
+    either way — disabled, in-app notify, one match each. */
+export function normalizeAiStrategyDraft(
+  d: Record<string, unknown>,
+): Omit<InvestStrategy, 'id'> {
   const scope = (d.scope ?? {}) as Record<string, unknown>
   return {
     name: String(d.name),
@@ -461,8 +529,34 @@ export async function draftStrategy(
     rules: normalizeRules(d.rules),
     notify: { inApp: true, email: false },
     cadence: d.cadence === 'weekly' || d.cadence === 'monthly' ? d.cadence : 'daily',
+    multiMatch: 'each',
     template: 'ai-draft',
   }
+}
+
+/**
+ * Ask the model to author a strategy draft from a plain-language goal.
+ * Returns a disabled draft — the user reviews, picks the scope, and saves
+ * before anything reaches the book. The draft is also filed to the review
+ * queue server-side; suggestionId links the wizard's save back to that row
+ * (null when the queue write didn't land).
+ */
+export async function draftStrategy(
+  goal: string,
+  lang: 'en' | 'fr',
+): Promise<{ draft: Omit<InvestStrategy, 'id'>; suggestionId: string | null }> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: { action: 'draft-strategy', goal, lang },
+  })
+  if (error) throw error
+  const raw = (data as {
+    draft?: Record<string, unknown>
+    suggestionId?: string | null
+  }) ?? {}
+  if (!raw.draft) throw new Error('No draft returned')
+  return { draft: normalizeAiStrategyDraft(raw.draft), suggestionId: raw.suggestionId ?? null }
 }
 
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
@@ -526,6 +620,9 @@ function toStrategy(row: any): InvestStrategy {
     rules: normalizeRules(row.rules),
     notify: { inApp: notify.in_app !== false, email: notify.email === true },
     cadence: row.cadence === 'weekly' || row.cadence === 'monthly' ? row.cadence : 'daily',
+    /* 0190 — absent on a code-before-schema deploy; 'each' is the
+       historical behavior. */
+    multiMatch: row.multi_match === 'summary' ? 'summary' : 'each',
     template: typeof row.template === 'string' ? row.template : '',
   }
 }

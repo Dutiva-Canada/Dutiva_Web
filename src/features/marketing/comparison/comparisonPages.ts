@@ -52,7 +52,7 @@ const DUTIVA_BILINGUAL = bi(
 
 const DUTIVA_STATUTE = bi(
   'Names the applicable statute — Employment Standards Act, 2000; Canada Labour Code, Part III; Act respecting labour standards — not just the province.',
-  'Nomme la loi applicable — Loi de 2000 sur les normes d’emploi; Code canadien du travail, Partie III; Loi sur les normes du travail — pas seulement la province.',
+  'Nomme la loi applicable — Loi de 2000 sur les normes d’emploi ; Code canadien du travail, Partie III ; Loi sur les normes du travail — pas seulement la province.',
 )
 
 const DUTIVA_SELF_SERVE = bi(
@@ -67,7 +67,7 @@ const VS_MARKET_FAQ: ComparisonFaqItem = {
   ),
   answer: bi(
     'Dutiva publishes named comparisons with Citation Canada (HRdownloads) and SixFifty — public CAD pricing, bilingual EN/FR, statute-level guidance, and self-serve checkout. Larger vendors may have broader template libraries or a longer market presence; compare those published pages rather than a generic “market leader” label. Dutiva does not provide legal advice.',
-    'Dutiva publie des comparaisons nommées avec Citation Canada (HRdownloads) et SixFifty — tarifs publics en CAD, bilinguisme EN/FR, conseils au niveau de la loi et paiement en libre-service. Les plus grands fournisseurs peuvent avoir des bibliothèques de modèles plus vastes ou une présence plus ancienne sur le marché; comparez ces pages publiées plutôt qu’une étiquette générique de « chef de file ». Dutiva ne fournit pas de conseils juridiques.',
+    'Dutiva publie des comparaisons nommées avec Citation Canada (HRdownloads) et SixFifty — tarifs publics en CAD, bilinguisme EN/FR, conseils au niveau de la loi et paiement en libre-service. Les plus grands fournisseurs peuvent avoir des bibliothèques de modèles plus vastes ou une présence plus ancienne sur le marché ; comparez ces pages publiées plutôt qu’une étiquette générique de « chef de file ». Dutiva ne fournit pas de conseils juridiques.',
   ),
 }
 
@@ -161,7 +161,7 @@ const SIXFIFTY_DIMENSIONS: readonly ComparisonDimension[] = [
     'selfServe',
     bi(
       'Full platform access typically follows a demo and quote; limited free US tools (for example Policy Navigator or a sample NDA) are available without a subscription.',
-      'L’accès complet suit généralement une démo et une soumission; des outils américains gratuits limités (p. ex. Policy Navigator ou un NDA d’exemple) sont disponibles sans abonnement.',
+      'L’accès complet suit généralement une démo et une soumission ; des outils américains gratuits limités (p. ex. Policy Navigator ou un NDA d’exemple) sont disponibles sans abonnement.',
     ),
   ),
 ]
@@ -202,7 +202,7 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
         ),
         answer: bi(
           'Dutiva names the applicable statute — for example Employment Standards Act, 2000 or Act respecting labour standards — in Advisor guidance and document workflows. Citation Canada tracks legislation across Canadian jurisdictions through expert-drafted templates; verify citation style for your use case.',
-          'Dutiva nomme la loi applicable — par exemple la Loi de 2000 sur les normes d’emploi ou la Loi sur les normes du travail — dans les conseils du Conseiller et les processus documentaires. Citation Canada suit la législation dans les compétences canadiennes via des modèles d’experts; vérifiez le style de citation pour votre cas d’usage.',
+          'Dutiva nomme la loi applicable — par exemple la Loi de 2000 sur les normes d’emploi ou la Loi sur les normes du travail — dans les conseils du Conseiller et les processus documentaires. Citation Canada suit la législation dans les compétences canadiennes via des modèles d’experts ; vérifiez le style de citation pour votre cas d’usage.',
         ),
       },
       {
@@ -222,7 +222,7 @@ export const COMPARISON_PAGES: Record<ComparisonCompetitorId, ComparisonPageConf
         ),
         answer: bi(
           'Yes — pick a plan at dutiva.ca/pricing and check out yourself. Citation Canada does not offer a free trial; their site directs you to a demo and customized quote.',
-          'Oui — choisissez un forfait sur dutiva.ca/tarifs et payez vous-même. Citation Canada n’offre pas d’essai gratuit; leur site vous oriente vers une démo et une soumission personnalisée.',
+          'Oui — choisissez un forfait sur dutiva.ca/tarifs et payez vous-même. Citation Canada n’offre pas d’essai gratuit ; leur site vous oriente vers une démo et une soumission personnalisée.',
         ),
       },
       VS_MARKET_FAQ,
