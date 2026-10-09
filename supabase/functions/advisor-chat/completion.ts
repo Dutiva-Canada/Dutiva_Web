@@ -231,6 +231,7 @@ export async function recordCompletion(
 export async function reportOverageIfNeeded(
   adminClient: SupabaseClient,
   userId: string,
+  organizationId: string | null,
   commercialSource: string | undefined,
 ) {
   if (commercialSource !== 'overage') return
@@ -240,11 +241,23 @@ export async function reportOverageIfNeeded(
     console.error('advisor-chat: overage claimed but meter is not configured')
     return
   }
-  const { data } = await adminClient
-    .from('profiles')
-    .select('stripe_customer_id')
-    .eq('id', userId)
-    .maybeSingle()
+  /* Meter the customer whose budget the overage drew on: claim_ai_usage's
+     org-pooled path checks organizations.stripe_customer_id for eligibility,
+     so the meter event must land on that same customer — a member's own
+     profile has no Stripe identity (silent no-bill) and must not be billed
+     for the org's overage anyway. The legacy null-org path still meters the
+     caller's profile, matching its own profiles.* eligibility check. */
+  const { data } = organizationId
+    ? await adminClient
+        .from('organizations')
+        .select('stripe_customer_id')
+        .eq('id', organizationId)
+        .maybeSingle()
+    : await adminClient
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', userId)
+        .maybeSingle()
   const customerId = typeof data?.stripe_customer_id === 'string' ? data.stripe_customer_id : ''
   const result = await reportAdvisorOverageMeter({
     stripeCustomerId: customerId,

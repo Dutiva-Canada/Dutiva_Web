@@ -55,6 +55,15 @@ export async function loadOrgMemoryFacts(
       .eq('confidence', 'confirmed')
       .eq('sensitive', false)
       .is('forgotten_at', null)
+      /* Governance columns (0155) the 0086-era policy predates: a fact an
+         operator marked not-Advisor-usable, moved out of `confirmed`
+         lifecycle status, tiered `restricted`, or let reach its expiry date
+         must stop injecting the moment it stops being eligible — the Memory
+         UI's effective* rules treat null as eligible, so nulls stay in. */
+      .or('advisor_usable.is.null,advisor_usable.eq.true')
+      .or('status.is.null,status.eq.confirmed')
+      .or('sensitivity.is.null,sensitivity.eq.standard')
+      .or(`expiry_date.is.null,expiry_date.gt.${new Date().toISOString()}`)
       .order('learned_at', { ascending: false })
       .limit(40)
     if (error) {

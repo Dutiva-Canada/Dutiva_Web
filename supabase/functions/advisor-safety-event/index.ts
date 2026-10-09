@@ -140,8 +140,21 @@ const handler = async (req: Request) => {
 
   const attribution = await activeRouteAttribution(authenticated.adminClient)
 
+  /* The org id on a telemetry row is caller-supplied attribution: keep it
+     only when the caller is a verified member of that org (same posture as
+     create-support-ticket's workspace_id — silently dropped, never an
+     error, telemetry stays best-effort). */
+  let organizationId: string | null = null
+  if (request.organizationId) {
+    const { data: isMember } = await authenticated.adminClient.rpc('is_org_member', {
+      check_org_id: request.organizationId,
+      check_user_id: authenticated.user.id,
+    })
+    if (isMember === true) organizationId = request.organizationId
+  }
+
   const { error } = await authenticated.adminClient.from('ai_telemetry_events').insert({
-    organization_id: request.organizationId,
+    organization_id: organizationId,
     user_id: authenticated.user.id,
     provider: attribution.provider,
     model: attribution.model,

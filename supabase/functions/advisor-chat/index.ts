@@ -34,6 +34,7 @@ import {
   authenticateRequest,
   readChatRequest,
   serverConfig,
+  verifyOrgMembership,
 } from './requestSetup.ts'
 import {
   loadConversation,
@@ -71,6 +72,14 @@ const handler = async (req: Request) => {
   if (authenticated instanceof Response) return authenticated
   const request = await readChatRequest(req)
   if (request instanceof Response) return request
+  /* Tenant boundary before any org-scoped work — the request's
+     organization_id is caller-supplied. */
+  const orgCheck = await verifyOrgMembership(
+    authenticated.adminClient,
+    authenticated.user.id,
+    request.organizationId,
+  )
+  if (orgCheck) return orgCheck
   const activeRoute = await activeModelRoute(authenticated.adminClient)
   if (activeRoute instanceof Response) return activeRoute
   /* Modality gate — refuse before metering: a turn the routed model cannot
@@ -225,6 +234,7 @@ const handler = async (req: Request) => {
   await reportOverageIfNeeded(
     authenticated.adminClient,
     authenticated.user.id,
+    request.organizationId,
     decision.commercialSource,
   )
 

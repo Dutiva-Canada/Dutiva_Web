@@ -89,6 +89,38 @@ export async function readChatRequest(req: Request): Promise<ChatRequest | Respo
   }
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Org tenancy boundary. The workspace gate above is beta-wide — it says WHO
+ * may chat, not WHICH org's context they may use. Everything downstream of
+ * this check keys off `request.organizationId`: the org-pooled usage claim,
+ * org plan, org memory injection (echoed back in the response payload) and
+ * the memory-fact writes — all through a service-role client that bypasses
+ * RLS. A caller who passed another org's id would read its memory, write
+ * facts into it, and spend its budget. `is_org_member` (the same helper the
+ * RLS policies and create-support-ticket use) is the check that closes that.
+ * Fails closed: an unverifiable membership answer refuses rather than
+ * silently widening scope. Runs before any org-scoped work.
+ */
+export async function verifyOrgMembership(
+  adminClient: SupabaseClient,
+  userId: string,
+  organizationId: string | null,
+): Promise<Response | null> {
+  if (!organizationId) return null
+  if (!UUID_RE.test(organizationId)) {
+    return json({ error: 'Not a member of this organization.' }, 403)
+  }
+  const { data, error } = await adminClient.rpc('is_org_member', {
+    check_org_id: organizationId,
+    check_user_id: userId,
+  })
+  if (error) return json({ error: 'Organization membership could not be verified.' }, 500)
+  if (data !== true) return json({ error: 'Not a member of this organization.' }, 403)
+  return null
+}
+
 export async function activeModelRoute(
   adminClient: SupabaseClient,
 ): Promise<ActiveModelRoute | Response> {
