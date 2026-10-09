@@ -14,7 +14,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Dutiva provides customer support through our Help Centre, secure support requests and email. General inbound telephone support is not currently available. Where an issue cannot reasonably be resolved through digital support—including certain accessibility, security, account-recovery or exceptional service matters—we may arrange a telephone or video appointment.',
+          text: 'Dutiva provides customer support through our Help Centre, secure support requests and email. General inbound telephone support is not currently available. Where an issue cannot reasonably be resolved through digital support — including certain accessibility, security, account-recovery or exceptional service matters — we may arrange a telephone or video appointment.',
         },
         {
           type: 'p',
@@ -94,7 +94,7 @@ export default {
       blocks: [
         {
           type: 'p',
-          text: 'Because support is digital-first, a scheduled telephone or video appointment is arranged only where an issue cannot reasonably be resolved in writing—for example complex account recovery, accessibility accommodations, serious security concerns, escalated billing disputes, enterprise onboarding, or a sensitive complaint where written communication is unsuitable.',
+          text: 'Because support is digital-first, a scheduled telephone or video appointment is arranged only where an issue cannot reasonably be resolved in writing — for example complex account recovery, accessibility accommodations, serious security concerns, escalated billing disputes, enterprise onboarding, or a sensitive complaint where written communication is unsuitable.',
         },
         {
           type: 'p',

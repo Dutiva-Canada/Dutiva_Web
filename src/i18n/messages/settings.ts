@@ -113,7 +113,7 @@ export const settingsMessages = defineMessages({
   },
   settings_role_member: { en: 'Member', fr: 'Membre' }, // [FR self-authored]
   settings_role_professional: { en: 'Professional', fr: 'Professionnel·le' }, // [FR self-authored]
-  settings_role_consultant: { en: 'Consultant', fr: 'Consultant·e' }, // [FR self-authored]
+  settings_role_consultant: { en: 'Consultant', fr: 'Consultant(e)' }, // [FR self-authored]
 
   /* Team management (production) — [FR self-authored] */
   settings_team_pending_heading: {

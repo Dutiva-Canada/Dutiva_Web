@@ -15,7 +15,7 @@ export const supportMessages = defineMessages({
   },
   /* Approved public support-policy statement (verbatim). */
   support_policy_statement: {
-    en: 'Dutiva provides customer support through our Help Centre, secure support requests and email. General inbound telephone support is not currently available. Where an issue cannot reasonably be resolved through digital support—including certain accessibility, security, account-recovery or exceptional service matters—we may arrange a telephone or video appointment.',
+    en: 'Dutiva provides customer support through our Help Centre, secure support requests and email. General inbound telephone support is not currently available. Where an issue cannot reasonably be resolved through digital support — including certain accessibility, security, account-recovery or exceptional service matters — we may arrange a telephone or video appointment.',
     fr: 'Dutiva offre du soutien à la clientèle par l’intermédiaire de son centre d’aide, de demandes de soutien sécurisées et du courriel. Le soutien téléphonique entrant général n’est pas offert pour le moment. Lorsqu’une situation ne peut raisonnablement être réglée au moyen du soutien numérique, notamment certaines questions liées à l’accessibilité, à la sécurité, à la récupération d’un compte ou à une situation de service exceptionnelle, nous pouvons organiser un rendez-vous téléphonique ou vidéo.',
   },
   /* Approved sensitive-information warning (verbatim) — shown near the
