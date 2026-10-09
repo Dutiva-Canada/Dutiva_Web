@@ -49,7 +49,7 @@ the app surface follows the persisted `dutiva-lang` preference. See
 | `npm run format`        | Prettier                                                                                            |
 | `npm run db:types`      | Regenerate `src/lib/supabase/database.types.ts` (and the edge-function copy) from the linked project |
 | `npm run db:snapshot`   | `supabase db dump` → `supabase/schema.sql`; `db:document` regenerates the schema doc from it         |
-| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` + `check:workspace-links` |
+| `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` + `check:workspace-links` + `check:advisor-golden` + `check:db-types` + `check:edge-types` |
 
 ## End-to-end tests
 

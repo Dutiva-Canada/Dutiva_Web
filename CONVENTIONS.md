@@ -388,7 +388,8 @@ component / `t('disclaimer')`.
 
 ## Quality bar
 
-- `npm run check` (typecheck + lint + tests) must pass before every commit.
+- `npm run check` (typecheck + lint + tests + the `check:*` integrity guards
+  listed in `package.json`) must pass before every commit.
 - Colocate tests as `*.test.ts(x)` next to the unit under test.
 - **E2E:** hermetic smoke via `npm run test:e2e` (CSP + routing + hydration);
   authenticated production CRUD via `npm run test:e2e:auth` when Supabase env

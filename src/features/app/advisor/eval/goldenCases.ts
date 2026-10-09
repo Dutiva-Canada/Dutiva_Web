@@ -1,5 +1,5 @@
 /**
- * § Advisor golden-eval — the versioned compliance question set (~46 cases).
+ * § Advisor golden-eval — the versioned compliance question set (64 cases).
  *
  * Every case names a real compliance question a Canadian employer asks, the
  * jurisdiction the engine must read from the question text, the corpus topic

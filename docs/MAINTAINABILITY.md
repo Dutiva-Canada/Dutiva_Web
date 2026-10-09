@@ -11,7 +11,7 @@ and periodic owner tasks.
 - **Custom CI guards:** migrations, RLS, facts, brand assets, entry-graph budget, architecture (`check:architecture`)
 - **Lazy workspace routes:** `viewPreloads.ts` shared by routes and nav prefetch
 
-## Maintainability program (stages 1–9, complete)
+## Maintainability program (stages 1–10, complete)
 
 Structural work shipped in PRs #250–#258. `npm run check:architecture` now enforces:
 
@@ -128,6 +128,21 @@ modules — clears the last `check:architecture` size warning without changing g
 **Stage 10 (pairing completeness):** every `*ProductionView.tsx` under `src/features/app/views/`
 must have matching `*DemoView.tsx` and `*View.tsx` siblings — closes the maintainability program.
 
+**Ceiling-cluster splits (post-program):** files riding the 800-line budget were split along
+existing seams — `CandidateDetailDemoView` → `CandidateDetailDemoTabs` +
+`candidateDetailDemoMeta` (mirrors the production `candidateDetailMeta` convention);
+`SettingsView` → `SettingsDataSections` (roles matrix, retention, security, export trail —
+same pattern as `SettingsBillingSection`); `AnalyticsProductionView` → `buildScoreComponents()`
+in `scoreComponents.ts`; finance `supabaseApi` → `supabaseApiPlanning` (budgets/tax/scenarios/
+external actions, re-exported like the other `supabase*` siblings — callers untouched);
+`strategies.css` → `@import` manifest + partials under `strategies/`.
+
+**Generated-file drift guards:** `check:db-types` byte-compares `src/lib/supabase/
+database.types.ts` against `supabase/functions/_shared/database.types.ts` (fix:
+`npm run db:types`); `check:edge-types` runs `deno check` on every edge-function `index.ts`
+when Deno is on PATH and skips loudly when it is not — same fail-soft convention as
+`check:migrations`.
+
 ## CI pipelines
 
 | Pipeline                      | What it gates                                                                                             |
@@ -135,11 +150,15 @@ must have matching `*DemoView.tsx` and `*View.tsx` siblings — closes the maint
 | `.woodpecker/check.yml`       | typecheck, lint, test:coverage, message-scopes, facts, **architecture**, **brand-assets**, **full build** |
 | `.woodpecker/live-checks.yml` | migration drift + RLS (needs Supabase secrets)                                                            |
 | `.woodpecker/e2e.yml`         | Playwright smoke on `dist/`                                                                               |
+| `.woodpecker/e2e-auth.yml`    | Authenticated production CRUD matrix — needs `SUPABASE_SERVICE_ROLE_KEY`                                  |
+| `.woodpecker/statute-drift.yml` | Cron/manual only — re-verifies Advisor statute citations against live government sources                |
 
 **Live checks:** configure `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` in Woodpecker
 so green CI implies live DB parity, not just local green.
 
-Local `npm run check` runs architecture + brand-assets; migration drift runs when creds exist.
+Local `npm run check` additionally gates message-scopes, workspace-links, advisor-golden,
+db-types, and edge-types (Deno-dependent, skips loudly when absent); migration drift runs
+when creds exist.
 
 ## File size budget
 

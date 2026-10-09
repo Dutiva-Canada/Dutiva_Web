@@ -430,28 +430,29 @@ Sources: [docs/README.md:48-52](), [docs/notice-bands-review-pack.md:1-30](), [d
 
 ## Complete File Inventory
 
-The `docs/` folder contains 34 markdown documents plus 3 design handoff subdirectories:
+The `docs/` folder contains 60 top-level markdown documents plus 14 subdirectories (10 design handoffs, `ASSESSMENT/`, `chat-widgets/`, `consumer/`, and the `wiki/` mirror):
 
 | Category        | Files                                                                                                                                                              |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Index           | `README.md`                                                                                                                                                        |
-| Governance      | `CANONICAL_FACTS.md`                                                                                                                                               |
-| Operations      | `TODO.md`, `DEVIN_PROMPTS.md`                                                                                                                                      |
-| Product scope   | `FOUR_RING_FRAMEWORK.md`, `LEGAL_REVIEW_INVENTORY.md`                                                                                                              |
-| AI strategy     | `AI_USAGE_STRATEGY.md`                                                                                                                                             |
+| Governance      | `CANONICAL_FACTS.md`, `NATURAL_LANGUAGE_COPY.md`, `BRAND.md`, `GAP_AUDIT_STATUS.md`, `MODULE_READINESS.md`, `MAINTAINABILITY.md`                                   |
+| Operations      | `TODO.md`, `DEVIN_PROMPTS.md`, `oa12-gcp-calendar-cleanup.md`, `visual-qa-2026-08-23.md`                                                                           |
+| Product scope   | `FOUR_RING_FRAMEWORK.md`, `LEGAL_REVIEW_INVENTORY.md`, `EMPTY_WORKSPACE_ONBOARDING.md`                                                                             |
+| AI strategy     | `AI_USAGE_STRATEGY.md`, `AGENT_LAYER.md`, `LOCAL_INFERENCE.md`, `FS_ACCESS_MODELS.md`                                                                              |
 | Scoring         | `SCORING_LOGIC.md`                                                                                                                                                 |
 | Auth            | `AUTH_MAGIC_LINK.md`, `AUTH_EMAIL_TEMPLATES.md`                                                                                                                    |
-| Data            | `DATA_MODEL.md`, `DATABASE_SCHEMA.md`                                                                                                                              |
-| Billing         | `BILLING_BETA_AUDIT.md`                                                                                                                                            |
+| Data            | `DATA_MODEL.md`, `DATABASE_SCHEMA.md`, `DATABASE_STRUCTURE.md`, `MIGRATION_LEDGER.md`, `ORGANIZATION_CAPACITY.md`                                                  |
+| Feature specs   | `CANDIDATE_JOB_AGENT.md`, `CRM_DIRECTORY_VIEWS.md`, `FINANCE_PORTFOLIO.md`, `FINANCE_DEALS.md`, `INVEST_PLATFORM.md`, `INTEGRATIONS.md`                            |
+| Billing         | `BILLING_BETA_AUDIT.md`, `STRIPE_GO_LIVE.md`                                                                                                                       |
 | Security        | `SECURITY_HEADERS.md`, `ERROR_REPORTING.md`, `EXPORT_PROTECTION.md`                                                                                                |
 | SEO             | `SEO_GEO_IMPLEMENTATION.md`, `SEO_ROUTE_MATRIX.md`, `SEO_AUTHORITY_PLAYBOOK.md`                                                                                    |
-| Law monitoring  | `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`                                                                                                                 |
+| Law monitoring  | `LAW_MONITORING.md`, `LAW_CHANGE_NOTIFICATIONS.md`, `notice-bands-decision.md`                                                                                     |
 | Support         | `SUPPORT_ARCHITECTURE.md`, `SUPPORT_RUNBOOK.md`, `SUPPORT_CALL_SCHEDULING.md`, `SUPPORT_ANALYTICS.md`                                                              |
-| Infrastructure  | `OFFLINE_PWA.md`, `DEV_ANNOTATIONS.md`                                                                                                                             |
+| Infrastructure  | `OFFLINE_PWA.md`, `DEV_ANNOTATIONS.md`, `LOCAL_ENDPOINTS.md`, `SELF_HOSTING.md`                                                                                    |
 | Corpus          | `advisor-guidance-corpus-2026-07-26.md`, `advisor-guidance-corpus-2026-07-27.md`, `advisor-guidance-corpus-2026-07-29.md`, `advisor-guidance-corpus-2026-08-04.md` |
 | Review packs    | `advisor-corpus-review-pack-ontario.md`, `advisor-corpus-verification-2026-08-02.md`, `notice-bands-review-pack.md`                                                |
-| Vendor          | `do-residency-confirmation-request.md`                                                                                                                             |
-| Design handoffs | `design-handoff-advisor-chat/`, `design-handoff-hr-documents-library/`, `design-handoff-analytics/`                                                                |
+| Vendor          | `do-residency-confirmation-request.md`, `do-residency-confirmation-response-2026-08-27.md`                                                                         |
+| Subdirectories  | `design-handoff-*/` (10), `ASSESSMENT/`, `chat-widgets/`, `consumer/`, `wiki/` (mirror)                                                                            |
 
 Sources: [docs/README.md:1-108]()
 
