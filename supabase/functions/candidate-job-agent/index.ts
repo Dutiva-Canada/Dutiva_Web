@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 import {
   SYSTEM_PROMPTS,
@@ -63,7 +65,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -121,7 +123,7 @@ async function authenticateCandidate(
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
 
-  const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+  const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
   const { data: userData, error: userError } = await adminClient.auth.getUser(token)
   if (userError || !userData?.user) return json({ error: 'Invalid user token' }, 401)
 
@@ -478,7 +480,7 @@ const handler = async (req: Request) => {
   /* scan-all — the cron path. Trigger-secret or service-key auth only. */
   if (action === 'scan-all') {
     if (!isAuthorizedTrigger(req)) return json({ error: 'Unauthorized' }, 401)
-    const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+    const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
     const { data: settingsRows, error } = await adminClient
       .from('candidate_agent_settings')
       .select('*')

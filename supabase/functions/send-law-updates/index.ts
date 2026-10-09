@@ -130,6 +130,7 @@ const handler = async (req: Request) => {
     relevant.map((r): LawUpdateRow & DigestCandidateRow => ({
       ...r,
       reviewStatus: r.review_status,
+      detectedAt: r.detected_at,
     })),
     alreadySentIds,
     GO_LIVE_AT,

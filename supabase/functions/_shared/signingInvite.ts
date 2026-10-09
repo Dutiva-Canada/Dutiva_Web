@@ -109,9 +109,9 @@ export async function sendInviteToRecipient(
   admin: {
     from: (table: string) => {
       update: (patch: Record<string, unknown>) => {
-        eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>
+        eq: (col: string, val: string) => PromiseLike<{ error: { message: string } | null }>
       }
-      insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>
+      insert: (row: Record<string, unknown>) => PromiseLike<{ error: { message: string } | null }>
     }
   },
   opts: {

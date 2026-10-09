@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import {
   coingeckoId,
@@ -49,7 +51,7 @@ function json(body: unknown, status = 200) {
   })
 }
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -91,7 +93,7 @@ async function authenticateInvestUser(
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
 
-  const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+  const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
   const { data: userData, error: userError } = await adminClient.auth.getUser(token)
   if (userError || !userData?.user) return json({ error: 'Invalid user token' }, 401)
 
@@ -318,7 +320,7 @@ const NEWS_MAX_ITEMS_STORED = 40
  */
 async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): Promise<number> {
   const queries = newsQueries(targets)
-  const rows: Record<string, unknown>[] = []
+  const rows: Database['public']['Tables']['invest_market_news']['Insert'][] = []
   const seenUrls = new Set<string>()
   for (const q of queries) {
     const xml = await fetchText(googleNewsUrl(q.query))
@@ -364,7 +366,7 @@ const handler = async (req: Request) => {
       const authed = await authenticateInvestUser(req, config, { requireAdmin: true })
       if (authed instanceof Response) return authed
     }
-    const adminClient = createClient(config.supabaseUrl, config.serviceRoleKey)
+    const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
     /* Users who have anything invested/tracked/watched — cheaper than
        sweeping all. */
     const [snapsUsers, positionsUsers, watchUsers, stratUsers] = await Promise.all([

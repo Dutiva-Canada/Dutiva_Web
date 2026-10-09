@@ -36,7 +36,7 @@ function timingSafeEqual(a: string, b: string): boolean {
   for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
   return diff === 0
 }
-function base64ToBytes(b64: string): Uint8Array {
+function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
   const binary = atob(b64)
   const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i)
@@ -60,7 +60,7 @@ async function verifySvix(
   if (Math.abs(Math.floor(Date.now() / 1000) - ts) > TOLERANCE_SECONDS) return false
 
   const raw = secret.startsWith('whsec_') ? secret.slice(6) : secret
-  let keyBytes: Uint8Array
+  let keyBytes: Uint8Array<ArrayBuffer>
   try {
     keyBytes = base64ToBytes(raw)
   } catch {

@@ -1,5 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
+import type { Database } from '../_shared/database.types.ts'
 import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
@@ -35,7 +37,7 @@ function json(body: unknown, status = 200, extraHeaders: Record<string, string> 
   })
 }
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = SbClient<Database>
 
 interface ServerConfig {
   supabaseUrl: string
@@ -83,7 +85,7 @@ async function authenticateRequest(
   const authCheck = validateAuthHeader(req.headers.get('Authorization'))
   if (!authCheck.ok) return json({ error: authCheck.error }, 401)
 
-  const userClient = createClient(config.supabaseUrl, config.anonKey, {
+  const userClient = createClient<Database>(config.supabaseUrl, config.anonKey, {
     global: { headers: { Authorization: `Bearer ${authCheck.value}` } },
   })
   const { data: userData, error: userError } = await userClient.auth.getUser(authCheck.value)
@@ -92,7 +94,7 @@ async function authenticateRequest(
 
   return {
     user: { id: user.id, email: user.email ?? null },
-    adminClient: createClient(config.supabaseUrl, config.serviceRoleKey),
+    adminClient: createClient<Database>(config.supabaseUrl, config.serviceRoleKey),
   }
 }
 
@@ -116,7 +118,12 @@ async function activeModelRoute(adminClient: SupabaseClient): Promise<ActiveMode
     if (routeError) return json({ error: routeError.message }, 500)
     const provider = route?.provider as ModelProvider | null | undefined
     if (route && provider && provider.status === 'active') {
-      return { route, provider }
+      /* `config` is Json in the generated row type — narrow it to the shape
+         the completion layer actually reads. */
+      return {
+        route: { model_name: route.model_name, config: route.config as ModelRoute['config'] },
+        provider,
+      }
     }
   }
   return json({ error: 'No active model route configured for candidate_ai' }, 503)
