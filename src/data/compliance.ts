@@ -27,7 +27,7 @@ export const complianceItems: ComplianceItem[] = [
     ),
     detail: bi(
       'No termination clause on file limits notice. Preliminary risk estimate: 9–12 months of pay in lieu of notice under common law, against the 8-week ESA termination notice/pay minimum. Statutory severance may also apply if eligibility requirements are met. Legal review recommended before finalizing.',
-      'Aucune clause de licenciement au dossier. L’exposition en common law est estimée à 9-12 mois d’indemnité en tenant lieu de préavis, bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Un examen juridique est recommandé avant de finaliser.',
+      'Aucune clause de licenciement au dossier. L’exposition en common law est estimée à 9–12 mois d’indemnité en tenant lieu de préavis, bien au-dessus du minimum LNE de 8 semaines de préavis ou d’indemnité de licenciement. Une indemnité de cessation d’emploi peut aussi s’appliquer si les conditions d’admissibilité sont remplies. Un examen juridique est recommandé avant de finaliser.',
     ),
     province: bi('Ontario', 'Ontario'),
     chatId: 'c1',
