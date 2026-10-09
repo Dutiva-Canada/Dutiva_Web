@@ -1,0 +1,207 @@
+/* Split from strategies.css — see that file for the import manifest. */
+
+.sb {
+  --sb-bg: #faf6ec;
+  --sb-card: #f3eddd;
+  --sb-card-deep: #eadfc3;
+  --sb-ink: #1e3a5f;
+  --sb-ink-soft: #43608c;
+  --sb-body: #2e3b52;
+  --sb-muted: #847a60;
+  --sb-line: #e2d6b8;
+  --sb-input: #fffdf6;
+  --sb-accent: #b8891f;
+  --sb-accent-ink: #8a680f;
+  --sb-accent-soft: #f0e4c4;
+  --sb-primary: #1e3a5f;
+  --sb-primary-text: #fbf7ec;
+  --sb-danger: #b3452e;
+  --sb-ok: #2e7d4f;
+  --sb-ok-soft: #dceedf;
+  --sb-chip-notify: #e8e0cb;
+  --sb-shadow: 0 1px 2px rgba(30, 58, 95, 0.06), 0 4px 14px rgba(30, 58, 95, 0.06);
+  --sb-radius: 16px;
+
+  color: var(--sb-body);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+[data-theme='dark'] .sb {
+  --sb-bg: #121826;
+  --sb-card: #1c2438;
+  --sb-card-deep: #242e46;
+  --sb-ink: #f0e9d6;
+  --sb-ink-soft: #c9d2e6;
+  --sb-body: #d9deea;
+  --sb-muted: #8e97b0;
+  --sb-line: #2b3650;
+  --sb-input: #0e1421;
+  --sb-accent: #d9ac45;
+  --sb-accent-ink: #e4c06a;
+  --sb-accent-soft: #3a3020;
+  --sb-primary: #d9ac45;
+  --sb-primary-text: #20242e;
+  --sb-danger: #e07b62;
+  --sb-ok: #6fc79a;
+  --sb-ok-soft: #1e3329;
+  --sb-chip-notify: #2a3350;
+  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.sb [hidden] {
+  display: none !important;
+}
+
+.sb h1,
+.sb h2,
+.sb h3 {
+  font-family: var(--font-serif);
+  color: var(--sb-ink);
+  font-weight: 600;
+  letter-spacing: 0.002em;
+}
+.sb h1 {
+  font-size: 30px;
+  margin: 20px 0 4px;
+  line-height: 1.15;
+}
+.sb h2 {
+  font-size: 21px;
+  margin: 4px 0 10px;
+}
+.sb p {
+  margin: 8px 0;
+}
+.sb button {
+  font: inherit;
+  color: inherit;
+}
+.sb .sub {
+  color: var(--sb-muted);
+  font-size: 14.5px;
+}
+.sb .small {
+  font-size: 13.5px;
+}
+
+/* Column geometry — the prototype's .col widths at each breakpoint. */
+.sb-col {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---------- buttons ---------- */
+/* `.sb button { color: inherit }` (0,1,1) outranks a bare class — every
+   button-variant selector below is scoped under .sb to reach (0,2,*). */
+.sb .sb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 1.25;
+}
+.sb .sb-btn-primary {
+  background: var(--sb-primary);
+  color: var(--sb-primary-text);
+}
+.sb .sb-btn-secondary {
+  background: transparent;
+  border-color: var(--sb-ink);
+  color: var(--sb-ink);
+}
+.sb .sb-btn-danger {
+  background: transparent;
+  border-color: var(--sb-danger);
+  color: var(--sb-danger);
+}
+.sb .sb-btn-danger.sb-armed {
+  background: var(--sb-danger);
+  color: #fff;
+  border-color: var(--sb-danger);
+}
+.sb .sb-btn[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+.sb .sb-btn-block {
+  width: 100%;
+}
+
+/* ---------- list view ---------- */
+.sb-list-actions {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0 4px;
+}
+.sb-list-actions .sb-btn {
+  flex: 1;
+}
+.sb-caption {
+  color: var(--sb-muted);
+  font-size: 14.5px;
+  margin: 8px 0 18px;
+  text-align: center;
+}
+.sb-strat-grid {
+  display: block;
+}
+.sb-strat-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--sb-card);
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-radius);
+  box-shadow: var(--sb-shadow);
+  padding: 16px;
+  margin: 0 0 12px;
+  cursor: pointer;
+}
+.sb-strat-card .sb-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sb-strat-card .sb-name {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--sb-ink);
+  flex: 1;
+}
+.sb-strat-card .sb-meta {
+  color: var(--sb-muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+.sb-pill {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+.sb-pill-draft {
+  background: var(--sb-card-deep);
+  color: var(--sb-muted);
+  border: 1px solid var(--sb-line);
+}
+.sb-pill-enabled {
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+  border: 1px dashed var(--sb-accent);
+}

@@ -153,6 +153,14 @@ these routes — never view-state flags.
   spread — coordinate, don't duplicate keys).
 - Entity/sample data carries bilingual fields typed as `Bi` (`{ en, fr }`) from
   `src/i18n/core.ts` — built with `bi('English', 'Français')`.
+- **Which convention for what:** `defineMessages` catalogue keys are for UI
+  chrome (labels, toasts, chrome copy). `Bi`/`bi()` fields are for entity and
+  fixture data (`src/data/**`, corpus items). Long-form structured content —
+  legal policy editions, document templates — ships as `*.en.ts` / `*.fr.ts`
+  twin modules exporting a shared typed shape (`PolicyEdition`,
+  `TemplateContent`, …), so a whole document's language is one import choice,
+  not hundreds of keys. Never mix a `defineMessages` key into a twin file or
+  inline a `bi()` paragraph that belongs in a twin module.
 - Components consume via `const { t, L, x, lang } = useI18n()`:
   `t('home_title')` for catalogue keys, `x(employee.role)` for data fields,
   `L('inline EN', 'FR inline')` sparingly for one-offs.
