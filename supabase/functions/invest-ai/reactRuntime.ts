@@ -58,6 +58,7 @@ export async function runReact(
   event: InvestReactEvent,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const routed = await modelRoute(adminClient)
   if ('error' in routed) return routed.error
@@ -71,7 +72,7 @@ export async function runReact(
       apiKey,
       {
         model: route.model_name,
-        messages: [{ role: 'user', content: investReactPrompt(event, book.ctx, lang) }],
+        messages: [{ role: 'user', content: investReactPrompt(event, book.ctx, lang, { advice }) }],
         temperature: 0.5,
         max_tokens: 160,
         stream,

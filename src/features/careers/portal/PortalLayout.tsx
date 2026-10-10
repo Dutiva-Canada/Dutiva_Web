@@ -107,6 +107,13 @@ export function PortalLayout() {
                 {x(M.careers_portal_nav_ai_tools)}
               </NavLink>
               <NavLink
+                to="/careers/portal/chat"
+                className={navLinkClass}
+                {...viewIntentProps('careers.chat')}
+              >
+                {x(M.careers_portal_nav_chat)}
+              </NavLink>
+              <NavLink
                 to={paths.board}
                 className={navLinkClass}
                 {...viewIntentProps('careers.board')}
@@ -202,6 +209,14 @@ export function PortalLayout() {
                 {...viewIntentProps('careers.ai-tools')}
               >
                 {x(M.careers_portal_nav_ai_tools)}
+              </NavLink>
+              <NavLink
+                to="/careers/portal/chat"
+                className={navLinkClass}
+                onClick={() => setMobileMenuOpen(false)}
+                {...viewIntentProps('careers.chat')}
+              >
+                {x(M.careers_portal_nav_chat)}
               </NavLink>
               <NavLink
                 to={paths.board}

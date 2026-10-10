@@ -21,6 +21,7 @@ import {
   userMessageContent,
 } from '../_shared/modelUpstream.ts'
 import type { UpstreamMessage } from '../_shared/modelUpstream.ts'
+import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { withCors } from '../_shared/cors.ts'
 import type { ChatMessage } from './chatTypes.ts'
 import { guidanceBlock, retrieveGuidance } from './guidance.ts'
@@ -182,6 +183,11 @@ const handler = async (req: Request) => {
     memoryBlock(memoryFacts) +
     extractionAppendix
 
+  /* Internal-staff tier — a verified @dutiva.ca sign-in loosens the model
+     register to direct advice; everyone else keeps the standing "not a
+     lawyer" boundary. Prompt posture only — metering, grounding and the
+     action whitelist are identical either way. */
+  const advice = isInternalDutivaAccount(authenticated.user.email)
   const completionResult = await requestCompletion(
     authenticated.adminClient,
     decision.claimId,
@@ -191,6 +197,7 @@ const handler = async (req: Request) => {
     history,
     upstreamUserMessage,
     guidance,
+    advice,
   )
   if (completionResult instanceof Response) return completionResult
 

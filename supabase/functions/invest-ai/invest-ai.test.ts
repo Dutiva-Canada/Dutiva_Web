@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseDraft, sanitizeGoal, validateAiAction } from './handlers'
+import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import {
   INVEST_CHAT_ACTION_TYPES,
   investChatPrompt,
@@ -382,5 +382,54 @@ describe('Tally persona contract', () => {
     const p = investReactPrompt({ type: 'account_added', name: 'TFSA' }, EMPTY_CTX, 'en')
     expect(p).toContain('Tally')
     expect(p).toContain('nothing here is investment advice')
+  })
+})
+
+/* Internal-staff tier — a verified @dutiva.ca sign-in swaps the no-advice
+   boundary for a direct-advice register (index.ts decides from the auth
+   email). The write grammar and the queued-draft honesty stay identical. */
+describe('internal advice tier (@dutiva.ca)', () => {
+  it('chat prompt swaps the hard line for the internal register', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content
+    expect(p).toContain('INTERNAL STAFF ACCOUNT (@dutiva.ca)')
+    expect(p).toContain('advice is in scope')
+    expect(p).not.toContain('HARD LINE')
+    /* The guardrails that survive either register. */
+    expect(p).toContain('QUEUED draft')
+    expect(p).toContain('never promise returns')
+    expect(p).toContain('licensed adviser')
+    expect(p).toContain('software, not a person')
+  })
+
+  it('chat prompt defaults to the generic register', () => {
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).toContain('HARD LINE')
+    expect(investChatPrompt(EMPTY_CTX, 'en', { advice: false }).content).toContain('HARD LINE')
+    /* The action grammar is the same either way. */
+    for (const t of INVEST_CHAT_ACTION_TYPES) {
+      expect(investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('react prompt permits a plain read for staff and keeps the draft honesty', () => {
+    const p = investReactPrompt(
+      { type: 'order_queued', symbol: 'xeqt', side: 'buy', quantity: 5 },
+      EMPTY_CTX,
+      'en',
+      { advice: true },
+    )
+    expect(p).toContain('INTERNAL STAFF ACCOUNT (@dutiva.ca)')
+    expect(p).not.toContain('HARD LINE')
+    expect(p).toContain('needs their review in Orders')
+    expect(p).toContain('no price predictions')
+  })
+
+  it('draft-strategy keeps the shared contract but drops the not-an-adviser tail', () => {
+    const external = draftSystemPrompt(false)
+    const internal = draftSystemPrompt(true)
+    expect(external).toContain('not an adviser')
+    expect(internal).not.toContain('not an adviser')
+    expect(internal).toContain('@dutiva.ca')
+    expect(internal).toContain('order_proposal')
+    expect(internal).toContain('never promise returns')
   })
 })

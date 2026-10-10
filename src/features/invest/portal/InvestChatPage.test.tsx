@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { LangContext } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
+import { AuthContext } from '@/features/app/auth/authContext'
+import type { AuthContextValue } from '@/features/app/auth/authContext'
 import { InvestDataContext } from '@/features/invest/data/InvestDataContext'
 import { EMPTY_INVEST_STATE } from '@/features/invest/data/InvestDataContext'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
@@ -38,19 +40,31 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function renderPage(lang: Lang = 'en') {
+function renderPage(lang: Lang = 'en', auth: Partial<AuthContextValue> = {}) {
   const refresh = vi.fn().mockResolvedValue(undefined)
+  const authValue: AuthContextValue = {
+    status: 'signed-in',
+    session: { user: { id: 'u1', email: 'client@acme.ca' } } as AuthContextValue['session'],
+    authorized: true,
+    signInWithEmail: vi.fn(async () => undefined),
+    verifyEmailCode: vi.fn(async () => undefined),
+    signOut: vi.fn(async () => {}),
+    refreshAuthorization: vi.fn(async () => {}),
+    ...auth,
+  }
   render(
     <LangContext value={langValue(lang)}>
-      <InvestDataContext
-        value={{ state: EMPTY_INVEST_STATE, loading: false, refresh }}
-      >
-        <ToastsProvider>
-          <MemoryRouter initialEntries={['/invest/chat']}>
-            <InvestChatPage />
-          </MemoryRouter>
-        </ToastsProvider>
-      </InvestDataContext>
+      <AuthContext.Provider value={authValue}>
+        <InvestDataContext
+          value={{ state: EMPTY_INVEST_STATE, loading: false, refresh }}
+        >
+          <ToastsProvider>
+            <MemoryRouter initialEntries={['/invest/chat']}>
+              <InvestChatPage />
+            </MemoryRouter>
+          </ToastsProvider>
+        </InvestDataContext>
+      </AuthContext.Provider>
     </LangContext>,
   )
   return { refresh }
@@ -68,6 +82,44 @@ describe('InvestChatPage', () => {
     renderPage()
     expect(await screen.findByText(/Hi — I’m Tally/)).toBeInTheDocument()
     expect(screen.getByText(/What should the book record today\?/)).toBeInTheDocument()
+  })
+
+  it('shows the generic subtitle to external accounts and the internal one to @dutiva.ca', async () => {
+    vi.mocked(loadInvestChatHistory).mockResolvedValue([])
+    const { unmount } = render(
+      <LangContext value={langValue('en')}>
+        <AuthContext.Provider
+          value={{
+            status: 'signed-in',
+            session: { user: { id: 'u1', email: 'client@acme.ca' } } as AuthContextValue['session'],
+            authorized: true,
+            signInWithEmail: vi.fn(async () => undefined),
+            verifyEmailCode: vi.fn(async () => undefined),
+            signOut: vi.fn(async () => {}),
+            refreshAuthorization: vi.fn(async () => {}),
+          }}
+        >
+          <InvestDataContext
+            value={{ state: EMPTY_INVEST_STATE, loading: false, refresh: vi.fn() }}
+          >
+            <ToastsProvider>
+              <MemoryRouter initialEntries={['/invest/chat']}>
+                <InvestChatPage />
+              </MemoryRouter>
+            </ToastsProvider>
+          </InvestDataContext>
+        </AuthContext.Provider>
+      </LangContext>,
+    )
+    expect(await screen.findByText(/never investment advice/)).toBeInTheDocument()
+    expect(screen.queryByText(/Internal staff account/)).not.toBeInTheDocument()
+    unmount()
+
+    renderPage('en', {
+      session: { user: { id: 'u9', email: 'martin@dutiva.ca' } } as AuthContextValue['session'],
+    })
+    expect(await screen.findByText(/Internal staff account: she also advises/)).toBeInTheDocument()
+    expect(screen.queryByText(/never investment advice/)).not.toBeInTheDocument()
   })
 
   it('sends a message, renders the reply, and confirms the executed action', async () => {

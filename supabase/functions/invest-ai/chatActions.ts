@@ -3,10 +3,10 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   buildDraftPrompt,
+  draftSystemPrompt,
   parseDraft,
   resolveInvestRef,
   sanitizeGoal,
-  SYSTEM_PROMPT,
   type InvestChatAction,
 } from './handlers.ts'
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
@@ -41,6 +41,8 @@ export interface ChatActionDeps {
   provider: Provider
   apiKey: string | null
   lang: 'en' | 'fr'
+  /** Internal-staff tier — the drafter may aim at the goal's advice. */
+  advice: boolean
 }
 
 /** Execute a whitelisted action on the caller's own rows. An order lands
@@ -227,7 +229,7 @@ export async function executeChatAction(
           {
             model: deps.route.model_name,
             messages: [
-              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'system', content: draftSystemPrompt(deps.advice) },
               { role: 'user', content: buildDraftPrompt(goal, deps.lang) },
             ],
             max_tokens: deps.route.config?.max_tokens ?? 900,

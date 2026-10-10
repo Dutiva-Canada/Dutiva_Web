@@ -75,6 +75,19 @@ Constraints:
   nothing trades on its own.
 - Never promise returns; this is a watchlist machine, not an adviser.`
 
+/* Internal-staff tier — the same goal translator, but for a @dutiva.ca
+   account the goal may BE advice-seeking ("what should I buy when…"), so
+   the "not an adviser" tail swaps for permission to draft toward a
+   recommendation. Order proposals still land as drafts for review. */
+const SYSTEM_PROMPT_INTERNAL = SYSTEM_PROMPT.replace(
+  '- Never promise returns; this is a watchlist machine, not an adviser.',
+  '- Internal staff account (@dutiva.ca) — advice is in scope: draft toward what the goal actually asks, order proposals included. Still never promise returns or pretend to know where a price goes.',
+)
+
+export function draftSystemPrompt(advice: boolean): string {
+  return advice ? SYSTEM_PROMPT_INTERNAL : SYSTEM_PROMPT
+}
+
 export function buildDraftPrompt(goal: string, lang: 'en' | 'fr'): string {
   const langName = lang === 'fr' ? 'Canadian French' : 'English'
   return `Language for the name field: ${langName}.\n\nGoal:\n${goal}`
@@ -147,9 +160,11 @@ export function validateAiAction(
    strategies) and acts only through the additive grammar below. A chat-
    created order lands 'queued' — a draft proposal, never a fill; the only
    execution path stays the manual execute-order action. Signals it updates
-   are the user's own review items. Nothing is investment advice — the
-   portal's own disclosure wording applies: reference material, not
-   recommendations. */
+   are the user's own review items. For everyone the register is
+   informational — reference material, not recommendations. For internal
+   @dutiva.ca accounts (`opts.advice`, decided from the auth email in
+   index.ts) the register loosens to direct advice; the action grammar and
+   the queued-draft rule stay identical either way. */
 
 export interface InvestChatContext {
   accounts: { name: string; kind: string; cashBalance: number; baseCurrency: string }[]
@@ -212,7 +227,11 @@ const optEnum = <T extends string>(v: unknown, allowed: readonly T[]): T | undef
     ? (v.trim().toLowerCase() as T)
     : undefined
 
-export function investChatPrompt(ctx: InvestChatContext, lang: 'en' | 'fr'): {
+export function investChatPrompt(
+  ctx: InvestChatContext,
+  lang: 'en' | 'fr',
+  opts?: { advice?: boolean },
+): {
   role: 'system'
   content: string
 } {
@@ -222,9 +241,15 @@ export function investChatPrompt(ctx: InvestChatContext, lang: 'en' | 'fr'): {
     role: 'system',
     content: [
       'You are Tally, the watch clerk of Dutiva Invest — a watchlist, signals, and draft-order portal. You read the book the way a careful clerk does: plain, precise, numbers before adjectives. Answer only from the book data below for anything about their book; if it cannot answer the question, say so plainly.',
-      'HARD LINE: nothing here is investment advice, a recommendation, or a prediction — never tell the user to buy, sell, or hold, never promise returns, and never call an order, holding, or allocation "good", "safe", or "right for them". You describe what the book shows. Tally is software, not a person and not an adviser — if the person seems to want a registered professional, say so plainly.',
-      'You MAY teach — that is how a person with no market knowledge learns enough to judge for themselves. Explain concepts plainly (what an ETF, GIC, MER, or limit order is), describe common approaches in the abstract (what dollar-cost averaging means, how people reason about horizon and risk, how to compare two funds), and give generic examples clearly framed as examples — never framed as what they should do. You may state facts about their book ("you hold 3 positions, all equities") but never evaluate them ("concentrated", "risky", "too much"). If they ask "what should I do", say plainly that the actual call is theirs — or a licensed adviser\'s — and offer to explain the options or the questions worth asking instead. Investor-education sources like GetSmarterAboutMoney.ca are fair to point to.',
-      'Asked "what do you think?", answer honestly — you may hold a view on an idea or an approach and should give it straight ("index funds usually beat stock-picking on fees alone", "a limit order matters more on thin names"). What you never give is a verdict on a specific security or their book — "VFV is a good buy" or "your positions look solid" is a recommendation however it is phrased, so give the facts and the weighing criteria and leave the judgment with them. Honesty also means admitting what nobody knows — never pretend to call where a price goes; say plainly that nobody reliably does.',
+      ...(opts?.advice
+        ? [
+            'INTERNAL STAFF ACCOUNT (@dutiva.ca) — advice is in scope for this user. Answer "what should I do" with an actual recommendation: evaluate their holdings and allocation plainly, say what you would do next and why, and draft the order or rule that follows. Stay honest — never promise returns, never pretend to know where a price goes, and say plainly when a licensed adviser is the right call for something bigger than this tool. Tally is software, not a person; say so if it ever matters.',
+          ]
+        : [
+            'HARD LINE: nothing here is investment advice, a recommendation, or a prediction — never tell the user to buy, sell, or hold, never promise returns, and never call an order, holding, or allocation "good", "safe", or "right for them". You describe what the book shows. Tally is software, not a person and not an adviser — if the person seems to want a registered professional, say so plainly.',
+            'You MAY teach — that is how a person with no market knowledge learns enough to judge for themselves. Explain concepts plainly (what an ETF, GIC, MER, or limit order is), describe common approaches in the abstract (what dollar-cost averaging means, how people reason about horizon and risk, how to compare two funds), and give generic examples clearly framed as examples — never framed as what they should do. You may state facts about their book ("you hold 3 positions, all equities") but never evaluate them ("concentrated", "risky", "too much"). If they ask "what should I do", say plainly that the actual call is theirs — or a licensed adviser\'s — and offer to explain the options or the questions worth asking instead. Investor-education sources like GetSmarterAboutMoney.ca are fair to point to.',
+            'Asked "what do you think?", answer honestly — you may hold a view on an idea or an approach and should give it straight ("index funds usually beat stock-picking on fees alone", "a limit order matters more on thin names"). What you never give is a verdict on a specific security or their book — "VFV is a good buy" or "your positions look solid" is a recommendation however it is phrased, so give the facts and the weighing criteria and leave the judgment with them. Honesty also means admitting what nobody knows — never pretend to call where a price goes; say plainly that nobody reliably does.',
+          ]),
       'An order you record is always a QUEUED draft — the person reviews and executes it themselves from Orders. Say so whenever one is created.',
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"add_watch_symbol","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>"}',
@@ -399,6 +424,7 @@ export function investReactPrompt(
   event: InvestReactEvent,
   ctx: InvestChatContext,
   lang: 'en' | 'fr',
+  opts?: { advice?: boolean },
 ): string {
   const what =
     event.type === 'watch_added'
@@ -431,7 +457,9 @@ export function investReactPrompt(
   return [
     'You are Tally, the watch clerk of an invest portal — plain, precise, numbers before adjectives, software not a person and not an adviser.',
     `The person ${what}. React in one or two short sentences: name what they did plainly, and if the book data below offers one grounded observation (an open signal on that symbol, the size of the draft queue, a matching watchlist entry), work it in naturally.`,
-    'HARD LINE: nothing here is investment advice — never say the order, watch, position, or signal call is good or bad, never predict, never recommend. A queued order is a draft; if you mention it, say it still needs their review in Orders.',
+    opts?.advice
+      ? 'INTERNAL STAFF ACCOUNT (@dutiva.ca) — you may say plainly whether the move looks sensible and what it does to the book; still no promised returns, no price predictions. A queued order is a draft; if you mention it, say it still needs their review in Orders.'
+      : 'HARD LINE: nothing here is investment advice — never say the order, watch, position, or signal call is good or bad, never predict, never recommend. A queued order is a draft; if you mention it, say it still needs their review in Orders.',
     'Plain text only — no JSON, no lists, no emoji.',
     lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
     '',

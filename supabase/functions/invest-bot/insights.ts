@@ -81,6 +81,18 @@ Output ONLY a JSON array, each element:
 {"title_en","title_fr","body_en","body_fr"} — English and Canadian French,
 same hedge strength. Max 2 items, empty array when nothing is noteworthy.`
 
+/* Internal-staff tier — a @dutiva.ca book may be advised on, not just
+   described. Same output contract and the same cap; only the verb rule
+   changes. */
+const SYSTEM_PROMPT_INTERNAL = SYSTEM_PROMPT.replace(
+  'No advice verbs — never tell the\nreader to buy, sell, or hold; describe what happened and what the rules say.',
+  'Internal staff account (@dutiva.ca) — advice is in scope: name what a careful reviewer would do next, plainly, with the numbers. Still no promised returns, no price predictions.',
+)
+
+export function insightSystemPrompt(advice: boolean): string {
+  return advice ? SYSTEM_PROMPT_INTERNAL : SYSTEM_PROMPT
+}
+
 /** Extract the insights array from model output — tolerant of code fences. */
 export function parseInsights(raw: string): BookInsight[] {
   const text = raw
@@ -125,6 +137,7 @@ export function parseInsights(raw: string): BookInsight[] {
 export async function maybeEmitInsights(
   adminClient: any,
   ctx: InsightContext,
+  opts?: { advice?: boolean },
 ): Promise<BookInsight[]> {
   try {
     if (ctx.positions.length === 0 && ctx.cashTotal <= 0) return []
@@ -159,7 +172,7 @@ export async function maybeEmitInsights(
       {
         model: route.model_name,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: insightSystemPrompt(opts?.advice === true) },
           { role: 'user', content: buildInsightPrompt(ctx) },
         ],
         max_tokens: 600,

@@ -215,6 +215,7 @@ export async function runChat(
   today: string,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const route = await modelRoute(admin)
   if ('error' in route) return route.error
@@ -247,7 +248,7 @@ export async function runChat(
       {
         model: found.modelName,
         messages: [
-          chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang),
+          chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang, advice),
           ...history,
           { role: 'user', content: message },
         ],
@@ -588,6 +589,7 @@ export async function runReact(
   today: string,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const ctx = await loadCompanionContext(admin, userId, today)
   if ('error' in ctx) return ctx.error
@@ -600,7 +602,7 @@ export async function runReact(
   return await reactToModel(
     admin,
     userId,
-    reactPrompt(event, streak, ctx.signals, today, lang),
+    reactPrompt(event, streak, ctx.signals, today, lang, advice),
     160,
     stream,
   )
@@ -613,6 +615,7 @@ export async function runEntryReact(
   today: string,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   /* Explicit per-entry consent — only the entry the person shared is read,
      and only because they pressed the button. The button press IS the
@@ -639,7 +642,7 @@ export async function runEntryReact(
   return await reactToModel(
     admin,
     userId,
-    entryReactPrompt(e.title ?? '', e.body ?? '', ctx.signals, today, lang),
+    entryReactPrompt(e.title ?? '', e.body ?? '', ctx.signals, today, lang, advice),
     300,
     stream,
   )

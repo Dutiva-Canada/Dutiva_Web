@@ -642,6 +642,20 @@ describe('insights helpers', () => {
     expect(prompt).toContain('BETA 12.0%')
   })
 
+  it('insightSystemPrompt tiers the verb rule on the internal flag', async () => {
+    const { insightSystemPrompt } = await import('./insights')
+    const external = insightSystemPrompt(false)
+    const internal = insightSystemPrompt(true)
+    expect(external).toContain('No advice verbs')
+    expect(internal).not.toContain('No advice verbs')
+    expect(internal).toContain('@dutiva.ca')
+    /* The output contract is identical either way. */
+    for (const p of [external, internal]) {
+      expect(p).toContain('"title_en","title_fr","body_en","body_fr"')
+      expect(p).toContain('Max 2 items')
+    }
+  })
+
   it('parseInsights validates shape, caps at two, drops empties', async () => {
     const { parseInsights } = await import('./insights')
     const raw = JSON.stringify([

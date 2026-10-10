@@ -591,6 +591,13 @@ const investCoreMessages = defineMessages({
     en: 'The book’s watch clerk — ask about your positions or tell her what to record. She’s software, not a person or an advisor; never investment advice.',
     fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. C’est un logiciel, pas une personne ni une conseillère ; jamais de conseil en placement.',
   },
+  /* Internal-staff tier — shown instead of invest_chat_sub when the signed-in
+     account is @dutiva.ca: the server lets Tally advise on this book directly,
+     so "never investment advice" would be untrue. [FR self-authored] */
+  invest_chat_sub_internal: {
+    en: 'The book’s watch clerk — ask about your positions or tell her what to record. Internal staff account: she also advises on this book directly.',
+    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. Compte interne : elle vous conseille aussi directement sur ce portefeuille.',
+  },
   /* Her opening turn on an empty conversation — a hello, at most one thing
      she noticed from the book, and a question. Built client-side from
      InvestState so it costs no call and stays bilingual. [FR self-authored] */
