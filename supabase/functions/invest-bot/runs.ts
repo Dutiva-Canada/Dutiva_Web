@@ -9,6 +9,7 @@ import {
   type Position,
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
+import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
 import type { Database } from '../_shared/database.types.ts'
@@ -22,7 +23,7 @@ import { loadStrategies } from './strategies.ts'
 export async function runUser(
   adminClient: SupabaseClient,
   userId: string,
-  opts: { force?: boolean } = {},
+  opts: { force?: boolean; email?: string | null } = {},
 ): Promise<Record<string, unknown>> {
   const startedAt = Date.now()
 
@@ -204,14 +205,22 @@ export async function runUser(
   }
 
   /* AI insight pass — bilingual plain-language observations on the run.
-     Never fatal: a model outage must not lose the deterministic signals. */
+     Never fatal: a model outage must not lose the deterministic signals.
+     The advice tier keys off the sign-in email (the JWT path passes it in
+     opts; run-all resolves it here) — only looked up when the insight pass
+     can actually produce something. */
+  let authEmail = opts.email ?? null
+  if (authEmail === null && (positions.length > 0 || cashTotal > 0)) {
+    const { data: userData } = await adminClient.auth.admin.getUserById(userId)
+    authEmail = userData?.user?.email ?? null
+  }
   const insights = await maybeEmitInsights(adminClient, {
     snapshots,
     positions,
     cashTotal,
     signalsEmitted: plan.signals.length,
     ordersPlanned: plan.proposals.length,
-  })
+  }, { advice: isInternalDutivaAccount(authEmail) })
   for (const insight of insights) {
     await adminClient.from('invest_signals').insert({
       user_id: userId,

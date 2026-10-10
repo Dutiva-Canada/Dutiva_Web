@@ -1649,6 +1649,33 @@ export type Database = {
           },
         ]
       }
+      candidate_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          feedback: number | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          feedback?: number | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          feedback?: number | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       candidate_discovered_jobs: {
         Row: {
           apply_url: string | null

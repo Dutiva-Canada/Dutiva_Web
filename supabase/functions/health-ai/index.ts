@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { withCors } from '../_shared/cors.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
@@ -84,7 +85,7 @@ import {
 async function portalUserId(
   admin: SupabaseClient,
   req: Request,
-): Promise<{ userId: string } | { error: Response }> {
+): Promise<{ userId: string; email: string | null } | { error: Response }> {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return { error: json({ error: 'Missing bearer token' }, 401) }
@@ -97,7 +98,7 @@ async function portalUserId(
     .maybeSingle()
   if (accessError) return { error: json({ error: accessError.message }, 500) }
   if (!access) return { error: json({ error: 'Health access not granted', code: 'no_access' }, 403) }
-  return { userId: userData.user.id }
+  return { userId: userData.user.id, email: userData.user.email ?? null }
 }
 
 const handler = async (req: Request) => {
@@ -111,6 +112,10 @@ const handler = async (req: Request) => {
 
   const portal = await portalUserId(admin, req)
   if ('error' in portal) return portal.error
+  /* Internal-staff tier — a verified @dutiva.ca sign-in loosens the model
+     register from observations-only to direct everyday advice. Access,
+     consent and the write whitelist are identical either way. */
+  const advice = isInternalDutivaAccount(portal.email)
 
   let body: Record<string, unknown>
   try {
@@ -201,19 +206,19 @@ const handler = async (req: Request) => {
     if (message.length === 0 || message.length > 1200) {
       return json({ error: 'message must be 1–1200 characters' }, 400)
     }
-    return await runChat(admin, portal.userId, message, today, lang, stream)
+    return await runChat(admin, portal.userId, message, today, lang, stream, advice)
   }
   if (kind === 'react') {
     const event = parseReactEvent(body.event)
     if (!event) return json({ error: 'bad event' }, 400)
-    return await runReact(admin, portal.userId, event, today, lang, stream)
+    return await runReact(admin, portal.userId, event, today, lang, stream, advice)
   }
   if (kind === 'entry_react') {
     const entryId = typeof body.entryId === 'string' ? body.entryId : ''
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entryId)) {
       return json({ error: 'entryId must be a uuid' }, 400)
     }
-    return await runEntryReact(admin, portal.userId, entryId, today, lang, stream)
+    return await runEntryReact(admin, portal.userId, entryId, today, lang, stream, advice)
   }
 
   const route = await modelRoute(admin)
@@ -225,10 +230,10 @@ const handler = async (req: Request) => {
 
   const prompt =
     kind === 'reflect'
-      ? reflectPrompt(ctx.facts, ctx.signals, lang)
+      ? reflectPrompt(ctx.facts, ctx.signals, lang, advice)
       : kind === 'recap'
-        ? recapPrompt(ctx.facts, ctx.signals, lang)
-        : habitPrompt(ctx.facts, ctx.habitNames, ctx.signals, lang)
+        ? recapPrompt(ctx.facts, ctx.signals, lang, advice)
+        : habitPrompt(ctx.facts, ctx.habitNames, ctx.signals, lang, advice)
 
   let upstream: Response
   try {

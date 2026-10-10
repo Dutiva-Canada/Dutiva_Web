@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import {
   SYSTEM_PROMPTS,
+  buildChatContextBlock,
   buildUserMessage,
+  candidateChatPrompt,
+  parseCandidateChatReply,
   parseModelResponse,
   validateAuthHeader,
   validateFeature,
   validatePayload,
   type AiFeature,
+  type CandidateChatContext,
 } from './handlers'
 
 /* ---------------------------------------------------------------------------
@@ -272,5 +276,129 @@ describe('SYSTEM_PROMPTS', () => {
     expect(SYSTEM_PROMPTS['interview-prep']).toContain('JSON')
     expect(SYSTEM_PROMPTS['interview-prep']).toContain('questions')
     expect(SYSTEM_PROMPTS['interview-prep']).toContain('talkingPoints')
+  })
+})
+
+/* ---------------------------------------------------------------------------
+   Chat — Claire, the search coach (kind 'chat')
+   --------------------------------------------------------------------------- */
+
+const CTX: CandidateChatContext = {
+  profile: {
+    name: 'Jane Doe',
+    headline: 'Senior frontend developer',
+    current_role: 'Frontend Lead',
+    summary: 'Ten years shipping React.',
+    location: 'Toronto',
+    years_experience: 10,
+    work_authorization: 'Canadian citizen',
+    resume_text: 'Senior developer with 10 years experience.',
+  },
+  applications: [
+    {
+      title: 'Frontend Developer',
+      organization: 'Acme Inc',
+      location: 'Toronto',
+      status: 'submitted',
+      match_score: 82,
+      applied_at: '2026-10-01T12:00:00Z',
+    },
+  ],
+  discoveredJobs: [
+    {
+      title: 'React Engineer',
+      company: 'Globex',
+      location: 'Remote',
+      match_score: 77,
+      status: 'needs_review',
+    },
+  ],
+  agent: { enabled: true, autonomy: 'review', keywords: ['react'], locations: ['Toronto'] },
+}
+
+describe('candidateChatPrompt — Claire persona contract', () => {
+  it('names herself and her surface, and is honest about being software', () => {
+    const { content } = candidateChatPrompt(CTX, 'en')
+    expect(content).toContain('Claire')
+    expect(content).toContain('software, not a person')
+    expect(content).toContain('not a recruiter')
+  })
+
+  it('never promises outcomes or invents facts, in either register', () => {
+    for (const advice of [false, true]) {
+      const { content } = candidateChatPrompt(CTX, 'en', { advice })
+      expect(content).toContain('never promises')
+      expect(content).toContain('never invents')
+      /* She points, never does — no write surface exists for her. */
+      expect(content).toContain('cannot edit the profile')
+      expect(content).toContain('apply')
+      expect(content).toContain('point')
+    }
+  })
+
+  it('external accounts keep the general-read register, no personal verdicts', () => {
+    const { content } = candidateChatPrompt(CTX, 'en')
+    expect(content).toContain('keep it general')
+    expect(content).not.toContain('@dutiva.ca')
+    expect(content).not.toContain('INTERNAL STAFF')
+  })
+
+  it('internal @dutiva.ca accounts get the direct-advice register', () => {
+    const { content } = candidateChatPrompt(CTX, 'en', { advice: true })
+    expect(content).toContain('@dutiva.ca')
+    expect(content).toContain('advise like a coach who owns the call')
+    /* The shared boundaries still hold — outcomes are never promised and
+       applying stays the candidate's own step. */
+    expect(content).toContain('never promise outcomes')
+    expect(content).toContain('applying is always theirs')
+  })
+
+  it('answers in the caller’s language and closes on the JSON contract', () => {
+    expect(candidateChatPrompt(CTX, 'fr').content).toContain('Canadian French')
+    expect(candidateChatPrompt(CTX, 'en').content).toContain('Canadian English')
+    expect(candidateChatPrompt(CTX, 'en').content).toContain('{"reply"')
+  })
+
+  it('embeds the candidate’s own rows as context', () => {
+    const { content } = candidateChatPrompt(CTX, 'en')
+    expect(content).toContain('Jane Doe')
+    expect(content).toContain('Frontend Developer')
+    expect(content).toContain('Acme Inc')
+    expect(content).toContain('Globex')
+    expect(content).toContain('match 77')
+    expect(content).toContain('react')
+  })
+
+  it('describes an empty portal honestly', () => {
+    const empty: CandidateChatContext = {
+      profile: null,
+      applications: [],
+      discoveredJobs: [],
+      agent: null,
+    }
+    const block = buildChatContextBlock(empty)
+    expect(block).toContain('no profile saved yet')
+    expect(block).toContain('(none)')
+    expect(block).toContain('never configured')
+    expect(block).toContain('Resume: (none saved yet)')
+  })
+})
+
+describe('parseCandidateChatReply', () => {
+  it('reads the reply field out of the JSON envelope', () => {
+    expect(parseCandidateChatReply('{"reply":"Apply to the Globex role."}')).toBe(
+      'Apply to the Globex role.',
+    )
+  })
+
+  it('tolerates code fences and surrounding whitespace', () => {
+    expect(parseCandidateChatReply('```json\n{"reply":"Hi."}\n```')).toBe('Hi.')
+  })
+
+  it('returns null on anything unparseable or reply-less', () => {
+    expect(parseCandidateChatReply('not json')).toBeNull()
+    expect(parseCandidateChatReply('{"reply":""}')).toBeNull()
+    expect(parseCandidateChatReply('{"reply":"   "}')).toBeNull()
+    expect(parseCandidateChatReply(null)).toBeNull()
   })
 })

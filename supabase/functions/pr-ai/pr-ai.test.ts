@@ -487,3 +487,43 @@ describe('Paige persona contract', () => {
     expect(p).toContain('No hype')
   })
 })
+
+/* Internal-staff tier — a verified @dutiva.ca sign-in swaps the
+   honest-views paragraph for a desk-editor-owns-the-call register. The
+   never-publish/send boundary and the action grammar stay identical. */
+describe('internal advice tier (@dutiva.ca)', () => {
+  it('chat prompt swaps the opinion paragraph for the internal register', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en', { advice: true }).content
+    expect(p).toContain('INTERNAL STAFF DESK (@dutiva.ca)')
+    expect(p).toContain('advise like a desk editor')
+    expect(p).not.toContain('what do you think')
+    /* The guardrails that survive either register. */
+    expect(p).toContain('never publish, schedule, send, delete')
+    expect(p).toContain('the send is always theirs')
+    for (const t of PR_CHAT_ACTION_TYPES) {
+      expect(p).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('chat prompt defaults to the suggest register', () => {
+    const p = prChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('what do you think')
+    expect(p).not.toContain('@dutiva.ca')
+  })
+
+  it('react prompt welcomes a frank read for staff', () => {
+    const p = prReactPrompt({ type: 'keyword_tracked', keyword: 'x' }, EMPTY_CTX, 'en', { advice: true })
+    expect(p).toContain('internal staff account')
+    expect(p).toContain('frank read')
+    expect(p).toContain('No hype')
+    expect(p).not.toContain('no advice beyond')
+  })
+
+  it('summary prompt may name a next move for staff only', () => {
+    expect(summaryPrompt('{"mentions":3}', 'October', 'en')).toContain('no advice')
+    const p = summaryPrompt('{"mentions":3}', 'October', 'en', true)
+    expect(p).toContain('internal staff account')
+    expect(p).toContain('next move')
+    expect(p).not.toContain('no advice')
+  })
+})

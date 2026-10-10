@@ -62,7 +62,7 @@ export async function authenticateInvestUser(
   req: Request,
   config: ServerConfig,
   options: { requireAdmin?: boolean } = {},
-): Promise<{ userId: string; adminClient: SupabaseClient } | Response> {
+): Promise<{ userId: string; email: string | null; adminClient: SupabaseClient } | Response> {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
@@ -82,5 +82,5 @@ export async function authenticateInvestUser(
     return json({ error: 'Admin access required', code: 'not_admin' }, 403)
   }
 
-  return { userId: userData.user.id, adminClient }
+  return { userId: userData.user.id, email: userData.user.email ?? null, adminClient }
 }

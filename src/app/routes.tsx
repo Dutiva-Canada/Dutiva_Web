@@ -62,6 +62,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const ApplicationsPage = lazy(() => import('@/features/careers/portal/ApplicationsPage').then((m) => ({ default: m.ApplicationsPage })))
 /* prettier-ignore */ const ApplyToJobPage = lazy(() => import('@/features/careers/portal/ApplyToJobPage').then((m) => ({ default: m.ApplyToJobPage })))
 /* prettier-ignore */ const PortalAiToolsPage = lazy(() => import('@/features/careers/portal/PortalAiToolsPage').then((m) => ({ default: m.PortalAiToolsPage })))
+/* prettier-ignore */ const PortalChatPage = lazy(() => import('@/features/careers/portal/PortalChatPage').then((m) => ({ default: m.PortalChatPage })))
 /* prettier-ignore */ const PortalSettingsPage = lazy(() => import('@/features/careers/portal/PortalSettingsPage').then((m) => ({ default: m.PortalSettingsPage })))
 /* prettier-ignore */ const EmployerDoorPage = lazy(() => import('@/features/careers/portal/EmployerDoorPage').then((m) => ({ default: m.EmployerDoorPage })))
 /* prettier-ignore */ const ExternalSigningView = lazy(() => import('@/features/app/documents/screens/ExternalSigningView').then((m) => ({ default: m.ExternalSigningView })))
@@ -216,6 +217,7 @@ function NotFoundRoute() {
  *   /careers/portal/profile    candidate profile editor
  *   /careers/portal/applications   track submitted applications
  *   /careers/portal/ai-tools   standalone AI tools (application or pasted job context)
+ *   /careers/portal/chat       Claire — the search coach (candidate-ai kind 'chat')
  *   /careers/portal/settings   language, theme, sign-out, delete-data
  *   /careers/portal/jobs/:postingId/apply   apply to a role with optional AI
  *   /investors & /fr/investisseurs   public door to the invest portal
@@ -384,6 +386,7 @@ function routeTree(): RouteObject[] {
         { path: 'profile', element: <CandidateProfilePage /> },
         { path: 'applications', element: <ApplicationsPage /> },
         { path: 'ai-tools', element: <PortalAiToolsPage /> },
+        { path: 'chat', element: <PortalChatPage /> },
         { path: 'settings', element: <PortalSettingsPage /> },
         { path: 'jobs/:postingId/apply', element: <ApplyToJobPage /> },
       ],

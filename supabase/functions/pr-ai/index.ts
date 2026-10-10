@@ -1,6 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { withCors } from '../_shared/cors.ts'
 import { type ResolvedRoute } from '../_shared/aiRoute.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
@@ -98,7 +99,7 @@ const MAX_LIST_ITEM_CHARS = 200
 async function portalUserId(
   admin: SupabaseClient,
   req: Request,
-): Promise<{ userId: string } | { error: Response }> {
+): Promise<{ userId: string; email: string | null } | { error: Response }> {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return { error: json({ error: 'Missing bearer token' }, 401) }
@@ -111,7 +112,7 @@ async function portalUserId(
     .maybeSingle()
   if (accessError) return { error: json({ error: accessError.message }, 500) }
   if (!access) return { error: json({ error: 'PR access not granted', code: 'no_access' }, 403) }
-  return { userId: userData.user.id }
+  return { userId: userData.user.id, email: userData.user.email ?? null }
 }
 
 const clip = (v: unknown, max: number) =>
@@ -153,6 +154,11 @@ const handler = async (req: Request) => {
 
   const portal = await portalUserId(admin, req)
   if ('error' in portal) return portal.error
+  /* Internal-staff tier — a verified @dutiva.ca sign-in lets Paige advise
+     like a desk editor who owns the call; everyone else keeps the
+     suggest-only register. Access and the write whitelist are identical
+     either way. */
+  const advice = isInternalDutivaAccount(portal.email)
 
   let body: Record<string, unknown>
   try {
@@ -219,12 +225,12 @@ const handler = async (req: Request) => {
   if (body.kind === 'chat') {
     const message = clip(body.message, 1200)
     if (!message) return json({ error: 'message is required' }, 400)
-    return await runChat(admin, portal.userId, message, lang, stream)
+    return await runChat(admin, portal.userId, message, lang, stream, advice)
   }
   if (body.kind === 'react') {
     const event = parsePrReactEvent(body.event)
     if (!event) return json({ error: 'bad event' }, 400)
-    return await runReact(admin, portal.userId, event, lang, stream)
+    return await runReact(admin, portal.userId, event, lang, stream, advice)
   }
 
   const route = await modelRoute(admin)
@@ -265,7 +271,7 @@ const handler = async (req: Request) => {
     const statsJson = JSON.stringify(body.stats ?? {}).slice(0, MAX_STATS_CHARS)
     const out = await modelText(
       found.provider, keyResult.apiKey, found.modelName,
-      summaryPrompt(statsJson, month, lang), 220,
+      summaryPrompt(statsJson, month, lang, advice), 220,
     )
     if ('error' in out) return out.error
     const intro = cleanDraft(out.text)

@@ -473,3 +473,54 @@ describe('Mira persona contract', () => {
     expect(entryReactPrompt('t', 'b', [], TODAY, 'en')).toContain('9-8-8')
   })
 })
+
+/* Internal-staff tier — a verified @dutiva.ca sign-in loosens the
+   observations-only register to direct everyday advice. The clinical line
+   and the crisis line are identical either way. */
+describe('internal advice tier (@dutiva.ca)', () => {
+  const facts = buildHealthFacts([], [], [], 14, NOW)
+
+  it('chat prompt carries the advice grant for staff, and keeps the boundaries', () => {
+    const p = chatPrompt(facts, [], [], TODAY, 'en', true)
+    expect(p.content).toContain('Internal staff account (@dutiva.ca)')
+    expect(p.content).toContain('concrete everyday advice')
+    expect(p.content).toContain('advise directly')
+    expect(p.content).toContain('Never diagnose')
+    expect(p.content).toContain('software, not a person')
+    expect(p.content).toContain('9-8-8')
+    for (const t of CHAT_ACTION_TYPES) {
+      expect(p.content).toContain(`"type":"${t}"`)
+    }
+  })
+
+  it('chat prompt defaults to the observations-only register', () => {
+    const p = chatPrompt(facts, [], [], TODAY, 'en')
+    expect(p.content).toContain('Meet the person where they are')
+    expect(p.content).not.toContain('@dutiva.ca')
+    expect(p.content).toContain('at most ONE')
+  })
+
+  it('one-shot prompts switch the advice rule, keeping the clinical line', () => {
+    for (const p of [
+      reflectPrompt(facts, [], 'en', true),
+      recapPrompt(facts, [], 'en', true),
+      habitPrompt(facts, [], [], 'en', true),
+    ]) {
+      expect(p).toContain('advice is in scope')
+      expect(p).toContain('@dutiva.ca')
+      expect(p).toContain('Never diagnose')
+    }
+    expect(recapPrompt(facts, [], 'en')).toContain("Describe, don't advise")
+    expect(recapPrompt(facts, [], 'en', true)).toContain('what you would change')
+  })
+
+  it('react and entry prompts permit a suggestion for staff, crisis line intact', () => {
+    const r = reactPrompt({ type: 'habit_marked', habit: 'x' }, 1, [], TODAY, 'en', true)
+    expect(r).toContain('concrete suggestion')
+    expect(r).toContain('9-8-8')
+    const e = entryReactPrompt('t', 'b', [], TODAY, 'en', true)
+    expect(e).toContain('concrete suggestion')
+    expect(e).toContain('9-8-8')
+    expect(entryReactPrompt('t', 'b', [], TODAY, 'en')).toContain('not advice')
+  })
+})

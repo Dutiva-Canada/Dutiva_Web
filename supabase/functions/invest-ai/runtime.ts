@@ -188,6 +188,7 @@ export async function runChat(
   message: string,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const routed = await modelRoute(adminClient)
   if ('error' in routed) return routed.error
@@ -217,7 +218,7 @@ export async function runChat(
       {
         model: route.model_name,
         messages: [
-          investChatPrompt(book.ctx, lang),
+          investChatPrompt(book.ctx, lang, { advice }),
           ...history,
           { role: 'user', content: message },
         ],
@@ -262,6 +263,7 @@ export async function runChat(
               provider,
               apiKey,
               lang,
+              advice,
             })
           : null
         const ids = await persistChatTurns(adminClient, userId, message, parsed.reply, executed)
@@ -288,6 +290,7 @@ export async function runChat(
         provider,
         apiKey,
         lang,
+        advice,
       })
     : null
   const ids = await persistChatTurns(adminClient, userId, message, parsed.reply, executed)

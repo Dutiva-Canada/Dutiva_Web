@@ -207,6 +207,7 @@ export async function runChat(
   message: string,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const route = await modelRoute(admin)
   if ('error' in route) return route.error
@@ -238,7 +239,7 @@ export async function runChat(
       {
         model: found.modelName,
         messages: [
-          prChatPrompt(desk.ctx, lang),
+          prChatPrompt(desk.ctx, lang, { advice }),
           ...history,
           { role: 'user', content: message },
         ],
@@ -558,6 +559,7 @@ export async function runReact(
   event: PrReactEvent,
   lang: 'en' | 'fr',
   stream: boolean,
+  advice: boolean,
 ): Promise<Response> {
   const route = await modelRoute(admin)
   if ('error' in route) return route.error
@@ -571,7 +573,7 @@ export async function runReact(
       keyResult.apiKey,
       {
         model: found.modelName,
-        messages: [{ role: 'user', content: prReactPrompt(event, desk.ctx, lang) }],
+        messages: [{ role: 'user', content: prReactPrompt(event, desk.ctx, lang, { advice }) }],
         temperature: 0.5,
         max_tokens: 160,
         stream,

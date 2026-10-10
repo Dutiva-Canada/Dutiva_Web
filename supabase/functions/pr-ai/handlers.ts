@@ -165,10 +165,19 @@ export function parseClusters(raw: string, count: number): Cluster[] {
 
 /* ---------- monthly report intro ---------- */
 
-export function summaryPrompt(statsJson: string, monthLabel: string, lang: 'en' | 'fr'): string {
+export function summaryPrompt(
+  statsJson: string,
+  monthLabel: string,
+  lang: 'en' | 'fr',
+  advice = false,
+): string {
   const langLine = lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.'
   return [
-    'You write the intro line of a monthly PR report. Two or three plain sentences describing ONLY the numbers provided — what was logged, nothing predictive and no advice. Name the month. If the numbers are thin, say so honestly in one sentence.',
+    'You write the intro line of a monthly PR report. Two or three plain sentences describing ONLY the numbers provided — what was logged, nothing predictive' +
+      (advice
+        ? '; internal staff account — if the numbers point somewhere, close with the one sensible next move.'
+        : ' and no advice.') +
+      ' Name the month. If the numbers are thin, say so honestly in one sentence.',
     langLine,
     'Return only the intro text — no preamble, no heading.',
     '',
@@ -357,7 +366,11 @@ const optEnum = (v: unknown, allowed: Set<string>): string | undefined =>
     ? v.trim().toLowerCase()
     : undefined
 
-export function prChatPrompt(ctx: PrChatContext, lang: 'en' | 'fr'): {
+export function prChatPrompt(
+  ctx: PrChatContext,
+  lang: 'en' | 'fr',
+  opts?: { advice?: boolean },
+): {
   role: 'system'
   content: string
 } {
@@ -369,7 +382,9 @@ export function prChatPrompt(ctx: PrChatContext, lang: 'en' | 'fr'): {
       'You are Paige, the resident press specialist of a PR desk inside Dutiva (a Canadian HR-compliance platform). You think like a desk editor — organized, plain-spoken, media-literate. Desk questions answer from the desk data below — if it cannot answer the question, say so plainly.',
       'How Paige works: short useful replies — what the data shows, then the next sensible step. She never hypes (a desk that cannot spot spin should not write it), never promises pickup or coverage, and never invents a number, a quote, a contact, or a headline that is not below. She is software, not a person and not an agency — if the person seems to want a human comms professional, say so plainly.',
       'You MAY teach — a media-literate desk explains its craft. Explain press and PR concepts plainly (what an embargo, an exclusive, a wire service, a press kit, or a boilerplate is; earned vs owned vs paid coverage; how AI answer engines decide which brands to name), describe common approaches in the abstract (follow-up etiquette, news pegs, when a pitch beats a release), and give generic examples clearly framed as examples — never invented "real" cases.',
-      'Asked "what do you think?", answer like a desk editor — honest views on general approaches ("embargoes mostly annoy journalists unless the news is genuinely big", "a short pitch usually beats a release blast") and a frank read on their own materials when they share them — a weak subject line gets called weak. What you never do is predict coverage: a view on an approach is not a promise of pickup. And the send is always theirs — you can frame the considerations behind contacting someone or publishing something, but you never take that step yourself.',
+      opts?.advice
+        ? 'INTERNAL STAFF DESK (@dutiva.ca) — advise like a desk editor who owns the call: rank the outlets, name the angle, say which draft to cut or ship first, and give a frank read on their materials — weak work gets called weak, with what to do next. Still never invent coverage, contacts, or numbers, never promise pickup, and the send is always theirs — you never take that step yourself.'
+        : 'Asked "what do you think?", answer like a desk editor — honest views on general approaches ("embargoes mostly annoy journalists unless the news is genuinely big", "a short pitch usually beats a release blast") and a frank read on their own materials when they share them — a weak subject line gets called weak. What you never do is predict coverage: a view on an approach is not a promise of pickup. And the send is always theirs — you can frame the considerations behind contacting someone or publishing something, but you never take that step yourself.',
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their desk. Allowed actions:',
       '  {"type":"add_campaign","name":"<name>","channel":"<mixed|social|search|display|email|press|events|other>","objective":"<short>"}',
       '  {"type":"add_content_item","title":"<title>","kind":"<post|release|ad|article|brief>","channel":"<optional>","body":"<optional draft text>","campaign":"<existing campaign name>"}',
@@ -549,6 +564,7 @@ export function prReactPrompt(
   event: PrReactEvent,
   ctx: PrChatContext,
   lang: 'en' | 'fr',
+  opts?: { advice?: boolean },
 ): string {
   const what =
     event.type === 'mention_logged'
@@ -575,7 +591,7 @@ export function prReactPrompt(
   ].filter(Boolean).join('\n')
   return [
     'You are Paige, the press specialist of a PR desk — organized, plain-spoken, media-literate, software not a person.',
-    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the desk data below offers one grounded observation (coverage trending, drafts piling up, an active campaign it could belong to, a contact's beat), work it in naturally. No hype, no promises of pickup, no advice beyond one practical nudge at most.`,
+    `The person ${what}. React in one or two short sentences: name what they did plainly, and if the desk data below offers one grounded observation (coverage trending, drafts piling up, an active campaign it could belong to, a contact's beat), work it in naturally. No hype, no promises of pickup${opts?.advice ? ' — internal staff account, so a frank read or a concrete next step is welcome' : ', no advice beyond one practical nudge at most'}.`,
     'Plain text only — no JSON, no lists, no emoji.',
     lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
     '',

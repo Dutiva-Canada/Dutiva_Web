@@ -627,6 +627,38 @@ export const careersMessages = defineMessages({
     fr: "Les suggestions de l’IA sont un point de départ. Révisez et modifiez avant de soumettre.",
   },
 
+  /* ── Candidate portal — chat (Claire, the search coach) ─────────────────
+     Server-side her register is tiered on the sign-in email: external
+     accounts get honest reads and next steps, verified @dutiva.ca accounts
+     get a coach who advises directly — hence the two subtitles. */
+  careers_portal_nav_chat: { en: 'Claire', fr: 'Claire' },
+  careers_chat_title: { en: 'Claire', fr: 'Claire' },
+  careers_chat_sub: {
+    en: 'Your search coach — ask about your applications, the jobs your agent found, or how hiring reads. She’s software, not a person or a recruiter.',
+    fr: 'Votre coach de recherche — posez-lui une question sur vos candidatures, les offres que votre agent a trouvées ou le fonctionnement du recrutement. C’est un logiciel, pas une personne ni une recruteuse.',
+  },
+  careers_chat_sub_internal: {
+    en: 'Your search coach — ask about your applications, the jobs your agent found, or how hiring reads. Internal staff account: she also advises on the search directly.',
+    fr: 'Votre coach de recherche — posez-lui une question sur vos candidatures, les offres que votre agent a trouvées ou le fonctionnement du recrutement. Compte interne : elle vous conseille aussi directement sur la recherche.',
+  },
+  careers_chat_greeting: {
+    en: 'Hi — I’m Claire, your search coach. I can see your profile, your applications, and the jobs your agent found. What do you want to work on?',
+    fr: 'Bonjour — je suis Claire, votre coach de recherche. Je vois votre profil, vos candidatures et les offres que votre agent a trouvées. Sur quoi voulez-vous travailler?',
+  },
+  careers_chat_placeholder: { en: 'Ask about your search…', fr: 'Posez une question sur votre recherche…' },
+  careers_chat_send: { en: 'Send', fr: 'Envoyer' },
+  careers_chat_clear: { en: 'Clear', fr: 'Effacer' },
+  careers_chat_error: {
+    en: 'Claire is unavailable right now — try again in a moment.',
+    fr: 'Claire est indisponible pour le moment — réessayez dans un instant.',
+  },
+  careers_chat_daily_limit: {
+    en: 'You’ve reached today’s AI limit — Claire will be back tomorrow.',
+    fr: 'Vous avez atteint la limite IA du jour — Claire sera de retour demain.',
+  },
+  careers_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
+  careers_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+
   /* ── Job search agent ─────────────────────────────────────────────────── */
   careers_agent_title: { en: 'Job search agent', fr: 'Agent de recherche d’emploi' },
   careers_agent_body: {

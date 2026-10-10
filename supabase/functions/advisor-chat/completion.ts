@@ -22,12 +22,28 @@ import type { Json } from '../_shared/database.types.ts'
  * the telemetry/metering writes that close out the claimed usage row.
  */
 
-export const SYSTEM_PROMPT =
+/* The opening paragraph is tiered: external accounts get the standing
+   "not a lawyer" boundary, a verified @dutiva.ca sign-in gets the direct-
+   advice register. Everything after — factual grounding, statutory
+   precision, formatting — is shared. */
+const SYSTEM_PROMPT_OPENING =
   'You are the Dutiva AI Advisor, a compliance-oriented HR assistant for Canadian ' +
   'employers. Give practical, jurisdiction-aware HR guidance (Ontario, Quebec, and ' +
   'federally regulated workplaces). You are not a lawyer and do not provide legal ' +
   'advice — for high-risk employment decisions (termination, discipline, ' +
-  'accommodation), tell the user to consult qualified legal counsel.\n\n' +
+  'accommodation), tell the user to consult qualified legal counsel.\n\n'
+
+const SYSTEM_PROMPT_OPENING_INTERNAL =
+  'You are the Dutiva AI Advisor, a compliance-oriented HR assistant for Canadian ' +
+  'employers. Give practical, jurisdiction-aware HR guidance (Ontario, Quebec, and ' +
+  'federally regulated workplaces). You are not a lawyer and do not provide legal ' +
+  'advice — for high-risk employment decisions (termination, discipline, ' +
+  'accommodation), tell the user to consult qualified legal counsel. This account ' +
+  'is internal Dutiva staff (@dutiva.ca) — advise directly: when they ask what to ' +
+  'do, give your recommendation and the reasoning, not just a menu of options. A ' +
+  'straight answer is the default register here, not a hedge.\n\n'
+
+const SYSTEM_PROMPT_BODY =
   'Be factual and grounded at all times. Do not go along with statements just to be ' +
   'agreeable: if the user says something inaccurate — even something small, like ' +
   'greeting you with "Good evening" when it is morning — respond with the correct ' +
@@ -60,6 +76,14 @@ export const SYSTEM_PROMPT =
   '"series":[{"key","label"}],"data":[…]}. type is bar, hbar, line, area, or donut. ' +
   'Emit the chart in addition to the table, never instead of it.\n' +
   '- Never emit raw HTML — it is not rendered.'
+
+export const SYSTEM_PROMPT = SYSTEM_PROMPT_OPENING + SYSTEM_PROMPT_BODY
+
+/** Tiered opening — internal staff get the direct-advice register, everyone
+    else the standing not-a-lawyer boundary. */
+export function advisorSystemPrompt(advice: boolean): string {
+  return (advice ? SYSTEM_PROMPT_OPENING_INTERNAL : SYSTEM_PROMPT_OPENING) + SYSTEM_PROMPT_BODY
+}
 
 /* The model has no clock — without an explicit timestamp it can only infer the
    time of day from what the user says, which is how "Good evening" gets
@@ -138,6 +162,7 @@ export async function requestCompletion(
   history: ChatMessage[],
   userMessage: UpstreamMessage,
   guidance: string,
+  advice: boolean,
 ): Promise<{ completion: Completion; latencyMs: number } | Response> {
   const keyResult = resolveApiKey(provider.secret_ref, (name) => Deno.env.get(name))
   if ('missingSecret' in keyResult) {
@@ -158,7 +183,7 @@ export async function requestCompletion(
         messages: [
           {
             role: 'system',
-            content: `${SYSTEM_PROMPT}\n\n${currentTimeLine(request.timezone)}${guidance}`,
+            content: `${advisorSystemPrompt(advice)}\n\n${currentTimeLine(request.timezone)}${guidance}`,
           },
           ...history,
           userMessage,

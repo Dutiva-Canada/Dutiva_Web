@@ -42,7 +42,7 @@ Beyond the workspace Advisor, Dutiva ships **three standalone, invite-only porta
 | PR     | `/pr`     | **Paige** | Media-literate press-office specialist | `pr-ai`     | `pr_access`     | `pr_chat_messages`     |
 | Invest | `/invest` | **Tally** | Plain, numbers-first watch clerk       | `invest-ai` | `invest_access` | `invest_chat_messages` |
 
-A fourth standalone surface — the candidate portal at `/careers/portal` — uses `candidate-ai` (résumé tailoring, cover letters, match scoring, interview prep) and `candidate-job-agent` (external job-board discovery); it is a B2C surface with a different metering model and is covered under [Edge Functions & Shared Modules](Edge-Functions-Shared-Modules).
+A fourth standalone surface — the candidate portal at `/careers/portal` — uses `candidate-ai` and `candidate-job-agent` (external job-board discovery); it is a B2C surface with a different metering model (a per-day call rail instead of grants) and is covered under [Edge Functions & Shared Modules](Edge-Functions-Shared-Modules). Besides the one-shot task features (résumé tailoring, cover letters, match scoring, interview prep), `candidate-ai` also serves **Claire**, the search coach — `kind: 'chat'` over the caller's profile, applications, agent-discovered jobs, and agent settings, with turns persisted to `candidate_chat_messages` (0209) under the same `kind`-dispatched contract as the other assistants. Claire is deliberately read-and-advise only: she points at the profile editor, the apply page, or the agent card but writes nothing herself — no action grammar exists for this surface.
 
 Sources: [src/app/routes.tsx:390-478](), [src/app/healthSurface.tsx:1-16](), [supabase/functions/health-ai/index.ts](), [supabase/functions/pr-ai/index.ts](), [supabase/functions/invest-ai/index.ts]()
 
@@ -191,9 +191,9 @@ Sources: [supabase/functions/pr-ai/index.ts:33-87](), [supabase/functions/pr-ai/
 
 ## Tally — `/invest` (invest-ai + invest-bot)
 
-Tally is the book's watch clerk — plain, precise, numbers before adjectives. The invest portal is a paper ledger, not brokerage: she records intent and drafts, never fills, and **never gives investment advice**.
+Tally is the book's watch clerk — plain, precise, numbers before adjectives. The invest portal is a paper ledger, not brokerage: she records intent and drafts, never fills, and **never gives investment advice to external accounts**.
 
-**Safety contract (the prompt's HARD LINE):** nothing here is investment advice, a recommendation, or a prediction — never tell the user to buy, sell, or hold; never promise returns; never call an order, holding, or allocation "good", "safe", or "right for them". Tally describes what the book shows, may discuss general concepts and approaches, and says plainly when the person seems to want a registered professional.
+**Safety contract (the prompt's HARD LINE):** for external accounts, nothing here is investment advice, a recommendation, or a prediction — never tell the user to buy, sell, or hold; never promise returns; never call an order, holding, or allocation "good", "safe", or "right for them". Tally describes what the book shows, may discuss general concepts and approaches, and says plainly when the person seems to want a registered professional. For a verified `@dutiva.ca` sign-in the register loosens to direct advice on the book — see the internal-staff tier below.
 
 **Draft-strategy split.** The model *authors* strategy drafts (`draft-strategy`); the deterministic **`invest-bot`** engine executes them. A draft is validated server-side, returned disabled, and only reaches the book after the user reviews and saves it — the model cannot arm a live strategy.
 
@@ -227,6 +227,12 @@ Sources: [supabase/functions/invest-ai/index.ts:24-56](), [supabase/functions/in
 | Bilingual            | `lang?: 'en' \| 'fr'` on every kind; prompts build per-language server-side                                      |
 
 Sources: [supabase/functions/_shared/aiRoute.ts](), [supabase/functions/_shared/agentQueue.ts](), [supabase/functions/_shared/modelUpstream.ts](), [supabase/functions/health-ai/index.ts:24-82]()
+
+### Internal-staff tier (@dutiva.ca)
+
+Every AI surface runs one extra server-side check on the caller's auth email: `isInternalDutivaAccount` (`_shared/adminAccess.ts`, the same domain check the billing and admin paths use). A verified `@dutiva.ca` sign-in swaps the generic/no-advice register for a direct-advice one — Tally and the bot's insight pass may recommend trades on the book, Mira may advise plainly instead of only observing, Paige may advise like a desk editor who owns the call, Claire coaches to a verdict instead of pointing at the AI tools, and the workspace Advisor answers "what should I do" with a recommendation instead of a boundary. What never changes: the access grants (`*_access` still required), the write whitelists, the queued-draft order rule, the non-clinical boundary in Health, the never-publish line in PR, and "software, not a person" honesty. Invest-bot's `run-all` sweep resolves each user's auth email via `auth.admin.getUserById` — the tier applies to scheduled insight runs too.
+
+Sources: [supabase/functions/_shared/adminAccess.ts](), [supabase/functions/invest-ai/index.ts](), [supabase/functions/invest-bot/runs.ts](), [supabase/functions/advisor-chat/completion.ts](), [supabase/functions/health-ai/index.ts](), [supabase/functions/pr-ai/index.ts]()
 
 ---
 

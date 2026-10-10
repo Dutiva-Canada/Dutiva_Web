@@ -235,6 +235,7 @@ export const portalViewPreloads: Record<string, () => Promise<unknown>> = {
   'careers.profile': () => import('@/features/careers/portal/CandidateProfilePage'),
   'careers.applications': () => import('@/features/careers/portal/ApplicationsPage'),
   'careers.ai-tools': () => import('@/features/careers/portal/PortalAiToolsPage'),
+  'careers.chat': () => import('@/features/careers/portal/PortalChatPage'),
   'careers.settings': () => import('@/features/careers/portal/PortalSettingsPage'),
   'careers.job': () => import('@/features/careers/JobDetailPage'),
 }

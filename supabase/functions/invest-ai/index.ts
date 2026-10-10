@@ -4,11 +4,12 @@ import type { Database } from '../_shared/database.types.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { withCors } from '../_shared/cors.ts'
+import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   buildDraftPrompt,
+  draftSystemPrompt,
   parseDraft,
   sanitizeGoal,
-  SYSTEM_PROMPT,
   validateAiAction,
 } from './handlers.ts'
 import {
@@ -76,7 +77,7 @@ function serverConfig(): ServerConfig | Response {
 async function authenticateInvestUser(
   req: Request,
   config: ServerConfig,
-): Promise<{ userId: string; adminClient: SupabaseClient } | Response> {
+): Promise<{ userId: string; email: string | null; adminClient: SupabaseClient } | Response> {
   const auth = req.headers.get('Authorization') ?? ''
   const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
   if (!token) return json({ error: 'Missing bearer token' }, 401)
@@ -93,7 +94,7 @@ async function authenticateInvestUser(
   if (accessError) return json({ error: accessError.message }, 500)
   if (!access) return json({ error: 'Invest access not granted', code: 'no_access' }, 403)
 
-  return { userId: userData.user.id, adminClient }
+  return { userId: userData.user.id, email: userData.user.email ?? null, adminClient }
 }
 
 const handler = async (req: Request) => {
@@ -105,7 +106,12 @@ const handler = async (req: Request) => {
 
   const authed = await authenticateInvestUser(req, config)
   if (authed instanceof Response) return authed
-  const { userId, adminClient } = authed
+  const { userId, email, adminClient } = authed
+  /* Internal-staff tier — a verified @dutiva.ca sign-in loosens the model
+     register from generic/informational to direct advice. The access grant
+     above still applies to everyone; this only changes what the model may
+     say, never what it may write. */
+  const advice = isInternalDutivaAccount(email)
 
   let body: Record<string, unknown> = {}
   try {
@@ -172,12 +178,12 @@ const handler = async (req: Request) => {
   if (body['kind'] === 'chat') {
     const message = typeof body['message'] === 'string' ? body['message'].trim().slice(0, 1200) : ''
     if (!message) return json({ error: 'message is required' }, 400)
-    return await runChat(adminClient, userId, message, lang, stream)
+    return await runChat(adminClient, userId, message, lang, stream, advice)
   }
   if (body['kind'] === 'react') {
     const event = parseInvestReactEvent(body['event'])
     if (!event) return json({ error: 'bad event' }, 400)
-    return await runReact(adminClient, userId, event, lang, stream)
+    return await runReact(adminClient, userId, event, lang, stream, advice)
   }
 
   const actionCheck = validateAiAction(body['action'])
@@ -199,7 +205,7 @@ const handler = async (req: Request) => {
       {
         model: route.model_name,
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'system', content: draftSystemPrompt(advice) },
           { role: 'user', content: buildDraftPrompt(goal, lang) },
         ],
         max_tokens: route.config?.max_tokens ?? 900,

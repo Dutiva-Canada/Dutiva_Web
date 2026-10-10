@@ -164,10 +164,17 @@ the `advisor_chat` route when no `invest_ai` row exists).
 - **No broker calls.** `live` orders are bookkeeping — a human confirms
   the fill. Broker execution is a designed seam (per-user credentials,
   adapter per broker), not shipped.
-- **No advice.** The public `/investors` page and the portal chrome state
-  plainly: informational and educational tooling, not investment advice;
-  Dutiva is not a registered dealer or adviser. AI output is constrained
-  the same way — it drafts rules and commentary, never orders.
+- **No advice — externally.** The public `/investors` page and the portal
+  chrome state plainly: informational and educational tooling, not
+  investment advice; Dutiva is not a registered dealer or adviser. AI
+  output is constrained the same way for client accounts — it drafts rules
+  and commentary, never orders. Verified `@dutiva.ca` sign-ins are the
+  exception: every model surface (Tally chat, react lines, draft-strategy,
+  and the bot's insight pass) runs an internal-staff register that may
+  advise directly on the book. The tier is decided server-side from the
+  auth email (`isInternalDutivaAccount`), it changes only what the model
+  may say — the write whitelist, queued-draft orders, and human-approved
+  execution are identical either way.
 - **Feed quality.** CoinGecko/Stooq are free public feeds — delayed and
   rate-limited, fine for daily-cadence bookkeeping, not for intraday
   trading. `source` on each snapshot records where the price came from.

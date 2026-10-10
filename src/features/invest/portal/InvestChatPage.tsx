@@ -3,6 +3,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Check, Loader2, Send, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
+import { useAuth } from '@/features/app/auth/authContext'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import {
   clearInvestChat,
@@ -61,6 +63,7 @@ function actionLabel(
  */
 export function InvestChatPage() {
   const { x, lang } = useI18n()
+  const { session } = useAuth()
   const { state, refresh } = useInvestData()
   const { showToast } = useToasts()
   useInvestHead(IM.invest_seo_title_chat, IM.invest_seo_desc_chat)
@@ -200,7 +203,16 @@ export function InvestChatPage() {
           </button>
         )}
       </div>
-      <p className="sb-sub">{x(IM.invest_chat_sub)}</p>
+      {/* Internal-staff tier — the edge function advises @dutiva.ca
+          accounts directly, so the "never investment advice" subtitle would
+          be untrue for them. */}
+      <p className="sb-sub">
+        {x(
+          isInternalDutivaAccount(session?.user?.email)
+            ? IM.invest_chat_sub_internal
+            : IM.invest_chat_sub,
+        )}
+      </p>
 
       <section className="sb-card sb-card-pad sbchat" style={{ marginTop: 14 }}>
         <div className="sbchat-log" ref={logRef} aria-live="polite">

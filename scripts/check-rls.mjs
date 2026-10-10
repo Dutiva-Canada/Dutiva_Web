@@ -67,14 +67,15 @@ const SENSITIVE_TABLES = [
   'hr_document_exports',
   'ai_advisor_credits',
   'ai_advisor_overage_months',
-  // Candidate Portal (0153/0165/0167): PII and application data must never
-  // reach anon. hr_job_postings is probed with select=* — anon holds only a
+  // Candidate Portal (0153/0165/0167/0209): PII, application data, and the
+  // coach's chat transcript must never reach anon. hr_job_postings is probed with select=* — anon holds only a
   // column-scoped grant for the public board fields, so a full-row read must
   // still be denied on the ungranted internal columns. The INTERNAL_COLUMNS
   // probe below asserts that denial directly.
   'candidate_profiles',
   'candidate_applications',
   'candidate_ai_usage',
+  'candidate_chat_messages',
   'hr_job_postings',
   // Portal chat history (0202/0203/0204): private conversations between a
   // portal user and their assistant — wellness context, PR strategy, and

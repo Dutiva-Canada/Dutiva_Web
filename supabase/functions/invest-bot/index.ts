@@ -90,10 +90,10 @@ const handler = async (req: Request) => {
 
   const authed = await authenticateInvestUser(req, config)
   if (authed instanceof Response) return authed
-  const { userId, adminClient } = authed
+  const { userId, email, adminClient } = authed
 
   if (actionCheck.value === 'run') {
-    return json(await runUser(adminClient, userId, { force: true }))
+    return json(await runUser(adminClient, userId, { force: true, email }))
   }
 
   if (actionCheck.value === 'test-scan') {
