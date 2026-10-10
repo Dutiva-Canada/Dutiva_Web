@@ -96,6 +96,34 @@ export const advisorViewMessages = defineMessages({
   advisorview_rate_up: { en: 'Helpful', fr: 'Utile' },
   advisorview_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
   advisorview_generate: { en: 'Generate', fr: 'Générer' }, // [FR self-authored]
+  advisorview_jump_latest: {
+    en: 'Jump to latest',
+    fr: 'Aller au plus récent', // [FR self-authored]
+  },
+  advisorview_stop: {
+    en: 'Stop',
+    fr: 'Arrêter', // [FR self-authored]
+  },
+  advisorview_reuse: {
+    en: 'Reuse',
+    fr: 'Réutiliser', // [FR self-authored]
+  },
+  advisorview_reason_label: {
+    en: 'What went wrong?',
+    fr: 'Qu’est-ce qui n’a pas fonctionné?', // [FR self-authored]
+  },
+  advisorview_reason_wrong: {
+    en: 'Wrong info',
+    fr: 'Info inexacte', // [FR self-authored]
+  },
+  advisorview_reason_vague: {
+    en: 'Too vague',
+    fr: 'Trop vague', // [FR self-authored]
+  },
+  advisorview_reason_tone: {
+    en: 'Tone',
+    fr: 'Ton', // [FR self-authored]
+  },
 
   /* Escalation toast (prototype `handleFollowup` → pushToast). */
   advisorview_toast_counsel: {

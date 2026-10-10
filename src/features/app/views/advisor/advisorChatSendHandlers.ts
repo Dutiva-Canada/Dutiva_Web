@@ -41,6 +41,8 @@ interface ChatSendHandlersOptions {
   ) => void
   bindBackendConversationId: (threadId: string | null, backendId: string) => void
   conversationIdRef: RefObject<string | null>
+  /** Owns the in-flight real send — the view's Stop button aborts it. */
+  sendAbortRef: RefObject<AbortController | null>
   interceptCrisis: (raw: string, chatId: string | null) => boolean
   toToneCard: (card: FixtureToneCard) => ToneCardData
   setSendingReal: (sending: boolean) => void
@@ -62,6 +64,7 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
     updateExtras,
     bindBackendConversationId,
     conversationIdRef,
+    sendAbortRef,
     interceptCrisis,
     toToneCard,
     setSendingReal,
@@ -86,6 +89,12 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
       return
     }
     setSendingReal(true)
+    const ctrl = new AbortController()
+    sendAbortRef.current = ctrl
+    const aborted = (error: unknown) =>
+      ctrl.signal.aborted ||
+      (error instanceof DOMException && error.name === 'AbortError') ||
+      (error instanceof Error && error.name === 'AbortError')
     const apply = (result: AdvisorChatResult) =>
       applyRealChatResult({
         result,
@@ -99,9 +108,18 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
         showToast,
       })
     const send = (atts: readonly AdvisorAttachment[]) =>
-      sendAdvisorMessage(text, conversationIdRef.current, organizationId, atts).then(apply)
+      sendAdvisorMessage(
+        text,
+        conversationIdRef.current,
+        organizationId,
+        atts,
+        ctrl.signal,
+      ).then(apply)
     void send(attachments ?? [])
       .catch(async (error: unknown) => {
+        /* The reader stopped the wait — nothing to flag; the server may
+           still have committed the pair, which the next load shows. */
+        if (aborted(error)) return
         /* Image refused by a text-only route → caption it on-device and retry
            as a document attachment when the caption model is installed. */
         const captioned = await captionFallbackAttachments(error, attachments)
@@ -111,13 +129,17 @@ export function createAdvisorChatSendHandlers(options: ChatSendHandlersOptions) 
             showToast(CORE.advisor_caption_fallback_done, 'ok')
             return
           } catch (retryError) {
+            if (aborted(retryError)) return
             handleRealChatFailure(retryError)
             return
           }
         }
         handleRealChatFailure(error)
       })
-      .finally(() => setSendingReal(false))
+      .finally(() => {
+        sendAbortRef.current = null
+        setSendingReal(false)
+      })
   }
 
   const handleFollowup = (labelEn: string) => {

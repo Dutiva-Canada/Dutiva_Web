@@ -135,6 +135,7 @@ export async function sendAdvisorMessage(
   conversationId: string | null,
   organizationId: string | null = null,
   attachments: readonly AdvisorAttachment[] = [],
+  signal?: AbortSignal,
 ): Promise<AdvisorChatResult> {
   if (!supabase) {
     throw new Error('Real AI Advisor replies are not configured in this environment.')
@@ -145,7 +146,9 @@ export async function sendAdvisorMessage(
      org memory injection (hr_advisor_memory_facts) when production mode has
      provisioned a tenant. Attachments ride along as image data URLs /
      pre-extracted document text (see ./attachments.ts); the server re-validates
-     and modality-gates them against the active route. */
+     and modality-gates them against the active route. `signal` lets the caller
+     stop waiting on the reply — the server may still commit the turn, so a
+     cancelled send can reappear on the next history load. */
   const { data, error } = await supabase.functions.invoke('advisor-chat', {
     body: {
       message,
@@ -154,6 +157,7 @@ export async function sendAdvisorMessage(
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       ...(attachments.length > 0 ? { attachments: toWireAttachments(attachments) } : {}),
     },
+    ...(signal != null ? { signal } : {}),
   })
   if (error) throw (await usageLimitFrom(error)) ?? (await modalityErrorFrom(error)) ?? error
   const parsed = advisorChatResponseSchema.parse(data)
@@ -195,12 +199,14 @@ export async function sendAdvisorMessage(
  * (rehydrated from the persisted array) carry one; a fresh same-session reply
  * has no index until the next load.
  *
- * rating: 1 helpful / -1 not; null clears (deletes the row).
+ * rating: 1 helpful / -1 not; null clears (deletes the row). `reason` rides
+ * with a -1 — the one-tap "what was off" pick; any other write clears it.
  */
 export async function rateAdvisorTurn(
   conversationId: string,
   turnIndex: number,
   rating: 1 | -1 | null,
+  reason?: string | null,
 ): Promise<void> {
   if (!supabase) throw new Error('Supabase client unavailable')
   const { data: session } = await supabase.auth.getSession()
@@ -222,6 +228,7 @@ export async function rateAdvisorTurn(
       conversation_id: conversationId,
       turn_index: turnIndex,
       rating,
+      reason: rating === -1 ? (reason ?? null) : null,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id,conversation_id,turn_index' },
@@ -229,19 +236,27 @@ export async function rateAdvisorTurn(
   if (error) throw error
 }
 
+export interface AdvisorTurnRating {
+  rating: 1 | -1
+  reason: string | null
+}
+
 /** Load the caller's ratings for one conversation (keyed by turn_index). */
 export async function loadAdvisorTurnRatings(
   conversationId: string,
-): Promise<Map<number, 1 | -1>> {
+): Promise<Map<number, AdvisorTurnRating>> {
   if (!supabase) return new Map()
   const { data, error } = await supabase
     .from('advisor_turn_feedback')
-    .select('turn_index, rating')
+    .select('turn_index, rating, reason')
     .eq('conversation_id', conversationId)
   if (error || data == null) return new Map()
   return new Map(
     data
       .filter((r) => r.rating === 1 || r.rating === -1)
-      .map((r) => [r.turn_index, r.rating as 1 | -1]),
+      .map((r) => [
+        r.turn_index,
+        { rating: r.rating as 1 | -1, reason: r.reason ?? null },
+      ]),
   )
 }

@@ -1,14 +1,16 @@
-﻿import { useEffect, useRef } from 'react'
-import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+﻿import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 import {
+  ArrowDown,
   Copy,
   Download,
   FileText,
   Globe,
   Heart,
   Image,
+  RotateCcw,
   ShieldCheck,
   Sparkle,
+  Square,
   ThumbsDown,
   ThumbsUp,
   TriangleAlert,
@@ -46,6 +48,7 @@ import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
 import type { ScenarioBanner, ScenarioBannerTone } from './advisorScenarios'
 import { ThreadListOpenButton } from './ThreadList'
 import { useTurnRatings } from './advisorTurnRatings'
+import { usePortalChatDraft, useStickToBottom } from '@/components/chat/portalChatUtils'
 
 /**
  * Active conversation pane (prototype `hasActiveConversation` markup):
@@ -55,7 +58,7 @@ import { useTurnRatings } from './advisorTurnRatings'
  * composer footer with the short disclaimer.
  */
 
-const ENTRANCE = 'animate-[fadeInUp_.45s_cubic-bezier(.4,0,.2,1)]'
+const ENTRANCE = 'motion-safe:animate-[fadeInUp_.45s_cubic-bezier(.4,0,.2,1)]'
 
 interface ChatPaneProps {
   readonly messages: readonly ChatMessage[]
@@ -90,6 +93,12 @@ interface ChatPaneProps {
   readonly buyingAdvisorPack?: AdvisorPackSize | null
   /** Pill tint: warn while jurisdiction is unknown, support in supportive mode. */
   readonly jurisdictionTone?: JurisdictionPillTone
+  /** A real (production) send is in flight — shows the Stop button. */
+  readonly realSending?: boolean
+  /** Aborts the in-flight real send (Stop button). */
+  readonly onStop?: () => void
+  /** sessionStorage key for the per-conversation draft. */
+  readonly draftKey?: string
 }
 
 export type JurisdictionPillTone = 'gold' | 'warn' | 'support'
@@ -181,16 +190,15 @@ export function ChatPane({
   onBuyAdvisorPack,
   buyingAdvisorPack = null,
   jurisdictionTone = 'gold',
+  realSending = false,
+  onStop,
+  draftKey = 'advisor.chat.default',
 }: ChatPaneProps) {
   const { x, lang } = useI18n()
-  const scrollRef = useRef<HTMLDivElement | null>(null)
-  const { ratingFor, rate } = useTurnRatings(messages, getExtras)
-
-  /* Keep the newest message (and its streaming tail) in view. */
-  useEffect(() => {
-    const el = scrollRef.current
-    if (el) el.scrollTop = el.scrollHeight
-  }, [messages])
+  const { ratingFor, rate, reasonFor, rateReason } = useTurnRatings(messages, getExtras)
+  const [draft, setDraft] = usePortalChatDraft(draftKey)
+  const { logRef, stickToBottom, farUp, hasNew } = useStickToBottom([messages])
+  const lastIsUser = messages[messages.length - 1]?.author === 'user'
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -220,39 +228,85 @@ export function ChatPane({
       </div>
 
       {/* Transcript — polite live region so streamed replies are announced. */}
-      <div ref={scrollRef} aria-live="polite" className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-[740px] flex-col gap-[22px] px-[24px] pt-[26px] pb-[16px]">
-          {messages.map((message) =>
-            message.author === 'user' ? (
-              <UserTurn key={message.id} message={message} />
-            ) : (
-              <AdvisorTurn
-                key={message.id}
-                message={message}
-                extras={getExtras(message.id)}
-                onRetry={onRetry}
-                onFollowup={onFollowup}
-                onGenerateDoc={onGenerateDoc}
-                onSuggestChip={onSuggestChip}
-                onQuickFormChange={onQuickFormChange}
-                onQuickFormSubmit={onQuickFormSubmit}
-                onCopyMessage={onCopyMessage}
-                onExportMessage={onExportMessage}
-                onPickProvince={onPickProvince}
-                onBuyAdvisorPack={onBuyAdvisorPack}
-                buyingAdvisorPack={buyingAdvisorPack}
-                rating={ratingFor(message.id)}
-                onRate={rate}
-              />
-            ),
-          )}
-          <div className="h-[6px]" />
+      <div className="relative min-h-0 flex-1">
+        <div ref={logRef} aria-live="polite" className="h-full overflow-y-auto">
+          <div className="mx-auto flex max-w-[740px] flex-col gap-[22px] px-[24px] pt-[26px] pb-[16px]">
+            {messages.map((message) =>
+              message.author === 'user' ? (
+                <UserTurn key={message.id} message={message} onReuse={setDraft} />
+              ) : (
+                <AdvisorTurn
+                  key={message.id}
+                  message={message}
+                  extras={getExtras(message.id)}
+                  onRetry={onRetry}
+                  onFollowup={onFollowup}
+                  onGenerateDoc={onGenerateDoc}
+                  onSuggestChip={onSuggestChip}
+                  onQuickFormChange={onQuickFormChange}
+                  onQuickFormSubmit={onQuickFormSubmit}
+                  onCopyMessage={onCopyMessage}
+                  onExportMessage={onExportMessage}
+                  onPickProvince={onPickProvince}
+                  onBuyAdvisorPack={onBuyAdvisorPack}
+                  buyingAdvisorPack={buyingAdvisorPack}
+                  rating={ratingFor(message.id)}
+                  onRate={rate}
+                  reason={reasonFor(message.id)}
+                  onRateReason={rateReason}
+                />
+              ),
+            )}
+            {/* Real sends don't stream — the last user bubble gets pending
+                dots so the wait reads as "the advisor is on it". */}
+            {busy && lastIsUser && (
+              <div className="flex items-start gap-[12px]">
+                <div className="mt-[2px] flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-[8px] bg-navy">
+                  <Sparkle
+                    size={13}
+                    className="fill-gold-on-navy"
+                    strokeWidth={0}
+                    aria-hidden="true"
+                  />
+                </div>
+                <TypingDots label={x(advisorCore.advisor_thinking)} />
+              </div>
+            )}
+            <div className="h-[6px]" />
+          </div>
         </div>
+        {/* Jump-to-latest — appears once the reader scrolls up; flags when
+            something new landed off-screen. */}
+        {farUp && (
+          <button
+            type="button"
+            onClick={stickToBottom}
+            className="absolute bottom-[14px] left-1/2 flex -translate-x-1/2 cursor-pointer items-center gap-[6px] rounded-[100px] border border-border bg-surface px-[13px] py-[7px] font-sans text-[12px] font-bold text-text-2 shadow-md motion-safe:animate-[fadeInUp_.2s_ease]"
+          >
+            <ArrowDown size={13} strokeWidth={2.2} aria-hidden="true" />
+            {x(M.advisorview_jump_latest)}
+            {hasNew && (
+              <span className="h-[6px] w-[6px] rounded-full bg-accent" aria-hidden="true" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Composer footer */}
       <div className="shrink-0 border-t border-border bg-bg px-[24px] pt-[14px] pb-[16px]">
         <div className="mx-auto max-w-[740px]">
+          {realSending && onStop != null && (
+            <div className="mb-[8px] flex justify-end">
+              <button
+                type="button"
+                onClick={onStop}
+                className="flex cursor-pointer items-center gap-[6px] rounded-[100px] border border-border bg-surface px-[13px] py-[6px] font-sans text-[12px] font-bold text-text-2"
+              >
+                <Square size={11} strokeWidth={2.4} aria-hidden="true" />
+                {x(M.advisorview_stop)}
+              </button>
+            </div>
+          )}
           <ChatComposer
             variant="chat"
             placeholder={x(M.advisorview_composer_msg)}
@@ -260,6 +314,8 @@ export function ChatPane({
             disabled={busy}
             enableAttachments
             onAttachmentIssue={onAttachmentIssue}
+            draft={draft}
+            onDraftChange={setDraft}
           />
         </div>
         <Disclaimer className="mt-[8px] text-center" />
@@ -270,13 +326,20 @@ export function ChatPane({
 
 /* ------------------------------------------------------------- user turn */
 
-function UserTurn({ message }: { readonly message: ChatMessage }) {
-  const { lang } = useI18n()
+function UserTurn({
+  message,
+  onReuse,
+}: {
+  readonly message: ChatMessage
+  /** Sends the turn's text back into the composer as an editable draft. */
+  readonly onReuse?: (text: string) => void
+}) {
+  const { x, lang } = useI18n()
   const chips = message.userChips ?? []
   const attachments = message.attachments ?? []
   const text = pickL(message.text, lang)
   return (
-    <div className={`flex flex-col items-end gap-[8px] ${ENTRANCE}`}>
+    <div className={`group flex flex-col items-end gap-[8px] ${ENTRANCE}`}>
       {attachments.length > 0 && (
         <div className="flex max-w-[80%] flex-wrap justify-end gap-[6px]">
           {attachments.map((a) => (
@@ -309,6 +372,16 @@ function UserTurn({ message }: { readonly message: ChatMessage }) {
         </div>
       )}
       {text.length > 0 && <ChatBubble author="user">{text}</ChatBubble>}
+      {onReuse != null && text.length > 0 && (
+        <button
+          type="button"
+          onClick={() => onReuse(text)}
+          className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-muted"
+        >
+          <RotateCcw size={12} strokeWidth={2} />
+          {x(M.advisorview_reuse)}
+        </button>
+      )}
     </div>
   )
 }
@@ -332,7 +405,17 @@ interface AdvisorTurnProps {
   /** undefined = turn has no persisted rating key (demo/fixture/live-seeded). */
   readonly rating?: 1 | -1 | null
   readonly onRate?: (messageId: string, rating: 1 | -1) => void
+  /** Picked thumbs-down reason, when one was saved. */
+  readonly reason?: string | null
+  readonly onRateReason?: (messageId: string, reason: string) => void
 }
+
+/** One-tap why after a thumbs-down — chips persist so the choice is visible. */
+const REASON_CHIPS = [
+  { key: 'wrong_info', label: M.advisorview_reason_wrong },
+  { key: 'too_vague', label: M.advisorview_reason_vague },
+  { key: 'tone', label: M.advisorview_reason_tone },
+] as const
 
 function AdvisorTurn({
   message,
@@ -350,6 +433,8 @@ function AdvisorTurn({
   buyingAdvisorPack = null,
   rating,
   onRate,
+  reason,
+  onRateReason,
 }: AdvisorTurnProps) {
   const { x, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
@@ -460,6 +545,31 @@ function AdvisorTurn({
                         </button>
                       </span>
                     )}
+                  </div>
+                )}
+                {done && rating === -1 && onRateReason != null && (
+                  <div className="mt-[6px] flex max-w-[520px] flex-wrap items-center gap-[7px] px-[4px]">
+                    <span className="text-[11.5px] font-semibold text-text-faint">
+                      {x(M.advisorview_reason_label)}
+                    </span>
+                    {REASON_CHIPS.map((chip) => {
+                      const picked = reason === chip.key
+                      return (
+                        <button
+                          key={chip.key}
+                          type="button"
+                          aria-pressed={picked}
+                          onClick={() => onRateReason(message.id, chip.key)}
+                          className={`cursor-pointer rounded-[100px] border px-[11px] py-[4px] font-sans text-[11.5px] font-semibold ${
+                            picked
+                              ? 'border-(--accent-soft-border) bg-accent-soft text-accent'
+                              : 'border-border bg-surface text-text-2'
+                          }`}
+                        >
+                          {x(chip.label)}
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>

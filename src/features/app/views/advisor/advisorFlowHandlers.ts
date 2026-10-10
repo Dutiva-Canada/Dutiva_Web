@@ -44,6 +44,8 @@ interface FlowHandlersOptions {
   engineReset: (messages: []) => void
   stashActive: () => void
   conversationIdRef: RefObject<string | null>
+  /** Owns the in-flight real send — the view's Stop button aborts it. */
+  sendAbortRef: RefObject<AbortController | null>
   interceptCrisis: (raw: string, chatId: string | null) => boolean
   toToneCard: (card: FixtureToneCard) => ToneCardData
   setSendingReal: (sending: boolean) => void
@@ -68,6 +70,7 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
     engineReset,
     stashActive,
     conversationIdRef,
+    sendAbortRef,
     interceptCrisis,
     toToneCard,
     setSendingReal,
@@ -99,7 +102,15 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
 
     const sendReal = () => {
       setSendingReal(true)
-      void sendAdvisorMessage(userTextString, conversationIdRef.current, organizationId)
+      const ctrl = new AbortController()
+      sendAbortRef.current = ctrl
+      void sendAdvisorMessage(
+        userTextString,
+        conversationIdRef.current,
+        organizationId,
+        [],
+        ctrl.signal,
+      )
         .then((result) =>
           applyRealChatResult({
             result,
@@ -113,8 +124,20 @@ export function createAdvisorFlowHandlers(options: FlowHandlersOptions) {
             showToast,
           }),
         )
-        .catch(handleRealChatFailure)
-        .finally(() => setSendingReal(false))
+        .catch((error: unknown) => {
+          /* The reader stopped the wait — nothing to flag; the server may
+             still have committed the pair, which the next load shows. */
+          if (
+            ctrl.signal.aborted ||
+            (error instanceof Error && error.name === 'AbortError')
+          )
+            return
+          handleRealChatFailure(error)
+        })
+        .finally(() => {
+          sendAbortRef.current = null
+          setSendingReal(false)
+        })
     }
 
     /* A real production workspace must never receive scripted fixture turns

@@ -19,6 +19,7 @@ import type { AdvisorAttachment, AttachmentIssue } from './attachments'
 import { AttachmentError } from './attachments'
 import { useInstalledLocalModels } from '@/lib/localModels/useInstalledLocalModels'
 import { decodeBlobToMono16k } from '@/lib/localModels/audio'
+import { useAutoGrowTextarea } from '@/components/chat/portalChatUtils'
 import {
   REWRITE_MODEL_ID,
   VOICE_NOTE_MODEL_ID,
@@ -60,6 +61,10 @@ interface ChatComposerProps {
   readonly enableAttachments?: boolean
   /** A file was refused (type/size/extraction) — for toast surfacing. */
   readonly onAttachmentIssue?: (issue: AttachmentIssue, fileName: string) => void
+  /** Controlled draft — pass both to hoist the value (e.g. a persisted draft
+      per thread); omitted, the composer keeps its own state. */
+  readonly draft?: string
+  readonly onDraftChange?: (v: string) => void
 }
 
 interface VariantStyle {
@@ -101,12 +106,21 @@ export function ChatComposer({
   autoFocus = false,
   enableAttachments = false,
   onAttachmentIssue,
+  draft,
+  onDraftChange,
 }: ChatComposerProps) {
   const { x } = useI18n()
   /* Optional by design — the composer also renders outside ToastsProvider
      (rail, tests); local-task issues just go unsurfaced there. */
   const showToast = useContext(ToastsContext)?.showToast
-  const [value, setValue] = useState('')
+  const [internal, setInternal] = useState('')
+  const controlled = draft !== undefined && onDraftChange != null
+  const value = controlled ? draft : internal
+  const setValue = (v: string | ((prev: string) => string)) => {
+    const next = typeof v === 'function' ? v(value) : v
+    if (controlled) onDraftChange(next)
+    else setInternal(next)
+  }
   const [pending, setPending] = useState<AdvisorAttachment[]>([])
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -127,6 +141,9 @@ export function ChatComposer({
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus()
   }, [autoFocus])
+
+  /* Grow with the draft up to the variant's max-h, then scroll inside. */
+  useAutoGrowTextarea(textareaRef, value)
 
   /* Drop the mic stream if the composer unmounts mid-recording. */
   useEffect(

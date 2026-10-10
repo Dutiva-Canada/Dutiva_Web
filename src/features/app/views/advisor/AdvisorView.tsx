@@ -26,6 +26,7 @@ export function AdvisorView() {
     hasActiveChat,
     engine,
     sendingReal,
+    cancelRealSend,
     jurisdictionLine,
     jurisdictionTone,
     getExtras,
@@ -102,6 +103,9 @@ export function AdvisorView() {
             activeThreadTitle={currentThreadTitle}
             onBuyAdvisorPack={handleBuyAdvisorPack}
             buyingAdvisorPack={buyingAdvisorPack}
+            realSending={sendingReal}
+            onStop={cancelRealSend}
+            draftKey={`advisor.chat.${activeChatId ?? 'none'}`}
           />
           <ComplianceWorkspace
             state={workspaceState}
