@@ -208,6 +208,7 @@ export function productionTranscript(conv: ProductionConversation): ChatMessage[
       author: m.role === 'user' ? ('user' as const) : ('assistant' as const),
       text: m.content,
       status: 'done' as const,
+      at: m.at,
     }))
 }
 

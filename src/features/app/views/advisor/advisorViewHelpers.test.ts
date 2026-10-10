@@ -8,6 +8,7 @@ import {
   isBackendConversationId,
   isFluffThread,
   operationalNextStepChips,
+  productionTranscript,
   readNavChatId,
   resolveStartFlowKey,
 } from './advisorViewHelpers'
@@ -25,6 +26,22 @@ describe('advisorViewHelpers', () => {
     const old = new Date(now)
     old.setDate(old.getDate() - 30)
     expect(bucketFromUpdatedAt(old.toISOString())).toBe('older')
+  })
+
+  it('productionTranscript carries the server `at` stamp when present', () => {
+    const turns = productionTranscript({
+      id: 'conv-1',
+      updatedAt: '2026-10-10T12:00:00Z',
+      lastAdvisorResponse: null,
+      messages: [
+        { role: 'user' as const, content: 'hi', at: '2026-10-09T20:00:00Z' },
+        { role: 'assistant' as const, content: 'hello', at: '2026-10-09T20:00:03Z' },
+        { role: 'user' as const, content: 'older — no stamp' },
+      ],
+    })
+    expect(turns[0]?.at).toBe('2026-10-09T20:00:00Z')
+    expect(turns[1]?.at).toBe('2026-10-09T20:00:03Z')
+    expect(turns[2]?.at).toBeUndefined()
   })
 
   it('detects backend UUID conversation ids', () => {

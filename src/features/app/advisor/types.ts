@@ -90,4 +90,7 @@ export interface ChatMessage {
   errorText?: LText
   /** Replacement text streamed after a retry. */
   retryText?: LText
+  /** When the turn entered the transcript (ISO) — drives day separators.
+     Server-stamped on persisted turns; absent on pre-0212 history. */
+  at?: string
 }

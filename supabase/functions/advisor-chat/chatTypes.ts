@@ -11,6 +11,8 @@ import type { Database } from '../_shared/database.types.ts'
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
   content: string
+  /** Persisted-only ISO stamp — stripped before messages go upstream. */
+  at?: string
 }
 
 export type SupabaseClient = SbClient<Database>

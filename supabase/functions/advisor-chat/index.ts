@@ -110,7 +110,12 @@ const handler = async (req: Request) => {
      but an unbounded prompt grows cost/latency every turn and eventually
      overflows the context window. 20 messages = 10 user/assistant
      exchanges — far beyond real usage. */
-  const history = fullHistory.slice(-20)
+  const history = fullHistory
+    .slice(-20)
+    /* `at` is transcript metadata for the day separators — never wire data.
+       Rebuild wire-clean copies so a provider strict about message fields
+       can't choke on the stamp. */
+    .map(({ role, content }) => ({ role, content }))
   /* Two faces of the same turn: `upstreamUserMessage` carries multimodal
      content parts to the model; `persistedUserMessage` is the text-only
      manifest + message stored in conversations.messages. */
@@ -121,6 +126,7 @@ const handler = async (req: Request) => {
   const persistedUserMessage: ChatMessage = {
     role: 'user',
     content: persistedUserContent(request.message, request.attachments),
+    at: new Date().toISOString(),
   }
   /* Retrieval sees the previous user turn too, so a follow-up ("and after
      5 years?") still carries the lexemes that found the right chunk. */
@@ -226,7 +232,7 @@ const handler = async (req: Request) => {
   const nextMessages = [
     ...fullHistory,
     persistedUserMessage,
-    { role: 'assistant' as const, content: reply },
+    { role: 'assistant' as const, content: reply, at: new Date().toISOString() },
   ]
   /* Close the claim before persisting the turn: the tokens are already spent
      upstream, so they must be recorded even if the conversation write fails. */
