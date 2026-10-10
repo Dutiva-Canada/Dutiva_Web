@@ -12,11 +12,14 @@
  * this script drives the PR path end to end:
  *
  *   1. Verify the working tree is clean and on main.
- *   2. Push a fresh mirror branch to GitHub.
- *   3. Open a PR via the stored git credential for github.com
+ *   2. Back-merge github/main into local main (ancestry only — squash merges
+ *      never re-enter GitLab's history, so without this every PR diffs
+ *      against a stale merge-base and conflicts).
+ *   3. Push a fresh mirror branch to GitHub.
+ *   4. Open a PR via the stored git credential for github.com
  *      (MartinConstantineau-code — martinconstantineau itself cannot author
  *      API writes while its email is unverified).
- *   4. Try an immediate squash merge; if branch protection still reports
+ *   5. Try an immediate squash merge; if branch protection still reports
  *      blocked (e.g. a fresh Devin Review posted unresolved threads), arm
  *      auto-merge instead and poll the PR — whichever path lands the merge,
  *      verify github/main's resulting tree equals local main's before
@@ -171,6 +174,34 @@ if (SIGN && unsigned.length > 0) {
   // SHAs changed — keep GitLab and local in agreement
   git('push', 'origin', 'main', '--force-with-lease')
   console.log('signed + force-pushed GitLab main')
+}
+
+// --- back-merge: github/main's squashes must join local ancestry -------------
+// Every squash merge lands on github/main but never re-enters GitLab's
+// history, so without this join each mirror PR diffs against a stale
+// merge-base and conflicts on every file both sides touched since the last
+// sync (observed on PRs #424–#427). `merge -s ours` records github/main as a
+// parent while keeping our tree byte-identical — GitLab is the source of
+// truth and already contains everything the squash flattened. Runs after
+// signing so the merge parents the final (possibly rewritten) tip, and
+// before the mirror push so the PR's merge-base is github/main's tip.
+// Guard: the squash's tree must equal some recent local commit's tree (it is,
+// by construction, the tip at the last sync). If it isn't, something was
+// pushed to GitHub outside the mirror flow and an ours-merge would silently
+// drop that content — refuse and ask for a manual reconcile instead.
+if (!gitOk('merge-base', '--is-ancestor', 'github/main', 'main')) {
+  const mirroredElsewhere = git('log', '--format=%T', 'main')
+    .split('\n')
+    .includes(git('rev-parse', 'github/main^{tree}'))
+  if (!mirroredElsewhere)
+    throw new Error(
+      "github/main carries content no local commit produced — something was " +
+        'pushed outside the mirror flow. Inspect `git log main..github/main` ' +
+        'and reconcile manually before syncing.',
+    )
+  git('merge', '-s', 'ours', '--no-edit', 'github/main')
+  git('push', 'origin', 'main')
+  console.log('back-merged github/main into main (ancestry join — tree unchanged)')
 }
 
 // --- push mirror branch + open PR ------------------------------------------
