@@ -48,7 +48,12 @@ import { PROVINCE_CHIPS, scenarioFollowupLabels } from './advisorScenarios'
 import type { ScenarioBanner, ScenarioBannerTone } from './advisorScenarios'
 import { ThreadListOpenButton } from './ThreadList'
 import { useTurnRatings } from './advisorTurnRatings'
-import { usePortalChatDraft, useStickToBottom } from '@/components/chat/portalChatUtils'
+import {
+  formatTurnDay,
+  sameTurnDay,
+  usePortalChatDraft,
+  useStickToBottom,
+} from '@/components/chat/portalChatUtils'
 
 /**
  * Active conversation pane (prototype `hasActiveConversation` markup):
@@ -231,32 +236,51 @@ export function ChatPane({
       <div className="relative min-h-0 flex-1">
         <div ref={logRef} aria-live="polite" className="h-full overflow-y-auto">
           <div className="mx-auto flex max-w-[740px] flex-col gap-[22px] px-[24px] pt-[26px] pb-[16px]">
-            {messages.map((message) =>
-              message.author === 'user' ? (
-                <UserTurn key={message.id} message={message} onReuse={setDraft} />
-              ) : (
-                <AdvisorTurn
-                  key={message.id}
-                  message={message}
-                  extras={getExtras(message.id)}
-                  onRetry={onRetry}
-                  onFollowup={onFollowup}
-                  onGenerateDoc={onGenerateDoc}
-                  onSuggestChip={onSuggestChip}
-                  onQuickFormChange={onQuickFormChange}
-                  onQuickFormSubmit={onQuickFormSubmit}
-                  onCopyMessage={onCopyMessage}
-                  onExportMessage={onExportMessage}
-                  onPickProvince={onPickProvince}
-                  onBuyAdvisorPack={onBuyAdvisorPack}
-                  buyingAdvisorPack={buyingAdvisorPack}
-                  rating={ratingFor(message.id)}
-                  onRate={rate}
-                  reason={reasonFor(message.id)}
-                  onRateReason={rateReason}
-                />
-              ),
-            )}
+            {messages.map((message, i) => {
+              /* Day separator when the calendar day changes — turns without
+                 `at` (pre-0212 persisted history) never open one. */
+              const prev = i > 0 ? messages[i - 1] : undefined
+              const dayLabel =
+                message.at !== undefined &&
+                (prev?.at === undefined || !sameTurnDay(prev.at, message.at))
+                  ? formatTurnDay(message.at, lang)
+                  : ''
+              return (
+                <div key={message.id} className="contents">
+                  {dayLabel !== '' && (
+                    <div
+                      role="separator"
+                      className="self-center rounded-full border border-border bg-surface px-[10px] py-[2px] text-[10.5px] font-semibold text-text-muted"
+                    >
+                      {dayLabel}
+                    </div>
+                  )}
+                  {message.author === 'user' ? (
+                    <UserTurn message={message} onReuse={setDraft} />
+                  ) : (
+                    <AdvisorTurn
+                      message={message}
+                      extras={getExtras(message.id)}
+                      onRetry={onRetry}
+                      onFollowup={onFollowup}
+                      onGenerateDoc={onGenerateDoc}
+                      onSuggestChip={onSuggestChip}
+                      onQuickFormChange={onQuickFormChange}
+                      onQuickFormSubmit={onQuickFormSubmit}
+                      onCopyMessage={onCopyMessage}
+                      onExportMessage={onExportMessage}
+                      onPickProvince={onPickProvince}
+                      onBuyAdvisorPack={onBuyAdvisorPack}
+                      buyingAdvisorPack={buyingAdvisorPack}
+                      rating={ratingFor(message.id)}
+                      onRate={rate}
+                      reason={reasonFor(message.id)}
+                      onRateReason={rateReason}
+                    />
+                  )}
+                </div>
+              )
+            })}
             {/* Real sends don't stream — the last user bubble gets pending
                 dots so the wait reads as "the advisor is on it". */}
             {busy && lastIsUser && (

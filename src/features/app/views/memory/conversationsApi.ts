@@ -12,6 +12,8 @@ import type { AdvisorResponse } from '@/features/app/advisor/contract'
 export interface ConversationTurn {
   role: 'user' | 'assistant' | 'system'
   content: string
+  /** Server-stamped ISO time for the turn (absent on pre-0212 history). */
+  at?: string
 }
 
 export interface ProductionConversation {
@@ -25,6 +27,7 @@ export interface ProductionConversation {
 const messageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string(),
+  at: z.string().optional(),
 })
 
 const rowSchema = z.object({

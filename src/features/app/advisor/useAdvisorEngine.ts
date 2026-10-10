@@ -143,6 +143,7 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
         userChips: chips,
         attachments,
         status: 'done',
+        at: new Date().toISOString(),
       }
       setMessages((prev) => [...prev, message])
     },
@@ -162,6 +163,7 @@ export function useAdvisorEngine(options: AdvisorEngineOptions = {}): AdvisorEng
         proposedActions: spec.proposedActions,
         errorText: spec.errorText,
         retryText: spec.retryText,
+        at: new Date().toISOString(),
       }
       if (prefersReducedMotion()) {
         setMessages((prev) => [
