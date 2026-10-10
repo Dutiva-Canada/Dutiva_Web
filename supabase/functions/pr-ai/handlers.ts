@@ -327,6 +327,9 @@ export type PrChatAction =
 export interface PrChatReply {
   reply: string
   action: PrChatAction | null
+  /* Short next-prompt chips the client shows as tappable follow-ups —
+     ephemeral: they ride the reply payload, never the stored turn. */
+  suggests: string[]
 }
 
 export const PR_CHAT_ACTION_TYPES = new Set([
@@ -396,7 +399,8 @@ export function prChatPrompt(
       'Everything you add lands as a draft or a log entry the person could have created themselves. You never publish, schedule, send, delete, or contact anyone — if asked for that, say you cannot and point to the page that does it (Content publishes, Review holds suggestions, Media drafts pitches).',
       'Only emit an action the person actually asked for. If a campaign name does not match the list below, ask which one they mean instead of guessing.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
-      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>}. No markdown fences.',
+      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Desk data:',
       `Campaigns (${ctx.campaigns.length}):`,
@@ -441,11 +445,21 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
     const obj = JSON.parse(text.slice(start, end + 1)) as {
       reply?: unknown
       action?: unknown
+      suggests?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
     if (!reply) return null
+    /* Follow-up chips — kept only as clean short strings; malformed or
+       oversized entries drop out rather than fail the whole reply. */
+    const suggests = Array.isArray(obj.suggests)
+      ? obj.suggests
+          .filter((s): s is string => typeof s === 'string')
+          .map((s) => s.trim().slice(0, 120))
+          .filter((s) => s !== '')
+          .slice(0, 3)
+      : []
     const a = obj.action
-    if (a === null || a === undefined) return { reply, action: null }
+    if (a === null || a === undefined) return { reply, action: null, suggests }
     if (typeof a !== 'object') return null
     const action = a as Record<string, unknown>
     if (typeof action.type !== 'string' || !PR_CHAT_ACTION_TYPES.has(action.type)) return null
@@ -455,6 +469,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!name) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_campaign',
             name,
@@ -468,6 +483,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!title) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_content_item',
             title,
@@ -483,6 +499,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!name) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_media_contact',
             name,
@@ -498,6 +515,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!title) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_mention',
             title,
@@ -510,12 +528,12 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       case 'add_keyword': {
         const keyword = optStr(action.keyword, 120)
         if (!keyword) return null
-        return { reply, action: { type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) } }
+        return { reply, suggests, action: { type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) } }
       }
       case 'add_geo_prompt': {
         const prompt = optStr(action.prompt, 300)
         if (!prompt || prompt.length < 8) return null
-        return { reply, action: { type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) } }
+        return { reply, suggests, action: { type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) } }
       }
       case 'update_campaign_status': {
         const campaign = optStr(action.campaign, 120)
@@ -523,6 +541,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
         if (!campaign || !status) return null
         return {
           reply,
+          suggests,
           action: { type: 'update_campaign_status', campaign, status: status as 'draft' | 'active' | 'paused' | 'done' },
         }
       }

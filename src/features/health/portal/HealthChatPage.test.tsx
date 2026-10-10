@@ -24,6 +24,9 @@ import { HealthChatPage } from './HealthChatPage'
    module is the seam to mock. */
 vi.mock('@/features/health/data/api', () => ({
   sendHealthChat: vi.fn(),
+  regenerateHealthChat: vi.fn(),
+  listHealthChatThreads: vi.fn(async () => []),
+  newHealthChatThread: vi.fn(),
   loadHealthChatHistory: vi.fn(),
   clearHealthChat: vi.fn(),
   rateHealthChatTurn: vi.fn(),
@@ -138,6 +141,7 @@ describe('HealthChatPage', () => {
       reply: 'Done — marked for today.',
       action: { type: 'mark_habit_done', detail: 'Walk', ok: true, refId: 'h1' },
       assistantId: '11111111-2222-3333-4444-555555555555',
+      suggests: [],
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Tell Mira/)
@@ -149,7 +153,12 @@ describe('HealthChatPage', () => {
 
     /* The third argument is the streaming onDelta callback. */
     await waitFor(() =>
-      expect(sendHealthChat).toHaveBeenCalledWith('mark Walk done', 'en', expect.any(Function)),
+      expect(sendHealthChat).toHaveBeenCalledWith(
+        'mark Walk done',
+        'en',
+        expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      ),
     )
     expect(await screen.findByText('Done — marked for today.')).toBeInTheDocument()
     expect(screen.getByText('Marked “Walk” done today')).toBeInTheDocument()

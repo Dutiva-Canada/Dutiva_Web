@@ -264,6 +264,9 @@ export type ChatAction =
 export interface ChatReply {
   reply: string
   action: ChatAction | null
+  /* Short next-prompt chips the client shows as tappable follow-ups —
+     ephemeral: they ride the reply payload, never the stored turn. */
+  suggests: string[]
 }
 
 /** A check-in row with its free-text note — chat only. */
@@ -362,7 +365,8 @@ export function chatPrompt(
       lang === 'fr'
         ? 'Reply in Canadian French.'
         : 'Reply in English.',
-      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>}. No markdown fences.',
+      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      '"suggests" holds up to 3 short things the person might say next — each under 8 words, same language as the reply. Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
       'Habits:',
@@ -396,11 +400,21 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
     const obj = JSON.parse(text.slice(start, end + 1)) as {
       reply?: unknown
       action?: unknown
+      suggests?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
     if (!reply) return null
+    /* Follow-up chips — kept only as clean short strings; malformed or
+       oversized entries drop out rather than fail the whole reply. */
+    const suggests = Array.isArray(obj.suggests)
+      ? obj.suggests
+          .filter((s): s is string => typeof s === 'string')
+          .map((s) => s.trim().slice(0, 120))
+          .filter((s) => s !== '')
+          .slice(0, 3)
+      : []
     const a = obj.action
-    if (a === null || a === undefined) return { reply, action: null }
+    if (a === null || a === undefined) return { reply, action: null, suggests }
     if (typeof a !== 'object') return null
     const action = a as Record<string, unknown>
     if (typeof action.type !== 'string' || !CHAT_ACTION_TYPES.has(action.type)) return null
@@ -408,10 +422,10 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
       case 'mark_habit_done':
       case 'unmark_habit_done':
         if (typeof action.habit !== 'string' || action.habit.trim() === '') return null
-        return { reply, action: { type: action.type, habit: action.habit.trim().slice(0, 120) } }
+        return { reply, suggests, action: { type: action.type, habit: action.habit.trim().slice(0, 120) } }
       case 'add_habit':
         if (typeof action.name !== 'string' || action.name.trim().length < 2) return null
-        return { reply, action: { type: 'add_habit', name: action.name.trim().slice(0, 120) } }
+        return { reply, suggests, action: { type: 'add_habit', name: action.name.trim().slice(0, 120) } }
       case 'add_checkin': {
         const mood = Number(action.mood)
         if (!Number.isInteger(mood) || mood < 1 || mood > 5) return null
@@ -420,6 +434,7 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
           return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_checkin',
             mood,
@@ -432,6 +447,7 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
         if (typeof action.body !== 'string' || action.body.trim() === '') return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_journal_entry',
             title: typeof action.title === 'string' ? action.title.trim().slice(0, 200) : undefined,

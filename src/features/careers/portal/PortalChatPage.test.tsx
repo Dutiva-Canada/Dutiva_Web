@@ -20,6 +20,9 @@ import { PortalChatPage } from './PortalChatPage'
    the seam. */
 vi.mock('@/features/careers/data/candidateChat', () => ({
   sendCandidateChat: vi.fn(),
+  regenerateCandidateChat: vi.fn(),
+  listCandidateChatThreads: vi.fn(async () => []),
+  newCandidateChatThread: vi.fn(),
   loadCandidateChatHistory: vi.fn(),
   clearCandidateChat: vi.fn(),
   rateCandidateChatTurn: vi.fn(),
@@ -79,6 +82,7 @@ describe('PortalChatPage', () => {
     vi.mocked(sendCandidateChat).mockResolvedValue({
       reply: 'Your strongest match is the Globex role.',
       assistantId: ASSISTANT_ID,
+      suggests: [],
     })
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
@@ -93,6 +97,8 @@ describe('PortalChatPage', () => {
         'which posting should I chase first',
         'en',
         expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      
       ),
     )
     expect(await screen.findByText('Your strongest match is the Globex role.')).toBeInTheDocument()
@@ -179,6 +185,7 @@ describe('PortalChatPage', () => {
     vi.mocked(sendCandidateChat).mockResolvedValue({
       reply: 'Start with the strongest match.',
       assistantId: ASSISTANT_ID,
+      suggests: [],
     })
     renderPage()
     await screen.findByText(/Hi — I’m Claire/)
@@ -191,6 +198,8 @@ describe('PortalChatPage', () => {
         'Which discovered jobs fit me best?',
         'en',
         expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      
       ),
     )
   })
@@ -199,7 +208,7 @@ describe('PortalChatPage', () => {
     vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
     vi.mocked(sendCandidateChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID })
+      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID , suggests: []})
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
 
@@ -230,7 +239,7 @@ describe('PortalChatPage', () => {
     const more = await screen.findByRole('button', { name: 'Load earlier messages' })
     fireEvent.click(more)
     await waitFor(() =>
-      expect(loadCandidateChatHistory).toHaveBeenLastCalledWith(40, '2026-10-01T12:00:00Z'),
+      expect(loadCandidateChatHistory).toHaveBeenLastCalledWith(40, '2026-10-01T12:00:00Z', null),
     )
     await waitFor(() =>
       expect(

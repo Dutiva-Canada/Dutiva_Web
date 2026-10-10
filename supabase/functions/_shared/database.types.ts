@@ -1654,24 +1654,59 @@ export type Database = {
           content: string
           created_at: string
           feedback: number | null
+          feedback_reason: string | null
           id: string
           role: string
+          thread_id: string | null
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role: string
+          thread_id?: string | null
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: []
@@ -7656,8 +7691,10 @@ export type Database = {
           content: string
           created_at: string
           feedback: number | null
+          feedback_reason: string | null
           id: string
           role: string
+          thread_id: string | null
           user_id: string
         }
         Insert: {
@@ -7665,8 +7702,10 @@ export type Database = {
           content: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role: string
+          thread_id?: string | null
           user_id: string
         }
         Update: {
@@ -7674,8 +7713,39 @@ export type Database = {
           content?: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "health_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      health_chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: []
@@ -9956,8 +10026,10 @@ export type Database = {
           content: string
           created_at: string
           feedback: number | null
+          feedback_reason: string | null
           id: string
           role: string
+          thread_id: string | null
           user_id: string
         }
         Insert: {
@@ -9965,8 +10037,10 @@ export type Database = {
           content: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role: string
+          thread_id?: string | null
           user_id: string
         }
         Update: {
@@ -9974,8 +10048,39 @@ export type Database = {
           content?: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "invest_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invest_chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: []
@@ -12065,8 +12170,10 @@ export type Database = {
           content: string
           created_at: string
           feedback: number | null
+          feedback_reason: string | null
           id: string
           role: string
+          thread_id: string | null
           user_id: string
         }
         Insert: {
@@ -12074,8 +12181,10 @@ export type Database = {
           content: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role: string
+          thread_id?: string | null
           user_id: string
         }
         Update: {
@@ -12083,8 +12192,39 @@ export type Database = {
           content?: string
           created_at?: string
           feedback?: number | null
+          feedback_reason?: string | null
           id?: string
           role?: string
+          thread_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pr_chat_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "pr_chat_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pr_chat_threads: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: []

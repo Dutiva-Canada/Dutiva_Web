@@ -37,10 +37,27 @@ export interface PrChatTurn {
   action: PrChatAction | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
+  /** Why a downvote landed — set when feedback is -1. */
+  feedbackReason?: string | null
   createdAt: string
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+}
+
+/** A named conversation — the default thread (threadId null) always exists;
+    these are extra ones the user started from the switcher. */
+export interface PrChatThread {
+  id: string
+  title: string | null
+  createdAt: string
+}
+
+/** Options every chat call shares — thread scope plus abort for the
+    streaming path's stop button. */
+export interface PrChatCallOpts {
+  threadId?: string | null
+  signal?: AbortSignal
 }
 
 /** One turn of the desk conversation. The server writes both sides to
@@ -48,26 +65,103 @@ export interface PrChatTurn {
     only sends the message and the locale. assistantId is the persisted
     row's id — the client needs it to attach feedback. Pass onDelta to
     stream the reply into the UI as it generates. */
+export interface PrChatSendResult {
+  reply: string
+  action: PrChatAction | null
+  assistantId: string | null
+  /** Short follow-up prompts the reply suggested — ephemeral chips, never
+      persisted with the turn. */
+  suggests: string[]
+}
+
 export async function sendPrChat(
   message: string,
   lang: 'en' | 'fr',
   onDelta?: (text: string) => void,
-): Promise<{ reply: string; action: PrChatAction | null; assistantId: string | null }> {
+  opts?: PrChatCallOpts,
+): Promise<PrChatSendResult> {
   const client = requireClient()
-  const body = { kind: 'chat', message, lang }
+  const body = { kind: 'chat', message, lang, threadId: opts?.threadId ?? null }
   const raw = (
     onDelta
-      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta)
+      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta, opts?.signal)
       : await invokeEdgeFn(client, 'pr-ai', body)
   ) as {
     reply?: string
     action?: PrChatAction | null
     assistantId?: string | null
+    suggests?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from pr-ai')
   }
-  return { reply: raw.reply, action: raw.action ?? null, assistantId: raw.assistantId ?? null }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+  }
+}
+
+/** Re-run the thread's last user turn — the server drops the stale pair
+    and answers fresh. Same payload shape as sendPrChat. */
+export async function regeneratePrChat(
+  lang: 'en' | 'fr',
+  onDelta?: (text: string) => void,
+  opts?: PrChatCallOpts,
+): Promise<PrChatSendResult> {
+  const client = requireClient()
+  const body = { kind: 'chat_regenerate', lang, threadId: opts?.threadId ?? null }
+  const raw = (
+    onDelta
+      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta, opts?.signal)
+      : await invokeEdgeFn(client, 'pr-ai', body)
+  ) as {
+    reply?: string
+    action?: PrChatAction | null
+    assistantId?: string | null
+    suggests?: unknown
+  }
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from pr-ai')
+  }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+  }
+}
+
+/** The user's named conversations — the default thread isn't listed; it's
+    always selectable as "main". */
+export async function listPrChatThreads(): Promise<PrChatThread[]> {
+  const data = await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_threads' })
+  const rows = (((data as { threads?: unknown } | null)?.threads ?? []) as Record<
+    string,
+    unknown
+  >[])
+  return rows.map((r) => ({
+    id: String(r.id ?? ''),
+    title: typeof r.title === 'string' ? r.title : null,
+    createdAt: String(r.created_at ?? ''),
+  }))
+}
+
+/** Start a named conversation — untitled until its first message lands. */
+export async function newPrChatThread(): Promise<PrChatThread> {
+  const data = await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_thread_new' })
+  const t = (data as { thread?: Record<string, unknown> } | null)?.thread
+  if (!t?.id) throw new Error('Thread creation failed')
+  return {
+    id: String(t.id),
+    title: typeof t.title === 'string' ? t.title : null,
+    createdAt: String(t.created_at ?? ''),
+  }
 }
 
 /** Reverses the write an assistant turn's action made — deletes the row it
@@ -128,18 +222,32 @@ export async function sendPrReaction(
   return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
-/** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). Routed
-    through the function — it constrains the write to the caller's own
-    assistant rows. */
-export async function ratePrChatTurn(messageId: string, rating: 1 | -1 | 0): Promise<void> {
-  await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_feedback', messageId, rating })
+/** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). A downvote
+    may carry a one-tap `reason` so the signal says why. Routed through the
+    function — it constrains the write to the caller's own assistant rows. */
+export async function ratePrChatTurn(
+  messageId: string,
+  rating: 1 | -1 | 0,
+  reason?: string,
+): Promise<void> {
+  await invokeEdgeFn(requireClient(), 'pr-ai', {
+    kind: 'chat_feedback',
+    messageId,
+    rating,
+    reason,
+  })
 }
 
-export async function loadPrChatHistory(limit = 60, before?: string): Promise<PrChatTurn[]> {
+export async function loadPrChatHistory(
+  limit = 60,
+  before?: string,
+  threadId?: string | null,
+): Promise<PrChatTurn[]> {
   const data = await invokeEdgeFn(requireClient(), 'pr-ai', {
     kind: 'chat_history',
     limit,
     before,
+    threadId: threadId ?? null,
   })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
@@ -148,12 +256,17 @@ export async function loadPrChatHistory(limit = 60, before?: string): Promise<Pr
     content: String(r.content ?? ''),
     action: (r.action as PrChatAction | null) ?? null,
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
+    feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),
   }))
 }
 
-/** Clears the whole conversation for the signed-in user — routed through the
-    function so the table's writer stays server-side. */
-export async function clearPrChat(): Promise<void> {
-  await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_clear' })
+/** Clears the current conversation for the signed-in user — scoped to the
+    thread when one is selected. Routed through the function so the table's
+    writer stays server-side. */
+export async function clearPrChat(threadId?: string | null): Promise<void> {
+  await invokeEdgeFn(requireClient(), 'pr-ai', {
+    kind: 'chat_clear',
+    threadId: threadId ?? null,
+  })
 }

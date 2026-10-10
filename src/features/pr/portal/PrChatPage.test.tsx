@@ -23,6 +23,9 @@ import { PrChatPage } from './PrChatPage'
    seam to mock. */
 vi.mock('@/features/pr/data/chatApi', () => ({
   sendPrChat: vi.fn(),
+  regeneratePrChat: vi.fn(),
+  listPrChatThreads: vi.fn(async () => []),
+  newPrChatThread: vi.fn(),
   loadPrChatHistory: vi.fn(),
   clearPrChat: vi.fn(),
   ratePrChatTurn: vi.fn(),
@@ -103,6 +106,7 @@ describe('PrChatPage', () => {
       reply: 'Draft filed.',
       action: { type: 'add_media_contact', detail: 'Jo at CBC', ok: true, refId: 'c1' },
       assistantId: ASSISTANT_ID,
+      suggests: [],
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Paige/)
@@ -117,6 +121,8 @@ describe('PrChatPage', () => {
         'add Jo at CBC to my contacts',
         'en',
         expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      
       ),
     )
     expect(await screen.findByText('Draft filed.')).toBeInTheDocument()

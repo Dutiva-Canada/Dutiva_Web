@@ -23,6 +23,9 @@ import { InvestChatPage } from './InvestChatPage'
    the seam. */
 vi.mock('@/features/invest/data/chatApi', () => ({
   sendInvestChat: vi.fn(),
+  regenerateInvestChat: vi.fn(),
+  listInvestChatThreads: vi.fn(async () => []),
+  newInvestChatThread: vi.fn(),
   loadInvestChatHistory: vi.fn(),
   clearInvestChat: vi.fn(),
   rateInvestChatTurn: vi.fn(),
@@ -130,6 +133,7 @@ describe('InvestChatPage', () => {
       reply: 'On it.',
       action: null,
       assistantId: ASSISTANT_ID,
+      suggests: [],
     })
     renderPage()
     await screen.findByText(/Hi — I’m Tally/)
@@ -142,6 +146,8 @@ describe('InvestChatPage', () => {
         'What’s on my watchlist right now?',
         'en',
         expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      
       ),
     )
   })
@@ -150,7 +156,7 @@ describe('InvestChatPage', () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     vi.mocked(sendInvestChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID })
+      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID , suggests: []})
     renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
 
@@ -187,7 +193,7 @@ describe('InvestChatPage', () => {
     fireEvent.click(more)
     /* The cursor is the oldest loaded turn's timestamp. */
     await waitFor(() =>
-      expect(loadInvestChatHistory).toHaveBeenLastCalledWith(40, '2026-10-01T12:00:00Z'),
+      expect(loadInvestChatHistory).toHaveBeenLastCalledWith(40, '2026-10-01T12:00:00Z', null),
     )
     /* An empty page means the log is fully loaded — the affordance goes. */
     await waitFor(() =>
@@ -243,6 +249,7 @@ describe('InvestChatPage', () => {
       reply: 'Queued a draft order for review.',
       action: { type: 'create_order', detail: 'buy 5 XEQT', ok: true, refId: 'o1' },
       assistantId: ASSISTANT_ID,
+      suggests: [],
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
@@ -257,6 +264,8 @@ describe('InvestChatPage', () => {
         'queue a buy of 5 XEQT',
         'en',
         expect.any(Function),
+        { signal: expect.anything(), threadId: null },
+      
       ),
     )
     expect(await screen.findByText('Queued a draft order for review.')).toBeInTheDocument()

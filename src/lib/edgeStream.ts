@@ -29,6 +29,7 @@ export async function invokeEdgeFnStream(
   fnName: string,
   body: Record<string, unknown>,
   onDelta: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
   const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
   const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
@@ -44,6 +45,9 @@ export async function invokeEdgeFnStream(
       Authorization: `Bearer ${session?.access_token ?? anon}`,
     },
     body: JSON.stringify({ ...body, stream: true }),
+    /* Abort kills the client stream — the deltas so far stay usable; the
+       server may still finish and persist its turn. */
+    signal: signal ?? null,
   })
   if (!res.ok) throw new Error(`${fnName} ${res.status}`)
   const contentType = res.headers.get('content-type') ?? ''

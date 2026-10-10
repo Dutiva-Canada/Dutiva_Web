@@ -83,6 +83,12 @@ const SENSITIVE_TABLES = [
   'health_chat_messages',
   'pr_chat_messages',
   'invest_chat_messages',
+  // Portal chat threads (0210): the named conversations those messages
+  // hang off of — same owner-only contract as the transcript itself.
+  'health_chat_threads',
+  'pr_chat_threads',
+  'invest_chat_threads',
+  'candidate_chat_threads',
   // Advisor (0208): turn-level ratings are private to the rater, and the
   // conversations table itself holds full Advisor transcripts.
   'advisor_turn_feedback',
