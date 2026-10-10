@@ -36,6 +36,9 @@ export interface InvestChatTurn {
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   createdAt: string
+  /** Client-only — an optimistic user turn whose send threw; the bubble
+      keeps the text and offers a retry instead of vanishing. */
+  failed?: boolean
 }
 
 /** One turn of the book conversation. The server writes both sides to
@@ -131,8 +134,15 @@ export async function rateInvestChatTurn(messageId: string, rating: 1 | -1 | 0):
   await invokeEdgeFn(requireClient(), 'invest-ai', { kind: 'chat_feedback', messageId, rating })
 }
 
-export async function loadInvestChatHistory(limit = 60): Promise<InvestChatTurn[]> {
-  const data = await invokeEdgeFn(requireClient(), 'invest-ai', { kind: 'chat_history', limit })
+export async function loadInvestChatHistory(
+  limit = 60,
+  before?: string,
+): Promise<InvestChatTurn[]> {
+  const data = await invokeEdgeFn(requireClient(), 'invest-ai', {
+    kind: 'chat_history',
+    limit,
+    before,
+  })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),

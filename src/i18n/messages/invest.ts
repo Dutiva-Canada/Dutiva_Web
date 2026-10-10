@@ -657,6 +657,34 @@ const investCoreMessages = defineMessages({
      [FR self-authored] */
   invest_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
   invest_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Empty-state starter chips — tappable prompts that teach the surface.
+     The third differs by tier: staff get an advice-shaped ask.
+     [FR self-authored] */
+  invest_chat_starter_1: {
+    en: 'What’s on my watchlist right now?',
+    fr: 'Qu’est-ce que je surveille en ce moment ?',
+  },
+  invest_chat_starter_2: { en: 'Show my open orders', fr: 'Montre mes ordres en attente' },
+  invest_chat_starter_ext: {
+    en: 'Explain what a limit order is',
+    fr: 'Explique ce qu’est un ordre à cours limité',
+  },
+  invest_chat_starter_int: {
+    en: 'What should I buy first for a 5–10 year growth goal?',
+    fr: 'Qu’achèterais-tu en premier pour un objectif de croissance de 5 à 10 ans ?',
+  },
+  invest_chat_internal_badge: { en: 'Internal', fr: 'Interne' },
+  invest_chat_retry: { en: 'Retry', fr: 'Réessayer' },
+  invest_chat_view: { en: 'View', fr: 'Voir' },
+  invest_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  invest_chat_load_earlier: {
+    en: 'Load earlier messages',
+    fr: 'Charger les messages précédents',
+  },
+  invest_chat_enter_hint: {
+    en: 'Enter to send · Shift+Enter for a new line',
+    fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
+  },
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },

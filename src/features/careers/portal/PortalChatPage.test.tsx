@@ -174,6 +174,71 @@ describe('PortalChatPage', () => {
     expect(screen.queryByText(/not a person or a recruiter/)).not.toBeInTheDocument()
   })
 
+  it('sends a starter chip as a message from the empty state', async () => {
+    vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
+    vi.mocked(sendCandidateChat).mockResolvedValue({
+      reply: 'Start with the strongest match.',
+      assistantId: ASSISTANT_ID,
+    })
+    renderPage()
+    await screen.findByText(/Hi — I’m Claire/)
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Which discovered jobs fit me best?' }),
+    )
+    await waitFor(() =>
+      expect(sendCandidateChat).toHaveBeenCalledWith(
+        'Which discovered jobs fit me best?',
+        'en',
+        expect.any(Function),
+      ),
+    )
+  })
+
+  it('flags a failed send in place and retries it', async () => {
+    vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
+    vi.mocked(sendCandidateChat)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID })
+    renderPage()
+    await screen.findByPlaceholderText(/Ask about your search/)
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask about your search/), {
+      target: { value: 'ping' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    const retry = await screen.findByRole('button', { name: 'Retry' })
+    expect(screen.getByText('ping')).toBeInTheDocument()
+
+    fireEvent.click(retry)
+    await waitFor(() => expect(sendCandidateChat).toHaveBeenCalledTimes(2))
+    expect(await screen.findByText('Back on.')).toBeInTheDocument()
+  })
+
+  it('offers a Load earlier page when history fills the window', async () => {
+    const page = Array.from({ length: 40 }, (_, i) => ({
+      id: `h${i}`,
+      role: 'user' as const,
+      content: `message ${i}`,
+      feedback: null,
+      createdAt: `2026-10-0${(i % 9) + 1}T12:00:00Z`,
+    }))
+    vi.mocked(loadCandidateChatHistory).mockResolvedValueOnce(page).mockResolvedValueOnce([])
+    renderPage()
+
+    const more = await screen.findByRole('button', { name: 'Load earlier messages' })
+    fireEvent.click(more)
+    await waitFor(() =>
+      expect(loadCandidateChatHistory).toHaveBeenLastCalledWith(40, '2026-10-01T12:00:00Z'),
+    )
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Load earlier messages' }),
+      ).not.toBeInTheDocument(),
+    )
+  })
+
   it('renders the French chrome and greeting under lang fr', async () => {
     vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
     renderPage('fr')

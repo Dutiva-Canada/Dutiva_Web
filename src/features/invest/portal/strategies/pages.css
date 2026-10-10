@@ -459,7 +459,8 @@
   flex: 1;
   min-height: 44px;
   max-height: 160px;
-  resize: vertical;
+  overflow-y: auto;
+  resize: none;
   border: 1.5px solid var(--sb-line);
   border-radius: 12px;
   background: var(--sb-input);
@@ -496,4 +497,123 @@
   font-size: 11.5px;
   color: var(--sb-muted);
   line-height: 1.5;
+}
+/* While history loads — fixed-height ghost bubbles keep the card's height
+   stable instead of collapsing to a spinner. */
+.sbchat-ghost {
+  min-height: 46px;
+  opacity: 0.55;
+  animation: sbchat-pulse 1.4s ease-in-out infinite;
+}
+.sbchat-ghost.sbchat-g-a { width: 46%; }
+.sbchat-ghost.sbchat-g-b { width: 30%; }
+@keyframes sbchat-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.65; }
+}
+/* Day separator between turns — a muted centered date chip. */
+.sbchat-day {
+  display: flex;
+  justify-content: center;
+  margin: 6px 0 2px;
+}
+.sbchat-day > span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--sb-muted);
+  background: var(--sb-bg);
+  border: 1px solid var(--sb-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+/* Internal-staff tier pill beside the subtitle. */
+.sbchat-tier {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--sb-accent);
+  background: var(--sb-accent-soft);
+  color: var(--sb-accent-ink);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+/* Empty-state starter chips — tappable prompts under the greeting. */
+.sbchat-starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+  align-self: flex-start;
+  max-width: min(78%, 560px);
+}
+.sbchat-starter {
+  border: 1px solid var(--sb-line);
+  border-radius: 999px;
+  background: var(--sb-input);
+  color: var(--sb-ink);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.sbchat-starter:hover {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+/* A failed optimistic user turn keeps its text + offers a retry. */
+.sbchat-bubble.user[data-failed='true'] {
+  border: 1px solid var(--sb-accent);
+  opacity: 0.75;
+}
+.sbchat-retry {
+  display: inline-flex;
+  margin-left: 8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+/* "Load earlier" sits at the top of the log. */
+.sbchat-more {
+  align-self: center;
+  border: 1px solid var(--sb-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sb-muted);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.sbchat-more:hover {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+/* Deep-link inside an action chip — "View" → the page the write touched. */
+.sbchat-chip-link {
+  margin-left: 4px;
+  color: var(--sb-accent-ink);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+/* Composer footer: Enter hint left, character count right (only near the
+   1200 cap). */
+.sbchat-compose-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--sb-muted);
 }

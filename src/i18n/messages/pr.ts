@@ -669,6 +669,40 @@ export const prMessages = defineMessages({
      [FR self-authored] */
   pr_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
   pr_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Internal-staff tier — shown instead of pr_chat_sub when the account is
+     @dutiva.ca: the server lets Paige advise on the desk directly.
+     [FR self-authored] */
+  pr_chat_sub_internal: {
+    en: 'Your press specialist — ask about your desk, or tell her what to record. Internal staff account: she also advises on the desk directly.',
+    fr: 'Votre spécialiste presse — posez-lui une question sur vos données, ou dites-lui quoi noter. Compte interne : elle vous conseille aussi directement sur votre travail.',
+  },
+  /* Empty-state starter chips — the third differs by tier.
+     [FR self-authored] */
+  pr_chat_starter_1: {
+    en: 'Any new mentions I should see?',
+    fr: 'De nouvelles mentions à voir ?',
+  },
+  pr_chat_starter_2: { en: 'What campaigns are active?', fr: 'Quelles campagnes sont actives ?' },
+  pr_chat_starter_ext: {
+    en: 'What makes a good pitch subject line?',
+    fr: 'Qu’est-ce qu’une bonne accroche de pitch ?',
+  },
+  pr_chat_starter_int: {
+    en: 'Which campaign would you push next — and why?',
+    fr: 'Quelle campagne pousserais-tu ensuite — et pourquoi ?',
+  },
+  pr_chat_internal_badge: { en: 'Internal', fr: 'Interne' },
+  pr_chat_retry: { en: 'Retry', fr: 'Réessayer' },
+  pr_chat_view: { en: 'View', fr: 'Voir' },
+  pr_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  pr_chat_load_earlier: {
+    en: 'Load earlier messages',
+    fr: 'Charger les messages précédents',
+  },
+  pr_chat_enter_hint: {
+    en: 'Enter to send · Shift+Enter for a new line',
+    fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
+  },
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   pr_home_paige_label: { en: 'Paige noticed', fr: 'Paige a remarqué' },
