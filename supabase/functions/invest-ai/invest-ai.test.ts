@@ -399,6 +399,9 @@ describe('internal advice tier (@dutiva.ca)', () => {
     expect(p).toContain('never promise returns')
     expect(p).toContain('licensed adviser')
     expect(p).toContain('software, not a person')
+    /* An empty book must not become an advisor-deflection — staff still get
+       a concrete "what I'd put on first" instead of a referral. */
+    expect(p).toContain('empty book is not a reason to deflect')
   })
 
   it('chat prompt defaults to the generic register', () => {
