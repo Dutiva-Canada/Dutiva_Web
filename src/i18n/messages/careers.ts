@@ -658,6 +658,35 @@ export const careersMessages = defineMessages({
   },
   careers_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
   careers_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Empty-state starter chips — the third differs by tier.
+     [FR self-authored] */
+  careers_chat_starter_1: {
+    en: 'Which discovered jobs fit me best?',
+    fr: 'Quelles offres dénichées me conviennent le mieux ?',
+  },
+  careers_chat_starter_2: {
+    en: 'How does my profile read to a recruiter?',
+    fr: 'Comment mon profil se lit-il pour un recruteur ?',
+  },
+  careers_chat_starter_ext: {
+    en: 'How do I answer “tell me about yourself”?',
+    fr: 'Comment répondre à « parlez-moi de vous » ?',
+  },
+  careers_chat_starter_int: {
+    en: 'Which application should I push on first — and why?',
+    fr: 'Quelle candidature pousser en premier — et pourquoi ?',
+  },
+  careers_chat_internal_badge: { en: 'Internal', fr: 'Interne' },
+  careers_chat_retry: { en: 'Retry', fr: 'Réessayer' },
+  careers_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  careers_chat_load_earlier: {
+    en: 'Load earlier messages',
+    fr: 'Charger les messages précédents',
+  },
+  careers_chat_enter_hint: {
+    en: 'Enter to send · Shift+Enter for a new line',
+    fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
+  },
 
   /* ── Job search agent ─────────────────────────────────────────────────── */
   careers_agent_title: { en: 'Job search agent', fr: 'Agent de recherche d’emploi' },

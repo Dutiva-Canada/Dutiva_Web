@@ -37,7 +37,7 @@ import {
 } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
-import type { Components } from 'react-markdown'
+import type { Components, ExtraProps } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import { useI18n } from '@/i18n/context'
@@ -48,7 +48,10 @@ import {
 } from '@/features/app/advisor/memoryHighlights'
 import { hideIncompleteTable } from './chatMarkdownUtils'
 import { hideIncompleteWidgetFence } from '../chatWidgets/specBlocks'
-import { interactiveChatWidgetsEnabled } from '../chatWidgets/flags'
+import {
+  interactiveChatWidgetsEnabled,
+  type ChatWidgetSurface,
+} from '../chatWidgets/flags'
 import { CHAT_WIDGET_FENCE } from '../chatWidgets/fence'
 import './chat-markdown.css'
 
@@ -106,6 +109,15 @@ function headerLabels(table?: HastNode): string[] {
 
 const HeaderContext = createContext<readonly string[]>([])
 const MemoryHighlightContext = createContext<readonly MemoryHighlightPhrase[]>([])
+/* Which chat surface a ```dutiva-widget fence belongs to — the interactive
+   flag is checked per-surface, and null means widgets never render (the
+   careers coach has no widget grammar). */
+const WidgetSurfaceContext = createContext<ChatWidgetSurface | null>('advisor')
+
+function useWidgetsEnabledHere(): boolean {
+  const surface = useContext(WidgetSurfaceContext)
+  return surface !== null && interactiveChatWidgetsEnabled(surface)
+}
 
 function Highlighted({ children }: { children?: ReactNode }) {
   const phrases = useContext(MemoryHighlightContext)
@@ -183,6 +195,49 @@ function cellAlignClass(style?: { textAlign?: string }, cell: 'th' | 'td' = 'td'
   return ''
 }
 
+/* A ```chart or enabled ```dutiva-widget block renders itself; everything
+   else keeps the <pre> shell. Named components (not inline entries) because
+   the widget flag now comes from context — a hook call needs a real
+   component boundary for the rules-of-hooks lint. */
+function MdPre({ node, children }: ExtraProps & { children?: ReactNode }) {
+  const widgetsOn = useWidgetsEnabledHere()
+  const language = languageOf(findChild(asNode(node), 'code'))
+  if (language === 'chart') return <>{children}</>
+  if (language === CHAT_WIDGET_FENCE && widgetsOn) return <>{children}</>
+  return <pre className="cm-pre">{children}</pre>
+}
+
+function MdCode({ className, children }: { className?: string; children?: ReactNode }) {
+  const widgetsOn = useWidgetsEnabledHere()
+  /* [\w-]+ — the dutiva-widget tag contains a hyphen; \w+ would stop at it. */
+  const language = /language-([\w-]+)/.exec(className ?? '')?.[1]
+  const source = String(children ?? '')
+  if (language === 'chart') {
+    return (
+      <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
+        <ChatChart source={source} />
+      </Suspense>
+    )
+  }
+  /* Flag off → the fence keeps its code-block rendering, exactly as an
+     unknown language always has. Flag on → spec JSON becomes a widget. */
+  if (language === CHAT_WIDGET_FENCE && widgetsOn) {
+    return (
+      <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
+        <ChatWidgetBlock source={source} />
+      </Suspense>
+    )
+  }
+  // react-markdown v9 dropped the `inline` prop; a fenced block always
+  // carries a language class or a newline.
+  const inline = !language && !source.includes('\n')
+  return inline ? (
+    <code className="cm-code">{children}</code>
+  ) : (
+    <code className="cm-codeblock">{children}</code>
+  )
+}
+
 const components: Components = {
   h1: ({ children }) => <h3 className="cm-h cm-h1">{children}</h3>,
   h2: ({ children }) => <h4 className="cm-h cm-h2">{children}</h4>,
@@ -238,45 +293,8 @@ const components: Components = {
     </td>
   ),
 
-  // A ```chart or enabled ```dutiva-widget block renders itself; everything
-  // else keeps the <pre> shell.
-  pre: ({ node, children }) => {
-    const language = languageOf(findChild(asNode(node), 'code'))
-    if (language === 'chart') return <>{children}</>
-    if (language === CHAT_WIDGET_FENCE && interactiveChatWidgetsEnabled('advisor')) {
-      return <>{children}</>
-    }
-    return <pre className="cm-pre">{children}</pre>
-  },
-  code: ({ className, children }) => {
-    /* [\w-]+ — the dutiva-widget tag contains a hyphen; \w+ would stop at it. */
-    const language = /language-([\w-]+)/.exec(className ?? '')?.[1]
-    const source = String(children ?? '')
-    if (language === 'chart') {
-      return (
-        <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
-          <ChatChart source={source} />
-        </Suspense>
-      )
-    }
-    /* Flag off → the fence keeps its code-block rendering, exactly as an
-       unknown language always has. Flag on → spec JSON becomes a widget. */
-    if (language === CHAT_WIDGET_FENCE && interactiveChatWidgetsEnabled('advisor')) {
-      return (
-        <Suspense fallback={<div className="cm-chart-loading" aria-hidden="true" />}>
-          <ChatWidgetBlock source={source} />
-        </Suspense>
-      )
-    }
-    // react-markdown v9 dropped the `inline` prop; a fenced block always
-    // carries a language class or a newline.
-    const inline = !language && !source.includes('\n')
-    return inline ? (
-      <code className="cm-code">{children}</code>
-    ) : (
-      <code className="cm-codeblock">{children}</code>
-    )
-  },
+  pre: MdPre,
+  code: MdCode,
 }
 
 /* ------------------------------------------------------------------ *
@@ -290,6 +308,10 @@ interface ChatMarkdownProps {
   readonly className?: string
   /** Org memory phrases to gold-underline in prose (not code). */
   readonly memoryHighlights?: readonly MemoryHighlightPhrase[]
+  /** Which surface a dutiva-widget fence answers to — the interactive flag
+      is checked per-surface. Null disables widget parsing entirely (the
+      careers coach emits none). Defaults to 'advisor'. */
+  readonly widgetSurface?: ChatWidgetSurface | null
 }
 
 export function ChatMarkdown({
@@ -297,6 +319,7 @@ export function ChatMarkdown({
   streaming = false,
   className,
   memoryHighlights = [],
+  widgetSurface = 'advisor',
 }: ChatMarkdownProps) {
   const source = useMemo(
     /* During streaming an unclosed dutiva-widget fence hides the same way
@@ -306,12 +329,14 @@ export function ChatMarkdown({
   )
 
   return (
-    <MemoryHighlightContext.Provider value={memoryHighlights}>
-      <div className={className ? `cm-root ${className}` : 'cm-root'}>
-        <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-          {source}
-        </ReactMarkdown>
-      </div>
-    </MemoryHighlightContext.Provider>
+    <WidgetSurfaceContext.Provider value={widgetSurface}>
+      <MemoryHighlightContext.Provider value={memoryHighlights}>
+        <div className={className ? `cm-root ${className}` : 'cm-root'}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+            {source}
+          </ReactMarkdown>
+        </div>
+      </MemoryHighlightContext.Provider>
+    </WidgetSurfaceContext.Provider>
   )
 }

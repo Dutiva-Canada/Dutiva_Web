@@ -29,7 +29,7 @@ import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
  * plus the conversational surface (kind 'chat') — Claire, the search coach.
  *
  *   { kind: 'chat', message, lang? }        → { reply, assistantId }
- *   { kind: 'chat_history', limit? }        → { turns }
+ *   { kind: 'chat_history', limit?, before? }   → { turns }
  *   { kind: 'chat_clear' }                  → { cleared: true }
  *   { kind: 'chat_feedback', messageId, rating } → { ok }
  *
@@ -500,12 +500,15 @@ const handler = async (req: Request) => {
       typeof body['limit'] === 'number' && Number.isInteger(body['limit'])
         ? Math.min(Math.max(body['limit'], 1), 120)
         : 60
-    const { data, error } = await authenticated.adminClient
+    /* `before` pages older turns — the client passes the oldest loaded
+       turn's created_at; without it the newest `limit` rows come back. */
+    const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
+    let q = authenticated.adminClient
       .from('candidate_chat_messages')
       .select('id, role, content, feedback, created_at')
       .eq('user_id', authenticated.user.id)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    if (before) q = q.lt('created_at', before)
+    const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
     if (error) return json({ error: error.message }, 500)
     return json({ turns: (data ?? []).reverse() })
   }

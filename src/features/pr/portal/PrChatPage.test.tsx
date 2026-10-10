@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { LangContext } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
+import { AuthContext } from '@/features/app/auth/authContext'
+import type { AuthContextValue } from '@/features/app/auth/authContext'
 import { PrDataContext } from '@/features/pr/data/PrDataContext'
 import type { PrDataContextValue } from '@/features/pr/data/PrDataContext'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
@@ -38,7 +40,7 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function renderPage(lang: Lang = 'en') {
+function renderPage(lang: Lang = 'en', auth: Partial<AuthContextValue> = {}) {
   const refresh = vi.fn().mockResolvedValue(undefined)
   const pr: PrDataContextValue = {
     state: undefined,
@@ -46,15 +48,27 @@ function renderPage(lang: Lang = 'en') {
     error: undefined,
     refresh,
   }
+  const authValue: AuthContextValue = {
+    status: 'signed-in',
+    session: { user: { id: 'u1', email: 'client@acme.ca' } } as AuthContextValue['session'],
+    authorized: true,
+    signInWithEmail: vi.fn(async () => undefined),
+    verifyEmailCode: vi.fn(async () => undefined),
+    signOut: vi.fn(async () => {}),
+    refreshAuthorization: vi.fn(async () => {}),
+    ...auth,
+  }
   render(
     <LangContext value={langValue(lang)}>
-      <PrDataContext value={pr}>
-        <ToastsProvider>
-          <MemoryRouter initialEntries={['/pr/chat']}>
-            <PrChatPage />
-          </MemoryRouter>
-        </ToastsProvider>
-      </PrDataContext>
+      <AuthContext.Provider value={authValue}>
+        <PrDataContext value={pr}>
+          <ToastsProvider>
+            <MemoryRouter initialEntries={['/pr/chat']}>
+              <PrChatPage />
+            </MemoryRouter>
+          </ToastsProvider>
+        </PrDataContext>
+      </AuthContext.Provider>
     </LangContext>,
   )
   return { refresh }
@@ -72,6 +86,15 @@ describe('PrChatPage', () => {
     renderPage()
     expect(await screen.findByText(/Hi — I’m Paige/)).toBeInTheDocument()
     expect(screen.getByText(/What are we working on today\?/)).toBeInTheDocument()
+  })
+
+  it('swaps the subtitle and shows the Internal badge for @dutiva.ca', async () => {
+    vi.mocked(loadPrChatHistory).mockResolvedValue([])
+    renderPage('en', {
+      session: { user: { id: 'u9', email: 'staff@dutiva.ca' } } as AuthContextValue['session'],
+    })
+    expect(await screen.findByText(/Internal staff account: she also advises/)).toBeInTheDocument()
+    expect(screen.getByText('Internal')).toBeInTheDocument()
   })
 
   it('sends a message, renders the reply, and confirms the executed action', async () => {

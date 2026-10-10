@@ -16,6 +16,9 @@ export interface CandidateChatTurn {
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   createdAt: string
+  /** Client-only — an optimistic user turn whose send threw; the bubble
+      keeps the text and offers a retry instead of vanishing. */
+  failed?: boolean
 }
 
 /* invokeEdgeFn throws FunctionsHttpError (status on .context.status);
@@ -57,8 +60,15 @@ export async function sendCandidateChat(
   }
 }
 
-export async function loadCandidateChatHistory(limit = 60): Promise<CandidateChatTurn[]> {
-  const data = await invokeEdgeFn(requireClient(), 'candidate-ai', { kind: 'chat_history', limit })
+export async function loadCandidateChatHistory(
+  limit = 60,
+  before?: string,
+): Promise<CandidateChatTurn[]> {
+  const data = await invokeEdgeFn(requireClient(), 'candidate-ai', {
+    kind: 'chat_history',
+    limit,
+    before,
+  })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),

@@ -543,6 +543,43 @@ export const healthMessages = defineMessages({
      [FR self-authored] */
   health_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
   health_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Internal-staff tier — shown instead of health_chat_sub when the account
+     is @dutiva.ca: the server lets Mira say plainly what she'd change.
+     [FR self-authored] */
+  health_chat_sub_internal: {
+    en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you. Internal staff account: she also says plainly what she’d change.',
+    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez. Compte interne : elle dit aussi franchement ce qu’elle changerait.',
+  },
+  /* Empty-state starter chips — the third differs by tier.
+     [FR self-authored] */
+  health_chat_starter_1: {
+    en: 'How has my week been?',
+    fr: 'Comment s’est passée ma semaine ?',
+  },
+  health_chat_starter_2: {
+    en: 'What habits am I tracking?',
+    fr: 'Quelles habitudes je suis en ce moment ?',
+  },
+  health_chat_starter_ext: {
+    en: 'What’s a good wind-down routine?',
+    fr: 'C’est quoi une bonne routine du soir ?',
+  },
+  health_chat_starter_int: {
+    en: 'What would you change about my routine?',
+    fr: 'Que changerais-tu à ma routine ?',
+  },
+  health_chat_internal_badge: { en: 'Internal', fr: 'Interne' },
+  health_chat_retry: { en: 'Retry', fr: 'Réessayer' },
+  health_chat_view: { en: 'View', fr: 'Voir' },
+  health_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  health_chat_load_earlier: {
+    en: 'Load earlier messages',
+    fr: 'Charger les messages précédents',
+  },
+  health_chat_enter_hint: {
+    en: 'Enter to send · Shift+Enter for a new line',
+    fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
+  },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',

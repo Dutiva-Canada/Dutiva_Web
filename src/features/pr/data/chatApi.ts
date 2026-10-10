@@ -38,6 +38,9 @@ export interface PrChatTurn {
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   createdAt: string
+  /** Client-only — an optimistic user turn whose send threw; the bubble
+      keeps the text and offers a retry instead of vanishing. */
+  failed?: boolean
 }
 
 /** One turn of the desk conversation. The server writes both sides to
@@ -132,8 +135,12 @@ export async function ratePrChatTurn(messageId: string, rating: 1 | -1 | 0): Pro
   await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_feedback', messageId, rating })
 }
 
-export async function loadPrChatHistory(limit = 60): Promise<PrChatTurn[]> {
-  const data = await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_history', limit })
+export async function loadPrChatHistory(limit = 60, before?: string): Promise<PrChatTurn[]> {
+  const data = await invokeEdgeFn(requireClient(), 'pr-ai', {
+    kind: 'chat_history',
+    limit,
+    before,
+  })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),

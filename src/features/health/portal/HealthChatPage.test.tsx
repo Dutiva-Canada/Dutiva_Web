@@ -4,6 +4,8 @@ import { MemoryRouter } from 'react-router-dom'
 import { LangContext } from '@/i18n/context'
 import type { LangContextValue } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
+import { AuthContext } from '@/features/app/auth/authContext'
+import type { AuthContextValue } from '@/features/app/auth/authContext'
 import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
 import type { HealthState } from '@/features/health/data/types'
@@ -39,7 +41,7 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function renderPage(lang: Lang = 'en', state?: HealthState) {
+function renderPage(lang: Lang = 'en', state?: HealthState, auth: Partial<AuthContextValue> = {}) {
   const refresh = vi.fn().mockResolvedValue(undefined)
   const health: HealthDataContextValue = {
     state,
@@ -47,15 +49,27 @@ function renderPage(lang: Lang = 'en', state?: HealthState) {
     error: undefined,
     refresh,
   }
+  const authValue: AuthContextValue = {
+    status: 'signed-in',
+    session: { user: { id: 'u1', email: 'client@acme.ca' } } as AuthContextValue['session'],
+    authorized: true,
+    signInWithEmail: vi.fn(async () => undefined),
+    verifyEmailCode: vi.fn(async () => undefined),
+    signOut: vi.fn(async () => {}),
+    refreshAuthorization: vi.fn(async () => {}),
+    ...auth,
+  }
   render(
     <LangContext value={langValue(lang)}>
-      <HealthDataContext value={health}>
-        <ToastsProvider>
-          <MemoryRouter initialEntries={['/health/chat']}>
-            <HealthChatPage />
-          </MemoryRouter>
-        </ToastsProvider>
-      </HealthDataContext>
+      <AuthContext.Provider value={authValue}>
+        <HealthDataContext value={health}>
+          <ToastsProvider>
+            <MemoryRouter initialEntries={['/health/chat']}>
+              <HealthChatPage />
+            </MemoryRouter>
+          </ToastsProvider>
+        </HealthDataContext>
+      </AuthContext.Provider>
     </LangContext>,
   )
   return { refresh }
@@ -73,6 +87,23 @@ describe('HealthChatPage', () => {
     expect(await screen.findByText(/I’m Mira/)).toBeInTheDocument()
     expect(screen.getByText(/How are you arriving today/)).toBeInTheDocument()
     expect(screen.getByText(/9-8-8/)).toBeInTheDocument()
+  })
+
+  it('shows the generic subtitle to external accounts and the internal one to @dutiva.ca', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    renderPage()
+    expect(await screen.findByText(/not a person or a therapist/)).toBeInTheDocument()
+    expect(screen.queryByText('Internal')).not.toBeInTheDocument()
+  })
+
+  it('swaps the subtitle and shows the Internal badge for @dutiva.ca', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    renderPage('en', undefined, {
+      session: { user: { id: 'u9', email: 'staff@dutiva.ca' } } as AuthContextValue['session'],
+    })
+    expect(await screen.findByText(/Internal staff account/)).toBeInTheDocument()
+    expect(screen.getByText('Internal')).toBeInTheDocument()
+    expect(screen.queryByText(/not a person or a therapist/)).not.toBeInTheDocument()
   })
 
   it('personalizes the greeting with a live habit streak', async () => {

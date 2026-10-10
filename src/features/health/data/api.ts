@@ -285,6 +285,9 @@ export interface HealthChatTurn {
   /** Thumbs rating the user left on an assistant turn: 1 | -1 | null. */
   feedback: number | null
   createdAt: string
+  /** Client-only — an optimistic user turn whose send threw; the bubble
+      keeps the text and offers a retry instead of vanishing. */
+  failed?: boolean
 }
 
 /** One turn of the portal conversation. The server writes both sides to
@@ -402,8 +405,11 @@ export async function rateHealthChatTurn(messageId: string, rating: 1 | -1 | 0):
   await invokeHealthAi({ kind: 'chat_feedback', messageId, rating })
 }
 
-export async function loadHealthChatHistory(limit = 60): Promise<HealthChatTurn[]> {
-  const data = await invokeHealthAi({ kind: 'chat_history', limit })
+export async function loadHealthChatHistory(
+  limit = 60,
+  before?: string,
+): Promise<HealthChatTurn[]> {
+  const data = await invokeHealthAi({ kind: 'chat_history', limit, before })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),

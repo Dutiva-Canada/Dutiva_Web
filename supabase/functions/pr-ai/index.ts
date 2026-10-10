@@ -57,7 +57,7 @@ import {
  *                                             mention, saved a content
  *                                             draft. Her line persists to
  *                                             pr_chat_messages.
- *   POST { kind:'chat_history', limit? }      → { turns }
+ *   POST { kind:'chat_history', limit?, before? } → { turns }
  *   POST { kind:'chat_clear' }                → { cleared: true }
  *   POST { kind:'chat_feedback', messageId, rating } → { ok }
  *                                             — thumbs up/down on an
@@ -176,12 +176,15 @@ const handler = async (req: Request) => {
       typeof body.limit === 'number' && Number.isInteger(body.limit)
         ? Math.min(Math.max(body.limit, 1), 120)
         : 60
-    const { data, error } = await admin
+    /* `before` pages older turns — the client passes the oldest loaded
+       turn's created_at; without it the newest `limit` rows come back. */
+    const before = typeof body.before === 'string' && body.before ? body.before : null
+    let q = admin
       .from('pr_chat_messages')
       .select('id, role, content, action, feedback, created_at')
       .eq('user_id', portal.userId)
-      .order('created_at', { ascending: false })
-      .limit(limit)
+    if (before) q = q.lt('created_at', before)
+    const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
     if (error) return json({ error: error.message }, 500)
     return json({ turns: (data ?? []).reverse() })
   }

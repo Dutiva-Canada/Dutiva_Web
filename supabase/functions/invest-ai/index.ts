@@ -40,7 +40,7 @@ import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
  *   { kind: 'react', event, lang? } → { reply }
  *     — she reacts when the person does something: watched a symbol,
  *     queued a draft order. Her line persists to invest_chat_messages.
- *   { kind: 'chat_history', limit? } → { turns }
+ *   { kind: 'chat_history', limit?, before? } → { turns }
  *   { kind: 'chat_clear' }           → { cleared: true }
  *   { kind: 'chat_feedback', messageId, rating } → { ok }
  *   { kind: 'chat_undo', messageId } → { ok }
@@ -129,10 +129,15 @@ const handler = async (req: Request) => {
       typeof body['limit'] === 'number' && Number.isInteger(body['limit'])
         ? Math.min(Math.max(body['limit'], 1), 120)
         : 60
-    const { data, error } = await adminClient
+    /* `before` pages older turns — the client passes the oldest loaded
+       turn's created_at; without it the newest `limit` rows come back. */
+    const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
+    let q = adminClient
       .from('invest_chat_messages')
       .select('id, role, content, action, feedback, created_at')
       .eq('user_id', userId)
+    if (before) q = q.lt('created_at', before)
+    const { data, error } = await q
       .order('created_at', { ascending: false })
       .limit(limit)
     if (error) return json({ error: error.message }, 500)
