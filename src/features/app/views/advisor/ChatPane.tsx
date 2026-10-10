@@ -50,6 +50,7 @@ import { ThreadListOpenButton } from './ThreadList'
 import { useTurnRatings } from './advisorTurnRatings'
 import {
   formatTurnDay,
+  formatTurnTime,
   sameTurnDay,
   usePortalChatDraft,
   useStickToBottom,
@@ -396,15 +397,24 @@ function UserTurn({
         </div>
       )}
       {text.length > 0 && <ChatBubble author="user">{text}</ChatBubble>}
-      {onReuse != null && text.length > 0 && (
-        <button
-          type="button"
-          onClick={() => onReuse(text)}
-          className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-muted"
-        >
-          <RotateCcw size={12} strokeWidth={2} />
-          {x(M.advisorview_reuse)}
-        </button>
+      {(onReuse != null || message.at !== undefined) && text.length > 0 && (
+        <div className="flex items-center gap-[10px]">
+          {onReuse != null && (
+            <button
+              type="button"
+              onClick={() => onReuse(text)}
+              className="flex cursor-pointer items-center gap-[5px] border-none bg-transparent p-0 text-[11.5px] font-semibold text-text-faint opacity-0 transition-opacity group-hover:opacity-100 hover:text-text-muted"
+            >
+              <RotateCcw size={12} strokeWidth={2} />
+              {x(M.advisorview_reuse)}
+            </button>
+          )}
+          {message.at !== undefined && (
+            <span className="text-[10.5px] text-text-faint">
+              {formatTurnTime(message.at, lang)}
+            </span>
+          )}
+        </div>
       )}
     </div>
   )
@@ -521,6 +531,11 @@ function AdvisorTurn({
                     memory={extras?.memory}
                   />
                 </ChatBubble>
+                {done && message.at !== undefined && (
+                  <div className="mt-[6px] px-[4px] text-[10.5px] text-text-faint">
+                    {formatTurnTime(message.at, lang)}
+                  </div>
+                )}
                 {done && (
                   <div className="mt-[6px] flex items-center gap-[12px] px-[4px] opacity-0 transition-opacity group-hover:opacity-100">
                     <button
