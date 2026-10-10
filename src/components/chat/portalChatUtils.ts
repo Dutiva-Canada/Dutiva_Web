@@ -1,4 +1,4 @@
-import { useEffect, useRef, type DependencyList, type RefObject } from 'react'
+import { useEffect, useRef, useState, type DependencyList, type RefObject } from 'react'
 
 /* Shared bits for the four standalone portal chats (Tally, Mira, Paige,
    Claire). Each page keeps its own styling system — the sb-* sheets for
@@ -54,28 +54,50 @@ export function useStickToBottom(deps: DependencyList): {
   logRef: RefObject<HTMLDivElement | null>
   stickToBottom: () => void
   capturePrepend: () => void
+  /** True while the reader has scrolled up away from the tail — drives the
+      "jump to latest" pill. */
+  farUp: boolean
+  /** True when content grew while the reader was scrolled up — the pill
+      can flag that something new landed. */
+  hasNew: boolean
 } {
   const logRef = useRef<HTMLDivElement | null>(null)
   /* Whether the next render should hold the scroll at the bottom. Starts
      true so the initial history load lands at the newest turn. */
   const stuckRef = useRef(true)
   const prevHeightRef = useRef(0)
+  const lastHeightRef = useRef(0)
+  const [farUp, setFarUp] = useState(false)
+  const [hasNew, setHasNew] = useState(false)
 
-  /* Track stickiness off the user's scroll events. */
+  /* Track stickiness off the user's scroll events — farUp mirrors it as
+     state so the pill can render, while stuckRef stays a ref for the
+     scroll effect below. */
   useEffect(() => {
     const el = logRef.current
     if (!el?.addEventListener) return
     const onScroll = () => {
-      stuckRef.current =
-        el.scrollHeight - el.scrollTop - el.clientHeight <= STICK_RANGE_PX
+      const stuck = el.scrollHeight - el.scrollTop - el.clientHeight <= STICK_RANGE_PX
+      stuckRef.current = stuck
+      setFarUp(el.scrollHeight > el.clientHeight && !stuck)
+      if (stuck) setHasNew(false)
     }
     el.addEventListener('scroll', onScroll, { passive: true })
     return () => el.removeEventListener('scroll', onScroll)
   }, [])
 
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- caller-supplied trigger list is the hook's contract
   useEffect(() => {
     const el = logRef.current
     if (!el?.scrollTo) return
+    /* Content arrived while scrolled up (not a prepend) — mark the pill. */
+    if (
+      !stuckRef.current &&
+      prevHeightRef.current === 0 &&
+      el.scrollHeight !== lastHeightRef.current
+    ) {
+      setHasNew(true)
+    }
     if (prevHeightRef.current > 0 && !stuckRef.current) {
       /* A prepend grew the log — keep the same messages in view. */
       el.scrollTo({ top: el.scrollTop + (el.scrollHeight - prevHeightRef.current) })
@@ -83,11 +105,14 @@ export function useStickToBottom(deps: DependencyList): {
       el.scrollTo({ top: el.scrollHeight })
     }
     prevHeightRef.current = 0
+    lastHeightRef.current = el.scrollHeight
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `deps` is the caller-supplied trigger list, the hook's contract
   }, deps)
 
   const stickToBottom = () => {
     stuckRef.current = true
+    setFarUp(false)
+    setHasNew(false)
     logRef.current?.scrollTo?.({ top: logRef.current.scrollHeight })
   }
 
@@ -96,9 +121,45 @@ export function useStickToBottom(deps: DependencyList): {
   const capturePrepend = () => {
     prevHeightRef.current = logRef.current?.scrollHeight ?? 0
     stuckRef.current = false
+    setFarUp(true)
   }
 
-  return { logRef, stickToBottom, capturePrepend }
+  return { logRef, stickToBottom, capturePrepend, farUp, hasNew }
+}
+
+/**
+ * Draft that survives navigation — kept in sessionStorage keyed by surface
+ * (and thread), so leaving the page mid-sentence doesn't lose the text.
+ * Returns the same pair useState would.
+ */
+export function usePortalChatDraft(
+  storageKey: string,
+): [string, (v: string) => void] {
+  const [draft, setDraftState] = useState<string>(() => {
+    try {
+      return sessionStorage.getItem(storageKey) ?? ''
+    } catch {
+      return ''
+    }
+  })
+  /* Switching keys (e.g. switching threads) reloads that key's draft. */
+  useEffect(() => {
+    try {
+      setDraftState(sessionStorage.getItem(storageKey) ?? '')
+    } catch {
+      setDraftState('')
+    }
+  }, [storageKey])
+  const setDraft = (v: string) => {
+    setDraftState(v)
+    try {
+      if (v) sessionStorage.setItem(storageKey, v)
+      else sessionStorage.removeItem(storageKey)
+    } catch {
+      /* storage full or blocked — the draft still lives in state */
+    }
+  }
+  return [draft, setDraft]
 }
 
 /**

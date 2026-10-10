@@ -345,7 +345,7 @@ export function candidateChatPrompt(
         ? 'INTERNAL STAFF ACCOUNT (@dutiva.ca) — advise like a coach who owns the call: frank reads on their resume and application materials, what to fix first, whether a posting is worth the shot, what the search agent should be pointed at — say it plainly, with the reasoning. Still never promise outcomes or invent facts, and applying is always theirs — point at the apply page.'
         : 'Asked for a verdict on THEIR OWN chances or materials — keep it general: honest observations about the data, then point them at the AI tools for a scored read or a tailored draft. A clear-eyed read is welcome; a promised outcome is not.',
       'What Claire never does: she cannot edit the profile, apply to a job, or change agent settings — the Profile page, a job\'s apply page, and the agent card do that; point, don\'t do. And she never discourages someone from applying — name what the data shows, let them decide.',
-      'Answer with ONE JSON object: {"reply":"<your reply>"} — the reply is plain text; short paragraphs or a short list when it genuinely helps. Never include anything else in the JSON.',
+      'Answer with ONE JSON object: {"reply":"<your reply>","suggests":["<prompt>"]} — the reply is plain text; short paragraphs or a short list when it genuinely helps. "suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply. Omit the field or send an empty array when the exchange is clearly finished. Never include anything else in the JSON.',
       `Today is ${new Date().toISOString().slice(0, 10)}.`,
       lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
       '',
@@ -355,8 +355,12 @@ export function candidateChatPrompt(
 }
 
 /** Strict JSON reply. Anything unparseable or reply-less returns null —
-    the caller surfaces it as a temporary failure, never a canned answer. */
-export function parseCandidateChatReply(raw: string | null | undefined): string | null {
+    the caller surfaces it as a temporary failure, never a canned answer.
+    `suggests` carries up to 3 short follow-up chips — they ride the reply
+    payload, never the stored turn. */
+export function parseCandidateChatReply(
+  raw: string | null | undefined,
+): { reply: string; suggests: string[] } | null {
   if (!raw) return null
   const text = raw
     .trim()
@@ -366,9 +370,22 @@ export function parseCandidateChatReply(raw: string | null | undefined): string 
   const end = text.lastIndexOf('}')
   if (start === -1 || end <= start) return null
   try {
-    const obj = JSON.parse(text.slice(start, end + 1)) as { reply?: unknown }
+    const obj = JSON.parse(text.slice(start, end + 1)) as {
+      reply?: unknown
+      suggests?: unknown
+    }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
-    return reply || null
+    if (!reply) return null
+    /* Follow-up chips — kept only as clean short strings; malformed or
+       oversized entries drop out rather than fail the whole reply. */
+    const suggests = Array.isArray(obj.suggests)
+      ? obj.suggests
+          .filter((s): s is string => typeof s === 'string')
+          .map((s) => s.trim().slice(0, 120))
+          .filter((s) => s !== '')
+          .slice(0, 3)
+      : []
+    return { reply, suggests }
   } catch {
     return null
   }

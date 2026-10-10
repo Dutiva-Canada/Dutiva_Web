@@ -386,13 +386,23 @@ describe('candidateChatPrompt — Claire persona contract', () => {
 
 describe('parseCandidateChatReply', () => {
   it('reads the reply field out of the JSON envelope', () => {
-    expect(parseCandidateChatReply('{"reply":"Apply to the Globex role."}')).toBe(
-      'Apply to the Globex role.',
-    )
+    expect(parseCandidateChatReply('{"reply":"Apply to the Globex role."}')).toEqual({
+      reply: 'Apply to the Globex role.',
+      suggests: [],
+    })
   })
 
   it('tolerates code fences and surrounding whitespace', () => {
-    expect(parseCandidateChatReply('```json\n{"reply":"Hi."}\n```')).toBe('Hi.')
+    expect(parseCandidateChatReply('```json\n{"reply":"Hi."}\n```')).toEqual({
+      reply: 'Hi.',
+      suggests: [],
+    })
+  })
+
+  it('keeps string suggests, drops anything else', () => {
+    expect(
+      parseCandidateChatReply('{"reply":"Hi.","suggests":["Apply to Globex?",true,7]}'),
+    ).toEqual({ reply: 'Hi.', suggests: ['Apply to Globex?'] })
   })
 
   it('returns null on anything unparseable or reply-less', () => {

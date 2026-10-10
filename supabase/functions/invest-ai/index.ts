@@ -40,9 +40,14 @@ import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
  *   { kind: 'react', event, lang? } → { reply }
  *     — she reacts when the person does something: watched a symbol,
  *     queued a draft order. Her line persists to invest_chat_messages.
- *   { kind: 'chat_history', limit?, before? } → { turns }
- *   { kind: 'chat_clear' }           → { cleared: true }
- *   { kind: 'chat_feedback', messageId, rating } → { ok }
+ *   { kind: 'chat_history', limit?, before?, threadId? } → { turns }
+ *   { kind: 'chat_threads' }         → { threads } — named conversations
+ *   { kind: 'chat_thread_new' }      → { thread } — starts a named one
+ *   { kind: 'chat_regenerate', threadId? } → same payload as 'chat'
+ *     — re-runs the thread's last user turn after deleting the old pair.
+ *   { kind: 'chat_clear', threadId? } → { cleared: true }
+ *   { kind: 'chat_feedback', messageId, rating, reason? } → { ok }
+ *     — rating -1 may carry a short `reason` so a downvote says why.
  *   { kind: 'chat_undo', messageId } → { ok }
  *     — reverses an assistant turn's write while it's still reversible
  *     (queued order untouched, watch row, signal status, filed draft).
@@ -121,6 +126,48 @@ const handler = async (req: Request) => {
   }
   const lang = body['lang'] === 'fr' ? 'fr' : 'en'
 
+  /* Named conversations — threadId scopes chat/history/clear/regenerate.
+     NULL is the default conversation: existing rows carry thread_id NULL
+     and stay visible with no backfill. A supplied threadId must be a uuid
+     the caller owns. */
+  const rawThread = body['threadId']
+  let threadId: string | null = null
+  if (rawThread !== undefined && rawThread !== null) {
+    if (
+      typeof rawThread !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawThread)
+    ) {
+      return json({ error: 'threadId must be a uuid' }, 400)
+    }
+    const { data: owned } = await adminClient
+      .from('invest_chat_threads')
+      .select('id')
+      .eq('id', rawThread)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (!owned) return json({ error: 'Unknown thread' }, 404)
+    threadId = rawThread
+  }
+
+  if (body['kind'] === 'chat_threads') {
+    const { data, error } = await adminClient
+      .from('invest_chat_threads')
+      .select('id, title, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true })
+    if (error) return json({ error: error.message }, 500)
+    return json({ threads: data ?? [] })
+  }
+  if (body['kind'] === 'chat_thread_new') {
+    const { data, error } = await adminClient
+      .from('invest_chat_threads')
+      .insert({ user_id: userId, title: null })
+      .select('id, title, created_at')
+      .single()
+    if (error) return json({ error: error.message }, 500)
+    return json({ thread: data })
+  }
+
   /* History read/clear/feedback/undo need no model — they run through this
      function so the table's only writer is this code path (a client can't
      file its own 'assistant' rows under the owner policy). */
@@ -134,8 +181,9 @@ const handler = async (req: Request) => {
     const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
     let q = adminClient
       .from('invest_chat_messages')
-      .select('id, role, content, action, feedback, created_at')
+      .select('id, role, content, action, feedback, feedback_reason, created_at')
       .eq('user_id', userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)
     const { data, error } = await q
       .order('created_at', { ascending: false })
@@ -144,10 +192,12 @@ const handler = async (req: Request) => {
     return json({ turns: (data ?? []).reverse() })
   }
   if (body['kind'] === 'chat_clear') {
-    const { error } = await adminClient
+    let q = adminClient
       .from('invest_chat_messages')
       .delete()
       .eq('user_id', userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { error } = await q
     if (error) return json({ error: error.message }, 500)
     return json({ cleared: true })
   }
@@ -160,9 +210,15 @@ const handler = async (req: Request) => {
     ) {
       return json({ error: 'messageId (uuid) and rating (-1|0|1) required' }, 400)
     }
+    /* A downvote may carry a one-tap reason; anything else clears it. */
+    const reason =
+      typeof body['reason'] === 'string' ? body['reason'].trim().slice(0, 80) : ''
     const { error } = await adminClient
       .from('invest_chat_messages')
-      .update({ feedback: rating === 0 ? null : rating })
+      .update({
+        feedback: rating === 0 || rating === null ? null : rating,
+        feedback_reason: rating === -1 ? (reason || null) : null,
+      })
       .eq('id', messageId)
       .eq('user_id', userId)
       .eq('role', 'assistant')
@@ -183,7 +239,32 @@ const handler = async (req: Request) => {
   if (body['kind'] === 'chat') {
     const message = typeof body['message'] === 'string' ? body['message'].trim().slice(0, 1200) : ''
     if (!message) return json({ error: 'message is required' }, 400)
-    return await runChat(adminClient, userId, message, lang, stream, advice)
+    return await runChat(adminClient, userId, message, lang, stream, advice, threadId)
+  }
+  if (body['kind'] === 'chat_regenerate') {
+    /* Re-ask the thread's last user turn — the stale assistant reply and
+       its user turn are deleted first, so the old answer stops anchoring
+       the context before the fresh call runs. */
+    let q = adminClient
+      .from('invest_chat_messages')
+      .select('id, role, content')
+      .eq('user_id', userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { data: lastTwo, error } = await q
+      .order('created_at', { ascending: false })
+      .limit(2)
+    if (error) return json({ error: error.message }, 500)
+    const latest = lastTwo?.[0]
+    const prev = lastTwo?.[1]
+    if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
+      return json({ error: 'Nothing to regenerate' }, 409)
+    }
+    await adminClient
+      .from('invest_chat_messages')
+      .delete()
+      .in('id', [latest.id, prev.id])
+      .eq('user_id', userId)
+    return await runChat(adminClient, userId, prev.content, lang, stream, advice, threadId)
   }
   if (body['kind'] === 'react') {
     const event = parseInvestReactEvent(body['event'])

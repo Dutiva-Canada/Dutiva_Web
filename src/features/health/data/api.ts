@@ -196,8 +196,9 @@ async function invokeHealthAi(body: Record<string, unknown>): Promise<Record<str
 async function invokeHealthAiStream(
   body: Record<string, unknown>,
   onDelta: (text: string) => void,
+  signal?: AbortSignal,
 ): Promise<Record<string, unknown>> {
-  return invokeEdgeFnStream(requireSupabase(), 'health-ai', body, onDelta)
+  return invokeEdgeFnStream(requireSupabase(), 'health-ai', body, onDelta, signal)
 }
 
 /** One journal prompt built from the user's stats and their own recent
@@ -284,10 +285,27 @@ export interface HealthChatTurn {
   action: HealthChatAction | null
   /** Thumbs rating the user left on an assistant turn: 1 | -1 | null. */
   feedback: number | null
+  /** Why a downvote landed — set when feedback is -1. */
+  feedbackReason?: string | null
   createdAt: string
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+}
+
+/** A named conversation — the default thread (threadId null) always exists;
+    these are extra ones the user started from the switcher. */
+export interface HealthChatThread {
+  id: string
+  title: string | null
+  createdAt: string
+}
+
+/** Options every chat call shares — thread scope plus abort for the
+    streaming path's stop button. */
+export interface HealthChatCallOpts {
+  threadId?: string | null
+  signal?: AbortSignal
 }
 
 /** One turn of the portal conversation. The server writes both sides to
@@ -298,23 +316,108 @@ export interface HealthChatTurn {
     entries, and the conversation itself. assistantId is the persisted
     row's id — the client needs it to attach feedback. Pass onDelta to
     stream the reply into the UI as it generates. */
+export interface HealthChatSendResult {
+  reply: string
+  action: HealthChatAction | null
+  assistantId: string | null
+  /** Short follow-up prompts the reply suggested — ephemeral chips, never
+      persisted with the turn. */
+  suggests: string[]
+}
+
 export async function sendHealthChat(
   message: string,
   lang: 'en' | 'fr',
   onDelta?: (text: string) => void,
-): Promise<{ reply: string; action: HealthChatAction | null; assistantId: string | null }> {
-  const body = { kind: 'chat', message, lang, today: todayDayKey() }
+  opts?: HealthChatCallOpts,
+): Promise<HealthChatSendResult> {
+  const body = {
+    kind: 'chat',
+    message,
+    lang,
+    today: todayDayKey(),
+    threadId: opts?.threadId ?? null,
+  }
   const raw = (onDelta
-    ? await invokeHealthAiStream(body, onDelta)
+    ? await invokeHealthAiStream(body, onDelta, opts?.signal)
     : await invokeHealthAi(body)) as {
     reply?: string
     action?: HealthChatAction | null
     assistantId?: string | null
+    suggests?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from health-ai')
   }
-  return { reply: raw.reply, action: raw.action ?? null, assistantId: raw.assistantId ?? null }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+  }
+}
+
+/** Re-run the thread's last user turn — the server drops the stale pair
+    and answers fresh. Same payload shape as sendHealthChat. */
+export async function regenerateHealthChat(
+  lang: 'en' | 'fr',
+  onDelta?: (text: string) => void,
+  opts?: HealthChatCallOpts,
+): Promise<HealthChatSendResult> {
+  const body = {
+    kind: 'chat_regenerate',
+    lang,
+    today: todayDayKey(),
+    threadId: opts?.threadId ?? null,
+  }
+  const raw = (onDelta
+    ? await invokeHealthAiStream(body, onDelta, opts?.signal)
+    : await invokeHealthAi(body)) as {
+    reply?: string
+    action?: HealthChatAction | null
+    assistantId?: string | null
+    suggests?: unknown
+  }
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from health-ai')
+  }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+  }
+}
+
+/** The user's named conversations — the default thread isn't listed; it's
+    always selectable as "main". */
+export async function listHealthChatThreads(): Promise<HealthChatThread[]> {
+  const data = await invokeHealthAi({ kind: 'chat_threads' })
+  const rows = (((data as { threads?: unknown } | null)?.threads ?? []) as Record<
+    string,
+    unknown
+  >[])
+  return rows.map((r) => ({
+    id: String(r.id ?? ''),
+    title: typeof r.title === 'string' ? r.title : null,
+    createdAt: String(r.created_at ?? ''),
+  }))
+}
+
+/** Start a named conversation — untitled until its first message lands. */
+export async function newHealthChatThread(): Promise<HealthChatThread> {
+  const data = await invokeHealthAi({ kind: 'chat_thread_new' })
+  const t = (data as { thread?: Record<string, unknown> } | null)?.thread
+  if (!t?.id) throw new Error('Thread creation failed')
+  return {
+    id: String(t.id),
+    title: typeof t.title === 'string' ? t.title : null,
+    createdAt: String(t.created_at ?? ''),
+  }
 }
 
 /** Reverses the write an assistant turn's action made — unmark the habit,
@@ -398,18 +501,28 @@ export async function unshareEntryFromMira(entryId: string): Promise<void> {
   if (error) throw error
 }
 
-/** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). Routed
-    through the function — it constrains the write to the caller's own
-    assistant rows. */
-export async function rateHealthChatTurn(messageId: string, rating: 1 | -1 | 0): Promise<void> {
-  await invokeHealthAi({ kind: 'chat_feedback', messageId, rating })
+/** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). A downvote
+    may carry a one-tap `reason` so the signal says why. Routed through the
+    function — it constrains the write to the caller's own assistant rows. */
+export async function rateHealthChatTurn(
+  messageId: string,
+  rating: 1 | -1 | 0,
+  reason?: string,
+): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_feedback', messageId, rating, reason })
 }
 
 export async function loadHealthChatHistory(
   limit = 60,
   before?: string,
+  threadId?: string | null,
 ): Promise<HealthChatTurn[]> {
-  const data = await invokeHealthAi({ kind: 'chat_history', limit, before })
+  const data = await invokeHealthAi({
+    kind: 'chat_history',
+    limit,
+    before,
+    threadId: threadId ?? null,
+  })
   const rows = (((data as { turns?: unknown } | null)?.turns ?? []) as Record<string, unknown>[])
   return rows.map((r) => ({
     id: String(r.id ?? ''),
@@ -417,12 +530,14 @@ export async function loadHealthChatHistory(
     content: String(r.content ?? ''),
     action: (r.action as HealthChatAction | null) ?? null,
     feedback: r.feedback === 1 || r.feedback === -1 ? r.feedback : null,
+    feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),
   }))
 }
 
-/** Clears the whole conversation for the signed-in user — routed through the
-    function so the table's writer stays server-side. */
-export async function clearHealthChat(): Promise<void> {
-  await invokeHealthAi({ kind: 'chat_clear' })
+/** Clears the current conversation for the signed-in user — scoped to the
+    thread when one is selected. Routed through the function so the table's
+    writer stays server-side. */
+export async function clearHealthChat(threadId?: string | null): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_clear', threadId: threadId ?? null })
 }

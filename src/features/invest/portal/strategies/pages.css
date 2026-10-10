@@ -336,12 +336,25 @@
   flex-direction: column;
   min-height: min(62vh, 640px);
 }
+/* The wrap is the pill's positioning anchor; the log itself is the scroll
+   region — bounded so stick-to-bottom and the jump pill have something to
+   scroll. */
+.sbchat-log-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
 .sbchat-log {
   display: flex;
   flex-direction: column;
   gap: 10px;
   flex: 1;
-  padding: 4px 0 12px;
+  min-height: 0;
+  max-height: min(60vh, 560px);
+  overflow-y: auto;
+  padding: 4px 2px 12px;
 }
 .sbchat-bubble {
   max-width: min(78%, 560px);
@@ -616,4 +629,146 @@
   margin-top: 6px;
   font-size: 10.5px;
   color: var(--sb-muted);
+}
+/* "Jump to latest" — floats over the log's tail while scrolled up. */
+.sbchat-jump {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--sb-line);
+  border-radius: 999px;
+  background: var(--sb-input);
+  color: var(--sb-ink);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.14);
+  z-index: 5;
+}
+.sbchat-jump:hover {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+.sbchat-jump-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sb-accent-ink);
+}
+/* "Tally is thinking…" — the label inside the pending bubble before the
+   first delta lands. */
+.sbchat-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--sb-muted);
+  font-size: 12px;
+}
+/* Header cluster — thread switcher + clear. */
+.sbchat-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sbchat-thread-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 210px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--sb-input);
+  border: 1px solid var(--sb-line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18);
+}
+.sbchat-thread-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--sb-ink);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sbchat-thread-item:hover {
+  background: var(--sb-line);
+}
+.sbchat-thread-item[aria-checked='true'] {
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+}
+.sbchat-thread-new {
+  border-top: 1px solid var(--sb-line);
+  border-radius: 0 0 8px 8px;
+  margin-top: 2px;
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+}
+/* "What Tally can see" — the data-source disclosure under the subtitle. */
+.sbchat-sees {
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--sb-muted);
+}
+.sbchat-sees > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.sbchat-sees > p {
+  margin: 6px 0 0;
+  max-width: 560px;
+  line-height: 1.5;
+}
+/* One-tap reasons after a thumbs-down. */
+.sbchat-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.sbchat-reasons > em {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--sb-muted);
+}
+.sbchat-reason {
+  border: 1px solid var(--sb-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sb-muted);
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 9px;
+  cursor: pointer;
+}
+.sbchat-reason:hover {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+/* Reduced motion — the OS ask beats the ghost pulse and any spinner
+   animation inside the chat card. */
+@media (prefers-reduced-motion: reduce) {
+  .sbchat .sbchat-ghost,
+  .sbchat .animate-spin {
+    animation: none;
+  }
 }

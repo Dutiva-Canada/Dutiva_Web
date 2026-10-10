@@ -49,7 +49,14 @@ describe('parseInvestChatReply', () => {
     expect(parseInvestChatReply('{"reply":"hi","action":null}')).toEqual({
       reply: 'hi',
       action: null,
+      suggests: [],
     })
+  })
+  it('keeps string suggests, drops anything else', () => {
+    const out = parseInvestChatReply(
+      '{"reply":"hi","action":null,"suggests":["Trim the fund?","ok",5,""]}',
+    )
+    expect(out?.suggests).toEqual(['Trim the fund?', 'ok'])
   })
   it('parses add_watch_symbol and uppercases the ticker', () => {
     const out = parseInvestChatReply(

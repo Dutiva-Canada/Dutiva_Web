@@ -29,9 +29,17 @@ import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
  * plus the conversational surface (kind 'chat') — Claire, the search coach.
  *
  *   { kind: 'chat', message, lang? }        → { reply, assistantId }
- *   { kind: 'chat_history', limit?, before? }   → { turns }
- *   { kind: 'chat_clear' }                  → { cleared: true }
- *   { kind: 'chat_feedback', messageId, rating } → { ok }
+ *   { kind: 'chat_history', limit?, before?, threadId? } → { turns }
+ *   { kind: 'chat_threads' }              → { threads } — named conversations
+ *   { kind: 'chat_thread_new' }           → { thread } — starts a named one
+ *   { kind: 'chat_regenerate', threadId? } → same payload as 'chat'
+ *                                             — re-runs the thread's last
+ *                                             user turn after deleting the
+ *                                             old pair (costs a daily call).
+ *   { kind: 'chat_clear', threadId? }     → { cleared: true }
+ *   { kind: 'chat_feedback', messageId, rating, reason? } → { ok }
+ *                                             — rating -1 may carry a short
+ *                                             `reason` so a downvote says why.
  *
  * `stream: true` on chat switches the response to text/event-stream — same
  * contract as the other portal functions: delta events carry reply text,
@@ -320,21 +328,39 @@ async function persistChatTurns(
   userId: string,
   message: string,
   reply: string,
+  threadId: string | null,
 ): Promise<{ assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   await adminClient
     .from('candidate_chat_messages')
-    .insert({ user_id: userId, role: 'user', content: message, created_at: nowIso })
+    .insert({
+      user_id: userId,
+      role: 'user',
+      content: message,
+      thread_id: threadId,
+      created_at: nowIso,
+    })
   const { data: assistantRow } = await adminClient
     .from('candidate_chat_messages')
     .insert({
       user_id: userId,
       role: 'assistant',
       content: reply,
+      thread_id: threadId,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
     .single()
+  /* A named thread takes its title from the first user message — set only
+     while the title is still null, so a later turn never renames it. */
+  if (threadId) {
+    await adminClient
+      .from('candidate_chat_threads')
+      .update({ title: message.slice(0, 80) })
+      .eq('id', threadId)
+      .eq('user_id', userId)
+      .is('title', null)
+  }
   return { assistantId: assistantRow?.id ?? null }
 }
 
@@ -348,18 +374,23 @@ async function runChat(
   lang: 'en' | 'fr',
   stream: boolean,
   advice: boolean,
+  threadId: string | null = null,
 ): Promise<Response> {
   const activeRoute = await activeModelRoute(adminClient)
   if (activeRoute instanceof Response) return activeRoute
 
+  /* Context history scopes to the same thread — a named conversation must
+     not leak turns from the default one into the model window. */
+  let histQuery = adminClient
+    .from('candidate_chat_messages')
+    .select('role, content')
+    .eq('user_id', userId)
+  histQuery = threadId === null
+    ? histQuery.is('thread_id', null)
+    : histQuery.eq('thread_id', threadId)
   const [ctx, { data: historyRows, error: histError }] = await Promise.all([
     loadChatContext(adminClient, userId),
-    adminClient
-      .from('candidate_chat_messages')
-      .select('role, content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(CHAT_HISTORY),
+    histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
   ])
   if (histError) return json({ error: histError.message }, 500)
 
@@ -415,13 +446,19 @@ async function runChat(
           const visible = extractor.push(piece)
           if (visible) sse.send({ type: 'delta', text: visible })
         })
-        const reply = parseCandidateChatReply(fullText)
-        if (!reply) {
+        const parsed = parseCandidateChatReply(fullText)
+        if (!parsed) {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
-        const { assistantId } = await persistChatTurns(adminClient, userId, message, reply)
-        sse.send({ type: 'done', reply, assistantId })
+        const { assistantId } = await persistChatTurns(
+          adminClient,
+          userId,
+          message,
+          parsed.reply,
+          threadId,
+        )
+        sse.send({ type: 'done', reply: parsed.reply, assistantId, suggests: parsed.suggests })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
@@ -434,10 +471,16 @@ async function runChat(
   const completion = (await upstream.json()) as {
     choices?: { message?: { content?: string } }[]
   }
-  const reply = parseCandidateChatReply(completion?.choices?.[0]?.message?.content)
-  if (!reply) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
-  const { assistantId } = await persistChatTurns(adminClient, userId, message, reply)
-  return json({ reply, assistantId })
+  const parsed = parseCandidateChatReply(completion?.choices?.[0]?.message?.content)
+  if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  const { assistantId } = await persistChatTurns(
+    adminClient,
+    userId,
+    message,
+    parsed.reply,
+    threadId,
+  )
+  return json({ reply: parsed.reply, assistantId, suggests: parsed.suggests })
 }
 
 /* Daily rail — one atomic counter row per user per day, claimed before the
@@ -492,6 +535,48 @@ const handler = async (req: Request) => {
   const stream = body['stream'] === true
   const kind = typeof body['kind'] === 'string' ? body['kind'] : ''
 
+  /* Named conversations — threadId scopes chat/history/clear/regenerate.
+     NULL is the default conversation: existing rows carry thread_id NULL
+     and stay visible with no backfill. A supplied threadId must be a uuid
+     the caller owns. */
+  const rawThread = body['threadId']
+  let threadId: string | null = null
+  if (rawThread !== undefined && rawThread !== null) {
+    if (
+      typeof rawThread !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawThread)
+    ) {
+      return json({ error: 'threadId must be a uuid' }, 400)
+    }
+    const { data: owned } = await authenticated.adminClient
+      .from('candidate_chat_threads')
+      .select('id')
+      .eq('id', rawThread)
+      .eq('user_id', authenticated.user.id)
+      .maybeSingle()
+    if (!owned) return json({ error: 'Unknown thread' }, 404)
+    threadId = rawThread
+  }
+
+  if (kind === 'chat_threads') {
+    const { data, error } = await authenticated.adminClient
+      .from('candidate_chat_threads')
+      .select('id, title, created_at')
+      .eq('user_id', authenticated.user.id)
+      .order('created_at', { ascending: true })
+    if (error) return json({ error: error.message }, 500)
+    return json({ threads: data ?? [] })
+  }
+  if (kind === 'chat_thread_new') {
+    const { data, error } = await authenticated.adminClient
+      .from('candidate_chat_threads')
+      .insert({ user_id: authenticated.user.id, title: null })
+      .select('id, title, created_at')
+      .single()
+    if (error) return json({ error: error.message }, 500)
+    return json({ thread: data })
+  }
+
   /* History read/clear/feedback need no model and cost no rail — they run
      through this function so the table's only writer is this code path (a
      client can't file its own 'assistant' rows under the owner policy). */
@@ -505,18 +590,21 @@ const handler = async (req: Request) => {
     const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
     let q = authenticated.adminClient
       .from('candidate_chat_messages')
-      .select('id, role, content, feedback, created_at')
+      .select('id, role, content, feedback, feedback_reason, created_at')
       .eq('user_id', authenticated.user.id)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)
     const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
     if (error) return json({ error: error.message }, 500)
     return json({ turns: (data ?? []).reverse() })
   }
   if (kind === 'chat_clear') {
-    const { error } = await authenticated.adminClient
+    let q = authenticated.adminClient
       .from('candidate_chat_messages')
       .delete()
       .eq('user_id', authenticated.user.id)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { error } = await q
     if (error) return json({ error: error.message }, 500)
     return json({ cleared: true })
   }
@@ -529,9 +617,15 @@ const handler = async (req: Request) => {
     ) {
       return json({ error: 'messageId (uuid) and rating (-1|0|1) required' }, 400)
     }
+    /* A downvote may carry a one-tap reason; anything else clears it. */
+    const reason =
+      typeof body['reason'] === 'string' ? body['reason'].trim().slice(0, 80) : ''
     const { error } = await authenticated.adminClient
       .from('candidate_chat_messages')
-      .update({ feedback: rating === 0 ? null : rating })
+      .update({
+        feedback: rating === 0 || rating === null ? null : rating,
+        feedback_reason: rating === -1 ? (reason || null) : null,
+      })
       .eq('id', messageId)
       .eq('user_id', authenticated.user.id)
       .eq('role', 'assistant')
@@ -555,6 +649,47 @@ const handler = async (req: Request) => {
       lang,
       stream,
       internal,
+      threadId,
+    )
+  }
+  if (kind === 'chat_regenerate') {
+    /* Re-ask the thread's last user turn — the stale assistant reply and
+       its user turn are deleted first, so the old answer stops anchoring
+       the context before the fresh call runs. A real model call, so the
+       daily rail claims the same way. */
+    const regenRefusal = await claimDailyCall(
+      authenticated.adminClient,
+      authenticated.user.id,
+      internal,
+    )
+    if (regenRefusal) return regenRefusal
+    let q = authenticated.adminClient
+      .from('candidate_chat_messages')
+      .select('id, role, content')
+      .eq('user_id', authenticated.user.id)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { data: lastTwo, error } = await q
+      .order('created_at', { ascending: false })
+      .limit(2)
+    if (error) return json({ error: error.message }, 500)
+    const latest = lastTwo?.[0]
+    const prev = lastTwo?.[1]
+    if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
+      return json({ error: 'Nothing to regenerate' }, 409)
+    }
+    await authenticated.adminClient
+      .from('candidate_chat_messages')
+      .delete()
+      .in('id', [latest.id, prev.id])
+      .eq('user_id', authenticated.user.id)
+    return await runChat(
+      authenticated.adminClient,
+      authenticated.user.id,
+      prev.content,
+      lang,
+      stream,
+      internal,
+      threadId,
     )
   }
 

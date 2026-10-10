@@ -687,6 +687,35 @@ export const careersMessages = defineMessages({
     en: 'Enter to send · Shift+Enter for a new line',
     fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
   },
+  /* Conversation chrome — the thinking label, scroll pill, and the
+     turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
+  careers_chat_typing: { en: 'Claire is thinking…', fr: 'Claire réfléchit…' },
+  careers_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
+  careers_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
+  careers_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },
+  careers_chat_stop: { en: 'Stop', fr: 'Arrêter' },
+  /* What she reads — a disclosure under the subtitle listing her data
+     sources, so the surface is honest about its scope. [FR self-authored] */
+  careers_chat_sees: { en: 'What Claire can see', fr: 'Ce que Claire voit' },
+  careers_chat_sees_list: {
+    en: 'Your profile and resume excerpt, your applications, the jobs your search agent found, and this conversation.',
+    fr: 'Votre profil et l’extrait de votre CV, vos candidatures, les offres trouvées par votre agent de recherche — et cette conversation.',
+  },
+  /* One-tap reasons under a thumbs-down — stored with the rating.
+     [FR self-authored] */
+  careers_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
+  careers_chat_reason_wrong: { en: 'Not accurate', fr: 'Inexacte' },
+  careers_chat_reason_vague: { en: 'Too vague', fr: 'Trop vague' },
+  careers_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
+  /* Named conversations — the switcher lists them; the default thread is
+     always selectable as the main one. [FR self-authored] */
+  careers_chat_threads: { en: 'Conversations', fr: 'Conversations' },
+  careers_chat_thread_new: { en: 'New conversation', fr: 'Nouvelle conversation' },
+  careers_chat_thread_default: { en: 'Main conversation', fr: 'Conversation principale' },
+  careers_chat_thread_untitled: { en: 'Untitled conversation', fr: 'Conversation sans titre' },
+  /* Follow-up chips the model offers with a reply — tapping one sends it.
+     [FR self-authored] */
+  careers_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },
 
   /* ── Job search agent ─────────────────────────────────────────────────── */
   careers_agent_title: { en: 'Job search agent', fr: 'Agent de recherche d’emploi' },

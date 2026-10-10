@@ -155,11 +155,18 @@ async function persistChatTurns(
   message: string,
   reply: string,
   executed: ExecutedAction | null,
+  threadId: string | null,
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await adminClient
     .from('invest_chat_messages')
-    .insert({ user_id: userId, role: 'user', content: message, created_at: nowIso })
+    .insert({
+      user_id: userId,
+      role: 'user',
+      content: message,
+      thread_id: threadId,
+      created_at: nowIso,
+    })
     .select('id')
     .single()
   const { data: assistantRow } = await adminClient
@@ -169,10 +176,21 @@ async function persistChatTurns(
       role: 'assistant',
       content: reply,
       action: executed,
+      thread_id: threadId,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
     .single()
+  /* A named thread takes its title from the first user message — set only
+     while the title is still null, so a later turn never renames it. */
+  if (threadId) {
+    await adminClient
+      .from('invest_chat_threads')
+      .update({ title: message.slice(0, 80) })
+      .eq('id', threadId)
+      .eq('user_id', userId)
+      .is('title', null)
+  }
   return { userId: userRow?.id ?? null, assistantId: assistantRow?.id ?? null }
 }
 
@@ -189,17 +207,23 @@ export async function runChat(
   lang: 'en' | 'fr',
   stream: boolean,
   advice: boolean,
+  threadId: string | null = null,
 ): Promise<Response> {
   const routed = await modelRoute(adminClient)
   if ('error' in routed) return routed.error
   const { route, provider, apiKey } = routed
 
+  /* Context history scopes to the same thread — a named conversation must
+     not leak turns from the default one into the model window. */
+  let histQuery = adminClient.from('invest_chat_messages')
+    .select('role, content')
+    .eq('user_id', userId)
+  histQuery = threadId === null
+    ? histQuery.is('thread_id', null)
+    : histQuery.eq('thread_id', threadId)
   const [book, { data: historyRows, error: histError }] = await Promise.all([
     loadBookContext(adminClient, userId),
-    adminClient.from('invest_chat_messages')
-      .select('role, content')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false }).limit(CHAT_HISTORY),
+    histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
   ])
   if (histError) return json({ error: histError.message }, 500)
 
@@ -266,8 +290,21 @@ export async function runChat(
               advice,
             })
           : null
-        const ids = await persistChatTurns(adminClient, userId, message, parsed.reply, executed)
-        sse.send({ type: 'done', reply: parsed.reply, action: executed, ...ids })
+        const ids = await persistChatTurns(
+          adminClient,
+          userId,
+          message,
+          parsed.reply,
+          executed,
+          threadId,
+        )
+        sse.send({
+          type: 'done',
+          reply: parsed.reply,
+          action: executed,
+          suggests: parsed.suggests,
+          ...ids,
+        })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
@@ -293,7 +330,19 @@ export async function runChat(
         advice,
       })
     : null
-  const ids = await persistChatTurns(adminClient, userId, message, parsed.reply, executed)
+  const ids = await persistChatTurns(
+    adminClient,
+    userId,
+    message,
+    parsed.reply,
+    executed,
+    threadId,
+  )
 
-  return json({ reply: parsed.reply, action: executed, ...ids })
+  return json({
+    reply: parsed.reply,
+    action: executed,
+    suggests: parsed.suggests,
+    ...ids,
+  })
 }

@@ -49,9 +49,17 @@ import {
  *                                             habit, log a check-in, write a
  *                                             journal entry). Both turns persist
  *                                             to health_chat_messages.
- *   POST { kind:'chat_history', limit?, before? } → { turns }
- *   POST { kind:'chat_clear' }           → { cleared: true }
- *   POST { kind:'chat_feedback', messageId, rating } → { ok }
+ *   POST { kind:'chat_history', limit?, before?, threadId? } → { turns }
+ *   POST { kind:'chat_threads' }         → { threads } — named conversations
+ *   POST { kind:'chat_thread_new' }      → { thread } — starts a named one
+ *   POST { kind:'chat_regenerate', threadId? } → same payload as 'chat'
+ *                                             — re-runs the thread's last
+ *                                             user turn after deleting the
+ *                                             old pair.
+ *   POST { kind:'chat_clear', threadId? } → { cleared: true }
+ *   POST { kind:'chat_feedback', messageId, rating, reason? } → { ok }
+ *                                             — rating -1 may carry a short
+ *                                             `reason` so a downvote says why.
  *                                             — thumbs up/down on an assistant
  *                                             turn; history read/clear/feedback
  *                                             run through the function too, so
@@ -135,9 +143,54 @@ const handler = async (req: Request) => {
     kind !== 'chat_history' &&
     kind !== 'chat_clear' &&
     kind !== 'chat_feedback' &&
-    kind !== 'chat_undo'
+    kind !== 'chat_undo' &&
+    kind !== 'chat_threads' &&
+    kind !== 'chat_thread_new' &&
+    kind !== 'chat_regenerate'
   ) {
     return json({ error: 'unknown kind' }, 400)
+  }
+
+  /* Named conversations — threadId scopes chat/history/clear/regenerate.
+     NULL is the default conversation: existing rows carry thread_id NULL
+     and stay visible with no backfill. A supplied threadId must be a uuid
+     the caller owns. */
+  const rawThread = body.threadId
+  let threadId: string | null = null
+  if (rawThread !== undefined && rawThread !== null) {
+    if (
+      typeof rawThread !== 'string' ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawThread)
+    ) {
+      return json({ error: 'threadId must be a uuid' }, 400)
+    }
+    const { data: owned } = await admin
+      .from('health_chat_threads')
+      .select('id')
+      .eq('id', rawThread)
+      .eq('user_id', portal.userId)
+      .maybeSingle()
+    if (!owned) return json({ error: 'Unknown thread' }, 404)
+    threadId = rawThread
+  }
+
+  if (kind === 'chat_threads') {
+    const { data, error } = await admin
+      .from('health_chat_threads')
+      .select('id, title, created_at')
+      .eq('user_id', portal.userId)
+      .order('created_at', { ascending: true })
+    if (error) return json({ error: error.message }, 500)
+    return json({ threads: data ?? [] })
+  }
+  if (kind === 'chat_thread_new') {
+    const { data, error } = await admin
+      .from('health_chat_threads')
+      .insert({ user_id: portal.userId, title: null })
+      .select('id, title, created_at')
+      .single()
+    if (error) return json({ error: error.message }, 500)
+    return json({ thread: data })
   }
 
   /* The portal tracks habit "days" in the user's local timezone — the
@@ -161,18 +214,21 @@ const handler = async (req: Request) => {
     const before = typeof body.before === 'string' && body.before ? body.before : null
     let q = admin
       .from('health_chat_messages')
-      .select('id, role, content, action, feedback, created_at')
+      .select('id, role, content, action, feedback, feedback_reason, created_at')
       .eq('user_id', portal.userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)
     const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
     if (error) return json({ error: error.message }, 500)
     return json({ turns: (data ?? []).reverse() })
   }
   if (kind === 'chat_clear') {
-    const { error } = await admin
+    let q = admin
       .from('health_chat_messages')
       .delete()
       .eq('user_id', portal.userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { error } = await q
     if (error) return json({ error: error.message }, 500)
     return json({ cleared: true })
   }
@@ -185,9 +241,15 @@ const handler = async (req: Request) => {
     ) {
       return json({ error: 'messageId (uuid) and rating (-1|0|1) required' }, 400)
     }
+    /* A downvote may carry a one-tap reason; anything else clears it. */
+    const reason =
+      typeof body.reason === 'string' ? body.reason.trim().slice(0, 80) : ''
     const { error } = await admin
       .from('health_chat_messages')
-      .update({ feedback: rating === 0 ? null : rating })
+      .update({
+        feedback: rating === 0 || rating === null ? null : rating,
+        feedback_reason: rating === -1 ? (reason || null) : null,
+      })
       .eq('id', messageId)
       .eq('user_id', portal.userId)
       .eq('role', 'assistant')
@@ -209,7 +271,32 @@ const handler = async (req: Request) => {
     if (message.length === 0 || message.length > 1200) {
       return json({ error: 'message must be 1–1200 characters' }, 400)
     }
-    return await runChat(admin, portal.userId, message, today, lang, stream, advice)
+    return await runChat(admin, portal.userId, message, today, lang, stream, advice, threadId)
+  }
+  if (kind === 'chat_regenerate') {
+    /* Re-ask the thread's last user turn — the stale assistant reply and
+       its user turn are deleted first, so the old answer stops anchoring
+       the context before the fresh call runs. */
+    let q = admin
+      .from('health_chat_messages')
+      .select('id, role, content')
+      .eq('user_id', portal.userId)
+    q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
+    const { data: lastTwo, error } = await q
+      .order('created_at', { ascending: false })
+      .limit(2)
+    if (error) return json({ error: error.message }, 500)
+    const latest = lastTwo?.[0]
+    const prev = lastTwo?.[1]
+    if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
+      return json({ error: 'Nothing to regenerate' }, 409)
+    }
+    await admin
+      .from('health_chat_messages')
+      .delete()
+      .in('id', [latest.id, prev.id])
+      .eq('user_id', portal.userId)
+    return await runChat(admin, portal.userId, prev.content, today, lang, stream, advice, threadId)
   }
   if (kind === 'react') {
     const event = parseReactEvent(body.event)

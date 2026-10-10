@@ -374,17 +374,28 @@ describe('parseChatReply', () => {
     expect(parseChatReply('{"reply":"Looks like a steady week.","action":null}')).toEqual({
       reply: 'Looks like a steady week.',
       action: null,
+      suggests: [],
     })
+  })
+  it('keeps string suggests, drops anything else', () => {
+    const out = parseChatReply(
+      '{"reply":"hi","action":null,"suggests":["Log a check-in?",7]}',
+    )
+    expect(out?.suggests).toEqual(['Log a check-in?'])
   })
   it('parses a reply with a habit action', () => {
     expect(
       parseChatReply('{"reply":"Done!","action":{"type":"mark_habit_done","habit":"Walk"}}'),
-    ).toEqual({ reply: 'Done!', action: { type: 'mark_habit_done', habit: 'Walk' } })
+    ).toEqual({ reply: 'Done!', action: { type: 'mark_habit_done', habit: 'Walk' }, suggests: [] })
   })
   it('validates check-in bounds', () => {
     expect(
       parseChatReply('{"reply":"r","action":{"type":"add_checkin","mood":3,"energy":2}}'),
-    ).toEqual({ reply: 'r', action: { type: 'add_checkin', mood: 3, energy: 2, note: undefined } })
+    ).toEqual({
+      reply: 'r',
+      action: { type: 'add_checkin', mood: 3, energy: 2, note: undefined },
+      suggests: [],
+    })
     expect(
       parseChatReply('{"reply":"r","action":{"type":"add_checkin","mood":9}}'),
     ).toBeNull()

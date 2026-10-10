@@ -685,6 +685,36 @@ const investCoreMessages = defineMessages({
     en: 'Enter to send · Shift+Enter for a new line',
     fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
   },
+  /* Conversation chrome — the thinking label, scroll pill, and the
+     turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
+  invest_chat_typing: { en: 'Tally is thinking…', fr: 'Tally réfléchit…' },
+  invest_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
+  invest_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
+  invest_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },
+  invest_chat_stop: { en: 'Stop', fr: 'Arrêter' },
+  /* What she reads — a disclosure under the subtitle listing her data
+     sources, so the advice surface is honest about its scope.
+     [FR self-authored] */
+  invest_chat_sees: { en: 'What Tally can see', fr: 'Ce que Tally voit' },
+  invest_chat_sees_list: {
+    en: 'Your accounts, positions, watchlist, orders, signals, and strategies — and this conversation.',
+    fr: 'Vos comptes, positions, liste de suivi, ordres, signaux et stratégies — et cette conversation.',
+  },
+  /* One-tap reasons under a thumbs-down — stored with the rating.
+     [FR self-authored] */
+  invest_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
+  invest_chat_reason_wrong: { en: 'Not accurate', fr: 'Inexacte' },
+  invest_chat_reason_vague: { en: 'Too vague', fr: 'Trop vague' },
+  invest_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
+  /* Named conversations — the switcher lists them; the default thread is
+     always selectable as the main one. [FR self-authored] */
+  invest_chat_threads: { en: 'Conversations', fr: 'Conversations' },
+  invest_chat_thread_new: { en: 'New conversation', fr: 'Nouvelle conversation' },
+  invest_chat_thread_default: { en: 'Main conversation', fr: 'Conversation principale' },
+  invest_chat_thread_untitled: { en: 'Untitled conversation', fr: 'Conversation sans titre' },
+  /* Follow-up chips the model offers with a reply — tapping one sends it.
+     [FR self-authored] */
+  invest_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },

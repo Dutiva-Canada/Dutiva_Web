@@ -580,6 +580,35 @@ export const healthMessages = defineMessages({
     en: 'Enter to send · Shift+Enter for a new line',
     fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
   },
+  /* Conversation chrome — the thinking label, scroll pill, and the
+     turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
+  health_chat_typing: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
+  health_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
+  health_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
+  health_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },
+  health_chat_stop: { en: 'Stop', fr: 'Arrêter' },
+  /* What she reads — a disclosure under the subtitle listing her data
+     sources, so the surface is honest about its scope. [FR self-authored] */
+  health_chat_sees: { en: 'What Mira can see', fr: 'Ce que Mira voit' },
+  health_chat_sees_list: {
+    en: 'Your check-ins, habit names and streaks, and journal entries you’ve shared — and this conversation.',
+    fr: 'Vos bilans, le nom et la filière de vos habitudes, et les entrées de journal que vous avez partagées — et cette conversation.',
+  },
+  /* One-tap reasons under a thumbs-down — stored with the rating.
+     [FR self-authored] */
+  health_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
+  health_chat_reason_wrong: { en: 'Not accurate', fr: 'Inexacte' },
+  health_chat_reason_vague: { en: 'Too vague', fr: 'Trop vague' },
+  health_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
+  /* Named conversations — the switcher lists them; the default thread is
+     always selectable as the main one. [FR self-authored] */
+  health_chat_threads: { en: 'Conversations', fr: 'Conversations' },
+  health_chat_thread_new: { en: 'New conversation', fr: 'Nouvelle conversation' },
+  health_chat_thread_default: { en: 'Main conversation', fr: 'Conversation principale' },
+  health_chat_thread_untitled: { en: 'Untitled conversation', fr: 'Conversation sans titre' },
+  /* Follow-up chips the model offers with a reply — tapping one sends it.
+     [FR self-authored] */
+  health_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',

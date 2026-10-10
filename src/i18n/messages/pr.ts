@@ -703,6 +703,35 @@ export const prMessages = defineMessages({
     en: 'Enter to send · Shift+Enter for a new line',
     fr: 'Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne',
   },
+  /* Conversation chrome — the thinking label, scroll pill, and the
+     turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
+  pr_chat_typing: { en: 'Paige is thinking…', fr: 'Paige réfléchit…' },
+  pr_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
+  pr_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
+  pr_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },
+  pr_chat_stop: { en: 'Stop', fr: 'Arrêter' },
+  /* What she reads — a disclosure under the subtitle listing her data
+     sources, so the surface is honest about its scope. [FR self-authored] */
+  pr_chat_sees: { en: 'What Paige can see', fr: 'Ce que Paige voit' },
+  pr_chat_sees_list: {
+    en: 'Your campaigns, contacts, mentions, keywords, content drafts, and GEO prompts — and this conversation.',
+    fr: 'Vos campagnes, contacts, retombées, mots-clés, brouillons de contenu et prompts GEO — et cette conversation.',
+  },
+  /* One-tap reasons under a thumbs-down — stored with the rating.
+     [FR self-authored] */
+  pr_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
+  pr_chat_reason_wrong: { en: 'Not accurate', fr: 'Inexacte' },
+  pr_chat_reason_vague: { en: 'Too vague', fr: 'Trop vague' },
+  pr_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
+  /* Named conversations — the switcher lists them; the default thread is
+     always selectable as the main one. [FR self-authored] */
+  pr_chat_threads: { en: 'Conversations', fr: 'Conversations' },
+  pr_chat_thread_new: { en: 'New conversation', fr: 'Nouvelle conversation' },
+  pr_chat_thread_default: { en: 'Main conversation', fr: 'Conversation principale' },
+  pr_chat_thread_untitled: { en: 'Untitled conversation', fr: 'Conversation sans titre' },
+  /* Follow-up chips the model offers with a reply — tapping one sends it.
+     [FR self-authored] */
+  pr_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   pr_home_paige_label: { en: 'Paige noticed', fr: 'Paige a remarqué' },

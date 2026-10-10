@@ -63,7 +63,13 @@ describe('prChatPrompt', () => {
 describe('parsePrChatReply', () => {
   it('parses a clean reply with no action', () => {
     const out = parsePrChatReply('{"reply":"Hi there","action":null}')
-    expect(out).toEqual({ reply: 'Hi there', action: null })
+    expect(out).toEqual({ reply: 'Hi there', action: null, suggests: [] })
+  })
+  it('keeps string suggests, drops anything else', () => {
+    const out = parsePrChatReply(
+      '{"reply":"hi","action":null,"suggests":["Add the contact?",{},""]}',
+    )
+    expect(out?.suggests).toEqual(['Add the contact?'])
   })
   it('parses an add_campaign action and keeps whitelisted fields', () => {
     const out = parsePrChatReply(
@@ -109,7 +115,7 @@ describe('parsePrChatReply', () => {
     /* A fenced-but-valid block still parses — the strip handles it. */
     expect(
       parsePrChatReply('```json\n{"reply":"ok","action":null}\n```'),
-    ).toEqual({ reply: 'ok', action: null })
+    ).toEqual({ reply: 'ok', action: null, suggests: [] })
   })
   it('rejects out-of-vocab enum values by dropping them, not the action', () => {
     const out = parsePrChatReply(

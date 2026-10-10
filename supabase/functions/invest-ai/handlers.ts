@@ -204,6 +204,9 @@ export type InvestChatAction =
 export interface InvestChatReply {
   reply: string
   action: InvestChatAction | null
+  /* Short next-prompt chips the client shows as tappable follow-ups —
+     ephemeral: they ride the reply payload, never the stored turn. */
+  suggests: string[]
 }
 
 export const INVEST_CHAT_ACTION_TYPES = new Set([
@@ -260,7 +263,8 @@ export function investChatPrompt(
       '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
-      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>}. No markdown fences.',
+      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Book data:',
       `Accounts (${ctx.accounts.length}):`,
@@ -296,11 +300,21 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
     const obj = JSON.parse(text.slice(start, end + 1)) as {
       reply?: unknown
       action?: unknown
+      suggests?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
     if (!reply) return null
+    /* Follow-up chips — kept only as clean short strings; malformed or
+       oversized entries drop out rather than fail the whole reply. */
+    const suggests = Array.isArray(obj.suggests)
+      ? obj.suggests
+          .filter((s): s is string => typeof s === 'string')
+          .map((s) => s.trim().slice(0, 120))
+          .filter((s) => s !== '')
+          .slice(0, 3)
+      : []
     const a = obj.action
-    if (a === null || a === undefined) return { reply, action: null }
+    if (a === null || a === undefined) return { reply, action: null, suggests }
     if (typeof a !== 'object') return null
     const action = a as Record<string, unknown>
     if (typeof action.type !== 'string' || !INVEST_CHAT_ACTION_TYPES.has(action.type)) return null
@@ -310,6 +324,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_watch_symbol',
             symbol,
@@ -321,7 +336,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       case 'remove_watch_symbol': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
-        return { reply, action: { type: 'remove_watch_symbol', symbol } }
+        return { reply, suggests, action: { type: 'remove_watch_symbol', symbol } }
       }
       case 'create_order': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
@@ -337,6 +352,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         const mode = optEnum(action.mode, ['paper', 'live'])
         return {
           reply,
+          suggests,
           action: {
             type: 'create_order',
             symbol,
@@ -354,12 +370,12 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         const signalId = optStr(action.signalId, 60)
         const status = optEnum(action.status, ['acknowledged', 'dismissed'])
         if (!signalId || !status) return null
-        return { reply, action: { type: 'update_signal', signalId, status } }
+        return { reply, suggests, action: { type: 'update_signal', signalId, status } }
       }
       case 'draft_strategy': {
         const goal = optStr(action.goal, 1200)
         if (!goal || goal.length < 10) return null
-        return { reply, action: { type: 'draft_strategy', goal } }
+        return { reply, suggests, action: { type: 'draft_strategy', goal } }
       }
       case 'add_position': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
@@ -370,6 +386,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         if (!Number.isFinite(avgCost) || avgCost < 0) return null
         return {
           reply,
+          suggests,
           action: {
             type: 'add_position',
             symbol,
