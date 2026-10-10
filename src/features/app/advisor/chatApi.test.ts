@@ -196,13 +196,38 @@ describe('sendAdvisorMessage', () => {
     expect(result.response).toBeNull()
   })
 
-  it('propagates an invoke error', async () => {
-    const invoke = vi.fn().mockResolvedValue({ data: null, error: new Error('network down') })
+  it('forwards the caller’s AbortSignal to supabase-js', async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: { data: { reply: 'ok', conversation_id: 'conv-1' } },
+      error: null,
+    })
     const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
-    await expect(sendAdvisorMessage('hi', null)).rejects.toThrow('network down')
+    const ctrl = new AbortController()
+
+    await sendAdvisorMessage('hi', null, null, [], ctrl.signal)
+
+    expect(invoke).toHaveBeenCalledWith(
+      'advisor-chat',
+      expect.objectContaining({ signal: ctrl.signal }),
+    )
   })
 
-  it('throws when the response fails schema validation', async () => {
+  it('omits the signal key when the caller passes none', async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: { data: { reply: 'ok', conversation_id: 'conv-1' } },
+      error: null,
+    })
+    const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
+
+    await sendAdvisorMessage('hi', null)
+
+    expect(invoke).toHaveBeenCalledWith(
+      'advisor-chat',
+      expect.not.objectContaining({ signal: expect.anything() }),
+    )
+  })
+
+  it('propagates an invoke error', async () => {
     const invoke = vi.fn().mockResolvedValue({ data: { data: { reply: 'ok' } }, error: null })
     const { sendAdvisorMessage } = await loadChatApiWithFakeInvoke(invoke)
     await expect(sendAdvisorMessage('hi', null)).rejects.toThrow()
@@ -311,5 +336,81 @@ describe('sendAdvisorMessage — beta usage limit', () => {
     const invoke = vi.fn().mockResolvedValue({ data: null, error: httpError(503, {}) })
     const { sendAdvisorMessage, AdvisorUsageLimitError } = await loadChatApiWithFakeInvoke(invoke)
     await expect(sendAdvisorMessage('hi', null)).rejects.not.toBeInstanceOf(AdvisorUsageLimitError)
+  })
+})
+
+/**
+ * Turn ratings live on advisor_turn_feedback keyed by (user, conversation,
+ * turn_index). These pin the wire shape: reasons persist with a thumbs-down
+ * only, and a clear deletes the row rather than writing a zero.
+ */
+describe('rateAdvisorTurn / loadAdvisorTurnRatings', () => {
+  afterEach(() => {
+    vi.doUnmock('@/lib/supabaseClient')
+    vi.resetModules()
+  })
+
+  /* A thenable query chain: every builder method returns itself and awaiting
+     the chain resolves `{ data, error: null }` — enough for both the write
+     path (upsert / delete().eq().eq().eq()) and the read (select().eq()). */
+  async function loadWithTable(tableRows: unknown[] = []) {
+    const calls: { upsert: unknown[]; deleted: number } = { upsert: [], deleted: 0 }
+    const chain: Record<string, unknown> & { then?: Promise<unknown>['then'] } = {}
+    chain['eq'] = vi.fn().mockReturnValue(chain)
+    chain['select'] = vi.fn().mockReturnValue(chain)
+    chain['delete'] = vi.fn(() => {
+      calls.deleted += 1
+      return chain
+    })
+    chain['upsert'] = vi.fn((row: unknown) => {
+      calls.upsert.push(row)
+      return chain
+    })
+    chain['then'] = (resolve, reject) =>
+      Promise.resolve({ data: tableRows, error: null }).then(resolve, reject)
+    const supabase = {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({
+          data: { session: { user: { id: 'user-9' } } },
+        }),
+      },
+      from: vi.fn(() => chain),
+    }
+    vi.doMock('@/lib/supabaseClient', () => ({ supabase }))
+    vi.resetModules()
+    return { api: await import('./chatApi'), calls }
+  }
+
+  it('persists the reason on a thumbs-down and clears it otherwise', async () => {
+    const { api, calls } = await loadWithTable()
+    await api.rateAdvisorTurn('conv-1', 3, -1, 'too_vague')
+    expect(calls.upsert[0]).toMatchObject({
+      conversation_id: 'conv-1',
+      turn_index: 3,
+      rating: -1,
+      reason: 'too_vague',
+    })
+
+    await api.rateAdvisorTurn('conv-1', 3, 1, 'too_vague')
+    expect(calls.upsert[1]).toMatchObject({ rating: 1, reason: null })
+  })
+
+  it('deletes the row when the rating is cleared', async () => {
+    const { api, calls } = await loadWithTable()
+    await api.rateAdvisorTurn('conv-1', 3, null)
+    expect(calls.deleted).toBe(1)
+    expect(calls.upsert).toHaveLength(0)
+  })
+
+  it('loads rating and reason per turn index', async () => {
+    const { api } = await loadWithTable([
+      { turn_index: 2, rating: 1, reason: null },
+      { turn_index: 5, rating: -1, reason: 'wrong_info' },
+      { turn_index: 7, rating: 0, reason: null },
+    ])
+    const map = await api.loadAdvisorTurnRatings('conv-1')
+    expect(map.get(2)).toEqual({ rating: 1, reason: null })
+    expect(map.get(5)).toEqual({ rating: -1, reason: 'wrong_info' })
+    expect(map.get(7)).toBeUndefined()
   })
 })

@@ -539,6 +539,7 @@ export type Database = {
           conversation_id: string
           created_at: string
           rating: number
+          reason: string | null
           turn_index: number
           updated_at: string
           user_id: string
@@ -547,6 +548,7 @@ export type Database = {
           conversation_id: string
           created_at?: string
           rating: number
+          reason?: string | null
           turn_index: number
           updated_at?: string
           user_id: string
@@ -555,6 +557,7 @@ export type Database = {
           conversation_id?: string
           created_at?: string
           rating?: number
+          reason?: string | null
           turn_index?: number
           updated_at?: string
           user_id?: string

@@ -336,6 +336,7 @@ describe('AdvisorView', () => {
           organization_id: null,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
+        signal: expect.any(AbortSignal),
       })
       /* Real (unmocked) timers: the engine's 850ms thinking delay plus the
          streaming animation exceed testing-library's default 1000ms wait. */

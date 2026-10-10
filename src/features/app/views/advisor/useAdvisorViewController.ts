@@ -66,6 +66,9 @@ export function useAdvisorViewController() {
   const { mode: workspaceMode, organizationId } = workspaceModeCtx
   const { isPublicDemo } = useWorkspaceRoot()
   const [sendingReal, setSendingReal] = useState(false)
+  /* The in-flight real send — Stop aborts it (server may still commit). */
+  const sendAbortRef = useRef<AbortController | null>(null)
+  const cancelRealSend = () => sendAbortRef.current?.abort()
   const [buyingAdvisorPack, setBuyingAdvisorPack] = useState<AdvisorPackSize | null>(null)
   const {
     sessionChats,
@@ -332,6 +335,7 @@ export function useAdvisorViewController() {
     engineReset: () => engine.reset([]),
     stashActive,
     conversationIdRef,
+    sendAbortRef,
     interceptCrisis,
     toToneCard,
     setSendingReal,
@@ -352,6 +356,7 @@ export function useAdvisorViewController() {
     updateExtras,
     bindBackendConversationId,
     conversationIdRef,
+    sendAbortRef,
     interceptCrisis,
     toToneCard,
     setSendingReal,
@@ -457,6 +462,7 @@ export function useAdvisorViewController() {
     authStatus,
     engine,
     sendingReal,
+    cancelRealSend,
     jurisdictionLine,
     jurisdictionTone,
     getExtras,

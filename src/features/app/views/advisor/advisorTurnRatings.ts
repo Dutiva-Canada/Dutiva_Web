@@ -7,6 +7,7 @@ import {
   loadAdvisorTurnRatings,
   rateAdvisorTurn,
 } from '@/features/app/advisor/chatApi'
+import type { AdvisorTurnRating } from '@/features/app/advisor/chatApi'
 import type { ChatMessage } from '@/features/app/advisor/types'
 import type { MessageExtras } from './advisorFlows'
 import { prodTurnRatingKey } from './advisorViewHelpers'
@@ -36,7 +37,7 @@ export function useTurnRatings(
   messages: readonly ChatMessage[],
   getExtras: (messageId: string) => MessageExtras | undefined,
 ) {
-  const [ratings, setRatings] = useState<Record<string, 1 | -1>>({})
+  const [ratings, setRatings] = useState<Record<string, AdvisorTurnRating>>({})
   const loadedConvs = useRef(new Set<string>())
   const keys = new Map<string, RatingKey>()
   for (const m of messages) {
@@ -64,34 +65,60 @@ export function useTurnRatings(
     }
   }, [convIds])
 
-  const rate = (messageId: string, rating: 1 | -1) => {
-    const key = keys.get(messageId)
-    if (key == null) return
-    const s = slot(key)
-    const before = ratings[s] ?? null
-    const next = before === rating ? null : rating
+  const write = (
+    next: AdvisorTurnRating | null,
+    before: AdvisorTurnRating | null,
+    s: string,
+    key: RatingKey,
+  ) => {
     setRatings((prev) => {
       const p = { ...prev }
       if (next === null) delete p[s]
       else p[s] = next
       return p
     })
-    void rateAdvisorTurn(key.conversationId, key.turnIndex, next).catch(() => {
-      setRatings((prev) => {
-        const p = { ...prev }
-        if (before === null) delete p[s]
-        else p[s] = before
-        return p
-      })
-    })
+    void rateAdvisorTurn(key.conversationId, key.turnIndex, next?.rating ?? null, next?.reason).catch(
+      () => {
+        setRatings((prev) => {
+          const p = { ...prev }
+          if (before === null) delete p[s]
+          else p[s] = before
+          return p
+        })
+      },
+    )
+  }
+
+  const rate = (messageId: string, rating: 1 | -1) => {
+    const key = keys.get(messageId)
+    if (key == null) return
+    const s = slot(key)
+    const before = ratings[s] ?? null
+    const next = before?.rating === rating ? null : { rating, reason: null }
+    write(next, before, s, key)
+  }
+
+  /* One-tap reason after a thumbs-down — same row, same optimistic shape. */
+  const rateReason = (messageId: string, reason: string) => {
+    const key = keys.get(messageId)
+    if (key == null) return
+    const s = slot(key)
+    const before = ratings[s] ?? null
+    if (before?.rating !== -1) return
+    write({ rating: -1, reason }, before, s, key)
   }
 
   return {
     /** null = rateable but unrated; undefined = no persisted-turn key. */
     ratingFor: (messageId: string): 1 | -1 | null | undefined => {
       const key = keys.get(messageId)
-      return key == null ? undefined : (ratings[slot(key)] ?? null)
+      return key == null ? undefined : (ratings[slot(key)]?.rating ?? null)
+    },
+    reasonFor: (messageId: string): string | null | undefined => {
+      const key = keys.get(messageId)
+      return key == null ? undefined : (ratings[slot(key)]?.reason ?? null)
     },
     rate,
+    rateReason,
   }
 }
