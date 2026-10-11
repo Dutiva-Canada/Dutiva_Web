@@ -166,6 +166,27 @@ export function validateAiAction(
    index.ts) the register loosens to direct advice; the action grammar and
    the queued-draft rule stay identical either way. */
 
+export interface MarketContextEntry {
+  symbol: string
+  assetClass: string
+  price: number | null
+  currency: string
+  dayChangePct: number | null
+  ma50: number | null
+  ma200: number | null
+  rsi14: number | null
+  ret1m: number | null
+  ret3m: number | null
+  ret12m: number | null
+  vol20d: number | null
+  high52w: number | null
+  low52w: number | null
+  fundamentals: Record<string, number | string | null> | null
+  /** Snapshot write time — the figures are delayed, and the prompt says so. */
+  asOf: string | null
+  headlines: { title: string; source: string; publishedAt: string | null }[]
+}
+
 export interface InvestChatContext {
   accounts: { name: string; kind: string; cashBalance: number; baseCurrency: string }[]
   positions: { symbol: string; name: string; quantity: number; lastPrice: number | null; currency: string }[]
@@ -173,6 +194,11 @@ export interface InvestChatContext {
   strategies: { name: string; enabled: boolean; cadence: string }[]
   newSignals: { id: string; title: string; symbol: string; kind: string }[]
   openOrders: { symbol: string; side: string; quantity: number; status: string }[]
+  /* Stored market snapshots (plus anything the on-demand fetcher pulled
+     for a mentioned ticker) — the numbers analysis answers are built on. */
+  market: MarketContextEntry[]
+  /* Symbol-less market headlines — the general backdrop row. */
+  generalNews: { title: string; source: string; publishedAt: string | null }[]
 }
 
 export type InvestChatAction =
@@ -220,6 +246,140 @@ export const INVEST_CHAT_ACTION_TYPES = new Set([
 
 const ASSET_CLASSES = new Set(['equity', 'etf', 'crypto', 'bond', 'cash', 'other'])
 
+/* ── Mentioned tickers ──────────────────────────────────────────────────
+   "What about AMD?" asks about a symbol the book may not cover. Strict
+   shape + a word list keep ordinary prose from faking a ticker; the
+   on-demand fetcher resolves what's left. Uppercase-only matching is
+   deliberate — "amd" lowercase stays prose, "AMD" is a candidate. */
+const MENTION_RE = /\b[A-Z]{2,6}(?:\.(?:TO|V|US))?\b/g
+const MENTION_STOPWORDS = new Set([
+  // English prose that uppercases into ticker shape
+  'AND', 'THE', 'FOR', 'YOU', 'YOUR', 'ARE', 'WAS', 'WERE', 'HAS', 'HAVE', 'HAD', 'NOT', 'BUT',
+  'CAN', 'WILL', 'WOULD', 'SHOULD', 'COULD', 'MAY', 'MIGHT', 'MUST', 'SHALL', 'WHAT', 'WHEN',
+  'WHERE', 'WHICH', 'WHO', 'WHY', 'HOW', 'THIS', 'THAT', 'THESE', 'THOSE', 'WITH', 'FROM', 'INTO',
+  'OVER', 'THEN', 'ONCE', 'HERE', 'THERE', 'ALL', 'ANY', 'BOTH', 'EACH', 'MORE', 'MOST', 'OTHER',
+  'SOME', 'SUCH', 'ONLY', 'OWN', 'SAME', 'THAN', 'TOO', 'VERY', 'JUST', 'NOW', 'NEW', 'YES',
+  'BUY', 'SELL', 'HOLD', 'ETF', 'GIC', 'MER', 'REIT', 'IPO', 'GDP', 'USD', 'CAD', 'EUR', 'GBP',
+  'TFSA', 'RRSP', 'RRIF', 'RESP', 'FHSA', 'AI', 'IT', 'IS', 'AM', 'PM', 'OK', 'NO', 'HI', 'DO',
+  'DOES', 'DID', 'DONE', 'LOW', 'HIGH', 'OPEN', 'CLOSE', 'NEWS', 'PRICE', 'STOCK', 'STOCKS',
+  'SHARE', 'SHARES', 'ORDER', 'ORDERS', 'DRAFT', 'QUEUE', 'QUEUED', 'WATCH', 'WATCHLIST', 'LIST',
+  'BOOK', 'CASH', 'BOND', 'BONDS', 'CRYPTO', 'FUND', 'FUNDS', 'INDEX', 'RISK', 'LONG', 'SHORT',
+  'TERM', 'GROWTH', 'VALUE', 'INCOME', 'GOOD', 'BAD', 'BEST', 'TOP', 'ADD', 'DROP', 'TODAY',
+  'WEEK', 'MONTH', 'YEAR', 'TIME', 'DAY', 'SIDE', 'QUANTITY', 'LIMIT', 'TARGET', 'STOP', 'PLEASE',
+  'THANKS', 'THANK', 'WANT', 'NEED', 'LIKE', 'THINK', 'KNOW', 'SURE', 'HELP', 'ASK', 'TELL',
+  'SHOW', 'GIVE', 'MAKE', 'TAKE', 'KEEP', 'NEXT', 'LAST', 'FIRST', 'EVERY', 'MUCH', 'MANY', 'LESS',
+  'BIG', 'SMALL', 'HALF', 'PART', 'FULL', 'NONE', 'FREE', 'PAID', 'COST', 'FEE', 'FEES', 'TAX',
+  'TAXES', 'SAFE', 'RISKY', 'CHEAP', 'FAIR', 'WORTH', 'STRONG', 'WEAK', 'BULL', 'BEAR', 'RATE',
+  'RATES', 'MARKET', 'MARKETS', 'TRADE', 'TRADES', 'INVEST', 'MONEY', 'PROFIT', 'LOSS', 'GAIN',
+  'UP', 'DOWN', 'PORTFOLIO', 'ACCOUNT', 'ACCOUNTS', 'POSITION', 'POSITIONS', 'SIGNAL', 'SIGNALS',
+  'STRATEGY', 'VOLUME', 'TECH', 'ENERGY', 'OIL', 'GOLD', 'SILVER', 'BANK', 'BANKS', 'VS',
+  // French prose (uppercased message keeps accents out of the [A-Z] class,
+  // so these cover the plain-ASCII shapes)
+  'ET', 'LE', 'LA', 'LES', 'DES', 'DE', 'DU', 'EN', 'UN', 'UNE', 'POUR', 'SUR', 'PAS', 'QUE',
+  'QUI', 'DANS', 'AVEC', 'SON', 'SA', 'SES', 'MON', 'MA', 'MES', 'TON', 'TA', 'TES', 'CE',
+  'CET', 'CETTE', 'CES', 'EST', 'SONT', 'ONT', 'AUX', 'PAR', 'PLUS', 'MOINS', 'BIEN', 'TRES',
+  'FAIRE', 'TOUT', 'TOUS', 'RIEN', 'NON', 'OUI', 'DONC', 'ALORS', 'QUOI', 'COMME', 'CHEZ',
+])
+
+export const MENTIONED_SYMBOL_CAP = 5
+
+/** Candidate tickers in a chat message, in order, capped. No lookup here —
+    the caller resolves them against stored snapshots and, failing that,
+    the on-demand market fetch. */
+export function extractMentionedSymbols(message: string): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const m of message.matchAll(MENTION_RE)) {
+    const sym = m[0]
+    if (MENTION_STOPWORDS.has(sym) || seen.has(sym)) continue
+    seen.add(sym)
+    out.push(sym)
+    if (out.length >= MENTIONED_SYMBOL_CAP) break
+  }
+  return out
+}
+
+/* ── Market context formatting ─────────────────────────────────────────── */
+
+const compactNum = (n: number): string => {
+  const abs = Math.abs(n)
+  if (abs >= 1e12) return `${(n / 1e12).toFixed(2)}T`
+  if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`
+  if (abs >= 1e6) return `${(n / 1e6).toFixed(2)}M`
+  if (abs >= 1e3) return `${(n / 1e3).toFixed(1)}k`
+  return `${Math.round(n * 100) / 100}`
+}
+const pct = (n: number | null): string | null =>
+  n === null ? null : `${n > 0 ? '+' : ''}${Math.round(n * 10) / 10}%`
+const plain = (n: number | null): string | null =>
+  n === null ? null : `${Math.round(n * 100) / 100}`
+const asDay = (iso: string | null): string | null =>
+  iso ? iso.slice(0, 10) : null
+
+const FUND_LABELS: [string, string][] = [
+  ['market_cap', 'cap'],
+  ['pe_trailing', 'P/E'],
+  ['pe_forward', 'fwd P/E'],
+  ['eps_ttm', 'EPS ttm'],
+  ['price_to_book', 'P/B'],
+  ['dividend_yield', 'div yield'],
+  ['beta', 'beta'],
+  ['volume_24h', 'vol 24h'],
+  ['circulating_supply', 'circ. supply'],
+  ['ath', 'ATH'],
+  ['ath_change_pct', 'vs ATH'],
+]
+
+/** One snapshot row → one dense prompt line. Null fields drop out — the
+    model sees what exists, nothing placeholder-shaped to quote. */
+export function formatMarketEntry(e: MarketContextEntry): string {
+  const tech: (string | null)[] = [
+    pct(e.dayChangePct) !== null ? `today ${pct(e.dayChangePct)}` : null,
+    plain(e.ma50) !== null ? `MA50 ${plain(e.ma50)}` : null,
+    plain(e.ma200) !== null ? `MA200 ${plain(e.ma200)}` : null,
+    plain(e.rsi14) !== null ? `RSI-14 ${plain(e.rsi14)}` : null,
+    [pct(e.ret1m), pct(e.ret3m), pct(e.ret12m)].some((r) => r !== null)
+      ? `returns ${[pct(e.ret1m), pct(e.ret3m), pct(e.ret12m)]
+          .map((r, i) => (r === null ? null : `${['1m', '3m', '12m'][i]} ${r}`))
+          .filter(Boolean)
+          .join(', ')}`
+      : null,
+    plain(e.vol20d) !== null ? `vol20d ${plain(e.vol20d)}%/yr` : null,
+    e.high52w !== null && e.low52w !== null ? `52w ${plain(e.low52w)}–${plain(e.high52w)}` : null,
+  ]
+  const priceBit =
+    e.price !== null
+      ? `${plain(e.price)} ${e.currency}${asDay(e.asOf) ? ` (as of ${asDay(e.asOf)})` : ''}`
+      : 'no price on file'
+  const techLine = tech.filter(Boolean).join(' | ')
+  const head = `${e.symbol} (${e.assetClass}): ${priceBit}${techLine ? ` | ${techLine}` : ''}`
+
+  const tail: string[] = []
+  const f = e.fundamentals
+  if (f) {
+    const currency = typeof f['currency'] === 'string' ? (f['currency'] as string) : ''
+    const bits = FUND_LABELS.map(([key, label]) => {
+      const v = f[key]
+      if (typeof v !== 'number') return null
+      const rendered = key === 'market_cap' || key === 'volume_24h' || key === 'circulating_supply'
+        ? `${label} ${compactNum(v)}${key === 'market_cap' && currency ? ` ${currency}` : ''}`
+        : key === 'ath_change_pct' || key === 'dividend_yield'
+          ? `${label} ${pct(v)}`
+          : `${label} ${plain(v)}`
+      return rendered
+    }).filter(Boolean)
+    if (bits.length > 0) tail.push(`  fundamentals: ${bits.join(', ')}`)
+  }
+  if (e.headlines.length > 0) {
+    tail.push(
+      `  news: ${e.headlines
+        .map((h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`)
+        .join('; ')}`,
+    )
+  }
+  return [head, ...tail].join('\n')
+}
+
 const optStr = (v: unknown, max = 200): string | undefined => {
   if (typeof v !== 'string') return undefined
   const t = v.trim().slice(0, max)
@@ -253,6 +413,8 @@ export function investChatPrompt(
             'You MAY teach — that is how a person with no market knowledge learns enough to judge for themselves. Explain concepts plainly (what an ETF, GIC, MER, or limit order is), describe common approaches in the abstract (what dollar-cost averaging means, how people reason about horizon and risk, how to compare two funds), and give generic examples clearly framed as examples — never framed as what they should do. You may state facts about their book ("you hold 3 positions, all equities") but never evaluate them ("concentrated", "risky", "too much"). If they ask "what should I do", say plainly that the actual call is theirs — or a licensed adviser\'s — and offer to explain the options or the questions worth asking instead. Investor-education sources like GetSmarterAboutMoney.ca are fair to point to.',
             'Asked "what do you think?", answer honestly — you may hold a view on an idea or an approach and should give it straight ("index funds usually beat stock-picking on fees alone", "a limit order matters more on thin names"). What you never give is a verdict on a specific security or their book — "VFV is a good buy" or "your positions look solid" is a recommendation however it is phrased, so give the facts and the weighing criteria and leave the judgment with them. Honesty also means admitting what nobody knows — never pretend to call where a price goes; say plainly that nobody reliably does.',
           ]),
+      'You carry the market data on file below — delayed free feeds, end-of-day not real-time. Ground every figure you cite in those rows: never invent a P/E, a price, or a percentage, and when a symbol has no row (or the field is missing), say plainly there is nothing on file — watching the symbol puts it on the next sync.',
+      'Asked to analyze — "analyze AMD", "is SHOP worth it", "how is X doing" — give a real read, not a label: a one-line verdict, then short labeled sections for whatever has data (Fundamentals, Technicals, News) and a close on what it means for their book. Light markdown renders fine. The numbers do the work — "30% above its 200-day, RSI 61" beats "trending up". A null field is a missing fact, not a gap to fill from memory.',
       'An order you record is always a QUEUED draft — the person reviews and executes it themselves from Orders. Say so whenever one is created.',
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"add_watch_symbol","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>"}',
@@ -263,7 +425,7 @@ export function investChatPrompt(
       '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
-      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      'Output ONLY strict JSON: {"reply":"<1-4 short sentences; when they ask for analysis, a compact structured read instead — verdict line plus short labeled sections>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
       '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Book data:',
@@ -284,6 +446,18 @@ export function investChatPrompt(
       lines(ctx.newSignals.map((s) => `[${s.id}] ${s.kind} on ${s.symbol} — "${s.title}"`)),
       `Open orders (${ctx.openOrders.length}):`,
       lines(ctx.openOrders.map((o) => `${o.side} ${o.quantity} ${o.symbol} — ${o.status}`)),
+      `Market data on file (${ctx.market.length}):`,
+      lines(ctx.market.map(formatMarketEntry)),
+      ...(ctx.generalNews.length > 0
+        ? [
+            'Market backdrop:',
+            lines(
+              ctx.generalNews.map(
+                (h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`,
+              ),
+            ),
+          ]
+        : []),
     ].join('\n'),
   }
 }
@@ -469,6 +643,15 @@ export function investReactPrompt(
       : '',
     ctx.strategies.length > 0
       ? `strategies: ${ctx.strategies.map((s) => `"${s.name}"${s.enabled ? ' enabled' : ''}`).join(', ')}`
+      : '',
+    /* A market row for the touched symbol grounds the reaction — "watched
+       AMD, up 30% on the year" beats a bare acknowledgment. */
+    'symbol' in event && event.symbol !== undefined
+      ? (() => {
+          const sym = String(event.symbol).slice(0, 12).toUpperCase()
+          const entry = ctx.market.find((m) => m.symbol === sym)
+          return entry ? `market data: ${formatMarketEntry(entry).split('\n')[0]}` : ''
+        })()
       : '',
   ].filter(Boolean).join('\n')
   return [

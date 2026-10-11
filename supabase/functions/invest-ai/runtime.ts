@@ -6,11 +6,14 @@ import {
 } from '../_shared/modelUpstream.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import {
+  extractMentionedSymbols,
   investChatPrompt,
   parseInvestChatReply,
   type InvestChatContext,
   type InvestChatReply,
+  type MarketContextEntry,
 } from './handlers.ts'
+import { fetchOnDemandMarket } from './marketFetch.ts'
 import { executeChatAction, type ExecutedAction } from './chatActions.ts'
 import { json, sseChannel, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
 
@@ -86,6 +89,7 @@ export async function loadBookContext(
     { data: strategies },
     { data: signals },
     { data: orders },
+    { data: snapshots },
   ] = await Promise.all([
     adminClient.from('invest_accounts')
       .select('id, name, kind, base_currency, cash_balance, status')
@@ -107,7 +111,82 @@ export async function loadBookContext(
       .select('symbol, side, quantity, status')
       .eq('user_id', userId).in('status', ['draft', 'queued'])
       .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
+    /* Every stored snapshot — the rows the sync already maintains for the
+       book's universe, now readable by the chat surface for analysis. */
+    adminClient.from('invest_market_snapshots')
+      .select(
+        'symbol, asset_class, price, currency, day_change_pct, ma50, ma200, rsi14, ret_1m, ret_3m, ret_12m, vol_20d, high_52w, low_52w, fundamentals, fundamentals_as_of, as_of',
+      )
+      .eq('user_id', userId)
+      .order('as_of', { ascending: false })
+      .limit(60),
   ])
+
+  /* Headlines ride the market section — the table is global, so the query
+     joins on the symbols the book actually names, plus the general feed
+     row ('') for market backdrop. */
+  const universe = new Set<string>()
+  for (const s of snapshots ?? []) universe.add(String(s.symbol).toUpperCase())
+  for (const p of positions ?? []) universe.add(String(p.symbol).toUpperCase())
+  for (const w of watchlist ?? []) universe.add(String(w.symbol).toUpperCase())
+  for (const s of signals ?? []) universe.add(String(s.symbol).toUpperCase())
+
+  let newsRows: { symbol: string; title: string; source: string; published_at: string | null }[] = []
+  if (universe.size > 0) {
+    const { data } = await adminClient
+      .from('invest_market_news')
+      .select('symbol, title, source, published_at')
+      .in('symbol', [...universe, ''])
+      .order('published_at', { ascending: false })
+      .limit(50)
+    newsRows = (data ?? []) as typeof newsRows
+  }
+  const headlinesBySymbol = new Map<string, MarketContextEntry['headlines']>()
+  const generalNews: InvestChatContext['generalNews'] = []
+  for (const row of newsRows) {
+    const item = {
+      title: String(row.title).slice(0, 200),
+      source: String(row.source).slice(0, 60),
+      publishedAt: row.published_at,
+    }
+    const sym = String(row.symbol ?? '').toUpperCase()
+    if (sym === '') {
+      if (generalNews.length < 3) generalNews.push(item)
+      continue
+    }
+    const list = headlinesBySymbol.get(sym) ?? []
+    if (list.length < 3) {
+      list.push(item)
+      headlinesBySymbol.set(sym, list)
+    }
+  }
+
+  const market: MarketContextEntry[] = []
+  const seenSymbols = new Set<string>()
+  for (const s of snapshots ?? []) {
+    const sym = String(s.symbol).toUpperCase()
+    if (seenSymbols.has(sym)) continue
+    seenSymbols.add(sym)
+    market.push({
+      symbol: sym,
+      assetClass: String(s.asset_class),
+      price: s.price ?? null,
+      currency: String(s.currency ?? 'USD'),
+      dayChangePct: s.day_change_pct ?? null,
+      ma50: s.ma50 ?? null,
+      ma200: s.ma200 ?? null,
+      rsi14: s.rsi14 ?? null,
+      ret1m: s.ret_1m ?? null,
+      ret3m: s.ret_3m ?? null,
+      ret12m: s.ret_12m ?? null,
+      vol20d: s.vol_20d ?? null,
+      high52w: s.high_52w ?? null,
+      low52w: s.low_52w ?? null,
+      fundamentals: (s.fundamentals as MarketContextEntry['fundamentals']) ?? null,
+      asOf: s.as_of ?? null,
+      headlines: headlinesBySymbol.get(sym) ?? [],
+    })
+  }
 
   const ctx: InvestChatContext = {
     accounts: (accounts ?? []).map((a) => ({
@@ -137,6 +216,8 @@ export async function loadBookContext(
       symbol: String(o.symbol), side: String(o.side),
       quantity: Number(o.quantity ?? 0), status: String(o.status),
     })),
+    market,
+    generalNews,
   }
   return {
     ctx,
@@ -227,6 +308,19 @@ export async function runChat(
   ])
   if (histError) return json({ error: histError.message }, 500)
 
+  /* A ticker named in the message but absent from the stored snapshots
+     gets one live pull — "What about AMD?" should get numbers on the
+     first ask, not a "watch it first" deflection. Bounded inside
+     fetchOnDemandMarket; nothing persists. */
+  const mentioned = extractMentionedSymbols(message)
+  const covered = new Set(book.ctx.market.map((m) => m.symbol))
+  const missing = mentioned.filter((s) => !covered.has(s))
+  const onDemand = missing.length > 0 ? await fetchOnDemandMarket(missing) : []
+  const chatCtx: InvestChatContext = {
+    ...book.ctx,
+    market: [...book.ctx.market, ...onDemand],
+  }
+
   const history = ((historyRows ?? []) as { role: string; content: string }[])
     .reverse()
     .map((r) => ({
@@ -242,11 +336,13 @@ export async function runChat(
       {
         model: route.model_name,
         messages: [
-          investChatPrompt(book.ctx, lang, { advice }),
+          investChatPrompt(chatCtx, lang, { advice }),
           ...history,
           { role: 'user', content: message },
         ],
-        max_tokens: route.config?.max_tokens ?? 500,
+        /* Analysis replies run longer than chit-chat — the JSON contract
+           asks for a verdict + labeled sections on those asks. */
+        max_tokens: route.config?.max_tokens ?? 900,
         temperature: 0.4,
         stream,
       },

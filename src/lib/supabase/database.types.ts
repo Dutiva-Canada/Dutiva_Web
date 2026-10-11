@@ -10130,36 +10130,66 @@ export type Database = {
           asset_class: string
           currency: string
           day_change_pct: number | null
+          fundamentals: Json | null
+          fundamentals_as_of: string | null
+          high_52w: number | null
           id: string
+          low_52w: number | null
+          ma200: number | null
           ma50: number | null
           price: number
+          ret_12m: number | null
+          ret_1m: number | null
+          ret_3m: number | null
+          rsi14: number | null
           source: string
           symbol: string
           user_id: string
+          vol_20d: number | null
         }
         Insert: {
           as_of?: string
           asset_class: string
           currency?: string
           day_change_pct?: number | null
+          fundamentals?: Json | null
+          fundamentals_as_of?: string | null
+          high_52w?: number | null
           id?: string
+          low_52w?: number | null
+          ma200?: number | null
           ma50?: number | null
           price: number
+          ret_12m?: number | null
+          ret_1m?: number | null
+          ret_3m?: number | null
+          rsi14?: number | null
           source?: string
           symbol: string
           user_id: string
+          vol_20d?: number | null
         }
         Update: {
           as_of?: string
           asset_class?: string
           currency?: string
           day_change_pct?: number | null
+          fundamentals?: Json | null
+          fundamentals_as_of?: string | null
+          high_52w?: number | null
           id?: string
+          low_52w?: number | null
+          ma200?: number | null
           ma50?: number | null
           price?: number
+          ret_12m?: number | null
+          ret_1m?: number | null
+          ret_3m?: number | null
+          rsi14?: number | null
           source?: string
           symbol?: string
           user_id?: string
+          vol_20d?: number | null
         }
         Relationships: []
       }

@@ -5,17 +5,23 @@ import type { Database } from '../_shared/database.types.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import {
   coingeckoId,
-  computeMa,
+  coingeckoMarketsUrl,
   googleNewsUrl,
   newsQueries,
   parseCoingeckoCloses,
+  parseCoingeckoMarkets,
   parseCoingeckoSimple,
   parseRssItems,
-  parseStooqCloses,
-  parseStooqQuotes,
+  parseYahooChart,
+  parseYahooFundamentals,
   scopeAssetClass,
-  stooqSymbol,
+  technicalPack,
   validateSyncAction,
+  YAHOO_HEADERS,
+  yahooChartUrl,
+  yahooEquitySymbol,
+  yahooFundamentalsUrl,
+  type Fundamentals,
   type SyncTarget,
 } from './handlers.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
@@ -25,10 +31,16 @@ import { secretEquals } from '../_shared/secretEqual.ts'
  * feeds so strategies always evaluate fresh prices instead of manual entry,
  * and stores shared market headlines in invest_market_news.
  *
- *   crypto            → CoinGecko simple/price (+ market_chart for ma50)
- *   equity/etf/other  → Stooq daily CSV (delayed quotes; .to/.v = CAD,
- *                       .us/bare = USD)
+ *   crypto            → CoinGecko simple/price + /coins/markets; daily
+ *                       history (365d) → the technical pack (MA50/200,
+ *                       RSI-14, returns, vol, 52-week range)
+ *   equity/etf/other  → Yahoo v8/chart (quote + 1y closes → the same
+ *                       technical pack; .TO/.V = CAD, bare = USD) and
+ *                       fundamentals-timeseries (P/E, cap, EPS, yield)
  *   headlines         → Google News RSS (CA edition; free, unofficial)
+ *
+ * The technical + fundamentals columns are what Tally analyzes with —
+ * NULL means "nothing on file", which the chat prompt says plainly.
  *
  * Actions (POST body):
  *   { action: 'sync' }      — invest-portal JWT; syncs the caller's book
@@ -140,6 +152,16 @@ interface SnapshotPatch {
   price: number
   day_change_pct: number | null
   ma50: number | null
+  ma200: number | null
+  rsi14: number | null
+  ret_1m: number | null
+  ret_3m: number | null
+  ret_12m: number | null
+  vol_20d: number | null
+  high_52w: number | null
+  low_52w: number | null
+  fundamentals: Fundamentals | null
+  fundamentals_as_of: string | null
   currency: string
   source: string
   as_of: string
@@ -176,14 +198,16 @@ async function syncCrypto(
       for (const t of group) failed.push(t.symbol)
       continue
     }
-    let ma50: number | null = null
+    let tech: ReturnType<typeof technicalPack> | null = null
     if (historyCalls < MAX_PER_CLASS) {
       historyCalls += 1
+      /* 365 days of closes — enough for MA200, the 52-week range, and the
+         12-month return; the 55-day pull only ever fed MA50. */
       const histRaw = await fetchText(
-        `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=${quote.currency.toLowerCase()}&days=55&interval=daily`,
+        `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=${quote.currency.toLowerCase()}&days=365&interval=daily`,
         cgHeaders,
       )
-      if (histRaw) ma50 = computeMa(parseCoingeckoCloses(JSON.parse(histRaw)))
+      if (histRaw) tech = technicalPack(parseCoingeckoCloses(JSON.parse(histRaw)))
       await pause(HISTORY_STAGGER_MS)
     }
     for (const t of group) {
@@ -193,50 +217,97 @@ async function syncCrypto(
         symbol: t.symbol,
         price: quote.price,
         day_change_pct: quote.day_change_pct,
-        ma50,
+        ma50: tech?.ma50 ?? null,
+        ma200: tech?.ma200 ?? null,
+        rsi14: tech?.rsi14 ?? null,
+        ret_1m: tech?.ret1m ?? null,
+        ret_3m: tech?.ret3m ?? null,
+        ret_12m: tech?.ret12m ?? null,
+        vol_20d: tech?.vol20d ?? null,
+        high_52w: tech?.high52w ?? null,
+        low_52w: tech?.low52w ?? null,
+        fundamentals: null,
+        fundamentals_as_of: null,
         currency: quote.currency,
         source: 'coingecko',
         as_of: new Date().toISOString(),
       })
     }
   }
+
+  /* Crypto fundamentals — one batched /coins/markets call for every id
+     this pass touched (USD-denominated; the blob says so). */
+  const fundRaw = await fetchText(coingeckoMarketsUrl(ids), cgHeaders)
+  if (fundRaw) {
+    const funds = parseCoingeckoMarkets(JSON.parse(fundRaw))
+    const asOf = new Date().toISOString()
+    for (const p of patches) {
+      if (p.asset_class !== 'crypto') continue
+      const f = funds.get(coingeckoId(p.symbol))
+      if (f) {
+        p.fundamentals = f
+        p.fundamentals_as_of = asOf
+      }
+    }
+  }
 }
 
-/** Stooq: one batched quote call + per-symbol history for the MA. */
-async function syncStooq(
+/** Yahoo: per-symbol v8/chart (quote + a year of closes → the whole
+    technical pack) + fundamentals-timeseries (valuation block). Two
+    keyless calls per symbol, staggered; a refused call leaves NULLs. */
+async function syncEquities(
   targets: SyncTarget[],
   patches: SnapshotPatch[],
   failed: string[],
 ): Promise<void> {
   if (targets.length === 0) return
-  const mapped = targets.map((t) => ({ target: t, ...stooqSymbol(t.symbol) }))
-  const tickers = [...new Set(mapped.map((m) => m.ticker))]
-  const raw = await fetchText(`https://stooq.com/q/l/?s=${tickers.join(',')}&f=sd2t2ohlcv&h&e=csv`)
-  const quotes = new Map((raw ? parseStooqQuotes(raw) : []).map((q) => [q.ticker, q]))
+  const mapped = targets.map((t) => ({ target: t, ...yahooEquitySymbol(t.symbol) }))
+  /* Users can hold the same Yahoo listing under different portal symbols —
+     fetch each distinct listing once and share the result. */
+  const uniqueSymbols = [...new Set(mapped.map((m) => m.symbol))]
+  const chartBySymbol = new Map<string, ReturnType<typeof parseYahooChart>>()
+  const fundBySymbol = new Map<string, Fundamentals>()
+  for (const ys of uniqueSymbols.slice(0, MAX_PER_CLASS)) {
+    const [chartRaw, fundRaw] = await Promise.all([
+      fetchText(yahooChartUrl(ys), YAHOO_HEADERS),
+      fetchText(yahooFundamentalsUrl(ys), YAHOO_HEADERS),
+    ])
+    if (chartRaw) chartBySymbol.set(ys, parseYahooChart(JSON.parse(chartRaw)))
+    if (fundRaw) fundBySymbol.set(ys, parseYahooFundamentals(JSON.parse(fundRaw)))
+    await pause(HISTORY_STAGGER_MS)
+  }
 
-  let historyCalls = 0
   for (const m of mapped) {
-    const quote = quotes.get(m.ticker)
-    if (!quote) {
+    const chart = chartBySymbol.get(m.symbol)
+    if (!chart || chart.price === null) {
       failed.push(m.target.symbol)
       continue
     }
-    let ma50: number | null = null
-    if (historyCalls < MAX_PER_CLASS) {
-      historyCalls += 1
-      const histRaw = await fetchText(`https://stooq.com/q/d/l/?s=${m.ticker}&i=d`)
-      if (histRaw) ma50 = computeMa(parseStooqCloses(histRaw))
-      await pause(HISTORY_STAGGER_MS)
-    }
+    const tech = chart.closes.length > 0 ? technicalPack(chart.closes) : null
+    const fund = fundBySymbol.get(m.symbol)
+    const fundamentals: Fundamentals | null =
+      fund && Object.keys(fund).length > 0
+        ? { ...fund, currency: chart.currency ?? m.currency }
+        : null
     patches.push({
       user_id: m.target.user_id,
       asset_class: m.target.asset_class,
       symbol: m.target.symbol,
-      price: quote.close,
-      day_change_pct: quote.open > 0 ? ((quote.close - quote.open) / quote.open) * 100 : null,
-      ma50,
-      currency: m.currency,
-      source: 'stooq',
+      price: chart.price,
+      day_change_pct: chart.dayChangePct,
+      ma50: tech?.ma50 ?? null,
+      ma200: tech?.ma200 ?? null,
+      rsi14: tech?.rsi14 ?? null,
+      ret_1m: tech?.ret1m ?? null,
+      ret_3m: tech?.ret3m ?? null,
+      ret_12m: tech?.ret12m ?? null,
+      vol_20d: tech?.vol20d ?? null,
+      high_52w: tech?.high52w ?? null,
+      low_52w: tech?.low52w ?? null,
+      fundamentals,
+      fundamentals_as_of: fundamentals ? new Date().toISOString() : null,
+      currency: chart.currency ?? m.currency,
+      source: 'yahoo',
       as_of: new Date().toISOString(),
     })
   }
@@ -298,13 +369,16 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
   const patches: SnapshotPatch[] = []
   const failed: string[] = []
   await syncCrypto(crypto, patches, failed)
-  await syncStooq(rest, patches, failed)
+  await syncEquities(rest, patches, failed)
 
   for (const p of patches) {
     const { error } = await adminClient
       .from('invest_market_snapshots')
       .upsert(p, { onConflict: 'user_id,asset_class,symbol' })
-    if (error) failed.push(`${p.symbol} (upsert)`)
+    if (error) {
+      console.error('snapshot upsert failed', p.symbol, error)
+      failed.push(`${p.symbol} (upsert: ${error.message ?? 'unknown'})`)
+    }
   }
 
   return { symbols: targets.length, synced: patches.length, failed, targets }

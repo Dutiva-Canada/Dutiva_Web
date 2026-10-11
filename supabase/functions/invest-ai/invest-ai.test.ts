@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import {
   INVEST_CHAT_ACTION_TYPES,
+  extractMentionedSymbols,
+  formatMarketEntry,
   investChatPrompt,
   investReactPrompt,
   parseInvestChatReply,
@@ -16,6 +18,8 @@ const EMPTY_CTX: InvestChatContext = {
   strategies: [],
   newSignals: [],
   openOrders: [],
+  market: [],
+  generalNews: [],
 }
 
 describe('investChatPrompt', () => {
@@ -441,5 +445,104 @@ describe('internal advice tier (@dutiva.ca)', () => {
     expect(internal).toContain('@dutiva.ca')
     expect(internal).toContain('order_proposal')
     expect(internal).toContain('never promise returns')
+  })
+})
+
+describe('extractMentionedSymbols', () => {
+  it('pulls uppercase tickers and skips ordinary prose', () => {
+    const syms = extractMentionedSymbols('What about AMD? And how does SHOP.TO compare?')
+    expect(syms).toEqual(['AMD', 'SHOP.TO'])
+    expect(extractMentionedSymbols('should I BUY or SELL the ETF in my TFSA?')).toEqual([])
+    /* Real tickers survive even in stopword-heavy prose. */
+    expect(extractMentionedSymbols('BTC and ETH vs NVDA')).toEqual(['BTC', 'ETH', 'NVDA'])
+    expect(extractMentionedSymbols('amd lowercase stays prose')).toEqual([])
+  })
+  it('dedupes and caps the list', () => {
+    const msg = 'AMD AMD AMD — plus AAA BBB CCC DDD EEE FFF GGG'
+    const syms = extractMentionedSymbols(msg)
+    expect(syms[0]).toBe('AMD')
+    expect(syms.length).toBeLessThanOrEqual(5)
+    expect(new Set(syms).size).toBe(syms.length)
+  })
+})
+
+describe('formatMarketEntry', () => {
+  const base = {
+    symbol: 'AMD', assetClass: 'equity', price: 254.3, currency: 'USD',
+    dayChangePct: 1.23, ma50: 228.4, ma200: 195.1, rsi14: 61.2,
+    ret1m: 8.4, ret3m: 22.1, ret12m: 65.0, vol20d: 38.2,
+    high52w: 267.08, low52w: 112.76,
+    fundamentals: { market_cap: 412e9, pe_trailing: 92.4, pe_forward: 34.1, eps_ttm: 2.76, price_to_book: 6.4, dividend_yield: 0, beta: 1.28, currency: 'USD' },
+    asOf: '2026-10-10T13:00:00Z',
+    headlines: [{ title: 'AMD unveils new AI chips', source: 'Reuters', publishedAt: '2026-10-09T12:00:00Z' }],
+  }
+  it('renders the dense technicals + fundamentals + news line', () => {
+    const out = formatMarketEntry(base)
+    expect(out).toContain('AMD (equity): 254.3 USD')
+    expect(out).toContain('today +1.2%')
+    expect(out).toContain('MA200 195.1')
+    expect(out).toContain('RSI-14 61.2')
+    expect(out).toContain('52w 112.76–267.08')
+    expect(out).toContain('cap 412.00B USD')
+    expect(out).toContain('P/E 92.4')
+    expect(out).toContain('"AMD unveils new AI chips" (Reuters, 2026-10-09)')
+  })
+  it('drops null fields instead of printing placeholders', () => {
+    const out = formatMarketEntry({ ...base, ma200: null, rsi14: null, fundamentals: null, headlines: [] })
+    expect(out).not.toContain('MA200')
+    expect(out).not.toContain('RSI')
+    expect(out).not.toContain('fundamentals:')
+    expect(out).not.toContain('news:')
+  })
+})
+
+describe('investChatPrompt — market data', () => {
+  const ctxWithMarket: InvestChatContext = {
+    ...EMPTY_CTX,
+    market: [{
+      symbol: 'AMD', assetClass: 'equity', price: 254.3, currency: 'USD',
+      dayChangePct: 1.2, ma50: 228.4, ma200: 195.1, rsi14: 61.2,
+      ret1m: 8.4, ret3m: 22.1, ret12m: 65.0, vol20d: 38.2,
+      high52w: 267.08, low52w: 112.76,
+      fundamentals: { market_cap: 412e9, pe_trailing: 92.4, currency: 'USD' },
+      asOf: '2026-10-10T13:00:00Z',
+      headlines: [],
+    }],
+    generalNews: [{ title: 'TSX falls on oil', source: 'CBC', publishedAt: '2026-10-10T10:00:00Z' }],
+  }
+  it('carries the grounding rules and the market rows', () => {
+    const p = investChatPrompt(ctxWithMarket, 'en').content
+    expect(p).toContain('never invent a P/E')
+    expect(p).toContain('nothing on file')
+    expect(p).toContain('Market data on file (1):')
+    expect(p).toContain('AMD (equity): 254.3 USD')
+    expect(p).toContain('Market backdrop:')
+    expect(p).toContain('"TSX falls on oil"')
+    expect(p).toContain('verdict')
+  })
+  it('renders (none) cleanly when the table is empty', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('Market data on file (0):')
+    expect(p).not.toContain('Market backdrop:')
+  })
+})
+
+describe('investReactPrompt — market grounding', () => {
+  it('works a stored market row into the reaction context', () => {
+    const p = investReactPrompt(
+      { type: 'watch_added', symbol: 'amd' },
+      {
+        ...EMPTY_CTX,
+        market: [{
+          symbol: 'AMD', assetClass: 'equity', price: 254.3, currency: 'USD',
+          dayChangePct: 1.2, ma50: 228.4, ma200: null, rsi14: 61.2,
+          ret1m: null, ret3m: null, ret12m: 65.0, vol20d: null,
+          high52w: 267.08, low52w: 112.76, fundamentals: null,
+          asOf: '2026-10-10T13:00:00Z', headlines: [],
+        }],
+      },
+      'en',
+    )
+    expect(p).toContain('market data: AMD (equity): 254.3 USD')
   })
 })
