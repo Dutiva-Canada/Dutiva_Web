@@ -33,7 +33,7 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 | `invest_access`           | Presence = portal access; `role` = `client` \| `admin`                                                                                                                                                                                                                                                                                        |
 | `invest_accounts`         | Books of record: `paper`, `live`, `external` + cash balance                                                                                                                                                                                                                                                                                   |
 | `invest_positions`        | Holdings per account across asset classes (`equity`, `etf`, `crypto`, `bond`, `cash`, `other`)                                                                                                                                                                                                                                                |
-| `invest_market_snapshots` | Latest price per (user, class, symbol) — `source` records `manual` / `coingecko` / `stooq`                                                                                                                                                                                                                                                    |
+| `invest_market_snapshots` | Latest price per (user, class, symbol) plus the technical pack (MA50/200, RSI-14, returns, vol, 52-wk range) and a `fundamentals` blob — `source` records `manual` / `coingecko` / `yahoo`                                                                                                                                                                                                                                                    |
 | `invest_strategies`       | Bot rule sets: `rules jsonb`, `enabled`, `cadence` (`daily` \| `weekly` \| `monthly`), `last_evaluated_at`, `template` (`tpl:*` / `ai-draft` / `''`), `scope` (`{watchlist, symbols[]}` — never empty, 0184), `notify` (`{in_app, email}`, 0184). `autonomy` is deprecated — per-rule `type` replaced it and all rows were reset to `suggest` |
 | `invest_signals`          | Bot output: `screen` \| `insight` \| `alert` \| `thesis`, triage status `new` → `acknowledged`/`dismissed`; `title_fr`/`body_fr` carry AI-authored bilingual insight text                                                                                                                                                                     |
 | `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`/`expired` (0185); `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                            |
@@ -121,8 +121,10 @@ no insights, never a failed run.
 ## Market sync (`supabase/functions/invest-market-sync`)
 
 - `POST { action: 'sync' }` — portal JWT; refreshes the caller's snapshots
-  from free public feeds: **CoinGecko** for crypto, **Stooq** CSV for
-  equities/ETFs (`handlers.ts` holds the pure quote-parsing helpers).
+  from free public feeds: **CoinGecko** for crypto, **Yahoo** keyless
+  endpoints for equities/ETFs (v8/chart for quote + history,
+  fundamentals-timeseries for the valuation block; `handlers.ts` holds the
+  pure parsing helpers).
 - `POST { action: 'sync-all' }` — service key / `x-trigger-secret` / admin
   JWT; sweeps every user's symbols. pg_cron `invest-market-sync-daily` at
   **07:20 UTC** — twenty minutes before the bot's 07:45 sweep, so
@@ -175,7 +177,7 @@ the `advisor_chat` route when no `invest_ai` row exists).
   auth email (`isInternalDutivaAccount`), it changes only what the model
   may say — the write whitelist, queued-draft orders, and human-approved
   execution are identical either way.
-- **Feed quality.** CoinGecko/Stooq are free public feeds — delayed and
+- **Feed quality.** CoinGecko/Yahoo are free public feeds — delayed and
   rate-limited, fine for daily-cadence bookkeeping, not for intraday
   trading. `source` on each snapshot records where the price came from.
 - **No demo mode.** The portal is real data only — invited clients see
@@ -253,7 +255,7 @@ runs on layout mount and inside the edge function.
   proposal dedupe, the never-executes invariant, fill math, book metrics,
   cadence gating, insight parsing).
 - `supabase/functions/invest-market-sync/invest-market-sync.test.ts` —
-  14 provider-helper tests (CoinGecko/Stooq parsing, symbol mapping, RSS
+  14 provider-helper tests (CoinGecko/Yahoo parsing, symbol mapping, RSS
   parsing, news-query shaping).
 - `supabase/functions/invest-ai/invest-ai.test.ts` — 6 drafter tests
   (prompt, tolerant parsing, validation, scope defaults, legacy-rule

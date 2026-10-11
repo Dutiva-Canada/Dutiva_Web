@@ -17,6 +17,7 @@ import { Governance } from './screens/Governance'
 import { Entities } from './screens/Entities'
 import { Tax } from './screens/Tax'
 import { Evidence } from './screens/Evidence'
+import { capitalCallScheduled, commitmentInvestor } from './data/fixtureInvest'
 
 function renderAt(route: string) {
   return renderApp(
@@ -119,9 +120,11 @@ describe('FinanceView', () => {
     expect(
       screen.getByRole('heading', { name: 'Needs attention' }),
     ).toBeInTheDocument()
-    // The notified tranche is due 2026-10-10 (inside 30 days).
+    // The notified tranche is due inside 30 days (fixture anchors to now).
     expect(screen.getByText('Call due soon')).toBeInTheDocument()
-    expect(screen.getByText(/250000\.00 · 2026-10-10/)).toBeInTheDocument()
+    expect(
+      screen.getByText(new RegExp(`250000\\.00 · ${capitalCallScheduled.dueDate}`)),
+    ).toBeInTheDocument()
     // The fixture debt matures inside 90 days.
     expect(screen.getByText('Maturing soon')).toBeInTheDocument()
     // The financing deal passed its target date while still in agreement.
@@ -186,7 +189,9 @@ describe('FinanceView', () => {
     expect(screen.getByText('Growth equity commitment')).toBeInTheDocument()
     expect(screen.getByText('Acquisition credit facility')).toBeInTheDocument()
     expect(screen.getAllByText(/Uncalled 900000\.00/).length).toBe(1)
-    expect(screen.getByText(/Next call: 2026-10-10/)).toBeInTheDocument()
+    expect(
+      screen.getByText(new RegExp(`Next call: ${commitmentInvestor.nextCallDate ?? ''}`)),
+    ).toBeInTheDocument()
     // Capital calls render as the event log under their commitment.
     expect(screen.getByText(/Call notice 2026-01/)).toBeInTheDocument()
     expect(screen.getByText(/Call notice 2026-02/)).toBeInTheDocument()

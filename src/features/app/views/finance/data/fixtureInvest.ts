@@ -77,6 +77,16 @@ export const decisionEntry2: FinanceWorkspaceState['decisionEntries'][number] = 
   reviewDate: '2026-10-15',
 }
 
+/* The notified tranche anchors to "now" — an absolute due date drifts out
+   of the overview's 30-day "due soon" window and silently re-buckets as
+   overdue, which is exactly what the attention test asserts against. */
+const daysFromNow = (n: number) => {
+  const d = new Date()
+  d.setUTCDate(d.getUTCDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+const notifiedTrancheDue = daysFromNow(12)
+
 /* Capital commitments — the investor's subscription is partially called;
    the lender's facility is fully drawn but still open. Both hang off the
    holdco (ent-2) like the parties themselves. */
@@ -88,7 +98,7 @@ export const commitmentInvestor: FinanceWorkspaceState['commitments'][number] = 
   committed: '1500000.00',
   called: '600000.00',
   currency: 'CAD',
-  nextCallDate: '2026-10-10',
+  nextCallDate: notifiedTrancheDue,
   status: 'active',
 }
 
@@ -104,8 +114,8 @@ export const commitmentLender: FinanceWorkspaceState['commitments'][number] = {
 }
 
 /* Capital calls — the investor's called figure came in as one draw, and
-   the next tranche is already notified (due mid-October; the commitment's
-   nextCallDate tracks the same tranche). */
+   the next tranche is already notified (the commitment's nextCallDate
+   tracks the same tranche). */
 export const capitalCallReceived: FinanceWorkspaceState['capitalCalls'][number] = {
   id: 'call-1',
   commitmentId: 'cmt-1',
@@ -120,7 +130,7 @@ export const capitalCallScheduled: FinanceWorkspaceState['capitalCalls'][number]
   id: 'call-2',
   commitmentId: 'cmt-1',
   amount: '250000.00',
-  dueDate: '2026-10-10',
+  dueDate: notifiedTrancheDue,
   status: 'notified',
   reference: 'Call notice 2026-02',
 }

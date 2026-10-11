@@ -2,16 +2,19 @@ import { describe, expect, it } from 'vitest'
 import {
   coingeckoId,
   computeMa,
+  computeRsi,
   googleNewsUrl,
   newsQueries,
   parseCoingeckoCloses,
+  parseCoingeckoMarkets,
   parseCoingeckoSimple,
   parseRssItems,
-  parseStooqCloses,
-  parseStooqQuotes,
+  parseYahooChart,
+  parseYahooFundamentals,
   scopeAssetClass,
-  stooqSymbol,
+  technicalPack,
   validateSyncAction,
+  yahooEquitySymbol,
 } from './handlers'
 
 describe('coingeckoId', () => {
@@ -32,43 +35,88 @@ describe('scopeAssetClass', () => {
   })
 })
 
-describe('stooqSymbol', () => {
-  it('keeps explicit exchanges and defaults bare symbols to .us', () => {
-    expect(stooqSymbol('VFV.TO')).toEqual({ ticker: 'vfv.to', currency: 'CAD' })
-    expect(stooqSymbol('TD.TO')).toEqual({ ticker: 'td.to', currency: 'CAD' })
-    expect(stooqSymbol('JOB.V')).toEqual({ ticker: 'job.v', currency: 'CAD' })
-    expect(stooqSymbol('AAPL.US')).toEqual({ ticker: 'aapl.us', currency: 'USD' })
-    expect(stooqSymbol('VTI')).toEqual({ ticker: 'vti.us', currency: 'USD' })
+describe('yahooEquitySymbol', () => {
+  it('keeps Canadian exchange suffixes and treats bare symbols as US', () => {
+    expect(yahooEquitySymbol('VFV.TO')).toEqual({ symbol: 'VFV.TO', currency: 'CAD' })
+    expect(yahooEquitySymbol('TD.TO')).toEqual({ symbol: 'TD.TO', currency: 'CAD' })
+    expect(yahooEquitySymbol('JOB.V')).toEqual({ symbol: 'JOB.V', currency: 'CAD' })
+    expect(yahooEquitySymbol('AAPL.US')).toEqual({ symbol: 'AAPL', currency: 'USD' })
+    expect(yahooEquitySymbol('VTI')).toEqual({ symbol: 'VTI', currency: 'USD' })
   })
 })
 
-describe('parseStooqQuotes', () => {
-  it('parses batched quote CSV and drops N/D rows', () => {
-    const csv = [
-      'Symbol,Date,Time,Open,High,Low,Close,Volume',
-      'VFV.TO,2026-09-25,16:00:00,140.00,141.00,139.50,140.80,12345',
-      'NOPE.US,N/D,N/D,N/D,N/D,N/D,N/D,N/D',
-      'AAPL.US,2026-09-25,16:00:00,250.10,252.00,249.90,251.40,999999',
-    ].join('\n')
-    const quotes = parseStooqQuotes(csv)
-    expect(quotes).toHaveLength(2)
-    expect(quotes[0]).toMatchObject({ ticker: 'vfv.to', open: 140, close: 140.8 })
-    expect(quotes[1].ticker).toBe('aapl.us')
+describe('parseYahooChart', () => {
+  const chartJson = {
+    chart: {
+      result: [{
+        meta: {
+          regularMarketPrice: 608.1,
+          regularMarketChangePercent: -2.027,
+          currency: 'USD',
+          longName: 'Advanced Micro Devices, Inc.',
+        },
+        indicators: { quote: [{ close: [600.5, 612.3, null, 608.1] }] },
+      }],
+      error: null,
+    },
+  }
+  it('reads the quote meta and a clean close series', () => {
+    const r = parseYahooChart(chartJson)
+    expect(r.price).toBe(608.1)
+    expect(r.currency).toBe('USD')
+    expect(r.dayChangePct).toBe(-2.027)
+    expect(r.name).toContain('Advanced Micro Devices')
+    expect(r.closes).toEqual([600.5, 612.3, 608.1])
+  })
+  it('falls back to the last close and tolerates junk', () => {
+    const r = parseYahooChart({
+      chart: { result: [{ meta: {}, indicators: { quote: [{ close: [10, 11] }] } }] },
+    })
+    expect(r.price).toBe(11)
+    expect(parseYahooChart(null).closes).toEqual([])
+    expect(parseYahooChart({ chart: { result: [] } }).price).toBeNull()
   })
 })
 
-describe('parseStooqCloses / computeMa', () => {
-  it('extracts closes oldest-first and averages the tail', () => {
-    const rows = ['Date,Open,High,Low,Close,Volume']
-    for (let i = 1; i <= 60; i++)
-      rows.push(`2026-08-${String((i % 28) + 1).padStart(2, '0')},0,0,0,${100 + i},0`)
-    const closes = parseStooqCloses(rows.join('\n'))
-    expect(closes).toHaveLength(60)
+describe('parseYahooFundamentals', () => {
+  it('takes the latest reportedValue per type, yield as percent', () => {
+    const json = {
+      timeseries: {
+        result: [
+          {
+            meta: { symbol: ['AMD'], type: ['trailingPeRatio'] },
+            trailingPeRatio: [
+              { asOfDate: '2025-10-02', reportedValue: { raw: 101.63 } },
+              { asOfDate: '2026-09-23', reportedValue: { raw: 156.79 } },
+            ],
+          },
+          {
+            meta: { type: ['trailingAnnualDividendYield'] },
+            trailingAnnualDividendYield: [
+              { asOfDate: '2026-09-01', reportedValue: { raw: 0.0165 } },
+            ],
+          },
+          {
+            meta: { type: ['marketCap'] },
+            marketCap: [{ asOfDate: '2026-09-23', reportedValue: { raw: 9.9e11 } }],
+          },
+        ],
+      },
+    }
+    const f = parseYahooFundamentals(json)
+    expect(f['pe_trailing']).toBe(156.79)
+    expect(f['dividend_yield']).toBeCloseTo(1.65, 3)
+    expect(f['market_cap']).toBe(9.9e11)
+    expect(f['pe_forward']).toBeUndefined()
+    expect(parseYahooFundamentals(null)).toEqual({})
+  })
+})
+
+describe('computeMa', () => {
+  it('averages the tail and returns null when history is too thin', () => {
+    const closes = Array.from({ length: 60 }, (_, i) => 100 + i + 1)
     /* last 50 closes: 111..160 → mean 135.5 */
     expect(computeMa(closes)).toBeCloseTo(135.5)
-  })
-
-  it('returns null when history is too thin', () => {
     expect(computeMa([100, 101, 102])).toBeNull()
   })
 })
@@ -175,5 +223,61 @@ describe('googleNewsUrl', () => {
     const url = googleNewsUrl('Shopify stock')
     expect(url).toContain('news.google.com/rss/search?q=Shopify%20stock')
     expect(url).toContain('hl=en-CA')
+  })
+})
+
+describe('technicalPack — the analysis columns', () => {
+  const ramp = (n: number): number[] => Array.from({ length: n }, (_, i) => 100 + i)
+
+  it('computes the full pack on a long rising series', () => {
+    const closes = ramp(300) // 100..399
+    const t = technicalPack(closes)
+    expect(t.ma50).toBeCloseTo((350 + 399) / 2, 1)
+    expect(t.ma200).toBeCloseTo((200 + 399) / 2, 1)
+    expect(t.rsi14).toBe(100) // every day up → no losses
+    expect(t.ret1m).toBeGreaterThan(0)
+    expect(t.ret12m).toBeGreaterThan(t.ret3m as number)
+    expect(t.vol20d).toBeGreaterThanOrEqual(0)
+    expect(t.high52w).toBe(399)
+    expect(t.low52w).toBe(100 + 300 - 252)
+  })
+
+  it('returns nulls on thin history instead of noise', () => {
+    const t = technicalPack([10, 11, 10, 11])
+    expect(t.ma50).toBeNull()
+    expect(t.ma200).toBeNull()
+    expect(t.rsi14).toBeNull()
+    expect(t.ret12m).toBeNull()
+    expect(t.vol20d).toBeNull()
+    /* The 52-week range still reports what little exists — a recent
+       listing's range is its real range. */
+    expect(t.high52w).toBe(11)
+    expect(t.low52w).toBe(10)
+  })
+})
+
+describe('computeRsi', () => {
+  it('is 0 on an all-down series and ~50 on a balanced zigzag', () => {
+    const down = Array.from({ length: 20 }, (_, i) => 100 - i)
+    expect(computeRsi(down)).toBe(0)
+    const zig = [100, 101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101, 100, 101]
+    const rsi = computeRsi(zig)
+    expect(rsi).not.toBeNull()
+    expect(rsi!).toBeGreaterThan(40)
+    expect(rsi!).toBeLessThan(60)
+    expect(computeRsi([1, 2, 3])).toBeNull()
+  })
+})
+
+describe('parseCoingeckoMarkets', () => {
+  it('reads cap/volume/supply/ATH per coin id in USD', () => {
+    const m = parseCoingeckoMarkets([
+      { id: 'bitcoin', market_cap: 2e12, total_volume: 5e10, circulating_supply: 19.7e6, ath: 126000, ath_change_percentage: -18.2 },
+    ])
+    const btc = m.get('bitcoin')
+    expect(btc?.market_cap).toBe(2e12)
+    expect(btc?.circulating_supply).toBe(19.7e6)
+    expect(btc?.ath_change_pct).toBe(-18.2)
+    expect(btc?.currency).toBe('USD')
   })
 })

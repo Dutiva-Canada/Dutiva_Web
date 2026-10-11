@@ -199,7 +199,7 @@ describe('staleScopeSymbols', () => {
     dayChangePct: 0,
     ma50: 95,
     currency: 'CAD',
-    source: 'stooq',
+    source: 'yahoo',
     asOf,
   })
 

@@ -501,7 +501,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
   )
 }
 
-/** Refresh the caller's snapshots from the free feeds (CoinGecko/Stooq). */
+/** Refresh the caller's snapshots from the free feeds (CoinGecko/Yahoo). */
 export async function syncPrices(): Promise<{ symbols: number; synced: number; failed: string[] }> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
