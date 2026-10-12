@@ -102,6 +102,21 @@ export function InvestPortfolioPage() {
     }
   }
 
+  /* A just-added symbol would sit at '—' until the next scheduled sync —
+     pull quotes in the background, then reload shared state when they land.
+     Best-effort: a failed pull leaves the honest dash, never a fake price. */
+  const priceSyncInflight = useRef(false)
+  const priceInBackground = () => {
+    if (priceSyncInflight.current) return
+    priceSyncInflight.current = true
+    void syncPrices()
+      .then(() => refresh())
+      .catch(() => {})
+      .finally(() => {
+        priceSyncInflight.current = false
+      })
+  }
+
   /* Real quotes only — a position with no snapshot and no synced last_price
      renders '—', never its cost basis dressed up as a market price. */
   const rows = useMemo(
@@ -262,6 +277,7 @@ export function InvestPortfolioPage() {
             onCreate={(input) =>
               run(async () => {
                 await createPosition(input)
+                priceInBackground()
                 sendInvestReaction(
                   { type: 'position_logged', symbol: input.symbol, quantity: input.quantity },
                   lang,
@@ -419,6 +435,7 @@ export function InvestPortfolioPage() {
           onAdd={(input) =>
             run(async () => {
               await addWatchSymbol(input)
+              priceInBackground()
               /* Tally notices — best-effort: a throttled or failed reaction
                  returns null and never disturbs the save. Her line also
                  lands in the chat thread. */
