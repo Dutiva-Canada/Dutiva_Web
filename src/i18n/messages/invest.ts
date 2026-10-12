@@ -692,6 +692,9 @@ const investCoreMessages = defineMessages({
   invest_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   invest_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },
   invest_chat_stop: { en: 'Stop', fr: 'Arrêter' },
+  /* The model's thinking trace — disclosure on an assistant turn holding
+     its reasoning_content. [FR self-authored] */
+  invest_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
   /* What she reads — a disclosure under the subtitle listing her data
      sources, so the advice surface is honest about its scope.
      [FR self-authored] */

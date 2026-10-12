@@ -35,6 +35,9 @@ export interface PrChatTurn {
   role: 'user' | 'assistant'
   content: string
   action: PrChatAction | null
+  /** The model's thinking trace — set on assistant turns when the route
+      reasons; null when it doesn't. */
+  reasoning?: string | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -58,6 +61,9 @@ export interface PrChatThread {
 export interface PrChatCallOpts {
   threadId?: string | null
   signal?: AbortSignal
+  /** Live thinking trace — cumulative text per reasoning piece. Streamed
+      path only. */
+  onReasoning?: (text: string) => void
 }
 
 /** One turn of the desk conversation. The server writes both sides to
@@ -72,6 +78,29 @@ export interface PrChatSendResult {
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
   suggests: string[]
+  /** The thinking trace behind the reply — null when none was emitted. */
+  reasoning: string | null
+}
+
+function toPrChatResult(raw: {
+  reply?: string
+  action?: PrChatAction | null
+  assistantId?: string | null
+  suggests?: unknown
+  reasoning?: unknown
+}): PrChatSendResult {
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from pr-ai')
+  }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+    reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+  }
 }
 
 export async function sendPrChat(
@@ -84,25 +113,12 @@ export async function sendPrChat(
   const body = { kind: 'chat', message, lang, threadId: opts?.threadId ?? null }
   const raw = (
     onDelta
-      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'pr-ai', body)
-  ) as {
-    reply?: string
-    action?: PrChatAction | null
-    assistantId?: string | null
-    suggests?: unknown
-  }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reply from pr-ai')
-  }
-  return {
-    reply: raw.reply,
-    action: raw.action ?? null,
-    assistantId: raw.assistantId ?? null,
-    suggests: Array.isArray(raw.suggests)
-      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
-      : [],
-  }
+  ) as Parameters<typeof toPrChatResult>[0]
+  return toPrChatResult(raw)
 }
 
 /** Re-run the thread's last user turn — the server drops the stale pair
@@ -116,25 +132,12 @@ export async function regeneratePrChat(
   const body = { kind: 'chat_regenerate', lang, threadId: opts?.threadId ?? null }
   const raw = (
     onDelta
-      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'pr-ai', body)
-  ) as {
-    reply?: string
-    action?: PrChatAction | null
-    assistantId?: string | null
-    suggests?: unknown
-  }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reply from pr-ai')
-  }
-  return {
-    reply: raw.reply,
-    action: raw.action ?? null,
-    assistantId: raw.assistantId ?? null,
-    suggests: Array.isArray(raw.suggests)
-      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
-      : [],
-  }
+  ) as Parameters<typeof toPrChatResult>[0]
+  return toPrChatResult(raw)
 }
 
 /** The user's named conversations — the default thread isn't listed; it's
@@ -255,6 +258,7 @@ export async function loadPrChatHistory(
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
     action: (r.action as PrChatAction | null) ?? null,
+    reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

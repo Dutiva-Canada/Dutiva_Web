@@ -583,6 +583,9 @@ export const healthMessages = defineMessages({
   /* Conversation chrome — the thinking label, scroll pill, and the
      turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
   health_chat_typing: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
+  /* The model's thinking trace — disclosure on an assistant turn.
+     [FR self-authored] */
+  health_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
   health_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   health_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   health_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

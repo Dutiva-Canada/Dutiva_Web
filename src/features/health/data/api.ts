@@ -192,13 +192,15 @@ async function invokeHealthAi(body: Record<string, unknown>): Promise<Record<str
   return invokeEdgeFn(requireSupabase(), 'health-ai', body)
 }
 
-/** Streaming path — see src/lib/edgeStream.ts for the event contract. */
+/** Streaming path — see src/lib/edgeStream.ts for the event contract.
+    onReasoning receives the thinking trace as it streams, cumulative. */
 async function invokeHealthAiStream(
   body: Record<string, unknown>,
   onDelta: (text: string) => void,
   signal?: AbortSignal,
+  onReasoning?: (text: string) => void,
 ): Promise<Record<string, unknown>> {
-  return invokeEdgeFnStream(requireSupabase(), 'health-ai', body, onDelta, signal)
+  return invokeEdgeFnStream(requireSupabase(), 'health-ai', body, onDelta, signal, onReasoning)
 }
 
 /** One journal prompt built from the user's stats and their own recent
@@ -283,6 +285,9 @@ export interface HealthChatTurn {
   role: 'user' | 'assistant'
   content: string
   action: HealthChatAction | null
+  /** The model's thinking trace — set on assistant turns when the route
+      reasons; null when it doesn't. */
+  reasoning?: string | null
   /** Thumbs rating the user left on an assistant turn: 1 | -1 | null. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -306,6 +311,9 @@ export interface HealthChatThread {
 export interface HealthChatCallOpts {
   threadId?: string | null
   signal?: AbortSignal
+  /** Live thinking trace — cumulative text per reasoning piece. Streamed
+      path only. */
+  onReasoning?: (text: string) => void
 }
 
 /** One turn of the portal conversation. The server writes both sides to
@@ -323,6 +331,29 @@ export interface HealthChatSendResult {
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
   suggests: string[]
+  /** The thinking trace behind the reply — null when none was emitted. */
+  reasoning: string | null
+}
+
+function toHealthChatResult(raw: {
+  reply?: string
+  action?: HealthChatAction | null
+  assistantId?: string | null
+  suggests?: unknown
+  reasoning?: unknown
+}): HealthChatSendResult {
+  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+    throw new Error('Empty reply from health-ai')
+  }
+  return {
+    reply: raw.reply,
+    action: raw.action ?? null,
+    assistantId: raw.assistantId ?? null,
+    suggests: Array.isArray(raw.suggests)
+      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      : [],
+    reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+  }
 }
 
 export async function sendHealthChat(
@@ -339,24 +370,9 @@ export async function sendHealthChat(
     threadId: opts?.threadId ?? null,
   }
   const raw = (onDelta
-    ? await invokeHealthAiStream(body, onDelta, opts?.signal)
-    : await invokeHealthAi(body)) as {
-    reply?: string
-    action?: HealthChatAction | null
-    assistantId?: string | null
-    suggests?: unknown
-  }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reply from health-ai')
-  }
-  return {
-    reply: raw.reply,
-    action: raw.action ?? null,
-    assistantId: raw.assistantId ?? null,
-    suggests: Array.isArray(raw.suggests)
-      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
-      : [],
-  }
+    ? await invokeHealthAiStream(body, onDelta, opts?.signal, opts?.onReasoning)
+    : await invokeHealthAi(body)) as Parameters<typeof toHealthChatResult>[0]
+  return toHealthChatResult(raw)
 }
 
 /** Re-run the thread's last user turn — the server drops the stale pair
@@ -373,24 +389,9 @@ export async function regenerateHealthChat(
     threadId: opts?.threadId ?? null,
   }
   const raw = (onDelta
-    ? await invokeHealthAiStream(body, onDelta, opts?.signal)
-    : await invokeHealthAi(body)) as {
-    reply?: string
-    action?: HealthChatAction | null
-    assistantId?: string | null
-    suggests?: unknown
-  }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reply from health-ai')
-  }
-  return {
-    reply: raw.reply,
-    action: raw.action ?? null,
-    assistantId: raw.assistantId ?? null,
-    suggests: Array.isArray(raw.suggests)
-      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
-      : [],
-  }
+    ? await invokeHealthAiStream(body, onDelta, opts?.signal, opts?.onReasoning)
+    : await invokeHealthAi(body)) as Parameters<typeof toHealthChatResult>[0]
+  return toHealthChatResult(raw)
 }
 
 /** The user's named conversations — the default thread isn't listed; it's
@@ -529,6 +530,7 @@ export async function loadHealthChatHistory(
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
     action: (r.action as HealthChatAction | null) ?? null,
+    reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
     feedback: r.feedback === 1 || r.feedback === -1 ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

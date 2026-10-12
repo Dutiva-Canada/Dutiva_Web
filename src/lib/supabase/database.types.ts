@@ -1659,6 +1659,7 @@ export type Database = {
           feedback: number | null
           feedback_reason: string | null
           id: string
+          reasoning: string | null
           role: string
           thread_id: string | null
           user_id: string
@@ -1669,6 +1670,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role: string
           thread_id?: string | null
           user_id: string
@@ -1679,6 +1681,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role?: string
           thread_id?: string | null
           user_id?: string
@@ -7696,6 +7699,7 @@ export type Database = {
           feedback: number | null
           feedback_reason: string | null
           id: string
+          reasoning: string | null
           role: string
           thread_id: string | null
           user_id: string
@@ -7707,6 +7711,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role: string
           thread_id?: string | null
           user_id: string
@@ -7718,6 +7723,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role?: string
           thread_id?: string | null
           user_id?: string
@@ -10031,6 +10037,7 @@ export type Database = {
           feedback: number | null
           feedback_reason: string | null
           id: string
+          reasoning: string | null
           role: string
           thread_id: string | null
           user_id: string
@@ -10042,6 +10049,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role: string
           thread_id?: string | null
           user_id: string
@@ -10053,6 +10061,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role?: string
           thread_id?: string | null
           user_id?: string
@@ -12205,6 +12214,7 @@ export type Database = {
           feedback: number | null
           feedback_reason: string | null
           id: string
+          reasoning: string | null
           role: string
           thread_id: string | null
           user_id: string
@@ -12216,6 +12226,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role: string
           thread_id?: string | null
           user_id: string
@@ -12227,6 +12238,7 @@ export type Database = {
           feedback?: number | null
           feedback_reason?: string | null
           id?: string
+          reasoning?: string | null
           role?: string
           thread_id?: string | null
           user_id?: string

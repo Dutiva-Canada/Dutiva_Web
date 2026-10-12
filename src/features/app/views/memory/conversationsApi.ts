@@ -14,6 +14,9 @@ export interface ConversationTurn {
   content: string
   /** Server-stamped ISO time for the turn (absent on pre-0212 history). */
   at?: string
+  /** The model's thinking trace, when the route produced one
+     *  (reasoning_effort) — assistant turns only, absent otherwise. */
+  reasoning?: string
 }
 
 export interface ProductionConversation {
@@ -28,6 +31,7 @@ const messageSchema = z.object({
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string(),
   at: z.string().optional(),
+  reasoning: z.string().optional(),
 })
 
 const rowSchema = z.object({

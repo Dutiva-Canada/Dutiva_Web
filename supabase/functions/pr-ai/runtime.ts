@@ -1,6 +1,7 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import {
   postChatCompletion,
+  readUpstreamCompletion,
   readUpstreamText,
   routeBodyExtras,
   type ApiKeyResult,
@@ -177,6 +178,7 @@ async function persistChatTurns(
   reply: string,
   executed: ExecutedAction | null,
   threadId: string | null,
+  reasoning: string,
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await admin
@@ -198,6 +200,7 @@ async function persistChatTurns(
       content: reply,
       action: executed,
       thread_id: threadId,
+      reasoning: reasoning || null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -293,10 +296,16 @@ export async function runChat(
     const extractor = createReplyDeltaExtractor()
     void (async () => {
       try {
-        const fullText = await readUpstreamText(upstream, (piece) => {
-          const visible = extractor.push(piece)
-          if (visible) sse.send({ type: 'delta', text: visible })
-        })
+        /* Reasoning pieces stream to the thinking panel as they arrive —
+           the reply extractor still gates what reaches the bubble. */
+        const { text: fullText, reasoning } = await readUpstreamCompletion(
+          upstream,
+          (piece) => {
+            const visible = extractor.push(piece)
+            if (visible) sse.send({ type: 'delta', text: visible })
+          },
+          (piece) => sse.send({ type: 'reasoning', text: piece }),
+        )
         const parsed: PrChatReply | null = parsePrChatReply(fullText)
         if (!parsed) {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
@@ -305,12 +314,15 @@ export async function runChat(
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
           : null
-        const ids = await persistChatTurns(admin, userId, message, parsed.reply, executed, threadId)
+        const ids = await persistChatTurns(
+          admin, userId, message, parsed.reply, executed, threadId, reasoning,
+        )
         sse.send({
           type: 'done',
           reply: parsed.reply,
           action: executed,
           suggests: parsed.suggests,
+          reasoning: reasoning || null,
           ...ids,
         })
       } catch (e) {
@@ -322,19 +334,26 @@ export async function runChat(
     return sse.response
   }
 
-  const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
-  const parsed: PrChatReply | null = parsePrChatReply(payload.choices?.[0]?.message?.content)
+  const payload = (await upstream.json()) as {
+    choices?: { message?: { content?: string; reasoning_content?: string } }[]
+  }
+  const msg = payload.choices?.[0]?.message ?? {}
+  const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
+  const parsed: PrChatReply | null = parsePrChatReply(msg.content)
   if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
 
   const executed = parsed.action
     ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
     : null
-  const ids = await persistChatTurns(admin, userId, message, parsed.reply, executed, threadId)
+  const ids = await persistChatTurns(
+    admin, userId, message, parsed.reply, executed, threadId, reasoning,
+  )
 
   return json({
     reply: parsed.reply,
     action: executed,
     suggests: parsed.suggests,
+    reasoning: reasoning || null,
     ...ids,
   })
 }

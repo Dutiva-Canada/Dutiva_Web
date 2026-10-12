@@ -134,6 +134,7 @@ describe('InvestChatPage', () => {
       action: null,
       assistantId: ASSISTANT_ID,
       suggests: [],
+      reasoning: null,
     })
     renderPage()
     await screen.findByText(/Hi — I’m Tally/)
@@ -146,8 +147,7 @@ describe('InvestChatPage', () => {
         'What’s on my watchlist right now?',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
-      
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
   })
@@ -156,7 +156,7 @@ describe('InvestChatPage', () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     vi.mocked(sendInvestChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID , suggests: []})
+      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID, suggests: [], reasoning: null})
     renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
 
@@ -250,6 +250,7 @@ describe('InvestChatPage', () => {
       action: { type: 'create_order', detail: 'buy 5 XEQT', ok: true, refId: 'o1' },
       assistantId: ASSISTANT_ID,
       suggests: [],
+      reasoning: null,
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
@@ -264,8 +265,7 @@ describe('InvestChatPage', () => {
         'queue a buy of 5 XEQT',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
-      
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Queued a draft order for review.')).toBeInTheDocument()

@@ -4,7 +4,7 @@ import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import {
   postChatCompletion,
-  readUpstreamText,
+  readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
 } from '../_shared/modelUpstream.ts'
@@ -331,6 +331,7 @@ async function persistChatTurns(
   message: string,
   reply: string,
   threadId: string | null,
+  reasoning: string,
 ): Promise<{ assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   await adminClient
@@ -349,6 +350,7 @@ async function persistChatTurns(
       role: 'assistant',
       content: reply,
       thread_id: threadId,
+      reasoning: reasoning || null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -447,10 +449,16 @@ async function runChat(
     const extractor = createReplyDeltaExtractor()
     void (async () => {
       try {
-        const fullText = await readUpstreamText(upstream, (piece) => {
-          const visible = extractor.push(piece)
-          if (visible) sse.send({ type: 'delta', text: visible })
-        })
+        /* Reasoning pieces stream to the thinking panel as they arrive —
+           the reply extractor still gates what reaches the bubble. */
+        const { text: fullText, reasoning } = await readUpstreamCompletion(
+          upstream,
+          (piece) => {
+            const visible = extractor.push(piece)
+            if (visible) sse.send({ type: 'delta', text: visible })
+          },
+          (piece) => sse.send({ type: 'reasoning', text: piece }),
+        )
         const parsed = parseCandidateChatReply(fullText)
         if (!parsed) {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
@@ -462,8 +470,15 @@ async function runChat(
           message,
           parsed.reply,
           threadId,
+          reasoning,
         )
-        sse.send({ type: 'done', reply: parsed.reply, assistantId, suggests: parsed.suggests })
+        sse.send({
+          type: 'done',
+          reply: parsed.reply,
+          assistantId,
+          suggests: parsed.suggests,
+          reasoning: reasoning || null,
+        })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
@@ -474,9 +489,11 @@ async function runChat(
   }
 
   const completion = (await upstream.json()) as {
-    choices?: { message?: { content?: string } }[]
+    choices?: { message?: { content?: string; reasoning_content?: string } }[]
   }
-  const parsed = parseCandidateChatReply(completion?.choices?.[0]?.message?.content)
+  const msg = completion?.choices?.[0]?.message ?? {}
+  const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
+  const parsed = parseCandidateChatReply(msg.content)
   if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
   const { assistantId } = await persistChatTurns(
     adminClient,
@@ -484,8 +501,14 @@ async function runChat(
     message,
     parsed.reply,
     threadId,
+    reasoning,
   )
-  return json({ reply: parsed.reply, assistantId, suggests: parsed.suggests })
+  return json({
+    reply: parsed.reply,
+    assistantId,
+    suggests: parsed.suggests,
+    reasoning: reasoning || null,
+  })
 }
 
 /* Daily rail — one atomic counter row per user per day, claimed before the
@@ -595,7 +618,7 @@ const handler = async (req: Request) => {
     const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
     let q = authenticated.adminClient
       .from('candidate_chat_messages')
-      .select('id, role, content, feedback, feedback_reason, created_at')
+      .select('id, role, content, reasoning, feedback, feedback_reason, created_at')
       .eq('user_id', authenticated.user.id)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)

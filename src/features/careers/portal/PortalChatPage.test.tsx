@@ -83,6 +83,7 @@ describe('PortalChatPage', () => {
       reply: 'Your strongest match is the Globex role.',
       assistantId: ASSISTANT_ID,
       suggests: [],
+      reasoning: null,
     })
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
@@ -97,8 +98,7 @@ describe('PortalChatPage', () => {
         'which posting should I chase first',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
-      
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Your strongest match is the Globex role.')).toBeInTheDocument()
@@ -186,6 +186,7 @@ describe('PortalChatPage', () => {
       reply: 'Start with the strongest match.',
       assistantId: ASSISTANT_ID,
       suggests: [],
+      reasoning: null,
     })
     renderPage()
     await screen.findByText(/Hi — I’m Claire/)
@@ -198,8 +199,7 @@ describe('PortalChatPage', () => {
         'Which discovered jobs fit me best?',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
-      
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
   })
@@ -208,7 +208,7 @@ describe('PortalChatPage', () => {
     vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
     vi.mocked(sendCandidateChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID , suggests: []})
+      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID, suggests: [], reasoning: null})
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
 

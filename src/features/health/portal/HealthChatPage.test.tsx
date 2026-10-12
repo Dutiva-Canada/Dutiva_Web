@@ -142,6 +142,7 @@ describe('HealthChatPage', () => {
       action: { type: 'mark_habit_done', detail: 'Walk', ok: true, refId: 'h1' },
       assistantId: '11111111-2222-3333-4444-555555555555',
       suggests: [],
+      reasoning: null,
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Tell Mira/)
@@ -157,7 +158,7 @@ describe('HealthChatPage', () => {
         'mark Walk done',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Done — marked for today.')).toBeInTheDocument()

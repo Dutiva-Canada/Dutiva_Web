@@ -5,9 +5,11 @@ import {
   MAX_IMAGE_DATA_URL_CHARS,
   MAX_TOTAL_DOCUMENT_CHARS,
   chatCompletionsUrl,
+  createSseDeltaParser,
   missingModality,
   parseAttachments,
   persistedUserContent,
+  readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
   routeModalities,
@@ -209,5 +211,96 @@ describe('routeBodyExtras', () => {
     expect(routeBodyExtras({})).toEqual({})
     expect(routeBodyExtras({ params: 'high' })).toEqual({})
     expect(routeBodyExtras({ params: [1, 2] })).toEqual({})
+  })
+})
+
+/* Reasoning-capable routes stream `delta.reasoning_content` ahead of the
+   reply — the thinking panel depends on the two channels staying separate:
+   reasoning pieces accumulate on `reasoning`, reply pieces on `text`, and
+   neither may leak into the other. */
+describe('createSseDeltaParser', () => {
+  const sse = (deltas: { content?: string; reasoning_content?: string }[]) =>
+    deltas.map((d) => `data: ${JSON.stringify({ choices: [{ delta: d }] })}\n`).join('') +
+    'data: [DONE]\n'
+
+  it('collects reasoning and content on separate channels', () => {
+    const reasons: string[] = []
+    const pieces: string[] = []
+    const p = createSseDeltaParser(
+      (t) => pieces.push(t),
+      (t) => reasons.push(t),
+    )
+    p.push(
+      sse([
+        { reasoning_content: 'Let me ', content: '' },
+        { reasoning_content: 'check the rows.' },
+        { content: 'Verdict' },
+        { content: ': hold.' },
+      ]),
+    )
+    expect(p.reasoning).toBe('Let me check the rows.')
+    expect(p.text).toBe('Verdict: hold.')
+    expect(reasons.join('')).toBe('Let me check the rows.')
+    expect(pieces.join('')).toBe('Verdict: hold.')
+  })
+
+  it('buffers a data line split across chunks', () => {
+    const p = createSseDeltaParser(() => {})
+    const wire = sse([{ reasoning_content: 'thinking…' }, { content: 'Hi' }])
+    const mid = wire.indexOf('reasoning_content')
+    p.push(wire.slice(0, mid))
+    expect(p.reasoning).toBe('')
+    p.push(wire.slice(mid))
+    expect(p.reasoning).toBe('thinking…')
+    expect(p.text).toBe('Hi')
+  })
+
+  it('skips non-data lines and tolerates malformed JSON', () => {
+    const p = createSseDeltaParser(() => {})
+    p.push(': keepalive\n\n')
+    p.push('data: {not json\n')
+    p.push(sse([{ content: 'ok' }]))
+    expect(p.text).toBe('ok')
+    expect(p.reasoning).toBe('')
+  })
+})
+
+describe('readUpstreamCompletion', () => {
+  const sseResponse = (body: string) =>
+    new Response(body, { headers: { 'content-type': 'text/event-stream' } })
+
+  it('streams both channels from an SSE response', async () => {
+    const reasons: string[] = []
+    const body =
+      'data: {"choices":[{"delta":{"reasoning_content":"thinking"}}]}\n' +
+      'data: {"choices":[{"delta":{"content":"hi"}}]}\n' +
+      'data: [DONE]\n'
+    const out = await readUpstreamCompletion(sseResponse(body), () => {}, (t) =>
+      reasons.push(t),
+    )
+    expect(out).toEqual({ text: 'hi', reasoning: 'thinking' })
+    expect(reasons).toEqual(['thinking'])
+  })
+
+  it('reads reasoning_content off a buffered JSON response', async () => {
+    const res = new Response(
+      JSON.stringify({
+        choices: [{ message: { content: 'answer', reasoning_content: 'worked it out' } }],
+      }),
+      { headers: { 'content-type': 'application/json' } },
+    )
+    const reasons: string[] = []
+    const out = await readUpstreamCompletion(res, () => {}, (t) => reasons.push(t))
+    expect(out).toEqual({ text: 'answer', reasoning: 'worked it out' })
+    expect(reasons).toEqual(['worked it out'])
+  })
+
+  it('resolves empty reasoning for a plain model', async () => {
+    const res = new Response(
+      JSON.stringify({ choices: [{ message: { content: 'answer' } }] }),
+      { headers: { 'content-type': 'application/json' } },
+    )
+    const out = await readUpstreamCompletion(res, () => {})
+    expect(out).toEqual({ text: 'answer', reasoning: '' })
   })
 })

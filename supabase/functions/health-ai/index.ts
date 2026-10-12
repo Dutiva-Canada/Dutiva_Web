@@ -214,7 +214,7 @@ const handler = async (req: Request) => {
     const before = typeof body.before === 'string' && body.before ? body.before : null
     let q = admin
       .from('health_chat_messages')
-      .select('id, role, content, action, feedback, feedback_reason, created_at')
+      .select('id, role, content, action, reasoning, feedback, feedback_reason, created_at')
       .eq('user_id', portal.userId)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)

@@ -154,17 +154,23 @@ export async function postChatCompletion(
 
 /**
  * Incremental parser for upstream SSE. Feed decoded chunks; it fires
- * `onDelta` per content piece and accumulates the full text. `data:` lines
- * split across chunks are buffered until their newline arrives; anything
- * that is not a `data:` JSON object (keepalives, comments, `[DONE]`) is
- * skipped.
+ * `onDelta` per content piece and `onReasoning` per reasoning piece
+ * (reasoning-capable models stream `delta.reasoning_content` before the
+ * reply), accumulating both texts. `data:` lines split across chunks are
+ * buffered until their newline arrives; anything that is not a `data:`
+ * JSON object (keepalives, comments, `[DONE]`) is skipped.
  */
-export function createSseDeltaParser(onDelta: (text: string) => void): {
+export function createSseDeltaParser(
+  onDelta: (text: string) => void,
+  onReasoning?: (text: string) => void,
+): {
   push: (chunk: string) => void
   readonly text: string
+  readonly reasoning: string
 } {
   let buffer = ''
   let full = ''
+  let thinking = ''
   return {
     push(chunk) {
       buffer += chunk
@@ -177,9 +183,15 @@ export function createSseDeltaParser(onDelta: (text: string) => void): {
         if (data === '[DONE]') continue
         try {
           const obj = JSON.parse(data) as {
-            choices?: { delta?: { content?: unknown } }[]
+            choices?: { delta?: { content?: unknown; reasoning_content?: unknown } }[]
           }
-          const piece = obj.choices?.[0]?.delta?.content
+          const delta = obj.choices?.[0]?.delta
+          const thought = delta?.reasoning_content
+          if (typeof thought === 'string' && thought !== '') {
+            thinking += thought
+            onReasoning?.(thought)
+          }
+          const piece = delta?.content
           if (typeof piece === 'string' && piece !== '') {
             full += piece
             onDelta(piece)
@@ -192,29 +204,38 @@ export function createSseDeltaParser(onDelta: (text: string) => void): {
     get text() {
       return full
     },
+    get reasoning() {
+      return thinking
+    },
   }
 }
 
 /**
- * Read a streaming upstream response to completion, forwarding each text
- * piece to `onDelta` and resolving with the full text. Falls back cleanly
- * when a provider ignored `stream: true` and answered plain JSON — the
- * whole content arrives as a single delta.
+ * Read an upstream response to completion — streamed or plain JSON —
+ * forwarding each reply piece to `onDelta` and each reasoning piece to
+ * `onReasoning`, resolving with both full texts. Reasoning arrives only
+ * when the routed model produces it (`reasoning_effort` et al.); a plain
+ * text model resolves `reasoning: ''`. The JSON fallback reads
+ * `message.reasoning_content`, the non-streamed shape.
  */
-export async function readUpstreamText(
+export async function readUpstreamCompletion(
   upstream: Response,
   onDelta: (text: string) => void,
-): Promise<string> {
+  onReasoning?: (text: string) => void,
+): Promise<{ text: string; reasoning: string }> {
   const contentType = upstream.headers.get('content-type') ?? ''
   if (!contentType.includes('text/event-stream') || !upstream.body) {
     const payload = (await upstream.json()) as {
-      choices?: { message?: { content?: string } }[]
+      choices?: { message?: { content?: string; reasoning_content?: string } }[]
     }
-    const text = payload.choices?.[0]?.message?.content ?? ''
+    const message = payload.choices?.[0]?.message ?? {}
+    const text = message.content ?? ''
+    const reasoning = message.reasoning_content ?? ''
+    if (reasoning) onReasoning?.(reasoning)
     if (text) onDelta(text)
-    return text
+    return { text, reasoning }
   }
-  const parser = createSseDeltaParser(onDelta)
+  const parser = createSseDeltaParser(onDelta, onReasoning)
   const reader = upstream.body.getReader()
   const decoder = new TextDecoder()
   for (;;) {
@@ -223,7 +244,19 @@ export async function readUpstreamText(
     parser.push(decoder.decode(value, { stream: true }))
   }
   parser.push(decoder.decode())
-  return parser.text
+  return { text: parser.text, reasoning: parser.reasoning }
+}
+
+/**
+ * Same read, text only — for callers whose surface has no thinking
+ * display (reactions, batch jobs). Reasoning pieces are captured and
+ * discarded.
+ */
+export async function readUpstreamText(
+  upstream: Response,
+  onDelta: (text: string) => void,
+): Promise<string> {
+  return (await readUpstreamCompletion(upstream, onDelta)).text
 }
 
 /* ── Attachments ───────────────────────────────────────────────────────── */

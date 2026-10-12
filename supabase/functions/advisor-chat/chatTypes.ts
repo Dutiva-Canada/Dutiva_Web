@@ -13,6 +13,9 @@ export interface ChatMessage {
   content: string
   /** Persisted-only ISO stamp — stripped before messages go upstream. */
   at?: string
+  /** Persisted-only thinking trace — the model's reasoning_content when the
+     route produces it. Same wire-clean rule as `at`: never sent upstream. */
+  reasoning?: string
 }
 
 export type SupabaseClient = SbClient<Database>
@@ -69,7 +72,7 @@ export interface Conversation {
 }
 
 export interface Completion {
-  choices?: { message?: { content?: string } }[]
+  choices?: { message?: { content?: string; reasoning_content?: string } }[]
   usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number }
 }
 

@@ -107,6 +107,7 @@ describe('PrChatPage', () => {
       action: { type: 'add_media_contact', detail: 'Jo at CBC', ok: true, refId: 'c1' },
       assistantId: ASSISTANT_ID,
       suggests: [],
+      reasoning: null,
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Paige/)
@@ -121,8 +122,7 @@ describe('PrChatPage', () => {
         'add Jo at CBC to my contacts',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null },
-      
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Draft filed.')).toBeInTheDocument()

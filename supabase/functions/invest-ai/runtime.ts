@@ -1,6 +1,7 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import {
   postChatCompletion,
+  readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
   type UpstreamMessage,
@@ -240,6 +241,7 @@ async function persistChatTurns(
   reply: string,
   executed: ExecutedAction | null,
   threadId: string | null,
+  reasoning: string,
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await adminClient
@@ -261,6 +263,7 @@ async function persistChatTurns(
       content: reply,
       action: executed,
       thread_id: threadId,
+      reasoning: reasoning || null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -337,15 +340,22 @@ export async function runChat(
     { role: 'user', content: message },
   ]
 
-  /* Every upstream call runs buffered — a reply is never emitted before the
-     fetch loop and the claim verifier have both had their pass at it. The
-     client-facing SSE channel still receives the final text as deltas, so
-     the wire contract is unchanged; what changed is that wrong figures can
-     be sent back for repair instead of streaming straight into the bubble. */
+  /* Reply content is never emitted before the fetch loop and the claim
+     verifier have both had their pass — content pieces are buffered even
+     when the upstream call itself streams. Reasoning pieces are different:
+     they're the model's working, not its answer, so they flow straight to
+     the client's thinking panel as they arrive and persist on the turn. */
   const extras = routeBodyExtras(route.config)
+  interface ModelRound {
+    raw: string
+    parsed: InvestChatReply | null
+    /** The round's reasoning_content — '' when the model doesn't emit any. */
+    reasoning: string
+  }
   const callModel = async (
     extra: { fetched?: MarketContextEntry[]; draft?: string; repairNote?: string } = {},
-  ): Promise<{ raw: string; parsed: InvestChatReply | null } | null> => {
+    onReasoning?: (piece: string) => void,
+  ): Promise<ModelRound | null> => {
     const messages: UpstreamMessage[] = [...baseMessages]
     if (extra.draft) messages.push({ role: 'assistant', content: extra.draft })
     if (extra.fetched && extra.fetched.length > 0) {
@@ -368,6 +378,9 @@ export async function runChat(
              asks for a verdict + labeled sections on those asks. */
           max_tokens: route.config?.max_tokens ?? 900,
           temperature: 0.4,
+          /* Streaming upstream only when a listener wants the reasoning
+             pieces live — the content side stays buffered either way. */
+          stream: onReasoning !== undefined,
           ...extras,
         },
         UPSTREAM_TIMEOUT_MS,
@@ -376,11 +389,17 @@ export async function runChat(
         console.error('invest-ai chat: upstream rejected', upstream.status)
         return null
       }
+      if (onReasoning) {
+        const { text, reasoning } = await readUpstreamCompletion(upstream, () => {}, onReasoning)
+        return { raw: text, parsed: parseInvestChatReply(text), reasoning }
+      }
       const completion = await upstream.json()
-      const raw = completion?.choices?.[0]?.message?.content
+      const msg = completion?.choices?.[0]?.message ?? {}
+      const raw = msg.content
       return {
         raw: typeof raw === 'string' ? raw : '',
         parsed: parseInvestChatReply(raw),
+        reasoning: typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '',
       }
     } catch (e) {
       console.error('invest-ai chat: model call failed', e)
@@ -388,74 +407,112 @@ export async function runChat(
     }
   }
 
-  let round = await callModel()
-  if (!round) return json({ error: 'The AI service is temporarily unavailable.', code: 'upstream' }, 502)
-
-  /* Fetch loop — one bounded hop. The model may hold its answer and name
-     tickers it wants pulled first; the data lands and the question repeats.
-     Round two cannot ask again (reply required). */
-  let parsed = round.parsed
-  if (parsed && parsed.reply === '' && parsed.fetch.length > 0) {
-    const want = parsed.fetch.filter((s) => !covered.has(s))
-    const fetched = want.length > 0 ? await fetchOnDemandMarket(want) : []
-    for (const e of fetched) covered.add(e.symbol)
-    chatCtx.market = [...chatCtx.market, ...fetched]
-    round = await callModel({ fetched })
-    if (!round) return json({ error: 'The AI service is temporarily unavailable.', code: 'upstream' }, 502)
-    parsed = round.parsed
+  /* The rounds pipeline — fetch loop, verify, repair, action, persist —
+     shared by the streamed and plain responses. Reasoning accumulates
+     across rounds: a fetch-request or repair round's working is still the
+     turn's thinking, so it stays on the record. */
+  interface ChatOutcome {
+    reply: string
+    action: ExecutedAction | null
+    suggests: string[]
+    reasoning: string
+    userId: string | null
+    assistantId: string | null
   }
-  if (!parsed || parsed.reply === '') {
-    return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
-  }
+  const runPipeline = async (
+    onReasoning?: (piece: string) => void,
+  ): Promise<{ error: string } | ChatOutcome> => {
+    let reasoning = ''
+    let round = await callModel({}, onReasoning)
+    if (!round) return { error: 'The AI service is temporarily unavailable.' }
+    reasoning = round.reasoning
 
-  /* Verify pass — deterministic, not another model opinion. Labeled metric
-     claims that match no row on file go back for one repair rewrite; a
-     repair that still cites wrong figures ships anyway but gets logged —
-     blocking the whole turn over one number is worse than the note. */
-  const mismatches = verifyReplyClaims(parsed.reply, chatCtx.market)
-  if (mismatches.length > 0) {
-    console.warn('invest-ai reply cited figures off-file', JSON.stringify(mismatches))
-    const repaired = await callModel({ draft: round.raw, repairNote: buildRepairNote(mismatches) })
-    if (repaired?.parsed?.reply) {
-      const residual = verifyReplyClaims(repaired.parsed.reply, chatCtx.market)
-      if (residual.length > 0) {
-        console.warn('invest-ai residual mismatches after repair', JSON.stringify(residual))
+    /* Fetch loop — one bounded hop. The model may hold its answer and name
+       tickers it wants pulled first; the data lands and the question
+       repeats. Round two cannot ask again (reply required). */
+    let parsed = round.parsed
+    if (parsed && parsed.reply === '' && parsed.fetch.length > 0) {
+      const want = parsed.fetch.filter((s) => !covered.has(s))
+      const fetched = want.length > 0 ? await fetchOnDemandMarket(want) : []
+      for (const e of fetched) covered.add(e.symbol)
+      chatCtx.market = [...chatCtx.market, ...fetched]
+      round = await callModel({ fetched }, onReasoning)
+      if (!round) return { error: 'The AI service is temporarily unavailable.' }
+      if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+      parsed = round.parsed
+    }
+    if (!parsed || parsed.reply === '') {
+      return { error: 'Model returned no usable reply' }
+    }
+
+    /* Verify pass — deterministic, not another model opinion. Labeled
+       metric claims that match no row on file go back for one repair
+       rewrite; a repair that still cites wrong figures ships anyway but
+       gets logged — blocking the whole turn over one number is worse than
+       the note. */
+    const mismatches = verifyReplyClaims(parsed.reply, chatCtx.market)
+    if (mismatches.length > 0) {
+      console.warn('invest-ai reply cited figures off-file', JSON.stringify(mismatches))
+      const repaired = await callModel(
+        { draft: round.raw, repairNote: buildRepairNote(mismatches) },
+        onReasoning,
+      )
+      if (repaired?.parsed?.reply) {
+        const residual = verifyReplyClaims(repaired.parsed.reply, chatCtx.market)
+        if (residual.length > 0) {
+          console.warn('invest-ai residual mismatches after repair', JSON.stringify(residual))
+        }
+        if (repaired.reasoning) reasoning += `\n\n${repaired.reasoning}`
+        parsed = repaired.parsed
       }
-      parsed = repaired.parsed
+    }
+
+    const executed = parsed.action
+      ? await executeChatAction(adminClient, userId, parsed.action, {
+          accounts: book.accounts,
+          watchlist: book.watchlist,
+          signals: book.signals,
+          route,
+          provider,
+          apiKey,
+          lang,
+          advice,
+        })
+      : null
+    const ids = await persistChatTurns(
+      adminClient,
+      userId,
+      message,
+      parsed.reply,
+      executed,
+      threadId,
+      reasoning,
+    )
+    return {
+      reply: parsed.reply,
+      action: executed,
+      suggests: parsed.suggests,
+      reasoning,
+      ...ids,
     }
   }
 
-  const executed = parsed.action
-    ? await executeChatAction(adminClient, userId, parsed.action, {
-        accounts: book.accounts,
-        watchlist: book.watchlist,
-        signals: book.signals,
-        route,
-        provider,
-        apiKey,
-        lang,
-        advice,
-      })
-    : null
-  const final = parsed
-  const ids = await persistChatTurns(adminClient, userId, message, final.reply, executed, threadId)
-
   if (stream) {
-    /* Buffered upstream, streamed reply — the verified text leaves in
-       chunks so the bubble still fills progressively. */
+    /* The channel opens before the first upstream call so reasoning pieces
+       arrive while the model thinks — the verified reply's deltas still
+       leave only after the pipeline. */
     const sse = sseChannel()
     void (async () => {
       try {
-        for (let i = 0; i < final.reply.length; i += 120) {
-          sse.send({ type: 'delta', text: final.reply.slice(i, i + 120) })
+        const out = await runPipeline((piece) => sse.send({ type: 'reasoning', text: piece }))
+        if ('error' in out) {
+          sse.send({ type: 'error', error: out.error })
+          return
         }
-        sse.send({
-          type: 'done',
-          reply: final.reply,
-          action: executed,
-          suggests: final.suggests,
-          ...ids,
-        })
+        for (let i = 0; i < out.reply.length; i += 120) {
+          sse.send({ type: 'delta', text: out.reply.slice(i, i + 120) })
+        }
+        sse.send({ type: 'done', ...out, reasoning: out.reasoning || null })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
@@ -465,10 +522,9 @@ export async function runChat(
     return sse.response
   }
 
-  return json({
-    reply: final.reply,
-    action: executed,
-    suggests: final.suggests,
-    ...ids,
-  })
+  const out = await runPipeline()
+  if ('error' in out) {
+    return json({ error: out.error, code: 'upstream' }, 502)
+  }
+  return json({ ...out, reasoning: out.reasoning || null })
 }

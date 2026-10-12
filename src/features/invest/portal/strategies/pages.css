@@ -737,6 +737,28 @@
   max-width: 560px;
   line-height: 1.5;
 }
+/* The model's thinking trace inside an assistant bubble — same disclosure
+   pattern as sbchat-sees, bounded so a long trace can't crowd the reply. */
+.sbchat-think {
+  display: block;
+  margin: 0 0 8px;
+}
+.sbchat-think[data-live] > summary {
+  color: var(--sb-accent-ink);
+}
+.sbchat-think-body {
+  margin-top: 5px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--sb-line);
+  border-radius: 8px;
+  background: var(--sb-input);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--sb-muted);
+}
 /* One-tap reasons after a thumbs-down. */
 .sbchat-reasons {
   display: flex;
