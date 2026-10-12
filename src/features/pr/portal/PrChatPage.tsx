@@ -638,9 +638,14 @@ export function PrChatPage() {
                           text={t.reasoning}
                           live={false}
                           label={x(PM.pr_chat_reasoning)}
+                          hint={x(PM.pr_chat_reasoning_hint)}
                           className="sbchat-sees sbchat-think"
                           bodyClass="sbchat-think-body"
-                        />
+                        >
+                          <Suspense fallback={t.reasoning}>
+                            <ChatMarkdown widgetSurface="pr">{t.reasoning}</ChatMarkdown>
+                          </Suspense>
+                        </ReasoningBlock>
                       )}
                       {t.role === 'assistant' ? (
                         <Suspense fallback={t.content}>
@@ -770,11 +775,18 @@ export function PrChatPage() {
                 {streamedReasoning && (
                   <ReasoningBlock
                     text={streamedReasoning}
-                    live={!streamed}
+                    live={sending}
                     label={x(PM.pr_chat_reasoning)}
+                    hint={x(PM.pr_chat_reasoning_hint)}
                     className="sbchat-sees sbchat-think"
                     bodyClass="sbchat-think-body"
-                  />
+                  >
+                    <Suspense fallback={streamedReasoning}>
+                      <ChatMarkdown widgetSurface="pr" streaming>
+                        {streamedReasoning}
+                      </ChatMarkdown>
+                    </Suspense>
+                  </ReasoningBlock>
                 )}
                 {streamed ? (
                   <Suspense fallback={streamed}>
@@ -787,7 +799,7 @@ export function PrChatPage() {
                     <Loader2 size={12} className="animate-spin" aria-hidden="true" />
                     {x(PM.pr_chat_searching)}
                   </span>
-                ) : (
+                ) : streamedReasoning ? null : (
                   <span className="sbchat-typing">
                     <Loader2 size={12} className="animate-spin" aria-hidden="true" />
                     {x(PM.pr_chat_typing)}
@@ -796,12 +808,13 @@ export function PrChatPage() {
                 <span className="sbchat-bubble-meta">
                   <button
                     type="button"
-                    className="sbchat-rate-btn"
+                    className="sbchat-rate-btn sbchat-stop"
                     aria-label={x(PM.pr_chat_stop)}
                     title={x(PM.pr_chat_stop)}
                     onClick={() => abortRef.current?.abort()}
                   >
                     <Square size={11} aria-hidden="true" />
+                    {x(PM.pr_chat_stop)}
                   </button>
                 </span>
               </div>
