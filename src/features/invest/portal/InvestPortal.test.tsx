@@ -26,6 +26,7 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setOrderStatus: vi.fn(),
   addWatchSymbol: vi.fn(),
   removeWatchSymbol: vi.fn(),
+  createPosition: vi.fn(),
   updatePosition: vi.fn(),
   deletePosition: vi.fn(),
 }))
@@ -39,6 +40,7 @@ const {
   executeOrder,
   addWatchSymbol,
   removeWatchSymbol,
+  createPosition,
   updatePosition,
   deletePosition,
 } = await import('@/features/invest/data/api')
@@ -458,6 +460,33 @@ describe('InvestPortfolioPage positions', () => {
     await user.click(remove)
     await vi.waitFor(() => {
       expect(deletePosition).toHaveBeenCalledWith('p1')
+    })
+  })
+
+  it('re-prices in the background after a position is added', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    vi.mocked(createPosition).mockResolvedValue(undefined)
+    vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
+
+    await user.type(document.getElementById('inv-pos-symbol')!, 'amd')
+    await user.type(document.getElementById('inv-pos-qty')!, '5')
+    await user.type(document.getElementById('inv-pos-cost')!, '150')
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+
+    await vi.waitFor(() => {
+      expect(createPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ accountId: 'acc1', symbol: 'amd', quantity: 5, avgCost: 150 }),
+      )
+    })
+    /* The new row lands immediately via run()'s refresh — then the
+       background sync fires and shared state reloads once more so the
+       fresh quote fills in without waiting for the scheduled sync. */
+    await vi.waitFor(() => {
+      expect(syncPrices).toHaveBeenCalled()
+    })
+    await vi.waitFor(() => {
+      expect(vi.mocked(loadInvestState).mock.calls.length).toBeGreaterThanOrEqual(3)
     })
   })
 })

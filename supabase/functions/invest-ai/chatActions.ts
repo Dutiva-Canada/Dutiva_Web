@@ -10,6 +10,7 @@ import {
   type InvestChatAction,
 } from './handlers.ts'
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
+import { fetchOnDemandMarket } from './marketFetch.ts'
 
 /* The action lifecycle for Tally's chat — the whitelisted write path
    (executeChatAction) plus its reversal (undoChatAction / runChatUndo).
@@ -32,6 +33,55 @@ export interface ExecutedAction {
 }
 
 type Provider = Parameters<typeof postChatCompletion>[0]
+
+/* A just-added symbol has no market row yet — pull one quote now so the
+   position and the next chat turn see a real price instead of an empty
+   column until the scheduled sync. Best-effort: a failed pull just waits
+   for the sync. */
+async function priceFreshSymbol(
+  adminClient: SupabaseClient,
+  userId: string,
+  symbol: string,
+  assetClass: string,
+): Promise<void> {
+  try {
+    const [entry] = await fetchOnDemandMarket([symbol])
+    if (!entry?.price) return
+    const asOf = entry.asOf ?? new Date().toISOString()
+    await adminClient.from('invest_market_snapshots').upsert(
+      {
+        user_id: userId,
+        asset_class: assetClass,
+        symbol: entry.symbol,
+        price: entry.price,
+        day_change_pct: entry.dayChangePct,
+        ma50: entry.ma50,
+        ma200: entry.ma200,
+        rsi14: entry.rsi14,
+        ret_1m: entry.ret1m,
+        ret_3m: entry.ret3m,
+        ret_12m: entry.ret12m,
+        vol_20d: entry.vol20d,
+        high_52w: entry.high52w,
+        low_52w: entry.low52w,
+        fundamentals: entry.fundamentals,
+        fundamentals_as_of: entry.fundamentals ? asOf : null,
+        currency: entry.currency,
+        source: 'chat-add',
+        as_of: asOf,
+      },
+      { onConflict: 'user_id,asset_class,symbol' },
+    )
+    await adminClient
+      .from('invest_positions')
+      .update({ last_price: entry.price, last_price_at: asOf })
+      .eq('user_id', userId)
+      .eq('asset_class', assetClass)
+      .eq('symbol', entry.symbol)
+  } catch {
+    /* the scheduled sync retries — an unpriced add is not an action failure */
+  }
+}
 
 export interface ChatActionDeps {
   accounts: { id: string; name: string; kind: string }[]
@@ -71,6 +121,9 @@ export async function executeChatAction(
         )
         .select('id')
         .single()
+      if (!error) {
+        await priceFreshSymbol(adminClient, userId, action.symbol, action.assetClass ?? 'equity')
+      }
       return { type: action.type, detail: action.symbol, ok: !error, refId: data?.id }
     }
     case 'remove_watch_symbol': {
@@ -209,6 +262,7 @@ export async function executeChatAction(
         })
         .select('id')
         .single()
+      if (!error) await priceFreshSymbol(adminClient, userId, action.symbol, assetClass)
       return {
         type: action.type,
         detail: `${action.quantity} ${action.symbol}`,
