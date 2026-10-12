@@ -283,7 +283,7 @@ export function InvestPortfolioPage() {
           <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
         ) : (
           <div className="sb-table-wrap" style={{ marginTop: 14 }}>
-            <table className="sb-table">
+            <table className="sb-table sb-table-positions">
               <thead>
                 <tr>
                   <SortTh label={x(IM.invest_field_symbol)} k="symbol" num={false} sort={sort} onToggle={toggleSort} />
@@ -348,7 +348,9 @@ export function InvestPortfolioPage() {
                       )}
                     </td>
                     <td>
-                      <span className="sb-row-actions">
+                      {/* nowrap — three stacked pills would blow the row
+                          height out; the table already scrolls sideways. */}
+                      <span className="sb-row-actions sb-row-actions-nowrap">
                         <PositionEditor
                           busy={busy}
                           position={p}
