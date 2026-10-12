@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -26,6 +26,8 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setOrderStatus: vi.fn(),
   addWatchSymbol: vi.fn(),
   removeWatchSymbol: vi.fn(),
+  updatePosition: vi.fn(),
+  deletePosition: vi.fn(),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -37,6 +39,8 @@ const {
   executeOrder,
   addWatchSymbol,
   removeWatchSymbol,
+  updatePosition,
+  deletePosition,
 } = await import('@/features/invest/data/api')
 
 function asAuth(status: AuthContextValue['status']): AuthContextValue {
@@ -348,6 +352,112 @@ describe('InvestOrdersPage', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: /Mark executed/i }))
     await vi.waitFor(() => {
       expect(executeOrder).toHaveBeenCalledWith('o1', undefined)
+    })
+  })
+})
+
+describe('InvestPortfolioPage positions', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const renderPage = async (state: InvestState = STATE) => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(state)
+    const { InvestPortfolioPage } = await import('./InvestPortfolioPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestPortfolioPage />
+      </InvestDataProvider>,
+      '/invest/portfolios',
+    )
+    return userEvent.setup()
+  }
+
+  const UNPRICED = {
+    id: 'p2',
+    accountId: 'acc1',
+    assetClass: 'equity' as const,
+    symbol: 'NQ',
+    name: 'NoQuote Inc.',
+    quantity: 2,
+    avgCost: 50,
+    currency: 'CAD',
+    lastPrice: null,
+    lastPriceAt: null,
+  }
+
+  it('shows — for an unpriced row instead of dressing cost up as a market price', async () => {
+    await renderPage({ ...STATE, positions: [...STATE.positions, UNPRICED] })
+
+    /* SHOP is priced at $120 against a $100 cost basis — P&L lands on the
+       row and repeats in the totals footer. */
+    expect(await screen.findByText('SHOP')).toBeInTheDocument()
+    expect(screen.getAllByText(/\+\$200\.00/)).toHaveLength(2)
+    expect(screen.getAllByText(/\(\+20\.0%\)/)).toHaveLength(2)
+
+    /* NQ has no snapshot and no synced last price — three muted dashes and
+       the footnote, never its $50 cost in the price column. */
+    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(screen.getByText(/no quote on file/i)).toBeInTheDocument()
+  })
+
+  it('renders the totals row from priced rows only', async () => {
+    await renderPage({ ...STATE, positions: [...STATE.positions, UNPRICED] })
+    await screen.findByText('SHOP')
+    /* Total cost covers both rows ($1,100); value counts only the priced
+       one ($1,200 — once on the row, once in the footer). */
+    expect(screen.getByText('$1,100.00')).toBeInTheDocument()
+    expect(screen.getAllByText('$1,200.00')).toHaveLength(2)
+    expect(screen.getByRole('columnheader', { name: /P&L/i })).toBeInTheDocument()
+  })
+
+  it('sorts by the column header when clicked', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    const valueTh = screen.getByRole('columnheader', { name: /Value/i })
+    expect(valueTh.getAttribute('aria-sort')).toBeNull()
+    await user.click(screen.getByRole('button', { name: /^Value$/i }))
+    expect(valueTh.getAttribute('aria-sort')).toBe('descending')
+    await user.click(screen.getByRole('button', { name: /^Value$/i }))
+    expect(valueTh.getAttribute('aria-sort')).toBe('ascending')
+  })
+
+  it('edits quantity and average cost through the row Edit control', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    vi.mocked(updatePosition).mockResolvedValue(undefined)
+
+    await user.click(screen.getByRole('button', { name: /Edit SHOP/i }))
+    const row = screen.getByText('SHOP').closest('tr')
+    expect(row).not.toBeNull()
+    const cost = within(row as HTMLElement).getByRole('spinbutton', { name: /Average cost/i })
+    await user.clear(cost)
+    await user.type(cost, '95')
+    await user.click(screen.getByRole('button', { name: /^Save$/i }))
+
+    await vi.waitFor(() => {
+      expect(updatePosition).toHaveBeenCalledWith(
+        'p1',
+        expect.objectContaining({ name: 'Shopify', quantity: 10, avgCost: 95 }),
+      )
+    })
+  })
+
+  it('removes a position only after the inline confirm', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    vi.mocked(deletePosition).mockResolvedValue(undefined)
+
+    const remove = screen.getByRole('button', { name: /Remove SHOP/i })
+    await user.click(remove)
+    expect(deletePosition).not.toHaveBeenCalled()
+    expect(screen.getByText('Remove?')).toBeInTheDocument()
+    await user.click(remove)
+    await vi.waitFor(() => {
+      expect(deletePosition).toHaveBeenCalledWith('p1')
     })
   })
 })

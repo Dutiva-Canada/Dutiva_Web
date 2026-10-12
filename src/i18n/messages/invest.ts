@@ -244,6 +244,15 @@ const investCoreMessages = defineMessages({
   invest_field_avg_cost: { en: 'Average cost', fr: 'Coût moyen' },
   invest_field_last_price: { en: 'Last price', fr: 'Dernier cours' },
   invest_field_value: { en: 'Value', fr: 'Valeur' },
+  invest_field_pnl: { en: 'P&L', fr: 'P/L' },
+  invest_positions_total: { en: 'Total', fr: 'Total' },
+  invest_set_price: { en: 'Set price', fr: 'Fixer le cours' },
+  invest_remove_confirm: { en: 'Remove?', fr: 'Retirer ?' },
+  invest_price_asof: { en: 'as of', fr: 'au' },
+  invest_positions_no_quote: {
+    en: '— no quote on file; priced rows only count toward value and P&L. Refresh prices loads one.',
+    fr: '— aucun cours en dossier; seules les positions cotées comptent dans la valeur et le P/L. « Actualiser les cours » en charge un.',
+  },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },
   invest_positions_empty: {
@@ -564,6 +573,7 @@ const investCoreMessages = defineMessages({
 
   /* Shared */
   invest_save: { en: 'Save', fr: 'Enregistrer' },
+  invest_cancel: { en: 'Cancel', fr: 'Annuler' },
   invest_saved: { en: 'Saved', fr: 'Enregistré' },
   invest_delete: { en: 'Delete', fr: 'Supprimer' },
   invest_delete_confirm: {
