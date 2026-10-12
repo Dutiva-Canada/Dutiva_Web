@@ -126,6 +126,9 @@ export function ReasoningBlock({
         className={bodyClass}
         role="log"
         aria-live="polite"
+        /* Busy while pieces stream — AT holds announcements until the trace
+           settles instead of reading out every partial phrase. */
+        aria-busy={live || undefined}
         aria-relevant="additions"
         onScroll={() => {
           const el = bodyRef.current

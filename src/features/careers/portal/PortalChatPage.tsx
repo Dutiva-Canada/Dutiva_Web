@@ -509,7 +509,7 @@ export function PortalChatPage() {
             ref={logRef}
             aria-live="polite"
             aria-busy={turns === null || sending}
-            className="flex max-h-[52vh] min-h-[240px] flex-col gap-[10px] overflow-y-auto px-[2px]"
+            className="flex max-h-[52vh] min-h-[240px] flex-col gap-[10px] overflow-y-auto px-[2px] pb-[52px]"
           >
             {hasMore && (
               <button
