@@ -406,7 +406,7 @@ export function prChatPrompt(
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<sized to the ask — a sentence or two for quick questions; when they want a strategy, a plan, or options weighed, go as deep as the desk data supports — bold labels, short bullets, a small table when comparing>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
       'One exception before you answer: if the question turns on current coverage or events outside the desk rows — who covered something this week, a breaking story, a trend worth riding — you may reply {"reply":"","action":null,"search":"<one web query>"} and the live search results come back to you. Use it at most once per turn; if the results are thin or off-topic, say so rather than inventing coverage.',
-      '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
+      '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). They are asks, not commands — the chip sends a message, it does not act. Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Desk data:',
       `Campaigns (${ctx.campaigns.length}):`,
