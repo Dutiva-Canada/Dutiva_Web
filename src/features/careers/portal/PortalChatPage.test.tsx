@@ -84,6 +84,7 @@ describe('PortalChatPage', () => {
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
+      sources: [],
     })
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
@@ -187,6 +188,7 @@ describe('PortalChatPage', () => {
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
+      sources: [],
     })
     renderPage()
     await screen.findByText(/Hi — I’m Claire/)
@@ -208,7 +210,7 @@ describe('PortalChatPage', () => {
     vi.mocked(loadCandidateChatHistory).mockResolvedValue([])
     vi.mocked(sendCandidateChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID, suggests: [], reasoning: null})
+      .mockResolvedValueOnce({ reply: 'Back on.', assistantId: ASSISTANT_ID, suggests: [], reasoning: null, sources: [] })
     renderPage()
     await screen.findByPlaceholderText(/Ask about your search/)
 

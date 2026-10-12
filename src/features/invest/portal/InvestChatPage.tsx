@@ -38,6 +38,7 @@ import {
   JumpToLatest,
   ReasonChips,
   ReasoningBlock,
+  SourcesBlock,
   ThreadSwitcher,
 } from '@/components/chat/portalChat'
 import {
@@ -47,6 +48,7 @@ import {
   useAutoGrowTextarea,
   usePortalChatDraft,
   useStickToBottom,
+  type ChatSourceRow,
 } from '@/components/chat/portalChatUtils'
 import { tallyGreeting } from './strategyUi'
 import { useInvestHead } from './useInvestHead'
@@ -231,6 +233,7 @@ export function InvestChatPage() {
     assistantId: string | null
     suggests: string[]
     reasoning: string | null
+    sources: ChatSourceRow[]
   }) => {
     setTurns((prev) => [
       ...(prev ?? []),
@@ -241,6 +244,7 @@ export function InvestChatPage() {
         content: result.reply,
         action: result.action,
         reasoning: result.reasoning,
+        sources: result.sources,
         feedback: null,
         createdAt: new Date().toISOString(),
       },
@@ -630,6 +634,16 @@ export function InvestChatPage() {
                         </Suspense>
                       ) : (
                         t.content
+                      )}
+                      {t.role === 'assistant' && t.sources && t.sources.length > 0 && (
+                        <SourcesBlock
+                          sources={t.sources}
+                          label={x(IM.invest_chat_sources)}
+                          className="sbchat-sees sbchat-src"
+                          listClass="sbchat-src-list"
+                          itemClass="sbchat-src-item"
+                          linkClass="sbchat-src-link"
+                        />
                       )}
                       {t.failed && (
                         <span className="sbchat-bubble-meta">

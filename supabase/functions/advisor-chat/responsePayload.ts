@@ -55,7 +55,14 @@ export interface AdvisorResponsePayload {
   professionalReview: { type: string; label: Bi; reason: Bi } | null
   supportNotice: boolean
   legalBasis: { items: { label: Bi; valid: boolean }[]; withheldReason?: Bi }
-  retrieval: { items: Bi[]; note?: Bi; withheldReason?: Bi }
+  retrieval: {
+    items: Bi[]
+    /** Clickable primary sources — the corpus rows' official URLs. Additive;
+        absent on older payloads and in every withheld branch. */
+    links?: { label: Bi; url: string }[]
+    note?: Bi
+    withheldReason?: Bi
+  }
   /** Org memory facts injected this turn (null/omit when none). */
   memory?: {
     items: {
@@ -541,7 +548,15 @@ export function buildAdvisorResponse(input: BuildInput): AdvisorResponsePayload 
                 ),
         },
     retrieval: hasChunks
-      ? { items: retrievalItems }
+      ? {
+          items: retrievalItems,
+          links: chunks
+            .filter((c) => typeof c.source_url === 'string' && c.source_url.length > 0)
+            .map((c) => ({
+              label: bi(`${c.title} — ${c.source_name}`, `${c.title} — ${c.source_name}`),
+              url: c.source_url,
+            })),
+        }
       : {
           items: [],
           /* An infrastructure failure must never read as "no match" — that

@@ -695,6 +695,9 @@ const investCoreMessages = defineMessages({
   /* The model's thinking trace — disclosure on an assistant turn holding
      its reasoning_content. [FR self-authored] */
   invest_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
+  /* The grounding sources behind a reply — collapsed disclosure under an
+     assistant turn listing the rows/links it leaned on. [FR self-authored] */
+  invest_chat_sources: { en: 'Sources', fr: 'Sources' },
   /* What she reads — a disclosure under the subtitle listing her data
      sources, so the advice surface is honest about its scope.
      [FR self-authored] */

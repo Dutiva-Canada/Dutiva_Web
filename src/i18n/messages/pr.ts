@@ -709,6 +709,10 @@ export const prMessages = defineMessages({
   /* The model's thinking trace — disclosure on an assistant turn.
      [FR self-authored] */
   pr_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
+  /* The grounding sources behind a reply — collapsed disclosure under an
+     assistant turn listing the coverage rows it leaned on.
+     [FR self-authored] */
+  pr_chat_sources: { en: 'Sources', fr: 'Sources' },
   pr_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   pr_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   pr_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

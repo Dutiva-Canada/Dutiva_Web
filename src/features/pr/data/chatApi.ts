@@ -1,5 +1,9 @@
 import { supabase } from '@/lib/supabaseClient'
 import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
+import {
+  parseChatSources,
+  type ChatSourceRow,
+} from '@/components/chat/portalChatUtils'
 
 /* ---------- chat — Paige, the desk's press specialist ---------- */
 
@@ -38,6 +42,9 @@ export interface PrChatTurn {
   /** The model's thinking trace — set on assistant turns when the route
       reasons; null when it doesn't. */
   reasoning?: string | null
+  /** What the reply grounded on — coverage rows for the outlets it cites;
+      empty when the desk data wasn't the basis. */
+  sources?: ChatSourceRow[] | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -80,6 +87,8 @@ export interface PrChatSendResult {
   suggests: string[]
   /** The thinking trace behind the reply — null when none was emitted. */
   reasoning: string | null
+  /** Grounding sources behind the reply — the coverage rows it cites. */
+  sources: ChatSourceRow[]
 }
 
 function toPrChatResult(raw: {
@@ -88,6 +97,7 @@ function toPrChatResult(raw: {
   assistantId?: string | null
   suggests?: unknown
   reasoning?: unknown
+  sources?: unknown
 }): PrChatSendResult {
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from pr-ai')
@@ -100,6 +110,7 @@ function toPrChatResult(raw: {
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
     reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+    sources: parseChatSources(raw.sources),
   }
 }
 
@@ -259,6 +270,7 @@ export async function loadPrChatHistory(
     content: String(r.content ?? ''),
     action: (r.action as PrChatAction | null) ?? null,
     reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
+    sources: parseChatSources(r.sources),
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

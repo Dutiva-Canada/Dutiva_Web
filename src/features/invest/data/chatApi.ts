@@ -1,5 +1,9 @@
 import { supabase } from '@/lib/supabaseClient'
 import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
+import {
+  parseChatSources,
+  type ChatSourceRow,
+} from '@/components/chat/portalChatUtils'
 
 /* ---------- chat — Tally, the book's watch clerk ---------- */
 
@@ -36,6 +40,9 @@ export interface InvestChatTurn {
   /** The model's thinking trace — set on assistant turns when the route
       reasons (deepseek reasoning_content); null when it doesn't. */
   reasoning?: string | null
+  /** What the reply grounded on — market rows and headline links for the
+      symbols it cites; empty when it leaned on the book alone. */
+  sources?: ChatSourceRow[] | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -80,6 +87,8 @@ export interface InvestChatSendResult {
   /** The thinking trace behind the reply — null when the route doesn't
       reason or the model emitted none. */
   reasoning: string | null
+  /** Grounding sources behind the reply — the rows it cites. */
+  sources: ChatSourceRow[]
 }
 
 export async function sendInvestChat(
@@ -102,6 +111,7 @@ export async function sendInvestChat(
     assistantId?: string | null
     suggests?: unknown
     reasoning?: unknown
+    sources?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from invest-ai')
@@ -114,6 +124,7 @@ export async function sendInvestChat(
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
     reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+    sources: parseChatSources(raw.sources),
   }
 }
 
@@ -138,6 +149,7 @@ export async function regenerateInvestChat(
     assistantId?: string | null
     suggests?: unknown
     reasoning?: unknown
+    sources?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from invest-ai')
@@ -150,6 +162,7 @@ export async function regenerateInvestChat(
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
     reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+    sources: parseChatSources(raw.sources),
   }
 }
 
@@ -273,6 +286,7 @@ export async function loadInvestChatHistory(
     content: String(r.content ?? ''),
     action: (r.action as InvestChatAction | null) ?? null,
     reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
+    sources: parseChatSources(r.sources),
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

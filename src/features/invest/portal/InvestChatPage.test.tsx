@@ -135,6 +135,7 @@ describe('InvestChatPage', () => {
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
+      sources: [],
     })
     renderPage()
     await screen.findByText(/Hi — I’m Tally/)
@@ -156,7 +157,7 @@ describe('InvestChatPage', () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     vi.mocked(sendInvestChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID, suggests: [], reasoning: null})
+      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID, suggests: [], reasoning: null, sources: [] })
     renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
 
@@ -251,6 +252,7 @@ describe('InvestChatPage', () => {
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
+      sources: [],
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)

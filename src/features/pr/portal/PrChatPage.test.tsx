@@ -108,6 +108,7 @@ describe('PrChatPage', () => {
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
+      sources: [],
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Ask Paige/)

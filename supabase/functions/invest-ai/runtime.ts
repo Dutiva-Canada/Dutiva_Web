@@ -8,11 +8,13 @@ import {
 } from '../_shared/modelUpstream.ts'
 import {
   buildRepairNote,
+  chatSources,
   extractMentionedSymbols,
   formatMarketEntry,
   investChatPrompt,
   parseInvestChatReply,
   verifyReplyClaims,
+  type ChatSource,
   type InvestChatContext,
   type InvestChatReply,
   type MarketContextEntry,
@@ -135,11 +137,11 @@ export async function loadBookContext(
   for (const w of watchlist ?? []) universe.add(String(w.symbol).toUpperCase())
   for (const s of signals ?? []) universe.add(String(s.symbol).toUpperCase())
 
-  let newsRows: { symbol: string; title: string; source: string; published_at: string | null }[] = []
+  let newsRows: { symbol: string; title: string; source: string; published_at: string | null; url: string | null }[] = []
   if (universe.size > 0) {
     const { data } = await adminClient
       .from('invest_market_news')
-      .select('symbol, title, source, published_at')
+      .select('symbol, title, source, published_at, url')
       .in('symbol', [...universe, ''])
       .order('published_at', { ascending: false })
       .limit(50)
@@ -152,6 +154,7 @@ export async function loadBookContext(
       title: String(row.title).slice(0, 200),
       source: String(row.source).slice(0, 60),
       publishedAt: row.published_at,
+      url: row.url ?? null,
     }
     const sym = String(row.symbol ?? '').toUpperCase()
     if (sym === '') {
@@ -242,6 +245,7 @@ async function persistChatTurns(
   executed: ExecutedAction | null,
   threadId: string | null,
   reasoning: string,
+  sources: ChatSource[],
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await adminClient
@@ -264,6 +268,7 @@ async function persistChatTurns(
       action: executed,
       thread_id: threadId,
       reasoning: reasoning || null,
+      sources: sources.length > 0 ? sources : null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -416,6 +421,7 @@ export async function runChat(
     action: ExecutedAction | null
     suggests: string[]
     reasoning: string
+    sources: ChatSource[]
     userId: string | null
     assistantId: string | null
   }
@@ -479,6 +485,9 @@ export async function runChat(
           advice,
         })
       : null
+    /* Sources ride the verified reply — computed after repair so a replaced
+       answer can't cite rows it no longer uses. */
+    const sources = chatSources(chatCtx, parsed.reply)
     const ids = await persistChatTurns(
       adminClient,
       userId,
@@ -487,12 +496,14 @@ export async function runChat(
       executed,
       threadId,
       reasoning,
+      sources,
     )
     return {
       reply: parsed.reply,
       action: executed,
       suggests: parsed.suggests,
       reasoning,
+      sources,
       ...ids,
     }
   }

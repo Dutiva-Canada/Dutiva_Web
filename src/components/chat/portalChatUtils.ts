@@ -10,6 +10,36 @@ import { useEffect, useRef, useState, type DependencyList, type RefObject } from
 
 type Lang = 'en' | 'fr'
 
+/* The `sources` payload shape every portal's done event and chat_messages
+   column shares — parsed defensively at the wire edge since it's unknown
+   JSON either way. The component type lives in portalChat.tsx and is
+   structurally identical. */
+export interface ChatSourceRow {
+  label: string
+  url?: string
+}
+
+/** Normalize an unknown `sources` payload into clean rows — drops entries
+    without a usable label, malformed urls fall back to a plain label. */
+export function parseChatSources(raw: unknown): ChatSourceRow[] {
+  if (!Array.isArray(raw)) return []
+  const out: ChatSourceRow[] = []
+  const seen = new Set<string>()
+  for (const item of raw) {
+    if (item === null || typeof item !== 'object') continue
+    const label = (item as { label?: unknown }).label
+    if (typeof label !== 'string' || label.trim() === '') continue
+    const url = (item as { url?: unknown }).url
+    const clean: ChatSourceRow = { label: label.trim().slice(0, 300) }
+    if (typeof url === 'string' && /^(https?:\/\/|\/)/.test(url)) clean.url = url
+    if (seen.has(clean.label + (clean.url ?? ''))) continue
+    seen.add(clean.label + (clean.url ?? ''))
+    out.push(clean)
+    if (out.length >= 10) break
+  }
+  return out
+}
+
 const dateFmt = (lang: Lang, opts: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', opts)
 

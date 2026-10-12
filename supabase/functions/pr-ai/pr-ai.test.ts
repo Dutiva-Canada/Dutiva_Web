@@ -17,6 +17,7 @@ import {
   parsePrChatReply,
   PR_CHAT_ACTION_TYPES,
   prChatPrompt,
+  prChatSources,
   prReactPrompt,
   resolveNameRef,
   type PrChatContext,
@@ -531,5 +532,33 @@ describe('internal advice tier (@dutiva.ca)', () => {
     expect(p).toContain('internal staff account')
     expect(p).toContain('next move')
     expect(p).not.toContain('no advice')
+  })
+})
+
+describe('prChatSources', () => {
+  const ctx: PrChatContext = {
+    ...EMPTY_CTX,
+    recentMentions: [
+      { title: 'Dutiva lands on a national HR list', source: 'HR Reporter', url: 'https://hrr.ca/dutiva-list' },
+      { title: 'Quiet week for compliance tools', source: '', url: null },
+    ],
+  }
+  it('cites a mention only when the reply names its headline', () => {
+    const out = prChatSources(ctx, 'The piece "Dutiva lands on a national HR list" is the one to amplify.')
+    expect(out).toEqual([
+      { label: '"Dutiva lands on a national HR list" — HR Reporter', url: 'https://hrr.ca/dutiva-list' },
+    ])
+    /* The unquoted headline stays out; no source name → label is title only. */
+    const silent = prChatSources(ctx, 'Quiet week for compliance tools')
+    expect(silent).toEqual([{ label: '"Quiet week for compliance tools"' }])
+  })
+  it('short titles and unquoted mentions never fabricate a citation', () => {
+    expect(prChatSources(ctx, 'Nothing new this week.')).toEqual([])
+    const short: PrChatContext = {
+      ...EMPTY_CTX,
+      recentMentions: [{ title: 'Brief', source: 'x', url: 'https://x.ca' }],
+    }
+    /* ≤8 chars is too short to quote-match safely — skipped by design. */
+    expect(prChatSources(short, 'Brief')).toEqual([])
   })
 })
