@@ -189,7 +189,7 @@ export interface MarketContextEntry {
 
 export interface InvestChatContext {
   accounts: { name: string; kind: string; cashBalance: number; baseCurrency: string }[]
-  positions: { symbol: string; name: string; quantity: number; lastPrice: number | null; currency: string }[]
+  positions: { symbol: string; name: string; quantity: number; lastPrice: number | null; lastPriceAt: string | null; currency: string }[]
   watchlist: { symbol: string; assetClass: string }[]
   strategies: { name: string; enabled: boolean; cadence: string }[]
   newSignals: { id: string; title: string; symbol: string; kind: string }[]
@@ -495,7 +495,9 @@ export function investChatPrompt(
       lines(
         ctx.positions.map((p) =>
           `${p.symbol} "${p.name}" — ${p.quantity} units` +
-          (p.lastPrice !== null ? `, last ${p.lastPrice} ${p.currency}` : ''),
+          (p.lastPrice !== null
+            ? `, last ${p.lastPrice} ${p.currency}${p.lastPriceAt ? ` (${p.lastPriceAt.slice(0, 10)})` : ''}`
+            : ''),
         ),
       ),
       `Watchlist (${ctx.watchlist.length}):`,

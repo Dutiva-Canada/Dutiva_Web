@@ -130,6 +130,29 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+/* Sortable column headers — a button wearing the header's own type. */
+.sb-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.sb-th-sort:hover {
+  color: var(--sb-accent-ink);
+}
+.sb-table tfoot td {
+  padding: 12px 12px 0 0;
+  border-top: 2px solid var(--sb-line);
+  font-size: 14.5px;
+  color: var(--sb-body);
+}
 /* Review-queue rows (agent suggestions): on narrow screens the button
    cluster drops under the text instead of squeezing it into a column. */
 @media (max-width: 640px) {

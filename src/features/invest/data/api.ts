@@ -215,6 +215,31 @@ export async function createPosition(input: {
   if (error) throw error
 }
 
+export async function updatePosition(
+  id: string,
+  input: { name: string; quantity: number; avgCost: number; currency?: string },
+): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_positions')
+    .update({
+      name: input.name,
+      quantity: input.quantity,
+      avg_cost: input.avgCost,
+      ...(input.currency ? { currency: input.currency } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+export async function deletePosition(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client.from('invest_positions').delete().eq('id', id).eq('user_id', userId)
+  if (error) throw error
+}
+
 export async function upsertSnapshot(input: {
   assetClass: AssetClass
   symbol: string

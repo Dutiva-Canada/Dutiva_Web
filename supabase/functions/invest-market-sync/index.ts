@@ -378,7 +378,18 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
     if (error) {
       console.error('snapshot upsert failed', p.symbol, error)
       failed.push(`${p.symbol} (upsert: ${error.message ?? 'unknown'})`)
+      continue
     }
+    /* Mirror the fresh quote onto any matching positions so the book — and
+       Tally's context — carry a real priced-at time instead of silently
+       leaning on cost basis. */
+    const { error: posErr } = await adminClient
+      .from('invest_positions')
+      .update({ last_price: p.price, last_price_at: p.as_of })
+      .eq('user_id', userId)
+      .eq('asset_class', p.asset_class)
+      .eq('symbol', p.symbol)
+    if (posErr) console.error('position price write-back failed', p.symbol, posErr)
   }
 
   return { symbols: targets.length, synced: patches.length, failed, targets }

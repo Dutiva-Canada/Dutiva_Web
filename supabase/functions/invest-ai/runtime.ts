@@ -108,7 +108,7 @@ export async function loadBookContext(
       .select('id, name, kind, base_currency, cash_balance, status')
       .eq('user_id', userId).eq('status', 'active').limit(CHAT_LIST_CAP),
     adminClient.from('invest_positions')
-      .select('symbol, name, quantity, last_price, currency')
+      .select('symbol, name, quantity, last_price, last_price_at, currency')
       .eq('user_id', userId).limit(CHAT_LIST_CAP),
     adminClient.from('invest_watchlist')
       .select('id, symbol, asset_class, name')
@@ -214,6 +214,7 @@ export async function loadBookContext(
       name: String(p.name ?? ''),
       quantity: Number(p.quantity ?? 0),
       lastPrice: typeof p.last_price === 'number' ? p.last_price : null,
+      lastPriceAt: typeof p.last_price_at === 'string' ? p.last_price_at : null,
       currency: String(p.currency ?? ''),
     })),
     watchlist: (watchlist ?? []).map((w) => ({

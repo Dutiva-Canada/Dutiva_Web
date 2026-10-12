@@ -1,16 +1,23 @@
 import './strategies.css'
-import { useMemo, useState, type FormEvent } from 'react'
-import { Loader2, Plus, RefreshCw, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { ArrowDown, ArrowUp, Loader2, Plus, RefreshCw, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import { ASSET_CLASSES, type AccountKind, type AssetClass } from '@/features/invest/data/types'
+import {
+  ASSET_CLASSES,
+  type AccountKind,
+  type AssetClass,
+  type InvestPosition,
+} from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import {
   addWatchSymbol,
   createAccount,
   createPosition,
+  deletePosition,
   removeWatchSymbol,
   syncPrices,
+  updatePosition,
   upsertSnapshot,
 } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
@@ -42,6 +49,12 @@ const kindHelp: Record<AccountKind, keyof typeof IM> = {
   external: 'invest_kind_help_external',
 }
 
+type PosSortKey = 'symbol' | 'price' | 'value' | 'pnl'
+
+/* A quote older than this reads stale rather than current — the sync runs
+   daily, so past ~3 days means the symbol fell out of the feed. */
+const STALE_MS = 3 * 86_400_000
+
 /** Portfolios tab — accounts, positions, manual price updates. */
 export function InvestPortfolioPage() {
   const { x, lang } = useI18n()
@@ -55,10 +68,21 @@ export function InvestPortfolioPage() {
       }),
     [lang],
   )
+  const fmtQty = useMemo(
+    () =>
+      new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 4 }),
+    [lang],
+  )
+  const fmtDay = useMemo(
+    () =>
+      new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }),
+    [lang],
+  )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
+  const [sort, setSort] = useState<{ key: PosSortKey; dir: 1 | -1 }>({ key: 'symbol', dir: 1 })
 
   const syncNow = async () => {
     setBusy(true)
@@ -78,8 +102,66 @@ export function InvestPortfolioPage() {
     }
   }
 
-  const snapshotPrice = (assetClass: AssetClass, symbol: string) =>
-    state.snapshots.find((s) => s.assetClass === assetClass && s.symbol === symbol)?.price
+  /* Real quotes only — a position with no snapshot and no synced last_price
+     renders '—', never its cost basis dressed up as a market price. */
+  const rows = useMemo(
+    () =>
+      state.positions.map((p) => {
+        const snap = state.snapshots.find(
+          (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
+        )
+        const px = snap?.price ?? p.lastPrice ?? null
+        const pxAt = snap?.asOf ?? p.lastPriceAt
+        return {
+          p,
+          px,
+          pxAt,
+          stale: pxAt !== null && Date.now() - Date.parse(pxAt) > STALE_MS,
+          value: px === null ? null : p.quantity * px,
+          pnl: px === null ? null : (px - p.avgCost) * p.quantity,
+          pnlPct: px === null || p.avgCost === 0 ? null : (px / p.avgCost - 1) * 100,
+        }
+      }),
+    [state.positions, state.snapshots],
+  )
+
+  const sorted = useMemo(() => {
+    const val = (r: (typeof rows)[number]): string | number | null =>
+      sort.key === 'symbol' ? r.p.symbol : sort.key === 'price' ? r.px : sort.key === 'value' ? r.value : r.pnl
+    return [...rows].sort((a, b) => {
+      const av = val(a)
+      const bv = val(b)
+      if (av === null) return bv === null ? 0 : 1
+      if (bv === null) return -1
+      const cmp = typeof av === 'string' ? av.localeCompare(String(bv)) : av - (bv as number)
+      return cmp * sort.dir
+    })
+  }, [rows, sort])
+
+  const totals = useMemo(() => {
+    let cost = 0
+    let pricedCost = 0
+    let value = 0
+    let unpriced = 0
+    for (const r of rows) {
+      const basis = r.p.quantity * r.p.avgCost
+      cost += basis
+      if (r.value === null || r.pnl === null) {
+        unpriced++
+      } else {
+        pricedCost += basis
+        value += r.value
+      }
+    }
+    const pnl = value - pricedCost
+    return { cost, value, pnl, unpriced, pnlPct: pricedCost === 0 ? null : (pnl / pricedCost) * 100 }
+  }, [rows])
+
+  const toggleSort = (key: PosSortKey) =>
+    setSort((s) => ({
+      key,
+      dir: s.key === key ? ((-s.dir) as 1 | -1) : key === 'symbol' ? 1 : -1,
+    }))
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true)
@@ -204,32 +286,77 @@ export function InvestPortfolioPage() {
             <table className="sb-table">
               <thead>
                 <tr>
-                  <th>{x(IM.invest_field_symbol)}</th>
+                  <SortTh label={x(IM.invest_field_symbol)} k="symbol" num={false} sort={sort} onToggle={toggleSort} />
                   <th>{x(IM.invest_field_asset_class)}</th>
                   <th className="num">{x(IM.invest_field_quantity)}</th>
                   <th className="num">{x(IM.invest_field_avg_cost)}</th>
-                  <th className="num">{x(IM.invest_field_last_price)}</th>
-                  <th className="num">{x(IM.invest_field_value)}</th>
+                  <SortTh label={x(IM.invest_field_last_price)} k="price" sort={sort} onToggle={toggleSort} />
+                  <SortTh label={x(IM.invest_field_value)} k="value" sort={sort} onToggle={toggleSort} />
+                  <SortTh label={x(IM.invest_field_pnl)} k="pnl" sort={sort} onToggle={toggleSort} />
                   <th />
                 </tr>
               </thead>
               <tbody>
-                {state.positions.map((p) => {
-                  const px = snapshotPrice(p.assetClass, p.symbol) ?? p.lastPrice ?? p.avgCost
-                  return (
-                    <tr key={p.id}>
-                      <td>
-                        <span className="strong">{p.symbol}</span>
-                        <span className="dim" style={{ marginLeft: 6 }}>{p.name}</span>
-                      </td>
-                      <td>{x(IM[assetLabel[p.assetClass]])}</td>
-                      <td className="num">{p.quantity}</td>
-                      <td className="num">{fmt.format(p.avgCost)}</td>
-                      <td className="num">{fmt.format(px)}</td>
-                      <td className="num strong">{fmt.format(p.quantity * px)}</td>
-                      <td>
+                {sorted.map(({ p, px, pxAt, stale, value, pnl, pnlPct }) => (
+                  <tr key={p.id}>
+                    <td>
+                      <span className="strong">{p.symbol}</span>
+                      <span className="dim" style={{ marginLeft: 6 }}>{p.name}</span>
+                      {p.currency && p.currency !== 'CAD' && (
+                        <span className="dim" style={{ marginLeft: 6 }}>{p.currency}</span>
+                      )}
+                    </td>
+                    <td>{x(IM[assetLabel[p.assetClass]])}</td>
+                    <td className="num">{fmtQty.format(p.quantity)}</td>
+                    <td className="num">{fmt.format(p.avgCost)}</td>
+                    <td className="num">
+                      {px === null ? (
+                        <span className="dim">—</span>
+                      ) : (
+                        <>
+                          {fmt.format(px)}
+                          {stale && pxAt !== null && (
+                            <span className="dim" style={{ marginLeft: 4, fontSize: 11 }}>
+                              · {x(IM.invest_price_asof)} {fmtDay.format(Date.parse(pxAt))}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </td>
+                    <td className="num strong">
+                      {value === null ? <span className="dim">—</span> : fmt.format(value)}
+                    </td>
+                    <td
+                      className="num"
+                      style={
+                        pnl === null
+                          ? undefined
+                          : { color: pnl >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }
+                      }
+                    >
+                      {pnl === null ? (
+                        <span className="dim">—</span>
+                      ) : (
+                        <>
+                          {pnl >= 0 ? '+' : ''}
+                          {fmt.format(pnl)}{' '}
+                          <span className="dim">
+                            ({pnlPct !== null && pnlPct >= 0 ? '+' : ''}
+                            {pnlPct?.toFixed(1)}%)
+                          </span>
+                        </>
+                      )}
+                    </td>
+                    <td>
+                      <span className="sb-row-actions">
+                        <PositionEditor
+                          busy={busy}
+                          position={p}
+                          onSave={(input) => run(() => updatePosition(p.id, input))}
+                        />
                         <PriceEditor
                           busy={busy}
+                          buttonLabel={`${x(IM.invest_set_price)} ${p.symbol}`}
                           onSave={(price) =>
                             run(() =>
                               upsertSnapshot({
@@ -240,12 +367,44 @@ export function InvestPortfolioPage() {
                             )
                           }
                         />
-                      </td>
-                    </tr>
-                  )
-                })}
+                        <RemovePosition
+                          busy={busy}
+                          ariaLabel={`${x(IM.invest_rule_remove)} ${p.symbol}`}
+                          onRemove={() => run(() => deletePosition(p.id))}
+                        />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td className="strong">{x(IM.invest_positions_total)}</td>
+                  <td />
+                  <td />
+                  <td className="num">{fmt.format(totals.cost)}</td>
+                  <td />
+                  <td className="num strong">{fmt.format(totals.value)}</td>
+                  <td
+                    className="num"
+                    style={{ color: totals.pnl >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
+                  >
+                    {totals.pnl >= 0 ? '+' : ''}
+                    {fmt.format(totals.pnl)}{' '}
+                    <span className="dim">
+                      ({totals.pnlPct !== null && totals.pnlPct >= 0 ? '+' : ''}
+                      {totals.pnlPct?.toFixed(1)}%)
+                    </span>
+                  </td>
+                  <td />
+                </tr>
+              </tfoot>
             </table>
+            {totals.unpriced > 0 && (
+              <p className="sb-helper" style={{ margin: '8px 0 0' }}>
+                {x(IM.invest_positions_no_quote)}
+              </p>
+            )}
           </div>
         )}
       </section>
@@ -607,11 +766,169 @@ function PositionForm({
   )
 }
 
-function PriceEditor({
+function SortTh({
+  label,
+  k,
+  num = true,
+  sort,
+  onToggle,
+}: {
+  label: string
+  k: PosSortKey
+  num?: boolean
+  sort: { key: PosSortKey; dir: 1 | -1 }
+  onToggle: (k: PosSortKey) => void
+}) {
+  const active = sort.key === k
+  return (
+    <th
+      className={num ? 'num' : undefined}
+      aria-sort={active ? (sort.dir === 1 ? 'ascending' : 'descending') : undefined}
+    >
+      <button type="button" className="sb-th-sort" onClick={() => onToggle(k)}>
+        {label}
+        {active &&
+          (sort.dir === 1 ? (
+            <ArrowUp size={10} aria-hidden="true" />
+          ) : (
+            <ArrowDown size={10} aria-hidden="true" />
+          ))}
+      </button>
+    </th>
+  )
+}
+
+function PositionEditor({
   busy,
+  position,
   onSave,
 }: {
   busy: boolean
+  position: InvestPosition
+  onSave: (input: { name: string; quantity: number; avgCost: number }) => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [open, setOpen] = useState(false)
+  const [quantity, setQuantity] = useState('')
+  const [avgCost, setAvgCost] = useState('')
+  const [name, setName] = useState('')
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          setQuantity(String(position.quantity))
+          setAvgCost(String(position.avgCost))
+          setName(position.name)
+          setOpen(true)
+        }}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={`${x(IM.invest_edit)} ${position.symbol}`}
+      >
+        {x(IM.invest_edit)}
+      </button>
+    )
+  }
+  return (
+    <span className="sb-row-actions">
+      <input
+        type="number"
+        min="0"
+        step="any"
+        value={quantity}
+        onChange={(e) => setQuantity(e.target.value)}
+        className="sb-input sb-input-sm"
+        style={{ width: 82 }}
+        aria-label={x(IM.invest_field_quantity)}
+      />
+      <input
+        type="number"
+        min="0"
+        step="any"
+        value={avgCost}
+        onChange={(e) => setAvgCost(e.target.value)}
+        className="sb-input sb-input-sm"
+        style={{ width: 96 }}
+        aria-label={x(IM.invest_field_avg_cost)}
+      />
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="sb-input sb-input-sm"
+        style={{ width: 130 }}
+        aria-label={x(IM.invest_field_name)}
+      />
+      <button
+        type="button"
+        disabled={busy || !quantity || !avgCost}
+        onClick={() =>
+          void onSave({
+            name: name.trim() || position.name,
+            quantity: Number(quantity),
+            avgCost: Number(avgCost),
+          }).then(() => setOpen(false))
+        }
+        className="sb-btn sb-btn-primary sb-btn-sm"
+      >
+        {x(IM.invest_save)}
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen(false)}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={x(IM.invest_cancel)}
+      >
+        <X size={12} aria-hidden="true" />
+      </button>
+    </span>
+  )
+}
+
+function RemovePosition({
+  busy,
+  ariaLabel,
+  onRemove,
+}: {
+  busy: boolean
+  ariaLabel: string
+  onRemove: () => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [confirming, setConfirming] = useState(false)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current)
+  }, [])
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      aria-label={ariaLabel}
+      onClick={() => {
+        if (!confirming) {
+          setConfirming(true)
+          timer.current = setTimeout(() => setConfirming(false), 3000)
+          return
+        }
+        if (timer.current) clearTimeout(timer.current)
+        void onRemove()
+      }}
+      className="sb-btn sb-btn-secondary sb-btn-sm"
+    >
+      {confirming ? x(IM.invest_remove_confirm) : x(IM.invest_rule_remove)}
+    </button>
+  )
+}
+
+function PriceEditor({
+  busy,
+  buttonLabel,
+  onSave,
+}: {
+  busy: boolean
+  buttonLabel: string
   onSave: (price: number) => Promise<void>
 }) {
   const { x } = useI18n()
@@ -624,8 +941,9 @@ function PriceEditor({
         type="button"
         onClick={() => setOpen(true)}
         className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={buttonLabel}
       >
-        {x(IM.invest_edit)}
+        {x(IM.invest_set_price)}
       </button>
     )
   }
