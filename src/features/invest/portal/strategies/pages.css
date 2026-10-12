@@ -130,6 +130,9 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+.sb-row-actions-nowrap {
+  flex-wrap: nowrap;
+}
 /* Sortable column headers — a button wearing the header's own type. */
 .sb-th-sort {
   display: inline-flex;
@@ -152,6 +155,18 @@
   border-top: 2px solid var(--sb-line);
   font-size: 14.5px;
   color: var(--sb-body);
+}
+/* Positions grid — wider than the generic table; the holding name gets a
+   floor so it doesn't shred into two-line wraps beside the actions. */
+.sb-table-positions {
+  min-width: 780px;
+}
+.sb-table-positions td:first-child {
+  min-width: 170px;
+}
+.sb-table-positions td:last-child {
+  width: 1%;
+  white-space: nowrap;
 }
 /* Review-queue rows (agent suggestions): on narrow screens the button
    cluster drops under the text instead of squeezing it into a column. */
