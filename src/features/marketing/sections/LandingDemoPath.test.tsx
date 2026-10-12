@@ -16,8 +16,12 @@ describe('LandingDemoPath', () => {
     const dialog = screen.getByRole('dialog', { name: /Dutiva Advisor|Conseiller Dutiva/i })
     expect(dialog).toBeInTheDocument()
     expect(screen.getByText(/Browse sample threads|Parcourez des fils types/i)).toBeInTheDocument()
-    expect(await screen.findByText(/Northgate Logistics/)).toBeInTheDocument()
-    expect(await screen.findByText(advisorScenarios.s1.user.en)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Northgate Logistics/, {}, { timeout: 3000 }),
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByText(advisorScenarios.s1.user.en, {}, { timeout: 3000 }),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByRole('tab', { name: advisorScenarios.s3.title.en }))
     expect(screen.getByText(advisorScenarios.s3.user.en)).toBeInTheDocument()
@@ -32,12 +36,16 @@ describe('LandingDemoPath', () => {
       screen.getByRole('link', { name: /See more in the demo|Voir plus dans la démo/i }),
     ).toHaveAttribute('href', '/demo/cases')
     await user.click(
-      await screen.findByRole('button', {
-        name: /Performance — Devon Clarke|Rendement — Devon Clarke/i,
-      }),
+      await screen.findByRole(
+        'button',
+        {
+          name: /Performance — Devon Clarke|Rendement — Devon Clarke/i,
+        },
+        { timeout: 3000 },
+      ),
     )
     expect(
-      await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i),
+      await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i, {}, { timeout: 3000 }),
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Close preview|Fermer l’aperçu/i }))

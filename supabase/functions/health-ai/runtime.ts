@@ -277,7 +277,9 @@ export async function runChat(
           { role: 'user', content: message },
         ],
         temperature: 0.4,
-        max_tokens: 500,
+        /* Reasoning params from the route share this budget — headroom so a
+           thinking pass can't starve the reply. */
+        max_tokens: 1500,
         stream,
         ...routeBodyExtras(found.config),
       },

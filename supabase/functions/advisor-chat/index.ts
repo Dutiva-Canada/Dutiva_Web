@@ -45,6 +45,7 @@ import {
   saveConversation,
 } from './completion.ts'
 import { corsHeaders, json } from './respond.ts'
+import { findUngroundedCitations } from './citationCheck.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -243,6 +244,10 @@ const handler = async (req: Request) => {
     completionResult.latencyMs,
     retrieval,
     decision.commercialSource,
+    /* Citation grounding is measured, never enforced — the flag lands in
+       ai_usage metadata so a future repair pass can be tuned on real
+       false-positive data before it touches a reply. */
+    findUngroundedCitations(reply, guidanceChunks),
   )
   await reportOverageIfNeeded(
     authenticated.adminClient,

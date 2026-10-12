@@ -59,11 +59,11 @@ const FILENAME_RE = /^(\d{4})_([a-z0-9_]+)\.sql$/
 const ACCEPTED_DUPLICATES = acceptedDuplicateSequenceNumbers()
 
 /**
- * 0097–0106 were applied through the Management API with the filename (including
+ * Migrations applied through the Management API with the filename (including
  * the sequence) as `schema_migrations.name`. The repo slug is the part after
  * `NNNN_`. Schema matches the files; only the history name differs.
  */
-function advisorPhaseMcpNameAliases() {
+function managementApiNameAliases() {
   const files = [
     ['0097', 'advisor_phase2_anon_revokes'],
     ['0098', 'advisor_rls_initplan'],
@@ -74,6 +74,7 @@ function advisorPhaseMcpNameAliases() {
     ['0104', 'advisor_phase4_permissive_initplan'],
     ['0105', 'advisor_phase5_signing_jwt_initplan'],
     ['0106', 'advisor_phase6_service_role_policies_fk_indexes'],
+    ['0213', 'invest_market_analysis'],
   ]
   const reason =
     'applied via MCP as NNNN_slug; live schema matches supabase/migrations/NNNN_slug.sql'
@@ -181,7 +182,7 @@ const ACCEPTED_UNAPPLIED = new Map([
     'add_comms_sources',
     'applied via Management API with server-generated version 20260908051056; live schema matches the repo file',
   ],
-  ...advisorPhaseMcpNameAliases().unapplied,
+  ...managementApiNameAliases().unapplied,
 ])
 
 /**
@@ -284,7 +285,7 @@ const ACCEPTED_UNTRACKED = new Map([
     '0149_add_comms_sources',
     'applied via Management API with server-generated version 20260908051056',
   ],
-  ...advisorPhaseMcpNameAliases().untracked,
+  ...managementApiNameAliases().untracked,
 ])
 
 const problems = []

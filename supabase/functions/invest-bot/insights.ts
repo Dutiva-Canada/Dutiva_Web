@@ -175,11 +175,16 @@ export async function maybeEmitInsights(
           { role: 'system', content: insightSystemPrompt(opts?.advice === true) },
           { role: 'user', content: buildInsightPrompt(ctx) },
         ],
-        max_tokens: 600,
+        /* Reasoning effort consumes the same token budget — a high-effort
+           pass alone measured ~2,000 completion tokens, so the ceiling needs
+           real headroom or the insights starve to an empty body. */
+        max_tokens: 6000,
         temperature: 0.3,
         ...routeBodyExtras(route.config),
       },
-      30_000,
+      /* High-effort reasoning takes tens of seconds — the sweep is async, so
+         the timeout must outlive the thinking pass or it silently returns []. */
+      120_000,
     )
     if (!upstream.ok) return []
 
