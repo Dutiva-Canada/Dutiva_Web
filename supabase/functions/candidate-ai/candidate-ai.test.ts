@@ -4,6 +4,7 @@ import {
   buildChatContextBlock,
   buildUserMessage,
   candidateChatPrompt,
+  candidateChatSources,
   parseCandidateChatReply,
   parseModelResponse,
   validateAuthHeader,
@@ -296,6 +297,7 @@ const CTX: CandidateChatContext = {
   },
   applications: [
     {
+      postingId: 'p-1',
       title: 'Frontend Developer',
       organization: 'Acme Inc',
       location: 'Toronto',
@@ -311,6 +313,8 @@ const CTX: CandidateChatContext = {
       location: 'Remote',
       match_score: 77,
       status: 'needs_review',
+      url: 'https://globex.example/react-engineer',
+      apply_url: 'https://globex.example/react-engineer/apply',
     },
   ],
   agent: { enabled: true, autonomy: 'review', keywords: ['react'], locations: ['Toronto'] },
@@ -410,5 +414,47 @@ describe('parseCandidateChatReply', () => {
     expect(parseCandidateChatReply('{"reply":""}')).toBeNull()
     expect(parseCandidateChatReply('{"reply":"   "}')).toBeNull()
     expect(parseCandidateChatReply(null)).toBeNull()
+  })
+})
+
+describe('candidateChatSources', () => {
+  it('links a discovered job only when the reply names its title', () => {
+    const out = candidateChatSources(
+      CTX,
+      'The React Engineer posting at Globex is the strongest match — tailor the summary toward it.',
+    )
+    expect(out).toEqual([
+      { label: '"React Engineer" at Globex', url: 'https://globex.example/react-engineer' },
+    ])
+    expect(candidateChatSources(CTX, 'Keep your Fridays for interview prep.')).toEqual([])
+  })
+  it('an application cites the portal apply page via postingId', () => {
+    const out = candidateChatSources(
+      CTX,
+      'Your Frontend Developer application at Acme Inc already went in — follow up in a week.',
+    )
+    expect(out).toEqual([
+      {
+        label: '"Frontend Developer" at Acme Inc — your application',
+        url: '/careers/portal/jobs/p-1/apply',
+      },
+    ])
+  })
+  it('apply_url fills in when the job has no listing url', () => {
+    const ctx: CandidateChatContext = {
+      ...CTX,
+      discoveredJobs: [{
+        title: 'Platform Engineer',
+        company: 'Initech',
+        location: 'Remote',
+        match_score: null,
+        status: 'new',
+        url: '',
+        apply_url: 'https://initech.example/platform/apply',
+      }],
+    }
+    expect(candidateChatSources(ctx, 'Platform Engineer at Initech fits.')).toEqual([
+      { label: '"Platform Engineer" at Initech', url: 'https://initech.example/platform/apply' },
+    ])
   })
 })

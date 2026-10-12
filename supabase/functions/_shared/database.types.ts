@@ -1661,6 +1661,7 @@ export type Database = {
           id: string
           reasoning: string | null
           role: string
+          sources: Json | null
           thread_id: string | null
           user_id: string
         }
@@ -1672,6 +1673,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role: string
+          sources?: Json | null
           thread_id?: string | null
           user_id: string
         }
@@ -1683,6 +1685,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role?: string
+          sources?: Json | null
           thread_id?: string | null
           user_id?: string
         }
@@ -10039,6 +10042,7 @@ export type Database = {
           id: string
           reasoning: string | null
           role: string
+          sources: Json | null
           thread_id: string | null
           user_id: string
         }
@@ -10051,6 +10055,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role: string
+          sources?: Json | null
           thread_id?: string | null
           user_id: string
         }
@@ -10063,6 +10068,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role?: string
+          sources?: Json | null
           thread_id?: string | null
           user_id?: string
         }
@@ -12216,6 +12222,7 @@ export type Database = {
           id: string
           reasoning: string | null
           role: string
+          sources: Json | null
           thread_id: string | null
           user_id: string
         }
@@ -12228,6 +12235,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role: string
+          sources?: Json | null
           thread_id?: string | null
           user_id: string
         }
@@ -12240,6 +12248,7 @@ export type Database = {
           id?: string
           reasoning?: string | null
           role?: string
+          sources?: Json | null
           thread_id?: string | null
           user_id?: string
         }

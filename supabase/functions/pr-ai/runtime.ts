@@ -12,6 +12,7 @@ import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import {
   parsePrChatReply,
   prChatPrompt,
+  prChatSources,
   prReactPrompt,
   resolveNameRef,
   type PrChatAction,
@@ -77,7 +78,7 @@ export async function loadDeskContext(
       .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
     admin.from('pr_keywords').select('keyword, position').eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
-    admin.from('pr_mentions').select('title, source, sentiment').eq('user_id', userId)
+    admin.from('pr_mentions').select('title, source, sentiment, url').eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
     admin.from('pr_geo_prompts').select('prompt, result').eq('user_id', userId)
       .order('created_at', { ascending: false }).limit(CHAT_LIST_CAP),
@@ -109,7 +110,7 @@ export async function loadDeskContext(
     })),
     mentionsBySentiment,
     recentMentions: (mentions ?? []).slice(0, 8).map((m) => ({
-      title: String(m.title), source: String(m.source ?? ''),
+      title: String(m.title), source: String(m.source ?? ''), url: m.url ? String(m.url) : null,
     })),
     geoPrompts: (geoPrompts ?? []).map((g) => ({
       prompt: String(g.prompt), result: String(g.result ?? 'unchecked'),
@@ -182,6 +183,7 @@ async function persistChatTurns(
   executed: ExecutedAction | null,
   threadId: string | null,
   reasoning: string,
+  sources: { label: string; url?: string }[],
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await admin
@@ -204,6 +206,7 @@ async function persistChatTurns(
       action: executed,
       thread_id: threadId,
       reasoning: reasoning || null,
+      sources: sources.length > 0 ? sources : null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -319,8 +322,9 @@ export async function runChat(
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
           : null
+        const sources = prChatSources(desk.ctx, parsed.reply)
         const ids = await persistChatTurns(
-          admin, userId, message, parsed.reply, executed, threadId, reasoning,
+          admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
         )
         sse.send({
           type: 'done',
@@ -328,6 +332,7 @@ export async function runChat(
           action: executed,
           suggests: parsed.suggests,
           reasoning: reasoning || null,
+          sources,
           ...ids,
         })
       } catch (e) {
@@ -350,8 +355,9 @@ export async function runChat(
   const executed = parsed.action
     ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
     : null
+  const sources = prChatSources(desk.ctx, parsed.reply)
   const ids = await persistChatTurns(
-    admin, userId, message, parsed.reply, executed, threadId, reasoning,
+    admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
   )
 
   return json({
@@ -359,6 +365,7 @@ export async function runChat(
     action: executed,
     suggests: parsed.suggests,
     reasoning: reasoning || null,
+    sources,
     ...ids,
   })
 }

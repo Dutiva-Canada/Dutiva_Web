@@ -184,7 +184,7 @@ export interface MarketContextEntry {
   fundamentals: Record<string, number | string | null> | null
   /** Snapshot write time — the figures are delayed, and the prompt says so. */
   asOf: string | null
-  headlines: { title: string; source: string; publishedAt: string | null }[]
+  headlines: { title: string; source: string; publishedAt: string | null; url: string | null }[]
 }
 
 export interface InvestChatContext {
@@ -198,7 +198,7 @@ export interface InvestChatContext {
      for a mentioned ticker) — the numbers analysis answers are built on. */
   market: MarketContextEntry[]
   /* Symbol-less market headlines — the general backdrop row. */
-  generalNews: { title: string; source: string; publishedAt: string | null }[]
+  generalNews: { title: string; source: string; publishedAt: string | null; url: string | null }[]
 }
 
 export type InvestChatAction =
@@ -382,6 +382,55 @@ export function formatMarketEntry(e: MarketContextEntry): string {
     )
   }
   return [head, ...tail].join('\n')
+}
+
+/* ── Sources ─────────────────────────────────────────────────────────────
+   What the reply actually grounded on, derived deterministically after the
+   verified answer exists: a market row counts when the reply names its
+   symbol, and a headline counts when its symbol's row is cited or its title
+   is quoted. The model never emits URLs — headlines carry theirs from
+   invest_market_news, so a link can only point somewhere real. */
+
+export interface ChatSource {
+  label: string
+  url?: string
+}
+
+/** True when the reply names the symbol as a word. ≥3 chars matches
+    case-insensitively; shorter tickers need the capital letter to avoid
+    "TO" matching "to". */
+function replyMentionsSymbol(reply: string, symbol: string): boolean {
+  const flags = symbol.length >= 3 ? 'i' : ''
+  return new RegExp(`\\b${symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags).test(reply)
+}
+
+export function chatSources(ctx: InvestChatContext, reply: string): ChatSource[] {
+  const sources: ChatSource[] = []
+  const seen = new Set<string>()
+  const push = (s: ChatSource) => {
+    if (seen.has(s.label)) return
+    seen.add(s.label)
+    sources.push(s)
+  }
+  for (const e of ctx.market) {
+    if (!replyMentionsSymbol(reply, e.symbol)) continue
+    push({ label: `${e.symbol} — delayed market data on file` })
+    for (const h of e.headlines) {
+      push({
+        label: `"${h.title}" — ${h.source || 'news'}`,
+        ...(h.url ? { url: h.url } : {}),
+      })
+    }
+  }
+  for (const h of ctx.generalNews) {
+    if (h.title.length > 12 && reply.includes(h.title)) {
+      push({
+        label: `"${h.title}" — ${h.source || 'news'}`,
+        ...(h.url ? { url: h.url } : {}),
+      })
+    }
+  }
+  return sources.slice(0, 10)
 }
 
 const optStr = (v: unknown, max = 200): string | undefined => {

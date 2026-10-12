@@ -284,7 +284,7 @@ export interface PrChatContext {
   contacts: { name: string; outlet: string; beat: string }[]
   keywords: { keyword: string; position: number | null }[]
   mentionsBySentiment: Record<string, number>
-  recentMentions: { title: string; source: string }[]
+  recentMentions: { title: string; source: string; url: string | null }[]
   geoPrompts: { prompt: string; result: string }[]
   feeds: number
   connections: { provider: string; status: string }[]
@@ -430,6 +430,26 @@ export function prChatPrompt(
       lines(ctx.connections.map((c) => `${c.provider}: ${c.status}`)),
     ].join('\n'),
   }
+}
+
+/** Sources the reply grounded on — the desk's own coverage rows. A mention
+    counts when the reply names its headline; the model never emits URLs, so
+    a link can only point at a row that exists. */
+export function prChatSources(
+  ctx: PrChatContext,
+  reply: string,
+): { label: string; url?: string }[] {
+  const sources: { label: string; url?: string }[] = []
+  const seen = new Set<string>()
+  for (const m of ctx.recentMentions) {
+    if (m.title.length > 8 && reply.includes(m.title)) {
+      const label = `"${m.title}"${m.source ? ` — ${m.source}` : ''}`
+      if (seen.has(label)) continue
+      seen.add(label)
+      sources.push({ label, ...(m.url ? { url: m.url } : {}) })
+    }
+  }
+  return sources.slice(0, 8)
 }
 
 /** Strict JSON reply from the model. Anything unparseable or with a

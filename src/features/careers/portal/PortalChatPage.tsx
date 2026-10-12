@@ -33,6 +33,7 @@ import {
   JumpToLatest,
   ReasonChips,
   ReasoningBlock,
+  SourcesBlock,
   ThreadSwitcher,
 } from '@/components/chat/portalChat'
 import {
@@ -42,6 +43,7 @@ import {
   useAutoGrowTextarea,
   usePortalChatDraft,
   useStickToBottom,
+  type ChatSourceRow,
 } from '@/components/chat/portalChatUtils'
 
 /* Markdown rendering is a lazy chunk (react-markdown + remark-gfm) — the
@@ -170,6 +172,7 @@ export function PortalChatPage() {
     assistantId: string | null
     suggests: string[]
     reasoning: string | null
+    sources: ChatSourceRow[]
   }) => {
     setTurns((prev) => [
       ...(prev ?? []),
@@ -179,6 +182,7 @@ export function PortalChatPage() {
         role: 'assistant',
         content: result.reply,
         reasoning: result.reasoning,
+        sources: result.sources,
         feedback: null,
         createdAt: new Date().toISOString(),
       },
@@ -563,6 +567,15 @@ export function PortalChatPage() {
                         </Suspense>
                       ) : (
                         t.content
+                      )}
+                      {t.role === 'assistant' && t.sources && t.sources.length > 0 && (
+                        <SourcesBlock
+                          sources={t.sources}
+                          label={x(M.careers_chat_sources)}
+                          className="mt-[8px] text-[11.5px] text-text-faint"
+                          listClass="mt-[4px] rounded-[8px] border border-border bg-bg py-[8px] pl-[26px] pr-[10px] leading-[1.5] text-text-muted"
+                          linkClass="text-accent underline-offset-2 no-underline hover:underline"
+                        />
                       )}
                       {t.failed ? (
                         <span className="mt-[6px] flex items-center justify-end gap-[6px] text-[10.5px] opacity-90">

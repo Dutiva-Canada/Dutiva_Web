@@ -252,6 +252,8 @@ export interface CandidateChatContext {
     resume_text: string
   } | null
   applications: {
+    /** Posting id — used to build the internal apply-page source link. */
+    postingId: string | null
     title: string | null
     organization: string | null
     location: string | null
@@ -265,6 +267,8 @@ export interface CandidateChatContext {
     location: string
     match_score: number | null
     status: string
+    url: string
+    apply_url: string | null
   }[]
   agent: {
     enabled: boolean
@@ -352,6 +356,37 @@ export function candidateChatPrompt(
       buildChatContextBlock(ctx),
     ].join('\n'),
   }
+}
+
+/** Sources the reply grounded on — postings the agent found carry real
+    external links; applications point at the portal's own apply page. A job
+    counts when the reply names its title; the model never emits URLs, so a
+    link can only point at a row that exists. */
+export function candidateChatSources(
+  ctx: CandidateChatContext,
+  reply: string,
+): { label: string; url?: string }[] {
+  const sources: { label: string; url?: string }[] = []
+  const seen = new Set<string>()
+  const push = (label: string, url?: string) => {
+    if (seen.has(label)) return
+    seen.add(label)
+    sources.push(url ? { label, url } : { label })
+  }
+  for (const j of ctx.discoveredJobs) {
+    if (j.title.length > 8 && reply.includes(j.title)) {
+      push(`"${j.title}" at ${j.company}`, j.url || j.apply_url || undefined)
+    }
+  }
+  for (const a of ctx.applications) {
+    if (a.title && a.title.length > 8 && reply.includes(a.title)) {
+      push(
+        `"${a.title}"${a.organization ? ` at ${a.organization}` : ''} — your application`,
+        a.postingId ? `/careers/portal/jobs/${a.postingId}/apply` : undefined,
+      )
+    }
+  }
+  return sources.slice(0, 8)
 }
 
 /** Strict JSON reply. Anything unparseable or reply-less returns null —

@@ -504,6 +504,22 @@ function ReadyState({ response, provincePrompt, onPickProvince, onToggleWeb }: R
                 </span>
               ))}
             </div>
+            {(response.retrieval.links?.length ?? 0) > 0 && (
+              <ul className="m-0 mt-[8px] flex list-none flex-col gap-[5px] p-0">
+                {response.retrieval.links!.map((link) => (
+                  <li key={link.url + keyOfL(link.label)}>
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11.5px] font-medium leading-[1.35] text-accent underline underline-offset-2"
+                    >
+                      {pickL(link.label, lang)}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
             {response.retrieval.note !== undefined && (
               <div className="mt-[8px] text-[11px] leading-normal text-text-faint">
                 {pickL(response.retrieval.note, lang)}

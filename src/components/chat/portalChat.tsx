@@ -105,6 +105,58 @@ export function ReasoningBlock({
   )
 }
 
+/** One grounding source behind an assistant turn — label always renders;
+    url present means the row carried a real link the reply leaned on. */
+export interface ChatSource {
+  label: string
+  url?: string
+}
+
+/**
+ * What the reply grounded on — a collapsed disclosure under the assistant
+ * bubble listing the data behind it (market rows, headlines, coverage,
+ * postings, corpus links). Always starts closed: sources are evidence on
+ * request, not part of the reading flow. Every entry is a link when the row
+ * carried one, plain text otherwise.
+ */
+export function SourcesBlock({
+  sources,
+  label,
+  className,
+  listClass,
+  itemClass,
+  linkClass,
+}: {
+  sources: readonly ChatSource[]
+  label: string
+  className?: string
+  listClass?: string
+  itemClass?: string
+  linkClass?: string
+}) {
+  if (sources.length === 0) return null
+  return (
+    <details className={className}>
+      <summary>
+        {label} ({sources.length})
+      </summary>
+      <ul className={listClass}>
+        {sources.map((s, i) => (
+          <li key={`${s.url ?? ''}-${i}`} className={itemClass}>
+            {s.url ? (
+              <a href={s.url} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                {s.label}
+              </a>
+            ) : (
+              s.label
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
+  )
+}
+
 /* A chat thread the switcher lists — the default conversation (null id)
    isn't in the array; the labels carry it. */
 export interface ChatThreadRef {

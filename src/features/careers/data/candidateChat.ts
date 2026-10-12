@@ -1,6 +1,10 @@
 import { supabase } from '@/lib/supabaseClient'
 import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
 import { CandidateAiDailyLimitError } from './candidateAi'
+import {
+  parseChatSources,
+  type ChatSourceRow,
+} from '@/components/chat/portalChatUtils'
 
 /* ---------- chat — Claire, the search coach ---------- */
 
@@ -16,6 +20,9 @@ export interface CandidateChatTurn {
   /** The model's thinking trace — set on assistant turns when the route
       reasons; null when it doesn't. */
   reasoning?: string | null
+  /** What the reply grounded on — the posting rows it names; empty when it
+      coached from the profile alone. */
+  sources?: ChatSourceRow[] | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -68,6 +75,8 @@ export interface CandidateChatSendResult {
   suggests: string[]
   /** The thinking trace behind the reply — null when none was emitted. */
   reasoning: string | null
+  /** Grounding sources behind the reply — the postings it names. */
+  sources: ChatSourceRow[]
 }
 
 function toSendResult(raw: Record<string, unknown>): CandidateChatSendResult {
@@ -80,6 +89,7 @@ function toSendResult(raw: Record<string, unknown>): CandidateChatSendResult {
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
     reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+    sources: parseChatSources(raw.sources),
   }
 }
 
@@ -170,6 +180,7 @@ export async function loadCandidateChatHistory(
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
     reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
+    sources: parseChatSources(r.sources),
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

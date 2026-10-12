@@ -15,6 +15,7 @@ import {
   SYSTEM_PROMPTS,
   buildUserMessage,
   candidateChatPrompt,
+  candidateChatSources,
   parseCandidateChatReply,
   parseModelResponse,
   validateAuthHeader,
@@ -255,7 +256,7 @@ async function loadChatContext(
     profile
       ? adminClient
           .from('candidate_discovered_jobs')
-          .select('title, company, location, match_score, status')
+          .select('title, company, location, match_score, status, url, apply_url')
           .eq('candidate_id', profile.id)
           .order('discovered_at', { ascending: false })
           .limit(15)
@@ -300,6 +301,7 @@ async function loadChatContext(
         }
       : null,
     applications: appRows.map((r) => ({
+      postingId: r.job_posting_id,
       title: postings.get(r.job_posting_id)?.title ?? null,
       organization: postings.get(r.job_posting_id)?.organization_name ?? null,
       location: postings.get(r.job_posting_id)?.location ?? null,
@@ -313,6 +315,8 @@ async function loadChatContext(
       location: j.location,
       match_score: j.match_score,
       status: j.status,
+      url: j.url ?? '',
+      apply_url: j.apply_url ?? null,
     })),
     agent: agentRes.data
       ? {
@@ -335,6 +339,7 @@ async function persistChatTurns(
   reply: string,
   threadId: string | null,
   reasoning: string,
+  sources: { label: string; url?: string }[],
 ): Promise<{ assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   await adminClient
@@ -354,6 +359,7 @@ async function persistChatTurns(
       content: reply,
       thread_id: threadId,
       reasoning: reasoning || null,
+      sources: sources.length > 0 ? sources : null,
       created_at: new Date(Date.parse(nowIso) + 1).toISOString(),
     })
     .select('id')
@@ -467,6 +473,7 @@ async function runChat(
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
+        const sources = candidateChatSources(ctx, parsed.reply)
         const { assistantId } = await persistChatTurns(
           adminClient,
           userId,
@@ -474,6 +481,7 @@ async function runChat(
           parsed.reply,
           threadId,
           reasoning,
+          sources,
         )
         sse.send({
           type: 'done',
@@ -481,6 +489,7 @@ async function runChat(
           assistantId,
           suggests: parsed.suggests,
           reasoning: reasoning || null,
+          sources,
         })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
@@ -498,6 +507,7 @@ async function runChat(
   const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
   const parsed = parseCandidateChatReply(msg.content)
   if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  const sources = candidateChatSources(ctx, parsed.reply)
   const { assistantId } = await persistChatTurns(
     adminClient,
     userId,
@@ -505,12 +515,14 @@ async function runChat(
     parsed.reply,
     threadId,
     reasoning,
+    sources,
   )
   return json({
     reply: parsed.reply,
     assistantId,
     suggests: parsed.suggests,
     reasoning: reasoning || null,
+    sources,
   })
 }
 
@@ -621,7 +633,7 @@ const handler = async (req: Request) => {
     const before = typeof body['before'] === 'string' && body['before'] ? body['before'] : null
     let q = authenticated.adminClient
       .from('candidate_chat_messages')
-      .select('id, role, content, reasoning, feedback, feedback_reason, created_at')
+      .select('id, role, content, reasoning, sources, feedback, feedback_reason, created_at')
       .eq('user_id', authenticated.user.id)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
     if (before) q = q.lt('created_at', before)

@@ -762,6 +762,32 @@
   white-space: pre-wrap;
   color: var(--sb-muted);
 }
+/* The grounding sources under an assistant reply — same disclosure shell
+   as sbchat-sees, listed links sit after the answer like footnotes. */
+.sbchat-src {
+  display: block;
+  margin: 8px 0 0;
+}
+.sbchat-src-list {
+  margin: 5px 0 0;
+  padding: 8px 10px 8px 26px;
+  border: 1px solid var(--sb-line);
+  border-radius: 8px;
+  background: var(--sb-input);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.sbchat-src-item + .sbchat-src-item {
+  margin-top: 4px;
+}
+.sbchat-src-link {
+  color: var(--sb-accent-ink);
+  text-decoration: none;
+  word-break: break-word;
+}
+.sbchat-src-link:hover {
+  text-decoration: underline;
+}
 /* One-tap reasons after a thumbs-down. */
 .sbchat-reasons {
   display: flex;

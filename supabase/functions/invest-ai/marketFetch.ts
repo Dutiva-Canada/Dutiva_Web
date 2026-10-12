@@ -51,7 +51,7 @@ async function headlinesFor(symbol: string, assetClass: string): Promise<MarketC
   const xml = await fetchText(googleNewsUrl(`${symbol} ${hint}`))
   if (!xml) return []
   return parseRssItems(xml, { symbol, asset_class: assetClass }, ONDEMAND_HEADLINES)
-    .map((n) => ({ title: n.title, source: n.source, publishedAt: n.published_at }))
+    .map((n) => ({ title: n.title, source: n.source, publishedAt: n.published_at, url: n.url }))
 }
 
 async function equityEntry(symbol: string): Promise<MarketContextEntry> {

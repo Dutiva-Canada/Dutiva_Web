@@ -1,6 +1,6 @@
 {
   "suiteVersion": "2026-09-30.v1",
-  "ranAt": "2026-10-12T13:09:05.782Z",
+  "ranAt": "2026-10-12T13:39:10.746Z",
   "summary": {
     "total": 64,
     "pass": 64,
@@ -106,6 +106,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -213,6 +222,15 @@
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
+            }
           ]
         },
         "memory": null,
@@ -303,6 +321,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -409,6 +436,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -521,6 +557,15 @@
               "en": "Severance · ON",
               "fr": "Indemnité de départ · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Severance pay: a distinct entitlement with qualifying conditions — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Severance pay: a distinct entitlement with qualifying conditions — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/severance-pay"
+            }
           ]
         },
         "memory": null,
@@ -621,6 +666,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -723,6 +777,15 @@
               "en": "Ontario — Constructive dismissal under the ESA · ON",
               "fr": "Ontario — Constructive dismissal under the ESA · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Constructive dismissal under the ESA — Ontario.ca — Your guide to the Employment Standards Act: Termination of employment (Constructive dismissal)",
+                "fr": "Ontario — Constructive dismissal under the ESA — Ontario.ca — Your guide to the Employment Standards Act: Termination of employment (Constructive dismissal)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
+            }
           ]
         },
         "memory": null,
@@ -824,6 +887,15 @@
               "en": "Ontario — Temporary layoff and recall rules · ON",
               "fr": "Ontario — Temporary layoff and recall rules · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Temporary layoff and recall rules — Ontario.ca — Your guide to the Employment Standards Act: Termination of employment (Temporary lay-off)",
+                "fr": "Ontario — Temporary layoff and recall rules — Ontario.ca — Your guide to the Employment Standards Act: Termination of employment (Temporary lay-off)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
+            }
           ]
         },
         "memory": null,
@@ -919,6 +991,15 @@
             {
               "en": "Overtime · ON",
               "fr": "Heures supplémentaires · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Overtime threshold and rate — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Overtime threshold and rate — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/overtime-pay"
             }
           ]
         },
@@ -1016,6 +1097,15 @@
               "en": "Hours of work · ON",
               "fr": "Durée du travail · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario hours of work, rest periods and eating periods — Ontario.ca — Your guide to the Employment Standards Act: Hours of work",
+                "fr": "Ontario hours of work, rest periods and eating periods — Ontario.ca — Your guide to the Employment Standards Act: Hours of work"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/hours-work"
+            }
           ]
         },
         "memory": null,
@@ -1111,6 +1201,15 @@
             {
               "en": "Minimum wage · ON",
               "fr": "Salaire minimum · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — General minimum wage rate and effective dates — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — General minimum wage rate and effective dates — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/minimum-wage"
             }
           ]
         },
@@ -1208,6 +1307,15 @@
               "en": "Vacation · ON",
               "fr": "Vacances · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Annual vacation time and vacation pay — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Annual vacation time and vacation pay — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/vacation"
+            }
           ]
         },
         "memory": null,
@@ -1298,6 +1406,15 @@
             {
               "en": "Public holidays · ON",
               "fr": "Jours fériés · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario public holidays and holiday pay rules — Ontario.ca — Your guide to the Employment Standards Act: Public holidays",
+                "fr": "Ontario public holidays and holiday pay rules — Ontario.ca — Your guide to the Employment Standards Act: Public holidays"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/public-holidays"
             }
           ]
         },
@@ -1394,6 +1511,15 @@
             {
               "en": "Leaves · ON",
               "fr": "Congés · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)",
+                "fr": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0"
             }
           ]
         },
@@ -1506,6 +1632,15 @@
               "en": "Leaves · ON",
               "fr": "Congés · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)",
+                "fr": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0"
+            }
           ]
         },
         "memory": null,
@@ -1596,6 +1731,15 @@
             {
               "en": "Leaves · ON",
               "fr": "Congés · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)",
+                "fr": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0"
             }
           ]
         },
@@ -1692,6 +1836,15 @@
             {
               "en": "Leaves · ON",
               "fr": "Congés · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)",
+                "fr": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0"
             }
           ]
         },
@@ -1798,6 +1951,15 @@
             {
               "en": "Leaves · ON",
               "fr": "Congés · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)",
+                "fr": "Ontario ESA job-protected statutory leaves — Ontario.ca — Your guide to the Employment Standards Act (leaves of absence pages)"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0"
             }
           ]
         },
@@ -1915,6 +2077,15 @@
               "en": "Accommodation · ON",
               "fr": "Accommodement · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario Human Rights Code and the duty to accommodate — Ontario Human Rights Commission — The Ontario Human Rights Code",
+                "fr": "Ontario Human Rights Code and the duty to accommodate — Ontario Human Rights Commission — The Ontario Human Rights Code"
+              },
+              "url": "https://www.ohrc.on.ca/en/ontario-human-rights-code"
+            }
           ]
         },
         "memory": null,
@@ -2010,6 +2181,15 @@
             {
               "en": "Ontario — Employer record-keeping and retention periods · ON",
               "fr": "Ontario — Employer record-keeping and retention periods · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Employer record-keeping and retention periods — Ontario.ca — Your guide to the Employment Standards Act: Record keeping",
+                "fr": "Ontario — Employer record-keeping and retention periods — Ontario.ca — Your guide to the Employment Standards Act: Record keeping"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/record-keeping"
             }
           ]
         },
@@ -2107,6 +2287,15 @@
               "en": "Ontario — Wage deductions and pay statements · ON",
               "fr": "Ontario — Wage deductions and pay statements · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Wage deductions and pay statements — Ontario.ca — Your guide to the Employment Standards Act: Payment of wages",
+                "fr": "Ontario — Wage deductions and pay statements — Ontario.ca — Your guide to the Employment Standards Act: Payment of wages"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/payment-wages"
+            }
           ]
         },
         "memory": null,
@@ -2203,6 +2392,15 @@
               "en": "Ontario — WSIB workplace injury basics: reporting and loss-of-earnings benefits · ON",
               "fr": "Ontario — WSIB workplace injury basics: reporting and loss-of-earnings benefits · ON"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — WSIB workplace injury basics: reporting and loss-of-earnings benefits — WSIB Ontario — Report an injury or illness; Loss of earnings benefit",
+                "fr": "Ontario — WSIB workplace injury basics: reporting and loss-of-earnings benefits — WSIB Ontario — Report an injury or illness; Loss of earnings benefit"
+              },
+              "url": "https://www.wsib.ca/en/loss-earnings-benefit"
+            }
           ]
         },
         "memory": null,
@@ -2293,6 +2491,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -2389,6 +2596,15 @@
             {
               "en": "Termination notice · ON",
               "fr": "Préavis de cessation · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA",
+                "fr": "Ontario — Individual termination notice under the Employment Standards Act, 2000 — Ontario.ca — Your guide to the ESA"
+              },
+              "url": "https://www.ontario.ca/document/your-guide-employment-standards-act-0/termination-employment"
             }
           ]
         },
@@ -2511,6 +2727,15 @@
               "en": "Termination notice · QC",
               "fr": "Préavis de cessation · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity",
+                "fr": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/notice-termination-employment-and-indemnity"
+            }
           ]
         },
         "memory": null,
@@ -2622,6 +2847,15 @@
               "en": "Termination notice · QC",
               "fr": "Préavis de cessation · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity",
+                "fr": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/notice-termination-employment-and-indemnity"
+            }
           ]
         },
         "memory": null,
@@ -2722,6 +2956,15 @@
             {
               "en": "Termination notice · QC",
               "fr": "Préavis de cessation · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity",
+                "fr": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/notice-termination-employment-and-indemnity"
             }
           ]
         },
@@ -2829,6 +3072,15 @@
               "en": "Quebec — Constructive dismissal (congédiement déguisé) · QC",
               "fr": "Quebec — Constructive dismissal (congédiement déguisé) · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Constructive dismissal (congédiement déguisé) — CNESST — Complaint concerning dismissal without just and sufficient cause",
+                "fr": "Quebec — Constructive dismissal (congédiement déguisé) — CNESST — Complaint concerning dismissal without just and sufficient cause"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/client-services/complaints-recourses/labour-standards-complaints/complaint-concerning-dismissal-without-just-and"
+            }
           ]
         },
         "memory": null,
@@ -2929,6 +3181,15 @@
             {
               "en": "Severance · QC",
               "fr": "Indemnité de départ · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — No separate statutory severance pay entitlement — CNESST — Termination, layoff, dismissal and resignation",
+                "fr": "Quebec — No separate statutory severance pay entitlement — CNESST — Termination, layoff, dismissal and resignation"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/termination-layoff-dismissal-and-resignation"
             }
           ]
         },
@@ -3036,6 +3297,15 @@
               "en": "Overtime · QC",
               "fr": "Heures supplémentaires · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Overtime (heures supplémentaires): 40-hour week, time and a half — CNESST — Overtime",
+                "fr": "Quebec — Overtime (heures supplémentaires): 40-hour week, time and a half — CNESST — Overtime"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/wage-and-pay/wages/overtime"
+            }
           ]
         },
         "memory": null,
@@ -3131,6 +3401,15 @@
             {
               "en": "Hours of work · QC",
               "fr": "Durée du travail · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec: standard work week, overtime, meal breaks, weekly rest, and the right to refuse overtime — CNESST — Work schedule (Horaire de travail / Durée du travail)",
+                "fr": "Quebec: standard work week, overtime, meal breaks, weekly rest, and the right to refuse overtime — CNESST — Work schedule (Horaire de travail / Durée du travail)"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/work-schedule-and-termination-employment/work-schedule"
             }
           ]
         },
@@ -3228,6 +3507,15 @@
               "en": "Minimum wage · QC",
               "fr": "Salaire minimum · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — General minimum wage (salaire minimum): $16.60 per hour — CNESST — Wages (minimum wage and tipped rates)",
+                "fr": "Quebec — General minimum wage (salaire minimum): $16.60 per hour — CNESST — Wages (minimum wage and tipped rates)"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/wage-and-pay/wages"
+            }
           ]
         },
         "memory": null,
@@ -3323,6 +3611,15 @@
             {
               "en": "Vacation · QC",
               "fr": "Vacances · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Annual vacation (vacances annuelles): duration and 4%/6% indemnity — CNESST — Annual vacation",
+                "fr": "Quebec — Annual vacation (vacances annuelles): duration and 4%/6% indemnity — CNESST — Annual vacation"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/leave/annual-vacation"
             }
           ]
         },
@@ -3430,6 +3727,15 @@
               "en": "Public holidays · QC",
               "fr": "Jours fériés · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec: 8 paid statutory holidays (jours fériés, chômés et payés) and the pay rule for working one — CNESST — Statutory holidays in Quebec (Jours fériés)",
+                "fr": "Quebec: 8 paid statutory holidays (jours fériés, chômés et payés) and the pay rule for working one — CNESST — Statutory holidays in Quebec (Jours fériés)"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/leave/statutory-holidays/statutory-holidays"
+            }
           ]
         },
         "memory": null,
@@ -3525,6 +3831,15 @@
             {
               "en": "Leaves · QC",
               "fr": "Congés · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec (LNT/CNESST): job-protected statutory leaves — sick, family/caregiver, bereavement, maternity/paternity/parental — CNESST — Leave (Absences et congés)",
+                "fr": "Quebec (LNT/CNESST): job-protected statutory leaves — sick, family/caregiver, bereavement, maternity/paternity/parental — CNESST — Leave (Absences et congés)"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/leave"
             }
           ]
         },
@@ -3627,6 +3942,15 @@
               "en": "Leaves · QC",
               "fr": "Congés · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec (LNT/CNESST): job-protected statutory leaves — sick, family/caregiver, bereavement, maternity/paternity/parental — CNESST — Leave (Absences et congés)",
+                "fr": "Quebec (LNT/CNESST): job-protected statutory leaves — sick, family/caregiver, bereavement, maternity/paternity/parental — CNESST — Leave (Absences et congés)"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/leave"
+            }
           ]
         },
         "memory": null,
@@ -3728,6 +4052,15 @@
               "en": "Accommodation · QC",
               "fr": "Accommodement · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec: duty to accommodate under the Charter of Human Rights and Freedoms (CDPDJ) — CDPDJ — L'accommodement raisonnable",
+                "fr": "Quebec: duty to accommodate under the Charter of Human Rights and Freedoms (CDPDJ) — CDPDJ — L'accommodement raisonnable"
+              },
+              "url": "https://www.cdpdj.qc.ca/fr/vos-droits/qu-est-ce-que/laccommodement-raisonnable"
+            }
           ]
         },
         "memory": null,
@@ -3818,6 +4151,15 @@
             {
               "en": "Quebec — Employer payroll record retention (registre de paye) · QC",
               "fr": "Quebec — Employer payroll record retention (registre de paye) · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Employer payroll record retention (registre de paye) — LégisQuébec — Regulation respecting a registration system or the keeping of a register (N-1.1, r. 6), s.2; CNESST Interpretation Guide",
+                "fr": "Quebec — Employer payroll record retention (registre de paye) — LégisQuébec — Regulation respecting a registration system or the keeping of a register (N-1.1, r. 6), s.2; CNESST Interpretation Guide"
+              },
+              "url": "https://www.legisquebec.gouv.qc.ca/en/document/rc/N-1.1,%20r.%206"
             }
           ]
         },
@@ -3914,6 +4256,15 @@
             {
               "en": "Quebec — CNESST workplace injury basics: employer obligations and income replacement · QC",
               "fr": "Quebec — CNESST workplace injury basics: employer obligations and income replacement · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — CNESST workplace injury basics: employer obligations and income replacement — CNESST — What should you do if you have a work accident?; Income replacement indemnity",
+                "fr": "Quebec — CNESST workplace injury basics: employer obligations and income replacement — CNESST — What should you do if you have a work accident?; Income replacement indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/procedures-and-forms/workers/work-accident-or-occupational-disease/what-should-you-do-if-you-have-work-accident"
             }
           ]
         },
@@ -4016,6 +4367,15 @@
               "en": "Quebec — Layoff (mise à pied) and recall rules · QC",
               "fr": "Quebec — Layoff (mise à pied) and recall rules · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Layoff (mise à pied) and recall rules — CNESST — Termination, layoff, dismissal and resignation; Notice of termination of employment and indemnity",
+                "fr": "Quebec — Layoff (mise à pied) and recall rules — CNESST — Termination, layoff, dismissal and resignation; Notice of termination of employment and indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/termination-layoff-dismissal-and-resignation"
+            }
           ]
         },
         "memory": null,
@@ -4107,6 +4467,15 @@
               "en": "Quebec — Pay intervals and permitted wage deductions (retenues sur le salaire) · QC",
               "fr": "Quebec — Pay intervals and permitted wage deductions (retenues sur le salaire) · QC"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Pay intervals and permitted wage deductions (retenues sur le salaire) — CNESST — Pay; Pay slip",
+                "fr": "Quebec — Pay intervals and permitted wage deductions (retenues sur le salaire) — CNESST — Pay; Pay slip"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/wage-and-pay/pay"
+            }
           ]
         },
         "memory": null,
@@ -4197,6 +4566,15 @@
             {
               "en": "Termination notice · QC",
               "fr": "Préavis de cessation · QC"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity",
+                "fr": "Quebec — Individual notice of termination of employment (avis de cessation d'emploi) — CNESST — Notice of termination of employment and indemnity"
+              },
+              "url": "https://www.cnesst.gouv.qc.ca/en/working-conditions/termination-employment/notice-termination-employment-and-indemnity"
             }
           ]
         },
@@ -4298,6 +4676,15 @@
             {
               "en": "Termination notice · Federal",
               "fr": "Préavis de cessation · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal",
+                "fr": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
             }
           ]
         },
@@ -4404,6 +4791,15 @@
             {
               "en": "Termination notice · Federal",
               "fr": "Préavis de cessation · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal",
+                "fr": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
             }
           ]
         },
@@ -4516,6 +4912,15 @@
               "en": "Severance · Federal",
               "fr": "Indemnité de départ · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Severance pay — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal",
+                "fr": "Severance pay — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
+            }
           ]
         },
         "memory": null,
@@ -4616,6 +5021,15 @@
             {
               "en": "Termination notice · Federal",
               "fr": "Préavis de cessation · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal",
+                "fr": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
             }
           ]
         },
@@ -4723,6 +5137,15 @@
               "en": "Federal — Constructive dismissal and unjust dismissal complaints (Canada Labour Code) · Federal",
               "fr": "Federal — Constructive dismissal and unjust dismissal complaints (Canada Labour Code) · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal — Constructive dismissal and unjust dismissal complaints (Canada Labour Code) — Canada.ca — Constructive dismissal (IPG-033); Termination, layoff or dismissal (Unjust dismissal)",
+                "fr": "Federal — Constructive dismissal and unjust dismissal complaints (Canada Labour Code) — Canada.ca — Constructive dismissal (IPG-033); Termination, layoff or dismissal (Unjust dismissal)"
+              },
+              "url": "https://www.canada.ca/en/employment-social-development/programs/laws-regulations/labour/interpretations-policies/constructive-dismissal.html"
+            }
           ]
         },
         "memory": null,
@@ -4818,6 +5241,15 @@
             {
               "en": "Overtime · Federal",
               "fr": "Heures supplémentaires · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Hours of work and overtime — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Hours of work",
+                "fr": "Hours of work and overtime — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Hours of work"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/work-hours.html"
             }
           ]
         },
@@ -4915,6 +5347,15 @@
               "en": "Minimum wage · Federal",
               "fr": "Salaire minimum · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal minimum wage — federally regulated employers — Canada.ca — Federal labour standards (ESDC), Pay and minimum wage, deductions, and wage recovery",
+                "fr": "Federal minimum wage — federally regulated employers — Canada.ca — Federal labour standards (ESDC), Pay and minimum wage, deductions, and wage recovery"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/pay-deductions.html"
+            }
           ]
         },
         "memory": null,
@@ -5010,6 +5451,15 @@
             {
               "en": "Vacation · Federal",
               "fr": "Vacances · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Annual vacation — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Annual vacations and general holidays",
+                "fr": "Annual vacation — federally regulated employers (Canada Labour Code) — Canada.ca — Federal labour standards (ESDC), Annual vacations and general holidays"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/vacations-holidays.html"
             }
           ]
         },
@@ -5107,6 +5557,15 @@
               "en": "Public holidays · Federal",
               "fr": "Jours fériés · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal general holidays and holiday pay (Canada Labour Code) — Employment and Social Development Canada (Canada.ca)",
+                "fr": "Federal general holidays and holiday pay (Canada Labour Code) — Employment and Social Development Canada (Canada.ca)"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/vacations-holidays.html"
+            }
           ]
         },
         "memory": null,
@@ -5203,6 +5662,15 @@
               "en": "Leaves · Federal",
               "fr": "Congés · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)",
+                "fr": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/leaves.html"
+            }
           ]
         },
         "memory": null,
@@ -5298,6 +5766,15 @@
             {
               "en": "Leaves · Federal",
               "fr": "Congés · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)",
+                "fr": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/leaves.html"
             }
           ]
         },
@@ -5400,6 +5877,15 @@
               "en": "Accommodation · Federal",
               "fr": "Accommodement · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Duty to accommodate under the Canadian Human Rights Act — Canadian Human Rights Commission (CHRC / CCDP)",
+                "fr": "Duty to accommodate under the Canadian Human Rights Act — Canadian Human Rights Commission (CHRC / CCDP)"
+              },
+              "url": "https://www.chrc-ccdp.gc.ca/individuals/human-rights/duty-accommodate"
+            }
           ]
         },
         "memory": null,
@@ -5490,6 +5976,15 @@
             {
               "en": "Federal — Employer payroll and employment record retention (Canada Labour Code) · Federal",
               "fr": "Federal — Employer payroll and employment record retention (Canada Labour Code) · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal — Employer payroll and employment record retention (Canada Labour Code) — Canada.ca — Employer compliance with federal labour standards (Keeping records)",
+                "fr": "Federal — Employer payroll and employment record retention (Canada Labour Code) — Canada.ca — Employer compliance with federal labour standards (Keeping records)"
+              },
+              "url": "https://www.canada.ca/en/employment-social-development/corporate/portfolio/labour/programs/labour-standards/employer-compliance.html"
             }
           ]
         },
@@ -5586,6 +6081,15 @@
             {
               "en": "Federal — Permitted wage deductions and wage recovery (Canada Labour Code) · Federal",
               "fr": "Federal — Permitted wage deductions and wage recovery (Canada Labour Code) · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal — Permitted wage deductions and wage recovery (Canada Labour Code) — Canada.ca — Pay and minimum wage, deductions, and wage recovery (federal labour standards)",
+                "fr": "Federal — Permitted wage deductions and wage recovery (Canada Labour Code) — Canada.ca — Pay and minimum wage, deductions, and wage recovery (federal labour standards)"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/pay-deductions.html"
             }
           ]
         },
@@ -5688,6 +6192,15 @@
               "en": "Federal — Temporary layoff and recall rules (Canada Labour Code) · Federal",
               "fr": "Federal — Temporary layoff and recall rules (Canada Labour Code) · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal — Temporary layoff and recall rules (Canada Labour Code) — Canada.ca — Termination, layoff or dismissal (federal labour standards); Canada Labour Standards Regulations s.30",
+                "fr": "Federal — Temporary layoff and recall rules (Canada Labour Code) — Canada.ca — Termination, layoff or dismissal (federal labour standards); Canada Labour Standards Regulations s.30"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
+            }
           ]
         },
         "memory": null,
@@ -5784,6 +6297,15 @@
               "en": "Federal — No separate federal workers' compensation scheme for private-sector employees · Federal",
               "fr": "Federal — No separate federal workers' compensation scheme for private-sector employees · Fédéral"
             }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Federal — No separate federal workers' compensation scheme for private-sector employees — Canada.ca — Compensation for federal workers (Federal Workers' Compensation Service); How to submit a claim",
+                "fr": "Federal — No separate federal workers' compensation scheme for private-sector employees — Canada.ca — Compensation for federal workers (Federal Workers' Compensation Service); How to submit a claim"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/health-safety/compensation/federal-workers.html"
+            }
           ]
         },
         "memory": null,
@@ -5874,6 +6396,15 @@
             {
               "en": "Leaves · Federal",
               "fr": "Congés · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)",
+                "fr": "Canada Labour Code statutory leaves (federally regulated employers) — Employment and Social Development Canada (Canada.ca)"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/leaves.html"
             }
           ]
         },
@@ -5975,6 +6506,15 @@
             {
               "en": "Termination notice · Federal",
               "fr": "Préavis de cessation · Fédéral"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal",
+                "fr": "Individual termination notice — federally regulated employers (Canada Labour Code, Part III) — Canada.ca — Federal labour standards (ESDC), Termination, layoff or dismissal"
+              },
+              "url": "https://www.canada.ca/en/services/jobs/workplace/federal-labour-standards/termination.html"
             }
           ]
         },
@@ -6229,6 +6769,15 @@
             {
               "en": "Accommodation · ON",
               "fr": "Accommodement · ON"
+            }
+          ],
+          "links": [
+            {
+              "label": {
+                "en": "Ontario Human Rights Code and the duty to accommodate — Ontario Human Rights Commission — The Ontario Human Rights Code",
+                "fr": "Ontario Human Rights Code and the duty to accommodate — Ontario Human Rights Commission — The Ontario Human Rights Code"
+              },
+              "url": "https://www.ohrc.on.ca/en/ontario-human-rights-code"
             }
           ]
         },

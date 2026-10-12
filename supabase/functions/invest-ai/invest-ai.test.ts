@@ -3,6 +3,7 @@ import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from '.
 import {
   INVEST_CHAT_ACTION_TYPES,
   buildRepairNote,
+  chatSources,
   extractMentionedSymbols,
   formatMarketEntry,
   investChatPrompt,
@@ -489,7 +490,7 @@ describe('formatMarketEntry', () => {
     high52w: 267.08, low52w: 112.76,
     fundamentals: { market_cap: 412e9, pe_trailing: 92.4, pe_forward: 34.1, eps_ttm: 2.76, price_to_book: 6.4, dividend_yield: 0, beta: 1.28, currency: 'USD' },
     asOf: '2026-10-10T13:00:00Z',
-    headlines: [{ title: 'AMD unveils new AI chips', source: 'Reuters', publishedAt: '2026-10-09T12:00:00Z' }],
+    headlines: [{ title: 'AMD unveils new AI chips', source: 'Reuters', publishedAt: '2026-10-09T12:00:00Z', url: 'https://reuters.com/amd-ai-chips' }],
   }
   it('renders the dense technicals + fundamentals + news line', () => {
     const out = formatMarketEntry(base)
@@ -523,7 +524,7 @@ describe('investChatPrompt — market data', () => {
       asOf: '2026-10-10T13:00:00Z',
       headlines: [],
     }],
-    generalNews: [{ title: 'TSX falls on oil', source: 'CBC', publishedAt: '2026-10-10T10:00:00Z' }],
+    generalNews: [{ title: 'TSX falls on oil', source: 'CBC', publishedAt: '2026-10-10T10:00:00Z', url: 'https://cbc.ca/tsx-oil' }],
   }
   it('carries the grounding rules and the market rows', () => {
     const p = investChatPrompt(ctxWithMarket, 'en').content
@@ -598,5 +599,68 @@ describe('verifyReplyClaims', () => {
     expect(note).toContain('41')
     expect(note).toContain('57.2')
     expect(note).toContain('JSON')
+  })
+})
+
+describe('chatSources', () => {
+  const ctx: InvestChatContext = {
+    ...EMPTY_CTX,
+    market: [
+      {
+        symbol: 'AMD', assetClass: 'equity', price: 608.1, currency: 'USD',
+        dayChangePct: 2.1, ma50: 528.92, ma200: 385.32, rsi14: 57,
+        ret1m: 4.2, ret3m: 31.0, ret12m: 158.0, vol20d: 54.0,
+        high52w: 610.0, low52w: 220.0, fundamentals: null,
+        asOf: '2026-10-10T13:00:00Z',
+        headlines: [
+          { title: 'AMD unveils new AI chips', source: 'Reuters', publishedAt: null, url: 'https://reuters.com/amd-ai-chips' },
+          { title: 'Chip rally cools', source: 'Bloomberg', publishedAt: null, url: null },
+        ],
+      },
+      {
+        symbol: 'VFV', assetClass: 'etf', price: 172.0, currency: 'CAD',
+        dayChangePct: null, ma50: null, ma200: null, rsi14: null,
+        ret1m: null, ret3m: null, ret12m: null, vol20d: null,
+        high52w: null, low52w: null, fundamentals: null, asOf: null,
+        headlines: [],
+      },
+    ],
+    generalNews: [
+      { title: 'TSX falls on oil', source: 'CBC', publishedAt: null, url: 'https://cbc.ca/tsx-oil' },
+    ],
+  }
+  it('cites the market row and its headlines only when the reply names the symbol', () => {
+    const out = chatSources(ctx, 'AMD trades at $608.10, above its MA50.')
+    expect(out.some((s) => s.label === 'AMD — delayed market data on file')).toBe(true)
+    expect(out).toContainEqual({
+      label: '"AMD unveils new AI chips" — Reuters',
+      url: 'https://reuters.com/amd-ai-chips',
+    })
+    /* A headline with no url stays a plain label — never a link. */
+    expect(out).toContainEqual({ label: '"Chip rally cools" — Bloomberg' })
+    /* VFV's row stays out — the reply never named it. */
+    expect(out.some((s) => s.label.includes('VFV'))).toBe(false)
+  })
+  it('cites a general headline only when the reply quotes its title', () => {
+    const quoted = chatSources(ctx, 'Context first: TSX falls on oil, so breadth is thin.')
+    expect(quoted).toContainEqual({ label: '"TSX falls on oil" — CBC', url: 'https://cbc.ca/tsx-oil' })
+    const silent = chatSources(ctx, 'AMD looks stretched.')
+    expect(silent.some((s) => s.label.includes('TSX'))).toBe(false)
+  })
+  it('a short ticker needs its capital letter — "to" must not cite TO', () => {
+    const shortCtx: InvestChatContext = {
+      ...EMPTY_CTX,
+      market: [{
+        symbol: 'TO', assetClass: 'equity', price: 1, currency: 'CAD',
+        dayChangePct: null, ma50: null, ma200: null, rsi14: null,
+        ret1m: null, ret3m: null, ret12m: null, vol20d: null,
+        high52w: null, low52w: null, fundamentals: null, asOf: null,
+        headlines: [],
+      }],
+    }
+    expect(chatSources(shortCtx, 'You want to buy it.')).toEqual([])
+    expect(chatSources(shortCtx, 'TO looks flat.')).toEqual([
+      { label: 'TO — delayed market data on file' },
+    ])
   })
 })

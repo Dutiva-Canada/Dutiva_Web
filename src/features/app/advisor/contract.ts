@@ -106,6 +106,11 @@ const legalBasisReadSchema = z.object({
 const retrievalReadSchema = z.object({
   /** Uppercase corpus tags (e.g. "Termination · ON"). */
   items: z.array(lTextSchema),
+  /** Clickable primary sources behind the tags — official statute URLs.
+      Absent on older payloads and in every withheld branch. */
+  links: z
+    .array(z.object({ label: lTextSchema, url: z.string() }))
+    .optional(),
   note: lTextSchema.optional(),
   /** Operator-facing reason shown when `retrievalAllowed` is false. */
   withheldReason: lTextSchema.optional(),
