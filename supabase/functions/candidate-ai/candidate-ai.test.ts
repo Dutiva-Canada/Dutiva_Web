@@ -393,6 +393,7 @@ describe('parseCandidateChatReply', () => {
     expect(parseCandidateChatReply('{"reply":"Apply to the Globex role."}')).toEqual({
       reply: 'Apply to the Globex role.',
       suggests: [],
+      search: null,
     })
   })
 
@@ -400,13 +401,14 @@ describe('parseCandidateChatReply', () => {
     expect(parseCandidateChatReply('```json\n{"reply":"Hi."}\n```')).toEqual({
       reply: 'Hi.',
       suggests: [],
+      search: null,
     })
   })
 
   it('keeps string suggests, drops anything else', () => {
     expect(
       parseCandidateChatReply('{"reply":"Hi.","suggests":["Apply to Globex?",true,7]}'),
-    ).toEqual({ reply: 'Hi.', suggests: ['Apply to Globex?'] })
+    ).toEqual({ reply: 'Hi.', suggests: ['Apply to Globex?'], search: null })
   })
 
   it('returns null on anything unparseable or reply-less', () => {
@@ -414,6 +416,19 @@ describe('parseCandidateChatReply', () => {
     expect(parseCandidateChatReply('{"reply":""}')).toBeNull()
     expect(parseCandidateChatReply('{"reply":"   "}')).toBeNull()
     expect(parseCandidateChatReply(null)).toBeNull()
+  })
+
+  it('accepts an empty reply only when a live-web search is outstanding', () => {
+    const out = parseCandidateChatReply(
+      '{"reply":"","search":"  Globex   layoffs news  "}',
+    )
+    expect(out).toEqual({ reply: '', suggests: [], search: 'Globex layoffs news' })
+    /* malformed or empty search values don't rescue a reply-less payload */
+    expect(parseCandidateChatReply('{"reply":"","search":""}')).toBeNull()
+    expect(parseCandidateChatReply('{"reply":"","search":["q"]}')).toBeNull()
+    /* the query is length-capped */
+    const long = parseCandidateChatReply(`{"reply":"","search":"${'q'.repeat(300)}"}`)
+    expect(long?.search?.length).toBe(160)
   })
 })
 

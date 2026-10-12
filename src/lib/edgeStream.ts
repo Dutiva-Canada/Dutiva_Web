@@ -32,8 +32,12 @@ export async function invokeEdgeFnStream(
   signal?: AbortSignal,
   /* Reasoning-capable routes stream `{type:'reasoning'}` pieces ahead of
      the reply — onReasoning receives the accumulated thinking text, ready
-     for a state setter, same contract as onDelta. */
+     for a state setter, same contract as onDelta. Search-capable routes
+     emit `{type:'status',code:'web_search'}` when the model hands off to a
+     live lookup — onStatus receives the status code for a transient
+     indicator. */
   onReasoning?: (text: string) => void,
+  onStatus?: (code: string) => void,
 ): Promise<Record<string, unknown>> {
   const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
   const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
@@ -74,7 +78,7 @@ export async function invokeEdgeFnStream(
       const line = buf.slice(0, idx).trim()
       buf = buf.slice(idx + 2)
       if (!line.startsWith('data:')) continue
-      let event: { type?: string; text?: unknown; error?: unknown }
+      let event: { type?: string; text?: unknown; error?: unknown; code?: unknown }
       try {
         event = JSON.parse(line.slice(5).trim())
       } catch {
@@ -86,6 +90,8 @@ export async function invokeEdgeFnStream(
       } else if (event.type === 'reasoning' && typeof event.text === 'string') {
         thinking += event.text
         onReasoning?.(thinking)
+      } else if (event.type === 'status' && typeof event.code === 'string') {
+        onStatus?.(event.code)
       } else if (event.type === 'done') {
         doneEvent = event as Record<string, unknown>
       } else if (event.type === 'error') {

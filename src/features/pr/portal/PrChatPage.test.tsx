@@ -123,7 +123,7 @@ describe('PrChatPage', () => {
         'add Jo at CBC to my contacts',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function), onStatus: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Draft filed.')).toBeInTheDocument()

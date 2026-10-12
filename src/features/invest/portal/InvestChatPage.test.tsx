@@ -148,7 +148,7 @@ describe('InvestChatPage', () => {
         'What’s on my watchlist right now?',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function), onStatus: expect.any(Function) },
       ),
     )
   })
@@ -267,7 +267,7 @@ describe('InvestChatPage', () => {
         'queue a buy of 5 XEQT',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function), onStatus: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Queued a draft order for review.')).toBeInTheDocument()

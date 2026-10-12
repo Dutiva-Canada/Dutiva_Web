@@ -121,6 +121,10 @@ export const careersAssistant = defineMessages({
   /* The grounding sources behind a reply — collapsed disclosure under an
      assistant turn listing the postings it leaned on. [FR self-authored] */
   careers_chat_sources: { en: 'Sources', fr: 'Sources' },
+  /* Pending-bubble status while the model's live web lookup runs —
+     replaces the typing line until the reply starts streaming.
+     [FR self-authored] */
+  careers_chat_searching: { en: 'Searching the web…', fr: 'Recherche sur le web…' },
   careers_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   careers_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   careers_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

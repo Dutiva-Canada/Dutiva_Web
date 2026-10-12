@@ -49,6 +49,7 @@ export interface CandidateChatCallOpts {
   /** Live thinking trace — cumulative text per reasoning piece. Streamed
       path only. */
   onReasoning?: (text: string) => void
+  onStatus?: (code: string) => void
 }
 
 /* invokeEdgeFn throws FunctionsHttpError (status on .context.status);
@@ -105,7 +106,7 @@ export async function sendCandidateChat(
   try {
     raw = onDelta
       ? await invokeEdgeFnStream(
-          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'candidate-ai', body)
   } catch (err) {
@@ -127,7 +128,7 @@ export async function regenerateCandidateChat(
   try {
     raw = onDelta
       ? await invokeEdgeFnStream(
-          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'candidate-ai', body)
   } catch (err) {

@@ -237,6 +237,11 @@ export interface InvestChatReply {
      "reply":""}` pauses the turn for one bounded pull, then it must
      answer for real. Empty on every final reply. */
   fetch: string[]
+  /* A live-web query the model wants run before answering — same one-hop
+     contract as fetch, for current events outside the rows on file. The
+     server runs it; the model never sees or emits a URL. Null on every
+     final reply. */
+  search: string | null
 }
 
 export const INVEST_CHAT_ACTION_TYPES = new Set([
@@ -479,7 +484,7 @@ export function investChatPrompt(
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<sized to the ask — a sentence or two for quick questions and confirmations; a full structured answer when they ask for analysis, a comparison, or a plan>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
-      'One exception before you answer: if the question turns on a symbol with no market row below, you may reply {"reply":"","action":null,"fetch":["SYM","SYM"]} (at most 3 tickers) — the pull lands and the question comes back to you with the numbers filled in. Use it at most once per turn; if a symbol still has no row after the pull, say there is nothing on file.',
+      'One exception before you answer: if the question turns on a symbol with no market row below, you may reply {"reply":"","action":null,"fetch":["SYM","SYM"]} (at most 3 tickers) — the pull lands and the question comes back to you with the numbers filled in. If it turns on current events outside the rows on file — news this week, a macro decision, a launch — you may instead reply {"reply":"","action":null,"search":"<one web query>"} and the search results come back the same way. The two can combine in one hop. Use it at most once per turn; if the pull still lacks what you need, say there is nothing on file.',
       '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Book data:',
@@ -530,6 +535,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       action?: unknown
       suggests?: unknown
       fetch?: unknown
+      search?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
     /* `fetch` names symbols the model wants pulled before it answers —
@@ -539,7 +545,14 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       .map((s) => s.trim().toUpperCase())
       .filter((s) => SYMBOL_RE.test(s))
       .slice(0, 3)
-    if (!reply && fetch.length === 0) return null
+    /* `search` is the same escape hatch pointed at the live web — one
+       plain-language query, whitespace-collapsed and length-capped; the
+       server runs it, the model never touches a URL. */
+    const search =
+      typeof obj.search === 'string' && obj.search.trim() !== ''
+        ? obj.search.trim().replace(/\s+/g, ' ').slice(0, 160)
+        : null
+    if (!reply && fetch.length === 0 && !search) return null
     /* Follow-up chips — kept only as clean short strings; malformed or
        oversized entries drop out rather than fail the whole reply. */
     const suggests = Array.isArray(obj.suggests)
@@ -553,6 +566,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       reply,
       suggests,
       fetch,
+      search,
       action,
     })
     const a = obj.action

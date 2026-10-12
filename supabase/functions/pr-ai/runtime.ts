@@ -6,6 +6,7 @@ import {
   routeBodyExtras,
   routeMaxTokens,
   type ApiKeyResult,
+  type UpstreamMessage,
 } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
@@ -20,6 +21,13 @@ import {
   type PrChatReply,
   type PrReactEvent,
 } from './handlers.ts'
+import {
+  formatWebResultsBlock,
+  mergeSources,
+  webSearch,
+  webSources,
+  type WebResult,
+} from '../_shared/webSearch.ts'
 
 /* Runtime for pr-ai — everything the serve() router delegates to: the chat
    and react kinds, their shared desk-context load, action execution + undo,
@@ -264,65 +272,128 @@ export async function runChat(
       content: r.content.slice(0, 1500),
     }))
 
-  let upstream: Response
-  try {
-    upstream = await postChatCompletion(
+  const baseMessages: UpstreamMessage[] = [
+    prChatPrompt(desk.ctx, lang, { advice }),
+    ...history,
+    { role: 'user', content: message },
+  ]
+  const extras = routeBodyExtras(found.config)
+
+  /* One upstream call, repeatable — round two carries the live search
+     results the model asked for, injected as clearly-marked untrusted
+     context. */
+  const callUpstream = (web: { query: string; results: WebResult[] } | null, streamIt: boolean) => {
+    const messages: UpstreamMessage[] = [...baseMessages]
+    if (web) {
+      messages.push({
+        role: 'system',
+        content: web.results.length > 0
+          ? formatWebResultsBlock(web.query, web.results, lang)
+          : lang === 'fr'
+            ? `La recherche web pour « ${web.query} » n'a rien retourné — dis-le plutôt que d'inventer.`
+            : `The web search for "${web.query}" returned nothing — say so rather than invent.`,
+      })
+    }
+    return postChatCompletion(
       found.provider,
       keyResult.apiKey,
       {
         model: found.modelName,
-        messages: [
-          prChatPrompt(desk.ctx, lang, { advice }),
-          ...history,
-          { role: 'user', content: message },
-        ],
+        messages,
         temperature: 0.4,
         /* Reasoning params from the route share this budget — headroom so a
            thinking pass can't starve the reply. Route config wins; the
            default leaves room for a real desk read when the person asks for
            a plan or a weighed comparison. */
         max_tokens: routeMaxTokens(found.config, 3000),
-        stream,
-        ...routeBodyExtras(found.config),
+        stream: streamIt,
+        ...extras,
       },
       UPSTREAM_TIMEOUT_MS,
     )
-  } catch (e) {
-    return json(
-      { error: `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`, code: 'upstream' },
-      502,
-    )
   }
-  if (!upstream.ok) return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
+
+  /* One round → raw JSON + parsed reply + reasoning. The streamed read
+     emits reply deltas through a fresh per-round extractor (the model's
+     output is one JSON object — the extractor gates its reply field so
+     the action scaffolding never reaches the bubble) and reasoning live. */
+  const readRound = async (
+    upstream: Response,
+    onDelta?: (piece: string) => void,
+    onReasoning?: (piece: string) => void,
+  ): Promise<{ parsed: PrChatReply | null; reasoning: string }> => {
+    if (onDelta || onReasoning) {
+      const extractor = createReplyDeltaExtractor()
+      const { text, reasoning } = await readUpstreamCompletion(
+        upstream,
+        (piece) => {
+          const visible = extractor.push(piece)
+          if (visible) onDelta?.(visible)
+        },
+        (piece) => onReasoning?.(piece),
+      )
+      return { parsed: parsePrChatReply(text), reasoning }
+    }
+    const payload = (await upstream.json()) as {
+      choices?: { message?: { content?: string; reasoning_content?: string } }[]
+    }
+    const msg = payload.choices?.[0]?.message ?? {}
+    return {
+      parsed: parsePrChatReply(typeof msg.content === 'string' ? msg.content : null),
+      reasoning: typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '',
+    }
+  }
+
+  const upstreamErr = (e: unknown) =>
+    `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`
 
   if (stream) {
-    /* SSE out, SSE in — but only the reply text streams through. The model's
-       output is one JSON object; createReplyDeltaExtractor emits its reply
-       field without the scaffolding, so the action JSON never leaks into
-       the bubble. The done event carries the parsed payload + row ids. */
+    /* SSE out, SSE in — reasoning streams live to the thinking panel, a
+       search hop signals its status, the done event carries the parsed
+       payload + row ids + sources. */
     const sse = sseChannel()
-    const extractor = createReplyDeltaExtractor()
     void (async () => {
       try {
-        /* Reasoning pieces stream to the thinking panel as they arrive —
-           the reply extractor still gates what reaches the bubble. */
-        const { text: fullText, reasoning } = await readUpstreamCompletion(
-          upstream,
-          (piece) => {
-            const visible = extractor.push(piece)
-            if (visible) sse.send({ type: 'delta', text: visible })
-          },
+        let reasoning = ''
+        let webResults: WebResult[] = []
+        const res1 = await callUpstream(null, true)
+        if (!res1.ok) {
+          sse.send({ type: 'error', error: `Upstream returned ${res1.status}`, code: 'upstream' })
+          return
+        }
+        let round = await readRound(
+          res1,
+          (piece) => sse.send({ type: 'delta', text: piece }),
           (piece) => sse.send({ type: 'reasoning', text: piece }),
         )
-        const parsed: PrChatReply | null = parsePrChatReply(fullText)
-        if (!parsed) {
+        reasoning = round.reasoning
+        let parsed = round.parsed
+        /* Search hop — the model may hold its answer for one live-web
+           query; round two must reply for real. */
+        if (parsed && parsed.reply === '' && parsed.search) {
+          sse.send({ type: 'status', code: 'web_search' })
+          webResults = await webSearch(parsed.search)
+          const res2 = await callUpstream({ query: parsed.search, results: webResults }, true)
+          if (!res2.ok) {
+            sse.send({ type: 'error', error: `Upstream returned ${res2.status}`, code: 'upstream' })
+            return
+          }
+          round = await readRound(
+            res2,
+            (piece) => sse.send({ type: 'delta', text: piece }),
+            (piece) => sse.send({ type: 'reasoning', text: piece }),
+          )
+          if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+          parsed = round.parsed
+        }
+        if (!parsed || parsed.reply === '') {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
           : null
-        const sources = prChatSources(desk.ctx, parsed.reply)
+        const sources = mergeSources(prChatSources(desk.ctx, parsed.reply), webSources(webResults))
         const ids = await persistChatTurns(
           admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
         )
@@ -344,18 +415,39 @@ export async function runChat(
     return sse.response
   }
 
-  const payload = (await upstream.json()) as {
-    choices?: { message?: { content?: string; reasoning_content?: string } }[]
+  let reasoning = ''
+  let webResults: WebResult[] = []
+  let res1: Response
+  try {
+    res1 = await callUpstream(null, false)
+  } catch (e) {
+    return json({ error: upstreamErr(e), code: 'upstream' }, 502)
   }
-  const msg = payload.choices?.[0]?.message ?? {}
-  const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
-  const parsed: PrChatReply | null = parsePrChatReply(msg.content)
-  if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  if (!res1.ok) return json({ error: `Upstream returned ${res1.status}`, code: 'upstream' }, 502)
+  let round = await readRound(res1)
+  reasoning = round.reasoning
+  let parsed = round.parsed
+  if (parsed && parsed.reply === '' && parsed.search) {
+    webResults = await webSearch(parsed.search)
+    let res2: Response
+    try {
+      res2 = await callUpstream({ query: parsed.search, results: webResults }, false)
+    } catch (e) {
+      return json({ error: upstreamErr(e), code: 'upstream' }, 502)
+    }
+    if (!res2.ok) return json({ error: `Upstream returned ${res2.status}`, code: 'upstream' }, 502)
+    round = await readRound(res2)
+    if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+    parsed = round.parsed
+  }
+  if (!parsed || parsed.reply === '') {
+    return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  }
 
   const executed = parsed.action
     ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
     : null
-  const sources = prChatSources(desk.ctx, parsed.reply)
+  const sources = mergeSources(prChatSources(desk.ctx, parsed.reply), webSources(webResults))
   const ids = await persistChatTurns(
     admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
   )

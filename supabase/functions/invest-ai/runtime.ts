@@ -19,6 +19,13 @@ import {
   type InvestChatReply,
   type MarketContextEntry,
 } from './handlers.ts'
+import {
+  formatWebResultsBlock,
+  mergeSources,
+  webSearch,
+  webSources,
+  type WebResult,
+} from '../_shared/webSearch.ts'
 import { fetchOnDemandMarket } from './marketFetch.ts'
 import { executeChatAction, type ExecutedAction } from './chatActions.ts'
 import { json, sseChannel, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
@@ -358,7 +365,12 @@ export async function runChat(
     reasoning: string
   }
   const callModel = async (
-    extra: { fetched?: MarketContextEntry[]; draft?: string; repairNote?: string } = {},
+    extra: {
+      fetched?: MarketContextEntry[]
+      web?: { query: string; results: WebResult[] }
+      draft?: string
+      repairNote?: string
+    } = {},
     onReasoning?: (piece: string) => void,
   ): Promise<ModelRound | null> => {
     const messages: UpstreamMessage[] = [...baseMessages]
@@ -369,6 +381,18 @@ export async function runChat(
         content:
           'Market data pulled live for this turn — treat it as on file; the same grounding rules apply:\n' +
           extra.fetched.map(formatMarketEntry).join('\n'),
+      })
+    }
+    /* Live web results the model asked for — marked untrusted by the block
+       itself; the grounding rules still apply to anything it cites. */
+    if (extra.web) {
+      messages.push({
+        role: 'system',
+        content: extra.web.results.length > 0
+          ? formatWebResultsBlock(extra.web.query, extra.web.results, lang)
+          : lang === 'fr'
+            ? `La recherche web pour « ${extra.web.query} » n'a rien retourné — dis-le plutôt que d'inventer.`
+            : `The web search for "${extra.web.query}" returned nothing — say so rather than invent.`,
       })
     }
     if (extra.repairNote) messages.push({ role: 'system', content: extra.repairNote })
@@ -427,22 +451,40 @@ export async function runChat(
   }
   const runPipeline = async (
     onReasoning?: (piece: string) => void,
+    onStatus?: (code: string) => void,
   ): Promise<{ error: string } | ChatOutcome> => {
     let reasoning = ''
+    let webResults: WebResult[] = []
+    let webQuery = ''
     let round = await callModel({}, onReasoning)
     if (!round) return { error: 'The AI service is temporarily unavailable.' }
     reasoning = round.reasoning
 
-    /* Fetch loop — one bounded hop. The model may hold its answer and name
-       tickers it wants pulled first; the data lands and the question
-       repeats. Round two cannot ask again (reply required). */
+    /* Fetch+search hop — one bounded detour. The model may hold its answer
+       and name tickers to pull, a web query to run, or both; the data
+       lands and the question repeats. Round two cannot ask again (reply
+       required). Web results stay in scope for the sources block. */
     let parsed = round.parsed
-    if (parsed && parsed.reply === '' && parsed.fetch.length > 0) {
+    if (parsed && parsed.reply === '' && (parsed.fetch.length > 0 || parsed.search)) {
       const want = parsed.fetch.filter((s) => !covered.has(s))
-      const fetched = want.length > 0 ? await fetchOnDemandMarket(want) : []
+      if (parsed.search) {
+        onStatus?.('web_search')
+        webQuery = parsed.search
+      }
+      const [fetched, searched] = await Promise.all([
+        want.length > 0 ? fetchOnDemandMarket(want) : Promise.resolve([]),
+        parsed.search ? webSearch(parsed.search) : Promise.resolve([]),
+      ])
       for (const e of fetched) covered.add(e.symbol)
       chatCtx.market = [...chatCtx.market, ...fetched]
-      round = await callModel({ fetched }, onReasoning)
+      webResults = searched
+      round = await callModel(
+        {
+          fetched,
+          ...(parsed.search ? { web: { query: webQuery, results: webResults } } : {}),
+        },
+        onReasoning,
+      )
       if (!round) return { error: 'The AI service is temporarily unavailable.' }
       if (round.reasoning) reasoning += `\n\n${round.reasoning}`
       parsed = round.parsed
@@ -486,8 +528,9 @@ export async function runChat(
         })
       : null
     /* Sources ride the verified reply — computed after repair so a replaced
-       answer can't cite rows it no longer uses. */
-    const sources = chatSources(chatCtx, parsed.reply)
+       answer can't cite rows it no longer uses. Web results the model saw
+       join the same list — that's the point of the sources block. */
+    const sources = mergeSources(chatSources(chatCtx, parsed.reply), webSources(webResults))
     const ids = await persistChatTurns(
       adminClient,
       userId,
@@ -515,7 +558,10 @@ export async function runChat(
     const sse = sseChannel()
     void (async () => {
       try {
-        const out = await runPipeline((piece) => sse.send({ type: 'reasoning', text: piece }))
+        const out = await runPipeline(
+          (piece) => sse.send({ type: 'reasoning', text: piece }),
+          (code) => sse.send({ type: 'status', code }),
+        )
         if ('error' in out) {
           sse.send({ type: 'error', error: out.error })
           return

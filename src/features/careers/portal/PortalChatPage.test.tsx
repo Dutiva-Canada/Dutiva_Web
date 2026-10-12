@@ -99,7 +99,7 @@ describe('PortalChatPage', () => {
         'which posting should I chase first',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function), onStatus: expect.any(Function) },
       ),
     )
     expect(await screen.findByText('Your strongest match is the Globex role.')).toBeInTheDocument()
@@ -201,7 +201,7 @@ describe('PortalChatPage', () => {
         'Which discovered jobs fit me best?',
         'en',
         expect.any(Function),
-        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function) },
+        { signal: expect.anything(), threadId: null, onReasoning: expect.any(Function), onStatus: expect.any(Function) },
       ),
     )
   })

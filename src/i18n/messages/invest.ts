@@ -698,6 +698,10 @@ const investCoreMessages = defineMessages({
   /* The grounding sources behind a reply — collapsed disclosure under an
      assistant turn listing the rows/links it leaned on. [FR self-authored] */
   invest_chat_sources: { en: 'Sources', fr: 'Sources' },
+  /* Pending-bubble status while the model's live web lookup runs —
+     replaces the typing line until the reply starts streaming.
+     [FR self-authored] */
+  invest_chat_searching: { en: 'Searching the web…', fr: 'Recherche sur le web…' },
   /* What she reads — a disclosure under the subtitle listing her data
      sources, so the advice surface is honest about its scope.
      [FR self-authored] */
