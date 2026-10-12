@@ -8,7 +8,7 @@
  * missing route, upstream error, malformed JSON — resolves to [] and the
  * run completes normally.
  */
-import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
+import { postChatCompletion, resolveApiKey, routeBodyExtras } from '../_shared/modelUpstream.ts'
 import type { MarketSnapshot, Position } from './handlers.ts'
 
 export interface BookInsight {
@@ -177,6 +177,7 @@ export async function maybeEmitInsights(
         ],
         max_tokens: 600,
         temperature: 0.3,
+        ...routeBodyExtras(route.config),
       },
       30_000,
     )

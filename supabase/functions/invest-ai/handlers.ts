@@ -233,6 +233,10 @@ export interface InvestChatReply {
   /* Short next-prompt chips the client shows as tappable follow-ups —
      ephemeral: they ride the reply payload, never the stored turn. */
   suggests: string[]
+  /* Symbols the model wants data on before answering — `{"fetch":[…],
+     "reply":""}` pauses the turn for one bounded pull, then it must
+     answer for real. Empty on every final reply. */
+  fetch: string[]
 }
 
 export const INVEST_CHAT_ACTION_TYPES = new Set([
@@ -426,6 +430,7 @@ export function investChatPrompt(
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<1-4 short sentences; when they ask for analysis, a compact structured read instead — verdict line plus short labeled sections>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      'One exception before you answer: if the question turns on a symbol with no market row below, you may reply {"reply":"","action":null,"fetch":["SYM","SYM"]} (at most 3 tickers) — the pull lands and the question comes back to you with the numbers filled in. Use it at most once per turn; if a symbol still has no row after the pull, say there is nothing on file.',
       '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Book data:',
@@ -475,9 +480,17 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       reply?: unknown
       action?: unknown
       suggests?: unknown
+      fetch?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
-    if (!reply) return null
+    /* `fetch` names symbols the model wants pulled before it answers —
+       validated to real ticker shapes, capped at three. */
+    const fetch = (Array.isArray(obj.fetch) ? obj.fetch : [])
+      .filter((s): s is string => typeof s === 'string')
+      .map((s) => s.trim().toUpperCase())
+      .filter((s) => SYMBOL_RE.test(s))
+      .slice(0, 3)
+    if (!reply && fetch.length === 0) return null
     /* Follow-up chips — kept only as clean short strings; malformed or
        oversized entries drop out rather than fail the whole reply. */
     const suggests = Array.isArray(obj.suggests)
@@ -487,8 +500,14 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
           .filter((s) => s !== '')
           .slice(0, 3)
       : []
+    const finish = (action: InvestChatAction | null): InvestChatReply => ({
+      reply,
+      suggests,
+      fetch,
+      action,
+    })
     const a = obj.action
-    if (a === null || a === undefined) return { reply, action: null, suggests }
+    if (a === null || a === undefined) return finish(null)
     if (typeof a !== 'object') return null
     const action = a as Record<string, unknown>
     if (typeof action.type !== 'string' || !INVEST_CHAT_ACTION_TYPES.has(action.type)) return null
@@ -496,21 +515,17 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       case 'add_watch_symbol': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_watch_symbol',
-            symbol,
-            name: optStr(action.name, 80),
-            assetClass: optEnum(action.assetClass, [...ASSET_CLASSES] as string[]),
-          },
-        }
+        return finish({
+          type: 'add_watch_symbol',
+          symbol,
+          name: optStr(action.name, 80),
+          assetClass: optEnum(action.assetClass, [...ASSET_CLASSES] as string[]),
+        })
       }
       case 'remove_watch_symbol': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
-        return { reply, suggests, action: { type: 'remove_watch_symbol', symbol } }
+        return finish({ type: 'remove_watch_symbol', symbol })
       }
       case 'create_order': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
@@ -524,32 +539,28 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
           return null
         }
         const mode = optEnum(action.mode, ['paper', 'live'])
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'create_order',
-            symbol,
-            side,
-            quantity,
-            orderType,
-            limitPrice,
-            account: optStr(action.account, 80),
-            mode,
-            note: optStr(action.note, 200),
-          },
-        }
+        return finish({
+          type: 'create_order',
+          symbol,
+          side,
+          quantity,
+          orderType,
+          limitPrice,
+          account: optStr(action.account, 80),
+          mode,
+          note: optStr(action.note, 200),
+        })
       }
       case 'update_signal': {
         const signalId = optStr(action.signalId, 60)
         const status = optEnum(action.status, ['acknowledged', 'dismissed'])
         if (!signalId || !status) return null
-        return { reply, suggests, action: { type: 'update_signal', signalId, status } }
+        return finish({ type: 'update_signal', signalId, status })
       }
       case 'draft_strategy': {
         const goal = optStr(action.goal, 1200)
         if (!goal || goal.length < 10) return null
-        return { reply, suggests, action: { type: 'draft_strategy', goal } }
+        return finish({ type: 'draft_strategy', goal })
       }
       case 'add_position': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
@@ -558,19 +569,15 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
         if (!Number.isFinite(quantity) || quantity <= 0) return null
         if (!Number.isFinite(avgCost) || avgCost < 0) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_position',
-            symbol,
-            name: optStr(action.name, 80),
-            assetClass: optEnum(action.assetClass, [...ASSET_CLASSES] as string[]),
-            quantity,
-            avgCost,
-            account: optStr(action.account, 80),
-          },
-        }
+        return finish({
+          type: 'add_position',
+          symbol,
+          name: optStr(action.name, 80),
+          assetClass: optEnum(action.assetClass, [...ASSET_CLASSES] as string[]),
+          quantity,
+          avgCost,
+          account: optStr(action.account, 80),
+        })
       }
     }
     return null
@@ -666,4 +673,123 @@ export function investReactPrompt(
     'Book data (read-only context):',
     contextBits,
   ].join('\n')
+}
+
+/* ── Reply claim verification ──────────────────────────────────────────────
+   Deterministic second pair of eyes on the numbers Tally cites: labeled
+   figures in the reply (RSI 57, "P/E 156", "$608") are pulled out and
+   checked against the market rows she was actually given. Derived math
+   ("30% above its 200-day") isn't checked — only claims that name a metric,
+   which is where a confident invention does damage. */
+
+export interface ClaimMismatch {
+  metric: string
+  claimed: number
+  actual: number
+  unit: string
+}
+
+const CLAIM_RULES: ClaimRule[] = [
+  { re: /\bRSI(?:[- ]?14)?\b/i, metric: 'RSI-14', unit: '', value: (e) => e.rsi14 },
+  { re: /\bMA[- ]?50\b|\b50[- ]day\b/i, metric: 'MA50', unit: '', value: (e) => e.ma50 },
+  { re: /\bMA[- ]?200\b|\b200[- ]day\b/i, metric: 'MA200', unit: '', value: (e) => e.ma200 },
+  { re: /\b(?:forward|fwd)[- ]P\/?E\b/i, metric: 'fwd P/E', unit: 'x', value: (e) => numFund(e, 'pe_forward') },
+  { re: /\bP\/?E\b/i, metric: 'P/E', unit: 'x', value: (e) => numFund(e, 'pe_trailing') },
+  { re: /\bEPS\b/i, metric: 'EPS', unit: '', value: (e) => numFund(e, 'eps_ttm') },
+  { re: /\bP\/?B\b|book value/i, metric: 'P/B', unit: 'x', value: (e) => numFund(e, 'price_to_book') },
+  { re: /\b(?:dividend|div)[- ]yield\b/i, metric: 'div yield', unit: '%', value: (e) => numFund(e, 'dividend_yield') },
+  { re: /\bbeta\b/i, metric: 'beta', unit: '', value: (e) => numFund(e, 'beta') },
+  { re: /\bmarket[- ]cap\b|\bmarket capitali[sz]ation\b/i, metric: 'market cap', unit: '', value: (e) => numFund(e, 'market_cap') },
+  { re: /\b52[- ]?w(?:eek)?[- ]high\b|\b52[- ]?week high\b/i, metric: '52w high', unit: '', value: (e) => e.high52w },
+  { re: /\b52[- ]?w(?:eek)?[- ]low\b|\b52[- ]?week low\b/i, metric: '52w low', unit: '', value: (e) => e.low52w },
+  { re: /\b(?:20[- ]day[- ])?volatility\b|\bvol[- ]20d\b/i, metric: 'vol 20d', unit: '%', value: (e) => e.vol20d },
+  { re: /\b1[- ]?mo(?:nth)?[- ]?return\b/i, metric: '1m return', unit: '%', value: (e) => e.ret1m },
+  { re: /\b3[- ]?mo(?:nth)?[- ]?return\b/i, metric: '3m return', unit: '%', value: (e) => e.ret3m },
+  { re: /\b12[- ]?mo(?:nth)?[- ]?return\b|\b1[- ]?y(?:ear)?[- ]?return\b/i, metric: '12m return', unit: '%', value: (e) => e.ret12m },
+  { re: /\bprice\b|\btrading at\b/i, metric: 'price', unit: '', value: (e) => e.price, dollarOnly: true },
+]
+
+interface ClaimRule {
+  /** Must match the metric label immediately before the number. */
+  re: RegExp
+  metric: string
+  unit: string
+  value: (e: MarketContextEntry) => number | null
+  /** Require an explicit $/currency marker — keeps "the price rose 5%" and
+      "last month it ran 20%" from being read as price claims. */
+  dollarOnly?: boolean
+}
+
+function numFund(e: MarketContextEntry, key: string): number | null {
+  const v = e.fundamentals?.[key]
+  return typeof v === 'number' && Number.isFinite(v) ? v : null
+}
+
+/** Number appearing within ~25 chars after a metric label — "RSI-14: 57.2",
+    "P/E of 156x", "trading at $608". Scale suffixes T/B/M/k expand and are
+    case-sensitive on purpose: a lowercase "m" after a figure is prose, not
+    millions. */
+const NUM_AFTER_LABEL = /^[\s:=(~a-zA-Z]{0,25}?\$?(-?\d[\d,]*(?:\.\d+)?)\s*(T|B|M|k|%|x)?/
+const NUM_AFTER_LABEL_DOLLAR =
+  /^[\s:=(~a-zA-Z]{0,25}?(?:\$|USD|CAD)\s*(-?\d[\d,]*(?:\.\d+)?)\s*(T|B|M|k|%|x)?/
+const SCALE: Record<string, number> = { T: 1e12, B: 1e9, M: 1e6, k: 1e3 }
+
+/** A figure passes when it sits within rounding distance of the row the
+    model was shown — 2% relative or ±0.75 absolute, whichever is wider.
+    Wide enough for "up 2.05%" → "about 2%"; too tight to pass invented
+    numbers. */
+function withinTolerance(claimed: number, actual: number): boolean {
+  return Math.abs(claimed - actual) <= Math.max(0.75, Math.abs(actual) * 0.02)
+}
+
+/** Pull labeled-metric claims out of a reply and check each against the
+    market rows on file. A claim clears if ANY entry's value is within
+    tolerance (symbol attribution is prose-level and unreliable); only
+    figures with no close match anywhere get flagged. */
+export function verifyReplyClaims(
+  reply: string,
+  market: MarketContextEntry[],
+): ClaimMismatch[] {
+  if (market.length === 0 || !/\d/.test(reply)) return []
+  const seen = new Set<string>()
+  const out: ClaimMismatch[] = []
+  for (const rule of CLAIM_RULES) {
+    const labels = new RegExp(rule.re.source, 'gi')
+    for (const m of reply.matchAll(labels)) {
+      const tail = reply.slice((m.index ?? 0) + m[0].length)
+      const numMatch = (rule.dollarOnly ? NUM_AFTER_LABEL_DOLLAR : NUM_AFTER_LABEL).exec(tail)
+      if (!numMatch) continue
+      const claimed = Number(numMatch[1].replace(/,/g, '')) * (SCALE[numMatch[2] ?? ''] ?? 1)
+      if (!Number.isFinite(claimed)) continue
+      const actuals = market.map(rule.value).filter((v): v is number => v !== null)
+      if (actuals.length === 0) continue
+      if (actuals.some((a) => withinTolerance(claimed, a))) continue
+      const key = `${rule.metric}:${claimed}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      /* Report the closest actual value — that is almost certainly the row
+         the model meant to quote. */
+      const actual = actuals.reduce((best, a) =>
+        Math.abs(a - claimed) < Math.abs(best - claimed) ? a : best,
+      )
+      out.push({ metric: rule.metric, claimed, actual, unit: rule.unit })
+    }
+  }
+  return out
+}
+
+/** The correction note sent back on the single repair pass — names the
+    wrong figures plainly so the rewrite fixes them instead of hedging. */
+export function buildRepairNote(mismatches: ClaimMismatch[]): string {
+  const lines = mismatches
+    .map(
+      (m) =>
+        `- ${m.metric}: you wrote ${Math.round(m.claimed * 100) / 100}${m.unit} — on file: ${Math.round(m.actual * 100) / 100}${m.unit}`,
+    )
+    .join('\n')
+  return (
+    'Your reply cited figures that do not match the market data on file:\n' +
+    lines +
+    '\nRewrite the reply using only figures from the data provided — same strict JSON contract ({"reply":…,"action":…,"suggests":[…]}).'
+  )
 }

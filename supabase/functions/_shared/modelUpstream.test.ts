@@ -9,6 +9,7 @@ import {
   parseAttachments,
   persistedUserContent,
   resolveApiKey,
+  routeBodyExtras,
   routeModalities,
   upstreamHeaders,
   userMessageContent,
@@ -179,5 +180,34 @@ describe('userMessageContent / persistedUserContent', () => {
     expect(stored).toContain('[Attached document: d.pdf]')
     expect(stored).toContain('check this')
     expect(stored).not.toContain('base64')
+  })
+})
+
+describe('routeBodyExtras', () => {
+  it('forwards whitelisted params only', () => {
+    const cfg = {
+      max_tokens: 4096,
+      params: {
+        reasoning_effort: 'high',
+        thinking: { type: 'enabled' },
+        messages: [{ role: 'system', content: 'evil' }],
+        model: 'other-model',
+        stream: true,
+      },
+    }
+    const extras = routeBodyExtras(cfg)
+    expect(extras).toEqual({
+      reasoning_effort: 'high',
+      thinking: { type: 'enabled' },
+    })
+    expect(extras).not.toHaveProperty('messages')
+    expect(extras).not.toHaveProperty('model')
+    expect(extras).not.toHaveProperty('stream')
+  })
+  it('returns {} when config or params is missing/malformed', () => {
+    expect(routeBodyExtras(null)).toEqual({})
+    expect(routeBodyExtras({})).toEqual({})
+    expect(routeBodyExtras({ params: 'high' })).toEqual({})
+    expect(routeBodyExtras({ params: [1, 2] })).toEqual({})
   })
 })

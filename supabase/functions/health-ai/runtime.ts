@@ -2,6 +2,7 @@ import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import {
   postChatCompletion,
   readUpstreamText,
+  routeBodyExtras,
   type ApiKeyResult,
 } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
@@ -278,6 +279,7 @@ export async function runChat(
         temperature: 0.4,
         max_tokens: 500,
         stream,
+        ...routeBodyExtras(found.config),
       },
       UPSTREAM_TIMEOUT_MS,
     )

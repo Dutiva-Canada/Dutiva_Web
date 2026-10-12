@@ -1,7 +1,7 @@
 import { finalizeAiUsage, type UsageDbClient } from '../_shared/aiUsage.ts'
 import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
 import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
-import { postChatCompletion, resolveApiKey } from '../_shared/modelUpstream.ts'
+import { postChatCompletion, resolveApiKey, routeBodyExtras } from '../_shared/modelUpstream.ts'
 import type { UpstreamMessage } from '../_shared/modelUpstream.ts'
 import type {
   ChatMessage,
@@ -195,6 +195,7 @@ export async function requestCompletion(
         ...(typeof route.config?.temperature === 'number'
           ? { temperature: route.config.temperature }
           : {}),
+        ...routeBodyExtras(route.config),
       },
       typeof route.config?.timeout_ms === 'number' ? route.config.timeout_ms : undefined,
     )

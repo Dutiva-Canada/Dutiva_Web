@@ -2,13 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import {
   INVEST_CHAT_ACTION_TYPES,
+  buildRepairNote,
   extractMentionedSymbols,
   formatMarketEntry,
   investChatPrompt,
   investReactPrompt,
   parseInvestChatReply,
   resolveInvestRef,
+  verifyReplyClaims,
   type InvestChatContext,
+  type MarketContextEntry,
 } from './handlers'
 
 const EMPTY_CTX: InvestChatContext = {
@@ -54,7 +57,19 @@ describe('parseInvestChatReply', () => {
       reply: 'hi',
       action: null,
       suggests: [],
+      fetch: [],
     })
+  })
+  it('accepts an empty reply only when fetch names real tickers', () => {
+    const out = parseInvestChatReply('{"reply":"","action":null,"fetch":["nvda","SHOP"]}')
+    expect(out).toMatchObject({ reply: '', fetch: ['NVDA', 'SHOP'] })
+    /* fetch alone does not rescue a junk payload */
+    expect(parseInvestChatReply('{"reply":"","fetch":[]}')).toBeNull()
+    expect(parseInvestChatReply('{"reply":"","fetch":["not a ticker!!!"]}')).toBeNull()
+    /* a reply that has text AND fetch is final — fetch is ignored */
+    const done = parseInvestChatReply('{"reply":"done","fetch":["NVDA"]}')
+    expect(done?.reply).toBe('done')
+    expect(done?.fetch).toEqual(['NVDA'])
   })
   it('keeps string suggests, drops anything else', () => {
     const out = parseInvestChatReply(
@@ -544,5 +559,44 @@ describe('investReactPrompt — market grounding', () => {
       'en',
     )
     expect(p).toContain('market data: AMD (equity): 254.3 USD')
+  })
+})
+
+describe('verifyReplyClaims', () => {
+  const amd: MarketContextEntry = {
+    symbol: 'AMD', assetClass: 'equity', price: 608.1, currency: 'USD',
+    dayChangePct: -2.03, ma50: 528.9, ma200: 385.3, rsi14: 57.2,
+    ret1m: 20.8, ret3m: 13.8, ret12m: 158.2, vol20d: 53.8,
+    high52w: 649.4, low52w: 190.9,
+    fundamentals: { market_cap: 985e9, pe_trailing: 156.8, currency: 'USD' },
+    asOf: '2026-10-11T02:23:00Z', headlines: [],
+  }
+  it('passes figures that match the row (within rounding)', () => {
+    const reply =
+      'AMD trades at $608.10 with RSI-14 at 57.2, a P/E of 156.8x, and a 52-week high of 649.4.'
+    expect(verifyReplyClaims(reply, [amd])).toEqual([])
+    /* roundings of the same figure pass */
+    expect(verifyReplyClaims('RSI sits around 57 and the P/E is 157x', [amd])).toEqual([])
+  })
+  it('flags invented figures and reports the on-file value', () => {
+    const out = verifyReplyClaims('AMD shows RSI-14 at 41.0 and a P/E of 28x.', [amd])
+    expect(out).toHaveLength(2)
+    expect(out.find((m) => m.metric === 'RSI-14')).toMatchObject({ claimed: 41, actual: 57.2 })
+    expect(out.find((m) => m.metric === 'P/E')).toMatchObject({ claimed: 28, actual: 156.8 })
+  })
+  it('skips metrics with no row on file and ignores unlabeled numbers', () => {
+    /* no eps on file → an EPS claim cannot be checked, so it passes */
+    expect(verifyReplyClaims('EPS is 3.20.', [amd])).toEqual([])
+    /* derived math ("30% above the 200-day") is not a labeled claim */
+    expect(verifyReplyClaims('It sits 30% above the trend.', [amd])).toEqual([])
+    /* "the price rose 5%" is prose, not a price claim — needs the $ marker */
+    expect(verifyReplyClaims('the price rose 5% yesterday', [amd])).toEqual([])
+  })
+  it('produces a repair note naming both figures', () => {
+    const note = buildRepairNote([{ metric: 'RSI-14', claimed: 41, actual: 57.2, unit: '' }])
+    expect(note).toContain('RSI-14')
+    expect(note).toContain('41')
+    expect(note).toContain('57.2')
+    expect(note).toContain('JSON')
   })
 })
