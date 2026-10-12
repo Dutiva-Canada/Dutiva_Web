@@ -586,6 +586,13 @@ export const healthMessages = defineMessages({
   /* The model's thinking trace — disclosure on an assistant turn.
      [FR self-authored] */
   health_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
+  /* Tooltip on the reasoning disclosure — frames the trace as raw working
+     so a mid-stream guess isn't read as a verified claim.
+     [FR self-authored] */
+  health_chat_reasoning_hint: {
+    en: 'Raw working notes — guesses and false starts included',
+    fr: 'Notes de travail brutes — essais et hypothèses compris',
+  },
   health_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   health_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   health_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

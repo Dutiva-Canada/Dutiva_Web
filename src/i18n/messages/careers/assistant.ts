@@ -118,6 +118,13 @@ export const careersAssistant = defineMessages({
   /* The model's thinking trace — disclosure on an assistant turn.
      [FR self-authored] */
   careers_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
+  /* Tooltip on the reasoning disclosure — frames the trace as raw working
+     so a mid-stream guess isn't read as a verified claim.
+     [FR self-authored] */
+  careers_chat_reasoning_hint: {
+    en: 'Raw working notes — guesses and false starts included',
+    fr: 'Notes de travail brutes — essais et hypothèses compris',
+  },
   /* The grounding sources behind a reply — collapsed disclosure under an
      assistant turn listing the postings it leaned on. [FR self-authored] */
   careers_chat_sources: { en: 'Sources', fr: 'Sources' },

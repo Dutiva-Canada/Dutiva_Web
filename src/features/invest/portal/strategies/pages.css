@@ -673,6 +673,13 @@
   color: var(--sb-muted);
   font-size: 12px;
 }
+/* Stop control inside the pending bubble — the bare square glyph alone
+   read as a dead checkbox, so it carries the word now. */
+.sbchat-stop {
+  gap: 5px;
+  padding: 2px 8px;
+  font-size: 10.5px;
+}
 /* Header cluster — thread switcher + clear. */
 .sbchat-head-actions {
   display: flex;

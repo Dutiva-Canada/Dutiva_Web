@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ArrowDown, Check, ChevronDown, Copy, MessageSquarePlus } from 'lucide-react'
 
 /* Shared components for the four standalone portal chats (Tally, Mira,
@@ -80,27 +80,60 @@ export function ReasoningBlock({
   text,
   live,
   label,
+  hint,
   className,
   bodyClass,
+  children,
 }: {
   text: string
+  /* True for the whole in-flight turn — the panel stays open while
+     reasoning *and* the reply stream, and only settles collapsed once the
+     turn lands. */
   live: boolean
   label: string
+  /* Tooltip on the summary — frames the trace as raw working so a guess
+     mid-stream isn't read as a verified claim. */
+  hint?: string
   className?: string
   bodyClass?: string
+  /* Rendered body — pages pass their lazy ChatMarkdown so bullets/tables in
+     the trace format like a reply does; plain `text` is the fallback while
+     the chunk loads. */
+  children?: ReactNode
 }) {
   const ref = useRef<HTMLDetailsElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  /* Auto-follow: while live the box tracks the newest line — until the
+     reader scrolls up inside it, which releases the pin so their position
+     isn't yanked. Touching the bottom again re-pins. */
+  const pinnedRef = useRef(true)
   /* `open` is driven by DOM mutation, not a prop — React never owns the
      attribute, so a reader's manual toggle survives re-renders and the
      live transition can't fight them. */
   useEffect(() => {
     if (ref.current) ref.current.open = live
   }, [live])
+  useEffect(() => {
+    const el = bodyRef.current
+    if (live && el && pinnedRef.current) el.scrollTop = el.scrollHeight
+  }, [text, live])
   if (!text) return null
   return (
     <details ref={ref} className={className} data-live={live || undefined}>
-      <summary>{label}</summary>
-      <div className={bodyClass}>{text}</div>
+      <summary title={hint}>{label}</summary>
+      <div
+        ref={bodyRef}
+        className={bodyClass}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        onScroll={() => {
+          const el = bodyRef.current
+          if (el) pinnedRef.current = el.scrollTop + el.clientHeight >= el.scrollHeight - 24
+        }}
+      >
+        {children ?? text}
+      </div>
     </details>
   )
 }

@@ -614,9 +614,14 @@ export function HealthChatPage() {
                           text={t.reasoning}
                           live={false}
                           label={x(HM.health_chat_reasoning)}
+                          hint={x(HM.health_chat_reasoning_hint)}
                           className="sbchat-sees sbchat-think"
                           bodyClass="sbchat-think-body"
-                        />
+                        >
+                          <Suspense fallback={t.reasoning}>
+                            <ChatMarkdown widgetSurface="health">{t.reasoning}</ChatMarkdown>
+                          </Suspense>
+                        </ReasoningBlock>
                       )}
                       {t.role === 'assistant' ? (
                         <Suspense fallback={t.content}>
@@ -736,11 +741,18 @@ export function HealthChatPage() {
                 {streamedReasoning && (
                   <ReasoningBlock
                     text={streamedReasoning}
-                    live={!streamed}
+                    live={sending}
                     label={x(HM.health_chat_reasoning)}
+                    hint={x(HM.health_chat_reasoning_hint)}
                     className="sbchat-sees sbchat-think"
                     bodyClass="sbchat-think-body"
-                  />
+                  >
+                    <Suspense fallback={streamedReasoning}>
+                      <ChatMarkdown widgetSurface="health" streaming>
+                        {streamedReasoning}
+                      </ChatMarkdown>
+                    </Suspense>
+                  </ReasoningBlock>
                 )}
                 {streamed ? (
                   <Suspense fallback={streamed}>
@@ -748,7 +760,7 @@ export function HealthChatPage() {
                       {streamed}
                     </ChatMarkdown>
                   </Suspense>
-                ) : (
+                ) : streamedReasoning ? null : (
                   <span className="sbchat-typing">
                     <Loader2 size={12} className="animate-spin" aria-hidden="true" />
                     {x(HM.health_chat_typing)}
@@ -757,12 +769,13 @@ export function HealthChatPage() {
                 <span className="sbchat-bubble-meta">
                   <button
                     type="button"
-                    className="sbchat-rate-btn"
+                    className="sbchat-rate-btn sbchat-stop"
                     aria-label={x(HM.health_chat_stop)}
                     title={x(HM.health_chat_stop)}
                     onClick={() => abortRef.current?.abort()}
                   >
                     <Square size={11} aria-hidden="true" />
+                    {x(HM.health_chat_stop)}
                   </button>
                 </span>
               </div>

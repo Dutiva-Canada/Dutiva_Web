@@ -571,9 +571,14 @@ export function PortalChatPage() {
                           text={t.reasoning}
                           live={false}
                           label={x(M.careers_chat_reasoning)}
+                          hint={x(M.careers_chat_reasoning_hint)}
                           className="mb-[8px] text-[11.5px] text-text-faint"
                           bodyClass="mt-[4px] max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-[8px] border border-border bg-bg px-[10px] py-[8px] leading-[1.5] text-text-muted"
-                        />
+                        >
+                          <Suspense fallback={t.reasoning}>
+                            <ChatMarkdown widgetSurface={null}>{t.reasoning}</ChatMarkdown>
+                          </Suspense>
+                        </ReasoningBlock>
                       )}
                       {t.role === 'assistant' ? (
                         <Suspense fallback={t.content}>
@@ -676,11 +681,18 @@ export function PortalChatPage() {
                 {streamedReasoning && (
                   <ReasoningBlock
                     text={streamedReasoning}
-                    live={!streamed}
+                    live={sending}
                     label={x(M.careers_chat_reasoning)}
+                    hint={x(M.careers_chat_reasoning_hint)}
                     className="mb-[8px] text-[11.5px] text-text-faint"
                     bodyClass="mt-[4px] max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-[8px] border border-border bg-bg px-[10px] py-[8px] leading-[1.5] text-text-muted"
-                  />
+                  >
+                    <Suspense fallback={streamedReasoning}>
+                      <ChatMarkdown widgetSurface={null} streaming>
+                        {streamedReasoning}
+                      </ChatMarkdown>
+                    </Suspense>
+                  </ReasoningBlock>
                 )}
                 {streamed ? (
                   <Suspense fallback={streamed}>
@@ -693,7 +705,7 @@ export function PortalChatPage() {
                     <Loader2 size={12} className="motion-safe:animate-spin" aria-hidden="true" />
                     {x(M.careers_chat_searching)}
                   </span>
-                ) : (
+                ) : streamedReasoning ? null : (
                   <span className="inline-flex items-center gap-[7px] text-[12px] text-text-muted">
                     <Loader2 size={12} className="motion-safe:animate-spin" aria-hidden="true" />
                     {x(M.careers_chat_typing)}
@@ -702,12 +714,13 @@ export function PortalChatPage() {
                 <span className="mt-[6px] flex justify-end text-[10.5px] opacity-80">
                   <button
                     type="button"
-                    className={rateBtn(false)}
+                    className={`${rateBtn(false)} inline-flex items-center gap-[5px] px-[8px]`}
                     aria-label={x(M.careers_chat_stop)}
                     title={x(M.careers_chat_stop)}
                     onClick={() => abortRef.current?.abort()}
                   >
                     <Square size={11} aria-hidden="true" />
+                    {x(M.careers_chat_stop)}
                   </button>
                 </span>
               </div>
