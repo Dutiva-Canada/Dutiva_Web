@@ -373,6 +373,9 @@
 }
 .sbchat-bubble.assistant {
   align-self: flex-start;
+  /* Structured reads (labeled sections, small tables) need the room — user
+     bubbles stay tighter. */
+  max-width: min(88%, 640px);
   background: var(--sb-input);
   border: 1px solid var(--sb-line);
   color: var(--sb-ink);

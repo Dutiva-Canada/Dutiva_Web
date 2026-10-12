@@ -1,7 +1,7 @@
 import { finalizeAiUsage, type UsageDbClient } from '../_shared/aiUsage.ts'
 import { reportAdvisorOverageMeter } from '../_shared/advisorOverageMeter.ts'
 import { readStripeSecretKey } from '../_shared/stripeSecret.ts'
-import { postChatCompletion, resolveApiKey, routeBodyExtras } from '../_shared/modelUpstream.ts'
+import { postChatCompletion, resolveApiKey, routeBodyExtras, routeMaxTokens } from '../_shared/modelUpstream.ts'
 import type { UpstreamMessage } from '../_shared/modelUpstream.ts'
 import type {
   ChatMessage,
@@ -75,6 +75,10 @@ const SYSTEM_PROMPT_BODY =
   'table using a ```chart fenced block: {"type","title","x","format",' +
   '"series":[{"key","label"}],"data":[…]}. type is bar, hbar, line, area, or donut. ' +
   'Emit the chart in addition to the table, never instead of it.\n' +
+  '- Match the answer\'s size to the question — a direct sentence or two for ' +
+  'a simple ask; when the question needs reasoning through (comparisons, ' +
+  'sequences, multi-step guidance), give the complete answer with structure ' +
+  'rather than a summary.\n' +
   '- Never emit raw HTML — it is not rendered.'
 
 export const SYSTEM_PROMPT = SYSTEM_PROMPT_OPENING + SYSTEM_PROMPT_BODY
@@ -188,7 +192,7 @@ export async function requestCompletion(
           ...history,
           userMessage,
         ],
-        max_tokens: route.config?.max_tokens ?? 800,
+        max_tokens: routeMaxTokens(route.config, 1200),
         /* DB-tunable so a model that pins sampling (some reasoning models
            reject temperature != 1) needs a config change, not a deploy. The
            typeof guard keeps a jsonb null or string from reaching the wire. */

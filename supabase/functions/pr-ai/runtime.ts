@@ -4,6 +4,7 @@ import {
   readUpstreamCompletion,
   readUpstreamText,
   routeBodyExtras,
+  routeMaxTokens,
   type ApiKeyResult,
 } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
@@ -25,7 +26,9 @@ import {
    under the repo's file-size budget. Deno-only — the pure/prompt layer
    lives in handlers.ts where vitest can reach it. */
 
-export const UPSTREAM_TIMEOUT_MS = 45_000
+/* Reasoning streams live while the upstream call runs — a deeper desk read
+   legitimately needs more than 45s now. */
+export const UPSTREAM_TIMEOUT_MS = 120_000
 const CHAT_HISTORY = 20
 const CHAT_LIST_CAP = 15
 
@@ -272,8 +275,10 @@ export async function runChat(
         ],
         temperature: 0.4,
         /* Reasoning params from the route share this budget — headroom so a
-           thinking pass can't starve the reply. */
-        max_tokens: 1500,
+           thinking pass can't starve the reply. Route config wins; the
+           default leaves room for a real desk read when the person asks for
+           a plan or a weighed comparison. */
+        max_tokens: routeMaxTokens(found.config, 3000),
         stream,
         ...routeBodyExtras(found.config),
       },

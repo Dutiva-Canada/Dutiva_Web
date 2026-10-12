@@ -125,6 +125,14 @@ export function routeBodyExtras(config: unknown): Record<string, unknown> {
   return out
 }
 
+/** Route-set `max_tokens` ceiling — a positive finite number wins, anything
+    else falls back to the caller's default so a malformed config can't zero
+    a reply budget. */
+export function routeMaxTokens(config: unknown, fallback: number): number {
+  const raw = (config as Record<string, unknown> | null)?.max_tokens
+  return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : fallback
+}
+
 /**
  * One POST to the provider. Throws on network failure / timeout — callers
  * map that to their own 502 path. `AbortSignal.timeout` is supported on the

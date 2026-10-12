@@ -4,6 +4,7 @@ import {
   readUpstreamCompletion,
   readUpstreamText,
   routeBodyExtras,
+  routeMaxTokens,
   type ApiKeyResult,
 } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
@@ -32,7 +33,9 @@ import {
    pure/prompt layer lives in handlers.ts where vitest can reach it. */
 
 export const FACTS_DAYS = 14
-export const UPSTREAM_TIMEOUT_MS = 45_000
+/* The reasoning pass streams to the thinking panel live, so a longer honest
+   call stays transparent — 45s was starving deep replies. */
+export const UPSTREAM_TIMEOUT_MS = 120_000
 
 export function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -281,8 +284,10 @@ export async function runChat(
         ],
         temperature: 0.4,
         /* Reasoning params from the route share this budget — headroom so a
-           thinking pass can't starve the reply. */
-        max_tokens: 1500,
+           thinking pass can't starve the reply. Route config wins; the
+           default leaves room for a fuller read when the person asks for
+           their numbers or a plan. */
+        max_tokens: routeMaxTokens(found.config, 3000),
         stream,
         ...routeBodyExtras(found.config),
       },
