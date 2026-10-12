@@ -64,7 +64,7 @@ describe('prChatPrompt', () => {
 describe('parsePrChatReply', () => {
   it('parses a clean reply with no action', () => {
     const out = parsePrChatReply('{"reply":"Hi there","action":null}')
-    expect(out).toEqual({ reply: 'Hi there', action: null, suggests: [] })
+    expect(out).toEqual({ reply: 'Hi there', action: null, suggests: [], search: null })
   })
   it('keeps string suggests, drops anything else', () => {
     const out = parsePrChatReply(
@@ -116,7 +116,25 @@ describe('parsePrChatReply', () => {
     /* A fenced-but-valid block still parses — the strip handles it. */
     expect(
       parsePrChatReply('```json\n{"reply":"ok","action":null}\n```'),
-    ).toEqual({ reply: 'ok', action: null, suggests: [] })
+    ).toEqual({ reply: 'ok', action: null, suggests: [], search: null })
+  })
+  it('accepts an empty reply only when a live-web search is outstanding', () => {
+    const out = parsePrChatReply(
+      '{"reply":"","action":null,"search":"  who covered   the launch  "}',
+    )
+    expect(out).toEqual({ reply: '', action: null, suggests: [], search: 'who covered the launch' })
+    /* malformed or empty search values don't rescue a reply-less payload */
+    expect(parsePrChatReply('{"reply":"","search":""}')).toBeNull()
+    expect(parsePrChatReply('{"reply":"","search":["q"]}')).toBeNull()
+    /* the query is length-capped */
+    const long = parsePrChatReply(`{"reply":"","search":"${'q'.repeat(300)}"}`)
+    expect(long?.search?.length).toBe(160)
+    /* a hop request keeps its action slot honest too */
+    const withAction = parsePrChatReply(
+      '{"reply":"","search":"q","action":{"type":"add_keyword","keyword":"ai hiring"}}',
+    )
+    expect(withAction?.search).toBe('q')
+    expect(withAction?.action).toEqual({ type: 'add_keyword', keyword: 'ai hiring', targetUrl: undefined })
   })
   it('rejects out-of-vocab enum values by dropping them, not the action', () => {
     const out = parsePrChatReply(

@@ -143,6 +143,10 @@ export function PrChatPage() {
   /* The in-flight thinking trace — reasoning pieces land ahead of the
      reply, so the thinking panel fills while the bubble is still waiting. */
   const [streamedReasoning, setStreamedReasoning] = useState('')
+  /* True while the model's live web lookup runs — the pending bubble
+     swaps its typing line for a "searching" status until the reply
+     starts streaming. */
+  const [searching, setSearching] = useState(false)
   const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
   const [hasMore, setHasMore] = useState(false)
@@ -270,6 +274,7 @@ export function PrChatPage() {
     setSending(true)
     setStreamed('')
     setStreamedReasoning('')
+    setSearching(false)
     setSuggests([])
     setReasonFor(null)
     /* Optimistic user turn — your message should appear the moment you send,
@@ -297,6 +302,9 @@ export function PrChatPage() {
         onReasoning: (t) => {
           reasoningSoFar = t
           setStreamedReasoning(t)
+        },
+        onStatus: (code) => {
+          if (code === 'web_search') setSearching(true)
         },
       })
       await adoptReply(result)
@@ -336,6 +344,7 @@ export function PrChatPage() {
       setSending(false)
       setStreamed('')
       setStreamedReasoning('')
+      setSearching(false)
     }
   }
 
@@ -368,6 +377,7 @@ export function PrChatPage() {
     setSending(true)
     setStreamed('')
     setStreamedReasoning('')
+    setSearching(false)
     setSuggests([])
     setReasonFor(null)
     stickToBottom()
@@ -389,6 +399,9 @@ export function PrChatPage() {
         threadId,
         signal: ctrl.signal,
         onReasoning: setStreamedReasoning,
+        onStatus: (code) => {
+          if (code === 'web_search') setSearching(true)
+        },
       })
       await adoptReply(result)
     } catch (err) {
@@ -398,6 +411,7 @@ export function PrChatPage() {
       setSending(false)
       setStreamed('')
       setStreamedReasoning('')
+      setSearching(false)
     }
   }
 
@@ -768,6 +782,11 @@ export function PrChatPage() {
                       {streamed}
                     </ChatMarkdown>
                   </Suspense>
+                ) : searching ? (
+                  <span className="sbchat-typing">
+                    <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                    {x(PM.pr_chat_searching)}
+                  </span>
                 ) : (
                   <span className="sbchat-typing">
                     <Loader2 size={12} className="animate-spin" aria-hidden="true" />

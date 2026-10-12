@@ -59,6 +59,7 @@ describe('parseInvestChatReply', () => {
       action: null,
       suggests: [],
       fetch: [],
+      search: null,
     })
   })
   it('accepts an empty reply only when fetch names real tickers', () => {
@@ -71,6 +72,23 @@ describe('parseInvestChatReply', () => {
     const done = parseInvestChatReply('{"reply":"done","fetch":["NVDA"]}')
     expect(done?.reply).toBe('done')
     expect(done?.fetch).toEqual(['NVDA'])
+  })
+  it('accepts an empty reply only when a live-web search is outstanding', () => {
+    const out = parseInvestChatReply(
+      '{"reply":"","action":null,"search":"  bank of   canada rate decision  "}',
+    )
+    expect(out).toMatchObject({ reply: '', search: 'bank of canada rate decision' })
+    /* search alone does not rescue a junk payload either */
+    expect(parseInvestChatReply('{"reply":"","search":""}')).toBeNull()
+    expect(parseInvestChatReply('{"reply":"","search":42}')).toBeNull()
+    /* whitespace collapses and the query is length-capped */
+    const long = parseInvestChatReply(`{"reply":"","search":"${'q'.repeat(300)}"}`)
+    expect(long?.search?.length).toBe(160)
+    /* the two escapes can combine in one hop */
+    const both = parseInvestChatReply(
+      '{"reply":"","fetch":["amd"],"search":"amd latest news"}',
+    )
+    expect(both).toMatchObject({ fetch: ['AMD'], search: 'amd latest news' })
   })
   it('keeps string suggests, drops anything else', () => {
     const out = parseInvestChatReply(

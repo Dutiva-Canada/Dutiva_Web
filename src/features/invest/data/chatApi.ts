@@ -70,6 +70,7 @@ export interface InvestChatCallOpts {
   /** Live thinking trace — cumulative text per reasoning piece, same
       accumulation contract as onDelta. Only fires on the streamed path. */
   onReasoning?: (text: string) => void
+  onStatus?: (code: string) => void
 }
 
 /** One turn of the book conversation. The server writes both sides to
@@ -102,7 +103,7 @@ export async function sendInvestChat(
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
-          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'invest-ai', body)
   ) as {
@@ -140,7 +141,7 @@ export async function regenerateInvestChat(
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
-          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'invest-ai', body)
   ) as {

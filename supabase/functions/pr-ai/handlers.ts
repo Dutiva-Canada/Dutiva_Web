@@ -330,6 +330,11 @@ export interface PrChatReply {
   /* Short next-prompt chips the client shows as tappable follow-ups —
      ephemeral: they ride the reply payload, never the stored turn. */
   suggests: string[]
+  /* A live-web query the model wants run before answering — one bounded
+     hop for current coverage/events outside the desk rows. The server
+     runs it; the model never sees or emits a URL. Null on every final
+     reply. */
+  search: string | null
 }
 
 export const PR_CHAT_ACTION_TYPES = new Set([
@@ -400,6 +405,7 @@ export function prChatPrompt(
       'Only emit an action the person actually asked for. If a campaign name does not match the list below, ask which one they mean instead of guessing.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<sized to the ask — a sentence or two for quick questions; when they want a strategy, a plan, or options weighed, go as deep as the desk data supports — bold labels, short bullets, a small table when comparing>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      'One exception before you answer: if the question turns on current coverage or events outside the desk rows — who covered something this week, a breaking story, a trend worth riding — you may reply {"reply":"","action":null,"search":"<one web query>"} and the live search results come back to you. Use it at most once per turn; if the results are thin or off-topic, say so rather than inventing coverage.',
       '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       'Desk data:',
@@ -466,9 +472,16 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       reply?: unknown
       action?: unknown
       suggests?: unknown
+      search?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
-    if (!reply) return null
+    /* `search` is the one-hop escape — a live-web query the server runs;
+       an empty reply is only legal while one is outstanding. */
+    const search =
+      typeof obj.search === 'string' && obj.search.trim() !== ''
+        ? obj.search.trim().replace(/\s+/g, ' ').slice(0, 160)
+        : null
+    if (!reply && !search) return null
     /* Follow-up chips — kept only as clean short strings; malformed or
        oversized entries drop out rather than fail the whole reply. */
     const suggests = Array.isArray(obj.suggests)
@@ -478,8 +491,14 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
           .filter((s) => s !== '')
           .slice(0, 3)
       : []
+    const finish = (action: PrChatAction | null): PrChatReply => ({
+      reply,
+      suggests,
+      search,
+      action,
+    })
     const a = obj.action
-    if (a === null || a === undefined) return { reply, action: null, suggests }
+    if (a === null || a === undefined) return finish(null)
     if (typeof a !== 'object') return null
     const action = a as Record<string, unknown>
     if (typeof action.type !== 'string' || !PR_CHAT_ACTION_TYPES.has(action.type)) return null
@@ -487,83 +506,63 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       case 'add_campaign': {
         const name = optStr(action.name, 120)
         if (!name) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_campaign',
-            name,
-            channel: optEnum(action.channel, CHANNELS),
-            objective: optStr(action.objective, 300),
-          },
-        }
+        return finish({
+          type: 'add_campaign',
+          name,
+          channel: optEnum(action.channel, CHANNELS),
+          objective: optStr(action.objective, 300),
+        })
       }
       case 'add_content_item': {
         const title = optStr(action.title, 200)
         if (!title) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_content_item',
-            title,
-            kind: optEnum(action.kind, CONTENT_KINDS),
-            channel: optStr(action.channel, 60),
-            body: optStr(action.body, 4000),
-            campaign: optStr(action.campaign, 120),
-          },
-        }
+        return finish({
+          type: 'add_content_item',
+          title,
+          kind: optEnum(action.kind, CONTENT_KINDS),
+          channel: optStr(action.channel, 60),
+          body: optStr(action.body, 4000),
+          campaign: optStr(action.campaign, 120),
+        })
       }
       case 'add_media_contact': {
         const name = optStr(action.name, 120)
         if (!name) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_media_contact',
-            name,
-            outlet: optStr(action.outlet, 120),
-            beat: optStr(action.beat, 80),
-            email: optEmail(action.email),
-            note: optStr(action.note, 500),
-          },
-        }
+        return finish({
+          type: 'add_media_contact',
+          name,
+          outlet: optStr(action.outlet, 120),
+          beat: optStr(action.beat, 80),
+          email: optEmail(action.email),
+          note: optStr(action.note, 500),
+        })
       }
       case 'add_mention': {
         const title = optStr(action.title, 300)
         if (!title) return null
-        return {
-          reply,
-          suggests,
-          action: {
-            type: 'add_mention',
-            title,
-            source: optStr(action.source, 120),
-            url: optUrl(action.url),
-            sentiment: optEnum(action.sentiment, new Set(PR_SENTIMENTS)),
-          },
-        }
+        return finish({
+          type: 'add_mention',
+          title,
+          source: optStr(action.source, 120),
+          url: optUrl(action.url),
+          sentiment: optEnum(action.sentiment, new Set(PR_SENTIMENTS)),
+        })
       }
       case 'add_keyword': {
         const keyword = optStr(action.keyword, 120)
         if (!keyword) return null
-        return { reply, suggests, action: { type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) } }
+        return finish({ type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) })
       }
       case 'add_geo_prompt': {
         const prompt = optStr(action.prompt, 300)
         if (!prompt || prompt.length < 8) return null
-        return { reply, suggests, action: { type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) } }
+        return finish({ type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) })
       }
       case 'update_campaign_status': {
         const campaign = optStr(action.campaign, 120)
         const status = optEnum(action.status, CAMPAIGN_STATUSES)
         if (!campaign || !status) return null
-        return {
-          reply,
-          suggests,
-          action: { type: 'update_campaign_status', campaign, status: status as 'draft' | 'active' | 'paused' | 'done' },
-        }
+        return finish({ type: 'update_campaign_status', campaign, status: status as 'draft' | 'active' | 'paused' | 'done' })
       }
     }
     return null

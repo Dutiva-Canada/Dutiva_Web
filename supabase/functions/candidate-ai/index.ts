@@ -25,6 +25,13 @@ import {
   type CandidateChatContext,
 } from './handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import {
+  formatWebResultsBlock,
+  mergeSources,
+  webSearch,
+  webSources,
+  type WebResult,
+} from '../_shared/webSearch.ts'
 
 /**
  * Candidate-ai edge function — optional AI features for the candidate portal
@@ -419,35 +426,75 @@ async function runChat(
     return json({ error: `Missing secret ${keyResult.missingSecret}` }, 500)
   }
 
-  let upstream: Response
-  try {
-    upstream = await postChatCompletion(
+  const baseMessages = [
+    candidateChatPrompt(ctx, lang, { advice }),
+    ...history,
+    { role: 'user' as const, content: message },
+  ]
+  const extras = routeBodyExtras(activeRoute.route.config)
+
+  /* One upstream call, repeatable — round two carries the live search
+     results the model asked for, injected as clearly-marked untrusted
+     context. */
+  const callUpstream = (web: { query: string; results: WebResult[] } | null, streamIt: boolean) => {
+    const messages: typeof baseMessages = [...baseMessages]
+    if (web) {
+      messages.push({
+        role: 'system',
+        content: web.results.length > 0
+          ? formatWebResultsBlock(web.query, web.results, lang)
+          : lang === 'fr'
+            ? `La recherche web pour « ${web.query} » n'a rien retourné — dis-le plutôt que d'inventer.`
+            : `The web search for "${web.query}" returned nothing — say so rather than invent.`,
+      })
+    }
+    return postChatCompletion(
       activeRoute.provider,
       keyResult.apiKey,
       {
         model: activeRoute.route.model_name,
-        messages: [
-          candidateChatPrompt(ctx, lang, { advice }),
-          ...history,
-          { role: 'user', content: message },
-        ],
+        messages,
         /* Reasoning params from the route share this budget — headroom so a
            thinking pass can't starve the reply. */
         max_tokens: routeMaxTokens(activeRoute.route.config, 3000),
         temperature: 0.4,
-        stream,
-        ...routeBodyExtras(activeRoute.route.config),
+        stream: streamIt,
+        ...extras,
       },
       UPSTREAM_TIMEOUT_MS,
     )
-  } catch (error) {
-    console.error('candidate-ai chat: model call failed', error)
-    return json({ error: 'The AI service is temporarily unavailable.' }, 502)
   }
-  if (!upstream.ok) {
-    const errText = await upstream.text()
-    console.error('candidate-ai chat: upstream error', upstream.status, errText.slice(0, 500))
-    return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+
+  /* One round → parsed reply + reasoning. The streamed read emits reply
+     deltas through a fresh per-round extractor and reasoning live. */
+  const readRound = async (
+    upstream: Response,
+    onDelta?: (piece: string) => void,
+    onReasoning?: (piece: string) => void,
+  ): Promise<{
+    parsed: { reply: string; suggests: string[]; search: string | null } | null
+    reasoning: string
+  }> => {
+    if (onDelta || onReasoning) {
+      const extractor = createReplyDeltaExtractor()
+      const { text, reasoning } = await readUpstreamCompletion(
+        upstream,
+        (piece) => {
+          const visible = extractor.push(piece)
+          if (visible) onDelta?.(visible)
+        },
+        (piece) => onReasoning?.(piece),
+      )
+      return { parsed: parseCandidateChatReply(text), reasoning }
+    }
+    const completion = (await upstream.json()) as {
+      choices?: { message?: { content?: string; reasoning_content?: string } }[]
+    }
+    const msg = completion?.choices?.[0]?.message ?? {}
+    return {
+      parsed: parseCandidateChatReply(typeof msg.content === 'string' ? msg.content : null),
+      reasoning: typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '',
+    }
   }
 
   if (stream) {
@@ -455,25 +502,47 @@ async function runChat(
        envelope never reaches the bubble. The done event carries the reply
        + the persisted assistant row id. */
     const sse = sseChannel()
-    const extractor = createReplyDeltaExtractor()
     void (async () => {
       try {
-        /* Reasoning pieces stream to the thinking panel as they arrive —
-           the reply extractor still gates what reaches the bubble. */
-        const { text: fullText, reasoning } = await readUpstreamCompletion(
-          upstream,
-          (piece) => {
-            const visible = extractor.push(piece)
-            if (visible) sse.send({ type: 'delta', text: visible })
-          },
+        let reasoning = ''
+        let webResults: WebResult[] = []
+        const res1 = await callUpstream(null, true)
+        if (!res1.ok) {
+          const errText = await res1.text()
+          console.error('candidate-ai chat: upstream error', res1.status, errText.slice(0, 500))
+          sse.send({ type: 'error', error: 'The AI service is temporarily unavailable.', code: 'upstream' })
+          return
+        }
+        let round = await readRound(
+          res1,
+          (piece) => sse.send({ type: 'delta', text: piece }),
           (piece) => sse.send({ type: 'reasoning', text: piece }),
         )
-        const parsed = parseCandidateChatReply(fullText)
-        if (!parsed) {
+        reasoning = round.reasoning
+        let parsed = round.parsed
+        /* Search hop — the model may hold its answer for one live-web
+           query; round two must reply for real. */
+        if (parsed && parsed.reply === '' && parsed.search) {
+          sse.send({ type: 'status', code: 'web_search' })
+          webResults = await webSearch(parsed.search)
+          const res2 = await callUpstream({ query: parsed.search, results: webResults }, true)
+          if (!res2.ok) {
+            sse.send({ type: 'error', error: 'The AI service is temporarily unavailable.', code: 'upstream' })
+            return
+          }
+          round = await readRound(
+            res2,
+            (piece) => sse.send({ type: 'delta', text: piece }),
+            (piece) => sse.send({ type: 'reasoning', text: piece }),
+          )
+          if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+          parsed = round.parsed
+        }
+        if (!parsed || parsed.reply === '') {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
-        const sources = candidateChatSources(ctx, parsed.reply)
+        const sources = mergeSources(candidateChatSources(ctx, parsed.reply), webSources(webResults))
         const { assistantId } = await persistChatTurns(
           adminClient,
           userId,
@@ -500,14 +569,41 @@ async function runChat(
     return sse.response
   }
 
-  const completion = (await upstream.json()) as {
-    choices?: { message?: { content?: string; reasoning_content?: string } }[]
+  let reasoning = ''
+  let webResults: WebResult[] = []
+  let res1: Response
+  try {
+    res1 = await callUpstream(null, false)
+  } catch (error) {
+    console.error('candidate-ai chat: model call failed', error)
+    return json({ error: 'The AI service is temporarily unavailable.' }, 502)
   }
-  const msg = completion?.choices?.[0]?.message ?? {}
-  const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
-  const parsed = parseCandidateChatReply(msg.content)
-  if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
-  const sources = candidateChatSources(ctx, parsed.reply)
+  if (!res1.ok) {
+    const errText = await res1.text()
+    console.error('candidate-ai chat: upstream error', res1.status, errText.slice(0, 500))
+    return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+  }
+  let round = await readRound(res1)
+  reasoning = round.reasoning
+  let parsed = round.parsed
+  if (parsed && parsed.reply === '' && parsed.search) {
+    webResults = await webSearch(parsed.search)
+    let res2: Response
+    try {
+      res2 = await callUpstream({ query: parsed.search, results: webResults }, false)
+    } catch (error) {
+      console.error('candidate-ai chat: model call failed', error)
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    if (!res2.ok) return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    round = await readRound(res2)
+    if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+    parsed = round.parsed
+  }
+  if (!parsed || parsed.reply === '') {
+    return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  }
+  const sources = mergeSources(candidateChatSources(ctx, parsed.reply), webSources(webResults))
   const { assistantId } = await persistChatTurns(
     adminClient,
     userId,

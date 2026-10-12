@@ -350,6 +350,7 @@ export function candidateChatPrompt(
         : 'Asked for a verdict on THEIR OWN chances or materials — keep it general: honest observations about the data, then point them at the AI tools for a scored read or a tailored draft. A clear-eyed read is welcome; a promised outcome is not.',
       'What Claire never does: she cannot edit the profile, apply to a job, or change agent settings — the Profile page, a job\'s apply page, and the agent card do that; point, don\'t do. And she never discourages someone from applying — name what the data shows, let them decide.',
       'Answer with ONE JSON object: {"reply":"<your reply>","suggests":["<prompt>"]} — the reply is plain text with light markdown allowed; a short paragraph or two for quick questions, and fuller structure when they ask for coaching — how to prep for a posting, weighing options, a plan: short paragraphs, a small list, bold labels where they help scan. "suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply. Omit the field or send an empty array when the exchange is clearly finished. Never include anything else in the JSON.',
+      'One exception before you answer: if the question turns on what a company or the market has been doing lately — a target employer in the news, layoffs or funding at a place they are eyeing, an industry trend — you may answer {"reply":"","search":"<one web query>"} and the live search results come back to you. Use it at most once per turn; if the results are thin or off-topic, say so rather than inventing news.',
       `Today is ${new Date().toISOString().slice(0, 10)}.`,
       lang === 'fr' ? 'Write in Canadian French.' : 'Write in Canadian English.',
       '',
@@ -395,7 +396,7 @@ export function candidateChatSources(
     payload, never the stored turn. */
 export function parseCandidateChatReply(
   raw: string | null | undefined,
-): { reply: string; suggests: string[] } | null {
+): { reply: string; suggests: string[]; search: string | null } | null {
   if (!raw) return null
   const text = raw
     .trim()
@@ -408,9 +409,16 @@ export function parseCandidateChatReply(
     const obj = JSON.parse(text.slice(start, end + 1)) as {
       reply?: unknown
       suggests?: unknown
+      search?: unknown
     }
     const reply = typeof obj.reply === 'string' ? obj.reply.trim() : ''
-    if (!reply) return null
+    /* `search` is the one-hop escape — a live-web query the server runs;
+       an empty reply is only legal while one is outstanding. */
+    const search =
+      typeof obj.search === 'string' && obj.search.trim() !== ''
+        ? obj.search.trim().replace(/\s+/g, ' ').slice(0, 160)
+        : null
+    if (!reply && !search) return null
     /* Follow-up chips — kept only as clean short strings; malformed or
        oversized entries drop out rather than fail the whole reply. */
     const suggests = Array.isArray(obj.suggests)
@@ -420,7 +428,7 @@ export function parseCandidateChatReply(
           .filter((s) => s !== '')
           .slice(0, 3)
       : []
-    return { reply, suggests }
+    return { reply, suggests, search }
   } catch {
     return null
   }

@@ -71,6 +71,7 @@ export interface PrChatCallOpts {
   /** Live thinking trace — cumulative text per reasoning piece. Streamed
       path only. */
   onReasoning?: (text: string) => void
+  onStatus?: (code: string) => void
 }
 
 /** One turn of the desk conversation. The server writes both sides to
@@ -125,7 +126,7 @@ export async function sendPrChat(
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
-          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'pr-ai', body)
   ) as Parameters<typeof toPrChatResult>[0]
@@ -144,7 +145,7 @@ export async function regeneratePrChat(
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
-          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+          client, 'pr-ai', body, onDelta, opts?.signal, opts?.onReasoning, opts?.onStatus,
         )
       : await invokeEdgeFn(client, 'pr-ai', body)
   ) as Parameters<typeof toPrChatResult>[0]

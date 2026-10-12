@@ -98,6 +98,10 @@ export function PortalChatPage() {
   /* The in-flight thinking trace — reasoning pieces land ahead of the
      reply, so the thinking panel fills while the bubble is still waiting. */
   const [streamedReasoning, setStreamedReasoning] = useState('')
+  /* True while the model's live web lookup runs — the pending bubble
+     swaps its typing line for a "searching" status until the reply
+     starts streaming. */
+  const [searching, setSearching] = useState(false)
   const [clearing, setClearing] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -202,6 +206,7 @@ export function PortalChatPage() {
     setSending(true)
     setStreamed('')
     setStreamedReasoning('')
+    setSearching(false)
     setSuggests([])
     setReasonFor(null)
     /* Optimistic user turn — your message should appear the moment you
@@ -228,6 +233,9 @@ export function PortalChatPage() {
         onReasoning: (t) => {
           reasoningSoFar = t
           setStreamedReasoning(t)
+        },
+        onStatus: (code) => {
+          if (code === 'web_search') setSearching(true)
         },
       })
       adoptReply(result)
@@ -269,6 +277,7 @@ export function PortalChatPage() {
       setSending(false)
       setStreamed('')
       setStreamedReasoning('')
+      setSearching(false)
     }
   }
 
@@ -301,6 +310,7 @@ export function PortalChatPage() {
     setSending(true)
     setStreamed('')
     setStreamedReasoning('')
+    setSearching(false)
     setSuggests([])
     setReasonFor(null)
     stickToBottom()
@@ -321,6 +331,9 @@ export function PortalChatPage() {
         threadId,
         signal: ctrl.signal,
         onReasoning: setStreamedReasoning,
+        onStatus: (code) => {
+          if (code === 'web_search') setSearching(true)
+        },
       })
       adoptReply(result)
     } catch (err) {
@@ -337,6 +350,7 @@ export function PortalChatPage() {
       setSending(false)
       setStreamed('')
       setStreamedReasoning('')
+      setSearching(false)
     }
   }
 
@@ -674,6 +688,11 @@ export function PortalChatPage() {
                       {streamed}
                     </ChatMarkdown>
                   </Suspense>
+                ) : searching ? (
+                  <span className="inline-flex items-center gap-[7px] text-[12px] text-text-muted">
+                    <Loader2 size={12} className="motion-safe:animate-spin" aria-hidden="true" />
+                    {x(M.careers_chat_searching)}
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-[7px] text-[12px] text-text-muted">
                     <Loader2 size={12} className="motion-safe:animate-spin" aria-hidden="true" />
