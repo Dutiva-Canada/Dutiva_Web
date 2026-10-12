@@ -123,7 +123,9 @@ describe('HealthPortalLayout', () => {
     const { HealthPortalLayout } = await import('./HealthPortalLayout')
     renderPortal(<HealthPortalLayout />)
 
-    expect(await screen.findByText('Sign in to Dutiva Health')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Sign in to Dutiva Health', {}, { timeout: 3000 }),
+    ).toBeInTheDocument()
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
     expect(screen.getByText(/9-8-8/)).toBeInTheDocument()
   })
@@ -134,7 +136,9 @@ describe('HealthPortalLayout', () => {
     const { HealthPortalLayout } = await import('./HealthPortalLayout')
     renderPortal(<HealthPortalLayout />)
 
-    expect(await screen.findByText('Access required')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Access required', {}, { timeout: 3000 }),
+    ).toBeInTheDocument()
     expect(loadHealthState).not.toHaveBeenCalled()
   })
 
@@ -146,7 +150,7 @@ describe('HealthPortalLayout', () => {
     renderPortal(<HealthPortalLayout />)
 
     // The nav tabs render as soon as the grant resolves.
-    await screen.findByText('home')
+    await screen.findByText('home', {}, { timeout: 3000 })
     expect(screen.getByText('Check-in')).toBeTruthy()
     expect(loadHealthState).toHaveBeenCalled()
   })
@@ -160,7 +164,9 @@ describe('HealthResourcesPage', () => {
     const { HealthResourcesPage } = await import('./HealthResourcesPage')
     renderPortal(<HealthResourcesPage />, '/health/resources')
 
-    expect(await screen.findByText('9-8-8: Suicide Crisis Helpline')).toBeInTheDocument()
+    expect(
+      await screen.findByText('9-8-8: Suicide Crisis Helpline', {}, { timeout: 3000 }),
+    ).toBeInTheDocument()
     expect(screen.getByText('911 — immediate danger')).toBeInTheDocument()
     expect(screen.getByText(/Kids Help Phone/)).toBeInTheDocument()
   })

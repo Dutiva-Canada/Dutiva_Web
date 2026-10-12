@@ -420,7 +420,9 @@ async function runChat(
           ...history,
           { role: 'user', content: message },
         ],
-        max_tokens: activeRoute.route.config?.max_tokens ?? 600,
+        /* Reasoning params from the route share this budget — headroom so a
+           thinking pass can't starve the reply. */
+        max_tokens: activeRoute.route.config?.max_tokens ?? 1500,
         temperature: 0.4,
         stream,
         ...routeBodyExtras(activeRoute.route.config),

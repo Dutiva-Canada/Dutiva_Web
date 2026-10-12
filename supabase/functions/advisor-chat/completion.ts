@@ -236,6 +236,7 @@ export async function recordCompletion(
   latencyMs: number,
   retrieval: RetrievalResult,
   commercialSource?: string,
+  ungroundedCitations?: string[],
 ) {
   const usage = completion.usage ?? {}
   await finalizeAiUsage(adminClient as unknown as UsageDbClient, claimId, {
@@ -250,6 +251,11 @@ export async function recordCompletion(
       retrieved_chunks: retrieval.chunks.length,
       retrieval_failed: retrieval.failed,
       ...(commercialSource ? { commercial: commercialSource } : {}),
+      /* Measured, never enforced — a repair loop on legal citations needs
+         false-positive data before it may touch a reply. */
+      ...(ungroundedCitations && ungroundedCitations.length > 0
+        ? { ungrounded_citations: ungroundedCitations }
+        : {}),
     },
   })
 }
