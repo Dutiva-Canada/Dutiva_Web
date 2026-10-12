@@ -75,6 +75,7 @@ function managementApiNameAliases() {
     ['0105', 'advisor_phase5_signing_jwt_initplan'],
     ['0106', 'advisor_phase6_service_role_policies_fk_indexes'],
     ['0213', 'invest_market_analysis'],
+    ['0214', 'chat_reasoning'],
   ]
   const reason =
     'applied via MCP as NNNN_slug; live schema matches supabase/migrations/NNNN_slug.sql'

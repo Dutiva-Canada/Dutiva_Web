@@ -18,6 +18,7 @@ import type { ProductionConversation } from '@/features/app/views/memory/convers
 import { memoryPathForFact } from '@/features/app/views/memory/memoryRoutes'
 import type { MessageExtras } from './advisorFlows'
 import { genericAck } from './advisorFlows'
+import { reasoningLines } from './advisorViewHelpers'
 import type { ThreadResponseState } from './advisorSession'
 import { operationalNextStepChips } from './advisorViewHelpers'
 import type { ToastAction } from '@/features/app/toasts/toastsContext'
@@ -62,6 +63,7 @@ export function applyRealChatResult(options: {
   const proposedActions = proposalsFromAdvisorResponse(result.response)
   const turnId = pushAdvisor({
     text: replyPayload,
+    ...(result.reasoning != null ? { reasoning: reasoningLines(result.reasoning) } : {}),
     ...(proposedActions.length > 0 ? { proposedActions } : {}),
   })
   if (stateChatId !== null) {

@@ -30,6 +30,10 @@ export async function invokeEdgeFnStream(
   body: Record<string, unknown>,
   onDelta: (text: string) => void,
   signal?: AbortSignal,
+  /* Reasoning-capable routes stream `{type:'reasoning'}` pieces ahead of
+     the reply — onReasoning receives the accumulated thinking text, ready
+     for a state setter, same contract as onDelta. */
+  onReasoning?: (text: string) => void,
 ): Promise<Record<string, unknown>> {
   const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
   const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
@@ -58,6 +62,7 @@ export async function invokeEdgeFnStream(
   const decoder = new TextDecoder()
   let buf = ''
   let acc = ''
+  let thinking = ''
   let doneEvent: Record<string, unknown> | null = null
   let streamError: string | null = null
   for (;;) {
@@ -78,6 +83,9 @@ export async function invokeEdgeFnStream(
       if (event.type === 'delta' && typeof event.text === 'string') {
         acc += event.text
         onDelta(acc)
+      } else if (event.type === 'reasoning' && typeof event.text === 'string') {
+        thinking += event.text
+        onReasoning?.(thinking)
       } else if (event.type === 'done') {
         doneEvent = event as Record<string, unknown>
       } else if (event.type === 'error') {

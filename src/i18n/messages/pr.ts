@@ -706,6 +706,9 @@ export const prMessages = defineMessages({
   /* Conversation chrome — the thinking label, scroll pill, and the
      turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
   pr_chat_typing: { en: 'Paige is thinking…', fr: 'Paige réfléchit…' },
+  /* The model's thinking trace — disclosure on an assistant turn.
+     [FR self-authored] */
+  pr_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
   pr_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   pr_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   pr_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

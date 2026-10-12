@@ -115,6 +115,9 @@ export const careersAssistant = defineMessages({
   /* Conversation chrome — the thinking label, scroll pill, and the
      turn-level affordances (regenerate, reuse, stop). [FR self-authored] */
   careers_chat_typing: { en: 'Claire is thinking…', fr: 'Claire réfléchit…' },
+  /* The model's thinking trace — disclosure on an assistant turn.
+     [FR self-authored] */
+  careers_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
   careers_chat_jump: { en: 'Jump to latest', fr: 'Aller au plus récent' },
   careers_chat_regenerate: { en: 'Try another answer', fr: 'Essayer une autre réponse' },
   careers_chat_reuse: { en: 'Reuse this text', fr: 'Réutiliser ce texte' },

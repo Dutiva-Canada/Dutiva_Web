@@ -32,6 +32,7 @@ import {
   CopyTurnButton,
   JumpToLatest,
   ReasonChips,
+  ReasoningBlock,
   ThreadSwitcher,
 } from '@/components/chat/portalChat'
 import {
@@ -92,6 +93,9 @@ export function PortalChatPage() {
   const [turns, setTurns] = useState<CandidateChatTurn[] | null>(null)
   const [sending, setSending] = useState(false)
   const [streamed, setStreamed] = useState('')
+  /* The in-flight thinking trace — reasoning pieces land ahead of the
+     reply, so the thinking panel fills while the bubble is still waiting. */
+  const [streamedReasoning, setStreamedReasoning] = useState('')
   const [clearing, setClearing] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -114,6 +118,7 @@ export function PortalChatPage() {
     turns,
     sending,
     streamed,
+    streamedReasoning,
   ])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   useAutoGrowTextarea(inputRef, draft)
@@ -164,6 +169,7 @@ export function PortalChatPage() {
     reply: string
     assistantId: string | null
     suggests: string[]
+    reasoning: string | null
   }) => {
     setTurns((prev) => [
       ...(prev ?? []),
@@ -172,6 +178,7 @@ export function PortalChatPage() {
         id: result.assistantId ?? `a-${Date.now()}`,
         role: 'assistant',
         content: result.reply,
+        reasoning: result.reasoning,
         feedback: null,
         createdAt: new Date().toISOString(),
       },
@@ -190,6 +197,7 @@ export function PortalChatPage() {
     abortRef.current = ctrl
     setSending(true)
     setStreamed('')
+    setStreamedReasoning('')
     setSuggests([])
     setReasonFor(null)
     /* Optimistic user turn — your message should appear the moment you
@@ -204,18 +212,27 @@ export function PortalChatPage() {
     }
     stickToBottom()
     setTurns((prev) => [...(prev ?? []), userTurn])
+    /* The abort catch can't see streamedReasoning state that landed after
+       the send began — a local captures the cumulative trace. */
+    let reasoningSoFar = ''
     try {
       /* onDelta turns on SSE — the reply types into the pending bubble as
          it generates; the final payload stays authoritative. */
       const result = await sendCandidateChat(message, lang, setStreamed, {
         threadId,
         signal: ctrl.signal,
+        onReasoning: (t) => {
+          reasoningSoFar = t
+          setStreamedReasoning(t)
+        },
       })
       adoptReply(result)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
-           server may still persist the full reply; reload reconciles). */
+           server may still persist the full reply; reload reconciles). The
+           partial thinking trace rides the turn so it isn't lost. */
+        const partialReasoning = reasoningSoFar || null
         setStreamed((partial) => {
           if (partial) {
             setTurns((prev) => [
@@ -224,6 +241,7 @@ export function PortalChatPage() {
                 id: `a-${Date.now()}`,
                 role: 'assistant' as const,
                 content: partial,
+                reasoning: partialReasoning,
                 feedback: null,
                 createdAt: new Date().toISOString(),
               },
@@ -246,6 +264,7 @@ export function PortalChatPage() {
       abortRef.current = null
       setSending(false)
       setStreamed('')
+      setStreamedReasoning('')
     }
   }
 
@@ -277,6 +296,7 @@ export function PortalChatPage() {
     abortRef.current = ctrl
     setSending(true)
     setStreamed('')
+    setStreamedReasoning('')
     setSuggests([])
     setReasonFor(null)
     stickToBottom()
@@ -296,6 +316,7 @@ export function PortalChatPage() {
       const result = await regenerateCandidateChat(lang, setStreamed, {
         threadId,
         signal: ctrl.signal,
+        onReasoning: setStreamedReasoning,
       })
       adoptReply(result)
     } catch (err) {
@@ -311,6 +332,7 @@ export function PortalChatPage() {
       abortRef.current = null
       setSending(false)
       setStreamed('')
+      setStreamedReasoning('')
     }
   }
 
@@ -526,6 +548,15 @@ export function PortalChatPage() {
                       </div>
                     )}
                     <div className={bubbleClass(t.role, t.failed)}>
+                      {t.role === 'assistant' && t.reasoning && (
+                        <ReasoningBlock
+                          text={t.reasoning}
+                          live={false}
+                          label={x(M.careers_chat_reasoning)}
+                          className="mb-[8px] text-[11.5px] text-text-faint"
+                          bodyClass="mt-[4px] max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-[8px] border border-border bg-bg px-[10px] py-[8px] leading-[1.5] text-text-muted"
+                        />
+                      )}
                       {t.role === 'assistant' ? (
                         <Suspense fallback={t.content}>
                           <ChatMarkdown widgetSurface={null}>{t.content}</ChatMarkdown>
@@ -615,6 +646,15 @@ export function PortalChatPage() {
             )}
             {sending && (
               <div className={bubbleClass('assistant')}>
+                {streamedReasoning && (
+                  <ReasoningBlock
+                    text={streamedReasoning}
+                    live={!streamed}
+                    label={x(M.careers_chat_reasoning)}
+                    className="mb-[8px] text-[11.5px] text-text-faint"
+                    bodyClass="mt-[4px] max-h-[220px] overflow-y-auto whitespace-pre-wrap rounded-[8px] border border-border bg-bg px-[10px] py-[8px] leading-[1.5] text-text-muted"
+                  />
+                )}
                 {streamed ? (
                   <Suspense fallback={streamed}>
                     <ChatMarkdown widgetSurface={null} streaming>

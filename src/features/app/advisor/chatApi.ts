@@ -109,6 +109,9 @@ async function usageLimitFrom(error: unknown): Promise<AdvisorUsageLimitError | 
 const advisorChatResponseSchema = z.object({
   data: z.object({
     reply: z.string(),
+    /* The model's thinking trace when the route reasons — the turn's
+       Reasoning expander content. Older function versions omit it. */
+    reasoning: z.string().optional(),
     conversation_id: z.string(),
     /* Index of the assistant turn inside conversations.messages — the rating
        key for advisor_turn_feedback. Older function versions omit it; thumbs
@@ -121,6 +124,8 @@ const advisorChatResponseSchema = z.object({
 
 export interface AdvisorChatResult {
   reply: string
+  /** Model thinking trace — null when the route doesn't emit one. */
+  reasoning: string | null
   conversationId: string
   /** Index of this assistant turn inside the persisted messages array. */
   turnIndex: number | null
@@ -184,6 +189,7 @@ export async function sendAdvisorMessage(
   }
   return {
     reply: parsed.data.reply,
+    reasoning: parsed.data.reasoning ?? null,
     conversationId: parsed.data.conversation_id,
     turnIndex: parsed.data.turn_index ?? null,
     response,

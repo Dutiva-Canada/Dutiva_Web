@@ -1,5 +1,5 @@
 import { bi } from '@/i18n/core'
-import type { Bi } from '@/i18n/core'
+import type { Bi, LText } from '@/i18n/core'
 import type { ChatMessage } from '@/features/app/advisor/types'
 import type { AuthStatus } from '@/features/app/auth/authContext'
 import type { ProductionConversation } from '@/features/app/views/memory/conversationsApi'
@@ -200,6 +200,21 @@ export function operationalNextStepChips(
   ]
 }
 
+/**
+ * A model thinking trace → the ReasoningExpander's line list. The trace is
+ * model output in whichever language it thought in, so both locales carry
+ * the same text; blank-line paragraphs become separate em-dash lines.
+ */
+export function reasoningLines(trace: string | null | undefined): LText[] | undefined {
+  if (!trace) return undefined
+  const lines = trace
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+    .map((l) => bi(l, l))
+  return lines.length > 0 ? lines : undefined
+}
+
 export function productionTranscript(conv: ProductionConversation): ChatMessage[] {
   return conv.messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -207,6 +222,7 @@ export function productionTranscript(conv: ProductionConversation): ChatMessage[
       id: `prod-${conv.id}-${i}`,
       author: m.role === 'user' ? ('user' as const) : ('assistant' as const),
       text: m.content,
+      reasoning: m.reasoning != null ? reasoningLines(m.reasoning) : undefined,
       status: 'done' as const,
       at: m.at,
     }))

@@ -18,6 +18,7 @@ describe('applyRealChatResult', () => {
     applyRealChatResult({
       result: {
         reply: 'Here is guidance.',
+        reasoning: null,
         conversationId: 'conv-backend',
         turnIndex: 7,
         response: null,
@@ -43,6 +44,7 @@ describe('applyRealChatResult', () => {
     applyRealChatResult({
       result: {
         reply: 'Done.',
+        reasoning: null,
         conversationId: 'conv-backend',
         turnIndex: 7,
         response: {
@@ -117,6 +119,7 @@ describe('applyRealChatResult', () => {
     applyRealChatResult({
       result: {
         reply: 'Done.',
+        reasoning: null,
         conversationId: 'conv-backend',
         turnIndex: 7,
         response: gated,

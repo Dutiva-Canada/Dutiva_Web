@@ -37,6 +37,7 @@ import {
   CopyTurnButton,
   JumpToLatest,
   ReasonChips,
+  ReasoningBlock,
   ThreadSwitcher,
 } from '@/components/chat/portalChat'
 import {
@@ -131,6 +132,9 @@ export function InvestChatPage() {
   const [turns, setTurns] = useState<InvestChatTurn[] | null>(null)
   const [sending, setSending] = useState(false)
   const [streamed, setStreamed] = useState('')
+  /* The in-flight thinking trace — reasoning pieces land ahead of the
+     reply, so the thinking panel fills while the bubble is still waiting. */
+  const [streamedReasoning, setStreamedReasoning] = useState('')
   const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
   const [hasMore, setHasMore] = useState(false)
@@ -151,6 +155,7 @@ export function InvestChatPage() {
     turns,
     sending,
     streamed,
+    streamedReasoning,
   ])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   useAutoGrowTextarea(inputRef, draft)
@@ -225,6 +230,7 @@ export function InvestChatPage() {
     action: InvestChatAction | null
     assistantId: string | null
     suggests: string[]
+    reasoning: string | null
   }) => {
     setTurns((prev) => [
       ...(prev ?? []),
@@ -234,6 +240,7 @@ export function InvestChatPage() {
         role: 'assistant',
         content: result.reply,
         action: result.action,
+        reasoning: result.reasoning,
         feedback: null,
         createdAt: new Date().toISOString(),
       },
@@ -253,6 +260,7 @@ export function InvestChatPage() {
     abortRef.current = ctrl
     setSending(true)
     setStreamed('')
+    setStreamedReasoning('')
     setSuggests([])
     setReasonFor(null)
     /* Optimistic user turn — your message should appear the moment you send,
@@ -268,18 +276,27 @@ export function InvestChatPage() {
     }
     stickToBottom()
     setTurns((prev) => [...(prev ?? []), userTurn])
+    /* The abort catch can't see streamedReasoning state that landed after
+       the send began — a local captures the cumulative trace. */
+    let reasoningSoFar = ''
     try {
       /* onDelta turns on SSE — the reply types into the pending bubble as
          it generates; the final payload stays authoritative. */
       const result = await sendInvestChat(message, lang, setStreamed, {
         threadId,
         signal: ctrl.signal,
+        onReasoning: (t) => {
+          reasoningSoFar = t
+          setStreamedReasoning(t)
+        },
       })
       await adoptReply(result)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
-           server may still persist the full reply; reload reconciles). */
+           server may still persist the full reply; reload reconciles). The
+           partial thinking trace rides the turn so it isn't lost. */
+        const partialReasoning = reasoningSoFar || null
         setStreamed((partial) => {
           if (partial) {
             setTurns((prev) => [
@@ -289,6 +306,7 @@ export function InvestChatPage() {
                 role: 'assistant' as const,
                 content: partial,
                 action: null,
+                reasoning: partialReasoning,
                 feedback: null,
                 createdAt: new Date().toISOString(),
               },
@@ -308,6 +326,7 @@ export function InvestChatPage() {
       abortRef.current = null
       setSending(false)
       setStreamed('')
+      setStreamedReasoning('')
     }
   }
 
@@ -339,6 +358,7 @@ export function InvestChatPage() {
     abortRef.current = ctrl
     setSending(true)
     setStreamed('')
+    setStreamedReasoning('')
     setSuggests([])
     setReasonFor(null)
     stickToBottom()
@@ -362,6 +382,7 @@ export function InvestChatPage() {
       const result = await regenerateInvestChat(lang, setStreamed, {
         threadId,
         signal: ctrl.signal,
+        onReasoning: setStreamedReasoning,
       })
       await adoptReply(result)
     } catch (err) {
@@ -370,6 +391,7 @@ export function InvestChatPage() {
       abortRef.current = null
       setSending(false)
       setStreamed('')
+      setStreamedReasoning('')
     }
   }
 
@@ -593,6 +615,15 @@ export function InvestChatPage() {
                       </div>
                     )}
                     <div className={`sbchat-bubble ${t.role}`} data-failed={t.failed || undefined}>
+                      {t.role === 'assistant' && t.reasoning && (
+                        <ReasoningBlock
+                          text={t.reasoning}
+                          live={false}
+                          label={x(IM.invest_chat_reasoning)}
+                          className="sbchat-sees sbchat-think"
+                          bodyClass="sbchat-think-body"
+                        />
+                      )}
                       {t.role === 'assistant' ? (
                         <Suspense fallback={t.content}>
                           <ChatMarkdown widgetSurface="invest">{t.content}</ChatMarkdown>
@@ -710,6 +741,15 @@ export function InvestChatPage() {
             )}
             {sending && (
               <div className="sbchat-bubble assistant">
+                {streamedReasoning && (
+                  <ReasoningBlock
+                    text={streamedReasoning}
+                    live={!streamed}
+                    label={x(IM.invest_chat_reasoning)}
+                    className="sbchat-sees sbchat-think"
+                    bodyClass="sbchat-think-body"
+                  />
+                )}
                 {streamed ? (
                   <Suspense fallback={streamed}>
                     <ChatMarkdown widgetSurface="invest" streaming>

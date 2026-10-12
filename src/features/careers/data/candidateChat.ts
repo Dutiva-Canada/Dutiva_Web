@@ -13,6 +13,9 @@ export interface CandidateChatTurn {
   id: string
   role: 'user' | 'assistant'
   content: string
+  /** The model's thinking trace — set on assistant turns when the route
+      reasons; null when it doesn't. */
+  reasoning?: string | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -36,6 +39,9 @@ export interface CandidateChatThread {
 export interface CandidateChatCallOpts {
   threadId?: string | null
   signal?: AbortSignal
+  /** Live thinking trace — cumulative text per reasoning piece. Streamed
+      path only. */
+  onReasoning?: (text: string) => void
 }
 
 /* invokeEdgeFn throws FunctionsHttpError (status on .context.status);
@@ -60,6 +66,8 @@ export interface CandidateChatSendResult {
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
   suggests: string[]
+  /** The thinking trace behind the reply — null when none was emitted. */
+  reasoning: string | null
 }
 
 function toSendResult(raw: Record<string, unknown>): CandidateChatSendResult {
@@ -71,6 +79,7 @@ function toSendResult(raw: Record<string, unknown>): CandidateChatSendResult {
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
+    reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
   }
 }
 
@@ -85,7 +94,9 @@ export async function sendCandidateChat(
   let raw: Record<string, unknown>
   try {
     raw = onDelta
-      ? await invokeEdgeFnStream(client, 'candidate-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'candidate-ai', body)
   } catch (err) {
     rethrowKnown(err)
@@ -105,7 +116,9 @@ export async function regenerateCandidateChat(
   let raw: Record<string, unknown>
   try {
     raw = onDelta
-      ? await invokeEdgeFnStream(client, 'candidate-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'candidate-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'candidate-ai', body)
   } catch (err) {
     rethrowKnown(err)
@@ -156,6 +169,7 @@ export async function loadCandidateChatHistory(
     id: String(r.id ?? ''),
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
+    reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),

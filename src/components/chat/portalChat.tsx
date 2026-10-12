@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, Check, ChevronDown, Copy, MessageSquarePlus } from 'lucide-react'
 
 /* Shared components for the four standalone portal chats (Tally, Mira,
@@ -66,6 +66,42 @@ export function JumpToLatest({
       <span>{label}</span>
       {hasNew && <i className={dotClass} aria-hidden="true" />}
     </button>
+  )
+}
+
+/**
+ * The model's thinking on a turn — a disclosure sitting inside the
+ * assistant bubble. While the route reasons (`live`), it opens itself and
+ * grows with each streamed piece; once the reply lands it collapses back
+ * to its summary line so a long trace doesn't crowd the answer. On a
+ * persisted turn it renders collapsed — same `details`, reader's choice.
+ */
+export function ReasoningBlock({
+  text,
+  live,
+  label,
+  className,
+  bodyClass,
+}: {
+  text: string
+  live: boolean
+  label: string
+  className?: string
+  bodyClass?: string
+}) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  /* `open` is driven by DOM mutation, not a prop — React never owns the
+     attribute, so a reader's manual toggle survives re-renders and the
+     live transition can't fight them. */
+  useEffect(() => {
+    if (ref.current) ref.current.open = live
+  }, [live])
+  if (!text) return null
+  return (
+    <details ref={ref} className={className} data-live={live || undefined}>
+      <summary>{label}</summary>
+      <div className={bodyClass}>{text}</div>
+    </details>
   )
 }
 

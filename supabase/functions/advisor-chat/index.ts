@@ -209,6 +209,10 @@ const handler = async (req: Request) => {
   if (completionResult instanceof Response) return completionResult
 
   const rawReply = completionResult.completion.choices?.[0]?.message?.content ?? ''
+  /* The model's thinking, when the route produces it — persisted on the
+     assistant envelope and returned on the wire so the UI can show the
+     reasoning disclosure. Empty when the model doesn't reason. */
+  const reasoning = completionResult.completion.choices?.[0]?.message?.reasoning_content ?? ''
   const extracted =
     request.organizationId && memoryAllowed
       ? extractMemoryCandidates(rawReply, request.message, conversation.id)
@@ -233,7 +237,12 @@ const handler = async (req: Request) => {
   const nextMessages = [
     ...fullHistory,
     persistedUserMessage,
-    { role: 'assistant' as const, content: reply, at: new Date().toISOString() },
+    {
+      role: 'assistant' as const,
+      content: reply,
+      at: new Date().toISOString(),
+      ...(reasoning ? { reasoning } : {}),
+    },
   ]
   /* Close the claim before persisting the turn: the tokens are already spent
      upstream, so they must be recorded even if the conversation write fails. */
@@ -318,6 +327,7 @@ const handler = async (req: Request) => {
   return json({
     data: {
       reply,
+      reasoning: reasoning || undefined,
       conversation_id: conversation.id,
       /* Index of the assistant turn just persisted in messages[] — the key
          advisor_turn_feedback rates against. Only user/assistant rows are

@@ -33,6 +33,9 @@ export interface InvestChatTurn {
   role: 'user' | 'assistant'
   content: string
   action: InvestChatAction | null
+  /** The model's thinking trace — set on assistant turns when the route
+      reasons (deepseek reasoning_content); null when it doesn't. */
+  reasoning?: string | null
   /** 1 = helpful, -1 = not, null = unrated. */
   feedback: number | null
   /** Why a downvote landed — set when feedback is -1. */
@@ -57,6 +60,9 @@ export interface InvestChatCallOpts {
   /** null = the default conversation; a uuid = one of chat_threads. */
   threadId?: string | null
   signal?: AbortSignal
+  /** Live thinking trace — cumulative text per reasoning piece, same
+      accumulation contract as onDelta. Only fires on the streamed path. */
+  onReasoning?: (text: string) => void
 }
 
 /** One turn of the book conversation. The server writes both sides to
@@ -71,6 +77,9 @@ export interface InvestChatSendResult {
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
   suggests: string[]
+  /** The thinking trace behind the reply — null when the route doesn't
+      reason or the model emitted none. */
+  reasoning: string | null
 }
 
 export async function sendInvestChat(
@@ -83,13 +92,16 @@ export async function sendInvestChat(
   const body = { kind: 'chat', message, lang, threadId: opts?.threadId ?? null }
   const raw = (
     onDelta
-      ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'invest-ai', body)
   ) as {
     reply?: string
     action?: InvestChatAction | null
     assistantId?: string | null
     suggests?: unknown
+    reasoning?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from invest-ai')
@@ -101,6 +113,7 @@ export async function sendInvestChat(
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
+    reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
   }
 }
 
@@ -115,13 +128,16 @@ export async function regenerateInvestChat(
   const body = { kind: 'chat_regenerate', lang, threadId: opts?.threadId ?? null }
   const raw = (
     onDelta
-      ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta, opts?.signal)
+      ? await invokeEdgeFnStream(
+          client, 'invest-ai', body, onDelta, opts?.signal, opts?.onReasoning,
+        )
       : await invokeEdgeFn(client, 'invest-ai', body)
   ) as {
     reply?: string
     action?: InvestChatAction | null
     assistantId?: string | null
     suggests?: unknown
+    reasoning?: unknown
   }
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from invest-ai')
@@ -133,6 +149,7 @@ export async function regenerateInvestChat(
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
       : [],
+    reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
   }
 }
 
@@ -255,6 +272,7 @@ export async function loadInvestChatHistory(
     role: (r.role === 'assistant' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: String(r.content ?? ''),
     action: (r.action as InvestChatAction | null) ?? null,
+    reasoning: typeof r.reasoning === 'string' ? r.reasoning : null,
     feedback: typeof r.feedback === 'number' ? r.feedback : null,
     feedbackReason: typeof r.feedback_reason === 'string' ? r.feedback_reason : null,
     createdAt: String(r.created_at ?? ''),
