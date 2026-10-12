@@ -6,6 +6,7 @@ import {
   postChatCompletion,
   readUpstreamText,
   resolveApiKey,
+  routeBodyExtras,
 } from '../_shared/modelUpstream.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
@@ -177,6 +178,7 @@ async function callModel(
       ...(typeof route.config?.temperature === 'number'
         ? { temperature: route.config.temperature }
         : {}),
+      ...routeBodyExtras(route.config),
     })
     if (!upstream.ok) {
       const errText = await upstream.text()
@@ -421,6 +423,7 @@ async function runChat(
         max_tokens: activeRoute.route.config?.max_tokens ?? 600,
         temperature: 0.4,
         stream,
+        ...routeBodyExtras(activeRoute.route.config),
       },
       UPSTREAM_TIMEOUT_MS,
     )

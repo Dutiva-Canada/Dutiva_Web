@@ -20,6 +20,10 @@ export interface ResolvedRoute {
   modelName: string
   provider: UpstreamProvider
   secretRef: string | null
+  /** Route row's `config` jsonb — callers pass it to `routeBodyExtras` so
+      per-route params (reasoning effort, thinking toggles) reach the
+      provider without a redeploy. */
+  config: unknown
 }
 
 interface ProviderRow {
@@ -30,6 +34,7 @@ interface ProviderRow {
 
 interface RouteRow {
   model_name: string
+  config: unknown
   provider: ProviderRow | ProviderRow[] | null
 }
 
@@ -57,6 +62,7 @@ export async function activeModelRoute(
         modelName: row.model_name,
         provider: { base_url: provider.base_url, secret_ref: provider.secret_ref },
         secretRef: provider.secret_ref,
+        config: row.config,
       }
     }
   }

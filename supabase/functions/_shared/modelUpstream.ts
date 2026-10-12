@@ -101,6 +101,30 @@ export function upstreamHeaders(apiKey: string | null): Record<string, string> {
 
 export const DEFAULT_UPSTREAM_TIMEOUT_MS = 120_000
 
+/** Provider params a route's `config.params` may forward verbatim into the
+ *  chat/completions body — model behaviour knobs only (reasoning effort,
+ *  thinking toggles, sampling penalties). Whitelisted so a stray config key
+ *  can never overwrite `messages`, `model`, or `stream`. */
+const ROUTE_PARAM_KEYS = new Set([
+  'reasoning_effort',
+  'thinking',
+  'chat_template_kwargs',
+  'top_p',
+  'presence_penalty',
+  'frequency_penalty',
+  'stop',
+])
+
+export function routeBodyExtras(config: unknown): Record<string, unknown> {
+  const params = (config as Record<string, unknown> | null)?.params
+  if (!params || typeof params !== 'object' || Array.isArray(params)) return {}
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(params as Record<string, unknown>)) {
+    if (ROUTE_PARAM_KEYS.has(k)) out[k] = v
+  }
+  return out
+}
+
 /**
  * One POST to the provider. Throws on network failure / timeout — callers
  * map that to their own 502 path. `AbortSignal.timeout` is supported on the
