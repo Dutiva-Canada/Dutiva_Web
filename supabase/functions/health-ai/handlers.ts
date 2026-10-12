@@ -365,7 +365,7 @@ export function chatPrompt(
       lang === 'fr'
         ? 'Reply in Canadian French.'
         : 'Reply in English.',
-      'Output ONLY strict JSON: {"reply":"<1-4 short sentences>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
+      'Output ONLY strict JSON: {"reply":"<sized to the moment — a sentence or two for everyday talk; when they ask you to read their numbers, plan something, or work a question through, a fuller answer is welcome: a short paragraph or two, a small list when it helps scan>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
       '"suggests" holds up to 3 short things the person might say next — each under 8 words, same language as the reply. Omit the field or send an empty array when the exchange is clearly finished.',
       '',
       `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,

@@ -2,7 +2,10 @@
     the upstream timeout budget. Kept dependency-free so runtime.ts,
     chatActions.ts and reactRuntime.ts can all import it without a cycle. */
 
-export const UPSTREAM_TIMEOUT_MS = 45_000
+/* Reasoning passes plus a verified deep read can legitimately run past a
+   minute — the client watches the thinking trace live, so the budget just
+   needs to cover the slowest honest call. */
+export const UPSTREAM_TIMEOUT_MS = 120_000
 
 export function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

@@ -12,6 +12,7 @@ import {
   readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
+  routeMaxTokens,
   routeModalities,
   upstreamHeaders,
   userMessageContent,
@@ -211,6 +212,20 @@ describe('routeBodyExtras', () => {
     expect(routeBodyExtras({})).toEqual({})
     expect(routeBodyExtras({ params: 'high' })).toEqual({})
     expect(routeBodyExtras({ params: [1, 2] })).toEqual({})
+  })
+})
+
+describe('routeMaxTokens', () => {
+  it('returns the route-set ceiling when it is a positive number', () => {
+    expect(routeMaxTokens({ max_tokens: 4096 }, 3000)).toBe(4096)
+  })
+  it('falls back on missing or malformed values', () => {
+    expect(routeMaxTokens(null, 3000)).toBe(3000)
+    expect(routeMaxTokens({}, 3000)).toBe(3000)
+    expect(routeMaxTokens({ max_tokens: '4096' }, 3000)).toBe(3000)
+    expect(routeMaxTokens({ max_tokens: 0 }, 3000)).toBe(3000)
+    expect(routeMaxTokens({ max_tokens: -50 }, 3000)).toBe(3000)
+    expect(routeMaxTokens({ max_tokens: Number.NaN }, 3000)).toBe(3000)
   })
 })
 

@@ -7,6 +7,7 @@ import {
   readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
+  routeMaxTokens,
 } from '../_shared/modelUpstream.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
@@ -222,7 +223,9 @@ function sseChannel() {
    agent card. Both turns persist to candidate_chat_messages. */
 
 const CHAT_HISTORY = 20
-const UPSTREAM_TIMEOUT_MS = 45_000
+/* Reasoning streams live while the call runs — a fuller coaching answer
+   legitimately needs more than 45s. */
+const UPSTREAM_TIMEOUT_MS = 120_000
 
 /** The candidate's own rows, flattened to the shape the prompt builder
     wants. Applications join their posting title/org through
@@ -424,7 +427,7 @@ async function runChat(
         ],
         /* Reasoning params from the route share this budget — headroom so a
            thinking pass can't starve the reply. */
-        max_tokens: activeRoute.route.config?.max_tokens ?? 1500,
+        max_tokens: routeMaxTokens(activeRoute.route.config, 3000),
         temperature: 0.4,
         stream,
         ...routeBodyExtras(activeRoute.route.config),
