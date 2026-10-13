@@ -10504,6 +10504,57 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_theses: {
+        Row: {
+          asset_class: string
+          break_rules: Json
+          created_at: string
+          drift_rules: Json
+          eval_detail: Json | null
+          id: string
+          intent: string
+          last_evaluated_at: string | null
+          name: string
+          status: string
+          symbol: string
+          thesis: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_class: string
+          break_rules?: Json
+          created_at?: string
+          drift_rules?: Json
+          eval_detail?: Json | null
+          id?: string
+          intent?: string
+          last_evaluated_at?: string | null
+          name?: string
+          status?: string
+          symbol: string
+          thesis?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_class?: string
+          break_rules?: Json
+          created_at?: string
+          drift_rules?: Json
+          eval_detail?: Json | null
+          id?: string
+          intent?: string
+          last_evaluated_at?: string | null
+          name?: string
+          status?: string
+          symbol?: string
+          thesis?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_user_profile: {
         Row: {
           answer_style: string | null

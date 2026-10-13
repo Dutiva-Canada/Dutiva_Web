@@ -23,11 +23,11 @@ const NAV = [
   { to: '/invest/orders', end: false, label: IM.invest_tab_orders },
   { to: '/invest/signals', end: false, label: IM.invest_tab_signals },
   { to: '/invest/strategies', end: false, label: IM.invest_tab_strategies },
+  { to: '/invest/theses', end: false, label: IM.invest_tab_theses },
 ] as const
 
-/* Mobile menu shows the icon-nav destinations as text rows too — the
-   desktop pill nav stays at five pages, with notifications/settings in the
-   action row. */
+/* Mobile menu shows the icon-nav destinations as text rows too —
+   notifications/settings stay in the action row on desktop. */
 const MOBILE_EXTRA = [
   { to: '/invest/notifications', label: IM.invest_tab_notifications },
   { to: '/invest/settings', label: IM.invest_tab_settings },

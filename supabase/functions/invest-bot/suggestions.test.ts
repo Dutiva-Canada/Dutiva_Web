@@ -276,4 +276,68 @@ describe('planSuggestions', () => {
     expect(out.filter((s) => s.kind === 'rule_tune')).toHaveLength(2)
     expect(out.find((s) => s.kind === 'scope_add')).toBeDefined()
   })
+
+  /* ── thesis suggestions — untracked holdings ──────────────────────────── */
+
+  it('offers a seeded thesis for a held symbol with none', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat()],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        theses: [],
+      }),
+    )
+    const s = out.find((c) => c.kind === 'thesis')
+    expect(s).toBeDefined()
+    expect(s!.dedupeKey).toBe('thesis:equity:ACME')
+    const seed = s!.payload['seed'] as {
+      break_rules: { type: string }[]
+      drift_rules: { type: string }[]
+      intent: string
+    }
+    /* The seed ships conditions, never a written claim — the story is
+       the user's to tell (or Tally's to draft). Signals only. */
+    expect(seed.break_rules.every((r) => r.type === 'signal')).toBe(true)
+    expect(seed.drift_rules.every((r) => r.type === 'signal')).toBe(true)
+    expect(seed.intent).toBe('core')
+  })
+
+  it('skips a symbol that already carries a thesis', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat()],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        theses: [{ asset_class: 'equity', symbol: 'ACME' }],
+      }),
+    )
+    expect(out.some((c) => c.kind === 'thesis')).toBe(false)
+  })
+
+  it('caps thesis filings so a fresh book does not flood', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat({ scope_symbols: ['A', 'B', 'C', 'D', 'E'] })],
+        positions: [pos('A', 5), pos('B', 5), pos('C', 5), pos('D', 5), pos('E', 5)],
+        snapshots: [snap('A'), snap('B'), snap('C'), snap('D'), snap('E')],
+        theses: [],
+      }),
+    )
+    expect(out.filter((c) => c.kind === 'thesis').length).toBeLessThanOrEqual(3)
+  })
+
+  it('does not file thesis rows when no strategy watches the book yet', () => {
+    /* The whole-strategy draft is the answer to an unwatched book — the
+       pass returns early, so thesis suggestions wait for a strategy to
+       land first rather than pile onto the empty queue. */
+    const out = planSuggestions(
+      ctx({
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        theses: [],
+      }),
+    )
+    expect(out.every((c) => c.kind === 'strategy')).toBe(true)
+  })
 })

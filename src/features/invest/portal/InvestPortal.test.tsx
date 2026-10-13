@@ -197,6 +197,7 @@ const STATE: InvestState = {
       createdAt: '2026-01-19T00:00:00Z',
     },
   ],
+  theses: [],
   news: [
     {
       id: 1,

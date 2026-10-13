@@ -10,11 +10,13 @@ import type {
   InvestPosition,
   InvestSignal,
   InvestStrategy,
+  InvestThesis,
   InvestWatchItem,
   MarketSnapshot,
   MultiMatch,
   OrderStatus,
   RunWarning,
+  SignalRule,
   SignalStatus,
   TestScanMatch,
 } from './types'
@@ -39,6 +41,7 @@ export interface InvestState {
   runs: InvestBotRun[]
   watchlist: InvestWatchItem[]
   news: InvestNewsItem[]
+  theses: InvestThesis[]
 }
 
 type InvestRole = 'client' | 'admin'
@@ -71,7 +74,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses] =
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
@@ -89,6 +92,7 @@ export async function loadInvestState(): Promise<InvestState> {
         .order('ran_at', { ascending: false })
         .limit(200),
       client.from('invest_watchlist').select('*').order('created_at', { ascending: false }),
+      client.from('invest_theses').select('*').order('updated_at', { ascending: false }),
     ])
   for (const res of [
     accounts,
@@ -102,6 +106,10 @@ export async function loadInvestState(): Promise<InvestState> {
   ]) {
     if (res.error) throw res.error
   }
+  /* invest_theses (0219) can be absent while code outruns the migration —
+     the portal renders without the Theses surface instead of failing the
+     whole state load. */
+  const thesisRows = theses.error ? [] : (theses.data ?? [])
 
   /* News follows the same universe as market-sync: held ∪ watched symbols,
      plus general-market items (symbol ''). Server-side filter so general
@@ -142,6 +150,7 @@ export async function loadInvestState(): Promise<InvestState> {
     runs: (runs.data ?? []).map(toRun),
     watchlist: (watchlist.data ?? []).map(toWatchItem),
     news: newsItems,
+    theses: thesisRows.map(toThesis),
   }
 }
 
@@ -652,6 +661,119 @@ export async function draftStrategy(
   return { draft: normalizeAiStrategyDraft(raw.draft), suggestionId: raw.suggestionId ?? null }
 }
 
+/* ── Theses (0219) ──────────────────────────────────────────────────────────
+   One standing claim per held symbol. The sweep evaluates break/drift rules
+   server-side and writes status + eval_detail; the client only edits the
+   story and the conditions — it never writes the verdict. */
+
+export async function saveThesis(
+  thesis: Omit<InvestThesis, 'id' | 'status' | 'evalDetail' | 'lastEvaluatedAt' | 'createdAt' | 'updatedAt'> & {
+    id?: string
+  },
+): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const payload = {
+    user_id: userId,
+    asset_class: thesis.assetClass,
+    symbol: thesis.symbol.toUpperCase(),
+    name: thesis.name.trim(),
+    thesis: thesis.thesis.trim(),
+    intent: thesis.intent,
+    /* Thesis rules are signals only — enforced by the type, re-stamped here
+       so a stray proposal object can't ride the jsonb column. */
+    break_rules: thesis.breakRules.map((r) => ({
+      ...(r.id ? { id: r.id } : {}),
+      type: 'signal' as const,
+      metric: r.metric,
+      op: r.op,
+      value: r.value,
+      ...(r.op === 'between' ? { value2: r.value2 } : {}),
+      title: r.title,
+      severity: r.severity,
+    })),
+    drift_rules: thesis.driftRules.map((r) => ({
+      ...(r.id ? { id: r.id } : {}),
+      type: 'signal' as const,
+      metric: r.metric,
+      op: r.op,
+      value: r.value,
+      ...(r.op === 'between' ? { value2: r.value2 } : {}),
+      title: r.title,
+      severity: r.severity,
+    })),
+    updated_at: new Date().toISOString(),
+  }
+  const res = thesis.id
+    ? await client
+        .from('invest_theses')
+        .update(payload)
+        .eq('id', thesis.id)
+        .eq('user_id', userId)
+    : await client
+        .from('invest_theses')
+        .upsert(payload, { onConflict: 'user_id,asset_class,symbol' })
+  if (res.error) throw res.error
+}
+
+export async function deleteThesis(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_theses')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+/** Tally-authored thesis draft — the model writes the claim and its watch
+    conditions from the holder's description; also filed to the review
+    queue server-side (suggestionId links the save back). */
+export async function draftThesis(input: {
+  assetClass: AssetClass
+  symbol: string
+  name?: string
+  description: string
+  lang: 'en' | 'fr'
+}): Promise<{
+  draft: { thesis: string; intent: InvestThesis['intent']; breakRules: SignalRule[]; driftRules: SignalRule[] }
+  suggestionId: string | null
+}> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: {
+      action: 'draft-thesis',
+      assetClass: input.assetClass,
+      symbol: input.symbol,
+      name: input.name ?? '',
+      description: input.description,
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as {
+    draft?: { thesis?: unknown; intent?: unknown; break_rules?: unknown; drift_rules?: unknown }
+    suggestionId?: string | null
+  }) ?? {}
+  const d = raw.draft
+  if (!d || typeof d.thesis !== 'string') throw new Error('No draft returned')
+  const intent =
+    d.intent === 'growth' || d.intent === 'income' || d.intent === 'speculative'
+      ? d.intent
+      : 'core'
+  const signals = (rules: unknown) =>
+    normalizeRules(rules).filter((r): r is SignalRule => r.type === 'signal')
+  return {
+    draft: {
+      thesis: d.thesis,
+      intent,
+      breakRules: signals(d.break_rules),
+      driftRules: signals(d.drift_rules),
+    },
+    suggestionId: raw.suggestionId ?? null,
+  }
+}
+
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -791,6 +913,37 @@ function toOrder(row: any): InvestOrder {
     note: row.note,
     error: row.error,
     createdAt: row.created_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toThesis(row: any): InvestThesis {
+  const status =
+    row.status === 'drifting' || row.status === 'broken' ? row.status : 'healthy'
+  return {
+    id: row.id,
+    assetClass: row.asset_class,
+    symbol: row.symbol,
+    name: row.name ?? '',
+    thesis: row.thesis ?? '',
+    intent:
+      row.intent === 'growth' || row.intent === 'income' || row.intent === 'speculative'
+        ? row.intent
+        : 'core',
+    breakRules: normalizeRules(row.break_rules).filter(
+      (r): r is SignalRule => r.type === 'signal',
+    ),
+    driftRules: normalizeRules(row.drift_rules).filter(
+      (r): r is SignalRule => r.type === 'signal',
+    ),
+    status,
+    evalDetail:
+      row.eval_detail && typeof row.eval_detail === 'object'
+        ? (row.eval_detail as InvestThesis['evalDetail'])
+        : null,
+    lastEvaluatedAt: row.last_evaluated_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
 

@@ -22,6 +22,9 @@
  *   'rule_tune' — an existing rule demonstrably misfits: its signals keep
  *                 getting dismissed (loosen it) or its draft orders keep
  *                 expiring unapproved (propose a signal instead)
+ *   'thesis'    — a held symbol with no thesis row yet → a seeded tracker:
+ *                 the story line stays blank for the user, the drift/break
+ *                 conditions come pre-filled with modest defaults
  */
 import { fileSuggestion } from '../_shared/agentQueue.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
@@ -46,6 +49,9 @@ export interface SuggestionContext {
   cashTotal: number
   fx: FxTable | null
   bookCurrency: string
+  /** Symbols already carrying a thesis row — held positions missing from
+      this set are 'thesis' suggestion candidates. */
+  theses?: { asset_class: string; symbol: string }[]
   /** Outcome history the learning rules read — see loadOutcomes. */
   outcomes: OutcomeHistory
   /** Internal-staff tier: order-proposal artifacts only file here. */
@@ -71,7 +77,7 @@ export interface OutcomeHistory {
 }
 
 export interface SuggestionCandidate {
-  kind: 'strategy' | 'rule_add' | 'rule_tune' | 'scope_add'
+  kind: 'strategy' | 'rule_add' | 'rule_tune' | 'scope_add' | 'thesis'
   dedupeKey: string
   /** English title — the row's `title` column (schema default). */
   title_en: string
@@ -495,6 +501,67 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
         score: 70,
       })
     }
+  }
+
+  /* ── thesis — held symbols with no standing claim yet ───────────────────
+     One suggestion per untracked holding (capped so a fresh book doesn't
+     flood). The seed ships modest defaults — the story line stays blank:
+     Tally proposes the scaffolding, the human writes the claim. */
+  const thesised = new Set(
+    (ctx.theses ?? []).map((t) => `${t.asset_class}:${t.symbol.toUpperCase()}`),
+  )
+  const untracked = ctx.positions.filter(
+    (p) => !thesised.has(`${p.asset_class}:${p.symbol.toUpperCase()}`),
+  )
+  for (const p of untracked.slice(0, 3)) {
+    const sym = p.symbol.toUpperCase()
+    const seedDrift: StrategyRule[] = [
+      {
+        type: 'signal',
+        metric: 'vs_ma50',
+        op: 'lt',
+        value: -5,
+        title: '5% under the 50-day average',
+        severity: 'insight',
+      },
+    ]
+    const seedBreak: StrategyRule[] = [
+      {
+        type: 'signal',
+        metric: 'unrealized_gain_pct',
+        op: 'lt',
+        value: -30,
+        title: 'Position down 30% from cost',
+        severity: 'alert',
+      },
+    ]
+    out.push({
+      kind: 'thesis',
+      dedupeKey: `thesis:${p.asset_class}:${sym}`,
+      title_en: `${sym} has no thesis — track what would change your mind`,
+      title_fr: `${sym} n’a pas de thèse — suivre ce qui vous ferait changer d’avis`,
+      detail_en:
+        'A thesis names the story and the conditions that break it — Tally watches them every sweep.',
+      detail_fr:
+        'Une thèse nomme l’histoire et les conditions qui l’invalident — Tally les surveille à chaque balayage.',
+      payload: {
+        title_fr: `${sym} n’a pas de thèse — suivre ce qui vous ferait changer d’avis`,
+        detail_en:
+          'A thesis names the story and the conditions that break it — Tally watches them every sweep.',
+        detail_fr:
+          'Une thèse nomme l’histoire et les conditions qui l’invalident — Tally les surveille à chaque balayage.',
+        asset_class: p.asset_class,
+        symbol: sym,
+        name: p.name ?? '',
+        seed: {
+          thesis: '',
+          intent: 'core',
+          break_rules: seedBreak.map(wireRule),
+          drift_rules: seedDrift.map(wireRule),
+        },
+      },
+      score: 65,
+    })
   }
 
   /* ── rule_tune — the feedback loop ────────────────────────────────────── */

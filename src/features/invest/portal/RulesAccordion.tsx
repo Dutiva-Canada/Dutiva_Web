@@ -50,6 +50,9 @@ interface Props {
   /** Book currency for money thresholds and quantity previews — 'CAD' is
       only the fallback, a USD-base book labels USD. */
   bookCurrency?: string
+  /** Thesis editors only — a thesis observes, it never proposes orders.
+      Hides the action segment so every rule stays a signal. */
+  signalOnly?: boolean
 }
 
 export function RulesAccordion({
@@ -59,6 +62,7 @@ export function RulesAccordion({
   fireCount,
   cadence,
   bookCurrency = 'CAD',
+  signalOnly = false,
 }: Props) {
   const { x, lang } = useI18n()
   const [openId, setOpenId] = useState<string | null>(drafts[0]?.id ?? null)
@@ -357,6 +361,7 @@ export function RulesAccordion({
                     }
                   />
                 </div>
+                {!signalOnly && (
                 <div className="sb-field">
                   <span className="sb-flabel" id={`${idPrefix}-act-${draft.id}-l`}>
                     {x(IM.invest_sb_when_match)}
@@ -382,6 +387,7 @@ export function RulesAccordion({
                     </button>
                   </div>
                 </div>
+                )}
                 {r.type === 'signal' ? (
                   <div className="sb-field">
                     <label className="sb-flabel" htmlFor={`${idPrefix}-sev-${draft.id}`}>

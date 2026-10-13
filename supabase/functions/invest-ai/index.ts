@@ -7,9 +7,12 @@ import { withCors } from '../_shared/cors.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   buildDraftPrompt,
+  buildThesisDraftPrompt,
   draftSystemPrompt,
   parseDraft,
+  parseThesisDraft,
   sanitizeGoal,
+  THESIS_SYSTEM_PROMPT,
   validateAiAction,
 } from './handlers.ts'
 import {
@@ -274,6 +277,87 @@ const handler = async (req: Request) => {
 
   const actionCheck = validateAiAction(body['action'])
   if (!actionCheck.ok) return json({ error: actionCheck.error }, 400)
+
+  /* draft-thesis — the model writes the claim and its watch conditions;
+     filing to the same review queue keeps the user the one who saves it. */
+  if (actionCheck.value === 'draft-thesis') {
+    const symbol =
+      typeof body['symbol'] === 'string' ? body['symbol'].trim().toUpperCase().slice(0, 12) : ''
+    const assetClass =
+      typeof body['assetClass'] === 'string' ? body['assetClass'].trim() : 'equity'
+    const name = typeof body['name'] === 'string' ? body['name'].trim().slice(0, 120) : ''
+    const description = sanitizeGoal(body['description'] ?? body['goal'])
+    if (!symbol || !/^[A-Z0-9.-]{1,12}$/.test(symbol)) {
+      return json({ error: 'symbol is required' }, 400)
+    }
+    if (!description) {
+      return json({ error: 'description must be at least 10 characters' }, 400)
+    }
+    if (!['equity', 'etf', 'crypto', 'bond', 'cash', 'other'].includes(assetClass)) {
+      return json({ error: 'invalid assetClass' }, 400)
+    }
+
+    const thesisRouted = await modelRoute(adminClient)
+    if ('error' in thesisRouted) return thesisRouted.error
+    const tr = thesisRouted
+    let thesisUpstream: Response
+    try {
+      thesisUpstream = await postChatCompletion(
+        tr.provider,
+        tr.apiKey,
+        {
+          model: tr.route.model_name,
+          messages: [
+            { role: 'system', content: THESIS_SYSTEM_PROMPT },
+            { role: 'user', content: buildThesisDraftPrompt({ symbol, name, description }, lang) },
+          ],
+          max_tokens: tr.route.config?.max_tokens ?? 900,
+          temperature: 0.3,
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+    } catch (error) {
+      console.error('invest-ai: thesis model call failed', error)
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    if (!thesisUpstream.ok) {
+      const errText = await thesisUpstream.text()
+      console.error('invest-ai: thesis upstream error', thesisUpstream.status, errText.slice(0, 300))
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    const thesisCompletion = await thesisUpstream.json()
+    const thesisContent = thesisCompletion?.choices?.[0]?.message?.content
+    if (typeof thesisContent !== 'string') {
+      return json({ error: 'Empty response from model' }, 502)
+    }
+    const thesisDraft = parseThesisDraft(thesisContent)
+    if (!thesisDraft) {
+      return json({
+        error: 'Could not turn that into a thesis — try describing the story differently.',
+        code: 'no_draft',
+      }, 422)
+    }
+    const filed = await fileSuggestion(adminClient, {
+      userId,
+      surface: 'invest',
+      kind: 'thesis',
+      title: `${symbol} thesis`,
+      payload: {
+        asset_class: assetClass,
+        symbol,
+        name,
+        description,
+        seed: {
+          thesis: thesisDraft.thesis,
+          intent: thesisDraft.intent,
+          break_rules: thesisDraft.break_rules,
+          drift_rules: thesisDraft.drift_rules,
+        },
+      },
+      dedupeKey: `thesis:${assetClass}:${symbol}`,
+    })
+    return json({ draft: thesisDraft, suggestionId: filed?.id ?? null })
+  }
 
   /* draft-strategy */
   const goal = sanitizeGoal(body['goal'])
