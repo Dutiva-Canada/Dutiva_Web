@@ -67,6 +67,9 @@ const HOME_TAB_LABELS: Record<HomeTab, (typeof IM)[keyof typeof IM]> = {
   '/invest/orders': IM.invest_tab_orders,
   '/invest/signals': IM.invest_tab_signals,
   '/invest/strategies': IM.invest_tab_strategies,
+  '/invest/theses': IM.invest_tab_theses,
+  '/invest/analysis': IM.invest_tab_analysis,
+  '/invest/profile': IM.invest_tab_profile,
 }
 
 /**

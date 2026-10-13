@@ -99,7 +99,7 @@ function mount(state: Partial<InvestState> = {}) {
       <ToastsProvider>
         <MemoryRouter>
           <InvestDataContext.Provider
-            value={{ state: { ...EMPTY_INVEST_STATE, ...state }, loading: false, refresh }}
+            value={{ state: { ...EMPTY_INVEST_STATE, ...state }, loading: false, error: false, refresh }}
           >
             <InvestProfilePage />
           </InvestDataContext.Provider>

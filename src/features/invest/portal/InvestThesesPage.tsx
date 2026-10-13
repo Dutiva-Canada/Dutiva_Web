@@ -36,6 +36,8 @@ import { THESIS_INTENTS } from '../data/types'
 import { newRuleDraft, newRulePersistId, toDrafts } from './ruleDrafts'
 import type { RuleDraft } from './ruleDrafts'
 import { RulesAccordion } from './RulesAccordion'
+import { validateRules } from '../data/strategyRules'
+import { ruleProblemText } from './strategyUi'
 import { relTimeLabel } from './relTime'
 import { useInvestHead } from './useInvestHead'
 import './strategies.css'
@@ -94,10 +96,15 @@ const INTENT_LABEL: Record<ThesisIntent, keyof typeof IM> = {
 
 /** Observed-metric readout for a condition row — % metrics render as a
     percent, value metrics as book currency, null means "no reading". */
-function evalValueLabel(metric: RuleMetric, value: number | null, ccy: string): string | null {
+function evalValueLabel(
+  metric: RuleMetric,
+  value: number | null,
+  ccy: string,
+  lang: string,
+): string | null {
   if (value === null || !Number.isFinite(value)) return null
   if (metric === 'value_floor' || metric === 'cash_above') {
-    return `${Math.round(value).toLocaleString('en-CA')} ${ccy}`
+    return `${Math.round(value).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
   }
   return `${value > 0 ? '+' : ''}${Math.round(value * 10) / 10}%`
 }
@@ -109,15 +116,19 @@ function seedToDrafts(rules: unknown): RuleDraft[] {
     const r = raw as Record<string, unknown>
     if (r?.type !== 'signal') continue
     const d = newRuleDraft()
+    /* 'between' is meaningless without its second bound — a draft that
+       dropped value2 becomes a dead rule, so fall back to 'lt'. */
+    const op: SignalRule['op'] =
+      r.op === 'gt' ? 'gt' : r.op === 'between' && typeof r.value2 === 'number' ? 'between' : 'lt'
     drafts.push({
       id: d.id,
       rule: {
         id: newRulePersistId(),
         type: 'signal',
         metric: (r.metric as SignalRule['metric']) ?? 'vs_ma50',
-        op: r.op === 'gt' || r.op === 'between' ? r.op : 'lt',
+        op,
         value: typeof r.value === 'number' ? r.value : 0,
-        ...(r.op === 'between' && typeof r.value2 === 'number' ? { value2: r.value2 } : {}),
+        ...(op === 'between' ? { value2: r.value2 as number } : {}),
         title: typeof r.title === 'string' ? r.title : '',
         severity: r.severity === 'alert' ? 'alert' : 'insight',
       },
@@ -240,18 +251,27 @@ export function InvestThesesPage() {
         description: c.tallyDescription,
         lang,
       })
-      setComposer((cur) => ({
-        ...cur,
-        thesis: res.draft.thesis,
-        intent: res.draft.intent,
-        breakDrafts: toDrafts(res.draft.breakRules),
-        driftDrafts: toDrafts(res.draft.driftRules),
-        /* The model already filed a queue row — adopt it as the pending
-           suggestion so the save resolves it (no orphan card). */
-        suggestionId: cur.suggestionId ?? res.suggestionId,
-        tallyBusy: false,
-        tallyNote: true,
-      }))
+      setComposer((cur) => {
+        /* Every draft call files its own queue row server-side — when the
+           composer already tracks one (a strip accept, or an earlier draft),
+           the newcomer is a duplicate; resolve it superseded or it sits
+           pending forever. */
+        if (res.suggestionId && cur.suggestionId && res.suggestionId !== cur.suggestionId) {
+          void resolveSuggestion(res.suggestionId, 'dismissed', 'superseded').catch(() => {})
+        }
+        return {
+          ...cur,
+          thesis: res.draft.thesis,
+          intent: res.draft.intent,
+          breakDrafts: toDrafts(res.draft.breakRules),
+          driftDrafts: toDrafts(res.draft.driftRules),
+          /* The model already filed a queue row — adopt it as the pending
+             suggestion so the save resolves it (no orphan card). */
+          suggestionId: cur.suggestionId ?? res.suggestionId,
+          tallyBusy: false,
+          tallyNote: true,
+        }
+      })
     } catch {
       setComposer((cur) => ({ ...cur, tallyBusy: false }))
       showToast(IM.invest_thesis_tally_failed)
@@ -260,11 +280,22 @@ export function InvestThesesPage() {
 
   const save = useCallback(async () => {
     const c = composer
-    if (!c.symbol || busy) return
+    /* The claim is the thesis — a symbol with no claim and no conditions
+       would be an empty card the sweep can't even read. */
+    if (!c.symbol || !c.thesis.trim() || busy) return
+    /* Same gate the strategy editor runs — a NaN threshold or a boundless
+       'between' would persist as a dead rule otherwise. */
+    const signalRules = (ds: RuleDraft[]): SignalRule[] =>
+      ds.map((d) => d.rule).filter((r): r is SignalRule => r.type === 'signal')
+    const problem = validateRules([...signalRules(c.breakDrafts), ...signalRules(c.driftDrafts)])[0]
+    if (problem) {
+      showToast(
+        fill(x(IM.invest_thesis_save_failed), { error: ruleProblemText(lang, problem) }),
+      )
+      return
+    }
     setBusy('save')
     try {
-      const signalRules = (ds: RuleDraft[]): SignalRule[] =>
-        ds.map((d) => d.rule).filter((r): r is SignalRule => r.type === 'signal')
       await saveThesis({
         ...(c.id ? { id: c.id } : {}),
         assetClass: c.assetClass,
@@ -292,7 +323,7 @@ export function InvestThesesPage() {
     } finally {
       setBusy(null)
     }
-  }, [composer, busy, refresh, showToast, x])
+  }, [composer, busy, refresh, showToast, x, lang])
 
   const remove = useCallback(
     async (t: InvestThesis) => {
@@ -436,7 +467,7 @@ export function InvestThesesPage() {
                               {x(IM.invest_thesis_zone_break)}
                             </span>
                             {breakRows.map((r) => {
-                              const read = evalValueLabel(r.metric, r.value, bookCurrency)
+                              const read = evalValueLabel(r.metric, r.value, bookCurrency, lang)
                               return (
                                 <div key={`${r.zone}-${r.ident}`} className="sb-thesis-cond">
                                   {r.fired ? (
@@ -461,7 +492,7 @@ export function InvestThesesPage() {
                               {x(IM.invest_thesis_zone_drift)}
                             </span>
                             {driftRows.map((r) => {
-                              const read = evalValueLabel(r.metric, r.value, bookCurrency)
+                              const read = evalValueLabel(r.metric, r.value, bookCurrency, lang)
                               return (
                                 <div key={`${r.zone}-${r.ident}`} className="sb-thesis-cond">
                                   {r.fired ? (
@@ -697,7 +728,7 @@ export function InvestThesesPage() {
             <button
               type="button"
               className="sb-btn sb-btn-primary"
-              disabled={!composer.symbol || busy !== null}
+              disabled={!composer.symbol || !composer.thesis.trim() || busy !== null}
               onClick={() => void save()}
             >
               {busy === 'save' && (

@@ -7,6 +7,9 @@ import { createAccount, loadInvestState } from './api'
 export function InvestDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<InvestState>(EMPTY_INVEST_STATE)
   const [loading, setLoading] = useState(true)
+  /* A failed load must not masquerade as an empty book — `error` lets the
+     chrome say "couldn't load" instead of every page claiming no data. */
+  const [error, setError] = useState(false)
   /* First-run provisioning: a brand-new account gets one paper book so the
      empty-state copy ("a paper account is created for you") is true and the
      positions form has somewhere to record into. Once per mount — a failed
@@ -32,6 +35,9 @@ export function InvestDataProvider({ children }: { children: ReactNode }) {
         next = await loadInvestState()
       }
       setState(next)
+      setError(false)
+    } catch {
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -41,6 +47,6 @@ export function InvestDataProvider({ children }: { children: ReactNode }) {
     void refresh()
   }, [refresh])
 
-  const value = useMemo(() => ({ state, loading, refresh }), [state, loading, refresh])
+  const value = useMemo(() => ({ state, loading, error, refresh }), [state, loading, error, refresh])
   return <InvestDataContext.Provider value={value}>{children}</InvestDataContext.Provider>
 }

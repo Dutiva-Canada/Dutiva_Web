@@ -19,6 +19,9 @@ export const HOME_TABS = [
   '/invest/orders',
   '/invest/signals',
   '/invest/strategies',
+  '/invest/theses',
+  '/invest/analysis',
+  '/invest/profile',
 ] as const
 export type HomeTab = (typeof HOME_TABS)[number]
 

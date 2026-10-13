@@ -42,7 +42,8 @@ import { json, sseChannel, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
    reach it. */
 
 export { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
-export { runChatUndo } from './chatActions.ts'
+export { runChatUndo, undoChatAction } from './chatActions.ts'
+export type { ExecutedAction } from './chatActions.ts'
 
 const CHAT_HISTORY = 20
 const CHAT_LIST_CAP = 15
@@ -635,6 +636,8 @@ export async function runChat(
       }
     }
 
+    /* An action that throws must not sink the reply — ok:false reports the
+       failed write on the bubble while the answer still lands. */
     const executed = parsed.action
       ? await executeChatAction(adminClient, userId, parsed.action, {
           accounts: book.accounts,
@@ -645,6 +648,13 @@ export async function runChat(
           apiKey,
           lang,
           advice,
+        }).catch((e) => {
+          console.warn('invest-ai action threw', e instanceof Error ? e.message : String(e))
+          return {
+            type: parsed.action!.type,
+            detail: 'symbol' in parsed.action! ? String(parsed.action!.symbol) : '',
+            ok: false,
+          } satisfies ExecutedAction
         })
       : null
     /* Sources ride the verified reply — computed after repair so a replaced

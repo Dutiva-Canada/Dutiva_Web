@@ -325,7 +325,7 @@ export async function executeChatAction(
    than rewriting it. The action payload sits on the assistant message
    row; undo marks it undone there so a reload doesn't offer the chip. */
 
-async function undoChatAction(
+export async function undoChatAction(
   adminClient: SupabaseClient,
   userId: string,
   action: ExecutedAction,

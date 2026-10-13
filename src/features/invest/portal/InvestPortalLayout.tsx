@@ -70,6 +70,29 @@ export function ThemeCycleButton({ className }: { className: string }) {
   )
 }
 
+/* Reads the shared context — a failed initial load would otherwise render
+   every page's empty state as if the book were genuinely empty. */
+function LoadErrorNote() {
+  const { error, refresh } = useContext(InvestDataContext)
+  const { x } = useI18n()
+  if (!error) return null
+  return (
+    <p
+      role="alert"
+      className="mb-[16px] flex items-center justify-between gap-[12px] rounded-[10px] border border-risk-border bg-risk-soft px-[14px] py-[10px] text-[13px] font-semibold text-risk-fg"
+    >
+      {x(IM.invest_error_load)}
+      <button
+        type="button"
+        onClick={() => void refresh()}
+        className="cursor-pointer rounded-[7px] px-[10px] py-[4px] text-[12px] font-bold hover:bg-risk-border/40"
+      >
+        {x(IM.invest_chat_retry)}
+      </button>
+    </p>
+  )
+}
+
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
     isActive
@@ -312,7 +335,10 @@ export function InvestPortalLayout() {
           ) : access === 'no' ? (
             <AccessRequired />
           ) : (
-            <Outlet />
+            <>
+              <LoadErrorNote />
+              <Outlet />
+            </>
           )}
         </main>
         <InvestFooter />

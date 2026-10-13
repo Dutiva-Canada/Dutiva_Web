@@ -780,6 +780,10 @@ const investCoreMessages = defineMessages({
     en: 'Something went wrong. Please try again.',
     fr: 'Une erreur s’est produite. Veuillez réessayer.',
   },
+  invest_error_load: {
+    en: 'Your book could not be loaded — refresh to try again.',
+    fr: 'Votre livre n’a pas pu être chargé — actualisez pour réessayer.',
+  },
   invest_loading: { en: 'Loading…', fr: 'Chargement…' },
 
   /* Chat — the book assistant. Answers over the user's own rows (accounts,
