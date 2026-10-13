@@ -281,7 +281,10 @@ export const BOOK_METRICS: readonly string[] = ['cash_above']
     a daily scan; on slower cadences the UI suggests Daily. */
 export const DAILY_METRICS: readonly string[] = ['day_change_pct']
 
-function metricValue(
+/** The engine's metric reader — exported for the thesis evaluator, which
+    needs the observed value (not just the boolean) for its per-rule
+    detail rows. */
+export function metricValue(
   metric: RuleMetric,
   snap: MarketSnapshot,
   position: Position | null,

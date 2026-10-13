@@ -146,13 +146,113 @@ export function parseDraft(raw: string): StrategyDraft | null {
   return { name, cadence, scope, rules }
 }
 
-export type AiAction = 'draft-strategy'
+export type AiAction = 'draft-strategy' | 'draft-thesis'
 
 export function validateAiAction(
   action: unknown,
 ): { ok: true; value: AiAction } | { ok: false; error: string } {
-  if (action === 'draft-strategy') return { ok: true, value: action }
+  if (action === 'draft-strategy' || action === 'draft-thesis') {
+    return { ok: true, value: action }
+  }
   return { ok: false, error: `Unknown action: ${String(action)}` }
+}
+
+/* ── draft-thesis ───────────────────────────────────────────────────────────
+   The model writes the standing claim — the story plus the conditions that
+   would fray or break it. A thesis only observes: its rules are signals,
+   never order proposals, so the parse step drops anything that isn't one. */
+
+export interface ThesisDraft {
+  thesis: string
+  intent: 'core' | 'growth' | 'income' | 'speculative'
+  break_rules: StrategyRule[]
+  drift_rules: StrategyRule[]
+}
+
+const MAX_THESIS_TEXT = 600
+const MAX_THESIS_RULES = 4
+const THESIS_INTENTS = ['core', 'growth', 'income', 'speculative']
+
+export const THESIS_SYSTEM_PROMPT = `You turn a holding's story, told in plain language, into a tracked
+investment thesis for a watch portal. Output ONLY a JSON object:
+
+{"thesis": string, "intent": "core"|"growth"|"income"|"speculative",
+ "break_rules": SignalRule[], "drift_rules": SignalRule[]}
+
+SignalRule: {"metric", "op": "lt"|"gt", "value": number, "title",
+             "type": "signal", "severity": "insight"|"alert"}
+
+- thesis: the claim in one or two sentences, ≤ 500 chars, in the user's
+  language — what the holding must keep being true. Not advice, not a
+  prediction — the story as the user told it.
+- intent: the role the position plays — core holds through noise,
+  speculative lives and dies by its setup.
+- break_rules: 1-3 conditions that INVALIDATE the claim — if any fires
+  the thesis is broken and needs a decision.
+- drift_rules: 1-3 EARLY-warning conditions — the thesis fraying, not yet
+  broken.
+- Allowed metrics (choose only these):
+  day_change_pct  — session change in % (drift only; too noisy to break)
+  vs_ma50         — % distance from the 50-day average
+  value_floor     — position market value in account currency
+  weight_pct      — position's share of the book in %
+  unrealized_gain_pct — gain vs avg cost in %
+- Rules carry round, conservative thresholds the user can edit. Titles
+  name what fired ("Under the 50-day average", not "drift rule 1").
+- Every rule is type "signal" — a thesis watches, it never proposes an
+  order.`
+
+export function buildThesisDraftPrompt(
+  input: { symbol: string; name: string; description: string },
+  lang: 'en' | 'fr',
+): string {
+  const langName = lang === 'fr' ? 'Canadian French' : 'English'
+  return `Language for the thesis field and rule titles: ${langName}.
+
+Holding: ${input.symbol}${input.name ? ` (${input.name})` : ''}
+
+The holder's story:
+${input.description}`
+}
+
+/** Model output → validated thesis draft, or null when unusable. */
+export function parseThesisDraft(raw: string): ThesisDraft | null {
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/, '')
+    .trim()
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start === -1 || end <= start) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1))
+  } catch {
+    return null
+  }
+  if (parsed === null || typeof parsed !== 'object') return null
+  const o = parsed as Record<string, unknown>
+
+  const thesis =
+    typeof o['thesis'] === 'string' ? o['thesis'].trim().slice(0, MAX_THESIS_TEXT) : ''
+  if (!thesis) return null
+
+  const intent = (
+    typeof o['intent'] === 'string' && THESIS_INTENTS.includes(o['intent'])
+      ? o['intent']
+      : 'core'
+  ) as ThesisDraft['intent']
+
+  /* Signals only — a model that emits order proposals gets them dropped;
+     a draft whose zones both come back empty is useless. */
+  const signalOnly = (rules: StrategyRule[]): StrategyRule[] =>
+    rules.filter((r): r is StrategyRule & { type: 'signal' } => r.type === 'signal')
+  const breakRules = signalOnly(parseRules(o['break_rules'])).slice(0, MAX_THESIS_RULES)
+  const driftRules = signalOnly(parseRules(o['drift_rules'])).slice(0, MAX_THESIS_RULES)
+  if (breakRules.length === 0 && driftRules.length === 0) return null
+
+  return { thesis, intent, break_rules: breakRules, drift_rules: driftRules }
 }
 
 /* ── Chat — the portal's conversational surface ─────────────────────────────

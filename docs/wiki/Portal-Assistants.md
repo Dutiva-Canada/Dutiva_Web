@@ -103,7 +103,7 @@ Two contract rules hold on every surface:
 - **The function is the table's only writer** — history read, clear, and feedback all run through the edge function rather than direct table access from the client.
 - **Both turns persist** — the user's message and the assistant's reply land in `*_chat_messages` together, so history survives reloads and `chat_undo` can find the row it needs to reverse.
 
-Mira adds two kinds on top: `entry_react` (respond to one journal entry the person explicitly shared via "Let Mira read this") and one-shot prompt kinds (`reflect`, `recap`, `habit`). Paige adds one-shot desk kinds (`tone`, `draft`, `summary`, `clusters`, `prompts`, `pitch`). Tally adds `draft-strategy` (a one-shot action, not a `kind`).
+Mira adds two kinds on top: `entry_react` (respond to one journal entry the person explicitly shared via "Let Mira read this") and one-shot prompt kinds (`reflect`, `recap`, `habit`). Paige adds one-shot desk kinds (`tone`, `draft`, `summary`, `clusters`, `prompts`, `pitch`). Tally adds `draft-strategy` and `draft-thesis` (one-shot actions, not `kind`s).
 
 Sources: [supabase/functions/health-ai/index.ts:24-62](), [supabase/functions/pr-ai/index.ts:35-71](), [supabase/functions/invest-ai/index.ts:24-50]()
 
@@ -208,7 +208,9 @@ Tally is the book's watch clerk — plain, precise, numbers before adjectives. T
 
 Order-proposal rules emit **draft** orders that wait in the Orders tab for explicit user approval. `chat_undo` can reverse a queued order only while untouched.
 
-**Suggestion pass.** Every sweep also runs Tally's deterministic book review (`invest-bot/suggestions.ts`), which files `agent_suggestions` rows — seeded strategy drafts for unwatched books, gap rules, scope coverage, and tune-ups for rules the person keeps dismissing. The review queue is where her "self-improvement" lives: resolved rows are the outcome data future passes learn from — dismissed shapes stay suppressed, and a kind the person always dismisses cools down entirely. She never mutates a live strategy silently; every suggestion waits on the person.
+**Suggestion pass.** Every sweep also runs Tally's deterministic book review (`invest-bot/suggestions.ts`), which files `agent_suggestions` rows — seeded strategy drafts for unwatched books, gap rules, scope coverage, tune-ups for rules the person keeps dismissing, and `thesis` seeds for held symbols with no standing claim yet. The review queue is where her "self-improvement" lives: resolved rows are the outcome data future passes learn from — dismissed shapes stay suppressed, and a kind the person always dismisses cools down entirely. She never mutates a live strategy silently; every suggestion waits on the person.
+
+**Thesis pass.** Every sweep also evaluates each `invest_theses` row (`invest-bot/theses.ts`): a thesis is the holder's standing claim about a symbol — the story, the role the position plays (`intent`), and the conditions that fray it (`drift_rules`) or end it (`break_rules`), all engine signal rules. Any fired break → `broken`; else fired drift → `drifting`; else `healthy`; no snapshot keeps the stored status. The verdict persists on the row (status, per-rule reads, a bilingual posture line) so `/invest/theses` renders it directly; transitions emit `kind: 'thesis'` signals deduped per status. The posture line is tier-gated — internal accounts hear a direct call (hold/trim/exit candidates), external accounts get the state and a review nudge. `draft-thesis` in invest-ai lets Tally write the claim and conditions from a plain-language story — filed to the review queue, saved only by the person.
 
 **Market data.** `invest-market-sync` refreshes `invest_market_snapshots` from free public feeds and stores shared headlines in `invest_market_news`, so strategies evaluate fresh prices without manual entry.
 

@@ -46,6 +46,14 @@ Two more tables came with `0183_invest_watchlist_news.sql`:
 | `invest_watchlist`   | User-scoped symbols tracked without a position — feeds the market-sync universe (a watched symbol gets a daily snapshot, so dip-watchers work before the first buy) and the per-symbol news queries |
 | `invest_market_news` | **Shared** headlines, unique on `(symbol, url)`; `''` symbol = general market item. Grant-holders read via `invest_market_news_read`; only the service role writes                                  |
 
+And `invest_theses` (`0219_invest_theses.sql`): one standing claim per
+(user, asset_class, symbol) — `thesis` text, `intent` (`core` | `growth` |
+`income` | `speculative` — the role the position plays), `break_rules` /
+`drift_rules` jsonb (engine signal-rule wire shape), and the sweep's
+persisted verdict: `status` (`healthy` | `drifting` | `broken`),
+`eval_detail` (per-rule fired/read + the bilingual posture line),
+`last_evaluated_at`. RLS owner-only like every invest table.
+
 ## The bot (`supabase/functions/invest-bot`)
 
 - `POST { action: 'run' }` — portal JWT; scans the caller's enabled
@@ -122,18 +130,37 @@ no insights, never a failed run.
 **Suggestion pass** — after insights, `fileBookSuggestions`
 (`suggestions.ts`) runs a deterministic book review and files durable
 `agent_suggestions` rows the Strategies page renders as a review list.
-Four kinds: `strategy` (a seeded, disabled draft for a book with no
+Five kinds: `strategy` (a seeded, disabled draft for a book with no
 enabled strategy — the same payload shape the invest-ai drafter returns,
 so the existing accept path consumes it), `rule_add` (a gap worth a rule —
 concentration, big gains, cash drag, an unwatched mover), `scope_add`
-(held symbols no enabled strategy covers), and `rule_tune` (a rule whose
+(held symbols no enabled strategy covers), `rule_tune` (a rule whose
 signals keep getting dismissed → loosened thresholds, or a proposal whose
-drafts keep expiring → demote to a signal). Learning is the resolution
-trail itself: dismissed dedupe keys stay suppressed for 30 days, a kind
-the user dismisses ~always cools down entirely, and the pass regenerates
-at most every ~20h (a manual scan bypasses). Order-proposal rules only
-ever appear in suggestions for the internal-staff tier — the same
-`isInternalDutivaAccount` gate as the insight pass.
+drafts keep expiring → demote to a signal), and `thesis` (a held symbol
+with no claim yet → a seeded tracker whose drift/break conditions come
+pre-filled; the story line stays blank for the user). Learning is the
+resolution trail itself: dismissed dedupe keys stay suppressed for 30
+days, a kind the user dismisses ~always cools down entirely, and the pass
+regenerates at most every ~20h (a manual scan bypasses). Order-proposal
+rules only ever appear in suggestions for the internal-staff tier — the
+same `isInternalDutivaAccount` gate as the insight pass.
+
+**Thesis pass** — after suggestions, `evaluateTheses` (`theses.ts`) reads
+every `invest_theses` row against the freshest snapshots on every sweep
+(no cadence gate — a thesis is a standing claim, always live). Any fired
+break rule → `broken`; else any fired drift rule → `drifting`; else
+`healthy`. A thesis with no snapshot keeps its stored status — silence
+isn't a verdict. Every eval writes `status` + `eval_detail` (per-rule
+fired + observed value + the posture line in both languages) onto the row
+so `/invest/theses` renders conditions live without a client-side engine.
+A status **transition** emits a `kind: 'thesis'` signal — deduped per
+status through the same `rule_id`-keyed slots rule signals use
+(`thesis:{class}:{symbol}:{status}`), so an open 'drifting' row
+suppresses repeats while the 'broken' transition still fires fresh. The
+posture line is intent-shaped (`speculative` holds get no benefit of the
+doubt that `core` does) and tier-gated like everything else: internal
+accounts hear a direct posture call ("trim candidate", "exit candidate"),
+external accounts get the state and a review nudge.
 
 ## Market sync (`supabase/functions/invest-market-sync`)
 
@@ -178,6 +205,14 @@ reaches the book until the user reviews, picks the scope, saves, and
 enables it. Reuses the shared `modelUpstream.ts` dispatch (falls back to
 the `advisor_chat` route when no `invest_ai` row exists).
 
+`POST { action: 'draft-thesis', assetClass, symbol, name, description,
+lang }` — same contract for a thesis: the model writes the claim plus its
+drift/break conditions from the holder's plain-language story
+(`THESIS_SYSTEM_PROMPT` + `parseThesisDraft` in `handlers.ts` — signals
+only; a model that emits order proposals gets them dropped). Filed to
+`agent_suggestions` kind `thesis` like every agent artifact; nothing
+persists until the user saves the thesis row.
+
 ## What it deliberately is not
 
 - **No broker calls.** `live` orders are bookkeeping — a human confirms
@@ -203,13 +238,13 @@ the `advisor_chat` route when no `invest_ai` row exists).
 
 ## UI
 
-`src/features/invest/` — `portal/` (layout, auth panel, eight pages,
-`StrategyForm.tsx` + `RuleCard.tsx` + `StrategyTemplates.tsx` +
-`StrategyAiDraft.tsx`) + `data/` (types, API, provider,
+`src/features/invest/` — `portal/` (layout, auth panel, ten pages incl.
+`InvestThesesPage.tsx`, `StrategyEditor.tsx` + `StrategyWizard.tsx` +
+`RulesAccordion.tsx` + `ruleDrafts.ts`) + `data/` (types, API, provider,
 `strategyTemplates.ts`, `strategyRules.ts` — the client mirror of the
-engine's rule model). Nav: Overview, Portfolios, Orders,
-Signals, Bot — plus bell (Notifications) and gear (Settings) icons in the
-action row; the mobile menu lists all seven as text rows. Bilingual via
+engine's rule model). Nav: Overview, Chat, Portfolios, Orders,
+Signals, Strategies, Theses — plus bell (Notifications) and gear
+(Settings) icons in the action row. Bilingual via
 `investMessages`; the language toggle rides in the header like the
 candidate portal. Mobile nav collapses to a menu under 820px.
 

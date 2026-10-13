@@ -4,20 +4,28 @@ import {
   digestFlushDue,
   draftExpiryCutoff,
   draftKey,
+  parseRules,
   planRun,
   signalKey,
   strategyDue,
   type MarketSnapshot,
   type Position,
+  type StrategyRule,
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
 import { fileBookSuggestions } from './suggestions.ts'
+import {
+  evaluateTheses,
+  thesisBookContext,
+  thesisSignalTitle,
+  type Thesis,
+} from './theses.ts'
 import { convertFx, fetchFxTable } from './fx.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
 import type { PostgrestSingleResponse } from 'npm:@supabase/supabase-js@2'
-import type { Database } from '../_shared/database.types.ts'
+import type { Database, Json } from '../_shared/database.types.ts'
 import { loadStrategies } from './strategies.ts'
 
 /* ── Org run ───────────────────────────────────────────────────────────────
@@ -114,6 +122,22 @@ export async function runUser(
     ),
   ]
   const { strategies } = await loadStrategies(adminClient, userId, knownSymbols)
+
+  /* Theses load alongside the book — the suggestion pass reads them to
+     spot thesis-less holdings, and the eval pass below reuses the rows.
+     Older schemas without the table degrade to none. */
+  const { data: thesisRows } = await adminClient
+    .from('invest_theses')
+    .select('*')
+    .eq('user_id', userId)
+  const theses = ((thesisRows ?? []) as unknown as (Omit<Thesis, 'break_rules' | 'drift_rules'> & {
+    break_rules: unknown
+    drift_rules: unknown
+  })[]).map((t) => ({
+    ...t,
+    break_rules: parseRules(t.break_rules) as StrategyRule[],
+    drift_rules: parseRules(t.drift_rules) as StrategyRule[],
+  }))
 
   /* Book currency follows the first active account's base — same rule the
      portal uses for its blended headline. FX rates convert every position
@@ -360,6 +384,7 @@ export async function runUser(
       cashTotal,
       fx,
       bookCurrency,
+      theses,
       /* authEmail was resolved for insights when they ran; the wrapper
          lazily re-derives the tier from the auth record when it wasn't. */
       advice: insightsDue ? isInternalDutivaAccount(authEmail) : undefined,
@@ -371,6 +396,87 @@ export async function runUser(
     )
     plan.warningDetails.push({ code: 'suggestions_failed', params: {} })
     console.error('invest-bot: suggestion pass failed', error)
+  }
+
+  /* Thesis evaluation — every sweep, not cadence-gated: a thesis is a
+     standing claim about a holding, always live. Status transitions emit
+     kind 'thesis' signals (deduped per status through the same keys rule
+     signals use); steady-state evals only refresh eval_detail so the
+     Theses page always reads current conditions. Never fatal. */
+  if (theses.length > 0) {
+    try {
+      const advice = isInternalDutivaAccount(authEmail)
+      const thesisCtx = thesisBookContext(positions, snapshots, cashTotal, fx, bookCurrency)
+      const evals = evaluateTheses(theses, snapshots, positions, thesisCtx, { advice })
+      const evalAt = new Date().toISOString()
+      for (const ev of evals) {
+        if (ev.noSnapshot) continue /* silence isn't a verdict */
+        await adminClient
+          .from('invest_theses')
+          .update({
+            status: ev.status,
+            eval_detail: ev.detail as unknown as Json,
+            last_evaluated_at: evalAt,
+            updated_at: evalAt,
+          })
+          .eq('id', ev.id)
+          .eq('user_id', userId)
+        if (!ev.statusChanged) continue
+        const title = thesisSignalTitle(ev.symbol, ev.name, ev.status)
+        const firedTitles = ev.detail.rules
+          .filter((r) => r.fired)
+          .map((r) => r.title)
+        const bodyEn =
+          firedTitles.length > 0
+            ? `Fired: ${firedTitles.join('; ')}. ${ev.detail.action_en}`
+            : `Back to healthy — no drift or break rule fires now. ${ev.detail.action_en}`
+        const bodyFr =
+          firedTitles.length > 0
+            ? `Déclenché : ${firedTitles.join(' ; ')}. ${ev.detail.action_fr}`
+            : `Retour à la normale — aucune règle de dérive ou de cassure ne se déclenche. ${ev.detail.action_fr}`
+        /* Per-status pseudo rule_id — stored rows recompute the same key
+           (rule_id beats the title in signalKey), so an open 'drifting'
+           row suppresses repeats while the 'broken' transition still
+           fires as a new key. */
+        const thesisRuleId = `thesis:${ev.asset_class}:${ev.symbol}:${ev.status}`
+        const key = signalKey({
+          strategy_id: null,
+          symbol: ev.symbol,
+          kind: 'thesis',
+          title: title.en,
+          rule_id: thesisRuleId,
+        })
+        if (existingKeys.has(key)) continue
+        existingKeys.add(key)
+        const thesisBase = {
+          user_id: userId,
+          strategy_id: null,
+          asset_class: ev.asset_class,
+          symbol: ev.symbol,
+          name: ev.name,
+          kind: 'thesis',
+          title: title.en,
+          title_fr: title.fr,
+          body: bodyEn,
+          body_fr: bodyFr,
+          score: null,
+        }
+        const thesisRow = { ...thesisBase, in_feed: true, rule_id: thesisRuleId }
+        let { error } = await adminClient
+          .from('invest_signals')
+          .insert(signalCols0218 ? thesisRow : thesisBase)
+        if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
+          signalCols0218 = false
+          ;({ error } = await adminClient.from('invest_signals').insert(thesisBase))
+        }
+      }
+    } catch (error) {
+      plan.warnings.push(
+        `thesis pass failed: ${(error as Error).message.slice(0, 120)}`,
+      )
+      plan.warningDetails.push({ code: 'theses_failed', params: {} })
+      console.error('invest-bot: thesis pass failed', error)
+    }
   }
 
   /* Email alerts — notify.email strategies get one bilingual summary per

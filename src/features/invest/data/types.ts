@@ -219,6 +219,63 @@ export interface InvestBotRun {
   status: 'ok' | 'partial' | 'failed'
 }
 
+/* ── Theses (0219) ─────────────────────────────────────────────────────────
+   A standing claim about a holding — the story plus the conditions that
+   would fray or break it. The sweep evaluates the rules server-side every
+   run and stores the verdict on the row; the portal renders evalDetail,
+   it never recomputes. */
+
+export type ThesisStatus = 'healthy' | 'drifting' | 'broken'
+export type ThesisIntent = 'core' | 'growth' | 'income' | 'speculative'
+export const THESIS_INTENTS: readonly ThesisIntent[] = [
+  'core',
+  'growth',
+  'income',
+  'speculative',
+]
+
+/** Per-rule verdict from the last eval — the conditions checklist. */
+export interface ThesisRuleEval {
+  zone: 'break' | 'drift'
+  /** Stored rule's identity (id or title) — survives a save-round trip. */
+  ident: string
+  title: string
+  metric: RuleMetric
+  fired: boolean
+  /** Observed metric value — null when it couldn't compute (no ma50…). */
+  value: number | null
+}
+
+/** What the last sweep computed — server-written, locale-ready. */
+export interface ThesisEvalDetail {
+  rules: ThesisRuleEval[]
+  fired_break: number
+  fired_drift: number
+  /** Posture line in both locales — the card renders the locale pick. */
+  action_en: string
+  action_fr: string
+}
+
+export interface InvestThesis {
+  id: string
+  assetClass: AssetClass
+  symbol: string
+  name: string
+  /** The claim, in the holder's own words. */
+  thesis: string
+  /** The position's role — shapes the recommended posture. */
+  intent: ThesisIntent
+  /** Any fired → status 'broken' (signal rules only — a thesis watches). */
+  breakRules: SignalRule[]
+  /** Any fired → status 'drifting' when no break fired. */
+  driftRules: SignalRule[]
+  status: ThesisStatus
+  evalDetail: ThesisEvalDetail | null
+  lastEvaluatedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 /** A symbol the user wants priced/tracked without holding it — feeds the
     market-sync universe (and thereby dip-watcher strategies) and the
     per-symbol news queries. */

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
+import {
+  draftSystemPrompt,
+  parseDraft,
+  parseThesisDraft,
+  sanitizeGoal,
+  validateAiAction,
+} from './handlers'
 import { runTallyEval } from './goldenEval'
 import {
   ADVICE_FALLBACK_EN,
@@ -334,9 +340,98 @@ describe('parseDraft', () => {
 })
 
 describe('validateAiAction', () => {
-  it('accepts only draft-strategy', () => {
+  it('accepts the draft actions only', () => {
     expect(validateAiAction('draft-strategy').ok).toBe(true)
+    expect(validateAiAction('draft-thesis').ok).toBe(true)
     expect(validateAiAction('auto-trade').ok).toBe(false)
+  })
+})
+
+describe('parseThesisDraft', () => {
+  const good = JSON.stringify({
+    thesis: 'Arm keeps its phone royalties and wins data-center designs.',
+    intent: 'growth',
+    break_rules: [
+      {
+        metric: 'unrealized_gain_pct',
+        op: 'lt',
+        value: -30,
+        type: 'signal',
+        severity: 'alert',
+        title: 'Down 30% from cost',
+      },
+    ],
+    drift_rules: [
+      {
+        metric: 'vs_ma50',
+        op: 'lt',
+        value: -5,
+        type: 'signal',
+        severity: 'insight',
+        title: 'Under the 50-day average',
+      },
+    ],
+  })
+
+  it('returns a validated draft with both zones', () => {
+    const d = parseThesisDraft(good)
+    expect(d).not.toBeNull()
+    expect(d!.intent).toBe('growth')
+    expect(d!.break_rules).toHaveLength(1)
+    expect(d!.drift_rules).toHaveLength(1)
+  })
+
+  it('drops order proposals a model sneaks in — a thesis only observes', () => {
+    const d = parseThesisDraft(
+      JSON.stringify({
+        thesis: 'x holds because y',
+        break_rules: [
+          {
+            metric: 'weight_pct',
+            op: 'gt',
+            value: 35,
+            type: 'order_proposal',
+            side: 'sell',
+            qty: 10,
+            qty_unit: 'percent_of_position',
+            title: 'Trim',
+          },
+        ],
+        drift_rules: [
+          { metric: 'vs_ma50', op: 'lt', value: -5, type: 'signal', title: 'under 50d' },
+        ],
+      }),
+    )
+    expect(d).not.toBeNull()
+    expect(d!.break_rules).toHaveLength(0)
+    expect(d!.drift_rules).toHaveLength(1)
+  })
+
+  it('rejects drafts with no claim text or no usable conditions', () => {
+    expect(
+      parseThesisDraft(
+        JSON.stringify({ break_rules: [{ metric: 'vs_ma50', op: 'lt', value: -5, type: 'signal', title: 'x' }] }),
+      ),
+    ).toBeNull()
+    expect(
+      parseThesisDraft(
+        JSON.stringify({ thesis: 'holds because reasons', break_rules: [], drift_rules: [] }),
+      ),
+    ).toBeNull()
+    expect(parseThesisDraft('not json')).toBeNull()
+  })
+
+  it('defaults a bad intent to core', () => {
+    const d = parseThesisDraft(
+      JSON.stringify({
+        thesis: 'x holds because y',
+        intent: 'yolo',
+        break_rules: [
+          { metric: 'vs_ma50', op: 'lt', value: -10, type: 'signal', title: 'x' },
+        ],
+      }),
+    )
+    expect(d!.intent).toBe('core')
   })
 })
 
