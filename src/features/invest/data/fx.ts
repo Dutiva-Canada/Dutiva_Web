@@ -12,7 +12,6 @@ export interface FxTable {
 
 const STORE_KEY = 'invest-fx-v1'
 const TTL_MS = 6 * 3600_000
-const QUOTE_CURRENCIES = 'USD,EUR,GBP'
 
 let mem: FxTable | null = null
 
@@ -33,7 +32,9 @@ export async function loadFxRates(): Promise<FxTable | null> {
   mem ??= readStore()
   if (mem) return mem
   try {
-    const res = await fetch(`https://api.frankfurter.app/latest?from=CAD&to=${QUOTE_CURRENCIES}`, {
+    /* No `to=` param — one call returns every ECB currency (~30), so a
+       JPY/AUD/CHF position converts too instead of silently dropping. */
+    const res = await fetch('https://api.frankfurter.app/latest?from=CAD', {
       signal: AbortSignal.timeout(8_000),
     })
     if (!res.ok) return null

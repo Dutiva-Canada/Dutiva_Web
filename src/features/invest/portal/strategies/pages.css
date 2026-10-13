@@ -43,6 +43,11 @@
   margin-top: 2px;
   color: var(--sb-accent);
 }
+/* Insight strip — accent edge so it doesn't read as a second notice
+   when it stacks above the legal note. */
+.sb-note-accent {
+  border-left: 3px solid var(--sb-accent);
+}
 .sb-card-pad {
   padding: 18px 16px;
 }

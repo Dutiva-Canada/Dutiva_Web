@@ -401,12 +401,80 @@ describe('InvestHomePage', () => {
       </InvestDataProvider>,
     )
     /* The USD position can't convert — the headline keeps it as its own
-       line instead of dropping it from a CAD-labelled "total". */
+       code-labelled line instead of dropping it from a CAD "total". */
     expect(await screen.findByText(/totals stay per currency/)).toBeInTheDocument()
-    expect(screen.getAllByText('US$1,000.00').length).toBe(2)
-    expect(screen.getAllByText('$25,000.00').length).toBe(2)
-    /* A share of an unsummable book is invented — no % or bar renders. */
-    expect(screen.queryByText(/100%/)).not.toBeInTheDocument()
+    expect(screen.getByText('Portfolio value by currency')).toBeInTheDocument()
+    expect(screen.getAllByText('USD 1,000.00').length).toBe(1)
+    expect(screen.getAllByText('CAD 25,000.00').length).toBe(2)
+    /* No blended book, but each class still shows its share of the
+       same-currency slice — a real proportion, not an invented one. */
+    expect(screen.getByText(/100% of USD book/)).toBeInTheDocument()
+  })
+
+  it('names the uncovered currency when rates exist but not for it', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...USD_QUOTED,
+      positions: [
+        {
+          ...USD_QUOTED.positions[0]!,
+          symbol: 'TYO',
+          currency: 'JPY',
+        },
+      ],
+      snapshots: [
+        { ...USD_QUOTED.snapshots[0]!, symbol: 'TYO', currency: 'JPY' },
+      ],
+    })
+    /* A table with only USD/EUR/GBP can't touch JPY — the note says which
+       currency is uncovered rather than claim no rates exist. */
+    vi.mocked(loadFxRates).mockResolvedValue({ date: '2026-10-12', rates: { CAD: 1, USD: 0.73 } })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    expect(await screen.findByText(/No JPY rate on file/)).toBeInTheDocument()
+    /* JPY is zero-decimal — no cents column. */
+    expect(screen.getAllByText('JPY 1,000').length).toBe(1)
+  })
+
+  it('counts acknowledged signals as open and drops dismissed ones from the list', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      signals: [
+        STATE.signals[0]!,
+        {
+          ...STATE.signals[0]!,
+          id: 'sig-ack',
+          symbol: '',
+          title: 'Portfolio-level concentration',
+          status: 'acknowledged' as const,
+        },
+        {
+          ...STATE.signals[0]!,
+          id: 'sig-gone',
+          title: 'Dismissed noise',
+          status: 'dismissed' as const,
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* new + acknowledged = 2 open; the dismissed row never renders. */
+    expect((await screen.findAllByText('2')).length).toBeGreaterThan(0)
+    expect(screen.getByText('Portfolio-level concentration')).toBeInTheDocument()
+    expect(screen.queryByText('Dismissed noise')).not.toBeInTheDocument()
+    /* No symbol → date sits alone, never behind a dangling '·'. */
+    expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
   })
 })
 
