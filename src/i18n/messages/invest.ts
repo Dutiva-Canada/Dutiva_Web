@@ -280,6 +280,20 @@ const investCoreMessages = defineMessages({
     en: 'Remove + its positions?',
     fr: 'Retirer avec ses positions ?',
   },
+  invest_position_one: { en: 'position', fr: 'position' },
+  invest_position_many: { en: 'positions', fr: 'positions' },
+  invest_account_remove_detail: {
+    en: 'Also deletes its {count} — {symbols}.',
+    fr: 'Supprime aussi ses {count} — {symbols}.',
+  },
+  invest_account_removed: {
+    en: 'Removed {name}.',
+    fr: '« {name} » retiré.',
+  },
+  invest_account_removed_cascade: {
+    en: 'Removed {name} — {count} went with it.',
+    fr: '« {name} » retiré, avec {count}.',
+  },
   invest_positions_empty: {
     en: 'No positions yet — add one to start tracking.',
     fr: 'Aucune position — ajoutez-en une pour commencer le suivi.',

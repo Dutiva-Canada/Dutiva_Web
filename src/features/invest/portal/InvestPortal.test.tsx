@@ -652,7 +652,8 @@ describe('InvestPortfolioPage accounts', () => {
 
   it('creates an account with the chosen base currency', async () => {
     const user = await renderPage()
-    expect(await screen.findByText('Paper book')).toBeInTheDocument()
+    /* 'Paper book' renders on the tile and on the row's Account cell. */
+    expect((await screen.findAllByText('Paper book')).length).toBeGreaterThanOrEqual(1)
     vi.mocked(createAccount).mockResolvedValue(undefined)
 
     await user.type(document.getElementById('inv-acc-name')!, 'US book')
@@ -669,28 +670,37 @@ describe('InvestPortfolioPage accounts', () => {
 
   it('removes an account only after the cascade-aware confirm', async () => {
     const user = await renderPage()
-    expect(await screen.findByText('Paper book')).toBeInTheDocument()
+    /* Every row names its owning account — the blast radius is visible
+       before the delete, not discovered after. */
+    const row = (await screen.findByText('SHOP')).closest('tr')
+    expect(row).not.toBeNull()
+    expect(within(row as HTMLElement).getByText('Paper book')).toBeInTheDocument()
     vi.mocked(deleteAccount).mockResolvedValue(undefined)
 
     const remove = screen.getByRole('button', { name: /Remove Paper book/i })
     await user.click(remove)
     expect(deleteAccount).not.toHaveBeenCalled()
-    /* The cascade takes the account's positions with it — the confirm
-       label says so instead of a bare 'Remove?'. */
+    /* The confirm names the cascade — '1 position — SHOP', not just
+       'its positions'. */
     expect(screen.getByText(/its positions/i)).toBeInTheDocument()
+    expect(screen.getByText(/Also deletes its 1 position — SHOP/i)).toBeInTheDocument()
     await user.click(remove)
     await vi.waitFor(() => {
       expect(deleteAccount).toHaveBeenCalledWith('acc1')
     })
+    /* …and the aftermath says how many rows went with it. */
+    expect(
+      await screen.findByText(/Removed Paper book — 1 position went with it\./),
+    ).toBeInTheDocument()
   })
 
   it('edits an account name and cash through the tile Edit control', async () => {
     const user = await renderPage()
-    expect(await screen.findByText('Paper book')).toBeInTheDocument()
-    vi.mocked(updateAccount).mockResolvedValue(undefined)
-
-    const tile = screen.getByText('Paper book').closest('li')
+    /* 'Paper book' matches the tile and the row's Account cell — the
+       tile's copy lands first in DOM order. */
+    const tile = (await screen.findAllByText('Paper book'))[0]!.closest('li')
     expect(tile).not.toBeNull()
+    vi.mocked(updateAccount).mockResolvedValue(undefined)
     await user.click(screen.getByRole('button', { name: /Edit Paper book/i }))
     const nameInput = within(tile as HTMLElement).getByRole('textbox', { name: /Account name/i })
     await user.clear(nameInput)

@@ -1,5 +1,5 @@
 import './strategies.css'
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp, Loader2, Plus, RefreshCw, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -25,6 +25,7 @@ import {
 } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
+import { pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 
@@ -102,6 +103,13 @@ export function InvestPortfolioPage() {
   /* The add form collapses so the positions table leads the section —
      a data page shouldn't open on a wall of empty inputs. */
   const [showPosForm, setShowPosForm] = useState(false)
+  /* Removing an account cascades to its positions — the table shows the
+     owning account on every row so the blast radius is visible before
+     the delete, not discovered after. */
+  const accountName = useMemo(
+    () => new Map(state.accounts.map((a) => [a.id, a.name])),
+    [state.accounts],
+  )
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency figures stay '—' rather than print a wrong number. */
   const [fx, setFx] = useState<FxTable | null>(null)
@@ -311,16 +319,36 @@ export function InvestPortfolioPage() {
           <p className="sb-empty">{x(IM.invest_accounts_empty)}</p>
         ) : (
           <ul className="sb-tiles">
-            {state.accounts.map((a) => (
-              <AccountTile
-                key={a.id}
-                account={a}
-                busy={busy}
-                balance={fmtFor(a.baseCurrency).format(a.cashBalance)}
-                onSave={(input) => run(() => updateAccount(a.id, input))}
-                onRemove={() => run(() => deleteAccount(a.id))}
-              />
-            ))}
+            {state.accounts.map((a) => {
+              const held = state.positions.filter((p) => p.accountId === a.id)
+              return (
+                <AccountTile
+                  key={a.id}
+                  account={a}
+                  positions={held}
+                  busy={busy}
+                  balance={fmtFor(a.baseCurrency).format(a.cashBalance)}
+                  onSave={(input) => run(() => updateAccount(a.id, input))}
+                  onRemove={() =>
+                    run(async () => {
+                      await deleteAccount(a.id)
+                      /* The cascade already fired — say out loud how many
+                         positions went with the account, not just 'done'. */
+                      setSyncNote(
+                        held.length > 0
+                          ? x(IM.invest_account_removed_cascade)
+                              .replace('{name}', a.name)
+                              .replace(
+                                '{count}',
+                                pl(lang, held.length, IM.invest_position_one, IM.invest_position_many),
+                              )
+                          : x(IM.invest_account_removed).replace('{name}', a.name),
+                      )
+                    })
+                  }
+                />
+              )
+            })}
           </ul>
         )}
       </section>
@@ -397,6 +425,7 @@ export function InvestPortfolioPage() {
               <thead>
                 <tr>
                   <SortTh label={x(IM.invest_field_symbol)} k="symbol" num={false} sort={sort} onToggle={toggleSort} />
+                  <th>{x(IM.invest_field_account)}</th>
                   <th>{x(IM.invest_field_asset_class)}</th>
                   <th className="num">{x(IM.invest_field_quantity)}</th>
                   <th className="num">{x(IM.invest_field_avg_cost)}</th>
@@ -416,6 +445,7 @@ export function InvestPortfolioPage() {
                         <span className="dim" style={{ marginLeft: 6 }}>{p.currency}</span>
                       )}
                     </td>
+                    <td className="dim">{accountName.get(p.accountId) ?? '—'}</td>
                     <td>{x(IM[assetLabel[p.assetClass]])}</td>
                     <td className="num">{fmtQty.format(p.quantity)}</td>
                     <td className="num">{fmtFor(p.currency).format(p.avgCost)}</td>
@@ -505,6 +535,7 @@ export function InvestPortfolioPage() {
               <tfoot>
                 <tr>
                   <td className="strong">{x(IM.invest_positions_total)}</td>
+                  <td />
                   <td />
                   <td />
                   <td className="num">
@@ -810,12 +841,14 @@ function AccountForm({
 
 function AccountTile({
   account,
+  positions,
   busy,
   balance,
   onSave,
   onRemove,
 }: {
   account: InvestAccount
+  positions: InvestPosition[]
   busy: boolean
   balance: string
   onSave: (input: {
@@ -826,7 +859,7 @@ function AccountTile({
   }) => Promise<void>
   onRemove: () => Promise<void>
 }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
   const [kind, setKind] = useState<AccountKind>('paper')
@@ -933,6 +966,29 @@ function AccountTile({
           busy={busy}
           ariaLabel={`${x(IM.invest_rule_remove)} ${account.name}`}
           confirmLabel={x(IM.invest_account_remove_confirm)}
+          confirmDetail={
+            positions.length > 0 ? (
+              <span
+                role="note"
+                className="sb-helper"
+                style={{ margin: 0, alignSelf: 'center', flexBasis: '100%' }}
+              >
+                {x(IM.invest_account_remove_detail)
+                  .replace(
+                    '{count}',
+                    pl(lang, positions.length, IM.invest_position_one, IM.invest_position_many),
+                  )
+                  .replace(
+                    '{symbols}',
+                    positions
+                      .slice(0, 3)
+                      .map((p) => p.symbol)
+                      .join(', ') +
+                      (positions.length > 3 ? ` +${positions.length - 3}` : ''),
+                  )}
+              </span>
+            ) : undefined
+          }
           onRemove={onRemove}
         />
       </span>
@@ -1263,6 +1319,7 @@ function RemovePosition({
   busy,
   ariaLabel,
   confirmLabel,
+  confirmDetail,
   onRemove,
 }: {
   busy: boolean
@@ -1270,6 +1327,9 @@ function RemovePosition({
   /** Overrides the two-tap confirm text — e.g. accounts warn that their
       positions go with them. */
   confirmLabel?: string
+  /** Extra line shown only while the confirm is armed — the cascade's
+      blast radius in numbers, not just 'positions'. */
+  confirmDetail?: ReactNode
   onRemove: () => Promise<void>
 }) {
   const { x } = useI18n()
@@ -1279,23 +1339,26 @@ function RemovePosition({
     if (timer.current) clearTimeout(timer.current)
   }, [])
   return (
-    <button
-      type="button"
-      disabled={busy}
-      aria-label={ariaLabel}
-      onClick={() => {
-        if (!confirming) {
-          setConfirming(true)
-          timer.current = setTimeout(() => setConfirming(false), 3000)
-          return
-        }
-        if (timer.current) clearTimeout(timer.current)
-        void onRemove()
-      }}
-      className="sb-btn sb-btn-secondary sb-btn-sm"
-    >
-      {confirming ? (confirmLabel ?? x(IM.invest_remove_confirm)) : x(IM.invest_rule_remove)}
-    </button>
+    <>
+      <button
+        type="button"
+        disabled={busy}
+        aria-label={ariaLabel}
+        onClick={() => {
+          if (!confirming) {
+            setConfirming(true)
+            timer.current = setTimeout(() => setConfirming(false), 3000)
+            return
+          }
+          if (timer.current) clearTimeout(timer.current)
+          void onRemove()
+        }}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+      >
+        {confirming ? (confirmLabel ?? x(IM.invest_remove_confirm)) : x(IM.invest_rule_remove)}
+      </button>
+      {confirming && confirmDetail}
+    </>
   )
 }
 
