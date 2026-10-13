@@ -10,6 +10,7 @@
  * a trade — the only fill path is the manual `execute-order` action in
  * index.ts, and live orders are always bookkeeping a human confirms.
  */
+import { convertFx, type FxTable } from './fx.ts'
 
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
 export type RuleMetric =
@@ -87,6 +88,10 @@ export interface Position {
   symbol: string
   quantity: number
   avg_cost: number
+  /** Currency the cost basis is held in — needed to compare avg_cost to a
+      snapshot price quoted in a different currency. Optional: rows and tests
+      predating the column read as same-currency as the quote. */
+  currency?: string
 }
 
 export interface NewSignal {
@@ -223,12 +228,28 @@ export function parseRules(raw: unknown): StrategyRule[] {
 
 /**
  * Book-level context for portfolio metrics — computed once per run in
- * planRun. `bookValue` is the marked-to-market total of positions whose
- * symbol has a snapshot; `cashTotal` is the sum of active account balances.
+ * planRun. `bookValue` is the marked-to-market total, in `bookCurrency`, of
+ * positions whose symbol has a snapshot *and* whose quote currency could be
+ * converted — a position with no FX rate is excluded rather than blended in
+ * at face value, so a CAD-denominated denominator never quietly adds USD
+ * prices. `cashTotal` is the converted sum of active account balances.
  */
 export interface RunContext {
   bookValue: number
   cashTotal: number
+  /** Currency bookValue and cashTotal are denominated in ('CAD' by default). */
+  bookCurrency?: string
+  /** Convert `amount` in `currency` into bookCurrency — null when no rate
+      exists. Absent in unit tests: metrics then use raw same-currency sums,
+      which is correct for a single-currency fixture book. */
+  toBook?: (amount: number, currency: string) => number | null
+}
+
+/** Position market value in the book currency — null when the quote
+    currency can't convert. */
+function positionBookValue(p: Position, snap: MarketSnapshot, ctx: RunContext): number | null {
+  const raw = p.quantity * snap.price
+  return ctx.toBook ? ctx.toBook(raw, snap.currency) : raw
 }
 
 /** Metrics that describe the whole book, not one symbol — evaluated once
@@ -252,13 +273,27 @@ function metricValue(
       if (snap.ma50 === null || snap.ma50 === 0) return null
       return ((snap.price - snap.ma50) / snap.ma50) * 100
     case 'value_floor':
-      return position ? position.quantity * snap.price : null
-    case 'weight_pct':
+      return position ? positionBookValue(position, snap, ctx) : null
+    case 'weight_pct': {
       if (!position || ctx.bookValue <= 0) return null
-      return ((position.quantity * snap.price) / ctx.bookValue) * 100
-    case 'unrealized_gain_pct':
+      const v = positionBookValue(position, snap, ctx)
+      return v === null ? null : (v / ctx.bookValue) * 100
+    }
+    case 'unrealized_gain_pct': {
+      /* Compare cost and price in the book currency — a CAD-cost position
+         quoted in USD must not diff raw numbers across currencies. When a
+         leg can't convert the ratio has no honest answer, so return null. */
       if (!position || position.avg_cost <= 0) return null
-      return ((snap.price - position.avg_cost) / position.avg_cost) * 100
+      const costCurrency = position.currency ?? snap.currency
+      const px = ctx.toBook
+        ? ctx.toBook(snap.price, snap.currency)
+        : snap.price
+      const cost = ctx.toBook
+        ? ctx.toBook(position.avg_cost, costCurrency)
+        : position.avg_cost
+      if (px === null || cost === null || cost === 0) return null
+      return ((px - cost) / cost) * 100
+    }
     case 'cash_above':
       return ctx.cashTotal
   }
@@ -389,6 +424,12 @@ export function planRun(
   existingKeys: ReadonlySet<string>,
   opts: {
     cashTotal?: number
+    /** ECB rates — when absent, only same-currency positions price into
+        bookValue; foreign-currency rows drop out with a warning instead of
+        being summed as if currencies were interchangeable. */
+    fx?: FxTable | null
+    /** Currency bookValue/cashTotal are denominated in — 'CAD' default. */
+    bookCurrency?: string
     now?: Date
     force?: boolean
     openDraftKeys?: ReadonlySet<string>
@@ -411,18 +452,41 @@ export function planRun(
   const now = opts.now ?? new Date()
   const openDraftKeys = new Set(opts.openDraftKeys ?? [])
   const positionBySymbol = new Map<string, Position>()
-  const priceBySymbol = new Map<string, number>()
+  const snapBySymbol = new Map<string, MarketSnapshot>()
   for (const p of positions) positionBySymbol.set(`${p.asset_class}:${p.symbol}`, p)
-  for (const s of snapshots) priceBySymbol.set(`${s.asset_class}:${s.symbol}`, s.price)
+  for (const s of snapshots) snapBySymbol.set(`${s.asset_class}:${s.symbol}`, s)
 
-  /* Marked-to-market book value — the denominator for weight_pct. Only
-     positions with a snapshot count; stale symbols can't inflate weights. */
+  const bookCurrency = (opts.bookCurrency ?? 'CAD').toUpperCase()
+  const toBook = (amount: number, currency: string): number | null =>
+    convertFx(amount, currency, bookCurrency, opts.fx ?? null)
+
+  /* Marked-to-market book value in the book currency — the denominator for
+     weight_pct. Only positions with a snapshot count, and only when the
+     quote currency converts: summing raw prices across CAD and USD books
+     overstated foreign positions by ~40% and corrupted every weight. */
   let bookValue = 0
+  const unconvertible = new Set<string>()
   for (const p of positions) {
-    const price = priceBySymbol.get(`${p.asset_class}:${p.symbol}`) ?? 0
-    bookValue += p.quantity * price
+    const snap = snapBySymbol.get(`${p.asset_class}:${p.symbol}`)
+    if (!snap) continue
+    const v = toBook(p.quantity * snap.price, snap.currency)
+    if (v === null) {
+      unconvertible.add(snap.currency.toUpperCase())
+      continue
+    }
+    bookValue += v
   }
-  const ctx: RunContext = { bookValue, cashTotal: opts.cashTotal ?? 0 }
+  if (unconvertible.size > 0) {
+    plan.warnings.push(
+      `positions quoted in ${[...unconvertible].join(', ')} skipped — no FX rate; their value-based rules did not run`,
+    )
+  }
+  const ctx: RunContext = {
+    bookValue,
+    cashTotal: opts.cashTotal ?? 0,
+    bookCurrency,
+    toBook,
+  }
 
   const scanned = new Set<string>()
   const hit = (diag: RunPlan['perStrategy'][number], rule: RuleBase, n = 1) => {
@@ -661,7 +725,10 @@ function buildSignalBody(
       : null,
     position ? `held: ${position.quantity} @ ${position.avg_cost.toFixed(2)}` : null,
     rule.metric === 'weight_pct' && position && ctx.bookValue > 0
-      ? `weight ${(((position.quantity * snap.price) / ctx.bookValue) * 100).toFixed(1)}%`
+      ? (() => {
+          const v = positionBookValue(position, snap, ctx)
+          return v === null ? null : `weight ${((v / ctx.bookValue) * 100).toFixed(1)}%`
+        })()
       : null,
     rule.metric === 'unrealized_gain_pct' && position && position.avg_cost > 0
       ? `unrealized ${(((snap.price - position.avg_cost) / position.avg_cost) * 100).toFixed(1)}%`

@@ -626,6 +626,58 @@ describe('validateBotAction', () => {
   })
 })
 
+describe('planRun FX conversion', () => {
+  /* 1 CAD = 0.73 USD → 1 USD ≈ 1.3699 CAD. */
+  const fx = { date: '2026-10-13', rates: { CAD: 1, USD: 0.73 } }
+  const usdSnap: MarketSnapshot = { ...snap, symbol: 'AMD', currency: 'USD', price: 50 }
+  const usdPos: Position = { ...position, symbol: 'AMD', currency: 'USD' }
+  const weightStrategy: Strategy = {
+    ...baseStrategy,
+    scope_symbols: ['ACME', 'AMD'],
+    rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 35, title: 'Concentration' })],
+  }
+
+  it('converts foreign-currency positions before weight math', () => {
+    /* ACME 1000 CAD + AMD 500 USD→684.93 CAD = a 1684.93-CAD book:
+       ACME 59.3%, AMD 40.7% — both over 35. Summed raw (the old bug),
+       AMD counted 500 of a 1500 "book" and never reached the line. */
+    const plan = planRun([weightStrategy], [snap, usdSnap], [position, usdPos], new Set(), { fx })
+    expect(plan.signals.map((s) => s.symbol).sort()).toEqual(['ACME', 'AMD'])
+    const amd = plan.signals.find((s) => s.symbol === 'AMD')
+    expect(amd?.body).toContain('weight 40.7%')
+  })
+
+  it('excludes positions whose currency has no rate — never blends raw', () => {
+    const plan = planRun([weightStrategy], [snap, usdSnap], [position, usdPos], new Set(), {
+      fx: null,
+    })
+    /* AMD can't convert: it stays out of bookValue and its weight rule
+       cannot fire. ACME is 100% of the CAD-only book and still fires. */
+    expect(plan.signals.map((s) => s.symbol)).toEqual(['ACME'])
+    expect(plan.warnings.join(' ')).toContain('USD')
+  })
+
+  it('weights unrealized gain across currencies in the book currency', () => {
+    /* AMD cost 95 USD, now 50 USD — a -47.4% loss. Read raw against a CAD
+       book it would compute 50 vs 95 identically here, so assert the cross-
+       currency case where cost and quote legs both convert. */
+    const plan = planRun(
+      [
+        {
+          ...baseStrategy,
+          scope_symbols: ['AMD'],
+          rules: [signalRule({ metric: 'unrealized_gain_pct', op: 'lt', value: -40, title: 'Deep loss' })],
+        },
+      ],
+      [usdSnap],
+      [usdPos],
+      new Set(),
+      { fx },
+    )
+    expect(plan.signals.map((s) => s.symbol)).toEqual(['AMD'])
+  })
+})
+
 describe('insights helpers', () => {
   it('buildInsightPrompt summarizes the book factually', async () => {
     const { buildInsightPrompt } = await import('./insights')
@@ -640,6 +692,37 @@ describe('insights helpers', () => {
     expect(prompt).toContain('ACME')
     expect(prompt).toContain('Notable moves')
     expect(prompt).toContain('BETA 12.0%')
+  })
+
+  it('converts mixed-currency positions before quoting weights', async () => {
+    const { buildInsightPrompt } = await import('./insights')
+    const prompt = buildInsightPrompt({
+      snapshots: [snap, { ...snap, symbol: 'AMD', currency: 'USD', price: 50 }],
+      positions: [position, { ...position, symbol: 'AMD', currency: 'USD' }],
+      cashTotal: 0,
+      signalsEmitted: 0,
+      ordersPlanned: 0,
+      fx: { date: '2026-10-13', rates: { CAD: 1, USD: 0.73 } },
+      bookCurrency: 'CAD',
+    })
+    /* AMD 500 USD → 684.93 CAD of a 1684.93-CAD book → 40.7%. */
+    expect(prompt).toContain('weight 40.7%')
+    expect(prompt).toContain('book value ~1684.93 CAD')
+  })
+
+  it('omits weight when a position currency has no rate', async () => {
+    const { buildInsightPrompt } = await import('./insights')
+    const prompt = buildInsightPrompt({
+      snapshots: [snap, { ...snap, symbol: 'AMD', currency: 'USD', price: 50 }],
+      positions: [position, { ...position, symbol: 'AMD', currency: 'USD' }],
+      cashTotal: 0,
+      signalsEmitted: 0,
+      ordersPlanned: 0,
+      fx: null,
+    })
+    const amdLine = prompt.split('\n').find((l) => l.includes('AMD')) ?? ''
+    expect(amdLine).not.toContain('weight')
+    expect(prompt).toContain('no FX rate')
   })
 
   it('insightSystemPrompt tiers the verb rule on the internal flag', async () => {
@@ -667,6 +750,15 @@ describe('insights helpers', () => {
     const out = parseInsights(`\`\`\`json\n${raw}\n\`\`\``)
     expect(out).toHaveLength(2)
     expect(out[0].title_fr).toBe('Un')
+    /* severity: 'warn' survives; anything else degrades to 'info'. */
+    const sev = parseInsights(
+      JSON.stringify([
+        { title_en: 'A', title_fr: 'U', body_en: 'b', body_fr: 'b', severity: 'warn' },
+        { title_en: 'B', title_fr: 'D', body_en: 'b', body_fr: 'b', severity: 'loud' },
+      ]),
+    )
+    expect(sev[0].severity).toBe('warn')
+    expect(sev[1].severity).toBe('info')
     expect(parseInsights('not json')).toEqual([])
     expect(parseInsights('{"a":1}')).toEqual([])
     expect(parseInsights('[]')).toEqual([])
