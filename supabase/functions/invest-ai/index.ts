@@ -7,11 +7,14 @@ import { withCors } from '../_shared/cors.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   buildDraftPrompt,
+  buildMemoryReviewPrompt,
   buildScanDraftPrompt,
   buildSwotDraftPrompt,
   buildThesisDraftPrompt,
   draftSystemPrompt,
+  MEMORY_REVIEW_SYSTEM_PROMPT,
   parseDraft,
+  parseMemoriesDraft,
   parseScanDraft,
   parseSwotDraft,
   parseThesisDraft,
@@ -20,6 +23,7 @@ import {
   SWOT_SYSTEM_PROMPT,
   THESIS_SYSTEM_PROMPT,
   validateAiAction,
+  type MemoryPromptFact,
 } from './handlers.ts'
 import {
   json,
@@ -40,6 +44,13 @@ import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
  * Actions (POST body, portal JWT + invest_access grant required):
  *   { action: 'draft-strategy', goal: string, lang?: 'en'|'fr' }
  *     → { draft: { name, cadence, asset_classes, rules } }
+ *   { action: 'draft-thesis' | 'draft-swot' | 'draft-scan', … }
+ *     → artifacts filed to agent_suggestions for review, never auto-saved
+ *   { action: 'review-memories', lang? }
+ *     → { proposed, suggestionIds } — reads the holder's recent chat turns
+ *       and files durable facts as 'memory' suggestions; accepting one on
+ *       the profile page writes it to invest_memories, where it joins the
+ *       chat context and the draft prompts on later calls.
  *
  *   { kind: 'chat', message, lang?, today? } → { reply, action, assistantId }
  *     — Tally, the book's watch clerk: answers over the book's own rows and
@@ -109,6 +120,25 @@ async function authenticateInvestUser(
   if (!access) return json({ error: 'Invest access not granted', code: 'no_access' }, 403)
 
   return { userId: userData.user.id, email: userData.user.email ?? null, adminClient }
+}
+
+/** Confirmed memories for the draft prompts — the holder's own retained
+    facts shape drafts the same way they shape chat context. */
+async function loadMemories(
+  adminClient: SupabaseClient,
+  userId: string,
+): Promise<MemoryPromptFact[]> {
+  const { data } = await adminClient
+    .from('invest_memories')
+    .select('symbol, kind, text')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(30)
+  return (data ?? []).map((m) => ({
+    symbol: m.symbol ? String(m.symbol) : null,
+    kind: String(m.kind ?? 'fact'),
+    text: String(m.text ?? '').slice(0, 400),
+  }))
 }
 
 const handler = async (req: Request) => {
@@ -306,6 +336,7 @@ const handler = async (req: Request) => {
     const thesisRouted = await modelRoute(adminClient)
     if ('error' in thesisRouted) return thesisRouted.error
     const tr = thesisRouted
+    const thesisMemories = await loadMemories(adminClient, userId)
     let thesisUpstream: Response
     try {
       thesisUpstream = await postChatCompletion(
@@ -315,7 +346,10 @@ const handler = async (req: Request) => {
           model: tr.route.model_name,
           messages: [
             { role: 'system', content: THESIS_SYSTEM_PROMPT },
-            { role: 'user', content: buildThesisDraftPrompt({ symbol, name, description }, lang) },
+            {
+              role: 'user',
+              content: buildThesisDraftPrompt({ symbol, name, description }, lang, thesisMemories),
+            },
           ],
           max_tokens: tr.route.config?.max_tokens ?? 900,
           temperature: 0.3,
@@ -385,6 +419,7 @@ const handler = async (req: Request) => {
     const swotRouted = await modelRoute(adminClient)
     if ('error' in swotRouted) return swotRouted.error
     const sr = swotRouted
+    const swotMemories = await loadMemories(adminClient, userId)
     let swotUpstream: Response
     try {
       swotUpstream = await postChatCompletion(
@@ -394,7 +429,10 @@ const handler = async (req: Request) => {
           model: sr.route.model_name,
           messages: [
             { role: 'system', content: SWOT_SYSTEM_PROMPT },
-            { role: 'user', content: buildSwotDraftPrompt({ symbol, name, thesis, intent }, lang) },
+            {
+              role: 'user',
+              content: buildSwotDraftPrompt({ symbol, name, thesis, intent }, lang, swotMemories),
+            },
           ],
           max_tokens: sr.route.config?.max_tokens ?? 900,
           temperature: 0.3,
@@ -451,6 +489,7 @@ const handler = async (req: Request) => {
     const scanRouted = await modelRoute(adminClient)
     if ('error' in scanRouted) return scanRouted.error
     const sc = scanRouted
+    const scanMemories = await loadMemories(adminClient, userId)
     let scanUpstream: Response
     try {
       scanUpstream = await postChatCompletion(
@@ -460,7 +499,7 @@ const handler = async (req: Request) => {
           model: sc.route.model_name,
           messages: [
             { role: 'system', content: SCAN_SYSTEM_PROMPT },
-            { role: 'user', content: buildScanDraftPrompt({ holdings }, lang) },
+            { role: 'user', content: buildScanDraftPrompt({ holdings }, lang, scanMemories) },
           ],
           max_tokens: sc.route.config?.max_tokens ?? 1100,
           temperature: 0.3,
@@ -504,6 +543,101 @@ const handler = async (req: Request) => {
       items.push({ item, suggestionId: filed?.id ?? null })
     }
     return json({ items })
+  }
+
+  /* review-memories — the "get to know me" pass. The model reads the
+     holder's own recent chat turns and proposes durable facts; each
+     candidate files as a 'memory' suggestion and only becomes a memory
+     when the holder accepts it on the profile page. A holder with no
+     chat yet gets an honest empty answer rather than fabricated facts. */
+  if (actionCheck.value === 'review-memories') {
+    const [{ data: msgRows }, memories, { data: posRows }, { data: watchRows }] =
+      await Promise.all([
+        adminClient
+          .from('invest_chat_messages')
+          .select('role, content, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(80),
+        loadMemories(adminClient, userId),
+        adminClient.from('invest_positions').select('symbol').eq('user_id', userId).limit(60),
+        adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId).limit(60),
+      ])
+    const userTurns = (msgRows ?? []).filter((m) => m.role === 'user')
+    if (userTurns.length === 0) return json({ proposed: 0, suggestionIds: [] })
+
+    const heldSymbols = new Set<string>()
+    for (const p of posRows ?? []) heldSymbols.add(String(p.symbol).toUpperCase())
+    for (const w of watchRows ?? []) heldSymbols.add(String(w.symbol).toUpperCase())
+
+    const memRouted = await modelRoute(adminClient)
+    if ('error' in memRouted) return memRouted.error
+    const mr = memRouted
+    let memUpstream: Response
+    try {
+      memUpstream = await postChatCompletion(
+        mr.provider,
+        mr.apiKey,
+        {
+          model: mr.route.model_name,
+          messages: [
+            { role: 'system', content: MEMORY_REVIEW_SYSTEM_PROMPT },
+            {
+              role: 'user',
+              content: buildMemoryReviewPrompt(
+                {
+                  messages: userTurns.map((m) => ({
+                    role: String(m.role),
+                    content: String(m.content ?? ''),
+                    createdAt: typeof m.created_at === 'string' ? m.created_at : null,
+                  })),
+                  existing: memories.map((m) => ({ symbol: m.symbol, text: m.text })),
+                },
+                lang,
+              ),
+            },
+          ],
+          max_tokens: mr.route.config?.max_tokens ?? 800,
+          temperature: 0.2,
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+    } catch (error) {
+      console.error('invest-ai: memory review call failed', error)
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    if (!memUpstream.ok) {
+      const errText = await memUpstream.text()
+      console.error('invest-ai: memory review upstream error', memUpstream.status, errText.slice(0, 300))
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    const memCompletion = await memUpstream.json()
+    const memContent = memCompletion?.choices?.[0]?.message?.content
+    if (typeof memContent !== 'string') {
+      return json({ error: 'Empty response from model' }, 502)
+    }
+    const items = parseMemoriesDraft(memContent, heldSymbols)
+    if (!items) {
+      return json({ error: 'Could not review memories this time.', code: 'no_draft' }, 422)
+    }
+    /* Post-parse guard — the model saw the confirmed list but a near-twin
+       of an existing memory still isn't worth a queue row. */
+    const existingKeys = new Set(memories.map((m) => textDedupeKey(m.text)))
+    const fresh = items.filter((i) => !existingKeys.has(textDedupeKey(i.text)))
+
+    const suggestionIds: string[] = []
+    for (const i of fresh) {
+      const filed = await fileSuggestion(adminClient, {
+        userId,
+        surface: 'invest',
+        kind: 'memory',
+        title: i.text,
+        payload: { kind: i.kind, symbol: i.symbol, text: i.text, lang },
+        dedupeKey: `memory:${textDedupeKey(i.text)}`,
+      })
+      if (filed?.id) suggestionIds.push(filed.id)
+    }
+    return json({ proposed: fresh.length, suggestionIds })
   }
 
   /* draft-strategy */

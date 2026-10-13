@@ -1211,3 +1211,36 @@
   gap: 6px;
   margin-top: auto;
 }
+
+/* ── Profile page — the "knows you" surface (0222) ────────────────────── */
+.sb-prof-dims {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+}
+.sb-prof-dim {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+.sb-prof-dim .sb-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.sb-mandate {
+  width: 100%;
+  resize: vertical;
+  min-height: 72px;
+  padding: 10px 12px;
+  line-height: 1.5;
+}
+.sb-obs-line {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--sb-body);
+}
+.sb-obs-line:last-child {
+  margin-bottom: 0;
+}

@@ -118,6 +118,7 @@ export async function loadBookContext(
     { data: orders },
     { data: snapshots },
     { data: profileRow },
+    { data: memoryRows },
   ] = await Promise.all([
     adminClient.from('invest_accounts')
       .select('id, name, kind, base_currency, cash_balance, status')
@@ -152,9 +153,17 @@ export async function loadBookContext(
        Loaded server-side like the rest of the book so the client can
        neither spoof it nor turn it into a permission. */
     adminClient.from('invest_user_profile')
-      .select('risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions')
+      .select('risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions, mandate')
       .eq('user_id', userId)
       .maybeSingle(),
+    /* Confirmed memories — what Tally retains about the holder. Loaded
+       into the same context block, capped so a long memory shelf can't
+       crowd out the book data itself. */
+    adminClient.from('invest_memories')
+      .select('symbol, kind, text')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(30),
   ])
 
   /* Headlines ride the market section — the table is global, so the query
@@ -234,6 +243,7 @@ export async function loadBookContext(
           answerStyle: (profileRow.answer_style as string | null) ?? null,
           sectors: (profileRow.sectors as string[] | null) ?? [],
           exclusions: (profileRow.exclusions as string[] | null) ?? [],
+          mandate: (profileRow.mandate as string | null) ?? null,
         }
       : null,
     accounts: (accounts ?? []).map((a) => ({
@@ -266,6 +276,11 @@ export async function loadBookContext(
     })),
     market,
     generalNews,
+    memories: (memoryRows ?? []).map((m) => ({
+      symbol: m.symbol ? String(m.symbol) : null,
+      kind: String(m.kind ?? 'fact'),
+      text: String(m.text ?? '').slice(0, 400),
+    })),
   }
   return {
     ctx,

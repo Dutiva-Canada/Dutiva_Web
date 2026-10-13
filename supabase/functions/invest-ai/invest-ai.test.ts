@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildMemoryReviewPrompt,
   draftSystemPrompt,
+  memoryPromptBlock,
   parseDraft,
+  parseMemoriesDraft,
   parseThesisDraft,
   sanitizeGoal,
   validateAiAction,
@@ -36,6 +39,7 @@ const EMPTY_CTX: InvestChatContext = {
   openOrders: [],
   market: [],
   generalNews: [],
+  memories: [],
 }
 
 describe('investChatPrompt', () => {
@@ -73,6 +77,7 @@ describe('investChatPrompt', () => {
         answerStyle: 'teach',
         sectors: ['technology', 'energy'],
         exclusions: ['tobacco', 'weapons'],
+        mandate: 'Long-term compounding; I trim winners past 40% gains.',
       },
     }
     const p = investChatPrompt(ctx, 'en').content
@@ -96,7 +101,7 @@ describe('investChatPrompt', () => {
       ...EMPTY_CTX,
       profile: {
         riskTolerance: null, horizon: null, goal: null, experience: null,
-        answerStyle: null, sectors: [], exclusions: [],
+        answerStyle: null, sectors: [], exclusions: [], mandate: null,
       },
     }
     expect(investChatPrompt(blank, 'en').content).not.toContain('User profile')
@@ -343,7 +348,160 @@ describe('validateAiAction', () => {
   it('accepts the draft actions only', () => {
     expect(validateAiAction('draft-strategy').ok).toBe(true)
     expect(validateAiAction('draft-thesis').ok).toBe(true)
+    expect(validateAiAction('draft-swot').ok).toBe(true)
+    expect(validateAiAction('draft-scan').ok).toBe(true)
+    expect(validateAiAction('review-memories').ok).toBe(true)
     expect(validateAiAction('auto-trade').ok).toBe(false)
+  })
+})
+
+describe('parseMemoriesDraft', () => {
+  const held = new Set(['ARM', 'VFV'])
+  it('parses a clean list with symbol scope', () => {
+    const d = parseMemoriesDraft(
+      JSON.stringify({
+        memories: [
+          { kind: 'plan', symbol: 'ARM', text: 'plans to hold through the edge-AI cycle' },
+          { kind: 'philosophy', symbol: null, text: 'believes in buying quality and holding' },
+        ],
+      }),
+      held,
+    )
+    expect(d).toEqual([
+      { kind: 'plan', symbol: 'ARM', text: 'plans to hold through the edge-AI cycle' },
+      { kind: 'philosophy', symbol: null, text: 'believes in buying quality and holding' },
+    ])
+  })
+  it('drops unknown kinds and unnamed kinds', () => {
+    const d = parseMemoriesDraft(
+      JSON.stringify({
+        memories: [
+          { kind: 'order', symbol: 'ARM', text: 'should buy more ARM' },
+          { kind: 'fact', symbol: 'ARM', text: 'holds since 2021' },
+        ],
+      }),
+      held,
+    )
+    expect(d).toEqual([{ kind: 'fact', symbol: 'ARM', text: 'holds since 2021' }])
+  })
+  it('unscopes a symbol the book does not track — never trusts a hallucinated ticker', () => {
+    const d = parseMemoriesDraft(
+      JSON.stringify({
+        memories: [{ kind: 'fact', symbol: 'NVDA', text: 'bought NVDA for the data-center run' }],
+      }),
+      held,
+    )
+    expect(d).toEqual([{ kind: 'fact', symbol: null, text: 'bought NVDA for the data-center run' }])
+  })
+  it('drops too-short text, dedupes twins, and caps at five', () => {
+    const items = Array.from({ length: 8 }, (_, i) => ({
+      kind: 'fact',
+      symbol: null,
+      text: `confirmed fact number ${i + 1} about the holder`,
+    }))
+    items.push({ kind: 'fact', symbol: null, text: 'short' })
+    const d = parseMemoriesDraft(JSON.stringify({ memories: items }), held)
+    expect(d).toHaveLength(5)
+    /* Dedupe — the same fact twice counts once toward the five. */
+    const twin = parseMemoriesDraft(
+      JSON.stringify({
+        memories: [
+          { kind: 'fact', symbol: null, text: 'holds since 2021' },
+          { kind: 'fact', symbol: null, text: '  holds   since 2021 ' },
+        ],
+      }),
+      held,
+    )
+    expect(twin).toHaveLength(1)
+  })
+  it('returns null for non-JSON and an empty list yields []', () => {
+    expect(parseMemoriesDraft('not json', held)).toBeNull()
+    expect(parseMemoriesDraft(JSON.stringify({ memories: [] }), held)).toEqual([])
+  })
+})
+
+describe('review-memories prompt', () => {
+  it('shows the confirmed list so the model never re-proposes it', () => {
+    const p = buildMemoryReviewPrompt(
+      {
+        messages: [{ role: 'user', content: 'I bought ARM for the edge-AI story', createdAt: null }],
+        existing: [{ symbol: null, text: 'holds since 2021' }],
+      },
+      'en',
+    )
+    expect(p).toContain('Already confirmed')
+    expect(p).toContain('holds since 2021')
+    expect(p).toContain('I bought ARM for the edge-AI story')
+  })
+  it('feeds only the holder’s own turns — Tally’s words are not their facts', () => {
+    const p = buildMemoryReviewPrompt(
+      {
+        messages: [
+          { role: 'assistant', content: 'You should trim your winners.', createdAt: null },
+          { role: 'user', content: 'I am saving for a house.', createdAt: null },
+        ],
+        existing: [],
+      },
+      'fr',
+    )
+    expect(p).toContain('I am saving for a house.')
+    expect(p).not.toContain('You should trim your winners.')
+    expect(p).toContain('Canadian French')
+  })
+})
+
+describe('memoryPromptBlock', () => {
+  const facts = [
+    { symbol: 'ARM', kind: 'fact', text: 'bought ARM for the edge-AI story' },
+    { symbol: null, kind: 'plan', text: 'saving for a house downpayment' },
+  ]
+  it('prefers symbol-scoped facts for a draft about that symbol', () => {
+    const block = memoryPromptBlock(facts, 'arm')
+    expect(block).toContain('[ARM] bought ARM')
+    expect(block).toContain('saving for a house')
+    /* Scoped to another symbol the scoped fact drops, book-wide stays. */
+    const other = memoryPromptBlock(facts, 'VFV')
+    expect(other).not.toContain('[ARM]')
+    expect(other).toContain('saving for a house')
+  })
+  it('renders nothing for an empty list', () => {
+    expect(memoryPromptBlock([], 'ARM')).toBe('')
+    expect(memoryPromptBlock(undefined, 'ARM')).toBe('')
+  })
+})
+
+describe('investChatPrompt — memories + mandate', () => {
+  it('renders confirmed memories as context, never permission', () => {
+    const ctx: InvestChatContext = {
+      ...EMPTY_CTX,
+      memories: [
+        { symbol: 'ARM', kind: 'fact', text: 'bought ARM for the edge-AI story' },
+        { symbol: null, kind: 'plan', text: 'saving for a house' },
+      ],
+    }
+    const p = investChatPrompt(ctx, 'en').content
+    expect(p).toContain('What you remember about them')
+    expect(p).toContain('[ARM] bought ARM for the edge-AI story')
+    expect(p).toContain('saving for a house')
+    expect(p).toContain('never change the advice boundary')
+  })
+  it('renders the mandate with the profile dimensions', () => {
+    const ctx: InvestChatContext = {
+      ...EMPTY_CTX,
+      profile: {
+        riskTolerance: 'balanced', horizon: null, goal: null, experience: null,
+        answerStyle: null, sectors: [], exclusions: [],
+        mandate: 'Long-term compounding; trim winners past 40%.',
+      },
+    }
+    const p = investChatPrompt(ctx, 'en').content
+    expect(p).toContain('their mandate, in their words')
+    expect(p).toContain('Long-term compounding')
+  })
+  it('omits the memories block when none are confirmed', () => {
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain(
+      'What you remember about them',
+    )
   })
 })
 

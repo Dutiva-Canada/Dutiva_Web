@@ -11,6 +11,7 @@
  * deleteStrategy; no fixtures, no simulated results.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Loader2, Plus, ScanSearch } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
@@ -47,6 +48,19 @@ import './strategies.css'
 
 type View = { kind: 'list' } | { kind: 'editor' } | { kind: 'wizard' }
 
+/* Suggestion kinds filed for surfaces other than this page — a thesis or
+   goal row has no strategy_id, so the strategy-targeted path would read
+   every one of them as stale. They get a "review on …" CTA that resolves
+   'opened' and routes to their own page instead. */
+const FOREIGN_SUGGESTION_PAGE: Record<string, { to: string; page: (typeof IM)[keyof typeof IM] }> = {
+  thesis: { to: '/invest/theses', page: IM.invest_tab_theses },
+  goal: { to: '/invest/analysis', page: IM.invest_tab_analysis },
+  scan: { to: '/invest/analysis', page: IM.invest_tab_analysis },
+  swot: { to: '/invest/analysis', page: IM.invest_tab_analysis },
+  memory: { to: '/invest/profile', page: IM.invest_tab_profile },
+  profile: { to: '/invest/profile', page: IM.invest_tab_profile },
+}
+
 /* Cadence is "at most" — the strategy's run window reopens at last +
    cadence (daily = next sweep, weekly = 7d, monthly = 30d), matching
    strategyDue in the bot. */
@@ -60,6 +74,7 @@ export function InvestStrategiesPage() {
   const { x, lang } = useI18n()
   const { state, refresh } = useInvestData()
   const { showToast } = useToasts()
+  const navigate = useNavigate()
 
   useInvestHead(IM.invest_seo_title_strategies, IM.invest_seo_desc_strategies)
 
@@ -549,6 +564,17 @@ export function InvestStrategiesPage() {
                   })
                   actionLabel = x(IM.invest_review_add)
                   act = () => void acceptPending(s)
+                } else if (FOREIGN_SUGGESTION_PAGE[s.kind]) {
+                  const dest = FOREIGN_SUGGESTION_PAGE[s.kind]
+                  if (dest) {
+                    meta = fill(x(IM.invest_prof_review_on), { page: x(dest.page) })
+                    actionLabel = x(dest.page)
+                    act = () => {
+                      void resolveSuggestion(s.id, 'accepted', 'opened').catch(() => {})
+                      setPending((cur) => cur.filter((r) => r.id !== s.id))
+                      navigate(dest.to)
+                    }
+                  }
                 } else {
                   const targetId = typeof p.strategy_id === 'string' ? p.strategy_id : ''
                   const target = state.strategies.find((t) => t.id === targetId)

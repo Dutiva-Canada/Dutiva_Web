@@ -10259,6 +10259,39 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_memories: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          source: string
+          symbol: string | null
+          text: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          source?: string
+          symbol?: string | null
+          text: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          source?: string
+          symbol?: string | null
+          text?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_notification_prefs: {
         Row: {
           digest_last_sent_at: string
@@ -10655,6 +10688,7 @@ export type Database = {
           experience: string | null
           goal: string | null
           horizon: string | null
+          mandate: string | null
           risk_tolerance: string | null
           sectors: string[]
           updated_at: string
@@ -10666,6 +10700,7 @@ export type Database = {
           experience?: string | null
           goal?: string | null
           horizon?: string | null
+          mandate?: string | null
           risk_tolerance?: string | null
           sectors?: string[]
           updated_at?: string
@@ -10677,6 +10712,7 @@ export type Database = {
           experience?: string | null
           goal?: string | null
           horizon?: string | null
+          mandate?: string | null
           risk_tolerance?: string | null
           sectors?: string[]
           updated_at?: string

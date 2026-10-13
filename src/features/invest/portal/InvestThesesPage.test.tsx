@@ -70,6 +70,7 @@ const STATE: InvestState = {
   theses: [],
   goals: [],
   scanItems: [],
+  memories: [],
 }
 
 function thesis(over: Partial<InvestThesis> = {}): InvestThesis {

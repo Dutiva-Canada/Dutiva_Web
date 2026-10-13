@@ -36,6 +36,25 @@ export async function loadPendingSuggestions(
   return (data ?? []) as AgentSuggestion[]
 }
 
+/** Resolved rows for a surface since `sinceIso`, newest first — the
+    outcome history the "what Tally notices" readout derives from. Same
+    learning input the server-side suggestion pass reads. */
+export async function loadResolvedSuggestions(
+  surface: AgentSurface,
+  sinceIso: string,
+): Promise<AgentSuggestion[]> {
+  const sb = requireSupabase()
+  const { data, error } = await sb
+    .from('agent_suggestions')
+    .select('*')
+    .eq('surface', surface)
+    .neq('status', 'pending')
+    .gte('resolved_at', sinceIso)
+    .order('resolved_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as AgentSuggestion[]
+}
+
 /** Accept or dismiss a suggestion. `action` records *how* it was resolved
     ('added', 'copied', 'opened_email', 'superseded', ...) — the audit word,
     not just the verdict. */

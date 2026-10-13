@@ -58,6 +58,18 @@ export interface SuggestionContext {
   /** Metrics the user's goals already measure — a metric absent here is
       a 'goal' suggestion candidate when the book exposes the gap. */
   goals?: { metric: string }[]
+  /** The declared investor profile — blank dimensions are 'profile'
+      nudge candidates. null row and missing field both mean unset. */
+  profile?: {
+    risk: string | null
+    horizon: string | null
+    goal: string | null
+    mandate: string | null
+  } | null
+  /** Confirmed-memory and user-chat counts — the 'review memories' nudge
+      only earns a slot once there's actually something said. */
+  memoryCount?: number
+  chatTurns?: number
   /** Outcome history the learning rules read — see loadOutcomes. */
   outcomes: OutcomeHistory
   /** Internal-staff tier: order-proposal artifacts only file here. */
@@ -83,7 +95,14 @@ export interface OutcomeHistory {
 }
 
 export interface SuggestionCandidate {
-  kind: 'strategy' | 'rule_add' | 'rule_tune' | 'scope_add' | 'thesis' | 'goal'
+  kind:
+    | 'strategy'
+    | 'rule_add'
+    | 'rule_tune'
+    | 'scope_add'
+    | 'thesis'
+    | 'goal'
+    | 'profile'
   dedupeKey: string
   /** English title — the row's `title` column (schema default). */
   title_en: string
@@ -252,6 +271,80 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
   const now = ctx.now ?? Date.now()
   const bookEmpty = ctx.positions.length === 0 && ctx.cashTotal <= 0
   const out: SuggestionCandidate[] = []
+
+  /* ── profile — the "get to know you" nudges ─────────────────────────────
+     The book tells Tally what the holder holds; these tell her who they
+     are. There is nothing to apply — the accept is a link to the profile
+     surface, and the row resolves 'opened'. Kept quiet deliberately: each
+     nudge exists only while the gap does, and the scores stay under the
+     book's own work. Hoisted above the empty-book return — a holder with
+     no positions is exactly who the first nudge serves. */
+  const profileSeed = (seed: {
+    dedupeKey: string
+    title_en: string
+    title_fr: string
+    detail_en: string
+    detail_fr: string
+    section: string
+    score: number
+  }) => {
+    out.push({
+      kind: 'profile',
+      dedupeKey: seed.dedupeKey,
+      title_en: seed.title_en,
+      title_fr: seed.title_fr,
+      detail_en: seed.detail_en,
+      detail_fr: seed.detail_fr,
+      payload: {
+        title_fr: seed.title_fr,
+        detail_en: seed.detail_en,
+        detail_fr: seed.detail_fr,
+        section: seed.section,
+      },
+      score: seed.score,
+    })
+  }
+  const prof = ctx.profile ?? null
+  const dimsSet = Boolean(prof?.risk || prof?.horizon || prof?.goal)
+  if (!dimsSet) {
+    profileSeed({
+      dedupeKey: 'profile:dims',
+      title_en: 'Tell Tally what you’re optimizing for',
+      title_fr: 'Dites à Tally ce que vous optimisez',
+      detail_en:
+        'Risk, horizon and goal shape every draft and posture line — a 30-second answer on your profile page.',
+      detail_fr:
+        'Risque, horizon et objectif orientent chaque brouillon — trente secondes sur votre page profil.',
+      section: 'declared',
+      score: 30,
+    })
+  } else if (!prof?.mandate?.trim()) {
+    profileSeed({
+      dedupeKey: 'profile:mandate',
+      title_en: 'Your mandate, in your words',
+      title_fr: 'Votre mandat, dans vos mots',
+      detail_en:
+        'One or two sentences of philosophy — Tally weighs it more than any dropdown when she drafts.',
+      detail_fr:
+        'Une phrase ou deux de philosophie — Tally l’accorde plus de poids que tout menu déroulant.',
+      section: 'mandate',
+      score: 25,
+    })
+  }
+  if ((ctx.chatTurns ?? 0) > 0 && (ctx.memoryCount ?? 0) === 0) {
+    profileSeed({
+      dedupeKey: 'profile:memories',
+      title_en: 'Let Tally review what she’s learned',
+      title_fr: 'Laissez Tally réviser ce qu’elle a retenu',
+      detail_en:
+        'You’ve talked with Tally — one review turns the durable parts into memories you approve.',
+      detail_fr:
+        'Vous avez échangé avec Tally — une révision transforme ce qui dure en souvenirs que vous approuvez.',
+      section: 'memories',
+      score: 20,
+    })
+  }
+
   if (bookEmpty) return out
 
   const enabled = ctx.strategies.filter((s) => s.enabled)
@@ -894,8 +987,10 @@ export async function fileBookSuggestions(
   ctx: Omit<SuggestionContext, 'outcomes' | 'advice'> & { advice?: boolean },
 ): Promise<number> {
   const now = Date.now()
-  /* No book, nothing to review — skip the outcome reads entirely. */
-  if (ctx.positions.length === 0 && ctx.cashTotal <= 0) return 0
+  /* An empty book still runs the plan — every book-shaped generator gates
+     on positions/cash itself, and the 'profile' nudges ("tell Tally what
+     you're optimizing for") are the empty book's best first action. The
+     refile window below keeps the repeated sweeps cheap. */
   const { data: newest } = await adminClient
     .from('agent_suggestions')
     .select('created_at')
@@ -916,7 +1011,54 @@ export async function fileBookSuggestions(
   }
 
   const outcomes = await loadOutcomes(adminClient, userId, now)
-  const candidates = planSuggestions({ ...ctx, advice, outcomes })
+
+  /* Profile + memory/chat counts — the 'profile' nudges' inputs. Loaded
+     here (after the refile gate) for the same reason outcomes are: a
+     skipped pass pays nothing. Callers that already hold them pass them
+     in — undefined means load, null/0 means genuinely unset. */
+  const [profile, memoryCount, chatTurns] = await Promise.all([
+    ctx.profile === undefined
+      ? adminClient
+          .from('invest_user_profile')
+          .select('risk_tolerance, horizon, goal, mandate')
+          .eq('user_id', userId)
+          .maybeSingle()
+          .then(({ data }) =>
+            data
+              ? {
+                  risk: (data.risk_tolerance as string | null) ?? null,
+                  horizon: (data.horizon as string | null) ?? null,
+                  goal: (data.goal as string | null) ?? null,
+                  mandate: (data.mandate as string | null) ?? null,
+                }
+              : null,
+          )
+      : Promise.resolve(ctx.profile),
+    ctx.memoryCount === undefined
+      ? adminClient
+          .from('invest_memories')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .then(({ count }) => count ?? 0)
+      : Promise.resolve(ctx.memoryCount),
+    ctx.chatTurns === undefined
+      ? adminClient
+          .from('invest_chat_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('role', 'user')
+          .then(({ count }) => count ?? 0)
+      : Promise.resolve(ctx.chatTurns),
+  ])
+
+  const candidates = planSuggestions({
+    ...ctx,
+    advice,
+    outcomes,
+    profile,
+    memoryCount,
+    chatTurns,
+  })
   let filed = 0
   for (const c of candidates) {
     const res = await fileSuggestion(adminClient, {
