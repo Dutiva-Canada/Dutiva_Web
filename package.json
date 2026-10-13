@@ -38,6 +38,7 @@
     "db:snapshot:local": "python scripts/refresh_schema_snapshot.py",
     "check:advisor-golden": "node scripts/check-advisor-golden.mjs",
     "check:statute-drift": "node scripts/check-statute-drift.mjs",
+    "eval:tally": "node scripts/eval-tally.mjs",
     "check:db-types": "node scripts/check-db-types.mjs",
     "check:edge-types": "node scripts/check-edge-types.mjs"
   },
