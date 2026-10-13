@@ -327,6 +327,9 @@ export interface HealthChatCallOpts {
 export interface HealthChatSendResult {
   reply: string
   action: HealthChatAction | null
+  /** The persisted user-row id — adopting it onto the optimistic turn is
+     what keeps the history poll from re-adding it as a duplicate. */
+  userId: string | null
   assistantId: string | null
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
@@ -338,6 +341,7 @@ export interface HealthChatSendResult {
 function toHealthChatResult(raw: {
   reply?: string
   action?: HealthChatAction | null
+  userId?: string | null
   assistantId?: string | null
   suggests?: unknown
   reasoning?: unknown
@@ -348,6 +352,7 @@ function toHealthChatResult(raw: {
   return {
     reply: raw.reply,
     action: raw.action ?? null,
+    userId: raw.userId ?? null,
     assistantId: raw.assistantId ?? null,
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)

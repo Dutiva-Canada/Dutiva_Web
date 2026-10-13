@@ -82,6 +82,9 @@ export interface PrChatCallOpts {
 export interface PrChatSendResult {
   reply: string
   action: PrChatAction | null
+  /** The persisted user-row id — adopting it onto the optimistic turn is
+     what keeps the history poll from re-adding it as a duplicate. */
+  userId: string | null
   assistantId: string | null
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
@@ -95,6 +98,7 @@ export interface PrChatSendResult {
 function toPrChatResult(raw: {
   reply?: string
   action?: PrChatAction | null
+  userId?: string | null
   assistantId?: string | null
   suggests?: unknown
   reasoning?: unknown
@@ -106,6 +110,7 @@ function toPrChatResult(raw: {
   return {
     reply: raw.reply,
     action: raw.action ?? null,
+    userId: raw.userId ?? null,
     assistantId: raw.assistantId ?? null,
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)

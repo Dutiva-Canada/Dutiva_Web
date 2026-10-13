@@ -78,6 +78,7 @@ function renderPage(lang: Lang = 'en', auth: Partial<AuthContextValue> = {}) {
 }
 
 const ASSISTANT_ID = 'a1b2c3d4-0000-4000-8000-000000000001'
+const USER_ROW_ID = 'a1b2c3d4-0000-4000-8000-000000000002'
 
 describe('PrChatPage', () => {
   afterEach(() => {
@@ -105,6 +106,7 @@ describe('PrChatPage', () => {
     vi.mocked(sendPrChat).mockResolvedValue({
       reply: 'Draft filed.',
       action: { type: 'add_media_contact', detail: 'Jo at CBC', ok: true, refId: 'c1' },
+      userId: USER_ROW_ID,
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
@@ -131,6 +133,59 @@ describe('PrChatPage', () => {
     /* A completed action writes to the pr_* tables — the shared provider
        must refresh so the other tabs reflect it. */
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('does not duplicate the user bubble when the poll lands the persisted pair', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(loadPrChatHistory).mockResolvedValue([])
+      vi.mocked(sendPrChat).mockResolvedValue({
+        reply: 'Noted.',
+        action: null,
+        userId: USER_ROW_ID,
+        assistantId: ASSISTANT_ID,
+        suggests: [],
+        reasoning: null,
+        sources: [],
+      })
+      renderPage()
+      await screen.findByPlaceholderText(/Ask Paige/)
+
+      fireEvent.change(screen.getByPlaceholderText(/Ask Paige/), {
+        target: { value: 'ping' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+      expect(await screen.findByText('Noted.')).toBeInTheDocument()
+
+      /* The 45s history poll lands the persisted rows — the optimistic
+         bubble already carries the real row id, so nothing new appends.
+         Without the adoption it would come back as a stranger and
+         duplicate under the reply. */
+      vi.mocked(loadPrChatHistory).mockResolvedValue([
+        {
+          id: USER_ROW_ID,
+          role: 'user',
+          content: 'ping',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:00Z',
+        },
+        {
+          id: ASSISTANT_ID,
+          role: 'assistant',
+          content: 'Noted.',
+          action: null,
+          reasoning: null,
+          sources: [],
+          feedback: null,
+          createdAt: '2026-10-13T10:01:01Z',
+        },
+      ])
+      await vi.advanceTimersByTimeAsync(45_000)
+      await waitFor(() => expect(screen.getAllByText('ping')).toHaveLength(1))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('renders stored history including a stored action', async () => {

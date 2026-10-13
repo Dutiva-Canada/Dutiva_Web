@@ -81,6 +81,9 @@ export interface InvestChatCallOpts {
 export interface InvestChatSendResult {
   reply: string
   action: InvestChatAction | null
+  /** The persisted user-row id — adopting it onto the optimistic turn is
+     what keeps the history poll from re-adding it as a duplicate. */
+  userId: string | null
   assistantId: string | null
   /** Short follow-up prompts the reply suggested — ephemeral chips, never
       persisted with the turn. */
@@ -109,6 +112,7 @@ export async function sendInvestChat(
   ) as {
     reply?: string
     action?: InvestChatAction | null
+    userId?: string | null
     assistantId?: string | null
     suggests?: unknown
     reasoning?: unknown
@@ -120,6 +124,7 @@ export async function sendInvestChat(
   return {
     reply: raw.reply,
     action: raw.action ?? null,
+    userId: raw.userId ?? null,
     assistantId: raw.assistantId ?? null,
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
@@ -147,6 +152,7 @@ export async function regenerateInvestChat(
   ) as {
     reply?: string
     action?: InvestChatAction | null
+    userId?: string | null
     assistantId?: string | null
     suggests?: unknown
     reasoning?: unknown
@@ -158,6 +164,7 @@ export async function regenerateInvestChat(
   return {
     reply: raw.reply,
     action: raw.action ?? null,
+    userId: raw.userId ?? null,
     assistantId: raw.assistantId ?? null,
     suggests: Array.isArray(raw.suggests)
       ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
