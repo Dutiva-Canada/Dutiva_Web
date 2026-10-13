@@ -257,6 +257,11 @@ const investCoreMessages = defineMessages({
   invest_exp_experienced: { en: 'Experienced', fr: 'Expérimenté' },
   invest_style_concise: { en: 'Concise', fr: 'Concis' },
   invest_style_teach: { en: 'Explain the reasoning', fr: 'Expliquer le raisonnement' },
+  invest_saving: { en: 'Saving…', fr: 'Enregistrement…' },
+  invest_save_error: {
+    en: 'Couldn’t save — try again.',
+    fr: 'Enregistrement impossible — réessayez.',
+  },
   invest_delivery_edit_aria: {
     en: 'Edit {name} delivery',
     fr: 'Modifier l’envoi de {name}',
