@@ -13,9 +13,13 @@ import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   SYSTEM_PROMPTS,
+  buildCandidateRepairNote,
   buildUserMessage,
+  CANDIDATE_FALLBACK_EN,
+  CANDIDATE_FALLBACK_FR,
   candidateChatPrompt,
   candidateChatSources,
+  detectCandidateFlags,
   parseCandidateChatReply,
   parseModelResponse,
   validateAuthHeader,
@@ -435,8 +439,13 @@ async function runChat(
 
   /* One upstream call, repeatable — round two carries the live search
      results the model asked for, injected as clearly-marked untrusted
-     context. */
-  const callUpstream = (web: { query: string; results: WebResult[] } | null, streamIt: boolean) => {
+     context; the boundary repair round appends the flagged draft and the
+     correction note. */
+  const callUpstream = (
+    web: { query: string; results: WebResult[] } | null,
+    streamIt: boolean,
+    extra: typeof baseMessages = [],
+  ) => {
     const messages: typeof baseMessages = [...baseMessages]
     if (web) {
       messages.push({
@@ -448,6 +457,7 @@ async function runChat(
             : `The web search for "${web.query}" returned nothing — say so rather than invent.`,
       })
     }
+    messages.push(...extra)
     return postChatCompletion(
       activeRoute.provider,
       keyResult.apiKey,
@@ -497,6 +507,52 @@ async function runChat(
     }
   }
 
+  /* Post-generation boundary — runs on every reply, either tier.
+     Promised outcomes and talking-someone-out-of-applying are never in
+     scope; the personal verdict on their chances or materials is
+     external-only. Flag → one non-streamed repair round → still flagged
+     → fixed fallback; suggests drop with the drifted payload. */
+  const screenReply = async (draft: {
+    reply: string
+    suggests: string[]
+    search: string | null
+  }): Promise<{ reply: { reply: string; suggests: string[]; search: string | null }; reasoning: string }> => {
+    const flags = detectCandidateFlags(draft.reply, lang, advice)
+    if (flags.length === 0) return { reply: draft, reasoning: '' }
+    console.warn('candidate-ai reply crossed a coach line', JSON.stringify(flags))
+    try {
+      const res = await callUpstream(null, false, [
+        {
+          role: 'assistant',
+          content: JSON.stringify({ reply: draft.reply, suggests: draft.suggests ?? [] }),
+        },
+        { role: 'user', content: buildCandidateRepairNote(flags, advice) },
+      ])
+      if (res.ok) {
+        const round = await readRound(res)
+        if (
+          round.parsed &&
+          round.parsed.reply !== '' &&
+          detectCandidateFlags(round.parsed.reply, lang, advice).length === 0
+        ) {
+          return { reply: round.parsed, reasoning: round.reasoning }
+        }
+      }
+    } catch (e) {
+      console.warn('candidate-ai repair call failed; suppressing flagged reply', e)
+    }
+    console.warn('candidate-ai boundary-flagged reply suppressed', JSON.stringify(flags))
+    return {
+      reply: {
+        ...draft,
+        reply: lang === 'fr' ? CANDIDATE_FALLBACK_FR : CANDIDATE_FALLBACK_EN,
+        suggests: [],
+        search: null,
+      },
+      reasoning: '',
+    }
+  }
+
   if (stream) {
     /* SSE out, SSE in — only the reply text streams through; the JSON
        envelope never reaches the bubble. The done event carries the reply
@@ -513,9 +569,13 @@ async function runChat(
           sse.send({ type: 'error', error: 'The AI service is temporarily unavailable.', code: 'upstream' })
           return
         }
+        /* Reply text no longer streams mid-flight: each round buffers so
+           the boundary screen sees the whole reply before a word reaches
+           the bubble, then the screened reply leaves as one delta.
+           Reasoning still streams live to the thinking panel. */
         let round = await readRound(
           res1,
-          (piece) => sse.send({ type: 'delta', text: piece }),
+          undefined,
           (piece) => sse.send({ type: 'reasoning', text: piece }),
         )
         reasoning = round.reasoning
@@ -532,7 +592,7 @@ async function runChat(
           }
           round = await readRound(
             res2,
-            (piece) => sse.send({ type: 'delta', text: piece }),
+            undefined,
             (piece) => sse.send({ type: 'reasoning', text: piece }),
           )
           if (round.reasoning) reasoning += `\n\n${round.reasoning}`
@@ -542,6 +602,10 @@ async function runChat(
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
+        const screened = await screenReply(parsed)
+        parsed = screened.reply
+        if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
+        sse.send({ type: 'delta', text: parsed.reply })
         const sources = mergeSources(candidateChatSources(ctx, parsed.reply), webSources(webResults))
         const { assistantId } = await persistChatTurns(
           adminClient,
@@ -603,6 +667,9 @@ async function runChat(
   if (!parsed || parsed.reply === '') {
     return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
   }
+  const screened = await screenReply(parsed)
+  parsed = screened.reply
+  if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
   const sources = mergeSources(candidateChatSources(ctx, parsed.reply), webSources(webResults))
   const { assistantId } = await persistChatTurns(
     adminClient,

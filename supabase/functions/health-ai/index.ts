@@ -5,7 +5,13 @@ import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { withCors } from '../_shared/cors.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
+  buildHealthRepairNote,
+  detectHealthFlags,
   habitPrompt,
+  HEALTH_RECAP_FALLBACK_EN,
+  HEALTH_RECAP_FALLBACK_FR,
+  HEALTH_REFLECT_FALLBACK_EN,
+  HEALTH_REFLECT_FALLBACK_FR,
   parseHabit,
   recapPrompt,
   reflectPrompt,
@@ -325,27 +331,61 @@ const handler = async (req: Request) => {
         ? recapPrompt(ctx.facts, ctx.signals, lang, advice)
         : habitPrompt(ctx.facts, ctx.habitNames, ctx.signals, lang, advice)
 
-  let upstream: Response
-  try {
-    upstream = await postChatCompletion(
-      found.provider,
-      keyResult.apiKey,
-      {
-        model: found.modelName,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.5,
-        max_tokens: kind === 'reflect' ? 120 : kind === 'recap' ? 300 : 120,
-      },
-      UPSTREAM_TIMEOUT_MS,
-    )
-  } catch (e) {
-    return json({ error: `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`, code: 'upstream' }, 502)
+  const generateOnce = async (
+    msgs: { role: 'user' | 'assistant'; content: string }[],
+  ): Promise<{ text: string } | { error: Response }> => {
+    let upstream: Response
+    try {
+      upstream = await postChatCompletion(
+        found.provider,
+        keyResult.apiKey,
+        {
+          model: found.modelName,
+          messages: msgs,
+          temperature: 0.5,
+          max_tokens: kind === 'reflect' ? 120 : kind === 'recap' ? 300 : 120,
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+    } catch (e) {
+      return { error: json({ error: `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`, code: 'upstream' }, 502) }
+    }
+    if (!upstream.ok) {
+      return { error: json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502) }
+    }
+    const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
+    return { text: (payload.choices?.[0]?.message?.content ?? '').trim() }
   }
-  if (!upstream.ok) {
-    return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502) }
-  const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
-  const text = (payload.choices?.[0]?.message?.content ?? '').trim()
+
+  const first = await generateOnce([{ role: 'user', content: prompt }])
+  if ('error' in first) return first.error
+  let text = first.text
   if (!text) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+
+  /* The same post-generation boundary the chat kinds run — a flagged
+     one-shot gets one repair retry, then the safe per-kind fallback (a
+     flagged habit reads as "no usable habit", same shape the client
+     already treats as a miss). */
+  const flags = detectHealthFlags(text, lang, advice)
+  if (flags.length > 0) {
+    console.warn(`health-ai ${kind} crossed a boundary line`, JSON.stringify(flags))
+    const repair = await generateOnce([
+      { role: 'user', content: prompt },
+      { role: 'assistant', content: text },
+      { role: 'user', content: buildHealthRepairNote(flags, advice) },
+    ])
+    const repaired = 'error' in repair ? '' : repair.text
+    if (repaired && detectHealthFlags(repaired, lang, advice).length === 0) {
+      text = repaired
+    } else if (kind === 'habit') {
+      return json({ error: 'Model returned no usable habit', code: 'unparseable' }, 502)
+    } else {
+      text =
+        kind === 'reflect'
+          ? lang === 'fr' ? HEALTH_REFLECT_FALLBACK_FR : HEALTH_REFLECT_FALLBACK_EN
+          : lang === 'fr' ? HEALTH_RECAP_FALLBACK_FR : HEALTH_RECAP_FALLBACK_EN
+    }
+  }
 
   if (kind === 'habit') {
     const habit = parseHabit(text)

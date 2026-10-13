@@ -10,11 +10,16 @@ import {
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
 import {
   buildCompanionSignals,
+  buildHealthRepairNote,
   buildHabitStatuses,
   buildHealthFacts,
   chatPrompt,
-  createReplyDeltaExtractor,
+  detectHealthFlags,
   entryReactPrompt,
+  HEALTH_FALLBACK_EN,
+  HEALTH_FALLBACK_FR,
+  HEALTH_REACT_FALLBACK_EN,
+  HEALTH_REACT_FALLBACK_FR,
   parseChatReply,
   reactPrompt,
   resolveHabitRef,
@@ -270,6 +275,70 @@ export async function runChat(
       content: r.content.slice(0, 1500),
     }))
 
+  const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+    chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang, advice),
+    ...history,
+    { role: 'user', content: message },
+  ]
+
+  /* Post-generation boundary — runs on every reply, either tier. The
+     clinical line binds everyone (never diagnose, never name illness,
+     medication, or treatment); external replies also get the directed-
+     suggestion screen — the external register sanctions one small
+     offered suggestion, not directives. A flag buys ONE non-streamed
+     repair round; a still-flagged reply is replaced with the fixed
+     fallback and loses its suggests and action — both came from the same
+     drifted payload, and an unasked action is half the leak. */
+  const screenReply = async (draft: ChatReply): Promise<{ reply: ChatReply; reasoning: string }> => {
+    const flags = detectHealthFlags(draft.reply, lang, advice)
+    if (flags.length === 0) return { reply: draft, reasoning: '' }
+    console.warn('health-ai reply crossed a boundary line', JSON.stringify(flags))
+    try {
+      const repair = await postChatCompletion(
+        found.provider,
+        keyResult.apiKey,
+        {
+          model: found.modelName,
+          messages: [
+            ...messages,
+            { role: 'assistant', content: JSON.stringify({ reply: draft.reply, suggests: draft.suggests ?? [] }) },
+            { role: 'user', content: buildHealthRepairNote(flags, advice) },
+          ],
+          temperature: 0.4,
+          max_tokens: routeMaxTokens(found.config, 3000),
+          ...routeBodyExtras(found.config),
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+      if (repair.ok) {
+        const payload = (await repair.json()) as {
+          choices?: { message?: { content?: string; reasoning_content?: string } }[]
+        }
+        const msg = payload.choices?.[0]?.message ?? {}
+        const repaired = parseChatReply(typeof msg.content === 'string' ? msg.content : null)
+        if (repaired && detectHealthFlags(repaired.reply, lang, advice).length === 0) {
+          return {
+            reply: repaired,
+            reasoning:
+              typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '',
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('health-ai repair call failed; suppressing flagged reply', e)
+    }
+    console.warn('health-ai boundary-flagged reply suppressed', JSON.stringify(flags))
+    return {
+      reply: {
+        ...draft,
+        reply: lang === 'fr' ? HEALTH_FALLBACK_FR : HEALTH_FALLBACK_EN,
+        suggests: [],
+        action: null,
+      },
+      reasoning: '',
+    }
+  }
+
   let upstream: Response
   try {
     upstream = await postChatCompletion(
@@ -277,11 +346,7 @@ export async function runChat(
       keyResult.apiKey,
       {
         model: found.modelName,
-        messages: [
-          chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang, advice),
-          ...history,
-          { role: 'user', content: message },
-        ],
+        messages,
         temperature: 0.4,
         /* Reasoning params from the route share this budget — headroom so a
            thinking pass can't starve the reply. Route config wins; the
@@ -302,41 +367,41 @@ export async function runChat(
   if (!upstream.ok) return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
 
   if (stream) {
-    /* SSE out, SSE in — but only the reply text streams through. The model's
-       output is one JSON object; createReplyDeltaExtractor emits its reply
-       field without the scaffolding, so the action JSON never leaks into
-       the bubble. The done event carries the parsed payload + row ids. */
+    /* SSE out, SSE in — but the reply text no longer streams mid-flight:
+       it buffers through readUpstreamCompletion so the boundary screen
+       sees the whole reply before a word reaches the bubble, then leaves
+       as one delta. Reasoning still streams live to the thinking panel;
+       the action JSON never did reach the bubble anyway. The done event
+       carries the parsed payload + row ids. */
     const sse = sseChannel()
-    const extractor = createReplyDeltaExtractor()
     void (async () => {
       try {
-        /* Reasoning pieces stream to the thinking panel as they arrive —
-           the reply extractor still gates what reaches the bubble. */
         const { text: fullText, reasoning } = await readUpstreamCompletion(
           upstream,
-          (piece) => {
-            const visible = extractor.push(piece)
-            if (visible) sse.send({ type: 'delta', text: visible })
-          },
+          () => {},
           (piece) => sse.send({ type: 'reasoning', text: piece }),
         )
-        const parsed: ChatReply | null = parseChatReply(fullText)
-        if (!parsed) {
+        const draft: ChatReply | null = parseChatReply(fullText)
+        if (!draft) {
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
+        const screened = await screenReply(draft)
+        const parsed = screened.reply
+        const allReasoning = [reasoning, screened.reasoning].filter(Boolean).join('\n\n')
+        sse.send({ type: 'delta', text: parsed.reply })
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, ctx.statuses, today)
           : null
         const ids = await persistChatTurns(
-          admin, userId, message, parsed.reply, executed, threadId, reasoning,
+          admin, userId, message, parsed.reply, executed, threadId, allReasoning,
         )
         sse.send({
           type: 'done',
           reply: parsed.reply,
           action: executed,
           suggests: parsed.suggests,
-          reasoning: reasoning || null,
+          reasoning: allReasoning || null,
           ...ids,
         })
       } catch (e) {
@@ -352,9 +417,14 @@ export async function runChat(
     choices?: { message?: { content?: string; reasoning_content?: string } }[]
   }
   const msg = payload.choices?.[0]?.message ?? {}
-  const reasoning = typeof msg.reasoning_content === 'string' ? msg.reasoning_content : ''
-  const parsed: ChatReply | null = parseChatReply(msg.content)
-  if (!parsed) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+  const draft: ChatReply | null = parseChatReply(msg.content)
+  if (!draft) return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+
+  const screened = await screenReply(draft)
+  const parsed = screened.reply
+  const reasoning = [typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '', screened.reasoning]
+    .filter(Boolean)
+    .join('\n\n')
 
   const executed = parsed.action
     ? await executeChatAction(admin, userId, parsed.action, ctx.statuses, today)
@@ -565,14 +635,18 @@ export function parseReactEvent(raw: unknown): ReactEvent | null {
 }
 
 /** Model call → plain text → persist an assistant turn. Shared by both
-    reaction kinds; differs from runChat in prompt shape only, and in
-    streaming the text IS the reply — deltas go straight through. */
+    reaction kinds; differs from runChat in prompt shape only. The reply
+    buffers for the boundary screen in either mode — a reaction is one or
+    two sentences, too small to earn a repair round, so a flag goes
+    straight to the fixed one-liner. */
 async function reactToModel(
   admin: SupabaseClient,
   userId: string,
   prompt: string,
   maxTokens: number,
   stream: boolean,
+  lang: 'en' | 'fr',
+  advice: boolean,
 ): Promise<Response> {
   const route = await modelRoute(admin)
   if ('error' in route) return route.error
@@ -600,19 +674,28 @@ async function reactToModel(
   }
   if (!upstream.ok) return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
 
+  /* A flagged reaction goes straight to the fixed one-liner — no repair
+     round for a two-sentence reply. */
+  const screenText = (raw: string): string => {
+    const flags = detectHealthFlags(raw, lang, advice)
+    if (flags.length === 0) return raw
+    console.warn('health-ai reaction crossed a boundary line; fixed reply substituted', JSON.stringify(flags))
+    return lang === 'fr' ? HEALTH_REACT_FALLBACK_FR : HEALTH_REACT_FALLBACK_EN
+  }
+
   if (stream) {
     const sse = sseChannel()
     void (async () => {
       try {
-        const reply = (
-          await readUpstreamText(upstream, (piece) => {
-            if (piece) sse.send({ type: 'delta', text: piece })
-          })
-        ).trim()
-        if (!reply) {
+        /* The text buffers through the screen — nothing streams to the
+           bubble until the boundary check has seen all of it. */
+        const draft = (await readUpstreamText(upstream, () => {})).trim()
+        if (!draft) {
           sse.send({ type: 'error', error: 'Model returned empty text', code: 'empty' })
           return
         }
+        const reply = screenText(draft)
+        sse.send({ type: 'delta', text: reply })
         const { data: row } = await admin
           .from('health_chat_messages')
           .insert({ user_id: userId, role: 'assistant', content: reply })
@@ -629,8 +712,9 @@ async function reactToModel(
   }
 
   const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
-  const reply = (payload.choices?.[0]?.message?.content ?? '').trim()
-  if (!reply) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  const draft = (payload.choices?.[0]?.message?.content ?? '').trim()
+  if (!draft) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  const reply = screenText(draft)
 
   const { data: row } = await admin
     .from('health_chat_messages')
@@ -663,6 +747,8 @@ export async function runReact(
     reactPrompt(event, streak, ctx.signals, today, lang, advice),
     160,
     stream,
+    lang,
+    advice,
   )
 }
 
@@ -703,5 +789,7 @@ export async function runEntryReact(
     entryReactPrompt(e.title ?? '', e.body ?? '', ctx.signals, today, lang, advice),
     300,
     stream,
+    lang,
+    advice,
   )
 }

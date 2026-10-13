@@ -2,6 +2,7 @@
  * pr-ai — pure prompt/parse helpers, split out so vitest can cover them
  * without the edge runtime.
  */
+import { detectHonestClaims, detectPatterns } from '../_shared/adviceScreen.ts'
 
 export const PR_SENTIMENTS = ['positive', 'neutral', 'negative'] as const
 export type PrSentiment = (typeof PR_SENTIMENTS)[number]
@@ -637,3 +638,104 @@ export function prReactPrompt(
     contextBits,
   ].join('\n')
 }
+
+/* ── Output screens — the deterministic backstop behind the prompt ─────────
+   Two different boundaries are enforced here:
+
+   1. The universal line binds EVERY tier — Paige never promises or
+      predicts pickup (even the internal desk editor "never promises
+      pickup") and never claims the send happened or offers to take it.
+      The send is always the user's; actions stay whitelisted drafts, and
+      a prose claim of outreach is a lie, not a capability.
+   2. The directed line binds only the external tier — external gets a
+      frank read on materials and views on approaches, but not the desk
+      call on their concrete next move ("ship draft B", "pitch The Logic
+      first"). Verdicts on materials stay allowed ("a weak subject line
+      gets called weak") — the patterns target the action call, not the
+      read.
+
+   Internal @dutiva.ca replies run only the universal table — the desk
+   call is in scope there; the pickup and send lines are not. */
+const UNIVERSAL_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\b(?:will|would|is\s+going\s+to|should|could|might|'ll)\s+(?:get|land|earn|pick\s+up|be\s+picked\s+up|secure|attract|generate|drive|bring)\s+(?:you\s+)?(?:some\s+|any\s+|real\s+|actual\s+|press\s+|media\s+|earned\s+)?(?:coverage|pickup|press|media\s+(?:attention|coverage)|mentions?|hits|articles?|stories|features|placements?|interviews?)(?!\w)/i,
+    /\b(?:reporters?|journalists?|editors?|outlets?|the\s+press|media|producers?|bloggers?)\s+(?:will|would|are\s+going\s+to|'ll|should|could)\s+(?:cover|pick|run|bite|love|want|respond|be\s+interested|jump|write|feature)(?!\w)/i,
+    /\b(?:this|it|the\s+(?:pitch|story|angle|release))\s+(?:will|would|could|should|might)\s+(?:get|earn|land|attract|drive|generate)\s+(?:coverage|press|pickup|traction|attention|mentions?|hits)(?!\w)/i,
+    /\bi\s+(?:sent|emailed|mailed|pitched|submitted|fired\s+off|shot\s+over|distributed|put\s+(?:it|this|that)\s+out|reached\s+out|contacted)(?!\w)/i,
+    /\bi(?:'ll|\s+will)?\s+(?:send|email|pitch|fire\s+off|reach\s+out|submit|distribute|take\s+care\s+of\s+(?:sending|pitching)|handle\s+the\s+(?:send|outreach|pitch))\s+(?:it|this|that|the|to|for|out)(?!\w)/i,
+    /\b(?:it'?s|it\s+(?:is|has\s+been))\s+sent(?!\w)/i,
+  ],
+  fr: [
+    /\b(?:journalistes?|médias?|rédactions?|reporters?|la\s+presse)\s+(?:vont|couvriront|reprendront|publieront|s'intéresseront|adoreront|aimeront|en\s+parleront)(?!\w)/i,
+    /\b(?:vous\s+)?(?:aurez|obtiendrez|décrocherez|attirerez|générerez|vaudra)\s+(?:de\s+la\s+|des\s+|une\s+)?(?:couverture|presse|retombées|mentions?|articles?|reportages?|entrevues?)(?!\w)/i,
+    /(?:ça|cela|ceci|ce\s+(?:pitch|texte|communiqué|sujet))\s+(?:va|pourrait|devrait|va\s+vous)\s+(?:vous\s+)?(?:décrocher|valoir|attirer|donner)\s+(?:de\s+la\s+|des\s+|une\s+)?(?:couverture|presse|retombées|traction|attention)(?!\w)/i,
+    /\bj'ai\s+(?:envoyé|expédié|pitché|transmis|distribué|fait\s+parvenir|contacté|écrit)(?!\w)/i,
+    /\bje\s+(?:vais|m'occupe\s+de|prends\s+en\s+charge|peux)\s+(?:l'|le|la|les|vous\s+)?\s*(?:envoyer|expédier|pitcher|transmettre|distribuer|publier|envoi|diffusion)(?!\w)/i,
+    /\bc'est\s+envoyé(?!\w)/i,
+  ],
+}
+
+const DIRECTED_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\byou\s+(?:should|must|need\s+to|ought\s+to|want\s+to|might\s+want\s+to)\s+(?:pitch|send|email|submit|distribute|contact|reach\s+out|follow\s+up|go\s+with|run\s+with|lead\s+with|cut|kill|scrap|drop|ship|publish|post|release|embargo|offer|call|book|hire)(?!\w)/i,
+    /\b(?:pitch|send|email|submit|contact|approach|target|reach\s+out\s+to)\s+(?:it\s+to|the\s+pitch\s+to|this\s+to|them|them\s+first|outlets?\s+like)(?!\w)/i,
+    /\b(?:ship|send|run|lead\s+with|go\s+with|publish|release|push)\s+(?:this\s+one|that\s+one|this|that|draft|the\s+draft|version|it|the\s+second|the\s+first)(?!\w)/i,
+    /\bmy\s+(?:pick|call|verdict|recommendation|money)\s+(?:is|would\s+be|:|'?s\s+on)(?!\w)/i,
+    /\bi(?:'d|\s+would)\s+(?:pitch|send|go\s+with|lead\s+with|pick|choose|run|cut|kill|scrap|drop|ship|lead)(?!\w)/i,
+    /\bthat(?:'s|\s+is)\s+the\s+(?:one|one\s+to\s+(?:send|ship|run|pitch|lead\s+with))(?!\w)/i,
+  ],
+  fr: [
+    /\bvous\s+(?:devriez|pouvez|auriez\s+intérêt\s+à|gagneriez\s+à|feriez\s+bien\s+de|devriez|devez)\s+(?:le|la|les|l'|en|y|leur)?\s*(?:pitcher|envoyer|contacter|soumettre|distribuer|relancer|choisir|retenir|publier|proposer|offrir|mettre|couper|laisser\s+tomber|appeler|embaucher)(?!\w)/i,
+    /\bje\s+(?:vous\s+)?(?:recommande|conseille|suggère|préconise)\s+(?:de\s+|d')?(?:pitcher|envoyer|contacter|choisir|retenir|publier|soumettre|couper)/i,
+    /\b(?:envoyez|pitchez|contactez|soumettez|publiez|retenez|choisissez|coupez|relancez|appelez|embauchez)\s+(?:le|la|les|ce|cette|des|vos|votre)/i,
+    /\bc'est\s+(?:celle|celui|la\s+version|le\s+texte)\s+à\s+(?:envoyer|publier|retenir|choisir|envoyer)(?!\w)/i,
+    /\bmon\s+(?:choix|appel|verdict|argent)\s+(?:est|serait|:|irait\s+à)(?!\w)/i,
+    /\bje\s+(?:pitcherais|enverrais|choisirais|retiendrais|publierais|couperais|lancerais)(?!\w)/i,
+  ],
+}
+
+/* Promise-words run through the negation-aware matcher — "can't promise
+   coverage" is the honest deflection, not a violation. */
+const PROMISE_WORD_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\b(?:guarantee\w*|promise\w*)\s+(?:you\s+)?(?:of\s+|a\s+|an\s+|the\s+)?(?:coverage|pickup|press|placement|story|hit)(?!\w)/i,
+  ],
+  fr: [
+    /\b(?:garantir|garantie|promets?|promesse)\s+(?:de\s+)?(?:la\s+|des\s+|une\s+)?(?:couverture|presse|retombée|parution)(?!\w)/i,
+  ],
+}
+
+/** Fragments crossing a boundary, matched per tier. Empty = clean. */
+export function detectPrFlags(text: string, lang: 'en' | 'fr', advice: boolean): string[] {
+  const hits = [
+    ...detectPatterns(text, UNIVERSAL_PATTERNS[lang]),
+    ...detectHonestClaims(text, PROMISE_WORD_PATTERNS[lang]),
+  ]
+  if (advice) return hits
+  return [...hits, ...detectPatterns(text, DIRECTED_PATTERNS[lang])]
+}
+
+/** The repair note behind a flagged reply — names what crossed so the
+    rewrite fixes the boundary instead of hedging. */
+export function buildPrRepairNote(flags: string[], advice: boolean): string {
+  return (
+    'Your reply crossed a line the desk never crosses — flagged:\n' +
+    flags.map((f) => `- "${f}"`).join('\n') +
+    '\nRewrite it with no prediction or promise of coverage and no claim or offer that you send, pitch, or contact anyone — ' +
+    (advice
+      ? 'the desk call itself is fine for this internal account. '
+      : 'a frank read on the materials is fine; the call on their next move is theirs. ') +
+    'Keep the same language and the same JSON contract.'
+  )
+}
+
+/** The fixed text that replaces a flagged reply the repair pass could not
+    clean — the desk's promise stated plainly. */
+export const PR_FALLBACK_EN =
+  'Whether an outlet picks it up is their call — I can’t predict that, and the send is always yours to take. What I can do is keep working the materials with you: the angle, the subject line, the list. Where do you want to look?'
+export const PR_FALLBACK_FR =
+  'C’est le média qui décide s’il reprend le texte — je ne peux pas le prédire, et l’envoi vous revient toujours. Ce que je peux faire : continuer de travailler le matériel avec vous — l’angle, l’objet, la liste. Par où voulez-vous regarder ?'
+
+/** One-liner for flagged reaction replies — they are too small to repair. */
+export const PR_REACT_FALLBACK_EN = 'Noted on the desk — the next move is yours.'
+export const PR_REACT_FALLBACK_FR = 'C’est noté au desk — la prochaine décision vous revient.'

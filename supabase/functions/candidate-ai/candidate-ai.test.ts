@@ -3,8 +3,11 @@ import {
   SYSTEM_PROMPTS,
   buildChatContextBlock,
   buildUserMessage,
+  CANDIDATE_FALLBACK_EN,
+  CANDIDATE_FALLBACK_FR,
   candidateChatPrompt,
   candidateChatSources,
+  detectCandidateFlags,
   parseCandidateChatReply,
   parseModelResponse,
   validateAuthHeader,
@@ -471,5 +474,87 @@ describe('candidateChatSources', () => {
     expect(candidateChatSources(ctx, 'Platform Engineer at Initech fits.')).toEqual([
       { label: '"Platform Engineer" at Initech', url: 'https://initech.example/platform/apply' },
     ])
+  })
+})
+
+describe('detectCandidateFlags (coach-boundary backstop)', () => {
+  it('flags promised outcomes and discouragement for EVERY tier', () => {
+    for (const reply of [
+      "You'll get the interview with this resume.",
+      'This will land you the job.',
+      "Don't bother applying — the bar is high.",
+      'Skip this posting — it asks for more.',
+      "They'll call you back within a week.",
+      'I guarantee you the offer.',
+    ]) {
+      expect(detectCandidateFlags(reply, 'en', false), reply).not.toEqual([])
+      /* Internal owns the frank read — it never owns the promise or the
+         talk-out-of-applying. */
+      expect(detectCandidateFlags(reply, 'en', true), reply).not.toEqual([])
+    }
+  })
+
+  it('flags the personal verdict only for the external tier', () => {
+    for (const reply of [
+      'Your chances are decent here.',
+      "You're a strong fit for this role.",
+      'This role is a great match for you.',
+      "You'd nail the interview.",
+      "I think you'll get it.",
+      "It's a long shot for this one.",
+    ]) {
+      expect(detectCandidateFlags(reply, 'en', false), reply).not.toEqual([])
+    }
+    /* Internal gets the verdict on the materials and the shot. */
+    for (const reply of [
+      'Your chances are decent here — the resume backs it.',
+      'This posting is worth the shot; that one is a stretch.',
+    ]) {
+      expect(detectCandidateFlags(reply, 'en', true), reply).toEqual([])
+    }
+  })
+
+  it('observations, teaching and honest deflections stay clean', () => {
+    for (const reply of [
+      'Your resume shows five years in logistics and a CPA.',
+      'Recruiters scan for keywords in the first third.',
+      'The match-score tool gives you a scored read on this one.',
+      'You could apply, or wait for a better match — your call.',
+      "I can't promise you an interview — nobody can.",
+      "Your chances aren't something I can read from here.",
+      "It's not a sure thing — it never is.",
+    ]) {
+      expect(detectCandidateFlags(reply, 'en', false), reply).toEqual([])
+    }
+  })
+
+  it('flags French promises, discouragement and verdicts', () => {
+    for (const reply of [
+      "Vous obtiendrez le poste.",
+      'Vous serez embauché.',
+      'Ils vous embaucheront.',
+      'Ne postulez pas à celle-ci.',
+      'Ça ne vaut pas la peine.',
+      'Vos chances sont minces.',
+      'Vous êtes un bon candidat pour celui-ci.',
+      "Vous décrocheriez l'entrevue.",
+    ]) {
+      expect(detectCandidateFlags(reply, 'fr', false), reply).not.toEqual([])
+    }
+    for (const reply of [
+      'Votre CV montre cinq ans en logistique.',
+      'Les recruteurs lisent le premier tiers.',
+      "L'outil de score donne une lecture chiffrée.",
+      'Vous pourriez postuler, ou attendre un meilleur match — votre choix.',
+    ]) {
+      expect(detectCandidateFlags(reply, 'fr', false), reply).toEqual([])
+    }
+  })
+
+  it('fallbacks pass their own screen in both tables', () => {
+    for (const advice of [false, true]) {
+      expect(detectCandidateFlags(CANDIDATE_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectCandidateFlags(CANDIDATE_FALLBACK_FR, 'fr', advice)).toEqual([])
+    }
   })
 })
