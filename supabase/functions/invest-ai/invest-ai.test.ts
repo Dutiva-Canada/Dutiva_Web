@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildDraftPrompt,
   buildMemoryReviewPrompt,
   draftSystemPrompt,
   memoryPromptBlock,
@@ -457,16 +458,48 @@ describe('memoryPromptBlock', () => {
   ]
   it('prefers symbol-scoped facts for a draft about that symbol', () => {
     const block = memoryPromptBlock(facts, 'arm')
-    expect(block).toContain('[ARM] bought ARM')
+    expect(block).toContain('[ARM fact] bought ARM')
     expect(block).toContain('saving for a house')
     /* Scoped to another symbol the scoped fact drops, book-wide stays. */
     const other = memoryPromptBlock(facts, 'VFV')
-    expect(other).not.toContain('[ARM]')
+    expect(other).not.toContain('[ARM')
     expect(other).toContain('saving for a house')
   })
   it('renders nothing for an empty list', () => {
     expect(memoryPromptBlock([], 'ARM')).toBe('')
     expect(memoryPromptBlock(undefined, 'ARM')).toBe('')
+  })
+  it('renders the mandate in the holder’s own words, even with no memories', () => {
+    const block = memoryPromptBlock([], 'ARM', '  Long-term compounding only.  ')
+    expect(block).toContain('their mandate, in their words')
+    expect(block).toContain('Long-term compounding only.')
+    /* Whitespace-only mandate is no context at all. */
+    expect(memoryPromptBlock([], 'ARM', '   ')).toBe('')
+  })
+  it('ranks a symbol-scoped fact ahead of newer book-wide facts', () => {
+    /* Book-wide facts are newest-first at load time; without the scoped
+       sort the cap would cut the ARM fact before it renders. */
+    const crowded = [
+      ...Array.from({ length: 8 }, (_, i) => ({
+        symbol: null,
+        kind: 'fact',
+        text: `book-wide fact ${i}`,
+      })),
+      { symbol: 'ARM', kind: 'fact', text: 'bought ARM for the edge-AI story' },
+    ]
+    const block = memoryPromptBlock(crowded, 'ARM')
+    expect(block).toContain('[ARM fact] bought ARM')
+    /* No symbol in scope → insertion order preserved, scoped tail cut. */
+    expect(memoryPromptBlock(crowded)).not.toContain('[ARM')
+  })
+  it('buildDraftPrompt carries personal context alongside the goal', () => {
+    const p = buildDraftPrompt('Cut concentration below 30%', 'en', {
+      mandate: 'Slow compounding, no leverage.',
+      memories: [{ symbol: null, kind: 'plan', text: 'add to index funds monthly' }],
+    })
+    expect(p).toContain('Cut concentration below 30%')
+    expect(p).toContain('Slow compounding, no leverage.')
+    expect(p).toContain('add to index funds monthly')
   })
 })
 
@@ -481,7 +514,7 @@ describe('investChatPrompt — memories + mandate', () => {
     }
     const p = investChatPrompt(ctx, 'en').content
     expect(p).toContain('What you remember about them')
-    expect(p).toContain('[ARM] bought ARM for the edge-AI story')
+    expect(p).toContain('[ARM fact] bought ARM for the edge-AI story')
     expect(p).toContain('saving for a house')
     expect(p).toContain('never change the advice boundary')
   })
