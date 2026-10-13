@@ -253,6 +253,18 @@ const investCoreMessages = defineMessages({
     en: '— no quote on file; priced rows only count toward value and P&L. Refresh prices loads one.',
     fr: '— aucun cours en dossier; seules les positions cotées comptent dans la valeur et le P/L. « Actualiser les cours » en charge un.',
   },
+  invest_positions_no_fx: {
+    en: '— the quote is in another currency and no FX rate is on file; the cells stay blank rather than show a wrong number.',
+    fr: '— le cours est dans une autre devise et aucun taux de change n’est en dossier; les cellules restent vides plutôt que d’afficher un chiffre inexact.',
+  },
+  invest_fx_note: {
+    en: '≈ converted at ECB reference rates — {pairs} ({date}). Indicative only.',
+    fr: '≈ converti aux taux de référence de la BCE — {pairs} ({date}). À titre indicatif.',
+  },
+  invest_home_fx_partial: {
+    en: 'Some amounts needed an FX rate that isn’t on file — the totals above exclude them.',
+    fr: 'Certains montants exigeaient un taux de change qui n’est pas en dossier — les totaux ci-dessus les excluent.',
+  },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },
   invest_field_account: { en: 'Account', fr: 'Compte' },

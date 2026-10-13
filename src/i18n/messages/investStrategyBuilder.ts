@@ -71,7 +71,10 @@ export const investStrategyBuilderMessages = defineMessages({
     fr: 'Brouillon prêt — vérifiez les règles ci-dessous avant d’enregistrer.',
   },
   invest_sb_pill_enabled: { en: 'Enabled', fr: 'Activée' },
+  invest_sb_pill_paused: { en: 'Paused', fr: 'En pause' },
   invest_sb_pill_draft: { en: 'Draft', fr: 'Brouillon' },
+  /* [FR self-authored] */
+  invest_sb_next_run: { en: 'next {time}', fr: 'prochain {time}' },
   invest_sb_save: { en: 'Save', fr: 'Enregistrer' },
   invest_sb_discard: { en: 'Discard', fr: 'Annuler' },
   invest_sb_no_changes: { en: 'No changes', fr: 'Aucune modification' },

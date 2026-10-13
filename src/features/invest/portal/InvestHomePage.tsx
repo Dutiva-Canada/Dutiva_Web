@@ -1,5 +1,5 @@
 import './strategies.css'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -7,6 +7,7 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
+import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { tallyNoticed } from './strategyUi'
@@ -56,23 +57,78 @@ export function InvestHomePage() {
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [newsExpanded, setNewsExpanded] = useState(false)
+  /* ECB reference rates, loaded once — null means 'no rate on file', and
+     cross-currency amounts drop out of the totals with a note below
+     rather than sum into a wrong number. */
+  const [fx, setFx] = useState<FxTable | null>(null)
+  useEffect(() => {
+    let live = true
+    void loadFxRates().then((t) => {
+      if (live) setFx(t)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
+  /* Headline figures are denominated in the primary account's currency. */
+  const homeCur = state.accounts[0]?.baseCurrency ?? 'CAD'
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
         style: 'currency',
-        currency: 'CAD',
+        currency: homeCur,
       }),
-    [lang],
+    [lang, homeCur],
   )
 
-  const snapshotPrice = (assetClass: AssetClass, symbol: string) =>
-    state.snapshots.find((s) => s.assetClass === assetClass && s.symbol === symbol)?.price
-
-  const positionValue = (p: (typeof state.positions)[number]) =>
-    p.quantity * (snapshotPrice(p.assetClass, p.symbol) ?? p.lastPrice ?? p.avgCost)
-
-  const positionsValue = state.positions.reduce((sum, p) => sum + positionValue(p), 0)
-  const cash = state.accounts.reduce((sum, a) => sum + a.cashBalance, 0)
+  const book = useMemo(() => {
+    let used = false
+    let missed = 0
+    const pairs = new Set<string>()
+    const conv = (n: number, from: string): number | null => {
+      if (from === homeCur) return n
+      const c = convertFx(n, from, homeCur, fx)
+      if (c === null) {
+        missed++
+        return null
+      }
+      used = true
+      pairs.add(`${from}→${homeCur}`)
+      return c
+    }
+    /* Priced positions count at market; unpriced ones fall back to book
+       value (cost) so the headline doesn't read zero while quotes load.
+       The table is stricter — there an unpriced row shows '—'. */
+    const valueOf = (p: (typeof state.positions)[number]): number | null => {
+      const snap = state.snapshots.find(
+        (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
+      )
+      const pxNative = snap?.price ?? p.lastPrice
+      if (pxNative !== null) {
+        const px = conv(pxNative, snap?.currency ?? (p.currency || 'CAD'))
+        return px === null ? null : px * p.quantity
+      }
+      return conv(p.quantity * p.avgCost, p.currency)
+    }
+    let positionsValue = 0
+    for (const p of state.positions) {
+      const v = valueOf(p)
+      if (v !== null) positionsValue += v
+    }
+    let cash = 0
+    for (const a of state.accounts) {
+      const c = conv(a.cashBalance, a.baseCurrency)
+      if (c !== null) cash += c
+    }
+    const pairList = [...pairs]
+      .map((pair) => {
+        const [f, t] = pair.split('→') as [string, string]
+        const r = convertFx(1, f, t, fx)
+        return r === null ? pair : `${pair} ${r.toFixed(4)}`
+      })
+      .join(' · ')
+    return { positionsValue, cash, valueOf, used, missed, pairList }
+  }, [state.positions, state.accounts, state.snapshots, fx, homeCur])
   const openSignals = state.signals.filter((s) => s.status === 'new').length
   const lastRun = state.runs[0]
   const pricesAsOf = useMemo(() => {
@@ -112,7 +168,7 @@ export function InvestHomePage() {
     cls,
     value: state.positions
       .filter((p) => p.assetClass === cls)
-      .reduce((sum, p) => sum + positionValue(p), 0),
+      .reduce((sum, p) => sum + (book.valueOf(p) ?? 0), 0),
   })).filter((a) => a.value > 0)
 
   if (loading) {
@@ -185,11 +241,14 @@ export function InvestHomePage() {
       <div className="sb-stats">
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_total_value)}</p>
-          <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(positionsValue + cash)}</p>
+          <p className="v" style={{ margin: '8px 0 0' }}>
+            {book.used && <span className="dim">≈ </span>}
+            {fmt.format(book.positionsValue + book.cash)}
+          </p>
         </div>
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_cash)}</p>
-          <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(cash)}</p>
+          <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(book.cash)}</p>
         </div>
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_open_signals)}</p>
@@ -207,6 +266,18 @@ export function InvestHomePage() {
           </p>
         </div>
       </div>
+      {book.used && fx && (
+        <p className="sb-helper" style={{ margin: '6px 0 0' }}>
+          {x(IM.invest_fx_note)
+            .replace('{pairs}', book.pairList)
+            .replace('{date}', fx.date)}
+        </p>
+      )}
+      {book.missed > 0 && (
+        <p className="sb-helper" style={{ margin: '4px 0 0' }}>
+          {x(IM.invest_home_fx_partial)}
+        </p>
+      )}
 
       <div className="sb-duo">
         <section className={cardClass}>
@@ -216,7 +287,7 @@ export function InvestHomePage() {
           ) : (
             <ul style={{ margin: '14px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {allocation.map(({ cls, value }) => {
-                const pct = positionsValue > 0 ? (value / positionsValue) * 100 : 0
+                const pct = book.positionsValue > 0 ? (value / book.positionsValue) * 100 : 0
                 return (
                   <li key={cls}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13.5px' }}>
