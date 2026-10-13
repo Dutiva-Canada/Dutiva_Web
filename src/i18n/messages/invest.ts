@@ -434,6 +434,14 @@ const investCoreMessages = defineMessages({
     en: 'No positions yet — add one to start tracking.',
     fr: 'Aucune position — ajoutez-en une pour commencer le suivi.',
   },
+  invest_positions_empty_filtered: {
+    en: 'No positions match {symbol} — clear the filter to see the book.',
+    fr: 'Aucune position ne correspond à {symbol} — retirez le filtre pour voir le portefeuille.',
+  },
+  invest_filter_show_all: {
+    en: 'Show all',
+    fr: 'Tout afficher',
+  },
   invest_positions_manual: {
     en: 'Positions you enter by hand — they’re not synced from any broker or account.',
     fr: 'Positions saisies à la main — elles ne sont synchronisées avec aucun courtier ni compte.',
