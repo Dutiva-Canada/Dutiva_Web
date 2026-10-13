@@ -46,6 +46,18 @@ const cgHeaders = (): Record<string, string> => {
   return key ? { 'x-cg-demo-api-key': key } : {}
 }
 
+/* Feeds occasionally answer 200 with non-JSON — challenge pages, truncated
+   bodies. A throw here would kill a chat turn whose model already did its
+   work, so bad bytes read the same as no bytes. */
+function tryParseJson(raw: string | null): unknown | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
 async function headlinesFor(symbol: string, assetClass: string): Promise<MarketContextEntry['headlines']> {
   const hint = assetClass === 'crypto' ? 'crypto' : 'stock'
   const xml = await fetchText(googleNewsUrl(`${symbol} ${hint}`))
@@ -61,9 +73,11 @@ async function equityEntry(symbol: string): Promise<MarketContextEntry> {
     fetchText(yahooFundamentalsUrl(ys), YAHOO_HEADERS),
     headlinesFor(symbol, 'equity'),
   ])
-  const chart = chartRaw ? parseYahooChart(JSON.parse(chartRaw)) : null
+  const chartJson = tryParseJson(chartRaw)
+  const chart = chartJson ? parseYahooChart(chartJson) : null
   const tech = chart && chart.closes.length > 0 ? technicalPack(chart.closes) : null
-  const parsed = fundRaw ? parseYahooFundamentals(JSON.parse(fundRaw)) : {}
+  const fundJson = tryParseJson(fundRaw)
+  const parsed = fundJson ? parseYahooFundamentals(fundJson) : {}
   const fundamentals: Fundamentals | null =
     Object.keys(parsed).length > 0
       ? { ...parsed, currency: chart?.currency ?? currency }
@@ -104,7 +118,8 @@ async function cryptoEntry(
     ),
     headlinesFor(symbol, 'crypto'),
   ])
-  const tech = histRaw ? technicalPack(parseCoingeckoCloses(JSON.parse(histRaw))) : null
+  const histJson = tryParseJson(histRaw)
+  const tech = histJson ? technicalPack(parseCoingeckoCloses(histJson)) : null
   return {
     symbol,
     assetClass: 'crypto',
@@ -147,8 +162,10 @@ export async function fetchOnDemandMarket(symbols: string[]): Promise<MarketCont
       ),
       fetchText(coingeckoMarketsUrl(ids), headers),
     ])
-    const prices = priceRaw ? parseCoingeckoSimple(JSON.parse(priceRaw)) : new Map()
-    const markets = marketsRaw ? parseCoingeckoMarkets(JSON.parse(marketsRaw)) : new Map()
+    const priceJson = tryParseJson(priceRaw)
+    const marketsJson = tryParseJson(marketsRaw)
+    const prices = priceJson ? parseCoingeckoSimple(priceJson) : new Map()
+    const markets = marketsJson ? parseCoingeckoMarkets(marketsJson) : new Map()
     for (const s of crypto) out.push(await cryptoEntry(s, prices, markets))
   }
 
