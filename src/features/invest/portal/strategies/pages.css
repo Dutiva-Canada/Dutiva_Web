@@ -7,6 +7,12 @@
   margin: 0 auto;
   padding: 0 16px 40px;
 }
+/* The positions table needs ~1,100px at its natural density — on a 980px
+   canvas the money columns are guaranteed to scroll under the actions
+   cell, so the portfolio page gets a wider frame. */
+.sb-page-wide {
+  max-width: 1240px;
+}
 .sb-head-row {
   display: flex;
   align-items: center;
