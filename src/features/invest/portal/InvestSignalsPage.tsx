@@ -102,7 +102,7 @@ export function InvestSignalsPage() {
               </span>
               {s.symbol && <span className="sb-pill">{s.symbol}</span>}
               {linked.map((sym) => (
-                <Link key={sym} to="/invest/portfolios" className="sb-pill sb-pill-link">
+                <Link key={sym} to={`/invest/portfolio?symbol=${sym}`} className="sb-pill sb-pill-link">
                   {sym}
                 </Link>
               ))}

@@ -1,5 +1,6 @@
 import './strategies.css'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowDown, ArrowUp, DollarSign, Loader2, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -100,6 +101,15 @@ export function InvestPortfolioPage() {
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
   const [sort, setSort] = useState<{ key: PosSortKey; dir: 1 | -1 }>({ key: 'symbol', dir: 1 })
+  /* ?symbol=ARM deep-links (signal ticker pills) — scope the table and
+     its totals to the named symbol until the chip clears it. */
+  const [searchParams, setSearchParams] = useSearchParams()
+  const symbolFilter = searchParams.get('symbol')?.toUpperCase() ?? null
+  const clearSymbolFilter = () => {
+    const next = new URLSearchParams(searchParams)
+    next.delete('symbol')
+    setSearchParams(next, { replace: true })
+  }
   /* The add form collapses so the positions table leads the section —
      a data page shouldn't open on a wall of empty inputs. */
   const [showPosForm, setShowPosForm] = useState(false)
@@ -208,6 +218,11 @@ export function InvestPortfolioPage() {
     [state.positions, state.snapshots, fx],
   )
 
+  const visibleRows = useMemo(
+    () => (symbolFilter ? rows.filter((r) => r.p.symbol === symbolFilter) : rows),
+    [rows, symbolFilter],
+  )
+
   const sorted = useMemo(() => {
     const val = (r: (typeof rows)[number]): string | number | null =>
       sort.key === 'symbol'
@@ -219,7 +234,7 @@ export function InvestPortfolioPage() {
             : sort.key === 'value'
               ? r.value
               : r.pnl
-    return [...rows].sort((a, b) => {
+    return [...visibleRows].sort((a, b) => {
       const av = val(a)
       const bv = val(b)
       if (av === null) return bv === null ? 0 : 1
@@ -227,7 +242,7 @@ export function InvestPortfolioPage() {
       const cmp = typeof av === 'string' ? av.localeCompare(String(bv)) : av - (bv as number)
       return cmp * sort.dir
     })
-  }, [rows, sort, accountName])
+  }, [visibleRows, sort, accountName])
 
   /* Summing across currencies is meaningless — group the totals by the
      position's own currency and render each group's figures. */
@@ -236,7 +251,7 @@ export function InvestPortfolioPage() {
     const pairs = new Map<string, string>()
     let unpriced = 0
     let noFx = 0
-    for (const r of rows) {
+    for (const r of visibleRows) {
       const cur = r.p.currency || 'CAD'
       const t = byCur.get(cur) ?? { cost: 0, pricedCost: 0, value: 0 }
       const basis = r.p.quantity * r.p.avgCost
@@ -266,7 +281,7 @@ export function InvestPortfolioPage() {
       noFx,
       pairList: [...pairs.entries()].map(([pair, rate]) => `${pair} ${rate}`).join(' · '),
     }
-  }, [rows, fx])
+  }, [visibleRows, fx])
 
   const toggleSort = (key: PosSortKey) =>
     setSort((s) => ({
@@ -530,8 +545,26 @@ export function InvestPortfolioPage() {
             />
           )
         )}
+        {symbolFilter && (
+          <div className="sb-row" style={{ marginTop: 12 }}>
+            <span className="sb-pill sb-pill-draft">
+              {x(IM.invest_field_symbol)}: {symbolFilter}
+            </span>
+            <button
+              type="button"
+              className="sb-btn sb-btn-secondary sb-btn-sm"
+              onClick={clearSymbolFilter}
+            >
+              {x(IM.invest_filter_show_all)}
+            </button>
+          </div>
+        )}
         {state.positions.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
+        ) : sorted.length === 0 ? (
+          <p className="sb-empty">
+            {x(IM.invest_positions_empty_filtered).replace('{symbol}', symbolFilter ?? '')}
+          </p>
         ) : (
           <div className="sb-table-wrap" style={{ marginTop: 14 }}>
             <table className="sb-table sb-table-positions">

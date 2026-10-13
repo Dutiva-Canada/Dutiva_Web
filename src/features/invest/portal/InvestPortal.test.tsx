@@ -274,7 +274,7 @@ function renderPortal(ui: ReactElement, route = '/invest') {
                 <Route path="/invest" element={ui} />
                 <Route path="/invest/signals" element={ui} />
                 <Route path="/invest/orders" element={ui} />
-                <Route path="/invest/portfolios" element={ui} />
+                <Route path="/invest/portfolio" element={ui} />
               </Routes>
             </MemoryRouter>
           </ToastsProvider>
@@ -569,7 +569,7 @@ describe('InvestSignalsPage', () => {
     /* SHOP is held → a navigable pill; AMD isn't in the book → stays text. */
     expect(await screen.findByText('Broad declines')).toBeInTheDocument()
     const link = screen.getByRole('link', { name: 'SHOP' })
-    expect(link).toHaveAttribute('href', '/invest/portfolios')
+    expect(link).toHaveAttribute('href', '/invest/portfolio?symbol=SHOP')
     expect(screen.queryByRole('link', { name: 'AMD' })).not.toBeInTheDocument()
   })
 })
@@ -607,7 +607,11 @@ describe('InvestPortfolioPage positions', () => {
     vi.clearAllMocks()
   })
 
-  const renderPage = async (state: InvestState = STATE, fx: FxTable | null = null) => {
+  const renderPage = async (
+    state: InvestState = STATE,
+    fx: FxTable | null = null,
+    route = '/invest/portfolio',
+  ) => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(state)
     vi.mocked(loadFxRates).mockResolvedValue(fx)
@@ -618,7 +622,7 @@ describe('InvestPortfolioPage positions', () => {
       <InvestDataProvider>
         <InvestPortfolioPage />
       </InvestDataProvider>,
-      '/invest/portfolios',
+      route,
     )
     return userEvent.setup()
   }
@@ -726,6 +730,23 @@ describe('InvestPortfolioPage positions', () => {
     await vi.waitFor(() => {
       expect(deletePosition).toHaveBeenCalledWith('p1')
     })
+  })
+
+  it('scopes the table and totals to ?symbol= until the chip clears', async () => {
+    const user = await renderPage(
+      { ...STATE, positions: [...STATE.positions, UNPRICED] },
+      null,
+      '/invest/portfolio?symbol=SHOP',
+    )
+    /* The signal-pill deep link lands on just the named position — the
+       filter chip names the scope and offers the way back out. */
+    expect(await screen.findByText('SHOP')).toBeInTheDocument()
+    expect(screen.queryByText('NQ')).not.toBeInTheDocument()
+    expect(screen.getByText('Symbol: SHOP')).toBeInTheDocument()
+    /* Totals describe the filtered rows — SHOP alone: cost $1,000. */
+    expect(screen.getByText('$1,000.00')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Show all/i }))
+    expect(await screen.findByText('NQ')).toBeInTheDocument()
   })
 
   it('keeps the add form behind a toggle so the table leads the section', async () => {
@@ -888,7 +909,7 @@ describe('InvestPortfolioPage accounts', () => {
       <InvestDataProvider>
         <InvestPortfolioPage />
       </InvestDataProvider>,
-      '/invest/portfolios',
+      '/invest/portfolio',
     )
     return userEvent.setup()
   }
@@ -977,7 +998,7 @@ describe('InvestPortfolioPage watchlist', () => {
       <InvestDataProvider>
         <InvestPortfolioPage />
       </InvestDataProvider>,
-      '/invest/portfolios',
+      '/invest/portfolio',
     )
 
     const user = userEvent.setup()
