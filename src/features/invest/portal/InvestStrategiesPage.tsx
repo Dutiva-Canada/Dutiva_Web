@@ -11,7 +11,7 @@
  * deleteStrategy; no fixtures, no simulated results.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Loader2, Plus, ScanSearch } from 'lucide-react'
+import { ChevronRight, Loader2, Plus, ScanSearch } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -161,9 +161,18 @@ export function InvestStrategiesPage() {
     try {
       const res = await scanNow()
       await refresh()
+      const counts = (l: Lang) => ({
+        signals: pl(l, res.signals, IM.invest_sb_new_signal_one, IM.invest_sb_new_signal_many),
+        proposals: pl(
+          l,
+          res.proposals,
+          IM.invest_sb_new_proposal_one,
+          IM.invest_sb_new_proposal_many,
+        ),
+      })
       showToast({
-        en: `${IM.invest_sb_scan_complete.en} — ${pl('en', res.signals, IM.invest_sb_new_signal_one, IM.invest_sb_new_signal_many)} · ${pl('en', res.proposals, IM.invest_sb_new_proposal_one, IM.invest_sb_new_proposal_many)}`,
-        fr: `${IM.invest_sb_scan_complete.fr} — ${pl('fr', res.signals, IM.invest_sb_new_signal_one, IM.invest_sb_new_signal_many)} · ${pl('fr', res.proposals, IM.invest_sb_new_proposal_one, IM.invest_sb_new_proposal_many)}`,
+        en: fill(IM.invest_sb_scan_result.en, counts('en')),
+        fr: fill(IM.invest_sb_scan_result.fr, counts('fr')),
       })
     } catch (e) {
       showToast(
@@ -393,16 +402,26 @@ export function InvestStrategiesPage() {
                       ),
                     last.status !== 'ok' &&
                       x(last.status === 'failed' ? IM.invest_sb_run_failed : IM.invest_sb_run_partial),
+                    /* A clean run that found nothing still gets a verdict —
+                       "Last run 4d ago" alone reads as missing data. */
+                    last.status === 'ok' &&
+                      last.signalsEmitted === 0 &&
+                      last.proposalsCreated === 0 &&
+                      x(IM.invest_sb_run_quiet),
                   ]
                     .filter(Boolean)
                     .join(' · ')
                 : ''
-              /* 'next' only means something for an enabled strategy with a
-                 real prior run — a paused card promising a next run would
-                 lie, and an overdue estimate reads better left out. */
-              const ranMs = last ? Date.parse(last.ranAt) : Number.NaN
+              /* 'next' projects from last_evaluated_at — the bot's actual
+                 cadence gate. The run row lies here: a partial/failed run
+                 doesn't stamp the gate, so projecting off ran_at promises
+                 a wait the engine doesn't honor. Never-run and window-passed
+                 enabled strategies are due on the next sweep — say so rather
+                 than dropping the line. */
+              const evalMs = s.lastEvaluatedAt ? Date.parse(s.lastEvaluatedAt) : Number.NaN
               const nextMs =
-                s.enabled && Number.isFinite(ranMs) ? ranMs + CADENCE_MS[s.cadence] : null
+                s.enabled && Number.isFinite(evalMs) ? evalMs + CADENCE_MS[s.cadence] : null
+              const due = s.enabled && (nextMs === null || nextMs <= Date.now())
               const next = nextMs !== null && nextMs > Date.now() ? nextMs : null
               return (
                 <button
@@ -421,20 +440,23 @@ export function InvestStrategiesPage() {
                     >
                       {x(s.enabled ? IM.invest_sb_pill_enabled : IM.invest_sb_pill_paused)}
                     </span>
+                    <ChevronRight size={16} className="sb-strat-chevron" aria-hidden="true" />
                   </span>
                   <span className="sb-meta" style={{ display: 'block' }}>
                     {strategyMeta(lang, s, scopeSymbols(s.scope, universe).length)}
                   </span>
-                  {last && (
+                  {(last || next !== null || due) && (
                     <span className="sb-meta" style={{ display: 'block' }}>
-                      {fill(x(IM.invest_sb_last_run), {
-                        time: formatRel(last.ranAt, x, lang),
-                      })}
+                      {last &&
+                        fill(x(IM.invest_sb_last_run), {
+                          time: formatRel(last.ranAt, x, lang),
+                        })}
                       {outcome && ` · ${outcome}`}
-                      {next !== null &&
-                        ` · ${fill(x(IM.invest_sb_next_run), {
-                          time: fmtNext.format(next),
-                        })}`}
+                      {next !== null
+                        ? `${last ? ' · ' : ''}${fill(x(IM.invest_sb_next_run), { time: fmtNext.format(next) })}`
+                        : due
+                          ? `${last ? ' · ' : ''}${x(IM.invest_sb_next_overdue)}`
+                          : ''}
                     </span>
                   )}
                 </button>

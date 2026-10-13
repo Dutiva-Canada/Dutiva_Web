@@ -82,7 +82,11 @@ export async function loadInvestState(): Promise<InvestState> {
         .order('created_at', { ascending: false })
         .limit(200),
       client.from('invest_orders').select('*').order('created_at', { ascending: false }).limit(200),
-      client.from('invest_bot_runs').select('*').order('ran_at', { ascending: false }).limit(50),
+      client
+        .from('invest_bot_runs')
+        .select('*')
+        .order('ran_at', { ascending: false })
+        .limit(200),
       client.from('invest_watchlist').select('*').order('created_at', { ascending: false }),
     ])
   for (const res of [
@@ -680,6 +684,7 @@ function toStrategy(row: any): InvestStrategy {
        historical behavior. */
     multiMatch: row.multi_match === 'summary' ? 'summary' : 'each',
     template: typeof row.template === 'string' ? row.template : '',
+    lastEvaluatedAt: row.last_evaluated_at ?? null,
   }
 }
 
