@@ -255,6 +255,19 @@ const investCoreMessages = defineMessages({
   },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },
+  invest_field_account: { en: 'Account', fr: 'Compte' },
+  invest_position_exists: {
+    en: '{symbol} is already in this account — edit the existing row instead.',
+    fr: '{symbol} est déjà dans ce compte — modifiez plutôt la ligne existante.',
+  },
+  invest_position_added: {
+    en: 'Added {symbol} — fetching a quote…',
+    fr: '{symbol} ajouté — recherche du cours…',
+  },
+  invest_account_remove_confirm: {
+    en: 'Remove + its positions?',
+    fr: 'Retirer avec ses positions ?',
+  },
   invest_positions_empty: {
     en: 'No positions yet — add one to start tracking.',
     fr: 'Aucune position — ajoutez-en une pour commencer le suivi.',

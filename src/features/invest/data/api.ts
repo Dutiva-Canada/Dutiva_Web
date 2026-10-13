@@ -188,6 +188,37 @@ export async function createAccount(input: {
   if (error) throw error
 }
 
+export async function updateAccount(
+  id: string,
+  input: { name?: string; kind?: InvestAccount['kind']; baseCurrency?: string; cashBalance?: number },
+): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_accounts')
+    .update({
+      ...(input.name !== undefined ? { name: input.name } : {}),
+      ...(input.kind !== undefined ? { kind: input.kind } : {}),
+      ...(input.baseCurrency !== undefined ? { base_currency: input.baseCurrency } : {}),
+      ...(input.cashBalance !== undefined ? { cash_balance: input.cashBalance } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+/* Cascades invest_positions (and orders referencing the account) via the
+   schema's ON DELETE CASCADE — the UI confirms before calling this. */
+export async function deleteAccount(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_accounts')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
 export async function createPosition(input: {
   accountId: string
   assetClass: AssetClass

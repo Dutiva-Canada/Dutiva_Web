@@ -7,6 +7,7 @@ import {
   ASSET_CLASSES,
   type AccountKind,
   type AssetClass,
+  type InvestAccount,
   type InvestPosition,
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
@@ -14,9 +15,11 @@ import {
   addWatchSymbol,
   createAccount,
   createPosition,
+  deleteAccount,
   deletePosition,
   removeWatchSymbol,
   syncPrices,
+  updateAccount,
   updatePosition,
   upsertSnapshot,
 } from '@/features/invest/data/api'
@@ -43,6 +46,10 @@ const kindLabel: Record<AccountKind, keyof typeof IM> = {
   live: 'invest_kind_live',
   external: 'invest_kind_external',
 }
+/* The currencies a book can be denominated in — covers Canadian + US books
+   plus the occasional European holding. */
+const CURRENCIES = ['CAD', 'USD', 'EUR'] as const
+
 const kindHelp: Record<AccountKind, keyof typeof IM> = {
   paper: 'invest_kind_help_paper',
   live: 'invest_kind_help_live',
@@ -60,14 +67,22 @@ export function InvestPortfolioPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
   useInvestHead(IM.invest_seo_title_portfolio, IM.invest_seo_desc_portfolio)
-  const fmt = useMemo(
-    () =>
-      new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-        style: 'currency',
-        currency: 'CAD',
-      }),
-    [lang],
-  )
+  /* Positions carry their own currency — a USD row must format and total
+     as USD, not silently as CAD. */
+  const fmtFor = useMemo(() => {
+    const cache = new Map<string, Intl.NumberFormat>()
+    return (cur: string) => {
+      let f = cache.get(cur)
+      if (!f) {
+        f = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+          style: 'currency',
+          currency: cur,
+        })
+        cache.set(cur, f)
+      }
+      return f
+    }
+  }, [lang])
   const fmtQty = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 4 }),
@@ -83,6 +98,9 @@ export function InvestPortfolioPage() {
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
   const [sort, setSort] = useState<{ key: PosSortKey; dir: 1 | -1 }>({ key: 'symbol', dir: 1 })
+  /* The add form collapses so the positions table leads the section —
+     a data page shouldn't open on a wall of empty inputs. */
+  const [showPosForm, setShowPosForm] = useState(false)
 
   const syncNow = async () => {
     setBusy(true)
@@ -153,23 +171,31 @@ export function InvestPortfolioPage() {
     })
   }, [rows, sort])
 
+  /* Summing across currencies is meaningless — group the totals by the
+     position's own currency and render each group's figures. */
   const totals = useMemo(() => {
-    let cost = 0
-    let pricedCost = 0
-    let value = 0
+    const byCur = new Map<string, { cost: number; pricedCost: number; value: number }>()
     let unpriced = 0
     for (const r of rows) {
+      const cur = r.p.currency || 'CAD'
+      const t = byCur.get(cur) ?? { cost: 0, pricedCost: 0, value: 0 }
       const basis = r.p.quantity * r.p.avgCost
-      cost += basis
+      t.cost += basis
       if (r.value === null || r.pnl === null) {
         unpriced++
       } else {
-        pricedCost += basis
-        value += r.value
+        t.pricedCost += basis
+        t.value += r.value
       }
+      byCur.set(cur, t)
     }
-    const pnl = value - pricedCost
-    return { cost, value, pnl, unpriced, pnlPct: pricedCost === 0 ? null : (pnl / pricedCost) * 100 }
+    const groups = [...byCur.entries()].map(([currency, t]) => ({
+      currency,
+      ...t,
+      pnl: t.value - t.pricedCost,
+      pnlPct: t.pricedCost === 0 ? null : ((t.value - t.pricedCost) / t.pricedCost) * 100,
+    }))
+    return { groups, unpriced }
   }, [rows])
 
   const toggleSort = (key: PosSortKey) =>
@@ -254,46 +280,82 @@ export function InvestPortfolioPage() {
         ) : (
           <ul className="sb-tiles">
             {state.accounts.map((a) => (
-              <li key={a.id} className="sb-tile">
-                <p className="t-name" style={{ margin: 0 }}>{a.name}</p>
-                <p className="t-sub" style={{ margin: '3px 0 0' }}>
-                  {x(IM[kindLabel[a.kind]])} · {fmt.format(a.cashBalance)}
-                </p>
-              </li>
+              <AccountTile
+                key={a.id}
+                account={a}
+                busy={busy}
+                balance={fmtFor(a.baseCurrency).format(a.cashBalance)}
+                onSave={(input) => run(() => updateAccount(a.id, input))}
+                onRemove={() => run(() => deleteAccount(a.id))}
+              />
             ))}
           </ul>
         )}
       </section>
 
       <section className={cardClass} style={{ marginTop: 16 }}>
-        <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
+        <div className="sb-head-row">
+          <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
+          {state.accounts.length > 0 && !showPosForm && (
+            <button
+              type="button"
+              onClick={() => setShowPosForm(true)}
+              className="sb-btn sb-btn-secondary sb-btn-sm"
+            >
+              <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
+              {x(IM.invest_add_position)}
+            </button>
+          )}
+        </div>
         {/* Positions are manual tracking records — say so up front so the
             section never reads as a brokerage sync. */}
         <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_positions_manual)}</p>
-        {state.accounts.length > 0 ? (
-          <PositionForm
-            busy={busy}
-            accounts={state.accounts}
-            onCreate={(input) =>
-              run(async () => {
-                await createPosition(input)
-                priceInBackground()
-                sendInvestReaction(
-                  { type: 'position_logged', symbol: input.symbol, quantity: input.quantity },
-                  lang,
-                  setTallyLine,
-                )
-                  .then((r) => {
-                    if (r.reply) setTallyLine(r.reply)
-                  })
-                  .catch(() => {})
-              })
-            }
-          />
-        ) : (
+        {state.accounts.length === 0 ? (
           <p className="sb-helper" style={{ marginTop: 10 }}>
             {x(IM.invest_positions_need_account)}
           </p>
+        ) : (
+          showPosForm && (
+            <PositionForm
+              busy={busy}
+              accounts={state.accounts}
+              onCancel={() => setShowPosForm(false)}
+              onCreate={async (input) => {
+                /* The unique key is (account, class, symbol) — re-adding an
+                   existing row would silently overwrite its numbers, so the
+                   form refuses and points at the Edit control instead. */
+                const sym = input.symbol.toUpperCase()
+                const dup = state.positions.some(
+                  (p) =>
+                    p.accountId === input.accountId &&
+                    p.assetClass === input.assetClass &&
+                    p.symbol === sym,
+                )
+                if (dup) {
+                  setError(x(IM.invest_position_exists).replace('{symbol}', sym))
+                  return false
+                }
+                let created = false
+                await run(async () => {
+                  await createPosition(input)
+                  created = true
+                  setSyncNote(x(IM.invest_position_added).replace('{symbol}', sym))
+                  setShowPosForm(false)
+                  priceInBackground()
+                  sendInvestReaction(
+                    { type: 'position_logged', symbol: input.symbol, quantity: input.quantity },
+                    lang,
+                    setTallyLine,
+                  )
+                    .then((r) => {
+                      if (r.reply) setTallyLine(r.reply)
+                    })
+                    .catch(() => {})
+                })
+                return created
+              }}
+            />
+          )
         )}
         {state.positions.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
@@ -324,13 +386,13 @@ export function InvestPortfolioPage() {
                     </td>
                     <td>{x(IM[assetLabel[p.assetClass]])}</td>
                     <td className="num">{fmtQty.format(p.quantity)}</td>
-                    <td className="num">{fmt.format(p.avgCost)}</td>
+                    <td className="num">{fmtFor(p.currency).format(p.avgCost)}</td>
                     <td className="num">
                       {px === null ? (
                         <span className="dim">—</span>
                       ) : (
                         <>
-                          {fmt.format(px)}
+                          {fmtFor(p.currency).format(px)}
                           {stale && pxAt !== null && (
                             <span className="dim" style={{ marginLeft: 4, fontSize: 11 }}>
                               · {x(IM.invest_price_asof)} {fmtDay.format(Date.parse(pxAt))}
@@ -340,7 +402,7 @@ export function InvestPortfolioPage() {
                       )}
                     </td>
                     <td className="num strong">
-                      {value === null ? <span className="dim">—</span> : fmt.format(value)}
+                      {value === null ? <span className="dim">—</span> : fmtFor(p.currency).format(value)}
                     </td>
                     <td
                       className="num"
@@ -355,7 +417,7 @@ export function InvestPortfolioPage() {
                       ) : (
                         <>
                           {pnl >= 0 ? '+' : ''}
-                          {fmt.format(pnl)}{' '}
+                          {fmtFor(p.currency).format(pnl)}{' '}
                           <span className="dim">
                             ({pnlPct !== null && pnlPct >= 0 ? '+' : ''}
                             {pnlPct?.toFixed(1)}%)
@@ -400,19 +462,38 @@ export function InvestPortfolioPage() {
                   <td className="strong">{x(IM.invest_positions_total)}</td>
                   <td />
                   <td />
-                  <td className="num">{fmt.format(totals.cost)}</td>
+                  <td className="num">
+                    {totals.groups.map((g, i) => (
+                      <span key={g.currency}>
+                        {i > 0 && <span className="dim"> · </span>}
+                        {fmtFor(g.currency).format(g.cost)}
+                      </span>
+                    ))}
+                  </td>
                   <td />
-                  <td className="num strong">{fmt.format(totals.value)}</td>
-                  <td
-                    className="num"
-                    style={{ color: totals.pnl >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
-                  >
-                    {totals.pnl >= 0 ? '+' : ''}
-                    {fmt.format(totals.pnl)}{' '}
-                    <span className="dim">
-                      ({totals.pnlPct !== null && totals.pnlPct >= 0 ? '+' : ''}
-                      {totals.pnlPct?.toFixed(1)}%)
-                    </span>
+                  <td className="num strong">
+                    {totals.groups.map((g, i) => (
+                      <span key={g.currency}>
+                        {i > 0 && <span className="dim"> · </span>}
+                        {fmtFor(g.currency).format(g.value)}
+                      </span>
+                    ))}
+                  </td>
+                  <td className="num">
+                    {totals.groups.map((g, i) => (
+                      <span
+                        key={g.currency}
+                        style={{ color: g.pnl >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
+                      >
+                        {i > 0 && <span className="dim"> · </span>}
+                        {g.pnl >= 0 ? '+' : ''}
+                        {fmtFor(g.currency).format(g.pnl)}{' '}
+                        <span className="dim">
+                          ({g.pnlPct !== null && g.pnlPct >= 0 ? '+' : ''}
+                          {g.pnlPct?.toFixed(1)}%)
+                        </span>
+                      </span>
+                    ))}
                   </td>
                   <td />
                 </tr>
@@ -560,12 +641,18 @@ function AccountForm({
   onCreate,
 }: {
   busy: boolean
-  onCreate: (input: { name: string; kind: AccountKind; cashBalance?: number }) => Promise<void>
+  onCreate: (input: {
+    name: string
+    kind: AccountKind
+    cashBalance?: number
+    baseCurrency?: string
+  }) => Promise<void>
 }) {
   const { x } = useI18n()
   const [name, setName] = useState('')
   const [kind, setKind] = useState<AccountKind>('paper')
   const [cash, setCash] = useState('')
+  const [baseCurrency, setBaseCurrency] = useState('CAD')
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -574,6 +661,7 @@ function AccountForm({
       name: name.trim(),
       kind,
       cashBalance: cash ? Number(cash) : 0,
+      baseCurrency,
     }).then(() => {
       setName('')
       setCash('')
@@ -590,6 +678,7 @@ function AccountForm({
           id="inv-acc-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Paper book"
           className={fieldClass}
           required
         />
@@ -623,8 +712,26 @@ function AccountForm({
           step="0.01"
           value={cash}
           onChange={(e) => setCash(e.target.value)}
+          placeholder="25000"
           className={fieldClass}
         />
+      </div>
+      <div className="sb-field">
+        <label className={labelClass} htmlFor="inv-acc-cur">
+          {x(IM.invest_field_currency)}
+        </label>
+        <select
+          id="inv-acc-cur"
+          value={baseCurrency}
+          onChange={(e) => setBaseCurrency(e.target.value)}
+          className={fieldClass}
+        >
+          {CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="sb-form-actions">
         <button type="submit" disabled={busy || !name.trim()} className={btnClass}>
@@ -644,13 +751,148 @@ function AccountForm({
   )
 }
 
+function AccountTile({
+  account,
+  busy,
+  balance,
+  onSave,
+  onRemove,
+}: {
+  account: InvestAccount
+  busy: boolean
+  balance: string
+  onSave: (input: {
+    name: string
+    kind: AccountKind
+    cashBalance: number
+    baseCurrency: string
+  }) => Promise<void>
+  onRemove: () => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [editing, setEditing] = useState(false)
+  const [name, setName] = useState('')
+  const [kind, setKind] = useState<AccountKind>('paper')
+  const [cash, setCash] = useState('')
+  const [baseCurrency, setBaseCurrency] = useState('CAD')
+
+  if (editing) {
+    return (
+      <li className="sb-tile">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="sb-input sb-input-sm"
+          aria-label={x(IM.invest_account_name)}
+        />
+        <span className="sb-row-actions" style={{ marginTop: 8 }}>
+          <select
+            value={kind}
+            onChange={(e) => setKind(e.target.value as AccountKind)}
+            className="sb-input sb-input-sm"
+            aria-label={x(IM.invest_account_kind)}
+          >
+            {(['paper', 'live', 'external'] as const).map((k) => (
+              <option key={k} value={k}>
+                {x(IM[kindLabel[k]])}
+              </option>
+            ))}
+          </select>
+          <select
+            value={baseCurrency}
+            onChange={(e) => setBaseCurrency(e.target.value)}
+            className="sb-input sb-input-sm"
+            style={{ width: 76 }}
+            aria-label={x(IM.invest_field_currency)}
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </span>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value={cash}
+          onChange={(e) => setCash(e.target.value)}
+          className="sb-input sb-input-sm"
+          style={{ marginTop: 8 }}
+          aria-label={x(IM.invest_ov_cash)}
+        />
+        <span className="sb-row-actions" style={{ marginTop: 8 }}>
+          <button
+            type="button"
+            disabled={busy || !name.trim()}
+            onClick={() =>
+              void onSave({
+                name: name.trim(),
+                kind,
+                cashBalance: cash ? Number(cash) : 0,
+                baseCurrency,
+              }).then(() => setEditing(false))
+            }
+            className="sb-btn sb-btn-primary sb-btn-sm"
+          >
+            {x(IM.invest_save)}
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+          >
+            {x(IM.invest_cancel)}
+          </button>
+        </span>
+      </li>
+    )
+  }
+  return (
+    <li className="sb-tile">
+      <p className="t-name" style={{ margin: 0 }}>{account.name}</p>
+      <p className="t-sub" style={{ margin: '3px 0 0' }}>
+        {x(IM[kindLabel[account.kind]])} · {balance}
+      </p>
+      <span className="sb-row-actions" style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setName(account.name)
+            setKind(account.kind)
+            setCash(String(account.cashBalance))
+            setBaseCurrency(account.baseCurrency || 'CAD')
+            setEditing(true)
+          }}
+          className="sb-btn sb-btn-secondary sb-btn-sm"
+          aria-label={`${x(IM.invest_edit)} ${account.name}`}
+        >
+          {x(IM.invest_edit)}
+        </button>
+        <RemovePosition
+          busy={busy}
+          ariaLabel={`${x(IM.invest_rule_remove)} ${account.name}`}
+          confirmLabel={x(IM.invest_account_remove_confirm)}
+          onRemove={onRemove}
+        />
+      </span>
+    </li>
+  )
+}
+
 function PositionForm({
   busy,
   accounts,
   onCreate,
+  onCancel,
 }: {
   busy: boolean
   accounts: { id: string; name: string }[]
+  /* Returns false when the row wasn't created (dup guard, save error) —
+     the form keeps its fields so the person doesn't retype. */
   onCreate: (input: {
     accountId: string
     assetClass: AssetClass
@@ -658,7 +900,9 @@ function PositionForm({
     name: string
     quantity: number
     avgCost: number
-  }) => Promise<void>
+    currency: string
+  }) => Promise<boolean>
+  onCancel: () => void
 }) {
   const { x } = useI18n()
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? '')
@@ -667,6 +911,7 @@ function PositionForm({
   const [name, setName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [avgCost, setAvgCost] = useState('')
+  const [currency, setCurrency] = useState('CAD')
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -678,7 +923,9 @@ function PositionForm({
       name: name.trim() || symbol.trim().toUpperCase(),
       quantity: Number(quantity),
       avgCost: Number(avgCost),
-    }).then(() => {
+      currency,
+    }).then((ok) => {
+      if (!ok) return
       setSymbol('')
       setName('')
       setQuantity('')
@@ -690,7 +937,7 @@ function PositionForm({
     <form onSubmit={submit} className="sb-form-grid">
       <div className="sb-field">
         <label className={labelClass} htmlFor="inv-pos-acc">
-          {x(IM.invest_accounts_title)}
+          {x(IM.invest_field_account)}
         </label>
         <select
           id="inv-pos-acc"
@@ -730,6 +977,7 @@ function PositionForm({
           id="inv-pos-symbol"
           value={symbol}
           onChange={(e) => setSymbol(e.target.value)}
+          placeholder="SHOP.TO, BTC…"
           className={fieldClass}
           required
         />
@@ -742,6 +990,7 @@ function PositionForm({
           id="inv-pos-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          placeholder="Shopify Inc."
           className={fieldClass}
         />
       </div>
@@ -756,6 +1005,7 @@ function PositionForm({
           step="any"
           value={quantity}
           onChange={(e) => setQuantity(e.target.value)}
+          placeholder="10"
           className={fieldClass}
           required
         />
@@ -771,14 +1021,45 @@ function PositionForm({
           step="any"
           value={avgCost}
           onChange={(e) => setAvgCost(e.target.value)}
+          placeholder="123.45"
           className={fieldClass}
           required
         />
       </div>
+      <div className="sb-field">
+        <label className={labelClass} htmlFor="inv-pos-cur">
+          {x(IM.invest_field_currency)}
+        </label>
+        <select
+          id="inv-pos-cur"
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className={fieldClass}
+        >
+          {CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="sb-form-actions">
-        <button type="submit" disabled={busy || !accountId || !symbol.trim()} className={btnClass}>
+        <button
+          type="submit"
+          disabled={
+            busy ||
+            !accountId ||
+            !symbol.trim() ||
+            !(Number(quantity) > 0) ||
+            !(avgCost !== '' && Number(avgCost) >= 0)
+          }
+          className={btnClass}
+        >
           <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
           {x(IM.invest_add_position)}
+        </button>
+        <button type="button" onClick={onCancel} className="sb-btn sb-btn-secondary">
+          {x(IM.invest_cancel)}
         </button>
       </div>
     </form>
@@ -824,13 +1105,14 @@ function PositionEditor({
 }: {
   busy: boolean
   position: InvestPosition
-  onSave: (input: { name: string; quantity: number; avgCost: number }) => Promise<void>
+  onSave: (input: { name: string; quantity: number; avgCost: number; currency: string }) => Promise<void>
 }) {
   const { x } = useI18n()
   const [open, setOpen] = useState(false)
   const [quantity, setQuantity] = useState('')
   const [avgCost, setAvgCost] = useState('')
   const [name, setName] = useState('')
+  const [currency, setCurrency] = useState('CAD')
 
   if (!open) {
     return (
@@ -840,6 +1122,7 @@ function PositionEditor({
           setQuantity(String(position.quantity))
           setAvgCost(String(position.avgCost))
           setName(position.name)
+          setCurrency(position.currency || 'CAD')
           setOpen(true)
         }}
         className="sb-btn sb-btn-secondary sb-btn-sm"
@@ -879,6 +1162,19 @@ function PositionEditor({
         style={{ width: 130 }}
         aria-label={x(IM.invest_field_name)}
       />
+      <select
+        value={currency}
+        onChange={(e) => setCurrency(e.target.value)}
+        className="sb-input sb-input-sm"
+        style={{ width: 76 }}
+        aria-label={x(IM.invest_field_currency)}
+      >
+        {CURRENCIES.map((c) => (
+          <option key={c} value={c}>
+            {c}
+          </option>
+        ))}
+      </select>
       <button
         type="button"
         disabled={busy || !quantity || !avgCost}
@@ -887,6 +1183,7 @@ function PositionEditor({
             name: name.trim() || position.name,
             quantity: Number(quantity),
             avgCost: Number(avgCost),
+            currency,
           }).then(() => setOpen(false))
         }
         className="sb-btn sb-btn-primary sb-btn-sm"
@@ -908,10 +1205,14 @@ function PositionEditor({
 function RemovePosition({
   busy,
   ariaLabel,
+  confirmLabel,
   onRemove,
 }: {
   busy: boolean
   ariaLabel: string
+  /** Overrides the two-tap confirm text — e.g. accounts warn that their
+      positions go with them. */
+  confirmLabel?: string
   onRemove: () => Promise<void>
 }) {
   const { x } = useI18n()
@@ -936,7 +1237,7 @@ function RemovePosition({
       }}
       className="sb-btn sb-btn-secondary sb-btn-sm"
     >
-      {confirming ? x(IM.invest_remove_confirm) : x(IM.invest_rule_remove)}
+      {confirming ? (confirmLabel ?? x(IM.invest_remove_confirm)) : x(IM.invest_rule_remove)}
     </button>
   )
 }
