@@ -175,6 +175,9 @@
   right: 0;
   background: var(--sb-card);
   border-left: 1px solid var(--sb-line);
+  /* The shadow says 'columns continue under here' — without it a hidden
+     column reads as clipped digits instead of more data. */
+  box-shadow: -8px 0 12px -8px rgb(0 0 0 / 0.18);
   padding-left: 12px;
 }
 /* Review-queue rows (agent suggestions): on narrow screens the button
