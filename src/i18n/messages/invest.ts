@@ -261,9 +261,9 @@ const investCoreMessages = defineMessages({
     en: '≈ converted at ECB reference rates — {pairs} ({date}). Indicative only.',
     fr: '≈ converti aux taux de référence de la BCE — {pairs} ({date}). À titre indicatif.',
   },
-  invest_home_fx_partial: {
-    en: 'Some amounts needed an FX rate that isn’t on file — the totals above exclude them.',
-    fr: 'Certains montants exigeaient un taux de change qui n’est pas en dossier — les totaux ci-dessus les excluent.',
+  invest_home_fx_split: {
+    en: 'No FX rate on file — totals stay per currency rather than blend wrong.',
+    fr: 'Aucun taux de change en dossier — les totaux restent par devise plutôt qu’un mélange inexact.',
   },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },
