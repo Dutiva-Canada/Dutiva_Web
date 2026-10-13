@@ -42,6 +42,16 @@ export { runChatUndo } from './chatActions.ts'
 
 const CHAT_HISTORY = 20
 const CHAT_LIST_CAP = 15
+/* A turn must end itself before the edge wall clock ends it (~150s) —
+   a function killed mid-stream leaves the client staring at a dead
+   connection instead of a real error event. Each model call gets the
+   time actually left, not the full upstream timeout. */
+const TURN_BUDGET_MS = 135_000
+/* Persist + SSE flush needs a few seconds after the last model call. */
+const TURN_RESERVE_MS = 6_000
+/* Below this, a repair round can't finish — ship the unverified reply
+   with a warning instead of dying holding it. */
+const REPAIR_MIN_MS = 25_000
 
 type Provider = Parameters<typeof postChatCompletion>[0]
 interface ModelRoute {
@@ -334,7 +344,7 @@ export async function runChat(
   const mentioned = extractMentionedSymbols(message)
   const covered = new Set(book.ctx.market.map((m) => m.symbol))
   const missing = mentioned.filter((s) => !covered.has(s))
-  const onDemand = missing.length > 0 ? await fetchOnDemandMarket(missing) : []
+  const onDemand = missing.length > 0 ? await fetchOnDemandMarket(missing).catch(() => []) : []
   const chatCtx: InvestChatContext = {
     ...book.ctx,
     market: [...book.ctx.market, ...onDemand],
@@ -359,6 +369,8 @@ export async function runChat(
      they're the model's working, not its answer, so they flow straight to
      the client's thinking panel as they arrive and persist on the turn. */
   const extras = routeBodyExtras(route.config)
+  const turnStartedAt = Date.now()
+  const turnLeftMs = () => TURN_BUDGET_MS - (Date.now() - turnStartedAt) - TURN_RESERVE_MS
   interface ModelRound {
     raw: string
     parsed: InvestChatReply | null
@@ -397,27 +409,50 @@ export async function runChat(
       })
     }
     if (extra.repairNote) messages.push({ role: 'system', content: extra.repairNote })
+    /* Every call runs on the turn's remaining budget — three full-timeout
+       rounds back to back would sail past the edge wall clock and the
+       stream would die without an error event. */
+    if (turnLeftMs() < 5_000) {
+      console.error('invest-ai chat: no turn budget left for a model call')
+      return null
+    }
+    const reqBody = {
+      model: route.model_name,
+      messages,
+      /* Analysis replies run longer than chit-chat — the JSON contract
+         asks for a verdict + labeled sections on those asks. */
+      max_tokens: route.config?.max_tokens ?? 900,
+      temperature: 0.4,
+      /* Streaming upstream only when a listener wants the reasoning
+         pieces live — the content side stays buffered either way. */
+      stream: onReasoning !== undefined,
+      ...extras,
+    }
     try {
-      const upstream = await postChatCompletion(
+      let upstream = await postChatCompletion(
         provider,
         apiKey,
-        {
-          model: route.model_name,
-          messages,
-          /* Analysis replies run longer than chit-chat — the JSON contract
-             asks for a verdict + labeled sections on those asks. */
-          max_tokens: route.config?.max_tokens ?? 900,
-          temperature: 0.4,
-          /* Streaming upstream only when a listener wants the reasoning
-             pieces live — the content side stays buffered either way. */
-          stream: onReasoning !== undefined,
-          ...extras,
-        },
-        UPSTREAM_TIMEOUT_MS,
+        reqBody,
+        Math.min(UPSTREAM_TIMEOUT_MS, turnLeftMs()),
       )
       if (!upstream.ok) {
-        console.error('invest-ai chat: upstream rejected', upstream.status)
-        return null
+        console.error(
+          `invest-ai chat: upstream rejected ${upstream.status} (~${Date.now() - turnStartedAt}ms into the turn)`,
+        )
+        /* One fast re-ask covers transient 5xx/429 — a call that died by
+           timeout already proved the model is slow, so retrying would
+           only burn the remaining budget. */
+        if (turnLeftMs() < 10_000) return null
+        upstream = await postChatCompletion(
+          provider,
+          apiKey,
+          reqBody,
+          Math.min(UPSTREAM_TIMEOUT_MS, turnLeftMs()),
+        )
+        if (!upstream.ok) {
+          console.error('invest-ai chat: upstream rejected again', upstream.status)
+          return null
+        }
       }
       if (onReasoning) {
         const { text, reasoning } = await readUpstreamCompletion(upstream, () => {}, onReasoning)
@@ -432,7 +467,10 @@ export async function runChat(
         reasoning: typeof msg.reasoning_content === 'string' ? msg.reasoning_content : '',
       }
     } catch (e) {
-      console.error('invest-ai chat: model call failed', e)
+      console.error(
+        `invest-ai chat: model call failed (~${Date.now() - turnStartedAt}ms into the turn)`,
+        e,
+      )
       return null
     }
   }
@@ -472,9 +510,11 @@ export async function runChat(
         onStatus?.('web_search')
         webQuery = parsed.search
       }
+      /* A broken feed or search call degrades to "no data" — the model
+         still answers from context rather than the whole turn dying. */
       const [fetched, searched] = await Promise.all([
-        want.length > 0 ? fetchOnDemandMarket(want) : Promise.resolve([]),
-        parsed.search ? webSearch(parsed.search) : Promise.resolve([]),
+        want.length > 0 ? fetchOnDemandMarket(want).catch(() => []) : Promise.resolve([]),
+        parsed.search ? webSearch(parsed.search).catch(() => []) : Promise.resolve([]),
       ])
       for (const e of fetched) covered.add(e.symbol)
       chatCtx.market = [...chatCtx.market, ...fetched]
@@ -500,7 +540,15 @@ export async function runChat(
        gets logged — blocking the whole turn over one number is worse than
        the note. */
     const mismatches = verifyReplyClaims(parsed.reply, chatCtx.market)
-    if (mismatches.length > 0) {
+    if (mismatches.length > 0 && turnLeftMs() < REPAIR_MIN_MS) {
+      /* A repair round that can't finish before the wall clock would kill
+         the whole turn — ship the unverified reply instead, same as the
+         residual-mismatch path below. */
+      console.warn(
+        'invest-ai reply cited figures off-file; too little turn left to repair — shipping original',
+        JSON.stringify(mismatches),
+      )
+    } else if (mismatches.length > 0) {
       console.warn('invest-ai reply cited figures off-file', JSON.stringify(mismatches))
       const repaired = await callModel(
         { draft: round.raw, repairNote: buildRepairNote(mismatches) },
