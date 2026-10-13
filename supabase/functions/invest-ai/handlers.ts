@@ -225,6 +225,7 @@ export type InvestChatAction =
       quantity: number
       avgCost: number
       account?: string
+      currency?: string
     }
 
 export interface InvestChatReply {
@@ -481,7 +482,7 @@ export function investChatPrompt(
       '  {"type":"create_order","symbol":"<TICKER>","side":"<buy|sell>","quantity":<number>,"orderType":"<market|limit>","limitPrice":<number if limit>,"account":"<account name if more than one>","mode":"<paper|live>","note":"<optional>"}   — lands as a QUEUED draft the person reviews and executes themselves; it never fills on its own',
       '  {"type":"update_signal","signalId":"<id from the list below>","status":"<acknowledged|dismissed>"}',
       '  {"type":"draft_strategy","goal":"<plain-language goal the person stated>"}',
-      '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
+      '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"currency":"<optional, default CAD>","account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<sized to the ask — a sentence or two for quick questions and confirmations; a full structured answer when they ask for analysis, a comparison, or a plan>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
@@ -643,6 +644,7 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
           quantity,
           avgCost,
           account: optStr(action.account, 80),
+          currency: optStr(action.currency, 8)?.toUpperCase(),
         })
       }
     }

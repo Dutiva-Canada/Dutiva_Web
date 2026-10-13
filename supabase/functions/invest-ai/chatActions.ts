@@ -257,7 +257,7 @@ export async function executeChatAction(
           name: action.name ?? action.symbol,
           quantity: action.quantity,
           avg_cost: action.avgCost,
-          currency: 'CAD',
+          currency: action.currency ?? 'CAD',
           updated_at: new Date().toISOString(),
         })
         .select('id')

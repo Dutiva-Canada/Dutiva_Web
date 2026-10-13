@@ -26,6 +26,9 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setOrderStatus: vi.fn(),
   addWatchSymbol: vi.fn(),
   removeWatchSymbol: vi.fn(),
+  createAccount: vi.fn(),
+  updateAccount: vi.fn(),
+  deleteAccount: vi.fn(),
   createPosition: vi.fn(),
   updatePosition: vi.fn(),
   deletePosition: vi.fn(),
@@ -40,6 +43,9 @@ const {
   executeOrder,
   addWatchSymbol,
   removeWatchSymbol,
+  createAccount,
+  updateAccount,
+  deleteAccount,
   createPosition,
   updatePosition,
   deletePosition,
@@ -463,12 +469,21 @@ describe('InvestPortfolioPage positions', () => {
     })
   })
 
+  it('keeps the add form behind a toggle so the table leads the section', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    expect(document.getElementById('inv-pos-symbol')).toBeNull()
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+    expect(document.getElementById('inv-pos-symbol')).not.toBeNull()
+  })
+
   it('re-prices in the background after a position is added', async () => {
     const user = await renderPage(STATE)
     await screen.findByText('SHOP')
     vi.mocked(createPosition).mockResolvedValue(undefined)
     vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
 
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
     await user.type(document.getElementById('inv-pos-symbol')!, 'amd')
     await user.type(document.getElementById('inv-pos-qty')!, '5')
     await user.type(document.getElementById('inv-pos-cost')!, '150')
@@ -487,6 +502,121 @@ describe('InvestPortfolioPage positions', () => {
     })
     await vi.waitFor(() => {
       expect(vi.mocked(loadInvestState).mock.calls.length).toBeGreaterThanOrEqual(3)
+    })
+  })
+
+  it('refuses to re-add a symbol the account already holds', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    vi.mocked(createPosition).mockResolvedValue(undefined)
+
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+    await user.type(document.getElementById('inv-pos-symbol')!, 'shop')
+    await user.type(document.getElementById('inv-pos-qty')!, '5')
+    await user.type(document.getElementById('inv-pos-cost')!, '150')
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+
+    /* The upsert would have silently replaced the row's numbers — the
+       guard points at Edit instead and never reaches the API. */
+    expect(await screen.findByText(/already in this account/i)).toBeInTheDocument()
+    expect(createPosition).not.toHaveBeenCalled()
+    /* …and the form keeps the typed fields so they can be corrected. */
+    expect((document.getElementById('inv-pos-symbol') as HTMLInputElement).value).toBe('shop')
+  })
+
+  it('sends the chosen currency with a new position', async () => {
+    const user = await renderPage(STATE)
+    await screen.findByText('SHOP')
+    vi.mocked(createPosition).mockResolvedValue(undefined)
+    vi.mocked(syncPrices).mockResolvedValue({ symbols: 0, synced: 0, failed: [] })
+
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+    await user.type(document.getElementById('inv-pos-symbol')!, 'nvda')
+    await user.type(document.getElementById('inv-pos-qty')!, '3')
+    await user.type(document.getElementById('inv-pos-cost')!, '180')
+    await user.selectOptions(document.getElementById('inv-pos-cur')!, 'USD')
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+
+    await vi.waitFor(() => {
+      expect(createPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'nvda', currency: 'USD' }),
+      )
+    })
+  })
+})
+
+describe('InvestPortfolioPage accounts', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const renderPage = async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    const { InvestPortfolioPage } = await import('./InvestPortfolioPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestPortfolioPage />
+      </InvestDataProvider>,
+      '/invest/portfolios',
+    )
+    return userEvent.setup()
+  }
+
+  it('creates an account with the chosen base currency', async () => {
+    const user = await renderPage()
+    expect(await screen.findByText('Paper book')).toBeInTheDocument()
+    vi.mocked(createAccount).mockResolvedValue(undefined)
+
+    await user.type(document.getElementById('inv-acc-name')!, 'US book')
+    await user.type(document.getElementById('inv-acc-cash')!, '1000')
+    await user.selectOptions(document.getElementById('inv-acc-cur')!, 'USD')
+    await user.click(screen.getByRole('button', { name: /Add account/i }))
+
+    await vi.waitFor(() => {
+      expect(createAccount).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'US book', kind: 'paper', cashBalance: 1000, baseCurrency: 'USD' }),
+      )
+    })
+  })
+
+  it('removes an account only after the cascade-aware confirm', async () => {
+    const user = await renderPage()
+    expect(await screen.findByText('Paper book')).toBeInTheDocument()
+    vi.mocked(deleteAccount).mockResolvedValue(undefined)
+
+    const remove = screen.getByRole('button', { name: /Remove Paper book/i })
+    await user.click(remove)
+    expect(deleteAccount).not.toHaveBeenCalled()
+    /* The cascade takes the account's positions with it — the confirm
+       label says so instead of a bare 'Remove?'. */
+    expect(screen.getByText(/its positions/i)).toBeInTheDocument()
+    await user.click(remove)
+    await vi.waitFor(() => {
+      expect(deleteAccount).toHaveBeenCalledWith('acc1')
+    })
+  })
+
+  it('edits an account name and cash through the tile Edit control', async () => {
+    const user = await renderPage()
+    expect(await screen.findByText('Paper book')).toBeInTheDocument()
+    vi.mocked(updateAccount).mockResolvedValue(undefined)
+
+    const tile = screen.getByText('Paper book').closest('li')
+    expect(tile).not.toBeNull()
+    await user.click(screen.getByRole('button', { name: /Edit Paper book/i }))
+    const nameInput = within(tile as HTMLElement).getByRole('textbox', { name: /Account name/i })
+    await user.clear(nameInput)
+    await user.type(nameInput, 'TFSA book')
+    await user.click(within(tile as HTMLElement).getByRole('button', { name: /^Save$/i }))
+
+    await vi.waitFor(() => {
+      expect(updateAccount).toHaveBeenCalledWith(
+        'acc1',
+        expect.objectContaining({ name: 'TFSA book', kind: 'paper', cashBalance: 25000 }),
+      )
     })
   })
 })
