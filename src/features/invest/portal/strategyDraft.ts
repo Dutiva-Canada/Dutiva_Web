@@ -5,7 +5,7 @@
  */
 import type { InvestStrategy, MultiMatch, StrategyCadence, StrategyNotify, StrategyScope } from '../data/types'
 import type { RuleDraft } from './ruleDrafts'
-import { toDrafts } from './ruleDrafts'
+import { newRulePersistId, toDrafts } from './ruleDrafts'
 import { storedRuleTitle } from './strategyUi'
 
 export interface StrategyDraft {
@@ -41,9 +41,12 @@ export function cloneDraft(d: StrategyDraft): StrategyDraft {
 }
 
 /** Draft → save payload. Empty rule labels persist as the generated EN
-    title (the engine's dedupe keys need a non-empty title), rule array
-    order is evaluation priority — persisted verbatim — and a cleared
-    number input (NaN in draft) clamps to 0 rather than serializing null. */
+    title (the dedupe fallback key needs a non-empty title) and every rule
+    carries its persistent id — rule order in the array is display order
+    (the engine evaluates all of them, it is not a priority). Invalid
+    numbers stay invalid: the NaN clamps that used to silently turn a
+    cleared input into a `gt 0` / `qty 0` rule are gone — validateRules
+    catches those before this payload is ever sent. */
 export function toWire(d: StrategyDraft): Omit<InvestStrategy, 'id'> & { id?: string } {
   return {
     ...(d.id ? { id: d.id } : {}),
@@ -56,8 +59,7 @@ export function toWire(d: StrategyDraft): Omit<InvestStrategy, 'id'> & { id?: st
     },
     rules: d.rules.map((r) => ({
       ...r.rule,
-      value: Number.isFinite(r.rule.value) ? r.rule.value : 0,
-      ...(r.rule.type === 'order_proposal' && !Number.isFinite(r.rule.qty) ? { qty: 0 } : {}),
+      id: r.rule.id ?? newRulePersistId(),
       title: storedRuleTitle(r.rule),
     })),
     notify: { ...d.notify },

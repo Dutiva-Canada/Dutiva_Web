@@ -1,5 +1,15 @@
-import { parseRules, planRun, type MarketSnapshot, type Position, type Strategy } from './handlers.ts'
+import {
+  draftKey,
+  parseRules,
+  planRun,
+  signalKey,
+  type MarketSnapshot,
+  type Position,
+  type Strategy,
+} from './handlers.ts'
 import { json, type SupabaseClient } from './botShared.ts'
+import type { PostgrestSingleResponse } from 'npm:@supabase/supabase-js@2'
+import { convertFx, fetchFxTable } from './fx.ts'
 
 /* ── Test scan (dry run — evaluates a draft strategy, writes nothing) ────── */
 
@@ -36,6 +46,36 @@ export async function testScan(
     return err(`Too many symbols (max ${MAX_TEST_SYMBOLS})`, 400, 'too_many_symbols')
   }
 
+  /* Dedupe mirrors a real run — a match already covered by an open signal
+     or draft is reported suppressed, not presented as a fresh hit. The
+     0218 column list retries without itself on older schemas. */
+  const signalsSelect = (cols: string) =>
+    adminClient
+      .from('invest_signals')
+      .select(cols)
+      .eq('user_id', userId)
+      .in('status', ['new', 'acknowledged'])
+  let signalsRes = await signalsSelect('strategy_id, symbol, kind, title, rule_id')
+  if (signalsRes.error && /rule_id/.test(signalsRes.error.message)) {
+    signalsRes = await signalsSelect('strategy_id, symbol, kind, title')
+  }
+  let draftsRes: PostgrestSingleResponse<Parameters<typeof draftKey>[0][]> =
+    await adminClient
+      .from('invest_orders')
+      .select('strategy_id, symbol, note, rule_id')
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+  if (draftsRes.error && /rule_id/.test(draftsRes.error.message)) {
+    draftsRes = await adminClient
+      .from('invest_orders')
+      .select('strategy_id, symbol, note')
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+  }
+
+  /* The dry run reads the same columns the sweep does — position.currency
+     and account.base_currency feed the FX-aware math; skipping them made
+     cross-currency books evaluate differently here than in a real run. */
   const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
     adminClient
       .from('invest_market_snapshots')
@@ -43,11 +83,11 @@ export async function testScan(
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
-      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
       .eq('user_id', userId),
     adminClient
       .from('invest_accounts')
-      .select('cash_balance')
+      .select('cash_balance, base_currency')
       .eq('user_id', userId)
       .eq('status', 'active'),
   ])
@@ -55,9 +95,33 @@ export async function testScan(
     if (res.error) return err(res.error.message, 500)
   }
 
-  const cashTotal = (accountsRes.data ?? []).reduce((sum, a) => sum + Number(a.cash_balance), 0)
+  /* Same book-currency + FX rule as runUser — without it a mixed-currency
+     book weighs and prices a different reality than the sweep will. */
+  const accounts = (accountsRes.data ?? []) as {
+    cash_balance: number
+    base_currency: string | null
+  }[]
+  const bookCurrency = (accounts[0]?.base_currency ?? 'CAD').toUpperCase()
+  const fx = await fetchFxTable()
+  const cashTotal = accounts.reduce((sum, a) => {
+    const v = convertFx(Number(a.cash_balance), a.base_currency ?? bookCurrency, bookCurrency, fx)
+    return v === null ? sum : sum + v
+  }, 0)
+
+  const existingKeys = new Set(
+    ((signalsRes.data ?? []) as unknown as Parameters<typeof signalKey>[0][]).map(signalKey),
+  )
+  const openDraftKeys = new Set(
+    (draftsRes.error ? [] : (draftsRes.data ?? [])).map(draftKey),
+  )
+
   const draft: Strategy = {
-    id: 'test-scan',
+    /* Dedupe keys are strategy-scoped — testing an existing strategy must
+       use its real id or every open signal/draft reads as a fresh match. */
+    id:
+      typeof body['strategy_id'] === 'string' && body['strategy_id'].length <= 80
+        ? body['strategy_id']
+        : 'test-scan',
     enabled: true,
     scope_symbols: symbols,
     rules,
@@ -72,8 +136,8 @@ export async function testScan(
     [draft],
     (snapshotsRes.data ?? []) as MarketSnapshot[],
     (positionsRes.data ?? []) as Position[],
-    new Set(),
-    { cashTotal, force: true, collectMatches: true },
+    existingKeys,
+    { cashTotal, fx, bookCurrency, force: true, collectMatches: true, openDraftKeys },
   )
   return json({
     request_id: requestId,
@@ -82,6 +146,7 @@ export async function testScan(
     signals: plan.signals.length,
     proposals: plan.proposals.length,
     warnings: plan.warnings,
+    warningDetails: plan.warningDetails,
     matches: plan.matches,
   })
 }

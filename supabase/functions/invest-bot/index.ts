@@ -70,11 +70,12 @@ const handler = async (req: Request) => {
       if (authed instanceof Response) return authed
     }
     const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
-    /* Users with at least one enabled strategy — cheaper than sweeping all. */
+    /* Every strategy owner runs — even with all strategies paused,
+       pending-state maintenance (digest flush, draft expiry) still needs
+       the sweep. runUser cheap-exits when nothing is actually due. */
     const { data: userRows } = await adminClient
       .from('invest_strategies')
       .select('user_id')
-      .eq('enabled', true)
     const userIds = [...new Set((userRows ?? []).map((r) => r.user_id as string))]
     const results: Record<string, unknown>[] = []
     for (const userId of userIds) {

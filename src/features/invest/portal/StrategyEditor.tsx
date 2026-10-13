@@ -7,9 +7,9 @@
  * All mutations flow through `onChange` — the page owns draft state, dirty
  * tracking, and persistence, so Discard is just a snapshot restore.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, Lock, ScanSearch } from 'lucide-react'
+import { ChevronLeft, Lock, ScanSearch, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -31,10 +31,13 @@ import {
   pl,
   runLine,
   scanSummaryLine,
+  warningText,
 } from './strategyUi'
 import type { StrategyDraft } from './strategyDraft'
 
 const RUN_HISTORY_MAX = 10
+const CONFIRM_MS = 2600
+const NAME_MAX = 80
 
 type ScanState =
   | { phase: 'idle' }
@@ -52,6 +55,9 @@ interface Props {
   runs: InvestBotRun[]
   signals: InvestSignal[]
   snapshots: MarketSnapshot[]
+  /** Book currency for money thresholds and qty previews — the engine
+      denominates in the first active account's base. */
+  bookCurrency: string
   strategyNameById: Record<string, string>
   fireCount: (rule: StrategyRule) => number | null
   onChange: (next: StrategyDraft) => void
@@ -72,6 +78,7 @@ export function StrategyEditor({
   runs,
   signals,
   snapshots,
+  bookCurrency,
   strategyNameById,
   fireCount,
   onChange,
@@ -84,6 +91,34 @@ export function StrategyEditor({
   const { x, lang } = useI18n()
   const [scan, setScan] = useState<ScanState>({ phase: 'idle' })
   const [deleteArmed, setDeleteArmed] = useState(false)
+  /* Dirty back-navigation arms a two-tap confirm — leaving the editor
+     used to silently discard edits while the explicit Discard button
+     existed for the same action. */
+  const [backArmed, setBackArmed] = useState(false)
+
+  /* Both arms auto-disarm — the rule-remove two-tap resets after ~2.6 s;
+     an armed delete/back must not stay live forever. */
+  useEffect(() => {
+    if (!deleteArmed && !backArmed) return
+    const t = window.setTimeout(() => {
+      setDeleteArmed(false)
+      setBackArmed(false)
+    }, CONFIRM_MS)
+    return () => window.clearTimeout(t)
+  }, [deleteArmed, backArmed])
+
+  const requestBack = () => {
+    if (!dirty) {
+      onBack()
+      return
+    }
+    if (backArmed) {
+      setBackArmed(false)
+      onBack()
+      return
+    }
+    setBackArmed(true)
+  }
 
   const scopeIsAll = draft.scope.watchlist
   const symbolCount = scopeIsAll ? trackedSymbols.length : draft.scope.symbols.length
@@ -125,9 +160,9 @@ export function StrategyEditor({
 
   return (
     <div className="sb-editor">
-      <button type="button" className="sb-backlink" onClick={onBack}>
+      <button type="button" className="sb-backlink" onClick={requestBack}>
         <ChevronLeft size={18} strokeWidth={2.4} aria-hidden="true" />
-        {x(IM.invest_sb_back)}
+        {x(backArmed ? IM.invest_sb_confirm_discard : IM.invest_sb_back)}
       </button>
 
       <div className="sb-ed-head">
@@ -164,6 +199,7 @@ export function StrategyEditor({
             className="sb-input"
             id="sb-ed-name"
             value={draft.name}
+            maxLength={NAME_MAX}
             onChange={(e) => set({ name: e.target.value })}
           />
         </div>
@@ -214,6 +250,14 @@ export function StrategyEditor({
               {x(IM.invest_sb_manage)}
             </Link>
           </div>
+          {/* The wizard's empty-scope warnings apply just as much here —
+              "all tracked" with nothing tracked scans an empty universe. */}
+          {scopeIsAll && trackedSymbols.length === 0 && (
+            <p className="sb-helper">{x(IM.invest_sb_scope_none_tracked)}</p>
+          )}
+          {!scopeIsAll && draft.scope.symbols.length === 0 && (
+            <p className="sb-helper">{x(IM.invest_sb_scope_need_sym)}</p>
+          )}
           {!scopeIsAll && (
             <div style={{ marginTop: 12 }}>
               <label className="sb-flabel" htmlFor="sb-ed-addsym" style={{ fontSize: 15 }}>
@@ -250,7 +294,7 @@ export function StrategyEditor({
                         })
                       }
                     >
-                      ×
+                      <X size={13} strokeWidth={2.4} aria-hidden="true" />
                     </button>
                   </span>
                 ))}
@@ -358,6 +402,8 @@ export function StrategyEditor({
         onChange={(rules) => set({ rules })}
         idPrefix="ed"
         fireCount={fireCount}
+        cadence={draft.cadence}
+        bookCurrency={bookCurrency}
       />
 
       <div className="sb-section-head">
@@ -368,6 +414,10 @@ export function StrategyEditor({
           <p className="sb-fire-stat">
             {fill(x(IM.invest_health_frequency), { count: freq.perWeek })}
           </p>
+        ) : draft.id && runs.some((r) => r.strategyId === draft.id) ? (
+          /* The strategy ran and matched nothing — not the same state as
+             never having run at all. */
+          <p className="sb-empty">{x(IM.invest_sb_no_hits)}</p>
         ) : (
           <p className="sb-empty">{x(IM.invest_sb_no_firing)}</p>
         )}
@@ -407,19 +457,21 @@ export function StrategyEditor({
               <p className="sub">{x(IM.invest_sb_no_matches)}</p>
             ) : (
               scan.result.matches.map((m, i) => {
-                const card = matchCard(lang, m, draft.rules[m.ruleIndex]?.rule)
+                const card = matchCard(lang, m, draft.rules[m.ruleIndex]?.rule, bookCurrency)
                 return (
                   <div className="sb-match" key={i}>
                     <div className="sb-sym">{card.symbol}</div>
                     <div className="sb-detail">{card.detail}</div>
-                    <div className="sb-outcome">{card.outcome}</div>
+                    <div className={`sb-outcome${card.suppressed ? ' sb-suppressed' : ''}`}>
+                      {card.outcome}
+                    </div>
                   </div>
                 )
               })
             )}
             {scan.result.warnings.map((w, i) => (
               <p className="sub small" key={i}>
-                {w}
+                {warningText(lang, scan.result.warningDetails[i], w)}
               </p>
             ))}
           </div>

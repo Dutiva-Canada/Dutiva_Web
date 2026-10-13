@@ -33,6 +33,7 @@ function mount(d: StrategyDraft, onTestScan = vi.fn()): { onTestScan: typeof onT
         runs={[]}
         signals={[]}
         snapshots={[]}
+        bookCurrency="CAD"
         strategyNameById={{}}
         fireCount={() => null}
         onChange={() => {}}
@@ -66,6 +67,7 @@ describe('StrategyEditor test scan', () => {
       signals: 0,
       proposals: 0,
       warnings: [],
+      warningDetails: [],
       matches: [],
     })
     mount(draft({ scope: { watchlist: false, symbols: ['VFV'] } }), onTestScan)

@@ -390,10 +390,15 @@ describe('planRun', () => {
     expect(planRun([wider], [snap, other], [position], new Set()).signals).toHaveLength(2)
   })
 
-  it('skips disabled strategies and empty scopes', () => {
+  it('skips disabled strategies; an empty scope still counts as evaluated', () => {
     const strategy: Strategy = { ...baseStrategy, rules: [signalRule()] }
     expect(planRun([{ ...strategy, enabled: false }], [snap], [], new Set()).evaluated).toBe(0)
-    expect(planRun([{ ...strategy, scope_symbols: [] }], [snap], [], new Set()).evaluated).toBe(0)
+    /* Empty scope: the strategy WAS evaluated — runs.ts stamps its
+       last_evaluated_at — there was just nothing in it to scan. */
+    const empty = planRun([{ ...strategy, scope_symbols: [] }], [snap], [], new Set())
+    expect(empty.evaluated).toBe(1)
+    expect(empty.symbolsScanned).toEqual([])
+    expect(empty.signals).toHaveLength(0)
   })
 
   it('skips strategies whose cadence has not elapsed unless forced', () => {
@@ -561,6 +566,102 @@ describe('planRun', () => {
     expect(parsed.map((r) => r.title)).toEqual(['First', 'Second'])
     const reversed = parseRules([...raw].reverse())
     expect(reversed.map((r) => r.title)).toEqual(['Second', 'First'])
+  })
+})
+
+describe('rule identity dedupe (0218)', () => {
+  it('dedupe keys ride the rule id — renaming the label re-arms nothing', () => {
+    const rule = signalRule({ id: 'rule-7', title: 'Dip' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const first = planRun([strategy], [snap], [position], new Set())
+    expect(first.signals).toHaveLength(1)
+    expect(first.signals[0].rule_id).toBe('rule-7')
+    /* The emitted row's key is what the next sweep reads back. */
+    const keys = new Set(first.signals.map(signalKey))
+    const renamed: Strategy = { ...baseStrategy, rules: [{ ...rule, title: 'Renamed label' }] }
+    expect(planRun([renamed], [snap], [position], keys).signals).toHaveLength(0)
+  })
+
+  it('two same-title rules with ids keep separate dedupe slots', () => {
+    const a = signalRule({ id: 'rule-a', title: 'Dip' })
+    const b = signalRule({ id: 'rule-b', title: 'Dip' })
+    const strategy: Strategy = { ...baseStrategy, rules: [a, b] }
+    const plan = planRun([strategy], [snap], [position], new Set())
+    expect(plan.signals).toHaveLength(2)
+    /* Firing history splits by id — the titles being equal merges nothing. */
+    expect(plan.ruleHits).toEqual({ 'rule-a': 1, 'rule-b': 1 })
+  })
+
+  it('title-keyed legacy rows still suppress an id-carrying rule', () => {
+    const rule = signalRule({ id: 'rule-7', title: 'Dip' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    /* Pre-0218 open signal — no rule_id, so its key is title-keyed. */
+    const legacyKeys = new Set([
+      signalKey({ strategy_id: 's1', symbol: 'ACME', kind: 'alert', title: 'Dip', rule_id: null }),
+    ])
+    expect(planRun([strategy], [snap], [position], legacyKeys).signals).toHaveLength(0)
+  })
+
+  it('test-scan matches flag suppression instead of counting fresh hits', () => {
+    const rule = signalRule({ id: 'rule-7', title: 'Dip' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const first = planRun([strategy], [snap], [position], new Set())
+    const open = new Set(first.signals.map(signalKey))
+    const scan = planRun([strategy], [snap], [position], open, { collectMatches: true })
+    expect(scan.matches).toHaveLength(1)
+    expect(scan.matches[0].suppressed).toBe(true)
+    expect(scan.signals).toHaveLength(0)
+    expect(scan.ruleHits['rule-7']).toBe(1) /* the hit is still real */
+  })
+})
+
+describe('cash-inclusive book weight (0218)', () => {
+  it('weights a position against marked positions plus cash', () => {
+    /* 10×100 = 1000 of a 1000-position + 1000-cash book → 50%, not 100%. */
+    const strategy: Strategy = {
+      ...baseStrategy,
+      rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 60, title: 'Concentrated' })],
+    }
+    const plan = planRun([strategy], [snap], [position], new Set(), { cashTotal: 1000 })
+    expect(plan.signals).toHaveLength(0)
+    const over = planRun([{ ...baseStrategy, rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 40, title: 'Concentrated' })] }], [snap], [position], new Set(), { cashTotal: 1000 })
+    expect(over.signals).toHaveLength(1)
+  })
+
+  it('warns on positions with no snapshot rather than silently shrinking the book', () => {
+    const stray: Position = { ...position, symbol: 'GHOST' }
+    const strategy: Strategy = { ...baseStrategy, rules: [signalRule()] }
+    const plan = planRun([strategy], [snap], [position, stray], new Set())
+    expect(plan.warnings.join(' ')).toContain('GHOST')
+    expect(plan.warningDetails.some((w) => w.code === 'no_snapshot')).toBe(true)
+    expect(plan.warningDetails.find((w) => w.code === 'no_snapshot')?.params.symbols).toBe('GHOST')
+  })
+
+  it('reports per-strategy durations instead of the whole sweep', () => {
+    const a: Strategy = { ...baseStrategy, id: 's1', rules: [signalRule({ title: 'A' })] }
+    const b: Strategy = { ...baseStrategy, id: 's2', rules: [signalRule({ title: 'B' })] }
+    const plan = planRun([a, b], [snap], [position], new Set())
+    expect(plan.perStrategy).toHaveLength(2)
+    for (const s of plan.perStrategy) {
+      expect(s.durationMs).toBeGreaterThanOrEqual(0)
+      expect(Number.isFinite(s.durationMs)).toBe(true)
+    }
+  })
+
+  it('summary-mode dedupe key is constant regardless of match count', () => {
+    const strategy: Strategy = {
+      ...baseStrategy,
+      scope_symbols: ['ACME', 'BETA'],
+      multi_match: 'summary',
+      rules: [signalRule({ title: 'Dip' })],
+    }
+    const two = planRun([strategy], [snap, { ...snap, symbol: 'BETA' }], [position], new Set())
+    expect(two.signals).toHaveLength(1)
+    /* One more matched symbol changes the title ("3 rules matched") but
+       NOT the dedupe key — the next sweep stays suppressed. */
+    const keys = new Set(two.signals.map(signalKey))
+    const again = planRun([strategy], [snap], [position], keys)
+    expect(again.signals).toHaveLength(0)
   })
 })
 

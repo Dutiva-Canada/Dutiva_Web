@@ -10248,6 +10248,7 @@ export type Database = {
           order_type: string
           quantity: number
           requested_price: number | null
+          rule_id: string | null
           side: string
           signal_id: string | null
           status: string
@@ -10271,6 +10272,7 @@ export type Database = {
           order_type?: string
           quantity: number
           requested_price?: number | null
+          rule_id?: string | null
           side: string
           signal_id?: string | null
           status?: string
@@ -10294,6 +10296,7 @@ export type Database = {
           order_type?: string
           quantity?: number
           requested_price?: number | null
+          rule_id?: string | null
           side?: string
           signal_id?: string | null
           status?: string
@@ -10389,8 +10392,10 @@ export type Database = {
           body_fr: string | null
           created_at: string
           id: string
+          in_feed: boolean
           kind: string
           name: string
+          rule_id: string | null
           score: number | null
           status: string
           strategy_id: string | null
@@ -10405,8 +10410,10 @@ export type Database = {
           body_fr?: string | null
           created_at?: string
           id?: string
+          in_feed?: boolean
           kind?: string
           name?: string
+          rule_id?: string | null
           score?: number | null
           status?: string
           strategy_id?: string | null
@@ -10421,8 +10428,10 @@ export type Database = {
           body_fr?: string | null
           created_at?: string
           id?: string
+          in_feed?: boolean
           kind?: string
           name?: string
+          rule_id?: string | null
           score?: number | null
           status?: string
           strategy_id?: string | null

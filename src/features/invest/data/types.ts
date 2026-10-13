@@ -65,6 +65,11 @@ export type SignalSeverity = 'insight' | 'alert'
 export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
 
 interface RuleBase {
+  /** Stable identity — dedupe keys and firing history key on this, not the
+     title: a renamed label must not reset either, and two same-title rules
+     keep separate slots. Optional on stored rules saved before 0218 (and
+     AI-drafted rules), where the title is the identity; assigned at save. */
+  id?: string
   metric: RuleMetric
   op: 'lt' | 'gt' | 'between'
   value: number
@@ -129,6 +134,9 @@ export interface InvestStrategy {
 export interface InvestSignal {
   id: string
   strategyId: string | null
+  /** Firing rule's identity (0218) — null on insight rows and rows stored
+     before the column existed. */
+  ruleId: string | null
   assetClass: AssetClass
   symbol: string
   name: string
@@ -141,6 +149,9 @@ export interface InvestSignal {
   bodyFr: string | null
   score: number | null
   status: SignalStatus
+  /** 0218 — false hides the row from the feed (in-app-off strategies still
+     persist it for dedupe/audit). Absent column reads as true. */
+  inFeed: boolean
   createdAt: string
 }
 
@@ -148,6 +159,9 @@ export interface InvestOrder {
   id: string
   accountId: string
   signalId: string | null
+  /** Proposing rule's identity (0218) — null on manually created orders
+     and rows stored before the column existed. */
+  ruleId: string | null
   assetClass: AssetClass
   symbol: string
   name: string
@@ -173,9 +187,20 @@ export interface TestScanMatch {
   ruleTitle: string
   symbol: string
   metricValue: number
+  /** Set when an open signal/draft already owns this hit's dedupe key —
+     the next real run would not re-emit it (the dry run reads the same
+     dedupe sets the sweep does). */
+  suppressed?: boolean
   outcome:
     | { kind: 'signal'; severity: SignalSeverity }
     | { kind: 'order'; side: OrderSide; quantity: number | null }
+}
+
+/** Structured run warning — a stable code + params the UI localizes; the
+    raw `warnings` strings stay for logs and older consumers. */
+export interface RunWarning {
+  code: string
+  params: Record<string, string>
 }
 
 export interface InvestBotRun {

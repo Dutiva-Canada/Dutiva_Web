@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
-import { normalizeRules } from './strategyRules'
+import { normalizeRules, validateRules } from './strategyRules'
 import { ASSET_CLASSES } from './types'
 import type {
   AssetClass,
@@ -14,6 +14,7 @@ import type {
   MarketSnapshot,
   MultiMatch,
   OrderStatus,
+  RunWarning,
   SignalStatus,
   TestScanMatch,
 } from './types'
@@ -134,7 +135,9 @@ export async function loadInvestState(): Promise<InvestState> {
     positions: (positions.data ?? []).map(toPosition),
     snapshots: (snapshots.data ?? []).map(toSnapshot),
     strategies: (strategies.data ?? []).map(toStrategy),
-    signals: (signals.data ?? []).map(toSignal),
+    /* in_feed=false rows persist for dedupe/audit only — an in-app-off
+       strategy's hits never reach this surface. */
+    signals: (signals.data ?? []).map(toSignal).filter((s) => s.inFeed),
     orders: (orders.data ?? []).map(toOrder),
     runs: (runs.data ?? []).map(toRun),
     watchlist: (watchlist.data ?? []).map(toWatchItem),
@@ -416,6 +419,20 @@ export async function saveStrategy(
   if (!strategy.scope.watchlist && strategy.scope.symbols.length === 0) {
     throw new Error('Strategy needs a scope: the watchlist or at least one symbol')
   }
+  /* Last-resort guard — the UI validates with localized messages before
+     calling; this keeps non-UI callers (review-queue accept, future API
+     uses) from persisting a rule the engine would silently drop. */
+  const problems = validateRules(strategy.rules)
+  if (problems.length > 0) {
+    const first = problems[0]!
+    const what =
+      first.code === 'qty_required'
+        ? 'an order quantity above 0'
+        : first.code === 'value2_required'
+          ? 'a second bound (between needs two numbers)'
+          : 'a threshold'
+    throw new Error(`Rule ${first.index + 1} needs ${what}`)
+  }
   const payload = {
     user_id: userId,
     name: strategy.name,
@@ -429,8 +446,9 @@ export async function saveStrategy(
       watchlist: strategy.scope.watchlist,
       symbols: strategy.scope.symbols.map((s) => s.toUpperCase()),
     },
-    /* Rule order in this array is evaluation priority — the engine walks
-       it top to bottom, so the UI's reorder controls persist as-is. */
+    /* Rule order in this array is display order — the engine evaluates
+       every rule each scan, so the reorder controls only change how the
+       list reads, persisted verbatim. */
     rules: rulesToWire(strategy.rules),
     notify: { in_app: strategy.notify.inApp, email: strategy.notify.email },
     cadence: strategy.cadence,
@@ -501,6 +519,8 @@ export interface TestScanResult {
   signals: number
   proposals: number
   warnings: string[]
+  /** Code+params twins of `warnings` — localized rendering reads these. */
+  warningDetails: RunWarning[]
   /** Per-rule×symbol match detail — what would have fired. */
   matches: TestScanMatch[]
 }
@@ -511,6 +531,10 @@ export async function testScan(input: {
   rules: InvestStrategy['rules']
   symbols: string[]
   multiMatch: MultiMatch
+  /** The saved strategy's id — dedupe keys are strategy-scoped, so a test
+      scan on an existing strategy must read THAT strategy's open rows or
+      every already-open hit reports as a fresh match. */
+  strategyId?: string
 }): Promise<TestScanResult> {
   const requestId = crypto.randomUUID()
   const data = (await invokeBot(
@@ -519,6 +543,7 @@ export async function testScan(input: {
       rules: rulesToWire(input.rules),
       symbols: input.symbols,
       multi_match: input.multiMatch,
+      ...(input.strategyId ? { strategy_id: input.strategyId } : {}),
     },
     requestId,
   )) as Record<string, unknown>
@@ -529,16 +554,23 @@ export async function testScan(input: {
     signals: Number(data.signals) || 0,
     proposals: Number(data.proposals) || 0,
     warnings: Array.isArray(data.warnings) ? (data.warnings as string[]) : [],
+    /* Structured twins of `warnings` — the UI localizes by code; the raw
+       strings stay as the fallback for codes it doesn't know yet. */
+    warningDetails: Array.isArray(data.warningDetails)
+      ? (data.warningDetails as RunWarning[])
+      : [],
     matches: Array.isArray(data.matches) ? (data.matches as TestScanMatch[]) : [],
   }
 }
 
 /* Wire shape for the rules jsonb column and the edge function — snake_case
-   qty_unit; severity only on signals, order fields only on proposals. */
+   qty_unit; severity only on signals, order fields only on proposals. The
+   rule id rides along — it's the dedupe/history identity (0218). */
 function rulesToWire(rules: InvestStrategy['rules']) {
   return rules.map((r) =>
     r.type === 'signal'
       ? {
+          ...(r.id ? { id: r.id } : {}),
           type: 'signal' as const,
           metric: r.metric,
           op: r.op,
@@ -548,6 +580,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           severity: r.severity,
         }
       : {
+          ...(r.id ? { id: r.id } : {}),
           type: 'order_proposal' as const,
           metric: r.metric,
           op: r.op,
@@ -693,6 +726,7 @@ function toSignal(row: any): InvestSignal {
   return {
     id: row.id,
     strategyId: row.strategy_id ?? null,
+    ruleId: row.rule_id ?? null,
     assetClass: row.asset_class,
     symbol: row.symbol,
     name: row.name,
@@ -703,6 +737,9 @@ function toSignal(row: any): InvestSignal {
     bodyFr: row.body_fr ?? null,
     score: row.score === null ? null : Number(row.score),
     status: row.status,
+    /* 0218 — hidden rows (in-app-off strategies) still persist for dedupe
+       but must not surface in the feed. Absent column reads as visible. */
+    inFeed: row.in_feed !== false,
     createdAt: row.created_at,
   }
 }
@@ -738,6 +775,7 @@ function toOrder(row: any): InvestOrder {
     id: row.id,
     accountId: row.account_id,
     signalId: row.signal_id ?? null,
+    ruleId: row.rule_id ?? null,
     assetClass: row.asset_class,
     symbol: row.symbol,
     name: row.name,

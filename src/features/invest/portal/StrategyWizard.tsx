@@ -9,7 +9,7 @@
  * enables + saves.
  */
 import { useState } from 'react'
-import { ChevronLeft, Loader2, Lock, Plus } from 'lucide-react'
+import { ChevronLeft, Loader2, Lock, Plus, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { pick } from '@/i18n/core'
@@ -29,11 +29,13 @@ interface Props {
   onCancel: () => void
   onCreate: (draft: StrategyDraft, suggestionId?: string | null) => void
   busy: boolean
+  /** Book currency for money thresholds/qty previews in the review step. */
+  bookCurrency?: string
 }
 
 type WizardScope = 'all' | 'specific'
 
-export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Props) {
+export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy, bookCurrency }: Props) {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -207,7 +209,13 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
           {head(x(IM.invest_sb_wiz_step2_t))}
           <p className="sub">{x(IM.invest_sb_wiz_step2_sub)}</p>
           {rules.length === 0 && <p className="sub">{x(IM.invest_sb_wiz_step2_blank)}</p>}
-          <RulesAccordion drafts={rules} onChange={setRules} idPrefix="wz" />
+          <RulesAccordion
+            drafts={rules}
+            onChange={setRules}
+            idPrefix="wz"
+            cadence={cadence}
+            bookCurrency={bookCurrency}
+          />
           <div className="sb-wiz-nav">
             <button type="button" className="sb-btn sb-btn-secondary" onClick={() => setStep(1)}>
               {x(IM.invest_sb_back_btn)}
@@ -311,7 +319,7 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy }: Pro
                           aria-label={`${x(IM.invest_sb_remove_sym)} ${sym}`}
                           onClick={() => setSymbols(symbols.filter((s) => s !== sym))}
                         >
-                          ×
+                          <X size={13} strokeWidth={2.4} aria-hidden="true" />
                         </button>
                       </span>
                     ))}

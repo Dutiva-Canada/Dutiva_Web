@@ -11,22 +11,23 @@
  *   with the live plain-language preview (order).
  * - Remove lives only inside the expanded body, with two-tap confirm
  *   ("Tap again to confirm", auto-disarm after ~2.6 s).
- * - Rule array order is evaluation priority — the engine walks it top to
- *   bottom, so the reorder controls write through as-is.
+ * - Rule order is display order — the engine evaluates every rule each
+ *   scan, so reorder (drag or arrows) only changes how the list reads.
  */
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowUp, ChevronDown, Copy, GripVertical, Plus, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import { BOOK_METRICS, RULE_METRICS } from '../data/strategyRules'
+import { BOOK_METRICS, cadenceMismatch, RULE_METRICS } from '../data/strategyRules'
 import { RULE_METRIC_LABELS } from '../data/strategyRules'
-import type { RuleMetric, StrategyRule } from '../data/types'
-import { newRuleDraft } from './ruleDrafts'
+import type { RuleMetric, StrategyCadence, StrategyRule } from '../data/types'
+import { newRuleDraft, newRulePersistId } from './ruleDrafts'
 import type { RuleDraft } from './ruleDrafts'
 import {
   actionChip,
+  CADENCE_LABEL,
   isCurrencyMetric,
   qtyPreview,
   ruleTitle,
@@ -43,12 +44,29 @@ interface Props {
   idPrefix: string
   /** Editor only — 90-day firing count per rule (null = no history). */
   fireCount?: (rule: StrategyRule) => number | null
+  /** When provided, rules reading a single day's move show the
+      cadence-mismatch hint on slower cadences. */
+  cadence?: StrategyCadence
+  /** Book currency for money thresholds and quantity previews — 'CAD' is
+      only the fallback, a USD-base book labels USD. */
+  bookCurrency?: string
 }
 
-export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props) {
+export function RulesAccordion({
+  drafts,
+  onChange,
+  idPrefix,
+  fireCount,
+  cadence,
+  bookCurrency = 'CAD',
+}: Props) {
   const { x, lang } = useI18n()
   const [openId, setOpenId] = useState<string | null>(drafts[0]?.id ?? null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
+  /* The grip is a real drag affordance — index of the row being dragged;
+     drop reorders through the same path the arrows use. */
+  const dragIndex = useRef<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
 
   /* Two-tap confirm auto-disarm — mirrors the prototype's 2.6 s timeout. */
   useEffect(() => {
@@ -86,21 +104,35 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
     onChange([...drafts, draft])
   }
 
-  /* Duplication gets a distinct label so the stored title differs — the
-     engine dedupes signals/proposals on title, and an identical title would
-     silently merge the copy's matches into the original's. */
+  /* Duplication gets a distinct label and a fresh persistent id — the
+     copy is a new rule, so it must not share the original's dedupe slot
+     or firing history. */
   const duplicate = (draft: RuleDraft) => {
-    const base = draft.rule.title.trim() || ruleTitle(lang, draft.rule)
+    const base = draft.rule.title.trim() || ruleTitle(lang, draft.rule, bookCurrency)
     const copy: RuleDraft = {
-      id: `r${Date.now()}`,
+      id: newRulePersistId(),
       rule: {
         ...draft.rule,
+        id: newRulePersistId(),
         title: `${base} (${pick(IM.invest_sb_copy_suffix, lang)})`.slice(0, RULE_LABEL_MAX),
       },
     }
     setOpenId(copy.id)
     setConfirmId(null)
     onChange([...drafts, copy])
+  }
+
+  /* Drag reorder — the grip sets the source index; dropping on a row
+     moves the dragged rule there. Arrows stay the keyboard path. */
+  const drop = (target: number) => {
+    const from = dragIndex.current
+    dragIndex.current = null
+    setDragOver(null)
+    if (from === null || from === target) return
+    const next = [...drafts]
+    const [item] = next.splice(from, 1)
+    next.splice(target, 0, item!)
+    onChange(next)
   }
 
   /* Toggling the action re-shapes the rule — the union type swaps which
@@ -131,13 +163,40 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
         const bodyId = `${idPrefix}-body-${draft.id}`
         const isBook = BOOK_METRICS.includes(r.metric)
         return (
-          <div key={draft.id} className={`sb-rule${open ? ' sb-open' : ''}`}>
+          <div
+            key={draft.id}
+            className={`sb-rule${open ? ' sb-open' : ''}${dragOver === i ? ' sb-drag-over' : ''}`}
+            onDragOver={(e) => {
+              if (dragIndex.current === null) return
+              e.preventDefault()
+              if (dragOver !== i) setDragOver(i)
+            }}
+            onDragLeave={() => {
+              if (dragOver === i) setDragOver(null)
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              drop(i)
+            }}
+          >
             <div className="sb-rule-head">
-              <div className="sb-grip" aria-hidden="true">
-                <GripVertical size={18} strokeWidth={1.7} />
+              <div
+                className="sb-grip"
+                draggable
+                title={x(IM.invest_sb_drag_rule)}
+                onDragStart={(e) => {
+                  dragIndex.current = i
+                  e.dataTransfer.effectAllowed = 'move'
+                }}
+                onDragEnd={() => {
+                  dragIndex.current = null
+                  setDragOver(null)
+                }}
+              >
+                <GripVertical size={18} strokeWidth={1.7} aria-hidden="true" />
               </div>
               <div className="sb-rule-main">
-                <div className="sb-r-title">{ruleTitle(lang, r)}</div>
+                <div className="sb-r-title">{ruleTitle(lang, r, bookCurrency)}</div>
                 <div className="sb-r-label" title={label}>
                   {label}
                 </div>
@@ -199,6 +258,13 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                       </option>
                     ))}
                   </select>
+                  {cadence && cadenceMismatch(r, cadence) && (
+                    <p className="sb-helper">
+                      {fill(x(IM.invest_sb_cadence_mismatch), {
+                        cadence: pick(CADENCE_LABEL[cadence], lang),
+                      })}
+                    </p>
+                  )}
                 </div>
                 <div className="sb-field">
                   <span className="sb-flabel" id={`${idPrefix}-cond-${draft.id}-l`}>
@@ -245,7 +311,9 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                           inputMode="decimal"
                           aria-label={
                             i === 0
-                              ? x(isCurrencyMetric(r.metric) ? IM.invest_sb_threshold_cad : IM.invest_sb_threshold)
+                              ? isCurrencyMetric(r.metric)
+                                ? fill(x(IM.invest_sb_threshold_cad), { ccy: bookCurrency })
+                                : x(IM.invest_sb_threshold)
                               : `${x(IM.invest_sb_threshold)} 2`
                           }
                           onChange={(e) =>
@@ -258,7 +326,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                           }
                         />
                         <span className="sb-suf">
-                          {isCurrencyMetric(r.metric) ? 'CAD' : '%'}
+                          {isCurrencyMetric(r.metric) ? bookCurrency : '%'}
                         </span>
                       </div>
                     ))}
@@ -403,7 +471,7 @@ export function RulesAccordion({ drafts, onChange, idPrefix, fireCount }: Props)
                           <option value="currency">{x(IM.invest_sb_unit_currency)}</option>
                         </select>
                       </div>
-                      <div className="sb-preview-line">{qtyPreview(lang, r)}</div>
+                      <div className="sb-preview-line">{qtyPreview(lang, r, bookCurrency)}</div>
                     </div>
                   </>
                 )}

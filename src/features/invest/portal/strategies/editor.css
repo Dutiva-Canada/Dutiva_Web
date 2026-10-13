@@ -253,6 +253,14 @@ select.sb-input {
   color: var(--sb-muted);
   flex-shrink: 0;
   touch-action: none;
+  cursor: grab;
+}
+.sb-grip:active {
+  cursor: grabbing;
+}
+.sb-rule.sb-drag-over {
+  outline: 2px dashed var(--sb-accent);
+  outline-offset: -2px;
 }
 .sb-rule-main {
   flex: 1;

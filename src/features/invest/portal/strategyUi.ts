@@ -12,11 +12,13 @@ import { pick } from '@/i18n/core'
 import type { Bi, Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { RULE_METRIC_LABELS } from '../data/strategyRules'
+import type { RuleProblem } from '../data/strategyRules'
 import type {
   InvestBotRun,
   InvestStrategy,
   OrderProposalRule,
   RuleMetric,
+  RunWarning,
   StrategyCadence,
   StrategyNotify,
   StrategyRule,
@@ -37,13 +39,15 @@ export function pl(lang: Lang, n: number, one: Bi, many: Bi): string {
   return `${fmtNum(lang, n)} ${word}`
 }
 
-/** Money threshold with its unit — "$1,000 CAD" / "1 000 $ CAD". */
-export function fmtCad(lang: Lang, n: number): string {
-  return lang === 'fr' ? `${fmtNum(lang, n)} $ CAD` : `$${fmtNum(lang, n)} CAD`
+/** Money threshold with its unit — "$1,000 CAD" / "1 000 $ CAD". The book
+    currency comes from the first active account (the engine's own rule);
+    CAD is only the fallback, not a hardcoded label. */
+export function fmtCad(lang: Lang, n: number, ccy = 'CAD'): string {
+  return lang === 'fr' ? `${fmtNum(lang, n)} $ ${ccy}` : `$${fmtNum(lang, n)} ${ccy}`
 }
 
-/** Metrics whose threshold is a dollar amount — the input/labels carry the
-    "$ … CAD" suffix treatment (fix #5). Everything else is a percentage. */
+/** Metrics whose threshold is a money amount — the input/labels carry the
+    "$ … {ccy}" suffix treatment (fix #5). Everything else is a percentage. */
 export const CURRENCY_METRICS: readonly RuleMetric[] = ['value_floor', 'cash_above']
 
 export function isCurrencyMetric(metric: RuleMetric): boolean {
@@ -66,12 +70,13 @@ function metricLabel(lang: Lang, metric: RuleMetric): string {
  * The auto-generated rule title — always derived from metric + condition +
  * threshold (fix #11: the generated title is primary; the user's 60-char
  * label renders beneath it). e.g. "Price vs 50-day average falls below −12%",
- * "Cash balance rises above $500 CAD".
+ * "Cash balance rises above $500 CAD". `ccy` is the book currency — money
+ * thresholds are denominated in it, not always CAD.
  */
-export function ruleTitle(lang: Lang, rule: StrategyRule): string {
+export function ruleTitle(lang: Lang, rule: StrategyRule, ccy = 'CAD'): string {
   const fmt = (n: number) =>
     isCurrencyMetric(rule.metric)
-      ? fmtCad(lang, n)
+      ? fmtCad(lang, n, ccy)
       : Number.isFinite(n)
         ? fmtPct(lang, n)
         : ''
@@ -85,14 +90,17 @@ export function ruleTitle(lang: Lang, rule: StrategyRule): string {
 }
 
 /** Title persisted on the wire — the user's label when present, else the
-    English auto-title so the engine's dedupe keys stay distinct. */
+    English auto-title so the dedupe fallback key stays distinct. The
+    stored form stays CAD-templated: the label predates the book currency,
+    and titles are fallback keys, not rendered truth. */
 export function storedRuleTitle(rule: StrategyRule): string {
   return rule.title.trim() || ruleTitle('en', rule)
 }
 
 /** Live plain-language preview under the quantity control — "Buys 1 share",
-    "Adds 1% to your existing position", "Vend pour 1 000 $". */
-export function qtyPreview(lang: Lang, rule: OrderProposalRule): string {
+    "Adds 1% to your existing position", "Vend pour 1 000 $ CAD". A
+    currency-unit amount is denominated in the book currency. */
+export function qtyPreview(lang: Lang, rule: OrderProposalRule, ccy = 'CAD'): string {
   const amt = Number(rule.qty) || 0
   const side = pick(rule.side === 'buy' ? IM.invest_sb_buys : IM.invest_sb_sells, lang)
   if (rule.qtyUnit === 'shares') {
@@ -107,7 +115,7 @@ export function qtyPreview(lang: Lang, rule: OrderProposalRule): string {
       n: fmtNum(lang, amt),
     })
   }
-  return fill(pick(IM.invest_sb_qty_worth, lang), { side, n: fmtNum(lang, amt) })
+  return fill(pick(IM.invest_sb_qty_worth, lang), { side, n: fmtCad(lang, amt, ccy) })
 }
 
 export type ActionChip = { label: string; tone: 'order' | 'alert' | 'insight' }
@@ -208,30 +216,44 @@ export function formatRunWhen(lang: Lang, iso: string): string {
   }).format(d)
 }
 
-/** "0.4s" / "0,4 s". */
+/** "0.4s" / "1 min" — whole minutes once the run crosses 60 s ("60s" on a
+    history row reads as a typo for "minutes"). */
 export function formatDuration(lang: Lang, ms: number | null): string {
   if (ms === null || !Number.isFinite(ms)) return '—'
   const s = Math.round(ms / 100) / 10
+  if (s >= 60) {
+    return `${Math.round(s / 60).toLocaleString(localeOf(lang))} min`
+  }
   return `${s.toLocaleString(localeOf(lang))}s`
 }
 
 /** One run-history row — "Sep 29, 4:15 PM — Agent sweep · 12 symbols
     scanned · 1 signal · 2 proposals · 0.4s". The scanned segment explains
     why a run fired nothing; rows recorded before 0184 (null duration,
-    no symbols_scanned) omit it rather than claim "0 scanned". */
+    no symbols_scanned) omit it rather than claim "0 scanned", and a
+    book-metrics-only strategy row says so instead. Sweep rows carry AI
+    book observations, not rule signals — labelled as such. */
 export function runLine(lang: Lang, run: InvestBotRun, strategyName?: string): string {
   const when = formatRunWhen(lang, run.ranAt)
-  const what = run.strategyId
-    ? (strategyName ?? pick(IM.invest_run_deleted_strategy, lang))
-    : pick(IM.invest_sb_sweep, lang)
+  const isSweep = run.strategyId === null
+  const what = isSweep
+    ? pick(IM.invest_sb_sweep, lang)
+    : (strategyName ?? pick(IM.invest_run_deleted_strategy, lang))
   const scanned =
-    run.durationMs !== null || run.symbolsScanned.length > 0
-      ? pl(lang, run.symbolsScanned.length, IM.invest_sb_scanned_one, IM.invest_sb_scanned_many)
-      : null
+    run.symbolsScanned.length === 0 && run.durationMs !== null
+      ? pick(IM.invest_sb_book_only, lang)
+      : run.durationMs !== null || run.symbolsScanned.length > 0
+        ? pl(lang, run.symbolsScanned.length, IM.invest_sb_scanned_one, IM.invest_sb_scanned_many)
+        : null
   return [
     `${when} — ${what}`,
     scanned,
-    pl(lang, run.signalsEmitted, IM.invest_sb_signal_one, IM.invest_sb_signal_many),
+    pl(
+      lang,
+      run.signalsEmitted,
+      isSweep ? IM.invest_sb_observation_one : IM.invest_sb_signal_one,
+      isSweep ? IM.invest_sb_observation_many : IM.invest_sb_signal_many,
+    ),
     pl(lang, run.proposalsCreated, IM.invest_sb_proposal_one, IM.invest_sb_proposal_many),
     run.durationMs !== null ? formatDuration(lang, run.durationMs) : null,
   ]
@@ -241,9 +263,14 @@ export function runLine(lang: Lang, run: InvestBotRun, strategyName?: string): s
 
 /* ── Test-scan result rendering ─────────────────────────────────────────── */
 
-function matchReading(lang: Lang, match: TestScanMatch, rule: StrategyRule | undefined): string {
+function matchReading(
+  lang: Lang,
+  match: TestScanMatch,
+  rule: StrategyRule | undefined,
+  ccy: string,
+): string {
   const v = isCurrencyMetric(rule?.metric ?? 'cash_above')
-    ? fmtCad(lang, match.metricValue)
+    ? fmtCad(lang, match.metricValue, ccy)
     : fmtPct(lang, match.metricValue)
   const label = rule ? metricLabel(lang, rule.metric) : match.ruleTitle
   return rule && isCurrencyMetric(rule.metric)
@@ -258,16 +285,19 @@ function orderDetail(lang: Lang, match: TestScanMatch): string {
 }
 
 /** One match card — "AAPL / Matched rule "…" — Day change % is at -6.2.
-    / Outcome: alert notification". */
+    / Outcome: alert notification". Book-level matches (empty symbol) get
+    the portfolio label — 'Agent sweep' as a symbol was nonsense. A
+    suppressed hit says so: a real scan would not re-emit it. */
 export function matchCard(
   lang: Lang,
   match: TestScanMatch,
   rule: StrategyRule | undefined,
-): { symbol: string; detail: string; outcome: string } {
+  ccy = 'CAD',
+): { symbol: string; detail: string; outcome: string; suppressed: boolean } {
   const title = match.ruleTitle
   const detail = fill(pick(IM.invest_sb_match_line, lang), {
     title,
-    detail: matchReading(lang, match, rule),
+    detail: matchReading(lang, match, rule, ccy),
   })
   const outcome =
     match.outcome.kind === 'order'
@@ -280,21 +310,86 @@ export function matchCard(
             : IM.invest_sb_outcome_insight,
           lang,
         )
-  return { symbol: match.symbol || pick(IM.invest_sb_sweep, lang), detail, outcome }
+  return {
+    symbol: match.symbol || pick(IM.invest_sb_book_match, lang),
+    detail,
+    outcome: match.suppressed
+      ? `${outcome} · ${pick(IM.invest_sb_outcome_suppressed, lang)}`
+      : outcome,
+    suppressed: match.suppressed === true,
+  }
 }
 
 /** Summary line under the results heading — "{symbols} scanned · {signals}
-    · {proposals}" with real plural nouns. */
+    · {proposals}" with real plural nouns, plus the suppressed count when
+    matches are already covered by an open signal/draft (the dry run reads
+    the same dedupe sets the sweep does). */
 export function scanSummaryLine(lang: Lang, res: {
   symbolsScanned: string[]
   signals: number
   proposals: number
+  matches?: TestScanMatch[]
 }): string {
-  return fill(pick(IM.invest_sb_scanned_line, lang), {
+  const base = fill(pick(IM.invest_sb_scanned_line, lang), {
     symbols: pl(lang, res.symbolsScanned.length, IM.invest_sb_tracked_one, IM.invest_sb_tracked_many),
     signals: pl(lang, res.signals, IM.invest_sb_signal_one, IM.invest_sb_signal_many),
     proposals: pl(lang, res.proposals, IM.invest_sb_proposal_one, IM.invest_sb_proposal_many),
   })
+  const suppressed = res.matches?.filter((m) => m.suppressed).length ?? 0
+  return suppressed > 0
+    ? `${base} · ${fill(pick(IM.invest_sb_suppressed_seg, lang), { n: fmtNum(lang, suppressed) })}`
+    : base
+}
+
+/** Localized text for a save-blocking rule problem — the rule's position
+    in the list names it for the user ("Rule 2 needs a threshold"). */
+export function ruleProblemText(lang: Lang, problem: RuleProblem): string {
+  const n = fmtNum(lang, problem.index + 1)
+  const key =
+    problem.code === 'qty_required'
+      ? IM.invest_sb_rule_needs_qty
+      : problem.code === 'value2_required'
+        ? IM.invest_sb_rule_needs_value2
+        : IM.invest_sb_rule_needs_value
+  return fill(pick(key, lang), { n })
+}
+
+/** Localized render of a run warning — the engine ships code+params twins
+    alongside its English strings so a bilingual UI never shows raw
+    engine text. Unknown codes fall back to the raw string rather than
+    dropping the warning. */
+export function warningText(
+  lang: Lang,
+  warning: RunWarning | undefined,
+  fallback: string,
+): string {
+  if (!warning) return fallback
+  const p = warning.params
+  switch (warning.code) {
+    case 'fx_missing':
+      return fill(pick(IM.invest_warn_fx_missing, lang), { currencies: p.currencies ?? '' })
+    case 'no_snapshot':
+      return fill(pick(IM.invest_warn_no_snapshot, lang), { symbols: p.symbols ?? '' })
+    case 'qty_unresolvable':
+      return fill(pick(IM.invest_warn_qty_unresolvable, lang), {
+        title: p.title ?? '',
+        symbol: p.symbol ?? '',
+      })
+    case 'book_metric_proposal':
+      return fill(pick(IM.invest_warn_book_proposal, lang), { title: p.title ?? '' })
+    case 'cash_fx_missing':
+      return pick(IM.invest_warn_cash_fx, lang)
+    case 'no_paper_account':
+      return pick(IM.invest_warn_no_paper, lang)
+    case 'email_failed':
+      return fill(pick(IM.invest_warn_email_failed, lang), { name: p.name ?? '' })
+    case 'digest_failed':
+      return pick(IM.invest_warn_digest_failed, lang)
+    case 'run_history_failed':
+      return pick(IM.invest_warn_history_failed, lang)
+    default:
+      return fallback
+  }
 }
 
 /** Tally's opening turn on an empty conversation — one breath: hello, at

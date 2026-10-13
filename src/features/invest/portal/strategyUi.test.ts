@@ -10,6 +10,7 @@ import {
   actionChip,
   channelHelper,
   fmtCad,
+  formatDuration,
   pl,
   qtyPreview,
   ruleTitle,
@@ -67,6 +68,8 @@ describe('fmtCad / ruleTitle', () => {
     const cash: SignalRule = { ...signal, metric: 'cash_above', op: 'gt', value: 500 }
     expect(ruleTitle('en', cash)).toContain('$500 CAD')
     expect(ruleTitle('fr', cash)).toContain('500 $ CAD')
+    /* Money thresholds denominate in the book currency, not always CAD. */
+    expect(ruleTitle('en', cash, 'USD')).toContain('$500 USD')
   })
 
   it('renders between titles with normalized bounds', () => {
@@ -88,7 +91,13 @@ describe('qtyPreview', () => {
     expect(qtyPreview('en', { ...order, qtyUnit: 'percent_of_position', qty: 5 })).toBe(
       'Adds 5% to your existing position',
     )
-    expect(qtyPreview('en', { ...order, qtyUnit: 'currency', qty: 1000 })).toContain('1,000')
+    expect(qtyPreview('en', { ...order, qtyUnit: 'currency', qty: 1000 })).toBe(
+      'Buys $1,000 CAD worth',
+    )
+    /* The currency follows the book — a USD-base account labels USD. */
+    expect(qtyPreview('en', { ...order, qtyUnit: 'currency', qty: 1000 }, 'USD')).toBe(
+      'Buys $1,000 USD worth',
+    )
     expect(qtyPreview('fr', { ...order, qtyUnit: 'currency', qty: 1000 })).toContain('1 000')
   })
 })
@@ -165,21 +174,43 @@ describe('strategyMeta / runLine', () => {
   it('renders the run row with real plurals and duration', () => {
     const line = runLine('en', run)
     expect(line).toContain('1 symbol scanned')
-    expect(line).toContain('1 signal')
+    /* Sweep rows label their output observations — AI book insights are
+       not rule signals and must not masquerade as them. */
+    expect(line).toContain('1 observation')
     expect(line).toContain('2 proposals')
     expect(line).toContain('0.4s')
     expect(line).not.toContain('(s)')
-    expect(runLine('fr', { ...run, signalsEmitted: 0 })).toContain('0 signal')
+    expect(runLine('fr', { ...run, signalsEmitted: 0 })).toContain('0 observation')
+    /* A strategy row keeps the signal noun. */
+    expect(runLine('en', { ...run, strategyId: 's1' })).toContain('1 signal')
   })
 
-  it('shows 0 symbols scanned on post-0184 runs — explains empty sweeps', () => {
-    const line = runLine('en', { ...run, symbolsScanned: [], signalsEmitted: 0, proposalsCreated: 0 })
-    expect(line).toContain('0 symbols scanned')
+  it('labels book-only runs instead of claiming "0 symbols scanned"', () => {
+    const line = runLine('en', {
+      ...run,
+      strategyId: 's1',
+      symbolsScanned: [],
+      signalsEmitted: 0,
+      proposalsCreated: 0,
+    })
+    expect(line).toContain('book metrics only')
+    expect(line).not.toContain('0 symbols scanned')
     expect(line).toContain('0 signals')
   })
 
+  it('humanizes minute-scale durations', () => {
+    expect(formatDuration('en', 60_400)).toBe('1 min')
+    expect(formatDuration('fr', 120_000)).toBe('2 min')
+    expect(formatDuration('en', 400)).toBe('0.4s')
+  })
+
   it('omits the scanned segment and duration on pre-0184 rows', () => {
-    const line = runLine('en', { ...run, symbolsScanned: [], durationMs: null })
+    const line = runLine('en', {
+      ...run,
+      strategyId: 's1',
+      symbolsScanned: [],
+      durationMs: null,
+    })
     expect(line).not.toContain('scanned')
     expect(line).not.toContain('· —')
     expect(line).toContain('1 signal')
