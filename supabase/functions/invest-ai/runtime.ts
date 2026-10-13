@@ -7,8 +7,12 @@ import {
   type UpstreamMessage,
 } from '../_shared/modelUpstream.ts'
 import {
+  ADVICE_FALLBACK_EN,
+  ADVICE_FALLBACK_FR,
+  buildAdviceRepairNote,
   buildRepairNote,
   chatSources,
+  detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
   investChatPrompt,
@@ -580,6 +584,39 @@ export async function runChat(
         }
         if (repaired.reasoning) reasoning += `\n\n${repaired.reasoning}`
         parsed = repaired.parsed
+      }
+    }
+
+    /* External-tier backstop — stricter than the figure check: a numeric
+       mismatch ships with a warning, but a reply that slipped toward
+       directed advice gets one repair rewrite, and if the rewrite still
+       flags (or can't run inside the budget) the whole reply is replaced
+       with the fixed no-verdict text rather than shipping a recommendation
+       to an account that must never get one. Suggests and the action drop
+       with it — both come from the same drifted payload, and an unasked
+       queued draft is still half the leak. */
+    if (!advice) {
+      let adviceFlags = detectDirectedAdvice(parsed.reply, lang)
+      if (adviceFlags.length > 0 && turnLeftMs() >= REPAIR_MIN_MS) {
+        console.warn('invest-ai external reply crossed the advice line', JSON.stringify(adviceFlags))
+        const repaired = await callModel(
+          { draft: round.raw, repairNote: buildAdviceRepairNote(adviceFlags) },
+          onReasoning,
+        )
+        if (repaired?.parsed?.reply) {
+          if (repaired.reasoning) reasoning += `\n\n${repaired.reasoning}`
+          parsed = repaired.parsed
+          adviceFlags = detectDirectedAdvice(parsed.reply, lang)
+        }
+      }
+      if (adviceFlags.length > 0) {
+        console.warn('invest-ai advice-flagged reply suppressed', JSON.stringify(adviceFlags))
+        parsed = {
+          ...parsed,
+          reply: lang === 'fr' ? ADVICE_FALLBACK_FR : ADVICE_FALLBACK_EN,
+          suggests: [],
+          action: null,
+        }
       }
     }
 

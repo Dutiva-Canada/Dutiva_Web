@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
 import { runTallyEval } from './goldenEval'
 import {
+  ADVICE_FALLBACK_EN,
+  ADVICE_FALLBACK_FR,
   INVEST_CHAT_ACTION_TYPES,
+  buildAdviceRepairNote,
   buildRepairNote,
   chatSources,
+  detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
   investChatPrompt,
@@ -474,6 +478,71 @@ describe('Tally persona contract', () => {
 /* Internal-staff tier — a verified @dutiva.ca sign-in swaps the no-advice
    boundary for a direct-advice register (index.ts decides from the auth
    email). The write grammar and the queued-draft honesty stay identical. */
+describe('detectDirectedAdvice (external-tier backstop)', () => {
+  it('flags directed calls and recommendations in English', () => {
+    const flagged = [
+      'You should buy more AMD on this dip.',
+      'I recommend buying SHOP here.',
+      "I'd suggest selling your position.",
+      'My recommendation is to hold.',
+      'Buy the dip while it lasts.',
+      'VFV is a good buy at this level.',
+      "It's a good time to buy.",
+      'Your portfolio looks solid and well positioned.',
+      'Your holdings are concentrated and risky.',
+      'Time to get out of this name.',
+    ]
+    for (const reply of flagged) {
+      expect(detectDirectedAdvice(reply, 'en'), reply).not.toEqual([])
+    }
+  })
+
+  it('lets teaching, deflections, and abstract views through', () => {
+    const clean = [
+      'An ETF is a basket of securities that trades like a stock.',
+      'Dollar-cost averaging means investing a fixed amount on a schedule.',
+      'That call is yours — a licensed adviser can help you make it.',
+      'Index funds usually beat stock-picking on fees alone.',
+      'You hold 3 positions, all equities.',
+      'AMD trades at P/E 92 with RSI 61 — the numbers on file.',
+      'I suggest speaking with a licensed adviser about that.',
+      'Nobody can reliably call where a price goes next.',
+    ]
+    for (const reply of clean) {
+      expect(detectDirectedAdvice(reply, 'en'), reply).toEqual([])
+    }
+  })
+
+  it('flags directed calls in French and lets teaching pass', () => {
+    const flagged = [
+      'Vous devriez acheter davantage de AMD.',
+      'Je vous recommande de vendre vos positions.',
+      'Un bon achat à ce niveau.',
+      'Votre portefeuille semble risqué et concentré.',
+      "C'est le moment d'acheter.",
+    ]
+    for (const reply of flagged) {
+      expect(detectDirectedAdvice(reply, 'fr'), reply).not.toEqual([])
+    }
+    const clean = [
+      'Un FNB est un panier de titres qui se négocie comme une action.',
+      'Cette décision vous appartient — un conseiller agréé peut vous aider.',
+      'Je suggère de consulter un conseiller agréé pour cela.',
+    ]
+    for (const reply of clean) {
+      expect(detectDirectedAdvice(reply, 'fr'), reply).toEqual([])
+    }
+  })
+
+  it('the fallback text and repair note pass their own screen', () => {
+    expect(detectDirectedAdvice(ADVICE_FALLBACK_EN, 'en')).toEqual([])
+    expect(detectDirectedAdvice(ADVICE_FALLBACK_FR, 'fr')).toEqual([])
+    const note = buildAdviceRepairNote(['you should buy AMD'])
+    expect(note).toContain('you should buy AMD')
+    expect(note).toContain('strict JSON')
+  })
+})
+
 describe('internal advice tier (@dutiva.ca)', () => {
   it('chat prompt swaps the hard line for the internal register', () => {
     const p = investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content
