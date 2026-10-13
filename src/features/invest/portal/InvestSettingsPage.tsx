@@ -1,38 +1,106 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check, Globe, Loader2, LogOut, RotateCcw } from 'lucide-react'
+import {
+  Bell,
+  Check,
+  Contrast,
+  Download,
+  Globe,
+  Loader2,
+  LogOut,
+  Moon,
+  RotateCcw,
+  Sun,
+  Trash2,
+} from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
+import { useTheme } from '@/lib/themeContext'
+import type { ThemePref } from '@/lib/themeContext'
 import { supabase } from '@/lib/supabaseClient'
 import { resetOnboarding } from './onboarding'
 import { useInvestHead } from './useInvestHead'
 import { StrategyDeliveryCard } from './StrategyDeliveryCard'
+import {
+  DISPLAY_CURRENCIES,
+  HOME_TABS,
+  readBadgeScope,
+  readDisplayCurrency,
+  readHomeTab,
+  readOrderMode,
+  writeBadgeScope,
+  writeDisplayCurrency,
+  writeHomeTab,
+  writeOrderMode,
+  type BadgeScope,
+  type HomeTab,
+} from './investPrefs'
+import type { OrderMode } from '@/features/invest/data/types'
 
 const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
 const rowLabel = 'm-0 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-muted'
+const selectClass =
+  'min-h-[44px] cursor-pointer rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text'
+const segButton = (active: boolean) =>
+  `inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border px-[16px] text-[13px] font-semibold transition-colors ${
+    active
+      ? 'border-gold-border bg-gold-bg text-gold-fg'
+      : 'border-border bg-transparent text-text-2 hover:bg-inset'
+  }`
+const actionButton =
+  'inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[14px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50'
+
+const THEME_OPTIONS: { pref: ThemePref; label: (typeof IM)[keyof typeof IM]; Icon: typeof Sun }[] = [
+  { pref: 'auto', label: IM.invest_sb_theme_auto, Icon: Contrast },
+  { pref: 'light', label: IM.invest_sb_theme_light, Icon: Sun },
+  { pref: 'dark', label: IM.invest_sb_theme_dark, Icon: Moon },
+]
+
+const HOME_TAB_LABELS: Record<HomeTab, (typeof IM)[keyof typeof IM]> = {
+  '/invest': IM.invest_tab_overview,
+  '/invest/chat': IM.invest_tab_chat,
+  '/invest/portfolio': IM.invest_tab_portfolios,
+  '/invest/orders': IM.invest_tab_orders,
+  '/invest/signals': IM.invest_tab_signals,
+  '/invest/strategies': IM.invest_tab_strategies,
+}
 
 /**
- * Settings — language, notification delivery summary, and the account view
- * (signed-in email, auth method, session controls).
- *
- * No danger zone: the backend has no account-deletion or data-export
- * endpoint for invest data, so there is deliberately no button pretending
- * otherwise.
+ * Settings — language, appearance, start page, display currency, per-strategy
+ * delivery, defaults, the tour, and the account view. The "My data" card
+ * exports a client-side JSON snapshot (no server endpoint needed) and clears
+ * Tally history through the user-scoped chat tables — the only "danger"
+ * action, gated behind a two-step confirm.
  */
 export function InvestSettingsPage() {
   const { x, L, lang, setLang } = useI18n()
   const { session, signOut } = useAuth()
-  const { loading } = useInvestData()
+  const { state, loading } = useInvestData()
+  const { themePref, setTheme } = useTheme()
   const navigate = useNavigate()
   useInvestHead(IM.invest_seo_title_settings, IM.invest_seo_desc_settings)
-  const [globalBusy, setGlobalBusy] = useState(false)
+  const [busy, setBusy] = useState<'signout' | 'global' | 'clear' | null>(null)
+  const [confirmClear, setConfirmClear] = useState(false)
+  const [clearDone, setClearDone] = useState(false)
+  const [homeTab, setHomeTab] = useState<HomeTab>(readHomeTab)
+  const [orderMode, setOrderMode] = useState<OrderMode>(readOrderMode)
+  const [badgeScope, setBadgeScope] = useState<BadgeScope>(readBadgeScope)
+  const [displayCur, setDisplayCur] = useState(readDisplayCurrency)
+
+  const run = async (key: 'signout' | 'global' | 'clear', fn: () => Promise<void>) => {
+    setBusy(key)
+    try {
+      await fn()
+    } finally {
+      setBusy(null)
+    }
+  }
 
   const signOutEverywhere = async () => {
     if (!supabase) return
-    setGlobalBusy(true)
     try {
       /* Global scope revokes every refresh token on the account server-side
          and clears the local session — the auth state listener then drops
@@ -40,9 +108,31 @@ export function InvestSettingsPage() {
       await supabase.auth.signOut({ scope: 'global' })
     } catch {
       await signOut()
-    } finally {
-      setGlobalBusy(false)
     }
+  }
+
+  const clearTallyHistory = async () => {
+    if (!supabase || !session?.user.id) return
+    /* Messages first: threads cascade only thread-linked rows — the default
+       conversation's messages carry no thread_id and would be orphaned. */
+    await supabase.from('invest_chat_messages').delete().eq('user_id', session.user.id)
+    await supabase.from('invest_chat_threads').delete().eq('user_id', session.user.id)
+    setConfirmClear(false)
+    setClearDone(true)
+  }
+
+  const exportData = () => {
+    const payload = JSON.stringify(
+      { generatedAt: new Date().toISOString(), email: session?.user.email ?? null, ...state },
+      null,
+      2,
+    )
+    const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dutiva-invest-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   const replayTour = () => {
@@ -79,11 +169,7 @@ export function InvestSettingsPage() {
               type="button"
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
-              className={`inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border px-[16px] text-[13px] font-semibold transition-colors ${
-                lang === l
-                  ? 'border-gold-border bg-gold-bg text-gold-fg'
-                  : 'border-border bg-transparent text-text-2 hover:bg-inset'
-              }`}
+              className={segButton(lang === l)}
             >
               <Globe size={13} strokeWidth={2} aria-hidden="true" />
               {l === 'en' ? 'English' : 'Français'}
@@ -93,21 +179,194 @@ export function InvestSettingsPage() {
         </div>
       </section>
 
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_appearance)}
+        </h2>
+        <div
+          className="mt-[12px] flex gap-[8px]"
+          role="group"
+          aria-label={x(IM.invest_settings_appearance)}
+        >
+          {THEME_OPTIONS.map(({ pref, label, Icon }) => (
+            <button
+              key={pref}
+              type="button"
+              onClick={() => setTheme(pref)}
+              aria-pressed={themePref === pref}
+              className={segButton(themePref === pref)}
+            >
+              <Icon size={13} strokeWidth={2} aria-hidden="true" />
+              {x(label)}
+              {themePref === pref && <Check size={13} strokeWidth={2.5} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_start_page)}
+        </h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_settings_start_page_note)}
+        </p>
+        <select
+          className={`mt-[12px] ${selectClass}`}
+          value={homeTab}
+          onChange={(e) => {
+            const v = e.target.value as HomeTab
+            setHomeTab(v)
+            writeHomeTab(v)
+          }}
+          aria-label={x(IM.invest_settings_start_page)}
+        >
+          {HOME_TABS.map((tab) => (
+            <option key={tab} value={tab}>
+              {x(HOME_TAB_LABELS[tab])}
+            </option>
+          ))}
+        </select>
+      </section>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_currency)}
+        </h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_settings_currency_note)}
+        </p>
+        <select
+          className={`mt-[12px] ${selectClass}`}
+          value={displayCur}
+          onChange={(e) => {
+            setDisplayCur(e.target.value)
+            writeDisplayCurrency(e.target.value)
+          }}
+          aria-label={x(IM.invest_settings_currency)}
+        >
+          <option value="">{x(IM.invest_settings_currency_auto)}</option>
+          {DISPLAY_CURRENCIES.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </section>
+
       <StrategyDeliveryCard />
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_defaults)}
+        </h2>
+        <div className="mt-[12px] flex flex-col gap-[14px]">
+          <div>
+            <p className={rowLabel}>{x(IM.invest_settings_order_mode)}</p>
+            <select
+              className={`mt-[6px] ${selectClass}`}
+              value={orderMode}
+              onChange={(e) => {
+                const v = e.target.value as OrderMode
+                setOrderMode(v)
+                writeOrderMode(v)
+              }}
+              aria-label={x(IM.invest_settings_order_mode)}
+            >
+              <option value="paper">{x(IM.invest_mode_paper)}</option>
+              <option value="live">{x(IM.invest_mode_live)}</option>
+            </select>
+          </div>
+          <div>
+            <p className={rowLabel}>
+              <Bell size={11} strokeWidth={2} className="mr-[4px] inline align-[-1px]" aria-hidden="true" />
+              {x(IM.invest_settings_badge)}
+            </p>
+            <select
+              className={`mt-[6px] ${selectClass}`}
+              value={badgeScope}
+              onChange={(e) => {
+                const v = e.target.value as BadgeScope
+                setBadgeScope(v)
+                writeBadgeScope(v)
+              }}
+              aria-label={x(IM.invest_settings_badge)}
+            >
+              <option value="all">{x(IM.invest_settings_badge_all)}</option>
+              <option value="signals">{x(IM.invest_settings_badge_signals)}</option>
+            </select>
+          </div>
+        </div>
+      </section>
 
       <section className={cardClass}>
         <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_tour)}</h2>
         <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
           {x(IM.invest_settings_tour_note)}
         </p>
-        <button
-          type="button"
-          onClick={replayTour}
-          className="mt-[12px] inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[14px] text-[12.5px] font-semibold text-text-2 hover:bg-inset"
-        >
+        <button type="button" onClick={replayTour} className={`mt-[12px] ${actionButton}`}>
           <RotateCcw size={13} strokeWidth={2} aria-hidden="true" />
           {x(IM.invest_settings_tour_open)}
         </button>
+      </section>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_data)}</h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_settings_export_note)}
+        </p>
+        <button type="button" onClick={exportData} className={`mt-[12px] ${actionButton}`}>
+          <Download size={13} strokeWidth={2} aria-hidden="true" />
+          {x(IM.invest_settings_export)}
+        </button>
+
+        <div className="mt-[18px] border-t border-border pt-[14px]">
+          <h3 className="m-0 text-[13px] font-semibold text-text">
+            {x(IM.invest_settings_clear_chat)}
+          </h3>
+          <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+            {clearDone
+              ? x(IM.invest_settings_clear_chat_done)
+              : x(IM.invest_settings_clear_chat_note)}
+          </p>
+          {confirmClear ? (
+            <div className="mt-[10px] flex flex-wrap items-center gap-[10px]">
+              <p className="m-0 text-[12.5px] font-semibold text-text">
+                {x(IM.invest_settings_clear_chat_confirm)}
+              </p>
+              <button
+                type="button"
+                disabled={busy === 'clear'}
+                onClick={() => void run('clear', clearTallyHistory)}
+                className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-risk-border bg-transparent px-[14px] text-[12.5px] font-semibold text-risk-fg hover:bg-inset disabled:opacity-50"
+              >
+                {busy === 'clear' ? (
+                  <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
+                )}
+                {x(IM.invest_settings_clear_chat_yes)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClear(false)}
+                className={actionButton}
+              >
+                {x(IM.invest_cancel)}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmClear(true)}
+              disabled={clearDone}
+              className={`mt-[12px] ${actionButton}`}
+            >
+              <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
+              {x(IM.invest_settings_clear_chat)}
+            </button>
+          )}
+        </div>
       </section>
 
       <section className={cardClass}>
@@ -127,19 +386,24 @@ export function InvestSettingsPage() {
         <div className="mt-[16px] flex flex-wrap gap-[10px]">
           <button
             type="button"
-            onClick={() => void signOut()}
-            className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[14px] text-[12.5px] font-semibold text-text-2 hover:bg-inset"
+            disabled={busy !== null}
+            onClick={() => void run('signout', signOut)}
+            className={actionButton}
           >
-            <LogOut size={13} strokeWidth={2} aria-hidden="true" />
+            {busy === 'signout' ? (
+              <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <LogOut size={13} strokeWidth={2} aria-hidden="true" />
+            )}
             {x(IM.invest_sign_out)}
           </button>
           <button
             type="button"
-            disabled={globalBusy}
-            onClick={() => void signOutEverywhere()}
-            className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[14px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
+            disabled={busy !== null}
+            onClick={() => void run('global', signOutEverywhere)}
+            className={actionButton}
           >
-            {globalBusy ? (
+            {busy === 'global' ? (
               <Loader2 size={13} className="animate-spin" aria-hidden="true" />
             ) : (
               <LogOut size={13} strokeWidth={2} aria-hidden="true" />

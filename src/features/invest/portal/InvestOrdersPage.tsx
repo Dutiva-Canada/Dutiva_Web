@@ -13,6 +13,7 @@ import {
   type OrderType,
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
+import { readOrderMode } from './investPrefs'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
@@ -282,7 +283,7 @@ function OrderForm({
   const [quantity, setQuantity] = useState('')
   const [orderType, setOrderType] = useState<OrderType>('market')
   const [limitPrice, setLimitPrice] = useState('')
-  const [mode, setMode] = useState<OrderMode>('paper')
+  const [mode, setMode] = useState<OrderMode>(readOrderMode)
 
   const submit = (e: FormEvent) => {
     e.preventDefault()

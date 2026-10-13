@@ -10,6 +10,7 @@ import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
+import { readDisplayCurrency } from './investPrefs'
 import { tallyNoticed } from './strategyUi'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
@@ -86,8 +87,9 @@ export function InvestHomePage() {
       if (retry) clearTimeout(retry)
     }
   }, [])
-  /* Headline figures are denominated in the primary account's currency. */
-  const homeCur = state.accounts[0]?.baseCurrency ?? 'CAD'
+  /* Headline figures are denominated in the display-currency preference,
+     falling back to the primary account's base currency. */
+  const homeCur = readDisplayCurrency() || state.accounts[0]?.baseCurrency || 'CAD'
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
