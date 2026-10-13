@@ -1059,3 +1059,62 @@ export function buildRepairNote(mismatches: ClaimMismatch[]): string {
     '\nRewrite the reply using only figures from the data provided — same strict JSON contract ({"reply":…,"action":…,"suggests":[…]}).'
   )
 }
+
+/* ── Directed-advice screen (external tier only) ─────────────────────────────
+   The no-advice register is prompt-enforced; this is the deterministic
+   backstop for when the model drifts toward a recommendation anyway. The
+   patterns aim high-precision: they catch directed calls (you should buy),
+   first-person recommendations toward a security action, and verdicts on
+   the person's own book — while letting teaching, deflections to a licensed
+   adviser, and abstract approaches through untouched. Internal @dutiva.ca
+   replies are allowed to advise and never reach this screen. */
+const ADVICE_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\byou\s+(?:should|must|ought\s+to|need\s+to|shall|might\s+want\s+to|want\s+to)\s+(?:buy|sell|hold|trim|add|exit|dump|short|load\s+up\s+on|double\s+down\s+on)\b/i,
+    /\bi(?:'d| would)?\s+(?:recommend|suggest|advise|urge)\s+(?:buying|selling|holding|shorting|trimming|adding|exiting|that\s+you|you)\b/i,
+    /\bmy\s+(?:recommendation|advice|verdict|call|pick)\s*(?:is|would\s+be|:)/i,
+    /\b(?:buy|sell|short)\s+(?:the\s+dip|it|this|them|now|here)\b/i,
+    /\b(?:a|an)\s+(?:good|great|strong|smart|solid|excellent)\s+(?:buy|sell|pick|addition|play|entry)\b/i,
+    /\bit(?:'s|\s+is)\s+(?:a\s+)?(?:good|great|safe|smart|bad|poor)\s+(?:time|moment|entry|point)\s+to\s+(?:buy|sell|exit|enter|get\s+in)/i,
+    /\byour\s+(?:portfolio|book|positions|holdings|allocation|mix)\s+(?:is|are|looks?|seems?)\s+(?:safe|solid|good|fine|strong|healthy|balanced|well[-\s]?positioned|risky|concentrated|exposed|overweight)/i,
+    /\btime\s+to\s+(?:buy|sell|exit|trim|load\s+up|get\s+out|get\s+in)\b/i,
+  ],
+  fr: [
+    /\bvous\s+(?:devriez|pouvez|avez\s+intérêt\s+à|gagneriez\s+à|feriez\s+bien\s+de)\s+(?:acheter|vendre|conserver|détenir|sortir|alléger|renforcer)\b/i,
+    /\bje\s+(?:vous\s+)?(?:recommande|conseille|suggère|préconise)\s+(?:d'|de\s+)?(?:acheter|vendre|conserver|détenir|sortir|alléger|que\s+vous)/i,
+    /\b(?:achetez|vendez|sortez|allégez|renforcez)\s+(?:le|la|les|des|ce|cette|maintenant|ici|vos|votre)/i,
+    /\bun\s+bon\s+(?:achat|placement|moment\s+pour)/i,
+    /\bvotre\s+(?:portefeuille|livre|position|allocation)\s+(?:est|semble|paraît)\s+(?:solide|sain|sécuritaire|sûr|risqué|concentré|déséquilibré|exposé)/i,
+    /\bc'est\s+(?:le|un\s+bon)\s+moment\s+(?:d'|pour\s+)(?:acheter|vendre|sortir)/i,
+  ],
+}
+
+/** Phrases in the reply that cross into directed advice — the matched
+    fragments, for the repair note and the log line. Empty = clean. */
+export function detectDirectedAdvice(reply: string, lang: 'en' | 'fr'): string[] {
+  const hits: string[] = []
+  for (const re of ADVICE_PATTERNS[lang]) {
+    const m = re.exec(reply)
+    if (m) hits.push(m[0].trim().slice(0, 80))
+  }
+  return hits
+}
+
+/** The note sent back when an external-tier reply crossed the register —
+    keeps the facts, strips the direction. */
+export function buildAdviceRepairNote(flags: string[]): string {
+  return (
+    'Your draft to this EXTERNAL user crossed the no-advice line — flagged:\n' +
+    flags.map((f) => `- "${f}"`).join('\n') +
+    '\nRewrite it keeping every correct fact but with no buy/sell/hold direction, no verdicts on their securities or book, and no personal recommendation — describe what the data shows and leave the call with them. Same strict JSON contract ({"reply":…,"action":…,"suggests":[…]}).'
+  )
+}
+
+/** The fixed text that replaces an external reply the screen still flags
+    after its repair pass — the boundary the product promised, stated
+    plainly, plus the honest next step. Never advice-flavored by
+    construction. */
+export const ADVICE_FALLBACK_EN =
+  'That call is yours — or a licensed adviser’s — and it’s not one I can make for you. What I can do: explain how to weigh it, what the trade-offs look like, or what your book actually shows. Tell me which and I’ll go from there.'
+export const ADVICE_FALLBACK_FR =
+  'Cette décision vous appartient — ou revient à un conseiller agréé — et je ne peux pas la prendre à votre place. Ce que je peux faire : expliquer comment l’évaluer, les compromis en jeu, ou ce que votre livre montre. Dites-moi lequel et je continue.'
