@@ -31,11 +31,19 @@ describe('strategyDraft', () => {
     const wire = toWire(d)
     expect(wire.id).toBe('s1')
     expect(wire.scope.symbols).toEqual(['AAPL'])
-    expect(wire.rules[0]).toEqual(signal)
+    /* The draft backfills a persistent rule id (0218) — it rides the wire
+       and survives the round-trip as the rule's dedupe identity. */
+    expect(wire.rules[0]).toMatchObject(signal)
+    expect(wire.rules[0]!.id).toBeTruthy()
     expect(wire.multiMatch).toBe('summary')
   })
 
-  it('persists rule array order verbatim (order = evaluation priority)', () => {
+  it('keeps a stored rule id across the round-trip', () => {
+    const wire = toWire(toDraft({ ...strategy, rules: [{ ...signal, id: 'rule-keep' }] }))
+    expect(wire.rules[0]!.id).toBe('rule-keep')
+  })
+
+  it('persists rule array order verbatim (order is display order)', () => {
     const other: SignalRule = { ...signal, title: 'Second', metric: 'vs_ma50' }
     const wire = toWire(toDraft({ ...strategy, rules: [signal, other] }))
     expect(wire.rules.map((r) => r.title)).toEqual(['Dip', 'Second'])
@@ -44,6 +52,14 @@ describe('strategyDraft', () => {
   it('fills a blank rule label with the generated title on save', () => {
     const wire = toWire(toDraft({ ...strategy, rules: [{ ...signal, title: ' ' }] }))
     expect(wire.rules[0]!.title.trim().length).toBeGreaterThan(0)
+  })
+
+  it('does not clamp invalid numbers — validation stops the save first', () => {
+    /* The old NaN→0 clamp turned a cleared threshold into `gt 0` — a rule
+       that fired every sweep. toWire now passes the value through;
+       validateRules is what stands between it and the database. */
+    const wire = toWire(toDraft({ ...strategy, rules: [{ ...signal, value: NaN }] }))
+    expect(Number.isNaN(wire.rules[0]!.value)).toBe(true)
   })
 
   it('discard restores the snapshot exactly', () => {

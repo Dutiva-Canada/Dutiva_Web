@@ -81,6 +81,10 @@
   color: var(--sb-accent-ink);
   font-weight: 700;
 }
+.sb-match .sb-outcome.sb-suppressed {
+  color: var(--sb-muted);
+  font-weight: 500;
+}
 .sb-scan-error {
   background: var(--sb-input);
   border: 1px solid var(--sb-danger);

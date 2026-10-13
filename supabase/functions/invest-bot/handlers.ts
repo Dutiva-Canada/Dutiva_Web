@@ -26,12 +26,23 @@ export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
 export type MultiMatch = 'each' | 'summary'
 
 interface RuleBase {
+  /** Stable identity written at rule-creation time (0218) — dedupe keys and
+      firing history key on this, not the title: a renamed label must not
+      reset either, and two same-title rules get separate slots. Absent on
+      legacy/AI-drafted rules, where the title is the identity. */
+  id?: string
   metric: RuleMetric
   op: RuleOp
   value: number
   /** Second bound for 'between' — required then, ignored otherwise. */
   value2?: number
   title: string
+}
+
+/** The key a rule owns in dedupe sets and rule_hits — its id when it has
+    one, else the title (legacy rows and model-drafted rules). */
+export function ruleIdent(rule: RuleBase): string {
+  return rule.id ?? rule.title
 }
 
 export interface SignalRule extends RuleBase {
@@ -96,6 +107,9 @@ export interface Position {
 
 export interface NewSignal {
   strategy_id: string
+  /** The firing rule's identity — persisted (0218 column) so dedupe reads
+      it back on the next sweep. 'summary' on collapsed multi-match rows. */
+  rule_id?: string
   asset_class: AssetClass
   symbol: string
   name: string
@@ -114,8 +128,12 @@ export interface NewSignal {
     by the bot. `quantity` is always resolved to shares at plan time. */
 export interface NewOrderProposal {
   strategy_id: string
-  /** Dedupe key — an identical open draft suppresses a repeat proposal. */
+  /** Dedupe key — an identical open draft suppresses a repeat proposal.
+      Keyed on rule identity (id ?? title). */
   rule_key: string
+  /** The rule's own identity — persisted (0218 column) so dedupe survives a
+      label rename. */
+  rule_id?: string
   asset_class: AssetClass
   symbol: string
   name: string
@@ -186,6 +204,9 @@ export function parseRules(raw: unknown): StrategyRule[] {
       continue
     }
     const base: RuleBase = {
+      ...(typeof o['id'] === 'string' && o['id'].trim() !== ''
+        ? { id: o['id'].trim() }
+        : {}),
       metric: metric as RuleMetric,
       op: op as RuleOp,
       value,
@@ -334,13 +355,17 @@ export function resolveQuantity(
   rule: OrderProposalRule,
   snap: MarketSnapshot,
   position: Position | null,
+  ctx?: Pick<RunContext, 'toBook'>,
 ): number | null {
   switch (rule.qty_unit) {
     case 'shares':
       return rule.qty
     case 'currency': {
-      if (snap.price <= 0) return null
-      const shares = Math.round((rule.qty / snap.price) * 10000) / 10000
+      /* rule.qty is a book-currency amount — convert the quote price into it
+         rather than dividing raw USD by raw CAD. */
+      const px = ctx?.toBook ? ctx.toBook(snap.price, snap.currency) : snap.price
+      if (px === null || px <= 0) return null
+      const shares = Math.round((rule.qty / px) * 10000) / 10000
       return shares > 0 ? shares : null /* rounds to zero — can't satisfy a positive-qty insert */
     }
     case 'percent_of_position': {
@@ -371,12 +396,16 @@ export function strategyDue(
 /** One rule×symbol evaluation that came out true — the per-rule result
     rows a test scan reports. `symbol` is '' for book-level metrics. */
 export interface RuleMatch {
-  /** Position of the rule in the strategy's rules array (priority order). */
+  /** Position of the rule in the strategy's rules array (list order — the
+      engine evaluates every rule; order is display order, not priority). */
   ruleIndex: number
   ruleTitle: string
   symbol: string
   /** The evaluated metric reading that crossed the threshold. */
   metricValue: number
+  /** Set when dedupe covered this hit — an open signal/draft already owns
+      the key, so a real run would not re-emit it (test scans only). */
+  suppressed?: boolean
   outcome:
     | { kind: 'signal'; severity: SignalSeverity }
     | { kind: 'order'; side: OrderSide; quantity: number | null }
@@ -401,9 +430,17 @@ export interface RunPlan {
     symbolsScanned: string[]
     signals: number
     proposals: number
+    /** Wall time of this strategy's evaluation — the run row reports its own
+        duration, not the whole sweep's. */
+    durationMs: number
   }[]
   /** Explanations for anything skipped (e.g. unresolvable quantity). */
   warnings: string[]
+  /** Structured twins of `warnings` — stable codes + params so the client
+      can localize; the raw strings stay for logs and older consumers. */
+  warningDetails: { code: string; params: Record<string, string> }[]
+  /** Strategies actually evaluated this run — past the enabled/rules/
+      cadence gates, whether or not anything matched. */
   evaluated: number
 }
 
@@ -446,10 +483,14 @@ export function planRun(
     matches: [],
     perStrategy: [],
     warnings: [],
+    warningDetails: [],
     evaluated: 0,
   }
   const collect = opts.collectMatches === true
   const now = opts.now ?? new Date()
+  /* Working copy of the persisted dedupe set — newly emitted keys join it
+     within this run so two identical hits in one sweep can't double-emit. */
+  const dedupeKeys = new Set(existingKeys)
   const openDraftKeys = new Set(opts.openDraftKeys ?? [])
   const positionBySymbol = new Map<string, Position>()
   const snapBySymbol = new Map<string, MarketSnapshot>()
@@ -460,15 +501,28 @@ export function planRun(
   const toBook = (amount: number, currency: string): number | null =>
     convertFx(amount, currency, bookCurrency, opts.fx ?? null)
 
+  /* Warning strings + their structured twins are pushed together — the
+     client localizes from code/params, logs keep the raw English. */
+  const warn = (code: string, params: Record<string, string>, message: string) => {
+    plan.warnings.push(message)
+    plan.warningDetails.push({ code, params })
+  }
+
   /* Marked-to-market book value in the book currency — the denominator for
      weight_pct. Only positions with a snapshot count, and only when the
      quote currency converts: summing raw prices across CAD and USD books
-     overstated foreign positions by ~40% and corrupted every weight. */
+     overstated foreign positions by ~40% and corrupted every weight. Cash
+     counts toward the book — "portfolio weight" reads as share of
+     everything held, not just the invested slice. */
   let bookValue = 0
   const unconvertible = new Set<string>()
+  const unsnapshotted = new Set<string>()
   for (const p of positions) {
     const snap = snapBySymbol.get(`${p.asset_class}:${p.symbol}`)
-    if (!snap) continue
+    if (!snap) {
+      unsnapshotted.add(p.symbol.toUpperCase())
+      continue
+    }
     const v = toBook(p.quantity * snap.price, snap.currency)
     if (v === null) {
       unconvertible.add(snap.currency.toUpperCase())
@@ -476,33 +530,47 @@ export function planRun(
     }
     bookValue += v
   }
+  const cashTotal = opts.cashTotal ?? 0
   if (unconvertible.size > 0) {
-    plan.warnings.push(
-      `positions quoted in ${[...unconvertible].join(', ')} skipped — no FX rate; their value-based rules did not run`,
+    warn(
+      'fx_missing',
+      { currencies: [...unconvertible].sort().join(', ') },
+      `positions quoted in ${[...unconvertible].sort().join(', ')} skipped — no FX rate; their value-based rules did not run`,
+    )
+  }
+  if (unsnapshotted.size > 0) {
+    warn(
+      'no_snapshot',
+      { symbols: [...unsnapshotted].sort().join(', ') },
+      `positions without price data skipped — ${[...unsnapshotted].sort().join(', ')}; their value-based rules did not run and weights exclude them`,
     )
   }
   const ctx: RunContext = {
-    bookValue,
-    cashTotal: opts.cashTotal ?? 0,
+    bookValue: bookValue + cashTotal,
+    cashTotal,
     bookCurrency,
     toBook,
   }
 
   const scanned = new Set<string>()
   const hit = (diag: RunPlan['perStrategy'][number], rule: RuleBase, n = 1) => {
-    plan.ruleHits[rule.title] = (plan.ruleHits[rule.title] ?? 0) + n
-    diag.ruleHits[rule.title] = (diag.ruleHits[rule.title] ?? 0) + n
+    const ident = ruleIdent(rule)
+    plan.ruleHits[ident] = (plan.ruleHits[ident] ?? 0) + n
+    diag.ruleHits[ident] = (diag.ruleHits[ident] ?? 0) + n
   }
 
   for (const strategy of strategies) {
     if (!strategy.enabled || strategy.rules.length === 0) continue
     if (!opts.force && !strategyDue(strategy, now)) continue
+    plan.evaluated += 1
+    const stratStart = Date.now()
     const diag: RunPlan['perStrategy'][number] = {
       strategyId: strategy.id,
       ruleHits: {},
       symbolsScanned: [],
       signals: 0,
       proposals: 0,
+      durationMs: 0,
     }
     plan.perStrategy.push(diag)
     const scope = new Set(strategy.scope_symbols.map((s) => s.toUpperCase()))
@@ -516,7 +584,7 @@ export function planRun(
        needs its own approval, so merging them would hide a proposal. */
     const summaryHits: { rule: SignalRule; snap: MarketSnapshot; position: Position | null }[] = []
     /* Rules keep their array index so match rows can point back to the
-       rule in the strategy's priority order. */
+       rule in the strategy's list order. */
     const symbolRules = strategy.rules
       .map((rule, i) => [i, rule] as const)
       .filter(([, r]) => !BOOK_METRICS.includes(r.metric))
@@ -527,9 +595,12 @@ export function planRun(
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
       if (classes.size > 0 && !classes.has(snap.asset_class)) continue
-      scanned.add(snap.symbol.toUpperCase())
-      diag.symbolsScanned.push(snap.symbol.toUpperCase())
-      plan.evaluated += 1
+      /* "Symbols scanned" counts symbols fed through an actual rule — a
+         book-only strategy scans nothing no matter how wide its scope. */
+      if (symbolRules.length > 0) {
+        scanned.add(snap.symbol.toUpperCase())
+        diag.symbolsScanned.push(snap.symbol.toUpperCase())
+      }
       const position = positionBySymbol.get(`${snap.asset_class}:${snap.symbol}`) ?? null
       for (const [ruleIndex, rule] of symbolRules) {
         const m = metricValue(rule.metric, snap, position, ctx)
@@ -537,12 +608,20 @@ export function planRun(
         hit(diag, rule)
 
         if (rule.type === 'signal') {
+          /* Dedupe keys on rule identity; the title-keyed check keeps
+             pre-0218 open rows (which carry no rule_id) suppressing until
+             they clear. */
+          const ident = ruleIdent(rule)
+          const idKey = `${strategy.id}:${snap.symbol}:${rule.severity}:${ident}`
+          const titleKey = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
+          const suppressed = dedupeKeys.has(idKey) || dedupeKeys.has(titleKey)
           if (collect) {
             plan.matches.push({
               ruleIndex,
               ruleTitle: rule.title,
               symbol: snap.symbol,
               metricValue: m,
+              suppressed: suppressed || undefined,
               outcome: { kind: 'signal', severity: rule.severity },
             })
           }
@@ -550,10 +629,11 @@ export function planRun(
             summaryHits.push({ rule, snap, position })
             continue
           }
-          const key = `${strategy.id}:${snap.symbol}:${rule.severity}:${rule.title}`
-          if (existingKeys.has(key)) continue
+          if (suppressed) continue
+          dedupeKeys.add(idKey)
           plan.signals.push({
             strategy_id: strategy.id,
+            rule_id: ident,
             asset_class: snap.asset_class,
             symbol: snap.symbol,
             name: snap.symbol,
@@ -567,31 +647,39 @@ export function planRun(
         }
 
         /* order_proposal — resolve quantity, dedupe against open drafts
-           (including drafts planned earlier in this same run — two rules
-           sharing a title must not produce two identical orders), and only
-           ever PLAN a draft; execution stays with the user. */
-        const qty = resolveQuantity(rule, snap, position)
+           (including drafts planned earlier in this same run), and only
+           ever PLAN a draft; execution stays with the user. Keys ride rule
+           identity — a title rename re-arms nothing, and two same-title
+           rules each keep their own draft slot. */
+        const qty = resolveQuantity(rule, snap, position, ctx)
+        const ident = ruleIdent(rule)
+        const idKey = `${strategy.id}:${snap.symbol}:${ident}`
+        const titleKey = `${strategy.id}:${snap.symbol}:${rule.title}`
+        const suppressed = openDraftKeys.has(idKey) || openDraftKeys.has(titleKey)
         if (collect) {
           plan.matches.push({
             ruleIndex,
             ruleTitle: rule.title,
             symbol: snap.symbol,
             metricValue: m,
+            suppressed: suppressed || undefined,
             outcome: { kind: 'order', side: rule.side, quantity: qty },
           })
         }
         if (qty === null) {
-          plan.warnings.push(
+          warn(
+            'qty_unresolvable',
+            { title: rule.title, symbol: snap.symbol, unit: rule.qty_unit },
             `${rule.title}: quantity not resolvable for ${snap.symbol} (${rule.qty_unit})`,
           )
           continue
         }
-        const key = `${strategy.id}:${snap.symbol}:${rule.title}`
-        if (openDraftKeys.has(key)) continue
-        openDraftKeys.add(key)
+        if (suppressed) continue
+        openDraftKeys.add(idKey)
         plan.proposals.push({
           strategy_id: strategy.id,
-          rule_key: key,
+          rule_key: idKey,
+          rule_id: ident,
           asset_class: snap.asset_class,
           symbol: snap.symbol,
           name: snap.symbol,
@@ -611,12 +699,18 @@ export function planRun(
       if (m === null) continue
       if (!opMatches(rule, m)) continue
       hit(diag, rule)
+      const ident = ruleIdent(rule)
+      const suppressed =
+        rule.type === 'signal' &&
+        (dedupeKeys.has(`${strategy.id}::${rule.severity}:${ident}`) ||
+          dedupeKeys.has(`${strategy.id}::${rule.severity}:${rule.title}`))
       if (collect) {
         plan.matches.push({
           ruleIndex,
           ruleTitle: rule.title,
           symbol: '',
           metricValue: m,
+          suppressed: suppressed || undefined,
           outcome:
             rule.type === 'order_proposal'
               ? { kind: 'order', side: rule.side, quantity: null }
@@ -624,27 +718,42 @@ export function planRun(
         })
       }
       if (rule.type === 'order_proposal') {
-        plan.warnings.push(`${rule.title}: order proposals need a symbol-level metric`)
+        warn(
+          'book_metric_proposal',
+          { title: rule.title },
+          `${rule.title}: order proposals need a symbol-level metric`,
+        )
         continue
       }
       if (summaryMode) {
         summaryHits.push({ rule, snap: EMPTY_SNAP, position: null })
         continue
       }
-      const key = `${strategy.id}::${rule.severity}:${rule.title}`
-      if (existingKeys.has(key)) continue
+      if (suppressed) continue
+      dedupeKeys.add(`${strategy.id}::${rule.severity}:${ident}`)
+      /* Engine-authored body — carries both languages; the title stays the
+         user's own label (untranslated by design). */
+      const cashFmt = new Intl.NumberFormat('en-CA', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(ctx.cashTotal)
+      const cashFmtFr = new Intl.NumberFormat('fr-CA', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(ctx.cashTotal)
       plan.signals.push({
         strategy_id: strategy.id,
+        rule_id: ident,
         asset_class: 'cash',
         symbol: '',
         name: '',
         kind: rule.severity,
         title: rule.title,
-        body: `cash ${ctx.cashTotal.toFixed(2)}`,
+        body: `cash total across accounts: ${cashFmt} ${ctx.bookCurrency}`,
+        body_fr: `liquidités totales des comptes : ${cashFmtFr} ${ctx.bookCurrency}`,
         score: scoreFor(rule, EMPTY_SNAP, null, ctx),
       })
       diag.signals += 1
-      plan.evaluated += 1
     }
 
     /* Summary mode emits one feed row per scan that matched anything —
@@ -656,13 +765,18 @@ export function planRun(
       const anyAlert = summaryHits.some((h) => h.rule.severity === 'alert')
       const n = summaryHits.length
       const title = n === 1 ? '1 rule matched' : `${n} rules matched`
-      const key = `${strategy.id}::${anyAlert ? 'alert' : 'insight'}:${title}`
-      if (!existingKeys.has(key)) {
+      /* The dedupe key is constant ('summary') — the old key embedded the
+         match count in the title, so "2 rules matched" and "3 rules
+         matched" stacked as separate open signals every sweep. */
+      const key = `${strategy.id}::${anyAlert ? 'alert' : 'insight'}:summary`
+      if (!dedupeKeys.has(key)) {
+        dedupeKeys.add(key)
         const lines = summaryHits.map((h) =>
           h.snap.symbol ? `${h.snap.symbol} — ${h.rule.title}` : h.rule.title,
         )
         plan.signals.push({
           strategy_id: strategy.id,
+          rule_id: 'summary',
           asset_class: 'other',
           symbol: '',
           name: strategy.name ?? '',
@@ -673,9 +787,9 @@ export function planRun(
           score: null,
         })
         diag.signals += 1
-        plan.evaluated += 1
       }
     }
+    diag.durationMs = Date.now() - stratStart
   }
   plan.symbolsScanned = [...scanned].sort()
   return plan
@@ -691,22 +805,26 @@ const EMPTY_SNAP: MarketSnapshot = {
 }
 
 export function signalKey(s: {
-  strategy_id: string
+  strategy_id: string | null
   symbol: string
   kind: string
   title: string
+  /** 0218 column — present on new rows; absent → the title is the key. */
+  rule_id?: string | null
 }): string {
-  return `${s.strategy_id}:${s.symbol}:${s.kind}:${s.title}`
+  return `${s.strategy_id}:${s.symbol}:${s.kind}:${s.rule_id ?? s.title}`
 }
 
-/** Dedupe key for a stored draft order row — matches planRun's rule_key. */
+/** Dedupe key for a stored draft order row — matches planRun's rule_key.
+    New rows carry rule_id; older ones derive the title from the note. */
 export function draftKey(o: {
   strategy_id: string | null
   symbol: string
   note: string | null
+  rule_id?: string | null
 }): string {
   const title = (o.note ?? '').replace(/^Order proposal — /, '')
-  return `${o.strategy_id}:${o.symbol}:${title}`
+  return `${o.strategy_id}:${o.symbol}:${o.rule_id ?? title}`
 }
 
 function buildSignalBody(

@@ -180,9 +180,11 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'You’ll get an in-app notification for each scan that finds something.',
     fr: 'Vous recevrez une notification dans l’app pour chaque balayage avec des résultats.',
   },
+  /* Dedupe makes this "something new" — a repeat match covered by an open
+     signal doesn't re-email. [FR self-authored] */
   invest_sb_chan_email_help: {
-    en: 'You’ll get one email per scan that finds something.',
-    fr: 'Vous recevrez un courriel par balayage avec des résultats.',
+    en: 'You’ll get one email per scan that finds something new.',
+    fr: 'Vous recevrez un courriel par balayage avec de nouveaux résultats.',
   },
   invest_sb_chan_none: {
     en: 'No channels selected — you won’t be notified when this strategy’s rules match.',
@@ -213,9 +215,11 @@ export const investStrategyBuilderMessages = defineMessages({
 
   /* Rules accordion */
   invest_sb_rules_h: { en: 'Rules', fr: 'Règles' },
+  /* [FR self-authored] Honest semantics — every rule is evaluated each
+     scan; the order is how the list reads, not a priority. */
   invest_sb_rules_sub: {
-    en: 'Rules are checked top to bottom — reorder to set priority.',
-    fr: 'Les règles sont vérifiées de haut en bas — changez l’ordre pour définir la priorité.',
+    en: 'Every rule is checked on each scan — the order just sets how they’re listed here.',
+    fr: 'Chaque règle est vérifiée à chaque balayage — l’ordre ne change que leur présentation ici.',
   },
   invest_sb_add_rule: { en: 'Add rule', fr: 'Ajouter une règle' },
   invest_sb_metric: { en: 'Metric', fr: 'Indicateur' },
@@ -236,7 +240,8 @@ export const investStrategyBuilderMessages = defineMessages({
      stored title stays distinct — the engine dedupes on title. */
   invest_sb_copy_suffix: { en: 'copy', fr: 'copie' },
   invest_sb_threshold: { en: 'Threshold', fr: 'Seuil' },
-  invest_sb_threshold_cad: { en: 'Threshold in CAD', fr: 'Seuil en CAD' },
+  /* The currency follows the book, not a hardcoded CAD. [FR self-authored] */
+  invest_sb_threshold_cad: { en: 'Threshold in {ccy}', fr: 'Seuil en {ccy}' },
   invest_sb_rule_label: {
     en: 'Custom label (optional)',
     fr: 'Étiquette personnalisée (facultatif)',
@@ -278,9 +283,17 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_move_down: { en: 'Move rule down', fr: 'Déplacer la règle vers le bas' },
   invest_sb_move_up_t: { en: 'Move up', fr: 'Monter' },
   invest_sb_move_down_t: { en: 'Move down', fr: 'Descendre' },
+  /* [FR self-authored] The grip is a real drag affordance — not decor. */
+  invest_sb_drag_rule: { en: 'Drag to reorder', fr: 'Glisser pour réordonner' },
   invest_sb_expand: { en: 'Expand rule', fr: 'Développer la règle' },
   invest_sb_collapse: { en: 'Collapse rule', fr: 'Réduire la règle' },
   invest_sb_notify_chip: { en: 'Notify', fr: 'Notifier' },
+  /* [FR self-authored] A daily metric on a slower cadence only sees one
+     day per window — surfaced under the rule, not asserted as an error. */
+  invest_sb_cadence_mismatch: {
+    en: 'Reads a single day’s move — a {cadence} scan only sees one day in its window.',
+    fr: 'Lit le mouvement d’une seule journée — un balayage {cadence} ne voit qu’un jour par fenêtre.',
+  },
 
   /* Quantity preview — live plain-language line under the combined
      amount/unit control. */
@@ -294,13 +307,22 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'Reduces your existing position by {n}%',
     fr: 'Réduit votre position existante de {n} %',
   },
-  invest_sb_qty_worth: { en: '{side} ${n} worth', fr: '{side} pour {n} $' },
+  /* {n} already carries the currency — "$1,000 CAD" / "1 000 $ CAD" —
+     because a currency-unit quantity is denominated in the book currency,
+     not always CAD. [FR self-authored] */
+  invest_sb_qty_worth: { en: '{side} {n} worth', fr: '{side} pour {n}' },
 
   /* Strategy health + test scan (real dry run against live data). */
   invest_sb_health_h: { en: 'Strategy health', fr: 'Santé de la stratégie' },
   invest_sb_no_firing: {
     en: 'No firing history yet',
     fr: 'Aucun historique de déclenchement pour l’instant',
+  },
+  /* [FR self-authored] Ran-and-found-nothing is not never-ran — the two
+     states used to share "No firing history yet". */
+  invest_sb_no_hits: {
+    en: 'Scans ran — nothing matched yet.',
+    fr: 'Balayages effectués — aucun déclenchement pour l’instant.',
   },
   invest_sb_test_scan: { en: 'Test scan', fr: 'Balayage d’essai' },
   invest_sb_scanning: {
@@ -348,13 +370,38 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'Outcome: would propose order — {detail} · awaiting your approval',
     fr: 'Résultat : proposerait un ordre — {detail} · en attente de votre approbation',
   },
+  /* [FR self-authored] The match is already covered by an open signal or
+     draft — the dry run reads the same dedupe the sweep does, so it says
+     "would skip", not "would fire". */
+  invest_sb_outcome_suppressed: {
+    en: 'already open — a real scan would skip it',
+    fr: 'déjà ouvert — un vrai balayage l’omettrait',
+  },
+  /* [FR self-authored] Summary-line segment counting suppressed matches. */
+  invest_sb_suppressed_seg: {
+    en: '{n} already open',
+    fr: '{n} déjà ouvert(s)',
+  },
+  /* [FR self-authored] Symbol slot on a book-level match card — the
+     match describes the whole portfolio, not a symbol or a "sweep". */
+  invest_sb_book_match: { en: 'Portfolio', fr: 'Portefeuille' },
 
   /* Run history */
   invest_sb_runs_h: { en: 'Run history', fr: 'Historique des balayages' },
   invest_sb_sweep: { en: 'Agent sweep', fr: 'Balayage de l’agent' },
+  /* Sweep rows carry AI book observations, not rule signals — their own
+     noun so "2 observations" never masquerades as "2 signals". */
+  invest_sb_observation_one: { en: 'observation', fr: 'observation' },
+  invest_sb_observation_many: { en: 'observations', fr: 'observations' },
+  /* [FR self-authored] A strategy row with zero scanned symbols ran
+     book-level metrics only — say that instead of "0 symbols scanned". */
+  invest_sb_book_only: {
+    en: 'book metrics only',
+    fr: 'indicateurs de portefeuille',
+  },
   invest_sb_runs_foot: {
-    en: 'Showing last 10 runs · Sweeps run on schedule even with no enabled strategies.',
-    fr: 'Affichage des 10 derniers balayages · Les balayages suivent l’horaire même sans stratégie activée.',
+    en: 'Showing last 10 runs.',
+    fr: 'Affichage des 10 derniers balayages.',
   },
   invest_sb_run_ok: { en: 'ok', fr: 'ok' },
   invest_sb_run_partial: { en: 'partial', fr: 'partiel' },
@@ -402,5 +449,75 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_draft_failed: {
     en: 'The draft could not be created — {error}',
     fr: 'La rédaction a échoué — {error}',
+  },
+
+  /* Editor back link — dirty state arms a two-tap confirm instead of
+     silently discarding (same pattern as the rule-remove button).
+     [FR self-authored] */
+  invest_sb_confirm_discard: {
+    en: 'Discard changes? Click again',
+    fr: 'Abandonner les modifications ? Cliquez à nouveau',
+  },
+
+  /* Save-time rule validation — a rule that would silently drop on the
+     server is named instead (the number is its position in the list).
+     [FR self-authored] */
+  invest_sb_rule_needs_value: {
+    en: 'Rule {n} needs a threshold.',
+    fr: 'La règle {n} a besoin d’un seuil.',
+  },
+  invest_sb_rule_needs_value2: {
+    en: 'Rule {n} needs a second number — "between" takes two bounds.',
+    fr: 'La règle {n} a besoin d’un deuxième nombre — « entre » exige deux bornes.',
+  },
+  invest_sb_rule_needs_qty: {
+    en: 'Rule {n} needs an order quantity above 0.',
+    fr: 'La règle {n} a besoin d’une quantité d’ordre supérieure à 0.',
+  },
+  /* [FR self-authored] AI-drafted rules the normalizer couldn't read —
+     the saved strategy keeps the valid ones and says what was lost. */
+  invest_sb_rules_dropped: {
+    en: '{n} drafted rule(s) couldn’t be read — add them in the editor.',
+    fr: '{n} règle(s) rédigée(s) illisible(s) — ajoutez-les dans l’éditeur.',
+  },
+
+  /* Engine warning localization — the edge function ships code+params
+     twins (warningDetails) so these render per locale; unknown codes fall
+     back to the engine's raw string. [FR self-authored] */
+  invest_warn_fx_missing: {
+    en: 'Positions quoted in {currencies} were skipped — no FX rate; their value-based rules did not run.',
+    fr: 'Les positions cotées en {currencies} ont été ignorées — aucun taux de change ; leurs règles basées sur la valeur n’ont pas été exécutées.',
+  },
+  invest_warn_no_snapshot: {
+    en: 'Positions without price data were skipped — {symbols}; their value-based rules did not run and weights exclude them.',
+    fr: 'Les positions sans données de prix ont été ignorées — {symbols} ; leurs règles basées sur la valeur n’ont pas été exécutées et les pondérations les excluent.',
+  },
+  invest_warn_qty_unresolvable: {
+    en: '"{title}": quantity could not be resolved for {symbol}.',
+    fr: '« {title} » : la quantité n’a pas pu être calculée pour {symbol}.',
+  },
+  invest_warn_book_proposal: {
+    en: '"{title}": order proposals need a symbol-level metric.',
+    fr: '« {title} » : les propositions d’ordre exigent un indicateur par symbole.',
+  },
+  invest_warn_cash_fx: {
+    en: 'Some cash balances were skipped — no FX rate for their currency.',
+    fr: 'Certaines liquidités ont été ignorées — aucun taux de change pour leur devise.',
+  },
+  invest_warn_no_paper: {
+    en: 'Order proposals were skipped — no active paper account.',
+    fr: 'Les propositions d’ordre ont été ignorées — aucun compte simulé actif.',
+  },
+  invest_warn_email_failed: {
+    en: 'Email delivery failed for "{name}".',
+    fr: 'L’envoi du courriel a échoué pour « {name} ».',
+  },
+  invest_warn_digest_failed: {
+    en: 'The digest email failed — pending items stay buffered for the next sweep.',
+    fr: 'L’envoi du courriel groupé a échoué — les éléments en attente restent conservés pour le prochain balayage.',
+  },
+  invest_warn_history_failed: {
+    en: 'The run completed but its history row could not be recorded.',
+    fr: 'Le balayage s’est terminé, mais sa ligne d’historique n’a pas pu être enregistrée.',
   },
 })

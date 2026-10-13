@@ -15,6 +15,7 @@ import { convertFx, fetchFxTable } from './fx.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
+import type { PostgrestSingleResponse } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import { loadStrategies } from './strategies.ts'
 
@@ -45,42 +46,58 @@ export async function runUser(
     throw new Error(expiryError.message)
   }
 
-  const [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes, draftsRes] =
-    await Promise.all([
-      adminClient
-        .from('invest_market_snapshots')
-        .select('asset_class, symbol, price, day_change_pct, ma50, currency')
-        .eq('user_id', userId),
-      adminClient
-        .from('invest_positions')
-        .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
-        .eq('user_id', userId),
-      adminClient
-        .from('invest_signals')
-        .select('strategy_id, symbol, kind, title')
-        .eq('user_id', userId)
-        .eq('status', 'new'),
-      adminClient
-        .from('invest_accounts')
-        .select('cash_balance, base_currency')
-        .eq('user_id', userId)
-        .eq('status', 'active'),
-      adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
-      adminClient
-        .from('invest_orders')
-        .select('strategy_id, symbol, note')
-        .eq('user_id', userId)
-        .eq('status', 'draft'),
-    ])
+  /* Dedupe reads 0218 columns when they exist — older schemas retry without
+     them and fall back to title-keyed rows (rule_id null, in_feed true). */
+  const signalsSelect = (cols: string) =>
+    adminClient
+      .from('invest_signals')
+      .select(cols)
+      .eq('user_id', userId)
+      /* 'new' and 'acknowledged' both suppress a refire — acknowledged means
+         "still open"; only 'dismissed' frees the key. */
+      .in('status', ['new', 'acknowledged'])
+  let signalsRes = await signalsSelect(
+    'strategy_id, symbol, kind, title, rule_id, in_feed, created_at',
+  )
+  if (signalsRes.error && /rule_id|in_feed/.test(signalsRes.error.message)) {
+    signalsRes = await signalsSelect('strategy_id, symbol, kind, title, created_at')
+  }
+  let draftsRes: PostgrestSingleResponse<Parameters<typeof draftKey>[0][]> =
+    await adminClient
+      .from('invest_orders')
+      .select('strategy_id, symbol, note, rule_id')
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+  if (draftsRes.error && /rule_id/.test(draftsRes.error.message)) {
+    draftsRes = await adminClient
+      .from('invest_orders')
+      .select('strategy_id, symbol, note')
+      .eq('user_id', userId)
+      .eq('status', 'draft')
+  }
+  const [snapshotsRes, positionsRes, accountsRes, watchlistRes] = await Promise.all([
+    adminClient
+      .from('invest_market_snapshots')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency')
+      .eq('user_id', userId),
+    adminClient
+      .from('invest_positions')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
+      .eq('user_id', userId),
+    adminClient
+      .from('invest_accounts')
+      .select('cash_balance, base_currency')
+      .eq('user_id', userId)
+      .eq('status', 'active'),
+    adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
+  ])
   for (const res of [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes]) {
     if (res.error) throw new Error(res.error.message)
   }
   /* draftsRes may 42703 on a pre-0184 schema (no strategy_id column) —
      degrade to no proposal dedupe rather than failing the run. */
   const openDraftKeys = new Set(
-    ((draftsRes.error ? [] : (draftsRes.data ?? [])) as Parameters<typeof draftKey>[0][]).map(
-      draftKey,
-    ),
+    (draftsRes.error ? [] : (draftsRes.data ?? [])).map(draftKey),
   )
 
   const snapshots = (snapshotsRes.data ?? []) as MarketSnapshot[]
@@ -113,9 +130,20 @@ export async function runUser(
     }
     return sum + v
   }, 0)
-  const existingKeys = new Set(
-    ((signalsRes.data ?? []) as Parameters<typeof signalKey>[0][]).map(signalKey),
+  /* Feed-visible signals dedupe for as long as the user leaves them open —
+     that's the current contract. Hidden rows (in_feed=false, an in-app-off
+     strategy) can never be dismissed, so they'd lock the key forever; they
+     only suppress repeats for DEDUPE_WINDOW before re-arming. */
+  const DEDUPE_WINDOW_MS = 7 * 86_400_000
+  const dedupeRows = ((signalsRes.data ?? []) as unknown as (
+    Parameters<typeof signalKey>[0] & { in_feed?: boolean; created_at?: string }
+  )[]).filter(
+    (s) =>
+      s.in_feed !== false ||
+      !s.created_at ||
+      Date.now() - Date.parse(s.created_at) < DEDUPE_WINDOW_MS,
   )
+  const existingKeys = new Set(dedupeRows.map(signalKey))
 
   const plan = planRun(strategies, snapshots, positions, existingKeys, {
     cashTotal,
@@ -126,6 +154,7 @@ export async function runUser(
   })
   if (cashSkipped) {
     plan.warnings.push('some cash balances skipped — no FX rate for their base currency')
+    plan.warningDetails.push({ code: 'cash_fx_missing', params: {} })
   }
 
   /* The evaluation clock is stamped after writes, below — a run whose
@@ -139,15 +168,20 @@ export async function runUser(
     )
     .map((s) => s.id)
 
-  /* Insert signals — strategies with notify.in_app === false stay out of the
-     in-app feed entirely; their hits still feed emails and run history. */
+  /* Signals always persist — the row is both the audit trail and the dedupe
+     record. notify.in_app === false only hides it from the feed (0218
+     in_feed); before that column, suppressed signals never landed, so the
+     key never existed and email-only strategies re-emailed the identical
+     hit every sweep. */
   const inAppOff = new Set(
     strategies.filter((s) => s.notify_in_app === false).map((s) => s.id),
   )
+  /* 0218 columns ride every insert on projects that have them; the first
+     'undefined column' error retires them for the rest of this run. */
+  let signalCols0218 = true
   let writesFailed = false
   for (const signal of plan.signals) {
-    if (inAppOff.has(signal.strategy_id)) continue
-    const { error } = await adminClient.from('invest_signals').insert({
+    const base = {
       user_id: userId,
       strategy_id: signal.strategy_id,
       asset_class: signal.asset_class,
@@ -159,7 +193,19 @@ export async function runUser(
       body: signal.body,
       body_fr: signal.body_fr ?? null,
       score: signal.score,
-    })
+    }
+    const withNewCols = {
+      ...base,
+      rule_id: signal.rule_id ?? null,
+      in_feed: !inAppOff.has(signal.strategy_id),
+    }
+    let { error } = await adminClient
+      .from('invest_signals')
+      .insert(signalCols0218 ? withNewCols : base)
+    if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
+      signalCols0218 = false
+      ;({ error } = await adminClient.from('invest_signals').insert(base))
+    }
     if (error) writesFailed = true
   }
 
@@ -184,9 +230,11 @@ export async function runUser(
   if (plan.proposals.length > 0) {
     if (!paperAccount) {
       plan.warnings.push('order proposals skipped — no active paper account')
+      plan.warningDetails.push({ code: 'no_paper_account', params: {} })
     } else {
+      let orderCols0218 = true
       for (const proposal of plan.proposals) {
-        const { error } = await adminClient.from('invest_orders').insert({
+        const base = {
           user_id: userId,
           account_id: paperAccount.id,
           strategy_id: proposal.strategy_id,
@@ -200,7 +248,15 @@ export async function runUser(
           status: 'draft',
           requested_price: proposal.requested_price,
           note: proposal.note,
-        })
+        }
+        const withRuleId = { ...base, rule_id: proposal.rule_id ?? null }
+        let { error } = await adminClient
+          .from('invest_orders')
+          .insert(orderCols0218 ? withRuleId : base)
+        if (error && orderCols0218 && /rule_id/.test(error.message)) {
+          orderCols0218 = false
+          ;({ error } = await adminClient.from('invest_orders').insert(base))
+        }
         if (error) {
           writesFailed = true
           continue
@@ -226,25 +282,44 @@ export async function runUser(
 
   /* AI insight pass — bilingual plain-language observations on the run.
      Never fatal: a model outage must not lose the deterministic signals.
-     The advice tier keys off the sign-in email (the JWT path passes it in
-     opts; run-all resolves it here) — only looked up when the insight pass
-     can actually produce something. */
+     Runs when a strategy actually evaluated this sweep, or when the user
+     explicitly asked (manual scan) — an idle run-all (nothing due, or
+     every strategy paused) must not emit daily book observations or write
+     sweep rows for them. The advice tier keys off the sign-in email (the
+     JWT path passes it in opts; run-all resolves it here) — only looked
+     up when the pass can produce. */
+  const insightsDue = evaluatedIds.length > 0 || opts.force === true
   let authEmail = opts.email ?? null
-  if (authEmail === null && (positions.length > 0 || cashTotal > 0)) {
+  if (insightsDue && authEmail === null && (positions.length > 0 || cashTotal > 0)) {
     const { data: userData } = await adminClient.auth.admin.getUserById(userId)
     authEmail = userData?.user?.email ?? null
   }
-  const insights = await maybeEmitInsights(adminClient, {
-    snapshots,
-    positions,
-    cashTotal,
-    signalsEmitted: plan.signals.length,
-    ordersPlanned: plan.proposals.length,
-    fx,
-    bookCurrency,
-  }, { advice: isInternalDutivaAccount(authEmail) })
+  const insights = insightsDue
+    ? await maybeEmitInsights(adminClient, {
+        snapshots,
+        positions,
+        cashTotal,
+        signalsEmitted: plan.signals.length,
+        ordersPlanned: plan.proposals.length,
+        fx,
+        bookCurrency,
+      }, { advice: isInternalDutivaAccount(authEmail) })
+    : []
+  /* Insight rows dedupe on their own (strategy,symbol,kind,title) key —
+     identical repeat observations stack no more than one open row, same as
+     rule signals. Insert failures are tolerated like the rest of the pass. */
+  let insightsInserted = 0
   for (const insight of insights) {
-    await adminClient.from('invest_signals').insert({
+    const kind = insight.severity === 'warn' ? 'alert' : 'insight'
+    const key = signalKey({
+      strategy_id: null,
+      symbol: '',
+      kind,
+      title: insight.title_en,
+    })
+    if (existingKeys.has(key)) continue
+    existingKeys.add(key)
+    const base = {
       user_id: userId,
       strategy_id: null,
       asset_class: 'other',
@@ -252,13 +327,22 @@ export async function runUser(
       name: '',
       /* Warn-severity observations render as alerts — a model-noticed decline
          deserves the same warning pill a rule-driven drop gets. */
-      kind: insight.severity === 'warn' ? 'alert' : 'insight',
+      kind,
       title: insight.title_en,
       title_fr: insight.title_fr,
       body: insight.body_en,
       body_fr: insight.body_fr,
       score: null,
-    })
+    }
+    const withNewCols = { ...base, in_feed: true, rule_id: null }
+    let { error } = await adminClient
+      .from('invest_signals')
+      .insert(signalCols0218 ? withNewCols : base)
+    if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
+      signalCols0218 = false
+      ;({ error } = await adminClient.from('invest_signals').insert(base))
+    }
+    if (!error) insightsInserted += 1
   }
 
   /* Email alerts — notify.email strategies get one bilingual summary per
@@ -350,6 +434,7 @@ export async function runUser(
           plan.warnings.push(
             `email delivery failed for "${hit.name}": ${(err as Error).message.slice(0, 120)}`,
           )
+          plan.warningDetails.push({ code: 'email_failed', params: { name: hit.name } })
         }
       }
     } else if (cadence !== 'immediate' && pending.length > 0) {
@@ -362,6 +447,7 @@ export async function runUser(
           plan.warnings.push(
             `digest email failed: ${(err as Error).message.slice(0, 120)}`,
           )
+          plan.warningDetails.push({ code: 'digest_failed', params: {} })
           await upsertPending(pending, false)
         }
       } else {
@@ -373,7 +459,9 @@ export async function runUser(
 
   /* Run history is per strategy — one row for each strategy evaluated this
      sweep, so rule_hits and symbols_scanned never mix across strategies
-     that share a rule title. Proposals count what was actually inserted. */
+     that share a rule title. Proposals count what was actually inserted.
+     Sweeps where nothing was due write no row at all — a daily "0 symbols
+     scanned" record claimed a scan that never happened. */
   const durationMs = Date.now() - startedAt
   const runRows: Database['public']['Tables']['invest_bot_runs']['Insert'][] =
     plan.perStrategy.map((s) => {
@@ -383,41 +471,61 @@ export async function runUser(
         signals_emitted: s.signals,
         orders_suggested: proposalsByStrategy.get(s.strategyId) ?? 0,
         orders_executed: 0,
-        summary: `${s.symbolsScanned.length} symbol(s) scanned`,
+        summary:
+          s.symbolsScanned.length === 1
+            ? '1 symbol scanned'
+            : `${s.symbolsScanned.length} symbols scanned`,
         status: writesFailed ? 'partial' : 'ok',
         symbols_scanned: s.symbolsScanned,
         rule_hits: s.ruleHits,
-        duration_ms: durationMs,
+        duration_ms: s.durationMs,
       }
     })
-  if (insights.length > 0 || runRows.length === 0) {
+  if (insightsInserted > 0) {
     runRows.push({
       user_id: userId,
       strategy_id: null,
-      signals_emitted: insights.length,
+      signals_emitted: insightsInserted,
       orders_suggested: 0,
       orders_executed: 0,
-      summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
+      summary:
+        plan.symbolsScanned.length === 1
+          ? '1 symbol scanned'
+          : `${plan.symbolsScanned.length} symbols scanned`,
       status: writesFailed ? 'partial' : 'ok',
       symbols_scanned: plan.symbolsScanned,
       rule_hits: {},
       duration_ms: durationMs,
     })
   }
-  const runInsert = await adminClient.from('invest_bot_runs').insert(runRows)
-  if (
-    runInsert.error &&
-    /strategy_id|symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)
-  ) {
-    /* Pre-0184 schema — record a single flat row without diagnostics. */
-    await adminClient.from('invest_bot_runs').insert({
-      user_id: userId,
-      signals_emitted: plan.signals.length + insights.length,
-      orders_suggested: proposalsCreated,
-      orders_executed: 0,
-      summary: `${plan.symbolsScanned.length} symbol(s) scanned`,
-      status: writesFailed ? 'partial' : 'ok',
-    })
+  if (runRows.length > 0) {
+    const runInsert = await adminClient.from('invest_bot_runs').insert(runRows)
+    if (
+      runInsert.error &&
+      /strategy_id|symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)
+    ) {
+      /* Pre-0184 schema — record a single flat row without diagnostics. */
+      await adminClient.from('invest_bot_runs').insert({
+        user_id: userId,
+        signals_emitted: plan.signals.length + insightsInserted,
+        orders_suggested: proposalsCreated,
+        orders_executed: 0,
+        summary:
+          plan.symbolsScanned.length === 1
+            ? '1 symbol scanned'
+            : `${plan.symbolsScanned.length} symbols scanned`,
+        status: writesFailed ? 'partial' : 'ok',
+      })
+    } else if (runInsert.error) {
+      /* A non-schema insert failure must not vanish — history silently
+         dropped reads as "the bot never ran". */
+      plan.warnings.push(`run history not recorded: ${runInsert.error.message.slice(0, 160)}`)
+      plan.warningDetails.push({
+        code: 'run_history_failed',
+        params: { error: runInsert.error.message.slice(0, 160) },
+      })
+      console.error('invest-bot: run history insert failed', runInsert.error)
+    }
   }
 
   return {
@@ -426,6 +534,7 @@ export async function runUser(
     proposals: proposalsCreated,
     ruleHits: plan.ruleHits,
     warnings: plan.warnings,
+    warningDetails: plan.warningDetails,
     durationMs: Date.now() - startedAt,
   }
 }

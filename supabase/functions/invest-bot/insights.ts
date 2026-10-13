@@ -49,7 +49,10 @@ export function buildInsightPrompt(ctx: InsightContext): string {
   const toBook = (amount: number, currency: string): number | null =>
     convertFx(amount, currency, bookCurrency, ctx.fx ?? null)
 
-  let bookValue = 0
+  /* Same denominator as planRun's weight_pct: marked positions plus cash —
+     "weight" must mean the same share-of-everything in the model's words
+     that the rules evaluate, or an observation can contradict a rule. */
+  let bookValue = ctx.cashTotal
   let bookComplete = true
   for (const p of ctx.positions) {
     const snap = priceBySymbol.get(`${p.asset_class}:${p.symbol}`)
@@ -64,8 +67,9 @@ export function buildInsightPrompt(ctx: InsightContext): string {
 
   const lines: string[] = [
     `Positions marked: ${ctx.positions.length}; book value ~${bookValue.toFixed(2)} ${bookCurrency}` +
-      (bookComplete ? '' : ' (some positions unpriced — no FX rate)') +
-      `; cash ${ctx.cashTotal.toFixed(2)} ${bookCurrency}.`,
+      ` (incl. cash ${ctx.cashTotal.toFixed(2)})` +
+      (bookComplete ? '' : '; some positions unpriced — no FX rate') +
+      '.',
   ]
   for (const p of ctx.positions) {
     const snap = priceBySymbol.get(`${p.asset_class}:${p.symbol}`)

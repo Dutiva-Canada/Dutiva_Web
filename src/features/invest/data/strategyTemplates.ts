@@ -145,9 +145,12 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     rules: [
       {
         type: 'order_proposal',
-        /* vs_ma50 < 9999 fires on every evaluation — the cadence is the
-           schedule. (day_change_pct would trip the cadence-mismatch warning.) */
-        metric: 'vs_ma50',
+        /* day_change_pct < 9999 is the near-universal gate: it fires on
+           every symbol with a daily move recorded. vs_ma50 looked like the
+           same trick but silently skipped symbols without a 50-day
+           average — an unpriced symbol stays silent either way, which is
+           correct (a stale symbol should not propose a buy). */
+        metric: 'day_change_pct',
         op: 'lt',
         value: 9999,
         side: 'buy',

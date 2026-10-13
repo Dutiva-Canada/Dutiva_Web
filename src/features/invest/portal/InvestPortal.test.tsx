@@ -136,6 +136,7 @@ const STATE: InvestState = {
     {
       id: 'sig1',
       strategyId: 's1',
+      ruleId: null,
       assetClass: 'equity',
       symbol: 'SHOP',
       name: 'Shopify',
@@ -146,6 +147,7 @@ const STATE: InvestState = {
       bodyFr: null,
       score: 72,
       status: 'new',
+      inFeed: true,
       createdAt: '2026-01-20T12:00:00Z',
     },
   ],
@@ -154,6 +156,7 @@ const STATE: InvestState = {
       id: 'o1',
       accountId: 'acc1',
       signalId: 'sig1',
+      ruleId: null,
       assetClass: 'equity',
       symbol: 'SHOP',
       name: 'Shopify',

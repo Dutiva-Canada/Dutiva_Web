@@ -20,7 +20,7 @@ import { useInvestData } from '../data/InvestDataContext'
 import { deleteStrategy, normalizeAiStrategyDraft, saveStrategy, scanNow, testScan } from '../data/api'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type { InvestStrategy, StrategyCadence, StrategyRule } from '../data/types'
-import { ruleFireCount } from '../data/strategyRules'
+import { ruleFireCount, validateRules } from '../data/strategyRules'
 import { relTimeLabel } from './relTime'
 import { StrategyEditor } from './StrategyEditor'
 import { StrategyWizard } from './StrategyWizard'
@@ -28,6 +28,7 @@ import { useInvestHead } from './useInvestHead'
 import {
   formatRunWhen,
   pl,
+  ruleProblemText,
   scopeSymbols,
   strategyMeta,
   trackedUniverse,
@@ -73,6 +74,13 @@ export function InvestStrategiesPage() {
     () => trackedUniverse(state.positions, state.watchlist),
     [state.positions, state.watchlist],
   )
+  /* Book currency mirrors the engine's rule — first active account's
+     base. Money thresholds and currency-unit quantities label in it. */
+  const bookCurrency = useMemo(
+    () =>
+      (state.accounts.find((a) => a.status === 'active')?.baseCurrency ?? 'CAD').toUpperCase(),
+    [state.accounts],
+  )
   const fmtNext = useMemo(
     () =>
       new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -107,11 +115,22 @@ export function InvestStrategiesPage() {
       if (!raw) return
       setPendingBusy(s.id)
       try {
-        await saveStrategy(normalizeAiStrategyDraft(raw))
+        const normalized = normalizeAiStrategyDraft(raw)
+        /* Rules the model emitted but the normalizer couldn't read are
+           named, not silently dropped — the saved strategy keeps the
+           valid ones and the toast says what was lost. */
+        const dropped =
+          (Array.isArray(raw.rules) ? raw.rules.length : 0) - normalized.rules.length
+        await saveStrategy(normalized)
         await resolveSuggestion(s.id, 'accepted', 'added')
         setPending((cur) => cur.filter((r) => r.id !== s.id))
         await refresh()
         showToast(IM.invest_sb_created)
+        if (dropped > 0) {
+          showToast(
+            fill(x(IM.invest_sb_rules_dropped), { n: String(dropped) }),
+          )
+        }
       } catch (e) {
         showToast(
           fill(x(IM.invest_sb_save_failed), {
@@ -186,8 +205,23 @@ export function InvestStrategiesPage() {
     }
   }, [busy, refresh, showToast, x])
 
+  /* The first invalid rule names itself in the toast — a NaN threshold or
+     empty quantity would silently drop the rule at save time otherwise. */
+  const ruleProblem = useCallback(
+    (d: StrategyDraft): string | null => {
+      const first = validateRules(d.rules.map((r) => r.rule))[0]
+      return first ? ruleProblemText(lang, first) : null
+    },
+    [lang],
+  )
+
   const saveDraft = useCallback(async () => {
     if (!draft || busy) return
+    const problem = ruleProblem(draft)
+    if (problem) {
+      showToast(fill(x(IM.invest_sb_save_failed), { error: problem }))
+      return
+    }
     setBusy('save')
     try {
       const id = await saveStrategy(toWire(draft))
@@ -205,7 +239,7 @@ export function InvestStrategiesPage() {
     } finally {
       setBusy(null)
     }
-  }, [draft, busy, refresh, showToast, x])
+  }, [draft, busy, refresh, showToast, x, ruleProblem])
 
   const discardDraft = useCallback(() => {
     if (!snapshot) return
@@ -239,14 +273,30 @@ export function InvestStrategiesPage() {
      results cards. */
   const runDryScan = useCallback(() => {
     if (!draft) return Promise.reject(new Error('No draft'))
+    /* An invalid rule would silently drop out of the dry run too — the
+       scan reports what the editor can fix, not a partial truth. */
+    const problem = ruleProblem(draft)
+    if (problem) return Promise.reject(new Error(problem))
     const wire = toWire(draft)
     const symbols = scopeSymbols(wire.scope, universe)
-    return testScan({ rules: wire.rules, symbols, multiMatch: wire.multiMatch })
-  }, [draft, universe])
+    /* draft.id carries the saved row's id — a test scan dedupes against
+       that strategy's own open signals/drafts, not a throwaway key. */
+    return testScan({
+      rules: wire.rules,
+      symbols,
+      multiMatch: wire.multiMatch,
+      strategyId: wire.id,
+    })
+  }, [draft, universe, ruleProblem])
 
   const createFromWizard = useCallback(
     async (d: StrategyDraft, suggestionId?: string | null) => {
       if (busy) return
+      const problem = ruleProblem(d)
+      if (problem) {
+        showToast(fill(x(IM.invest_sb_save_failed), { error: problem }))
+        return
+      }
       setBusy('create')
       try {
         const id = await saveStrategy(toWire(d))
@@ -273,7 +323,7 @@ export function InvestStrategiesPage() {
         setBusy(null)
       }
     },
-    [busy, refresh, showToast, x],
+    [busy, refresh, showToast, x, ruleProblem],
   )
 
   const fireCount = useCallback(
@@ -478,6 +528,7 @@ export function InvestStrategiesPage() {
           runs={state.runs}
           signals={state.signals}
           snapshots={state.snapshots}
+          bookCurrency={bookCurrency}
           strategyNameById={strategyNameById}
           fireCount={fireCount}
           onChange={setDraft}
@@ -493,6 +544,7 @@ export function InvestStrategiesPage() {
         <StrategyWizard
           trackedSymbols={universe}
           busy={busy === 'create'}
+          bookCurrency={bookCurrency}
           onCancel={() => backToList(false)}
           onCreate={(d) => void createFromWizard(d)}
         />

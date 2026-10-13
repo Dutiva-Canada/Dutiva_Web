@@ -4,13 +4,11 @@ import {
   estimateFrequency,
   normalizeRules,
   ruleFireCount,
-  ruleSentence,
   scopeIsEmpty,
   staleScopeSymbols,
+  validateRules,
 } from './strategyRules'
 import type { InvestBotRun, InvestSignal, MarketSnapshot, StrategyRule } from './types'
-
-const en = (m: string) => ({ en: m, fr: m })
 
 describe('normalizeRules', () => {
   it('splits the new typed shapes cleanly', () => {
@@ -91,17 +89,39 @@ describe('scopeIsEmpty', () => {
   })
 })
 
-describe('ruleSentence', () => {
-  it('reads as plain English', () => {
-    const rule: StrategyRule = {
+describe('validateRules', () => {
+  it('names every problem a NaN clamp used to hide', () => {
+    const base: StrategyRule = {
       type: 'signal',
       metric: 'day_change_pct',
-      op: 'gt',
-      value: 15,
-      severity: 'alert',
-      title: 'x',
+      op: 'lt',
+      value: -5,
+      severity: 'insight',
+      title: 'ok',
     }
-    expect(ruleSentence(rule, en).en).toBe('day_change_pct is above 15')
+    expect(validateRules([base])).toEqual([])
+    expect(validateRules([{ ...base, value: NaN }])).toEqual([
+      { index: 0, code: 'value_required' },
+    ])
+    expect(
+      validateRules([{ ...base, op: 'between', value2: NaN }]),
+    ).toEqual([{ index: 0, code: 'value2_required' }])
+    const order: StrategyRule = {
+      type: 'order_proposal',
+      metric: 'day_change_pct',
+      op: 'lt',
+      value: -5,
+      side: 'buy',
+      qty: NaN,
+      qtyUnit: 'shares',
+      title: 'buy',
+    }
+    expect(validateRules([order])).toEqual([{ index: 0, code: 'qty_required' }])
+    expect(validateRules([{ ...order, qty: 0 }])).toEqual([{ index: 0, code: 'qty_required' }])
+    /* Position in the array is the name the user sees. */
+    expect(validateRules([base, { ...base, value: NaN }])).toEqual([
+      { index: 1, code: 'value_required' },
+    ])
   })
 })
 
@@ -151,6 +171,7 @@ describe('ruleFireCount / estimateFrequency', () => {
     {
       id: 'sig1',
       strategyId: 's1',
+      ruleId: null,
       assetClass: 'equity',
       symbol: 'SHOP',
       name: 'Shopify',
@@ -161,6 +182,7 @@ describe('ruleFireCount / estimateFrequency', () => {
       bodyFr: null,
       score: null,
       status: 'new',
+      inFeed: true,
       createdAt: '2026-02-11T12:00:00Z',
     },
   ]
@@ -172,6 +194,23 @@ describe('ruleFireCount / estimateFrequency', () => {
     /* Pre-0184 coverage: no diagnostic runs → signal rows stand in. */
     const bareRun: InvestBotRun = { ...runs[0]!, ruleHits: {} }
     expect(ruleFireCount(rule, 's1', [bareRun], signals, now)).toBe(1)
+  })
+
+  it('keys on rule id — and still reads its legacy title-keyed hits', () => {
+    const idRule: StrategyRule = { ...rule, id: 'rule-abc' } /* title 'Dip' */
+    const idRun: InvestBotRun = {
+      ...runs[0]!,
+      /* The rule's own post-0218 id key plus pre-0218 title-keyed hits
+         written before the column existed — history survives the schema
+         transition, not just the edit. */
+      ruleHits: { 'rule-abc': 3, Dip: 1 },
+    }
+    expect(ruleFireCount(idRule, 's1', [idRun], [], now)).toBe(4)
+    /* A second same-title rule reads only the title slot (its own id key
+       is absent) — merged legacy hits are unattributable either way;
+       dual-key dedupe accepts the same edge. */
+    const sameTitle: StrategyRule = { ...rule, id: 'rule-xyz' }
+    expect(ruleFireCount(sameTitle, 's1', [idRun], [], now)).toBe(1)
   })
 
   it('returns null (never a fake zero) when no history exists', () => {

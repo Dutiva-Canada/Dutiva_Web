@@ -4,7 +4,6 @@
  * and firing history. Pure and unit-tested; the edge engine keeps its own
  * compatible copy in supabase/functions/invest-bot/handlers.ts.
  */
-import type { Bi } from '@/i18n/core'
 import type {
   InvestBotRun,
   InvestSignal,
@@ -62,6 +61,9 @@ export function normalizeRules(raw: unknown): StrategyRule[] {
     if (typeof o.metric !== 'string' || !RULE_METRICS.includes(o.metric as RuleMetric)) continue
     const value2 = Number(o.value2)
     const base = {
+      /* 0218 identity — passthrough so dedupe/history follow the rule, not
+         its (editable) title. */
+      ...(typeof o.id === 'string' && o.id.trim() !== '' ? { id: o.id.trim() } : {}),
       metric: o.metric as RuleMetric,
       op: (o.op === 'lt' ? 'lt' : o.op === 'between' ? 'between' : 'gt') as
         | 'lt'
@@ -111,21 +113,28 @@ export function scopeIsEmpty(scope: InvestStrategy['scope']): boolean {
   return !scope.watchlist && scope.symbols.length === 0
 }
 
-/**
- * Plain-English rendering of a rule — "Day change is above 15%". Used by
- * the builder cards, the template preview, and the strategy list.
- */
-export function ruleSentence(rule: StrategyRule, label: (m: RuleMetric) => Bi): Bi {
-  const metric = label(rule.metric)
-  if (rule.op === 'lt') {
-    return { en: `${metric.en} is below ${rule.value}`, fr: `${metric.fr} est sous ${rule.value}` }
-  }
-  if (rule.op === 'between') {
-    const lo = Math.min(rule.value, rule.value2 ?? rule.value)
-    const hi = Math.max(rule.value, rule.value2 ?? rule.value)
-    return { en: `${metric.en} is between ${lo} and ${hi}`, fr: `${metric.fr} est entre ${lo} et ${hi}` }
-  }
-  return { en: `${metric.en} is above ${rule.value}`, fr: `${metric.fr} dépasse ${rule.value}` }
+/** Problems that would make a rule silently die at save — a cleared
+    number input serializes to null and the engine's parseRules drops the
+    whole rule, so the editor must surface these instead of persisting a
+    strategy whose rule disappears on reload. */
+export interface RuleProblem {
+  /** Position of the offending rule in the array. */
+  index: number
+  code: 'value_required' | 'value2_required' | 'qty_required'
+}
+
+export function validateRules(rules: StrategyRule[]): RuleProblem[] {
+  const problems: RuleProblem[] = []
+  rules.forEach((r, index) => {
+    if (!Number.isFinite(r.value)) problems.push({ index, code: 'value_required' })
+    else if (r.op === 'between' && !Number.isFinite(r.value2)) {
+      problems.push({ index, code: 'value2_required' })
+    }
+    if (r.type === 'order_proposal' && !(Number.isFinite(r.qty) && r.qty > 0)) {
+      problems.push({ index, code: 'qty_required' })
+    }
+  })
+  return problems
 }
 
 /** Cadence/metric mismatch warnings — e.g. a day-change rule can only
@@ -153,10 +162,12 @@ export function defaultSignalRule(): StrategyRule {
 /**
  * Times a rule fired in the last 90 days — the run-history rule_hits are
  * the firing record going forward (they count matches even when dedupe
- * suppressed the signal). Signals are the fallback for pre-0184 runs that
- * carry no diagnostics — not added on top, since a signal row is the
- * output of a hit the run already counted. Returns null when there's
- * simply no history to count — never a fabricated number.
+ * suppressed the signal). Runs key rule_hits on the rule's identity
+ * (id ?? title); the title read stays as the fallback for rows written
+ * before 0218. Signals are the fallback for pre-0184 runs that carry no
+ * diagnostics — not added on top, since a signal row is the output of a
+ * hit the run already counted. Returns null when there's simply no
+ * history to count — never a fabricated number.
  */
 export function ruleFireCount(
   rule: StrategyRule,
@@ -167,14 +178,20 @@ export function ruleFireCount(
 ): number | null {
   if (!strategyId) return null /* unsaved draft — no history exists */
   const cutoff = now.getTime() - 90 * 24 * 60 * 60 * 1000
+  const ident = rule.id ?? rule.title
   let hits = 0
   let hasDiagnostics = false
   for (const run of runs) {
     if (new Date(run.ranAt).getTime() < cutoff) continue
     if (run.strategyId && run.strategyId !== strategyId) continue
     if (Object.keys(run.ruleHits).length > 0) hasDiagnostics = true
-    const n = run.ruleHits[rule.title]
-    if (typeof n === 'number') hits += n
+    /* Post-0218 rows key on the rule id; pre-0218 rows keyed on title —
+       the same rule's history is the SUM of both slots (a single run row
+       never holds both for one rule). Merged same-title legacy hits are
+       genuinely unattributable — dual-key dedupe accepts the same edge. */
+    hits +=
+      (run.ruleHits[ident] ?? 0) +
+      (ident !== rule.title ? (run.ruleHits[rule.title] ?? 0) : 0)
   }
   if (hasDiagnostics) return hits
   /* No diagnostic runs in the window — fall back to counting the signals
@@ -183,7 +200,9 @@ export function ruleFireCount(
   let legacy = 0
   let sawLegacySignal = false
   for (const s of signals) {
-    if (s.strategyId !== strategyId || s.title !== rule.title) continue
+    /* Signal rows carry rule_id post-0218; pre-0218 rows key on title —
+       same dual-key identity the run_hits read uses. */
+    if (s.strategyId !== strategyId || (s.ruleId ?? s.title) !== ident) continue
     if (new Date(s.createdAt).getTime() < cutoff) continue
     legacy += 1
     sawLegacySignal = true
