@@ -113,6 +113,7 @@ export async function loadBookContext(
     { data: signals },
     { data: orders },
     { data: snapshots },
+    { data: profileRow },
   ] = await Promise.all([
     adminClient.from('invest_accounts')
       .select('id, name, kind, base_currency, cash_balance, status')
@@ -143,6 +144,13 @@ export async function loadBookContext(
       .eq('user_id', userId)
       .order('as_of', { ascending: false })
       .limit(60),
+    /* The Settings profile — calibrates the answer's depth and focus.
+       Loaded server-side like the rest of the book so the client can
+       neither spoof it nor turn it into a permission. */
+    adminClient.from('invest_user_profile')
+      .select('risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions')
+      .eq('user_id', userId)
+      .maybeSingle(),
   ])
 
   /* Headlines ride the market section — the table is global, so the query
@@ -213,6 +221,17 @@ export async function loadBookContext(
   }
 
   const ctx: InvestChatContext = {
+    profile: profileRow
+      ? {
+          riskTolerance: (profileRow.risk_tolerance as string | null) ?? null,
+          horizon: (profileRow.horizon as string | null) ?? null,
+          goal: (profileRow.goal as string | null) ?? null,
+          experience: (profileRow.experience as string | null) ?? null,
+          answerStyle: (profileRow.answer_style as string | null) ?? null,
+          sectors: (profileRow.sectors as string[] | null) ?? [],
+          exclusions: (profileRow.exclusions as string[] | null) ?? [],
+        }
+      : null,
     accounts: (accounts ?? []).map((a) => ({
       name: String(a.name),
       kind: String(a.kind),

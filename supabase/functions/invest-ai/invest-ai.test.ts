@@ -17,6 +17,7 @@ import {
 } from './handlers'
 
 const EMPTY_CTX: InvestChatContext = {
+  profile: null,
   accounts: [],
   positions: [],
   watchlist: [],
@@ -50,6 +51,45 @@ describe('investChatPrompt', () => {
   })
   it('asks for French under lang fr', () => {
     expect(investChatPrompt(EMPTY_CTX, 'fr').content).toContain('Canadian French')
+  })
+  it('renders the user profile as calibration facts, never as permission', () => {
+    const ctx: InvestChatContext = {
+      ...EMPTY_CTX,
+      profile: {
+        riskTolerance: 'aggressive',
+        horizon: 'long',
+        goal: 'growth',
+        experience: 'new',
+        answerStyle: 'teach',
+        sectors: ['technology', 'energy'],
+        exclusions: ['tobacco', 'weapons'],
+      },
+    }
+    const p = investChatPrompt(ctx, 'en').content
+    expect(p).toContain('User profile')
+    expect(p).toContain('risk tolerance: aggressive')
+    expect(p).toContain('horizon: long (10+ years)')
+    expect(p).toContain('goal: growth')
+    expect(p).toContain('experience: new to markets')
+    expect(p).toContain('answer style: explain the reasoning')
+    expect(p).toContain('sectors they follow: technology, energy')
+    expect(p).toContain('screens out: tobacco, weapons')
+    /* The profile is declared subordinate to the advice boundary — even
+       an "aggressive" external account keeps the hard line. */
+    expect(p).toContain('never changes the advice boundary')
+    expect(p).toContain('nothing here is investment advice')
+  })
+  it('omits the profile section entirely when nothing is set', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).not.toContain('User profile')
+    const blank: InvestChatContext = {
+      ...EMPTY_CTX,
+      profile: {
+        riskTolerance: null, horizon: null, goal: null, experience: null,
+        answerStyle: null, sectors: [], exclusions: [],
+      },
+    }
+    expect(investChatPrompt(blank, 'en').content).not.toContain('User profile')
   })
 })
 
