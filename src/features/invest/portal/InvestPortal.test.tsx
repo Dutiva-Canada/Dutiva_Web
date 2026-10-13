@@ -503,6 +503,75 @@ describe('InvestSignalsPage', () => {
       expect(setSignalStatus).toHaveBeenCalledWith('sig1', 'dismissed')
     })
   })
+
+  it('keeps dismissed signals behind a toggle and can reopen them', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      signals: [
+        STATE.signals[0]!,
+        {
+          ...STATE.signals[0]!,
+          id: 'sig-gone',
+          title: 'Old noise',
+          status: 'dismissed' as const,
+        },
+      ],
+    })
+    vi.mocked(setSignalStatus).mockResolvedValue(undefined)
+    const { InvestSignalsPage } = await import('./InvestSignalsPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestSignalsPage />
+      </InvestDataProvider>,
+      '/invest/signals',
+    )
+
+    /* Dismissed rows stay out of the open list until asked for. */
+    expect(await screen.findByText('SHOP dropped below threshold')).toBeInTheDocument()
+    expect(screen.queryByText('Old noise')).not.toBeInTheDocument()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Show 1 dismissed/i }))
+    expect(await screen.findByText('Old noise')).toBeInTheDocument()
+
+    /* Reopen is the undo path — a dismissed signal goes back to new. */
+    await user.click(screen.getByRole('button', { name: 'Reopen' }))
+    await vi.waitFor(() => {
+      expect(setSignalStatus).toHaveBeenCalledWith('sig-gone', 'new')
+    })
+  })
+
+  it('links symbols a signal body mentions back to the book', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      signals: [
+        {
+          ...STATE.signals[0]!,
+          id: 'sig-body',
+          symbol: '',
+          title: 'Broad declines',
+          body: 'SHOP fell 6.9% while AMD held flat.',
+        },
+      ],
+    })
+    const { InvestSignalsPage } = await import('./InvestSignalsPage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestSignalsPage />
+      </InvestDataProvider>,
+      '/invest/signals',
+    )
+
+    /* SHOP is held → a navigable pill; AMD isn't in the book → stays text. */
+    expect(await screen.findByText('Broad declines')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'SHOP' })
+    expect(link).toHaveAttribute('href', '/invest/portfolios')
+    expect(screen.queryByRole('link', { name: 'AMD' })).not.toBeInTheDocument()
+  })
 })
 
 describe('InvestOrdersPage', () => {

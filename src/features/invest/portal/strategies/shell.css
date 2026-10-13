@@ -206,3 +206,14 @@
   color: var(--sb-accent-ink);
   border: 1px solid var(--sb-accent);
 }
+/* Symbol pills that link into the book — outlined like labels but with the
+   accent ink so they read as navigable, not decorative. */
+.sb-pill-link {
+  color: var(--sb-accent-ink);
+  border: 1px solid var(--sb-line);
+  text-decoration: none;
+}
+.sb-pill-link:hover {
+  background: var(--sb-accent-soft);
+  border-color: var(--sb-accent);
+}

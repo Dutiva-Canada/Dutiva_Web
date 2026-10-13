@@ -394,6 +394,15 @@ const investCoreMessages = defineMessages({
   invest_signal_dismissed: { en: 'Dismissed', fr: 'Écarté' },
   invest_acknowledge: { en: 'Acknowledge', fr: 'Accuser réception' },
   invest_dismiss: { en: 'Dismiss', fr: 'Écarter' },
+  invest_signal_reopen: { en: 'Reopen', fr: 'Rouvrir' },
+  invest_signals_show_dismissed: {
+    en: 'Show {count} dismissed',
+    fr: 'Afficher {count} écartés',
+  },
+  invest_signals_hide_dismissed: {
+    en: 'Hide dismissed',
+    fr: 'Masquer les écartés',
+  },
   invest_signals_empty: {
     en: 'No signals yet — enable a strategy and run the agent.',
     fr: 'Aucun signal — activez une stratégie et lancez l’agent.',

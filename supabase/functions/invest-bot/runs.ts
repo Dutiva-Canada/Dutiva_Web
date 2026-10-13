@@ -9,6 +9,7 @@ import {
   type Position,
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
+import { convertFx, fetchFxTable } from './fx.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
@@ -50,7 +51,7 @@ export async function runUser(
         .eq('user_id', userId),
       adminClient
         .from('invest_positions')
-        .select('id, account_id, asset_class, symbol, name, quantity, avg_cost')
+        .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
         .eq('user_id', userId),
       adminClient
         .from('invest_signals')
@@ -59,7 +60,7 @@ export async function runUser(
         .eq('status', 'new'),
       adminClient
         .from('invest_accounts')
-        .select('cash_balance')
+        .select('cash_balance, base_currency')
         .eq('user_id', userId)
         .eq('status', 'active'),
       adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
@@ -94,19 +95,36 @@ export async function runUser(
   ]
   const { strategies } = await loadStrategies(adminClient, userId, knownSymbols)
 
-  const cashTotal = ((accountsRes.data ?? []) as { cash_balance: number }[]).reduce(
-    (sum, a) => sum + Number(a.cash_balance),
-    0,
-  )
+  /* Book currency follows the first active account's base — same rule the
+     portal uses for its blended headline. FX rates convert every position
+     and cash leg into it; without rates, foreign-currency rows stay out of
+     the totals rather than blend currencies at face value. */
+  const accounts = (accountsRes.data ?? []) as { cash_balance: number; base_currency: string | null }[]
+  const bookCurrency = (accounts[0]?.base_currency ?? 'CAD').toUpperCase()
+  const fx = await fetchFxTable()
+  let cashSkipped = false
+  const cashTotal = accounts.reduce((sum, a) => {
+    const v = convertFx(Number(a.cash_balance), a.base_currency ?? bookCurrency, bookCurrency, fx)
+    if (v === null) {
+      cashSkipped = true
+      return sum
+    }
+    return sum + v
+  }, 0)
   const existingKeys = new Set(
     ((signalsRes.data ?? []) as Parameters<typeof signalKey>[0][]).map(signalKey),
   )
 
   const plan = planRun(strategies, snapshots, positions, existingKeys, {
     cashTotal,
+    fx,
+    bookCurrency,
     force: opts.force === true,
     openDraftKeys,
   })
+  if (cashSkipped) {
+    plan.warnings.push('some cash balances skipped — no FX rate for their base currency')
+  }
 
   /* The evaluation clock is stamped after writes, below — a run whose
      inserts failed is recorded 'partial' and must stay due so the next
@@ -220,6 +238,8 @@ export async function runUser(
     cashTotal,
     signalsEmitted: plan.signals.length,
     ordersPlanned: plan.proposals.length,
+    fx,
+    bookCurrency,
   }, { advice: isInternalDutivaAccount(authEmail) })
   for (const insight of insights) {
     await adminClient.from('invest_signals').insert({
@@ -228,7 +248,9 @@ export async function runUser(
       asset_class: 'other',
       symbol: '',
       name: '',
-      kind: 'insight',
+      /* Warn-severity observations render as alerts — a model-noticed decline
+         deserves the same warning pill a rule-driven drop gets. */
+      kind: insight.severity === 'warn' ? 'alert' : 'insight',
       title: insight.title_en,
       title_fr: insight.title_fr,
       body: insight.body_en,

@@ -10,12 +10,18 @@
  */
 import { postChatCompletion, resolveApiKey, routeBodyExtras } from '../_shared/modelUpstream.ts'
 import type { MarketSnapshot, Position } from './handlers.ts'
+import { convertFx, type FxTable } from './fx.ts'
 
 export interface BookInsight {
   title_en: string
   title_fr: string
   body_en: string
   body_fr: string
+  /** 'warn' promotes the signal to alert-kind styling; 'info' keeps the
+      neutral insight pill. The model flags declines and risk events as warn —
+      an observation about a -7% move should not render identically to a
+      quiet-book note while a rule-driven -6% alert wears the warning pill. */
+  severity?: 'info' | 'warn'
 }
 
 export interface InsightContext {
@@ -24,6 +30,11 @@ export interface InsightContext {
   cashTotal: number
   signalsEmitted: number
   ordersPlanned: number
+  /** ECB rates + the book's currency. Without them the book total and every
+      position weight would sum raw numbers across currencies — the same
+      bug the portal's split-total view exists to prevent. */
+  fx?: FxTable | null
+  bookCurrency?: string
 }
 
 const MAX_INSIGHTS = 2
@@ -34,25 +45,46 @@ export function buildInsightPrompt(ctx: InsightContext): string {
   const priceBySymbol = new Map<string, MarketSnapshot>()
   for (const s of ctx.snapshots) priceBySymbol.set(`${s.asset_class}:${s.symbol}`, s)
 
+  const bookCurrency = (ctx.bookCurrency ?? 'CAD').toUpperCase()
+  const toBook = (amount: number, currency: string): number | null =>
+    convertFx(amount, currency, bookCurrency, ctx.fx ?? null)
+
   let bookValue = 0
+  let bookComplete = true
   for (const p of ctx.positions) {
-    bookValue += p.quantity * (priceBySymbol.get(`${p.asset_class}:${p.symbol}`)?.price ?? 0)
+    const snap = priceBySymbol.get(`${p.asset_class}:${p.symbol}`)
+    if (!snap) continue
+    const v = toBook(p.quantity * snap.price, snap.currency)
+    if (v === null) {
+      bookComplete = false
+      continue
+    }
+    bookValue += v
   }
 
   const lines: string[] = [
-    `Positions marked: ${ctx.positions.length}; book value ~${bookValue.toFixed(2)}; cash ${ctx.cashTotal.toFixed(2)}.`,
+    `Positions marked: ${ctx.positions.length}; book value ~${bookValue.toFixed(2)} ${bookCurrency}` +
+      (bookComplete ? '' : ' (some positions unpriced — no FX rate)') +
+      `; cash ${ctx.cashTotal.toFixed(2)} ${bookCurrency}.`,
   ]
   for (const p of ctx.positions) {
     const snap = priceBySymbol.get(`${p.asset_class}:${p.symbol}`)
     const px = snap?.price ?? 0
-    const weight = bookValue > 0 ? ((p.quantity * px) / bookValue) * 100 : 0
+    const bookVal = snap ? toBook(p.quantity * snap.price, snap.currency) : null
+    const weight = bookValue > 0 && bookVal !== null ? (bookVal / bookValue) * 100 : null
+    /* Unrealized compares cost and mark in the same currency — convert both
+       legs to the book currency rather than differencing across currencies. */
+    const costCurrency = p.currency ?? snap?.currency
+    const pxBook = snap ? toBook(snap.price, snap.currency) : null
+    const costBook = costCurrency ? toBook(p.avg_cost, costCurrency) : null
     const gain =
-      p.avg_cost > 0 && px > 0 ? (((px - p.avg_cost) / p.avg_cost) * 100).toFixed(1) : null
+      p.avg_cost > 0 && pxBook !== null && pxBook > 0 && costBook !== null && costBook > 0
+        ? (((pxBook - costBook) / costBook) * 100).toFixed(1)
+        : null
     lines.push(
       `- ${p.symbol} (${p.asset_class}): ${p.quantity} @ ${p.avg_cost.toFixed(2)}` +
-        (px > 0
-          ? `, last ${px.toFixed(2)} ${snap?.currency ?? ''}, weight ${weight.toFixed(1)}%`
-          : '') +
+        (px > 0 ? `, last ${px.toFixed(2)} ${snap?.currency ?? ''}` : '') +
+        (weight !== null ? `, weight ${weight.toFixed(1)}%` : '') +
         (gain !== null ? `, unrealized ${gain}%` : ''),
     )
   }
@@ -78,8 +110,10 @@ intent, outsized single-day moves on held positions, or a quiet book worth
 noting. Plain language, concrete numbers. No advice verbs — never tell the
 reader to buy, sell, or hold; describe what happened and what the rules say.
 Output ONLY a JSON array, each element:
-{"title_en","title_fr","body_en","body_fr"} — English and Canadian French,
-same hedge strength. Max 2 items, empty array when nothing is noteworthy.`
+{"title_en","title_fr","body_en","body_fr","severity"} — English and Canadian
+French, same hedge strength. severity is "warn" when the observation flags a
+decline, concentration breach, or other risk needing attention; "info"
+otherwise. Max 2 items, empty array when nothing is noteworthy.`
 
 /* Internal-staff tier — a @dutiva.ca book may be advised on, not just
    described. Same output contract and the same cap; only the verb rule
@@ -116,11 +150,12 @@ export function parseInsights(raw: string): BookInsight[] {
     const o = item as Record<string, unknown>
     const t = (k: string) =>
       typeof o[k] === 'string' ? (o[k] as string).trim().slice(0, MAX_FIELD) : ''
-    const insight = {
+    const insight: BookInsight = {
       title_en: t('title_en'),
       title_fr: t('title_fr'),
       body_en: t('body_en'),
       body_fr: t('body_fr'),
+      severity: o.severity === 'warn' ? 'warn' : 'info',
     }
     if (!insight.title_en || !insight.body_en) continue
     out.push(insight)
