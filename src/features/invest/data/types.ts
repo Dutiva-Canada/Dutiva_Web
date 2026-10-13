@@ -119,6 +119,11 @@ export interface InvestStrategy {
   multiMatch: MultiMatch
   /** Provenance: 'tpl:<slug>' from the gallery, 'ai-draft', '' = custom. */
   template: string
+  /** When the bot last fully evaluated this strategy — the cadence gate's
+      real clock. A partial/failed run leaves it unstamped, so the next-run
+      estimate must read this, not the latest run row. Absent on write
+      payloads and never-run strategies. */
+  lastEvaluatedAt?: string | null
 }
 
 export interface InvestSignal {

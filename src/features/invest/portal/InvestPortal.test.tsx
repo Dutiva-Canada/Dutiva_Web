@@ -1069,4 +1069,45 @@ describe('InvestStrategiesPage', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Discard' })).toBeDisabled()
   })
+
+  it('projects next from last_evaluated_at and names an overdue strategy due', async () => {
+    /* A run row 4d ago on a monthly strategy says "next" ~Nov — but the
+       bot gates on last_evaluated_at, which a partial write never stamps.
+       The card must project from the gate, not the run row. */
+    const evaluated = new Date(Date.now() - 4 * 86_400_000).toISOString()
+    await renderPage({
+      ...STATE,
+      strategies: [
+        { ...STATE.strategies[0]!, cadence: 'monthly' as const, lastEvaluatedAt: evaluated },
+        { ...STATE.strategies[0]!, id: 's2', name: 'Idle' }, // never evaluated
+      ],
+      runs: [],
+    })
+    /* Monthly + evaluated 4d ago → next projects ~26d out and is shown. */
+    const dipCard = (await screen.findByText('Dip watcher')).closest('button')!
+    expect(dipCard.textContent).toContain('next')
+    expect(dipCard.textContent).not.toContain('due on next sweep')
+    /* The never-run Idle strategy is due — named, not silent. */
+    const idleCard = screen.getByText('Idle').closest('button')!
+    expect(idleCard.textContent).toContain('due on next sweep')
+  })
+
+  it('marks a clean run that found nothing as quiet', async () => {
+    const evaluated = new Date(Date.now() - 4 * 86_400_000).toISOString()
+    await renderPage({
+      ...STATE,
+      strategies: [{ ...STATE.strategies[0]!, lastEvaluatedAt: evaluated }],
+      runs: [
+        {
+          ...STATE.runs[0]!,
+          strategyId: STATE.strategies[0]!.id,
+          signalsEmitted: 0,
+          proposalsCreated: 0,
+          status: 'ok',
+        },
+      ],
+    })
+    const card = (await screen.findByText('Dip watcher')).closest('button')!
+    expect(card.textContent).toContain('no signals or drafts')
+  })
 })

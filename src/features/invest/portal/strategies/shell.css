@@ -185,6 +185,13 @@
   font-size: 14px;
   margin-top: 6px;
 }
+.sb-strat-card .sb-strat-chevron {
+  color: var(--sb-muted);
+  flex-shrink: 0;
+}
+.sb-strat-card:hover .sb-strat-chevron {
+  color: var(--sb-accent-ink);
+}
 .sb-pill {
   display: inline-flex;
   align-items: center;

@@ -75,6 +75,18 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_pill_draft: { en: 'Draft', fr: 'Brouillon' },
   /* [FR self-authored] */
   invest_sb_next_run: { en: 'next {time}', fr: 'prochain {time}' },
+  invest_sb_next_overdue: {
+    en: 'due on next sweep',
+    fr: 'prévu au prochain balayage',
+  },
+  invest_sb_run_quiet: {
+    en: 'no signals or drafts',
+    fr: 'aucun signal ni projet',
+  },
+  invest_sb_scan_result: {
+    en: 'Scan complete — {signals} · {proposals}',
+    fr: 'Balayage terminé — {signals} · {proposals}',
+  },
   invest_sb_save: { en: 'Save', fr: 'Enregistrer' },
   invest_sb_discard: { en: 'Discard', fr: 'Annuler' },
   invest_sb_no_changes: { en: 'No changes', fr: 'Aucune modification' },
