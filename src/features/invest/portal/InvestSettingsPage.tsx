@@ -14,7 +14,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import type { Lang } from '@/i18n/core'
+import type { Bi, Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
@@ -59,6 +59,62 @@ const THEME_OPTIONS: { pref: ThemePref; label: (typeof IM)[keyof typeof IM]; Ico
   { pref: 'dark', label: IM.invest_sb_theme_dark, Icon: Moon },
 ]
 
+type ProfileField = 'risk' | 'horizon' | 'goal' | 'experience' | 'style'
+
+const PROFILE_SELECTS: { key: ProfileField; label: Bi; options: [string, Bi][] }[] = [
+  {
+    key: 'risk',
+    label: IM.invest_profile_risk,
+    options: [
+      ['conservative', IM.invest_risk_conservative],
+      ['balanced', IM.invest_opt_balanced],
+      ['aggressive', IM.invest_risk_aggressive],
+    ],
+  },
+  {
+    key: 'horizon',
+    label: IM.invest_profile_horizon,
+    options: [
+      ['short', IM.invest_horizon_short],
+      ['medium', IM.invest_horizon_medium],
+      ['long', IM.invest_horizon_long],
+    ],
+  },
+  {
+    key: 'goal',
+    label: IM.invest_profile_goal,
+    options: [
+      ['growth', IM.invest_goal_growth],
+      ['income', IM.invest_goal_income],
+      ['preservation', IM.invest_goal_preservation],
+      ['learn', IM.invest_goal_learn],
+    ],
+  },
+  {
+    key: 'experience',
+    label: IM.invest_profile_experience,
+    options: [
+      ['new', IM.invest_exp_new],
+      ['intermediate', IM.invest_exp_intermediate],
+      ['experienced', IM.invest_exp_experienced],
+    ],
+  },
+  {
+    key: 'style',
+    label: IM.invest_profile_style,
+    options: [
+      ['concise', IM.invest_style_concise],
+      ['balanced', IM.invest_opt_balanced],
+      ['teach', IM.invest_style_teach],
+    ],
+  },
+]
+
+const PROFILE_TAGS: ['sectors' | 'exclusions', Bi][] = [
+  ['sectors', IM.invest_profile_sectors],
+  ['exclusions', IM.invest_profile_exclusions],
+]
+
 const HOME_TAB_LABELS: Record<HomeTab, (typeof IM)[keyof typeof IM]> = {
   '/invest': IM.invest_tab_overview,
   '/invest/chat': IM.invest_tab_chat,
@@ -89,6 +145,10 @@ export function InvestSettingsPage() {
   const [cadence, setCadence] = useState<'immediate' | 'daily' | 'weekly'>('immediate')
   const [wipeText, setWipeText] = useState('')
   const [wipeDone, setWipeDone] = useState(false)
+  const [profile, setProfile] = useState({
+    risk: '', horizon: '', goal: '', experience: '', style: '',
+    sectors: '', exclusions: '',
+  })
 
   useEffect(() => {
     if (!supabase || !session?.user.id) return
@@ -103,6 +163,23 @@ export function InvestSettingsPage() {
         const v = data?.email_cadence
         if (!cancelled && (v === 'daily' || v === 'weekly')) setCadence(v)
       })
+    void supabase
+      .from('invest_user_profile')
+      .select('risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions')
+      .eq('user_id', uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        setProfile({
+          risk: data.risk_tolerance ?? '',
+          horizon: data.horizon ?? '',
+          goal: data.goal ?? '',
+          experience: data.experience ?? '',
+          style: data.answer_style ?? '',
+          sectors: (data.sectors ?? []).join(', '),
+          exclusions: (data.exclusions ?? []).join(', '),
+        })
+      })
     return () => {
       cancelled = true
     }
@@ -114,6 +191,26 @@ export function InvestSettingsPage() {
     void supabase.from('invest_notification_prefs').upsert({
       user_id: session.user.id,
       email_cadence: v,
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  /* One upsert carries the whole profile row — an empty string writes NULL
+     so "Not set" really does un-set the dimension. */
+  const saveProfile = (p: typeof profile) => {
+    setProfile(p)
+    if (!supabase || !session?.user.id) return
+    const tags = (s: string) =>
+      s.split(',').map((t) => t.trim()).filter(Boolean).slice(0, 20)
+    void supabase.from('invest_user_profile').upsert({
+      user_id: session.user.id,
+      risk_tolerance: p.risk || null,
+      horizon: p.horizon || null,
+      goal: p.goal || null,
+      experience: p.experience || null,
+      answer_style: p.style || null,
+      sectors: tags(p.sectors),
+      exclusions: tags(p.exclusions),
       updated_at: new Date().toISOString(),
     })
   }
@@ -360,6 +457,51 @@ export function InvestSettingsPage() {
             <option value="daily">{x(IM.invest_cadence_email_daily)}</option>
             <option value="weekly">{x(IM.invest_cadence_email_weekly)}</option>
           </select>
+        </div>
+      </section>
+
+      <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_profile)}
+        </h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_settings_profile_note)}
+        </p>
+        <div className="mt-[12px] grid gap-[14px] sm:grid-cols-2">
+          {PROFILE_SELECTS.map((sel) => (
+            <div key={sel.key}>
+              <p className={rowLabel}>{x(sel.label)}</p>
+              <select
+                className={`mt-[6px] w-full ${selectClass}`}
+                value={profile[sel.key]}
+                onChange={(e) => saveProfile({ ...profile, [sel.key]: e.target.value })}
+                aria-label={x(sel.label)}
+              >
+                <option value="">{x(IM.invest_opt_not_set)}</option>
+                {sel.options.map(([v, msg]) => (
+                  <option key={v} value={v}>
+                    {x(msg)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+        <div className="mt-[14px] grid gap-[14px] sm:grid-cols-2">
+          {PROFILE_TAGS.map(([key, msg]) => (
+            <div key={key}>
+              <p className={rowLabel}>{x(msg)}</p>
+              <input
+                type="text"
+                value={profile[key]}
+                onChange={(e) => setProfile({ ...profile, [key]: e.target.value })}
+                onBlur={() => saveProfile(profile)}
+                placeholder={x(IM.invest_profile_tags_hint)}
+                aria-label={x(msg)}
+                className="mt-[6px] min-h-[44px] w-full rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text"
+              />
+            </div>
+          ))}
         </div>
       </section>
 

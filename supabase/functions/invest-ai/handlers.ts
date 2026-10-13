@@ -187,7 +187,21 @@ export interface MarketContextEntry {
   headlines: { title: string; source: string; publishedAt: string | null; url: string | null }[]
 }
 
+/* The profile the user set in Settings — calibrates depth and what the
+   answer weighs. It is context, not permission: the advice tier is decided
+   from the account email and nothing here may move it. */
+export interface InvestUserProfile {
+  riskTolerance: string | null
+  horizon: string | null
+  goal: string | null
+  experience: string | null
+  answerStyle: string | null
+  sectors: string[]
+  exclusions: string[]
+}
+
 export interface InvestChatContext {
+  profile: InvestUserProfile | null
   accounts: { name: string; kind: string; cashBalance: number; baseCurrency: string }[]
   positions: { symbol: string; name: string; quantity: number; lastPrice: number | null; lastPriceAt: string | null; currency: string }[]
   watchlist: { symbol: string; assetClass: string }[]
@@ -454,6 +468,55 @@ const optEnum = <T extends string>(v: unknown, allowed: readonly T[]): T | undef
     ? (v.trim().toLowerCase() as T)
     : undefined
 
+/** The user profile rendered as prompt facts — plain dimensions the model
+    can weigh, plus the exclusions list phrased as a boundary so "screened
+    out" never reads as a sector to discuss. */
+function buildProfileLines(p: InvestUserProfile | null): string[] {
+  if (!p) return []
+  const dims: string[] = []
+  if (p.riskTolerance) dims.push(`risk tolerance: ${p.riskTolerance}`)
+  if (p.horizon) {
+    const h = {
+      short: 'short (under 3 years)',
+      medium: 'medium (3–10 years)',
+      long: 'long (10+ years)',
+    }[p.horizon] ?? p.horizon
+    dims.push(`horizon: ${h}`)
+  }
+  if (p.goal) {
+    const g = {
+      growth: 'growth',
+      income: 'income',
+      preservation: 'capital preservation',
+      learn: 'learning how investing works',
+    }[p.goal] ?? p.goal
+    dims.push(`goal: ${g}`)
+  }
+  if (p.experience) {
+    const e = {
+      new: 'new to markets — explain terms plainly',
+      intermediate: 'intermediate',
+      experienced: 'experienced — no need to explain basics',
+    }[p.experience] ?? p.experience
+    dims.push(`experience: ${e}`)
+  }
+  if (p.answerStyle) {
+    const s = {
+      concise: 'concise',
+      balanced: 'balanced',
+      teach: 'explain the reasoning',
+    }[p.answerStyle] ?? p.answerStyle
+    dims.push(`answer style: ${s}`)
+  }
+  const out: string[] = []
+  if (dims.length > 0) out.push(`  - ${dims.join('; ')}`)
+  if (p.sectors.length > 0) out.push(`  - sectors they follow: ${p.sectors.join(', ')}`)
+  if (p.exclusions.length > 0) {
+    out.push(`  - screens out: ${p.exclusions.join(', ')} — never name or recommend these`)
+  }
+  return out
+}
+
 export function investChatPrompt(
   ctx: InvestChatContext,
   lang: 'en' | 'fr',
@@ -464,6 +527,7 @@ export function investChatPrompt(
 } {
   const lines = (items: string[]): string =>
     items.length === 0 ? '  (none)' : items.map((i) => `  - ${i}`).join('\n')
+  const profileLines = buildProfileLines(ctx.profile)
   return {
     role: 'system',
     content: [
@@ -494,6 +558,13 @@ export function investChatPrompt(
       'One exception before you answer: if the question turns on a symbol with no market row below, you may reply {"reply":"","action":null,"fetch":["SYM","SYM"]} (at most 3 tickers) — the pull lands and the question comes back to you with the numbers filled in. If it turns on current events outside the rows on file — news this week, a macro decision, a launch — you may instead reply {"reply":"","action":null,"search":"<one web query>"} and the search results come back the same way. The two can combine in one hop. Use it at most once per turn; if the pull still lacks what you need, say there is nothing on file.',
       '"suggests" holds up to 3 short things the person might ask or tell you next — each under 8 words, same language as the reply, and genuinely useful (not restatements of your answer). They are asks, not commands — never an imperative like "confirm the order" or "buy X"; the chip sends a message, it does not act. Omit the field or send an empty array when the exchange is clearly finished.',
       '',
+      ...(profileLines.length > 0
+        ? [
+            'User profile (the person set this in Settings — let it shape depth and what you weigh; it never changes the advice boundary above):',
+            ...profileLines,
+            '',
+          ]
+        : []),
       'Book data:',
       `Accounts (${ctx.accounts.length}):`,
       lines(ctx.accounts.map((a) => `"${a.name}" — ${a.kind}, ${a.cashBalance} ${a.baseCurrency} cash`)),

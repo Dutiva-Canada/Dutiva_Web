@@ -84,6 +84,7 @@ describe('InvestSettingsPage', () => {
       'Delivery per strategy',
       'Defaults',
       'Notifications',
+      'Your profile',
       'Getting-started tour',
       'My data',
       'Account',
@@ -162,5 +163,20 @@ describe('InvestSettingsPage', () => {
     const select = screen.getByLabelText('Email alerts')
     const labels = Array.from((select as HTMLSelectElement).options).map((o) => o.textContent)
     expect(labels).toEqual(['Immediate', 'Daily digest', 'Weekly digest'])
+  })
+
+  it('renders the profile dimensions with a Not-set escape on each', async () => {
+    vi.mocked(useAuth).mockReturnValue(auth)
+    const { InvestSettingsPage } = await import('./InvestSettingsPage')
+    renderSettings(<InvestSettingsPage />)
+
+    for (const name of [
+      'Risk tolerance', 'Horizon', 'Goal', 'Experience', 'Answer style',
+    ]) {
+      const select = screen.getByLabelText(name)
+      expect((select as HTMLSelectElement).options.item(0)?.textContent).toBe('Not set')
+    }
+    expect(screen.getByLabelText('Sectors you follow')).toBeInTheDocument()
+    expect(screen.getByLabelText('Screened out')).toBeInTheDocument()
   })
 })

@@ -73,6 +73,7 @@ const SOL: MarketContextEntry = {
 }
 
 const BOOK: InvestChatContext = {
+  profile: null,
   accounts: [{ name: 'TFSA', kind: 'paper', cashBalance: 12000, baseCurrency: 'CAD' }],
   positions: [
     { symbol: 'AMD', name: 'Advanced Micro Devices', quantity: 4, lastPrice: 608.1, lastPriceAt: '2026-10-11T02:23:00Z', currency: 'USD' },
@@ -87,6 +88,7 @@ const BOOK: InvestChatContext = {
 }
 
 const EMPTY: InvestChatContext = {
+  profile: null,
   accounts: [], positions: [], watchlist: [], strategies: [],
   newSignals: [], openOrders: [], market: [], generalNews: [],
 }

@@ -10495,6 +10495,42 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_user_profile: {
+        Row: {
+          answer_style: string | null
+          exclusions: string[]
+          experience: string | null
+          goal: string | null
+          horizon: string | null
+          risk_tolerance: string | null
+          sectors: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          answer_style?: string | null
+          exclusions?: string[]
+          experience?: string | null
+          goal?: string | null
+          horizon?: string | null
+          risk_tolerance?: string | null
+          sectors?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          answer_style?: string | null
+          exclusions?: string[]
+          experience?: string | null
+          goal?: string | null
+          horizon?: string | null
+          risk_tolerance?: string | null
+          sectors?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_watchlist: {
         Row: {
           asset_class: string
