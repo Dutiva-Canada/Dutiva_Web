@@ -25,6 +25,9 @@
  *   'thesis'    — a held symbol with no thesis row yet → a seeded tracker:
  *                 the story line stays blank for the user, the drift/break
  *                 conditions come pre-filled with modest defaults
+ *   'goal'      — a measurable book objective (concentration cap, thesis
+ *                 coverage, idle-cash ceiling) seeded with real numbers —
+ *                 for the "I don't know what goals to add" case
  */
 import { fileSuggestion } from '../_shared/agentQueue.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
@@ -52,6 +55,9 @@ export interface SuggestionContext {
   /** Symbols already carrying a thesis row — held positions missing from
       this set are 'thesis' suggestion candidates. */
   theses?: { asset_class: string; symbol: string }[]
+  /** Metrics the user's goals already measure — a metric absent here is
+      a 'goal' suggestion candidate when the book exposes the gap. */
+  goals?: { metric: string }[]
   /** Outcome history the learning rules read — see loadOutcomes. */
   outcomes: OutcomeHistory
   /** Internal-staff tier: order-proposal artifacts only file here. */
@@ -77,7 +83,7 @@ export interface OutcomeHistory {
 }
 
 export interface SuggestionCandidate {
-  kind: 'strategy' | 'rule_add' | 'rule_tune' | 'scope_add' | 'thesis'
+  kind: 'strategy' | 'rule_add' | 'rule_tune' | 'scope_add' | 'thesis' | 'goal'
   dedupeKey: string
   /** English title — the row's `title` column (schema default). */
   title_en: string
@@ -562,6 +568,112 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
       },
       score: 65,
     })
+  }
+
+  /* ── goal — measurable starters for a book without any ──────────────────
+     "I don't know what goals to add" is the motivating case: each seed is
+     a real metric at a real threshold, not a wish. The goals themselves
+     re-measure every sweep once accepted. */
+  const goalMetrics = new Set((ctx.goals ?? []).map((g) => g.metric))
+  const seedGoal = (seed: {
+    title_en: string
+    title_fr: string
+    detail_en: string
+    detail_fr: string
+    title: string
+    detail: string
+    metric: string
+    op: 'gte' | 'lte'
+    target: number
+    score: number
+    dedupeKey: string
+  }) => {
+    out.push({
+      kind: 'goal',
+      dedupeKey: seed.dedupeKey,
+      title_en: seed.title_en,
+      title_fr: seed.title_fr,
+      detail_en: seed.detail_en,
+      detail_fr: seed.detail_fr,
+      payload: {
+        title_fr: seed.title_fr,
+        detail_en: seed.detail_en,
+        detail_fr: seed.detail_fr,
+        seed: {
+          title: seed.title,
+          detail: seed.detail,
+          metric: seed.metric,
+          op: seed.op,
+          target: seed.target,
+          deadline: null,
+        },
+      },
+      score: seed.score,
+    })
+  }
+  if (ctx.positions.length > 0) {
+    /* Concentration — the heaviest position has no ceiling goal and no
+       weight rule already watching the same concern (a rule is the
+       louder guard; the goal would be duplicate noise). */
+    if (!goalMetrics.has('max_weight_pct') && !hasMetricRule(ctx.strategies, 'weight_pct')) {
+      const heaviest = ctx.positions
+        .map((p) => stats.get(`${p.asset_class}:${p.symbol}`)?.weightPct ?? null)
+        .filter((w): w is number => w !== null)
+        .sort((a, b) => b - a)[0]
+      if (heaviest !== undefined && heaviest >= 20) {
+        const cap = Math.round(heaviest / 5) * 5
+        seedGoal({
+          title_en: `Cap the biggest position near ${cap}% of book`,
+          title_fr: `Plafonner la plus grosse position vers ${cap} % du carnet`,
+          detail_en: `The largest position sits at ${heaviest.toFixed(0)}% — a ceiling goal re-measures every sweep.`,
+          detail_fr: `La plus grosse position est à ${heaviest.toFixed(0)} % — un plafond se remesure à chaque balayage.`,
+          title: `Keep any single position at or under ${cap}%`,
+          detail: 'Concentration ceiling — Tally measures it every sweep.',
+          metric: 'max_weight_pct',
+          op: 'lte',
+          target: cap,
+          dedupeKey: 'goal:max_weight_pct:lte',
+          score: 45,
+        })
+      }
+    }
+    /* Coverage — held symbols still untracked by a thesis. */
+    if (!goalMetrics.has('thesis_coverage') && untracked.length > 0) {
+      seedGoal({
+        title_en: 'Every holding gets a thesis',
+        title_fr: 'Une thèse pour chaque position',
+        detail_en: `${untracked.length} holding${untracked.length > 1 ? 's' : ''} still untracked — a coverage goal nudges until every position carries a claim.`,
+        detail_fr: `${untracked.length} position${untracked.length > 1 ? 's' : ''} sans thèse — l’objectif de couverture relance jusqu’à ce que chaque position en ait une.`,
+        title: 'Thesis on every holding',
+        detail: 'Coverage goal — the share of held symbols carrying a thesis.',
+        metric: 'thesis_coverage',
+        op: 'gte',
+        target: 100,
+        dedupeKey: 'goal:thesis_coverage:gte',
+        score: 42,
+      })
+    }
+    /* Idle cash — a ceiling on the cash share. */
+    if (!goalMetrics.has('cash_pct') && ctx.cashTotal > 0) {
+      const marks = positionsMark(ctx)
+      const share = (ctx.cashTotal / (ctx.cashTotal + marks)) * 100
+      if (share >= 20) {
+        const cap = Math.max(5, Math.round((share - 5) / 5) * 5)
+        seedGoal({
+          title_en: `Put idle cash on a clock — under ${cap}% of book`,
+          title_fr: `Un échéancier pour les liquidités — sous ${cap} % du carnet`,
+          detail_en: `Cash sits at ${share.toFixed(0)}% of the book — a ceiling goal tracks the draw-down.`,
+          detail_fr: `Les liquidités représentent ${share.toFixed(0)} % du carnet — un plafond suit la baisse.`,
+          title: `Cash under ${cap}% of book`,
+          detail: 'Idle-cash ceiling — measured every sweep.',
+          metric: 'cash_pct',
+          op: 'lte',
+          target: cap,
+          dedupeKey: 'goal:cash_pct:lte',
+          score: 38,
+        })
+      }
+    }
   }
 
   /* ── rule_tune — the feedback loop ────────────────────────────────────── */

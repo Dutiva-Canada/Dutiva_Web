@@ -21,7 +21,7 @@ export type OrderSide = 'buy' | 'sell'
 export type OrderType = 'market' | 'limit'
 export type OrderMode = 'paper' | 'live'
 export type OrderStatus = 'draft' | 'queued' | 'executed' | 'cancelled' | 'failed' | 'expired'
-export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
+export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis' | 'goal' | 'scan'
 export type SignalStatus = 'new' | 'acknowledged' | 'dismissed'
 
 export interface InvestAccount {
@@ -269,9 +269,123 @@ export interface InvestThesis {
   breakRules: SignalRule[]
   /** Any fired → status 'drifting' when no break fired. */
   driftRules: SignalRule[]
+  /** The qualitative quadrant beside the conditions (0220) — Tally can
+     draft it, the user edits it; it never feeds the evaluator. */
+  swot: ThesisSwot
   status: ThesisStatus
   evalDetail: ThesisEvalDetail | null
   lastEvaluatedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+/** SWOT quadrants — short plain-language items in each list. */
+export interface ThesisSwot {
+  strengths: string[]
+  weaknesses: string[]
+  opportunities: string[]
+  threats: string[]
+}
+
+export const EMPTY_SWOT: ThesisSwot = {
+  strengths: [],
+  weaknesses: [],
+  opportunities: [],
+  threats: [],
+}
+
+/* ── Analysis (0220) ────────────────────────────────────────────────────────
+   SMART goals — measurable book objectives the sweep re-measures every run,
+   and the environmental-scan watch board it connects to degraded theses.
+   Same server-authoritative contract as theses: evalDetail is the last
+   sweep's verdict; the page never recomputes. */
+
+export type GoalMetric =
+  | 'book_value'
+  | 'cash_pct'
+  | 'max_weight_pct'
+  | 'unrealized_gain_pct'
+  | 'thesis_coverage'
+  | 'position_count'
+export type GoalOp = 'gte' | 'lte'
+export type GoalStatus = 'on_track' | 'behind' | 'achieved' | 'missed'
+
+export const GOAL_METRICS: readonly GoalMetric[] = [
+  'book_value',
+  'cash_pct',
+  'max_weight_pct',
+  'unrealized_gain_pct',
+  'thesis_coverage',
+  'position_count',
+]
+
+/** What the last sweep computed for the goal — server-written. */
+export interface GoalEvalDetail {
+  current: number | null
+  target: number
+  op: GoalOp
+  /** 0–100 progress baseline → target. */
+  progress_pct: number | null
+  /** Days until the deadline — negative once passed. */
+  days_left: number | null
+  line_en: string
+  line_fr: string
+}
+
+export interface InvestGoal {
+  id: string
+  title: string
+  detail: string
+  metric: GoalMetric
+  op: GoalOp
+  target: number
+  /** Metric value at the first eval — progress math reads from it. */
+  baseline: number | null
+  /** ISO date (yyyy-mm-dd) or null for an open-ended goal. */
+  deadline: string | null
+  status: GoalStatus
+  evalDetail: GoalEvalDetail | null
+  lastEvaluatedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type ScanTheme =
+  | 'economy'
+  | 'policy'
+  | 'sector'
+  | 'currency'
+  | 'geopolitical'
+  | 'company'
+export type ScanDirection = 'tailwind' | 'headwind' | 'monitor'
+
+export const SCAN_THEMES: readonly ScanTheme[] = [
+  'economy',
+  'policy',
+  'sector',
+  'currency',
+  'geopolitical',
+  'company',
+]
+export const SCAN_DIRECTIONS: readonly ScanDirection[] = [
+  'tailwind',
+  'headwind',
+  'monitor',
+]
+
+/** An environmental-scan watch item — a theme-level factor plus the held
+    symbols it could touch. The sweep emits 'scan' signals when one of
+    those symbols' theses degrades. */
+export interface InvestScanItem {
+  id: string
+  theme: ScanTheme
+  direction: ScanDirection
+  title: string
+  note: string
+  /** Uppercased symbols — empty means a whole-book factor. */
+  symbols: string[]
+  /** Freshness clock — stale items get a review nudge on the board. */
+  lastReviewedAt: string
   createdAt: string
   updatedAt: string
 }

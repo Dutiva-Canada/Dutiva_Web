@@ -3,11 +3,15 @@ import { normalizeRules, validateRules } from './strategyRules'
 import { ASSET_CLASSES } from './types'
 import type {
   AssetClass,
+  GoalMetric,
+  GoalOp,
   InvestAccount,
   InvestBotRun,
+  InvestGoal,
   InvestNewsItem,
   InvestOrder,
   InvestPosition,
+  InvestScanItem,
   InvestSignal,
   InvestStrategy,
   InvestThesis,
@@ -16,9 +20,12 @@ import type {
   MultiMatch,
   OrderStatus,
   RunWarning,
+  ScanDirection,
+  ScanTheme,
   SignalRule,
   SignalStatus,
   TestScanMatch,
+  ThesisSwot,
 } from './types'
 
 /**
@@ -42,6 +49,8 @@ export interface InvestState {
   watchlist: InvestWatchItem[]
   news: InvestNewsItem[]
   theses: InvestThesis[]
+  goals: InvestGoal[]
+  scanItems: InvestScanItem[]
 }
 
 type InvestRole = 'client' | 'admin'
@@ -74,7 +83,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems] =
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
@@ -93,6 +102,8 @@ export async function loadInvestState(): Promise<InvestState> {
         .limit(200),
       client.from('invest_watchlist').select('*').order('created_at', { ascending: false }),
       client.from('invest_theses').select('*').order('updated_at', { ascending: false }),
+      client.from('invest_goals').select('*').order('created_at', { ascending: false }),
+      client.from('invest_scan_items').select('*').order('created_at', { ascending: false }),
     ])
   for (const res of [
     accounts,
@@ -106,10 +117,12 @@ export async function loadInvestState(): Promise<InvestState> {
   ]) {
     if (res.error) throw res.error
   }
-  /* invest_theses (0219) can be absent while code outruns the migration —
-     the portal renders without the Theses surface instead of failing the
-     whole state load. */
+  /* invest_theses (0219) and the 0220 analysis tables can be absent while
+     code outruns the migration — the portal renders without those
+     surfaces instead of failing the whole state load. */
   const thesisRows = theses.error ? [] : (theses.data ?? [])
+  const goalRows = goals.error ? [] : (goals.data ?? [])
+  const scanRows = scanItems.error ? [] : (scanItems.data ?? [])
 
   /* News follows the same universe as market-sync: held ∪ watched symbols,
      plus general-market items (symbol ''). Server-side filter so general
@@ -151,6 +164,8 @@ export async function loadInvestState(): Promise<InvestState> {
     watchlist: (watchlist.data ?? []).map(toWatchItem),
     news: newsItems,
     theses: thesisRows.map(toThesis),
+    goals: goalRows.map(toGoal),
+    scanItems: scanRows.map(toScanItem),
   }
 }
 
@@ -667,7 +682,10 @@ export async function draftStrategy(
    story and the conditions — it never writes the verdict. */
 
 export async function saveThesis(
-  thesis: Omit<InvestThesis, 'id' | 'status' | 'evalDetail' | 'lastEvaluatedAt' | 'createdAt' | 'updatedAt'> & {
+  thesis: Omit<
+    InvestThesis,
+    'id' | 'status' | 'evalDetail' | 'lastEvaluatedAt' | 'createdAt' | 'updatedAt' | 'swot'
+  > & {
     id?: string
   },
 ): Promise<void> {
@@ -772,6 +790,217 @@ export async function draftThesis(input: {
     },
     suggestionId: raw.suggestionId ?? null,
   }
+}
+
+/* ── Analysis (0220) ───────────────────────────────────────────────────────
+   SMART goals + the scan board. The sweep stamps baseline/status/eval —
+   the client writes intent fields only, never the verdict. */
+
+export async function saveGoal(goal: {
+  id?: string
+  title: string
+  detail: string
+  metric: GoalMetric
+  op: GoalOp
+  target: number
+  deadline: string | null
+}): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const payload = {
+    user_id: userId,
+    title: goal.title.trim().slice(0, 120),
+    detail: goal.detail.trim().slice(0, 400),
+    metric: goal.metric,
+    op: goal.op,
+    target: goal.target,
+    deadline: goal.deadline,
+    updated_at: new Date().toISOString(),
+  }
+  /* Edits keep the stored baseline — it anchors the progress math the
+     sweep already ran against. A goal edited beyond recognition should
+     be recreated, not rebaselined silently. */
+  const res = goal.id
+    ? await client
+        .from('invest_goals')
+        .update(payload)
+        .eq('id', goal.id)
+        .eq('user_id', userId)
+    : await client.from('invest_goals').insert(payload)
+  if (res.error) throw res.error
+}
+
+export async function deleteGoal(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_goals')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+export async function saveScanItem(item: {
+  id?: string
+  theme: ScanTheme
+  direction: ScanDirection
+  title: string
+  note: string
+  symbols: string[]
+}): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const payload = {
+    user_id: userId,
+    theme: item.theme,
+    direction: item.direction,
+    title: item.title.trim().slice(0, 120),
+    note: item.note.trim().slice(0, 400),
+    symbols: item.symbols.map((s) => s.toUpperCase()).slice(0, 12),
+    /* Editing an item is reviewing it — the freshness clock resets on
+       save so a stale badge only means "not looked at". */
+    last_reviewed_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+  const res = item.id
+    ? await client
+        .from('invest_scan_items')
+        .update(payload)
+        .eq('id', item.id)
+        .eq('user_id', userId)
+    : await client.from('invest_scan_items').insert(payload)
+  if (res.error) throw res.error
+}
+
+export async function deleteScanItem(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_scan_items')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+/** "Reviewed" without an edit — clears the stale badge only. */
+export async function markScanItemReviewed(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_scan_items')
+    .update({ last_reviewed_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+/** Write a thesis row's SWOT quadrant — fields beside it stay untouched
+    by sending only the column. */
+export async function saveSwot(thesisId: string, swot: ThesisSwot): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const clean = (list: string[]) =>
+    list.map((s) => s.trim()).filter(Boolean).slice(0, 8)
+  const { error } = await client
+    .from('invest_theses')
+    .update({
+      swot: {
+        strengths: clean(swot.strengths),
+        weaknesses: clean(swot.weaknesses),
+        opportunities: clean(swot.opportunities),
+        threats: clean(swot.threats),
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', thesisId)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+/** Tally-drafted SWOT for one thesis — filed to the review queue like
+    every agent artifact; suggestionId links the apply back. */
+export async function draftSwot(input: {
+  assetClass: AssetClass
+  symbol: string
+  name?: string
+  thesis?: string
+  intent?: string
+  lang: 'en' | 'fr'
+}): Promise<{ draft: ThesisSwot; suggestionId: string | null }> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: {
+      action: 'draft-swot',
+      assetClass: input.assetClass,
+      symbol: input.symbol,
+      name: input.name ?? '',
+      thesis: input.thesis ?? '',
+      intent: input.intent ?? 'core',
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as { draft?: Record<string, unknown>; suggestionId?: string | null }) ?? {}
+  if (!raw.draft) throw new Error('No draft returned')
+  const list = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : []
+  return {
+    draft: {
+      strengths: list(raw.draft['strengths']),
+      weaknesses: list(raw.draft['weaknesses']),
+      opportunities: list(raw.draft['opportunities']),
+      threats: list(raw.draft['threats']),
+    },
+    suggestionId: raw.suggestionId ?? null,
+  }
+}
+
+export interface ScanDraft {
+  theme: ScanTheme
+  direction: ScanDirection
+  title: string
+  note: string
+  symbols: string[]
+}
+
+/** Tally-drafted scan items for the held universe — each returns with
+    its queue row id so accepting resolves it. */
+export async function draftScan(input: {
+  holdings: { assetClass: AssetClass; symbol: string; name: string }[]
+  lang: 'en' | 'fr'
+}): Promise<{ item: ScanDraft; suggestionId: string | null }[]> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: {
+      action: 'draft-scan',
+      holdings: input.holdings.map((h) => ({
+        assetClass: h.assetClass,
+        symbol: h.symbol,
+        name: h.name,
+      })),
+      lang: input.lang,
+    },
+  })
+  if (error) throw error
+  const raw = (data as { items?: { item?: Record<string, unknown>; suggestionId?: string | null }[] }) ?? {}
+  if (!Array.isArray(raw.items)) throw new Error('No items returned')
+  return raw.items
+    .filter((r) => r.item && typeof r.item === 'object')
+    .map((r) => {
+      const it = r.item as Record<string, unknown>
+      return {
+        item: {
+          theme: (typeof it['theme'] === 'string' ? it['theme'] : 'sector') as ScanTheme,
+          direction: (typeof it['direction'] === 'string'
+            ? it['direction']
+            : 'monitor') as ScanDirection,
+          title: typeof it['title'] === 'string' ? it['title'] : '',
+          note: typeof it['note'] === 'string' ? it['note'] : '',
+          symbols: Array.isArray(it['symbols'])
+            ? (it['symbols'] as unknown[]).filter((s): s is string => typeof s === 'string')
+            : [],
+        },
+        suggestionId: r.suggestionId ?? null,
+      }
+    })
 }
 
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
@@ -936,12 +1165,76 @@ function toThesis(row: any): InvestThesis {
     driftRules: normalizeRules(row.drift_rules).filter(
       (r): r is SignalRule => r.type === 'signal',
     ),
+    swot: toSwot(row.swot),
     status,
     evalDetail:
       row.eval_detail && typeof row.eval_detail === 'object'
         ? (row.eval_detail as InvestThesis['evalDetail'])
         : null,
     lastEvaluatedAt: row.last_evaluated_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toSwot(raw: any): ThesisSwot {
+  const empty = (): ThesisSwot => ({
+    strengths: [],
+    weaknesses: [],
+    opportunities: [],
+    threats: [],
+  })
+  if (!raw || typeof raw !== 'object') return empty()
+  const list = (v: unknown): string[] =>
+    Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string') : []
+  const o = raw as Record<string, unknown>
+  return {
+    strengths: list(o['strengths']),
+    weaknesses: list(o['weaknesses']),
+    opportunities: list(o['opportunities']),
+    threats: list(o['threats']),
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toGoal(row: any): InvestGoal {
+  const status =
+    row.status === 'behind' || row.status === 'achieved' || row.status === 'missed'
+      ? row.status
+      : 'on_track'
+  return {
+    id: row.id,
+    title: row.title ?? '',
+    detail: row.detail ?? '',
+    metric: row.metric as GoalMetric,
+    op: row.op === 'lte' ? 'lte' : 'gte',
+    target: Number(row.target),
+    baseline: row.baseline === null ? null : Number(row.baseline),
+    deadline: row.deadline ?? null,
+    status,
+    evalDetail:
+      row.eval_detail && typeof row.eval_detail === 'object'
+        ? (row.eval_detail as InvestGoal['evalDetail'])
+        : null,
+    lastEvaluatedAt: row.last_evaluated_at ?? null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toScanItem(row: any): InvestScanItem {
+  return {
+    id: row.id,
+    theme: (typeof row.theme === 'string' ? row.theme : 'sector') as ScanTheme,
+    direction: (typeof row.direction === 'string' ? row.direction : 'monitor') as ScanDirection,
+    title: row.title ?? '',
+    note: row.note ?? '',
+    symbols: Array.isArray(row.symbols)
+      ? (row.symbols as unknown[]).filter((s): s is string => typeof s === 'string')
+      : [],
+    lastReviewedAt: row.last_reviewed_at ?? row.created_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

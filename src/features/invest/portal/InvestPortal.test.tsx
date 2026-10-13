@@ -198,6 +198,8 @@ const STATE: InvestState = {
     },
   ],
   theses: [],
+  goals: [],
+  scanItems: [],
   news: [
     {
       id: 1,
