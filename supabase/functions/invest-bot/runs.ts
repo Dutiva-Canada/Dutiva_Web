@@ -1,5 +1,7 @@
 import {
+  buildDigestEmail,
   buildSignalEmail,
+  digestFlushDue,
   draftExpiryCutoff,
   draftKey,
   planRun,
@@ -260,9 +262,11 @@ export async function runUser(
   }
 
   /* Email alerts — notify.email strategies get one bilingual summary per
-     scan that produced hits. No provider key configured → nothing sends and
-     the preference stays inert; a send failure degrades to a run warning
-     rather than failing the scan. */
+     scan that produced hits, or buffer into pending_email when the user's
+     digest cadence is daily/weekly (one consolidated email per window).
+     No provider key configured → nothing sends and the preference stays
+     inert; a send failure degrades to a run warning rather than failing
+     the scan. */
   const resendKey =
     Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('SUPPORT_EMAIL_PROVIDER_API_KEY') ?? ''
   const emailHits = strategies
@@ -277,23 +281,62 @@ export async function runUser(
         .map((p) => `${p.side} ${p.quantity} ${p.symbol}`),
     }))
     .filter((e) => e.signals.length + e.proposals.length > 0)
-  if (resendKey !== '' && emailHits.length > 0) {
+
+  const { data: prefsRow } = resendKey === ''
+    ? { data: null }
+    : await adminClient
+        .from('invest_notification_prefs')
+        .select('email_cadence, pending_email, digest_last_sent_at')
+        .eq('user_id', userId)
+        .maybeSingle()
+  const cadence =
+    prefsRow?.email_cadence === 'daily' || prefsRow?.email_cadence === 'weekly'
+      ? prefsRow.email_cadence
+      : 'immediate'
+
+  /* Digest cadences buffer hits into the prefs row; the first sweep past
+     the window flushes them as one consolidated email. A missing `to` or
+     a failed send keeps the buffer — hits are never silently dropped. */
+  let pending: { name: string; signals: string[]; proposals: string[] }[] = []
+  let digestDue = false
+  if (cadence !== 'immediate') {
+    const prior = Array.isArray(prefsRow?.pending_email)
+      ? (prefsRow.pending_email as typeof pending)
+      : []
+    pending = [...prior, ...emailHits]
+    digestDue = digestFlushDue(cadence, pending.length, prefsRow?.digest_last_sent_at)
+  }
+
+  const sendsNow = cadence === 'immediate' ? emailHits.length > 0 : digestDue
+  let to: string | null = null
+  if (resendKey !== '' && sendsNow) {
     const { data: profile } = await adminClient
       .from('profiles')
       .select('account_email')
       .eq('id', userId)
       .maybeSingle()
-    let to = (profile?.account_email as string | null | undefined) ?? null
+    to = (profile?.account_email as string | null | undefined) ?? null
     if (!to) {
       const { data: userData } = await adminClient.auth.admin.getUserById(userId)
       to = userData?.user?.email ?? null
     }
-    if (to) {
-      const from =
-        Deno.env.get('INVEST_EMAIL_FROM') ??
-        Deno.env.get('SUPPORT_EMAIL_FROM') ??
-        'Dutiva Invest <invest@dutiva.ca>'
-      const portalUrl = `${Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'}/invest`
+  }
+  if (resendKey !== '') {
+    const from =
+      Deno.env.get('INVEST_EMAIL_FROM') ??
+      Deno.env.get('SUPPORT_EMAIL_FROM') ??
+      'Dutiva Invest <invest@dutiva.ca>'
+    const portalUrl = `${Deno.env.get('SITE_URL') ?? 'https://dutiva.ca'}/invest`
+    const nowIso = new Date().toISOString()
+    const upsertPending = (rows: typeof pending, sent: boolean) =>
+      adminClient.from('invest_notification_prefs').upsert({
+        user_id: userId,
+        pending_email: rows,
+        ...(sent ? { digest_last_sent_at: nowIso } : {}),
+        updated_at: nowIso,
+      })
+
+    if (cadence === 'immediate' && emailHits.length > 0 && to) {
       for (const hit of emailHits) {
         const { subject, text } = buildSignalEmail({
           strategyName: hit.name,
@@ -308,6 +351,22 @@ export async function runUser(
             `email delivery failed for "${hit.name}": ${(err as Error).message.slice(0, 120)}`,
           )
         }
+      }
+    } else if (cadence !== 'immediate' && pending.length > 0) {
+      if (digestDue && to) {
+        const { subject, text } = buildDigestEmail({ items: pending, portalUrl, cadence })
+        try {
+          await resendSend(resendKey, from, { to, subject, text })
+          await upsertPending([], true)
+        } catch (err) {
+          plan.warnings.push(
+            `digest email failed: ${(err as Error).message.slice(0, 120)}`,
+          )
+          await upsertPending(pending, false)
+        }
+      } else {
+        /* Not due yet — or no recipient resolvable; keep accumulating. */
+        await upsertPending(pending, false)
       }
     }
   }

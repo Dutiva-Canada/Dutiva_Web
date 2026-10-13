@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bell,
@@ -70,21 +70,63 @@ const HOME_TAB_LABELS: Record<HomeTab, (typeof IM)[keyof typeof IM]> = {
 
 /**
  * Settings — language, appearance, start page, display currency, per-strategy
- * delivery, defaults, the tour, and the account view. The "My data" card
- * exports a client-side JSON snapshot (no server endpoint needed) and clears
- * Tally history through the user-scoped chat tables — the only "danger"
- * action, gated behind a two-step confirm.
+ * delivery, email cadence, defaults, the tour, and the account view. The
+ * "My data" card exports a client-side JSON snapshot and holds the two
+ * danger actions: clearing Tally history (two-step confirm, user-scoped
+ * chat tables) and wiping all Invest data (typed DELETE, server-side
+ * `invest_wipe_account` RPC).
  */
 export function InvestSettingsPage() {
   const { x, L, lang, setLang } = useI18n()
   const { session, signOut } = useAuth()
-  const { state, loading } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
   const { themePref, setTheme } = useTheme()
   const navigate = useNavigate()
   useInvestHead(IM.invest_seo_title_settings, IM.invest_seo_desc_settings)
   const [busy, setBusy] = useState<'signout' | 'global' | 'clear' | null>(null)
   const [confirmClear, setConfirmClear] = useState(false)
   const [clearDone, setClearDone] = useState(false)
+  const [cadence, setCadence] = useState<'immediate' | 'daily' | 'weekly'>('immediate')
+  const [wipeText, setWipeText] = useState('')
+  const [wipeDone, setWipeDone] = useState(false)
+
+  useEffect(() => {
+    if (!supabase || !session?.user.id) return
+    const uid = session.user.id
+    let cancelled = false
+    void supabase
+      .from('invest_notification_prefs')
+      .select('email_cadence')
+      .eq('user_id', uid)
+      .maybeSingle()
+      .then(({ data }) => {
+        const v = data?.email_cadence
+        if (!cancelled && (v === 'daily' || v === 'weekly')) setCadence(v)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [session?.user.id])
+
+  const setEmailCadence = (v: 'immediate' | 'daily' | 'weekly') => {
+    setCadence(v)
+    if (!supabase || !session?.user.id) return
+    void supabase.from('invest_notification_prefs').upsert({
+      user_id: session.user.id,
+      email_cadence: v,
+      updated_at: new Date().toISOString(),
+    })
+  }
+
+  const wipeAllData = async () => {
+    if (!supabase) return
+    const { error } = await supabase.rpc('invest_wipe_account')
+    if (!error) {
+      setWipeDone(true)
+      setWipeText('')
+      await refresh()
+    }
+  }
   const [homeTab, setHomeTab] = useState<HomeTab>(readHomeTab)
   const [orderMode, setOrderMode] = useState<OrderMode>(readOrderMode)
   const [badgeScope, setBadgeScope] = useState<BadgeScope>(readBadgeScope)
@@ -300,6 +342,28 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
+        <h2 className="m-0 text-[14px] font-semibold text-text">
+          {x(IM.invest_settings_notifications)}
+        </h2>
+        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          {x(IM.invest_settings_email_cadence_note)}
+        </p>
+        <div className="mt-[12px]">
+          <p className={rowLabel}>{x(IM.invest_settings_email_cadence)}</p>
+          <select
+            className={`mt-[6px] ${selectClass}`}
+            value={cadence}
+            onChange={(e) => setEmailCadence(e.target.value as 'immediate' | 'daily' | 'weekly')}
+            aria-label={x(IM.invest_settings_email_cadence)}
+          >
+            <option value="immediate">{x(IM.invest_cadence_email_immediate)}</option>
+            <option value="daily">{x(IM.invest_cadence_email_daily)}</option>
+            <option value="weekly">{x(IM.invest_cadence_email_weekly)}</option>
+          </select>
+        </div>
+      </section>
+
+      <section className={cardClass}>
         <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_tour)}</h2>
         <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
           {x(IM.invest_settings_tour_note)}
@@ -365,6 +429,40 @@ export function InvestSettingsPage() {
               <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
               {x(IM.invest_settings_clear_chat)}
             </button>
+          )}
+        </div>
+
+        <div className="mt-[18px] border-t border-border pt-[14px]">
+          <h3 className="m-0 text-[13px] font-semibold text-text">
+            {x(IM.invest_settings_wipe)}
+          </h3>
+          <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+            {wipeDone ? x(IM.invest_settings_wipe_done) : x(IM.invest_settings_wipe_note)}
+          </p>
+          {!wipeDone && (
+            <div className="mt-[10px] flex flex-wrap items-center gap-[10px]">
+              <input
+                type="text"
+                value={wipeText}
+                onChange={(e) => setWipeText(e.target.value)}
+                placeholder={x(IM.invest_settings_wipe_type)}
+                aria-label={x(IM.invest_settings_wipe_type)}
+                className="min-h-[44px] w-[190px] rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text"
+              />
+              <button
+                type="button"
+                disabled={wipeText !== 'DELETE' || busy === 'clear'}
+                onClick={() => void run('clear', wipeAllData)}
+                className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-risk-border bg-transparent px-[14px] text-[12.5px] font-semibold text-risk-fg hover:bg-inset disabled:opacity-50"
+              >
+                {busy === 'clear' ? (
+                  <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
+                )}
+                {x(IM.invest_settings_wipe)}
+              </button>
+            </div>
           )}
         </div>
       </section>

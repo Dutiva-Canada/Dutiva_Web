@@ -10208,6 +10208,30 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_notification_prefs: {
+        Row: {
+          digest_last_sent_at: string
+          email_cadence: string
+          pending_email: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          digest_last_sent_at?: string
+          email_cadence?: string
+          pending_email?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          digest_last_sent_at?: string
+          email_cadence?: string
+          pending_email?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_orders: {
         Row: {
           account_id: string
@@ -16828,6 +16852,7 @@ export type Database = {
         }
         Returns: string
       }
+      invest_wipe_account: { Args: never; Returns: undefined }
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
       is_admin_user: { Args: never; Returns: boolean }
       is_internal_admin_user: { Args: never; Returns: boolean }

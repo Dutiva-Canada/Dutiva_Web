@@ -203,6 +203,28 @@ const investCoreMessages = defineMessages({
   },
   invest_settings_clear_chat_yes: { en: 'Delete permanently', fr: 'Supprimer définitivement' },
   invest_settings_clear_chat_done: { en: 'History cleared.', fr: 'Historique effacé.' },
+  invest_settings_notifications: { en: 'Notifications', fr: 'Notifications' },
+  invest_settings_email_cadence: { en: 'Email alerts', fr: 'Alertes par courriel' },
+  invest_settings_email_cadence_note: {
+    en: 'Applies to strategies with email on. Immediate sends one summary per scan; digests bundle hits into a single email.',
+    fr: 'S’applique aux stratégies avec courriel activé. Immédiat envoie un sommaire par analyse; les sommaires groupés réunissent les déclenchements.',
+  },
+  invest_cadence_email_immediate: { en: 'Immediate', fr: 'Immédiat' },
+  invest_cadence_email_daily: { en: 'Daily digest', fr: 'Sommaire quotidien' },
+  invest_cadence_email_weekly: { en: 'Weekly digest', fr: 'Sommaire hebdomadaire' },
+  invest_settings_wipe: { en: 'Delete all Invest data', fr: 'Supprimer toutes les données Invest' },
+  invest_settings_wipe_note: {
+    en: 'Deletes accounts, positions, watchlist, strategies, signals, orders, chats, and preferences. Your portal access stays.',
+    fr: 'Supprime comptes, positions, liste de suivi, stratégies, signaux, ordres, conversations et préférences. Votre accès au portail demeure.',
+  },
+  invest_settings_wipe_type: {
+    en: 'Type DELETE to confirm',
+    fr: 'Tapez DELETE pour confirmer',
+  },
+  invest_settings_wipe_done: {
+    en: 'All Invest data deleted.',
+    fr: 'Toutes les données Invest ont été supprimées.',
+  },
   invest_delivery_edit_aria: {
     en: 'Edit {name} delivery',
     fr: 'Modifier l’envoi de {name}',
