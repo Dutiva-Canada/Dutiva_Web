@@ -283,6 +283,11 @@ const MENTION_STOPWORDS = new Set([
   'RATES', 'MARKET', 'MARKETS', 'TRADE', 'TRADES', 'INVEST', 'MONEY', 'PROFIT', 'LOSS', 'GAIN',
   'UP', 'DOWN', 'PORTFOLIO', 'ACCOUNT', 'ACCOUNTS', 'POSITION', 'POSITIONS', 'SIGNAL', 'SIGNALS',
   'STRATEGY', 'VOLUME', 'TECH', 'ENERGY', 'OIL', 'GOLD', 'SILVER', 'BANK', 'BANKS', 'VS',
+  // Metric labels — ticker-shaped but never tradable symbols; 'MA' stays out
+  // because it is the real Mastercard ticker
+  'RSI', 'MACD', 'EPS', 'PE', 'PB', 'PS', 'PEG', 'ROE', 'ROA', 'TTM', 'FWD',
+  'ATH', 'ATL', 'YTD', 'QOQ', 'YOY', 'EMA', 'SMA', 'VWAP', 'APY', 'APR',
+  'CAGR', 'FCF', 'DCA', 'DCF', 'NAV', 'EV', 'EBITDA',
   // French prose (uppercased message keeps accents out of the [A-Z] class,
   // so these cover the plain-ASCII shapes)
   'ET', 'LE', 'LA', 'LES', 'DES', 'DE', 'DU', 'EN', 'UN', 'UNE', 'POUR', 'SUR', 'PAS', 'QUE',
@@ -746,15 +751,19 @@ export function investReactPrompt(
 /* ── Reply claim verification ──────────────────────────────────────────────
    Deterministic second pair of eyes on the numbers Tally cites: labeled
    figures in the reply (RSI 57, "P/E 156", "$608") are pulled out and
-   checked against the market rows she was actually given. Derived math
-   ("30% above its 200-day") isn't checked — only claims that name a metric,
-   which is where a confident invention does damage. */
+   checked against the market rows she was actually given, along with
+   derived percent claims ("30% above its 200-day"), RSI judgment calls
+   ("overbought"), and figures for symbols with no row on file. */
 
 export interface ClaimMismatch {
   metric: string
   claimed: number
   actual: number
   unit: string
+  /** When set, buildRepairNote prints this line instead of the stock
+      claimed-vs-actual phrasing — used for judgment calls and claims about
+      symbols with no row on file, where "on file: X" would misattribute. */
+  detail?: string
 }
 
 const CLAIM_RULES: ClaimRule[] = [
@@ -813,17 +822,55 @@ function withinTolerance(claimed: number, actual: number): boolean {
 /** Pull labeled-metric claims out of a reply and check each against the
     market rows on file. A claim clears if ANY entry's value is within
     tolerance (symbol attribution is prose-level and unreliable); only
-    figures with no close match anywhere get flagged. */
+    figures with no close match anywhere get flagged.
+
+    Beyond labeled metrics this also checks:
+    - derived percent-vs-baseline claims ("30% above its 200-day",
+      "6% off the 52-week high") — recomputed against the rows, sign-aware;
+    - RSI judgment calls ("overbought"/"oversold") — flagged when nothing
+      on file is anywhere near the zone, with a negation guard;
+    - figures cited for symbols with no row on file — flagged as
+      unverifiable rather than silently cleared, and they suppress the
+      generic mismatch the same span would otherwise produce. */
 export function verifyReplyClaims(
   reply: string,
   market: MarketContextEntry[],
 ): ClaimMismatch[] {
-  if (market.length === 0 || !/\d/.test(reply)) return []
+  if (market.length === 0) return []
   const seen = new Set<string>()
   const out: ClaimMismatch[] = []
+
+  /* Windows around symbols the reply names that have no market row —
+     a number inside one of these spans is asserted without evidence. */
+  const onFile = new Set(market.map((e) => e.symbol.toUpperCase()))
+  const unverifiedWindows: [number, number][] = []
+  for (const m of reply.matchAll(MENTION_RE)) {
+    const sym = m[0]
+    if (MENTION_STOPWORDS.has(sym) || onFile.has(sym)) continue
+    const idx = m.index ?? 0
+    const start = Math.max(0, idx - 40)
+    const end = Math.min(reply.length, idx + sym.length + 40)
+    if (/\d/.test(reply.slice(start, end))) {
+      unverifiedWindows.push([start, end])
+      if (seen.add(`unverified:${sym}`)) {
+        out.push({
+          metric: `${sym} figure`,
+          claimed: NaN,
+          actual: NaN,
+          unit: '',
+          detail: `you cited a figure for ${sym}, but no market data is on file for it — remove the number or hedge it`,
+        })
+      }
+    }
+  }
+  const inUnverified = (idx: number) =>
+    unverifiedWindows.some(([s, e]) => idx >= s && idx < e)
+
+  if (/\d/.test(reply)) {
   for (const rule of CLAIM_RULES) {
     const labels = new RegExp(rule.re.source, 'gi')
     for (const m of reply.matchAll(labels)) {
+      if (inUnverified(m.index ?? 0)) continue
       const tail = reply.slice((m.index ?? 0) + m[0].length)
       const numMatch = (rule.dollarOnly ? NUM_AFTER_LABEL_DOLLAR : NUM_AFTER_LABEL).exec(tail)
       if (!numMatch) continue
@@ -843,17 +890,97 @@ export function verifyReplyClaims(
       out.push({ metric: rule.metric, claimed, actual, unit: rule.unit })
     }
   }
+
+  /* Derived percent claims — "30% above its 200-day", "6% off the 52-week
+     high". The number precedes the baseline label, so the labeled rules
+     can't see it. Recomputed per row; sign-aware, so "5% below" fails when
+     the price actually sits above the baseline. */
+  for (const m of reply.matchAll(DERIVED_PCT_RE)) {
+    if (inUnverified(m.index ?? 0)) continue
+    const claimed = Number(m[1].replace(/,/g, ''))
+    if (!Number.isFinite(claimed)) continue
+    const up = !/^(?:below|under|off)$/.test(m[2].toLowerCase())
+    const baseKey = m[3].toLowerCase().replace(/\s+/g, ' ')
+    const baseValue = DERIVED_BASES[baseKey]
+    if (!baseValue) continue
+    const actuals = market
+      .map((e) => {
+        const price = e.price
+        const base = baseValue(e)
+        if (price === null || base === null || base === 0) return null
+        return ((price - base) / base) * 100
+      })
+      .filter((v): v is number => v !== null)
+    if (actuals.length === 0) continue
+    const claimedSigned = up ? claimed : -claimed
+    if (actuals.some((a) => withinTolerance(claimedSigned, a))) continue
+    const key = `derived:${m[3]}:${claimedSigned}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    const actual = actuals.reduce((best, a) =>
+      Math.abs(a - claimedSigned) < Math.abs(best - claimedSigned) ? a : best,
+    )
+    out.push({
+      metric: `% ${up ? 'above' : 'below'} ${m[3].trim()}`,
+      claimed: claimedSigned,
+      actual,
+      unit: '%',
+    })
+  }
+  }
+
+  /* RSI judgment calls — "overbought"/"oversold" is a verdict on the row,
+     not a figure. Flagged only when NOTHING on file is near the zone
+     (highest RSI < 60 / lowest RSI > 40) and the wording isn't negated —
+     "not yet overbought" or "approaching overbought" both pass. */
+  const rses = market.map((e) => e.rsi14).filter((v): v is number => v !== null)
+  if (rses.length > 0) {
+    for (const m of reply.matchAll(/\b(overbought|oversold)\b/gi)) {
+      if (RSI_CALL_NEGATION.test(reply.slice(Math.max(0, (m.index ?? 0) - 35), m.index ?? 0))) {
+        continue
+      }
+      const word = m[1].toLowerCase()
+      const extreme = word === 'overbought' ? Math.max(...rses) : Math.min(...rses)
+      const wrong = word === 'overbought' ? extreme < 60 : extreme > 40
+      if (!wrong || seen.has(`rsicall:${word}`)) continue
+      seen.add(`rsicall:${word}`)
+      out.push({
+        metric: 'RSI call',
+        claimed: NaN,
+        actual: NaN,
+        unit: '',
+        detail: `you called the book '${word}' — the ${word === 'overbought' ? 'highest' : 'lowest'} RSI-14 on file is ${Math.round(extreme * 10) / 10}`,
+      })
+    }
+  }
+
   return out
 }
+
+/** Number-before-label shape: "30% above its 200-day", "6.5% off the
+    52-week high". Direction words split into up/down so the claim stays
+    sign-aware. */
+const DERIVED_PCT_RE =
+  /\b(\d[\d,]*(?:\.\d+)?)\s*%\s*(above|over|below|under|off)\s+(?:its|the|their)\s+(50[- ]day(?:\s+moving\s+average)?|200[- ]day(?:\s+moving\s+average)?|52[- ]?week[- ]high|52[- ]?week[- ]low)/gi
+
+const DERIVED_BASES: Record<string, (e: MarketContextEntry) => number | null> = {}
+for (const key of ['50-day', '50-day moving average']) DERIVED_BASES[key] = (e) => e.ma50
+for (const key of ['200-day', '200-day moving average']) DERIVED_BASES[key] = (e) => e.ma200
+DERIVED_BASES['52-week high'] = (e) => e.high52w
+DERIVED_BASES['52 week high'] = (e) => e.high52w
+DERIVED_BASES['52-week low'] = (e) => e.low52w
+DERIVED_BASES['52 week low'] = (e) => e.low52w
+
+/** Wording within ~35 chars before an RSI judgment term that means the
+    model explicitly is NOT making the call. */
+const RSI_CALL_NEGATION =
+  /(?:\bnot\b|n't\b|far from|nowhere near|approaching|near(?:ing|ly)?|almost|short of)\s*$/i
 
 /** The correction note sent back on the single repair pass — names the
     wrong figures plainly so the rewrite fixes them instead of hedging. */
 export function buildRepairNote(mismatches: ClaimMismatch[]): string {
   const lines = mismatches
-    .map(
-      (m) =>
-        `- ${m.metric}: you wrote ${Math.round(m.claimed * 100) / 100}${m.unit} — on file: ${Math.round(m.actual * 100) / 100}${m.unit}`,
-    )
+    .map((m) => `- ${m.metric}: ${m.detail ?? `you wrote ${Math.round(m.claimed * 100) / 100}${m.unit} — on file: ${Math.round(m.actual * 100) / 100}${m.unit}`}`)
     .join('\n')
   return (
     'Your reply cited figures that do not match the market data on file:\n' +

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { draftSystemPrompt, parseDraft, sanitizeGoal, validateAiAction } from './handlers'
+import { runTallyEval } from './goldenEval'
 import {
   INVEST_CHAT_ACTION_TYPES,
   buildRepairNote,
@@ -606,10 +607,54 @@ describe('verifyReplyClaims', () => {
   it('skips metrics with no row on file and ignores unlabeled numbers', () => {
     /* no eps on file → an EPS claim cannot be checked, so it passes */
     expect(verifyReplyClaims('EPS is 3.20.', [amd])).toEqual([])
-    /* derived math ("30% above the 200-day") is not a labeled claim */
+    /* "the trend" names no baseline — not a checkable claim */
     expect(verifyReplyClaims('It sits 30% above the trend.', [amd])).toEqual([])
     /* "the price rose 5%" is prose, not a price claim — needs the $ marker */
     expect(verifyReplyClaims('the price rose 5% yesterday', [amd])).toEqual([])
+  })
+  it('checks derived percent-vs-baseline claims, sign-aware', () => {
+    /* 608.1 vs ma200 385.3 → actually +57.8% above */
+    expect(verifyReplyClaims('AMD sits 58% above its 200-day.', [amd])).toEqual([])
+    expect(verifyReplyClaims('AMD sits 30% above its 200-day.', [amd])).toHaveLength(1)
+    /* wrong direction: price is above the 200-day, so "below" fails */
+    const out = verifyReplyClaims('AMD trades 5% below its 200-day.', [amd])
+    expect(out).toHaveLength(1)
+    expect(out[0].metric).toContain('below')
+    /* 608.1 vs 52w high 649.4 → -6.4% off the high */
+    expect(verifyReplyClaims('It is 6% off the 52-week high.', [amd])).toEqual([])
+    expect(verifyReplyClaims('It is 25% off the 52-week high.', [amd])).toHaveLength(1)
+    /* baselines with no row → the claim can't be checked, so it passes */
+    expect(verifyReplyClaims('It is 5% above its 50-day.', [{ ...amd, ma50: null }])).toEqual([])
+  })
+  it('flags RSI judgment calls that no row supports, unless negated', () => {
+    /* rsi 57.2 — calling the book overbought is wrong */
+    const out = verifyReplyClaims('AMD is overbought here.', [amd])
+    expect(out).toHaveLength(1)
+    expect(out[0].detail).toContain('overbought')
+    expect(out[0].detail).toContain('57.2')
+    /* same wording guarded → passes */
+    expect(verifyReplyClaims('AMD is not overbought yet.', [amd])).toEqual([])
+    expect(verifyReplyClaims('AMD is approaching overbought territory.', [amd])).toEqual([])
+    /* a genuinely overbought row supports the call */
+    expect(verifyReplyClaims('AMD is overbought here.', [{ ...amd, rsi14: 74 }])).toEqual([])
+    /* oversold mirror: lowest rsi on file is 44 → flag, at 25 → pass */
+    expect(
+      verifyReplyClaims('Everything looks oversold.', [{ ...amd, rsi14: 44 }]),
+    ).toHaveLength(1)
+    expect(verifyReplyClaims('Everything looks oversold.', [{ ...amd, rsi14: 25 }])).toEqual([])
+  })
+  it('flags figures for symbols with no row on file', () => {
+    const out = verifyReplyClaims('TSLA trades at $255.', [amd])
+    expect(out).toHaveLength(1)
+    expect(out[0].metric).toBe('TSLA figure')
+    expect(out[0].detail).toContain('TSLA')
+    /* a TSLA mention with no figure nearby stays unflagged */
+    expect(verifyReplyClaims('No data on TSLA — I can fetch it.', [amd])).toEqual([])
+    /* a figure near TSLA doesn't ALSO produce a generic price mismatch —
+       the unverified flag is the truer diagnosis */
+    const both = verifyReplyClaims('TSLA at $255 while AMD trades at $608.10.', [amd])
+    expect(both).toHaveLength(1)
+    expect(both[0].metric).toBe('TSLA figure')
   })
   it('produces a repair note naming both figures', () => {
     const note = buildRepairNote([{ metric: 'RSI-14', claimed: 41, actual: 57.2, unit: '' }])
@@ -617,6 +662,77 @@ describe('verifyReplyClaims', () => {
     expect(note).toContain('41')
     expect(note).toContain('57.2')
     expect(note).toContain('JSON')
+    /* detail lines override the stock phrasing */
+    const detail = buildRepairNote([
+      { metric: 'RSI call', claimed: NaN, actual: NaN, unit: '', detail: "you called the book 'overbought' — the highest RSI-14 on file is 52" },
+    ])
+    expect(detail).toContain('highest RSI-14')
+    expect(detail).not.toContain('NaN')
+  })
+})
+
+describe('runTallyEval — engine', () => {
+  const ctx: InvestChatContext = {
+    ...EMPTY_CTX,
+    market: [
+      {
+        symbol: 'AMD', assetClass: 'equity', price: 608.1, currency: 'USD',
+        dayChangePct: -2.0, ma50: 528.9, ma200: 385.3, rsi14: 57.2,
+        ret1m: null, ret3m: null, ret12m: null, vol20d: null,
+        high52w: 649.4, low52w: 190.9, fundamentals: null,
+        asOf: null, headlines: [],
+      },
+    ],
+  }
+  const canned = (reply: string, extra = '') =>
+    async () => `{"reply": ${JSON.stringify(reply)}, "action": null, "suggests": []${extra}}`
+  it('passes a case whose reply meets every expectation', async () => {
+    const result = await runTallyEval(
+      canned('AMD trades at $608.10 with RSI-14 at 57.2.'),
+      [{
+        id: 't', name: 'n', lang: 'en', advice: false,
+        user: 'How is AMD?', ctx,
+        expect: { mustContain: ['AMD'] },
+      }],
+    )
+    expect(result.summary.pass).toBe(1)
+    expect(result.summary.fail).toBe(0)
+  })
+  it('fails a case when the model invents a figure', async () => {
+    const result = await runTallyEval(
+      canned('AMD trades at $608.10 with RSI-14 at 41.'),
+      [{
+        id: 't', name: 'n', lang: 'en', advice: false,
+        user: 'How is AMD?', ctx, expect: {},
+      }],
+    )
+    expect(result.summary.fail).toBe(1)
+    expect(result.summary.failedChecks[0]).toContain('claims')
+  })
+  it('fails on unparseable output and missing expected action', async () => {
+    const bad = await runTallyEval(async () => 'not json at all', [
+      { id: 't', name: 'n', lang: 'en', advice: false, user: 'q', ctx, expect: {} },
+    ])
+    expect(bad.summary.fail).toBe(1)
+    const noAction = await runTallyEval(canned('Done.'), [
+      {
+        id: 't', name: 'n', lang: 'en', advice: false, user: 'queue it', ctx,
+        expect: { actionType: 'create_order' },
+      },
+    ])
+    expect(noAction.summary.fail).toBe(1)
+    expect(noAction.summary.failedChecks[0]).toContain('action')
+  })
+  it('counts a fetch-only protocol response as a gap, not a pass', async () => {
+    const result = await runTallyEval(
+      async () => '{"reply": "", "fetch": ["TSLA"], "suggests": []}',
+      [{
+        id: 't', name: 'n', lang: 'en', advice: false, user: 'TSLA?', ctx,
+        expect: { replyRequired: false },
+      }],
+    )
+    expect(result.summary.gap).toBe(1)
+    expect(result.summary.pass).toBe(0)
   })
 })
 
