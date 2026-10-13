@@ -246,6 +246,23 @@ const USD_QUOTED: InvestState = {
   ],
 }
 
+/* A second account turns the Account column on — the per-row ownership
+   label only earns its width once rows can actually differ. */
+const TWO_ACCOUNTS: InvestState = {
+  ...STATE,
+  accounts: [
+    ...STATE.accounts,
+    {
+      id: 'acc2',
+      name: 'Wealthsimple',
+      kind: 'live',
+      baseCurrency: 'USD',
+      cashBalance: 0.14,
+      status: 'active',
+    },
+  ],
+}
+
 function renderPortal(ui: ReactElement, route = '/invest') {
   return render(
     <ThemeProvider>
@@ -628,6 +645,75 @@ describe('InvestPortfolioPage positions', () => {
       )
     })
   })
+
+  it('hides the Account column in a single-account book', async () => {
+    await renderPage()
+    await screen.findByText('SHOP')
+    /* One account means every cell would read identically — the column
+       stays out and its width goes back to the data. */
+    expect(screen.queryByRole('columnheader', { name: 'Account' })).toBeNull()
+  })
+
+  it('names the owning account on each row once a second account exists', async () => {
+    await renderPage(TWO_ACCOUNTS)
+    expect(
+      await screen.findByRole('columnheader', { name: 'Account' }),
+    ).toBeInTheDocument()
+    const row = (await screen.findByText('SHOP')).closest('tr')
+    expect(within(row as HTMLElement).getByText('Paper book')).toBeInTheDocument()
+  })
+
+  it('suggests the quote currency when the symbol already has a snapshot', async () => {
+    const user = await renderPage(USD_QUOTED)
+    await screen.findByText('AMD')
+
+    await user.click(screen.getByRole('button', { name: /Add position/i }))
+    await user.type(document.getElementById('inv-pos-symbol')!, 'amd')
+
+    /* AMD's feed is USD-denominated — the field pre-selects USD and says
+       why instead of letting cost basis land mislabeled as CAD. */
+    expect(
+      await screen.findByText(/AMD quotes in USD — costs usually follow the quote/i),
+    ).toBeInTheDocument()
+    expect((document.getElementById('inv-pos-cur') as HTMLSelectElement).value).toBe('USD')
+  })
+
+  it('imports a pasted list and keeps the lines that did not parse', async () => {
+    const user = await renderPage()
+    await screen.findByText('SHOP')
+    vi.mocked(createPosition).mockResolvedValue(undefined)
+    vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
+
+    await user.click(screen.getByRole('button', { name: /Add many/i }))
+    await user.type(
+      document.getElementById('inv-bulk-lines')!,
+      'MSFT, 0.79, 527, USD\nTSLA, 2, 300\nSHOP, 1, 100\nBROKEN',
+    )
+    await user.click(screen.getByRole('button', { name: /^Add positions$/i }))
+
+    /* MSFT + TSLA land (TSLA under the form's CAD default); SHOP is a dup
+       and 'BROKEN' is unparseable — both stay in the box. */
+    await vi.waitFor(() => {
+      expect(createPosition).toHaveBeenCalledTimes(2)
+    })
+    expect(createPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'MSFT', quantity: 0.79, avgCost: 527, currency: 'USD' }),
+    )
+    expect(createPosition).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'TSLA', quantity: 2, avgCost: 300, currency: 'CAD' }),
+    )
+    expect(
+      await screen.findByText(/Added 2 positions — fetching quotes… 2 line\(s\) skipped/i),
+    ).toBeInTheDocument()
+    const box = document.getElementById('inv-bulk-lines') as HTMLTextAreaElement
+    expect(box.value).toBe('SHOP, 1, 100\nBROKEN')
+  })
+
+  it('states quote freshness under the positions table', async () => {
+    await renderPage()
+    await screen.findByText('SHOP')
+    expect(await screen.findByText(/Prices as of/)).toBeInTheDocument()
+  })
 })
 
 describe('InvestPortfolioPage accounts', () => {
@@ -635,9 +721,9 @@ describe('InvestPortfolioPage accounts', () => {
     vi.clearAllMocks()
   })
 
-  const renderPage = async () => {
+  const renderPage = async (state: InvestState = STATE) => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
-    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    vi.mocked(loadInvestState).mockResolvedValue(state)
     const { InvestPortfolioPage } = await import('./InvestPortfolioPage')
     const { InvestDataProvider } = await import('../data/InvestDataProvider')
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -669,9 +755,10 @@ describe('InvestPortfolioPage accounts', () => {
   })
 
   it('removes an account only after the cascade-aware confirm', async () => {
-    const user = await renderPage()
-    /* Every row names its owning account — the blast radius is visible
-       before the delete, not discovered after. */
+    const user = await renderPage(TWO_ACCOUNTS)
+    /* Every row names its owning account once a second account exists —
+       the blast radius is visible before the delete, not discovered
+       after. */
     const row = (await screen.findByText('SHOP')).closest('tr')
     expect(row).not.toBeNull()
     expect(within(row as HTMLElement).getByText('Paper book')).toBeInTheDocument()
@@ -696,8 +783,8 @@ describe('InvestPortfolioPage accounts', () => {
 
   it('edits an account name and cash through the tile Edit control', async () => {
     const user = await renderPage()
-    /* 'Paper book' matches the tile and the row's Account cell — the
-       tile's copy lands first in DOM order. */
+    /* 'Paper book' only matches the tile here — the row's Account cell
+       hides for a single-account book. */
     const tile = (await screen.findAllByText('Paper book'))[0]!.closest('li')
     expect(tile).not.toBeNull()
     vi.mocked(updateAccount).mockResolvedValue(undefined)
