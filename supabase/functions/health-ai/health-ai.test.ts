@@ -6,8 +6,17 @@ import {
   CHAT_ACTION_TYPES,
   chatPrompt,
   createReplyDeltaExtractor,
+  detectHealthFlags,
   entryReactPrompt,
   habitPrompt,
+  HEALTH_FALLBACK_EN,
+  HEALTH_FALLBACK_FR,
+  HEALTH_REACT_FALLBACK_EN,
+  HEALTH_REACT_FALLBACK_FR,
+  HEALTH_RECAP_FALLBACK_EN,
+  HEALTH_RECAP_FALLBACK_FR,
+  HEALTH_REFLECT_FALLBACK_EN,
+  HEALTH_REFLECT_FALLBACK_FR,
   parseChatReply,
   parseHabit,
   reactPrompt,
@@ -533,5 +542,85 @@ describe('internal advice tier (@dutiva.ca)', () => {
     expect(e).toContain('concrete suggestion')
     expect(e).toContain('9-8-8')
     expect(entryReactPrompt('t', 'b', [], TODAY, 'en')).toContain('not advice')
+  })
+})
+
+describe('detectHealthFlags (boundary backstop)', () => {
+  it('flags clinical vocabulary for EVERY tier — the clinical line is tier-independent', () => {
+    for (const reply of [
+      'You have insomnia — that much is clear.',
+      'Try taking melatonin before bed.',
+      'That sounds like depression to me.',
+      'A therapist could help you sort through this.',
+      'You should see a doctor about those symptoms.',
+      'Take your medication at the same time each night.',
+    ]) {
+      expect(detectHealthFlags(reply, 'en', false), reply).not.toEqual([])
+      /* Internal advice is in scope — illness, medication and therapy are not. */
+      expect(detectHealthFlags(reply, 'en', true), reply).not.toEqual([])
+    }
+  })
+
+  it('flags directed wellness calls only for the external tier', () => {
+    for (const reply of [
+      'You should sleep at least eight hours a night.',
+      'Cut out caffeine after noon.',
+      'Start a workout routine three times a week.',
+      "I'd recommend cutting back on alcohol.",
+    ]) {
+      expect(detectHealthFlags(reply, 'en', false), reply).not.toEqual([])
+    }
+    /* Internal gets advice — the same directives stay in scope. */
+    for (const reply of [
+      'You should sleep more — your average is 5.8h.',
+      'Cut the late-night screens if you want easier mornings.',
+    ]) {
+      expect(detectHealthFlags(reply, 'en', true), reply).toEqual([])
+    }
+  })
+
+  it('flags French clinical terms and external directives', () => {
+    for (const reply of [
+      "Vous souffrez d'insomnie, c'est clair.",
+      'Prenez de la mélatonine avant de dormir.',
+      'Une thérapie pourrait aider.',
+      'Coupez la caféine après midi.',
+      'Vous devriez dormir plus.',
+    ]) {
+      expect(detectHealthFlags(reply, 'fr', false), reply).not.toEqual([])
+    }
+  })
+
+  it('leaves observations, offered suggestions and the crisis line clean', () => {
+    for (const reply of [
+      'A short walk might help tonight.',
+      'Your average mood dipped this week — 2.8 vs 3.4.',
+      'The Resources page has options if you want more.',
+      'You could try writing a few lines about it.',
+      'Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger.',
+      "That sounds heavy — I'm here.",
+    ]) {
+      expect(detectHealthFlags(reply, 'en', false), reply).toEqual([])
+    }
+    for (const reply of [
+      'Une petite marche pourrait aider ce soir.',
+      'Vos chiffres ont baissé cette semaine.',
+      "La page Ressources offre des options si vous en voulez plus.",
+    ]) {
+      expect(detectHealthFlags(reply, 'fr', false), reply).toEqual([])
+    }
+  })
+
+  it('fallbacks pass their own screen in both tables', () => {
+    for (const advice of [false, true]) {
+      expect(detectHealthFlags(HEALTH_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_FALLBACK_FR, 'fr', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_REACT_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_REACT_FALLBACK_FR, 'fr', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_REFLECT_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_REFLECT_FALLBACK_FR, 'fr', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_RECAP_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectHealthFlags(HEALTH_RECAP_FALLBACK_FR, 'fr', advice)).toEqual([])
+    }
   })
 })

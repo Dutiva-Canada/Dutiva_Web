@@ -46,6 +46,13 @@ import {
 } from './completion.ts'
 import { corsHeaders, json } from './respond.ts'
 import { findUngroundedCitations } from './citationCheck.ts'
+import {
+  ADVISOR_FALLBACK_EN,
+  ADVISOR_FALLBACK_FR,
+  advisorFallbackLang,
+  buildAdvisorRepairNote,
+  detectAdvisorAdviceFlags,
+} from './adviceScreen.ts'
 
 /**
  * Real AI Advisor replies. Looks up the active `advisor_chat` route in
@@ -208,11 +215,57 @@ const handler = async (req: Request) => {
   )
   if (completionResult instanceof Response) return completionResult
 
-  const rawReply = completionResult.completion.choices?.[0]?.message?.content ?? ''
+  let completion = completionResult.completion
+  let latencyMs = completionResult.latencyMs
+  let rawReply = completion.choices?.[0]?.message?.content ?? ''
   /* The model's thinking, when the route produces it — persisted on the
      assistant envelope and returned on the wire so the UI can show the
      reasoning disclosure. Empty when the model doesn't reason. */
-  const reasoning = completionResult.completion.choices?.[0]?.message?.reasoning_content ?? ''
+  let reasoning = completion.choices?.[0]?.message?.reasoning_content ?? ''
+
+  /* External-tier backstop — the first ENFORCED reply check on this
+     surface (citation grounding stays measured-only per the comment
+     below). A reply that drifted into a directed high-risk call or a
+     legal verdict gets one repair turn through the same metered
+     completion path; a still-flagged reply (or a failed repair call) is
+     replaced with the fixed counsel fallback — a boundary violation
+     never ships. This runs before memory extraction so facts are only
+     pulled from the reply the user actually receives, and before the
+     response payload so its structure reflects the shipped text. */
+  if (!advice) {
+    const flags = detectAdvisorAdviceFlags(rawReply)
+    if (flags.length > 0) {
+      console.warn('advisor-chat external reply crossed the advice line', JSON.stringify(flags))
+      const repairResult = await requestCompletion(
+        authenticated.adminClient,
+        decision.claimId,
+        request,
+        activeRoute.route,
+        activeRoute.provider,
+        [...history, { role: 'assistant' as const, content: rawReply }],
+        { role: 'user', content: buildAdvisorRepairNote(flags) },
+        guidance,
+        advice,
+      )
+      if (repairResult instanceof Response) {
+        console.warn('advisor-chat repair call failed; suppressing flagged reply', JSON.stringify(flags))
+        rawReply = advisorFallbackLang(rawReply) === 'fr' ? ADVISOR_FALLBACK_FR : ADVISOR_FALLBACK_EN
+      } else {
+        const repaired = repairResult.completion.choices?.[0]?.message?.content ?? ''
+        if (repaired && detectAdvisorAdviceFlags(repaired).length === 0) {
+          completion = repairResult.completion
+          latencyMs += repairResult.latencyMs
+          const repairReasoning = repairResult.completion.choices?.[0]?.message?.reasoning_content ?? ''
+          if (repairReasoning) reasoning = [reasoning, repairReasoning].filter(Boolean).join('\n\n')
+          rawReply = repaired
+        } else {
+          console.warn('advisor-chat advice-flagged reply suppressed', JSON.stringify(flags))
+          rawReply = advisorFallbackLang(rawReply) === 'fr' ? ADVISOR_FALLBACK_FR : ADVISOR_FALLBACK_EN
+        }
+      }
+    }
+  }
+
   const extracted =
     request.organizationId && memoryAllowed
       ? extractMemoryCandidates(rawReply, request.message, conversation.id)
@@ -249,8 +302,8 @@ const handler = async (req: Request) => {
   await recordCompletion(
     authenticated.adminClient,
     decision.claimId,
-    completionResult.completion,
-    completionResult.latencyMs,
+    completion,
+    latencyMs,
     retrieval,
     decision.commercialSource,
     /* Citation grounding is measured, never enforced — the flag lands in

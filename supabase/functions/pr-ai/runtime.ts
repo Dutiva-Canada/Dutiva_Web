@@ -11,7 +11,13 @@ import {
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import {
+  buildPrRepairNote,
+  detectPrFlags,
   parsePrChatReply,
+  PR_FALLBACK_EN,
+  PR_FALLBACK_FR,
+  PR_REACT_FALLBACK_EN,
+  PR_REACT_FALLBACK_FR,
   prChatPrompt,
   prChatSources,
   prReactPrompt,
@@ -281,8 +287,13 @@ export async function runChat(
 
   /* One upstream call, repeatable — round two carries the live search
      results the model asked for, injected as clearly-marked untrusted
-     context. */
-  const callUpstream = (web: { query: string; results: WebResult[] } | null, streamIt: boolean) => {
+     context; the boundary repair round appends the flagged draft and the
+     correction note. */
+  const callUpstream = (
+    web: { query: string; results: WebResult[] } | null,
+    streamIt: boolean,
+    extra: UpstreamMessage[] = [],
+  ) => {
     const messages: UpstreamMessage[] = [...baseMessages]
     if (web) {
       messages.push({
@@ -294,6 +305,7 @@ export async function runChat(
             : `The web search for "${web.query}" returned nothing — say so rather than invent.`,
       })
     }
+    messages.push(...extra)
     return postChatCompletion(
       found.provider,
       keyResult.apiKey,
@@ -347,6 +359,51 @@ export async function runChat(
   const upstreamErr = (e: unknown) =>
     `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`
 
+  /* Post-generation boundary — runs on every reply, either tier. Promised
+     pickup and send-claims are never in scope (the send is always the
+     user's); the desk call on their concrete next move is external-only.
+     Flag → one non-streamed repair round → still flagged → fixed
+     fallback; suggests and the action drop with the drifted payload —
+     an unasked write is half the leak. */
+  const screenReply = async (
+    draft: PrChatReply,
+  ): Promise<{ reply: PrChatReply; reasoning: string }> => {
+    const flags = detectPrFlags(draft.reply, lang, advice)
+    if (flags.length === 0) return { reply: draft, reasoning: '' }
+    console.warn('pr-ai reply crossed a desk line', JSON.stringify(flags))
+    try {
+      const res = await callUpstream(null, false, [
+        {
+          role: 'assistant',
+          content: JSON.stringify({ reply: draft.reply, suggests: draft.suggests ?? [] }),
+        },
+        { role: 'user', content: buildPrRepairNote(flags, advice) },
+      ])
+      if (res.ok) {
+        const round = await readRound(res)
+        if (
+          round.parsed &&
+          round.parsed.reply !== '' &&
+          detectPrFlags(round.parsed.reply, lang, advice).length === 0
+        ) {
+          return { reply: round.parsed, reasoning: round.reasoning }
+        }
+      }
+    } catch (e) {
+      console.warn('pr-ai repair call failed; suppressing flagged reply', e)
+    }
+    console.warn('pr-ai boundary-flagged reply suppressed', JSON.stringify(flags))
+    return {
+      reply: {
+        ...draft,
+        reply: lang === 'fr' ? PR_FALLBACK_FR : PR_FALLBACK_EN,
+        suggests: [],
+        action: null,
+      },
+      reasoning: '',
+    }
+  }
+
   if (stream) {
     /* SSE out, SSE in — reasoning streams live to the thinking panel, a
        search hop signals its status, the done event carries the parsed
@@ -361,9 +418,13 @@ export async function runChat(
           sse.send({ type: 'error', error: `Upstream returned ${res1.status}`, code: 'upstream' })
           return
         }
+        /* Reply text no longer streams mid-flight: each round buffers so
+           the boundary screen sees the whole reply before a word reaches
+           the bubble, then the screened reply leaves as one delta.
+           Reasoning still streams live to the thinking panel. */
         let round = await readRound(
           res1,
-          (piece) => sse.send({ type: 'delta', text: piece }),
+          undefined,
           (piece) => sse.send({ type: 'reasoning', text: piece }),
         )
         reasoning = round.reasoning
@@ -380,7 +441,7 @@ export async function runChat(
           }
           round = await readRound(
             res2,
-            (piece) => sse.send({ type: 'delta', text: piece }),
+            undefined,
             (piece) => sse.send({ type: 'reasoning', text: piece }),
           )
           if (round.reasoning) reasoning += `\n\n${round.reasoning}`
@@ -390,6 +451,10 @@ export async function runChat(
           sse.send({ type: 'error', error: 'Model returned no usable reply', code: 'unparseable' })
           return
         }
+        const screened = await screenReply(parsed)
+        parsed = screened.reply
+        if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
+        sse.send({ type: 'delta', text: parsed.reply })
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
           : null
@@ -443,6 +508,10 @@ export async function runChat(
   if (!parsed || parsed.reply === '') {
     return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
   }
+
+  const screened = await screenReply(parsed)
+  parsed = screened.reply
+  if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
 
   const executed = parsed.action
     ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
@@ -749,19 +818,27 @@ export async function runReact(
   }
   if (!upstream.ok) return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
 
+  /* A flagged reaction goes straight to the fixed one-liner — no repair
+     round for a two-sentence reply. The text buffers through the screen
+     in either mode. */
+  const screenText = (raw: string): string => {
+    const flags = detectPrFlags(raw, lang, advice)
+    if (flags.length === 0) return raw
+    console.warn('pr-ai reaction crossed a desk line; fixed reply substituted', JSON.stringify(flags))
+    return lang === 'fr' ? PR_REACT_FALLBACK_FR : PR_REACT_FALLBACK_EN
+  }
+
   if (stream) {
     const sse = sseChannel()
     void (async () => {
       try {
-        const reply = (
-          await readUpstreamText(upstream, (piece) => {
-            if (piece) sse.send({ type: 'delta', text: piece })
-          })
-        ).trim()
-        if (!reply) {
+        const draft = (await readUpstreamText(upstream, () => {})).trim()
+        if (!draft) {
           sse.send({ type: 'error', error: 'Model returned empty text', code: 'empty' })
           return
         }
+        const reply = screenText(draft)
+        sse.send({ type: 'delta', text: reply })
         const { data: row } = await admin
           .from('pr_chat_messages')
           .insert({ user_id: userId, role: 'assistant', content: reply })
@@ -778,8 +855,9 @@ export async function runReact(
   }
 
   const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
-  const reply = (payload.choices?.[0]?.message?.content ?? '').trim()
-  if (!reply) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  const draft = (payload.choices?.[0]?.message?.content ?? '').trim()
+  if (!draft) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  const reply = screenText(draft)
 
   const { data: row } = await admin
     .from('pr_chat_messages')

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   cleanDraft,
   clustersPrompt,
+  detectPrFlags,
   draftPrompt,
   parseClusters,
   parsePitch,
@@ -9,6 +10,10 @@ import {
   parseTone,
   parseToneList,
   pitchPrompt,
+  PR_FALLBACK_EN,
+  PR_FALLBACK_FR,
+  PR_REACT_FALLBACK_EN,
+  PR_REACT_FALLBACK_FR,
   promptsPrompt,
   summaryPrompt,
   tonePrompt,
@@ -578,5 +583,84 @@ describe('prChatSources', () => {
     }
     /* ≤8 chars is too short to quote-match safely — skipped by design. */
     expect(prChatSources(short, 'Brief')).toEqual([])
+  })
+})
+
+describe('detectPrFlags (desk-boundary backstop)', () => {
+  it('flags promised pickup and send-claims for EVERY tier — those lines are universal', () => {
+    for (const reply of [
+      'This will get you real coverage.',
+      'Reporters will cover this one.',
+      'I sent the pitch to TechCrunch this morning.',
+      "I'll send it to the outlets tomorrow.",
+      'Guaranteed coverage on this one.',
+      "It's sent — watch for it.",
+    ]) {
+      expect(detectPrFlags(reply, 'en', false), reply).not.toEqual([])
+      /* Internal owns the desk call — it never owns the send or the promise. */
+      expect(detectPrFlags(reply, 'en', true), reply).not.toEqual([])
+    }
+  })
+
+  it('flags the directed desk call only for the external tier', () => {
+    for (const reply of [
+      'You should pitch The Logic first.',
+      'Ship this one — the timing is right.',
+      'My pick is the shorter draft.',
+      "I'd go with the second version.",
+      'Send it to them first.',
+    ]) {
+      expect(detectPrFlags(reply, 'en', false), reply).not.toEqual([])
+    }
+    /* Internal gets the desk call. */
+    for (const reply of [
+      'Ship the second draft, then pitch The Logic first.',
+      'Lead with the funding angle — the rest is filler.',
+    ]) {
+      expect(detectPrFlags(reply, 'en', true), reply).toEqual([])
+    }
+  })
+
+  it('honest deflections and frank reads stay clean', () => {
+    for (const reply of [
+      'The subject line is weak — tighten it.',
+      'Embargoes mostly annoy journalists unless the news is genuinely big.',
+      'A short pitch usually beats a release blast.',
+      'You could pitch it, or hold for the funding news — your call.',
+      "I can't promise coverage — nobody can.",
+      'Whether outlets pick it up is their call.',
+    ]) {
+      expect(detectPrFlags(reply, 'en', false), reply).toEqual([])
+    }
+  })
+
+  it('flags French pickup promises, send claims and desk calls', () => {
+    for (const reply of [
+      'Les journalistes vont adorer ce sujet.',
+      'Vous obtiendrez de la couverture.',
+      "J'ai envoyé le pitch aux médias.",
+      "C'est envoyé.",
+      'Vous devriez le pitcher en premier.',
+      'Envoyez la version courte.',
+      "C'est celle à envoyer.",
+    ]) {
+      expect(detectPrFlags(reply, 'fr', false), reply).not.toEqual([])
+    }
+    for (const reply of [
+      "L'objet est faible — resserrez-le.",
+      'Les embargos agacent surtout les journalistes.',
+      'Vous pourriez le pitcher, ou attendre la nouvelle — votre appel.',
+    ]) {
+      expect(detectPrFlags(reply, 'fr', false), reply).toEqual([])
+    }
+  })
+
+  it('fallbacks pass their own screen in both tables', () => {
+    for (const advice of [false, true]) {
+      expect(detectPrFlags(PR_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectPrFlags(PR_FALLBACK_FR, 'fr', advice)).toEqual([])
+      expect(detectPrFlags(PR_REACT_FALLBACK_EN, 'en', advice)).toEqual([])
+      expect(detectPrFlags(PR_REACT_FALLBACK_FR, 'fr', advice)).toEqual([])
+    }
   })
 })

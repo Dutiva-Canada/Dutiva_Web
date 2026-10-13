@@ -11,6 +11,7 @@
  * user in the Orders tab.
  */
 import { parseRules, type StrategyRule } from '../invest-bot/handlers.ts'
+import { detectPatterns } from '../_shared/adviceScreen.ts'
 
 export interface StrategyDraft {
   name: string
@@ -1092,12 +1093,7 @@ const ADVICE_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
 /** Phrases in the reply that cross into directed advice — the matched
     fragments, for the repair note and the log line. Empty = clean. */
 export function detectDirectedAdvice(reply: string, lang: 'en' | 'fr'): string[] {
-  const hits: string[] = []
-  for (const re of ADVICE_PATTERNS[lang]) {
-    const m = re.exec(reply)
-    if (m) hits.push(m[0].trim().slice(0, 80))
-  }
-  return hits
+  return detectPatterns(reply, ADVICE_PATTERNS[lang])
 }
 
 /** The note sent back when an external-tier reply crossed the register —

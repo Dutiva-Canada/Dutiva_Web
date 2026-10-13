@@ -4,6 +4,7 @@
  * the `npm:`/`jsr:` specifiers the Deno handler uses — same split as
  * _shared/aiUsage.ts and advisor-chat/responsePayload.ts.
  */
+import { detectHonestClaims, detectPatterns } from '../_shared/adviceScreen.ts'
 
 export type AiFeature = 'tailor-resume' | 'cover-letter' | 'match-score' | 'interview-prep'
 
@@ -433,3 +434,101 @@ export function parseCandidateChatReply(
     return null
   }
 }
+
+/* ── Output screens — the deterministic backstop behind the prompt ─────────
+   Two different boundaries are enforced here:
+
+   1. The universal line binds EVERY tier — Claire never promises an
+      outcome ("you'll get the interview") and never discourages an
+      application ("don't bother", "skip this one"), not even for the
+      internal coach who owns the call — the apply decision is always
+      the candidate's.
+   2. The verdict line binds only the external tier — external gets
+      honest observations about the data and generic coaching, never a
+      personal verdict on their chances or materials ("your chances are
+      slim", "you're a strong fit"). Observations ("your resume shows
+      five years in logistics") deliberately stay clean — flagging
+      suppresses the reply, so a false positive costs a good answer.
+
+   Internal @dutiva.ca replies run only the universal table — frank
+   reads are in scope there; promised outcomes and discouragement are
+   not. */
+const UNIVERSAL_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\byou(?:'ll|\s+will|\s+are\s+going\s+to)\s+(?:(?:get|land|secure|win|earn)\s+(?:the\s+|an?\s+|that\s+)?(?:interview|offer|job|role|callback|call|position|gig)|be\s+(?:offered|hired|called|picked|chosen|selected)|hear\s+back|receive\s+an?\s+(?:offer|interview|call)|ace|crush|nail)(?!\w)/i,
+    /\b(?:this|that|it|your\s+(?:resume|application|profile|cover\s+letter|cv))\s+(?:will|would|is\s+going\s+to|'ll)\s+(?:get|land|earn|secure|win)\s+(?:you\s+)?(?:an?\s+|the\s+)?(?:interview|offer|job|role|callback|call)(?!\w)/i,
+    /\b(?:don't|do\s+not|you\s+shouldn't|i\s+wouldn't|no\s+point(?:\s+in)?|not\s+worth|waste\s+of\s+(?:your\s+)?time)\s+(?:bother(?:ing)?\s+)?(?:to\s+)?apply(?:ing)?(?!\w)/i,
+    /\b(?:skip|pass\s+on|give\s+up\s+on|forget)\s+(?:this|that|the)\s+(?:one|posting|role|job|application|opportunity)(?!\w)/i,
+    /\bthey(?:'ll|\s+will|\s+would|\s+won't|\s+will\s+not|\s+are\s+going\s+to)\s+(?:hire|pick|choose|want|call|reject|pass\s+on|love|take)\s+you(?!\w)/i,
+  ],
+  fr: [
+    /\bvous\s+(?:obtiendrez|décrocherez|réussirez|dénicherez|serez\s+(?:embauchée?|choisie?|retenue?))(?!\w)/i,
+    /\bvous\s+aurez\s+(?:l'|une\s+|la\s+|des\s+)?(?:entrevue|entretien|offre|poste|emploi|rappel)(?!\w)/i,
+    /(?:ça|cela|votre\s+(?:cv|candidature|profil|lettre))\s+(?:vous\s+)?(?:va|vas|pourrait|devrait|vous\s+va)\s+(?:vous\s+)?(?:décrocher|valoir|obtenir|donner|garantir)\s+(?:un|une|le|l'|des)?\s*(?:entrevue|entretien|offre|poste|emploi|rappel)(?!\w)/i,
+    /(?:ne\s+postulez\s+pas|n'appliquez\s+pas|pas\s+la\s+peine\s+(?:de\s+|d')?postuler|ça\s+ne\s+vaut\s+pas\s+la\s+peine|oubliez\s+(?:ce|cet|cette)|laissez\s+tomber\s+(?:ce|cet|cette))(?!\w)/i,
+    /\b(?:ils?|l'employeur|l'entreprise|on)\s+(?:vous\s+)?(?:embaucher\w*|choisir\w*|retiendr\w*|prendr\w*|rejetter\w*|refuser\w*|adorer\w*|voudr\w*)\s*(?:vous)?(?!\w)/i,
+  ],
+}
+
+const VERDICT_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\byour\s+chances?\s+(?:are|is|look|seem|of|here)\s+(?:good|great|strong|slim|thin|low|poor|small|high|decent|real|realistic|better|worse|solid)(?!\w)/i,
+    /\byou(?:'re|\s+are)\s+(?:a\s+)?(?:strong|good|great|weak|poor|competitive|realistic|perfect|ideal|solid|bad|tough)\s+(?:candidate|fit|match|shot|contender|applicant)(?!\w)/i,
+    /\b(?:this|the|that)\s+(?:role|job|posting|one|position|opportunity)\s+is\s+(?:a\s+)?(?:great|good|perfect|strong|poor|bad|realistic|long|tough|stretch|natural)\s+(?:fit|match|shot|reach)\s+for\s+you(?!\w)/i,
+    /\byou(?:'d|\s+would)\s+(?:ace|crush|nail|be\s+great|be\s+perfect|be\s+ideal|fit\s+right|be\s+a\s+(?:great|perfect|natural)\s+fit)(?!\w)/i,
+    /\byou\s+(?:stand|have)\s+(?:a\s+)?(?:good|real|decent|strong|poor|slim|fighting|realistic|fair)\s+chance(?!\w)/i,
+    /\bi\s+(?:think|believe|feel|doubt|reckon)\s+you(?:'ll|\s+will|\s+won't|\s+have|\s+could|\s+stand|\s+should|\s+are|\s+would)(?!\w)/i,
+    /\b(?:a\s+)?(?:real\s+)?long\s*shot(?!\w)/i,
+  ],
+  fr: [
+    /\bvos\s+chances\s+(?:sont|semblent|paraissent|d'être)\s+(?:bonnes|grandes|fortes|minces|faibles|réelles|réalistes|meilleures|pires|solides)(?!\w)/i,
+    /\bvous\s+êtes\s+(?:un\s+|une\s+)?(?:bon|bonne|fort|forte|faible|solide|excellent|excellente|mauvais|mauvaise|parfait|parfaite|idéal|idéale)\s+(?:candidat|candidature|profil|match|choix)(?!\w)/i,
+    /\b(?:ce|le|cet|cette)\s+(?:poste|rôle|emploi|offre)\s+(?:est|semble|paraît)\s+(?:un\s+|une\s+)?(?:bon|bonne|excellent|parfait|mauvais|réaliste|long)\s+(?:match|fit|choix|coup)\s+pour\s+vous(?!\w)/i,
+    /\bvous\s+(?:réussiriez|décrocheriez|auriez|feriez\s+un\s+excellent)(?!\w)/i,
+    /\bvous\s+avez\s+(?:de\s+)?(?:bonnes|réelles|de\s+vraies|peu\s+de|de\s+faibles)\s+chances(?!\w)/i,
+    /\bje\s+(?:pense|crois|doute)\s+que\s+vous\s+(?:allez|aurez|serez|pourriez|êtes|avez)(?!\w)/i,
+    /\b(?:un\s+)?(?:vrai\s+)?long\s*shot(?!\w)/i,
+  ],
+}
+
+/* Promise-words run through the negation-aware matcher — "can't promise
+   you an interview" is the honest deflection, not a violation. */
+const PROMISE_WORD_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\b(?:guarantee\w*|promise\w*|sure\s+thing)\s+(?:you'll\s+|you\s+)?(?:of\s+|a\s+|an\s+|the\s+)?(?:interview|offer|job|callback|role|hired)(?!\w)/i,
+  ],
+  fr: [
+    /\b(?:garantir|garantie|promets?|promesse|coup\s+sûr)\s+(?:de\s+|d'|une\s+|l')?\s*(?:entrevue|entretien|offre|embauche|poste)\b/i,
+  ],
+}
+
+/** Fragments crossing a boundary, matched per tier. Empty = clean. */
+export function detectCandidateFlags(text: string, lang: 'en' | 'fr', advice: boolean): string[] {
+  const hits = [
+    ...detectPatterns(text, UNIVERSAL_PATTERNS[lang]),
+    ...detectHonestClaims(text, PROMISE_WORD_PATTERNS[lang]),
+  ]
+  if (advice) return hits
+  return [...hits, ...detectPatterns(text, VERDICT_PATTERNS[lang])]
+}
+
+/** The repair note behind a flagged reply — names what crossed so the
+    rewrite fixes the boundary instead of hedging. */
+export function buildCandidateRepairNote(flags: string[], advice: boolean): string {
+  return (
+    'Your reply crossed a line the coach never crosses — flagged:\n' +
+    flags.map((f) => `- "${f}"`).join('\n') +
+    '\nRewrite it with no promised outcome and nothing that talks them out of applying — ' +
+    (advice
+      ? 'the frank read itself is fine for this internal account. '
+      : 'observations about the data are fine; the verdict on their chances is not yours to give. ') +
+    'Keep the same language and the same JSON contract.'
+  )
+}
+
+/** The fixed text that replaces a flagged reply the repair pass could not
+    clean — the coach's promise stated plainly. */
+export const CANDIDATE_FALLBACK_EN =
+  'Whether a role lands is the employer’s call — I can’t read that from here, and I won’t promise an outcome either way. What I can do is work the search with you: the posting, the materials, the next move. Where do you want to look?'
+export const CANDIDATE_FALLBACK_FR =
+  'C’est l’employeur qui décide — je ne peux pas le lire d’ici, et je ne promets pas de résultat non plus. Ce que je peux faire : travailler la recherche avec vous — l’offre, les documents, le prochain geste. Par où voulez-vous regarder ?'

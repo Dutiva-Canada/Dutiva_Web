@@ -8,6 +8,7 @@
  * Everything read belongs to the caller — the wellness notice discloses
  * this plainly.
  */
+import { detectPatterns } from '../_shared/adviceScreen.ts'
 
 export interface CheckInRow {
   mood: number
@@ -555,3 +556,98 @@ export function entryReactPrompt(
     signalsBlock(signals),
   ].join('\n')
 }
+
+/* ── Output screens — the deterministic backstop behind the prompt ─────────
+   Two different boundaries are enforced here:
+
+   1. The clinical line binds EVERY tier — Mira never diagnoses and never
+      names or implies illness, treatment, medication, or therapy, no
+      matter who is signed in. Pointing at the Resources page is the
+      sanctioned deflection, so those words pass; the crisis line carries
+      no clinical vocabulary and always goes through.
+   2. The directed line binds only the external tier — the external
+      register sanctions at most one small everyday suggestion, offered
+      not pushed. "You should sleep eight hours", a cut-caffeine
+      directive, or a prescribed regimen is over that line. Everyday
+      suggestions ("a short walk", "a few slow breaths") deliberately
+      stay clean — flagging suppresses the reply, so a false positive
+      costs a good answer and the patterns aim high-precision.
+
+   Internal @dutiva.ca replies run only the clinical table — advice is in
+   scope there; the clinical line is not. */
+const CLINICAL_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\b(?:diagnos\w*|disorder|illness|disease|syndrome|symptoms?)(?!\w)/i,
+    /\b(?:depression|depressive|insomnia|sleep\s+apn[oe]a|an[ae]mia|diabetes|adhd|bipolar|ptsd|ocd|schizophreni\w*|eating\s+disorder|thyroid)(?!\w)/i,
+    /\b(?:medications?|meds|pills?|tablets?|capsules?|prescri\w+|dose|dosage|antidepressants?|melatonin|magnesium|supplements?|vitamins?|ibuprofen|tylenol|advil|medicine|painkillers?)(?!\w)/i,
+    /\b(?:therap\w+|psychiatr\w*|psycholog\w*|counsell?or\w*|treatment|clinic(?:al)?\b|clinicians?|doctors?|physicians?)(?!\w)/i,
+    /\byou\s+(?:have|may\s+have|might\s+have|could\s+have|show\s+signs?\s+of|are\s+showing\s+signs?\s+of|suffer(?:ing)?\s+from)\s+(?:a\s+|an\s+)?\w*(?:depress\w*|anxiet\w*|insomnia|burnout|deficien\w*|condition)(?!\w)/i,
+  ],
+  fr: [
+    /\b(?:diagnosti\w*|troubles?|maladie|syndrome|symptômes?)(?!\w)/i,
+    /\b(?:dépression|dépressi\w+|insomnie|apnée|anémie|diabète|tdah|bipolaire|tspt|toc|schizophrén\w*|thyroïde)(?!\w)/i,
+    /\b(?:médicaments?|pilules?|comprimés?|gélules?|prescri\w+|ordonnance|dosage|posologie|antidépresseurs?|mélatonine|magnésium|suppléments?|vitamines?|ibuprofène|tylénol|médicament\w*)(?!\w)/i,
+    /\b(?:thérap\w+|psychiatr\w*|psycholog\w*|psychothérap\w*|conseill(?:er|ers|ères?)\b|traitement|clinique|médecins?|docteurs?)(?!\w)/i,
+    /\bvous\s+(?:avez|souffrez|présentez|montrez|pourriez\s+avoir|auriez|faites)\s+(?:de\s+la\s+|de\s+l'|d'|des\s+|un\s+|une\s+)?(?:signes?\s+(?:de\s+|d'))?\w*(?:dépress\w*|anxiété|insomnie|épuisement|burnout|carence)(?!\w)/i,
+  ],
+}
+
+const DIRECTED_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
+  en: [
+    /\byou\s+(?:should|must|need\s+to|ought\s+to|have\s+to|gotta)\s+(?:sleep|rest|nap|eat|drink|hydrate|exercise|work\s+out|walk|run|jog|meditate|breathe|cut|avoid|reduce|limit|stop|start|quit|take|skip|track|log|journal|stretch|get\s+(?:more|some|to\s+bed))(?!\w)/i,
+    /\btry\s+to\s+(?:sleep|cut|quit|stop|avoid|get\s+more)(?!\w)/i,
+    /\b(?:cut|quit|stop|drop|skip|avoid|limit|reduce|increase|add)\s+(?:back\s+|down\s+|out\s+|on\s+|your\s+|the\s+)?(?:caffeine|coffee|alcohol|sugar|salt|sweets?|screen\s*time|screens?|smoking|vaping|cigarettes?|junk\s*food|snacks?|snacking|carbs|dairy|gluten|processed\s+foods?|calories|meat|late\s+nights?)(?!\w)/i,
+    /\b(?:sleep|get|aim\s+for)\s+(?:at\s+least\s+|around\s+)?\d+\s*hours?\s*(?:a\s+night|of\s+sleep|per\s+night|each\s+night)?/i,
+    /\b(?:follow|start|try|stick\s+to|begin)\s+(?:a\s+|an\s+|this\s+|the\s+|my\s+)?(?:diet|meal\s+plan|workout|exercise\s+(?:plan|routine|regimen)|fitness\s+(?:plan|routine)|regimen)(?!\w)/i,
+    /\bi(?:'d|\s+would)?\s+(?:recommend|advise|prescribe)\s+(?:that\s+you\s+|you\s+)?(?:taking|take|starting|start|stopping|stop|cutting|cut|changing|change)(?!\w)/i,
+  ],
+  fr: [
+    /\bvous\s+(?:devriez|devez|auriez\s+intérêt\s+à|gagneriez\s+à|feriez\s+bien\s+de|avez\s+besoin\s+de)\s+(?:dormir|vous\s+coucher|manger|boire|marcher|bouger|faire|méditer|respirer|couper|éviter|réduire|limiter|arrêter|cesser|commencer|prendre|noter|tenir)(?!\w)/i,
+    /\bil\s+faut\s+que\s+vous\s+(?:dormiez|mangiez|buviez|marchiez|fassiez|coupiez|évitiez|réduisiez|arrêtiez|commenciez|preniez)/i,
+    /\bessayez\s+de\s+(?:dormir|vous\s+coucher|couper|réduire|éviter|arrêter|cesser|prendre)(?!\w)/i,
+    /(?:coupez|réduisez|évitez|arrêtez|cessez|limitez|supprimez)\s+(?:la\s+|le\s+|les\s+|de\s+|d'|des\s+|votre\s+|du\s+)?\s*(?:caféine|café|alcool|sucre|sel|sucreries|écrans?|tabac|cigarettes?|vapotage|grignotage|glucides|calories|viande)(?!\w)/i,
+    /\bdormez\s+(?:au\s+moins\s+)?\d+\s*heures?(?!\w)/i,
+    /\b(?:suivez|commencez|adoptez)\s+(?:un|une|ce|cette|le|la)\s+(?:régime|programme\s+(?:d'entraînement|d'exercice)|plan\s+(?:de\s+repas|d'entraînement))(?!\w)/i,
+    /\bje\s+(?:vous\s+)?(?:recommande|conseille)\s+(?:de\s+|d')?(?:prendre|commencer|arrêter|cesser|couper|réduire|changer)(?!\w)/i,
+  ],
+}
+
+/** Fragments crossing a boundary, matched per tier. Empty = clean. */
+export function detectHealthFlags(text: string, lang: 'en' | 'fr', advice: boolean): string[] {
+  const hits = detectPatterns(text, CLINICAL_PATTERNS[lang])
+  if (advice) return hits
+  return [...hits, ...detectPatterns(text, DIRECTED_PATTERNS[lang])]
+}
+
+/** The repair note behind a flagged reply — names what crossed so the
+    rewrite fixes the boundary instead of hedging. */
+export function buildHealthRepairNote(flags: string[], advice: boolean): string {
+  return (
+    'Your reply crossed a boundary — flagged:\n' +
+    flags.map((f) => `- "${f}"`).join('\n') +
+    '\nRewrite it with nothing clinical (no conditions, medications, supplements, treatments, or therapy) ' +
+    (advice
+      ? '— advice itself is fine for this internal account. '
+      : 'and no "you should" directives — observations and at most one small everyday suggestion, offered not pushed. ') +
+    'Keep the same language and the same JSON contract.'
+  )
+}
+
+/** The fixed text that replaces a flagged reply the repair pass could not
+    clean — the boundary stated plainly, the companion posture kept. */
+export const HEALTH_FALLBACK_EN =
+  'That one is bigger than what I can weigh in on — the Resources page points to real people if you need more. What I can do is stay close to what you’ve logged: what you wrote, what changed, what the trend looks like.'
+export const HEALTH_FALLBACK_FR =
+  'Ça dépasse ce que je peux trancher — la page Ressources mène vers de vraies personnes si besoin. Ce que je peux faire : rester près de ce que vous avez consigné — ce que vous avez écrit, ce qui a changé, ce que la tendance montre.'
+
+/** One-liner for flagged reaction replies — they are too small to repair. */
+export const HEALTH_REACT_FALLBACK_EN = 'I’m here — tell me more whenever you’re ready.'
+export const HEALTH_REACT_FALLBACK_FR = 'Je suis là — dites-m’en plus quand vous voulez.'
+
+/** Fallbacks for the flagged one-shot kinds. */
+export const HEALTH_REFLECT_FALLBACK_EN = 'What is one thing from today that stayed with you?'
+export const HEALTH_REFLECT_FALLBACK_FR = 'Qu’est-ce qui vous est resté de la journée ?'
+export const HEALTH_RECAP_FALLBACK_EN =
+  'A quiet stretch — keep logging and the picture sharpens.'
+export const HEALTH_RECAP_FALLBACK_FR =
+  'Une semaine tranquille — continuez à consigner et l’image se précisera.'
