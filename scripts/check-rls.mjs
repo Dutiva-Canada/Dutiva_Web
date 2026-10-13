@@ -93,6 +93,47 @@ const SENSITIVE_TABLES = [
   // conversations table itself holds full Advisor transcripts.
   'advisor_turn_feedback',
   'conversations',
+  // Agent suggestions (0198): Tally/Mira/Paige drafts carry position names,
+  // strategy shapes and thesis claims — owner-private until accepted.
+  'agent_suggestions',
+  // Cross-portal notification preferences (0196).
+  'portal_notification_prefs',
+  // Invest portal data (0180/0219/0220): holdings, orders, signals,
+  // strategies, watchlist, goals, theses and the scan board are the user's
+  // financial position — the highest-value leak on the platform.
+  'invest_access',
+  'invest_accounts',
+  'invest_bot_runs',
+  'invest_goals',
+  'invest_market_news',
+  'invest_market_snapshots',
+  'invest_notification_prefs',
+  'invest_orders',
+  'invest_positions',
+  'invest_scan_items',
+  'invest_signals',
+  'invest_strategies',
+  'invest_theses',
+  'invest_user_profile',
+  'invest_watchlist',
+  // Health portal data (0191): check-ins, habits and journal entries are
+  // private wellness data.
+  'health_access',
+  'health_checkins',
+  'health_habit_logs',
+  'health_habits',
+  'health_journal_entries',
+  // PR portal data (0192): campaigns, media contacts, mentions and
+  // monitoring configuration are client-confidential.
+  'pr_access',
+  'pr_campaigns',
+  'pr_connections',
+  'pr_content_items',
+  'pr_feeds',
+  'pr_geo_prompts',
+  'pr_keywords',
+  'pr_media_contacts',
+  'pr_mentions',
 ]
 
 /**
