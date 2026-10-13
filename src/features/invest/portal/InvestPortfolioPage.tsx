@@ -1,6 +1,6 @@
 import './strategies.css'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { ArrowDown, ArrowUp, Loader2, Plus, RefreshCw, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, DollarSign, Loader2, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import {
@@ -1510,8 +1510,9 @@ function PositionEditor({
         }}
         className="sb-btn sb-btn-secondary sb-btn-sm"
         aria-label={`${x(IM.invest_edit)} ${position.symbol}`}
+        title={x(IM.invest_edit)}
       >
-        {x(IM.invest_edit)}
+        <Pencil size={15} aria-hidden="true" />
       </button>
     )
   }
@@ -1624,8 +1625,15 @@ function RemovePosition({
           void onRemove()
         }}
         className="sb-btn sb-btn-secondary sb-btn-sm"
+        title={x(IM.invest_rule_remove)}
       >
-        {confirming ? (confirmLabel ?? x(IM.invest_remove_confirm)) : x(IM.invest_rule_remove)}
+        {/* The armed second tap stays text — 'Remove?' is the explicit
+            affordance; the icon alone can't carry that state. */}
+        {confirming ? (
+          confirmLabel ?? x(IM.invest_remove_confirm)
+        ) : (
+          <Trash2 size={15} aria-hidden="true" />
+        )}
       </button>
       {confirming && confirmDetail}
     </>
@@ -1652,8 +1660,9 @@ function PriceEditor({
         onClick={() => setOpen(true)}
         className="sb-btn sb-btn-secondary sb-btn-sm"
         aria-label={buttonLabel}
+        title={x(IM.invest_set_price)}
       >
-        {x(IM.invest_set_price)}
+        <DollarSign size={15} aria-hidden="true" />
       </button>
     )
   }
