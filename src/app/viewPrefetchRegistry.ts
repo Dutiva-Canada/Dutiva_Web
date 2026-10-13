@@ -202,6 +202,7 @@ export const portalViewPreloads: Record<string, () => Promise<unknown>> = {
   'invest.signals': () => import('@/features/invest/portal/InvestSignalsPage'),
   'invest.strategies': () => import('@/features/invest/portal/InvestStrategiesPage'),
   'invest.theses': () => import('@/features/invest/portal/InvestThesesPage'),
+  'invest.analysis': () => import('@/features/invest/portal/InvestAnalysisPage'),
   'invest.notifications': () => import('@/features/invest/portal/InvestNotificationsPage'),
   'invest.settings': () => import('@/features/invest/portal/InvestSettingsPage'),
   'invest.legal': () => import('@/features/invest/portal/InvestLegalPage'),

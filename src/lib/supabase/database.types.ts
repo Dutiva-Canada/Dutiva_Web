@@ -10103,6 +10103,57 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_goals: {
+        Row: {
+          baseline: number | null
+          created_at: string
+          deadline: string | null
+          detail: string
+          eval_detail: Json | null
+          id: string
+          last_evaluated_at: string | null
+          metric: string
+          op: string
+          status: string
+          target: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          baseline?: number | null
+          created_at?: string
+          deadline?: string | null
+          detail?: string
+          eval_detail?: Json | null
+          id?: string
+          last_evaluated_at?: string | null
+          metric: string
+          op: string
+          status?: string
+          target: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          baseline?: number | null
+          created_at?: string
+          deadline?: string | null
+          detail?: string
+          eval_detail?: Json | null
+          id?: string
+          last_evaluated_at?: string | null
+          metric?: string
+          op?: string
+          status?: string
+          target?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_market_news: {
         Row: {
           asset_class: string
@@ -10385,6 +10436,45 @@ export type Database = {
           },
         ]
       }
+      invest_scan_items: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          last_reviewed_at: string
+          note: string
+          symbols: string[]
+          theme: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction?: string
+          id?: string
+          last_reviewed_at?: string
+          note?: string
+          symbols?: string[]
+          theme?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          last_reviewed_at?: string
+          note?: string
+          symbols?: string[]
+          theme?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_signals: {
         Row: {
           asset_class: string
@@ -10516,6 +10606,7 @@ export type Database = {
           last_evaluated_at: string | null
           name: string
           status: string
+          swot: Json
           symbol: string
           thesis: string
           updated_at: string
@@ -10532,6 +10623,7 @@ export type Database = {
           last_evaluated_at?: string | null
           name?: string
           status?: string
+          swot?: Json
           symbol: string
           thesis?: string
           updated_at?: string
@@ -10548,6 +10640,7 @@ export type Database = {
           last_evaluated_at?: string | null
           name?: string
           status?: string
+          swot?: Json
           symbol?: string
           thesis?: string
           updated_at?: string

@@ -146,12 +146,17 @@ export function parseDraft(raw: string): StrategyDraft | null {
   return { name, cadence, scope, rules }
 }
 
-export type AiAction = 'draft-strategy' | 'draft-thesis'
+export type AiAction = 'draft-strategy' | 'draft-thesis' | 'draft-swot' | 'draft-scan'
 
 export function validateAiAction(
   action: unknown,
 ): { ok: true; value: AiAction } | { ok: false; error: string } {
-  if (action === 'draft-strategy' || action === 'draft-thesis') {
+  if (
+    action === 'draft-strategy' ||
+    action === 'draft-thesis' ||
+    action === 'draft-swot' ||
+    action === 'draft-scan'
+  ) {
     return { ok: true, value: action }
   }
   return { ok: false, error: `Unknown action: ${String(action)}` }
@@ -253,6 +258,191 @@ export function parseThesisDraft(raw: string): ThesisDraft | null {
   if (breakRules.length === 0 && driftRules.length === 0) return null
 
   return { thesis, intent, break_rules: breakRules, drift_rules: driftRules }
+}
+
+/* ── draft-swot ─────────────────────────────────────────────────────────────
+   The qualitative quadrant beside the mechanical thesis conditions — four
+   short lists the user edits afterward. It never feeds the evaluator; it's
+   the "why", not the trigger. Same review-queue contract: filed, never
+   auto-saved. */
+
+export interface SwotDraft {
+  strengths: string[]
+  weaknesses: string[]
+  opportunities: string[]
+  threats: string[]
+}
+
+const MAX_SWOT_ITEMS = 6
+const MAX_SWOT_ITEM_LEN = 140
+const SWOT_QUADRANTS = ['strengths', 'weaknesses', 'opportunities', 'threats'] as const
+
+export const SWOT_SYSTEM_PROMPT = `You write a SWOT analysis for one holding in a retail investor's
+watch portal. Output ONLY a JSON object:
+
+{"strengths": string[], "weaknesses": string[],
+ "opportunities": string[], "threats": string[]}
+
+- Each list: 2-5 short items, ≤ 120 chars each, in the user's language.
+- Write for the holder of the position, not a sell-side note — plain,
+  concrete factors; no price targets, no advice verbs (buy/sell/hold).
+- Strengths and weaknesses are company-internal; opportunities and
+  threats are external.
+- If the holder's thesis text is provided, align with it — the SWOT
+  explains the claim, it doesn't contradict it.`
+
+export function buildSwotDraftPrompt(
+  input: { symbol: string; name: string; thesis: string; intent: string },
+  lang: 'en' | 'fr',
+): string {
+  const langName = lang === 'fr' ? 'Canadian French' : 'English'
+  return `Language for every item: ${langName}.
+
+Holding: ${input.symbol}${input.name ? ` (${input.name})` : ''}
+Position role: ${input.intent || 'core'}
+${input.thesis ? `The holder's thesis: ${input.thesis}` : 'No written thesis yet — infer a reasonable holder story.'}`
+}
+
+/** Model output → validated quadrants, or null when unusable. */
+export function parseSwotDraft(raw: string): SwotDraft | null {
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/, '')
+    .trim()
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start === -1 || end <= start) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1))
+  } catch {
+    return null
+  }
+  if (parsed === null || typeof parsed !== 'object') return null
+  const o = parsed as Record<string, unknown>
+  const clean = (v: unknown): string[] =>
+    Array.isArray(v)
+      ? v
+          .filter((s): s is string => typeof s === 'string')
+          .map((s) => s.trim().slice(0, MAX_SWOT_ITEM_LEN))
+          .filter(Boolean)
+          .slice(0, MAX_SWOT_ITEMS)
+      : []
+  const out = {
+    strengths: clean(o['strengths']),
+    weaknesses: clean(o['weaknesses']),
+    opportunities: clean(o['opportunities']),
+    threats: clean(o['threats']),
+  }
+  const total = SWOT_QUADRANTS.reduce((n, q) => n + out[q].length, 0)
+  /* An empty quadrant is legal (a holding genuinely has no listed
+     opportunities); a draft with nothing at all is a failed parse. */
+  return total >= 2 ? out : null
+}
+
+/* ── draft-scan ─────────────────────────────────────────────────────────────
+   Environmental scanning — theme-level factors the holder should keep an
+   eye on, each tagged with the held symbols it could touch. Items file
+   individually to the review queue; accepting creates a watch-board row. */
+
+export interface ScanDraftItem {
+  theme: 'economy' | 'policy' | 'sector' | 'currency' | 'geopolitical' | 'company'
+  direction: 'tailwind' | 'headwind' | 'monitor'
+  title: string
+  note: string
+  symbols: string[]
+}
+
+const SCAN_THEMES = new Set(['economy', 'policy', 'sector', 'currency', 'geopolitical', 'company'])
+const SCAN_DIRECTIONS = new Set(['tailwind', 'headwind', 'monitor'])
+const MAX_SCAN_ITEMS = 5
+const MAX_SCAN_TEXT = 200
+const MAX_SCAN_SYMBOLS = 8
+
+export const SCAN_SYSTEM_PROMPT = `You draft environmental-scan watch items for a retail investor's
+portal — external factors worth monitoring because they could touch
+the holdings. Output ONLY a JSON object:
+
+{"items": [{"theme": "economy"|"policy"|"sector"|"currency"|"geopolitical"|"company",
+            "direction": "tailwind"|"headwind"|"monitor",
+            "title": string, "note": string, "symbols": string[]}]}
+
+- 3-5 items across distinct themes, in the user's language.
+- title: the factor's name (≤ 90 chars). note: why it matters to THIS
+  book — one concrete sentence, ≤ 180 chars.
+- symbols: only symbols from the provided holding list the factor could
+  plausibly touch; [] when it is a whole-book factor.
+- direction: tailwind = plausibly helps, headwind = plausibly hurts,
+  monitor = unclear or mixed. Never predict prices; never use
+  buy/sell/hold verbs.
+- Ground items in well-known structural dynamics of the held names —
+  regulation that reaches the sector, rate/currency sensitivity,
+  commodity or supply exposure, geopolitical footprint.`
+
+export function buildScanDraftPrompt(
+  input: { holdings: { assetClass: string; symbol: string; name: string }[] },
+  lang: 'en' | 'fr',
+): string {
+  const langName = lang === 'fr' ? 'Canadian French' : 'English'
+  const list = input.holdings
+    .map((h) => `${h.symbol} (${h.assetClass}${h.name ? `, ${h.name}` : ''})`)
+    .join('; ')
+  return `Language for titles and notes: ${langName}.
+
+Holdings: ${list || 'none'}`
+}
+
+/** Model output → validated watch items, or null when unusable. */
+export function parseScanDraft(
+  raw: string,
+  heldSymbols: Set<string>,
+): ScanDraftItem[] | null {
+  const text = raw
+    .trim()
+    .replace(/^```(?:json)?/i, '')
+    .replace(/```$/, '')
+    .trim()
+  const start = text.indexOf('{')
+  const end = text.lastIndexOf('}')
+  if (start === -1 || end <= start) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text.slice(start, end + 1))
+  } catch {
+    return null
+  }
+  if (parsed === null || typeof parsed !== 'object') return null
+  const items = (parsed as Record<string, unknown>)['items']
+  if (!Array.isArray(items)) return null
+  const out: ScanDraftItem[] = []
+  for (const rawItem of items) {
+    if (rawItem === null || typeof rawItem !== 'object') continue
+    const o = rawItem as Record<string, unknown>
+    const theme = typeof o['theme'] === 'string' ? o['theme'] : ''
+    const direction = typeof o['direction'] === 'string' ? o['direction'] : 'monitor'
+    const title = typeof o['title'] === 'string' ? o['title'].trim().slice(0, 90) : ''
+    const note = typeof o['note'] === 'string' ? o['note'].trim().slice(0, MAX_SCAN_TEXT) : ''
+    if (!SCAN_THEMES.has(theme) || !title) continue
+    /* Symbols must come from the held universe — a model inventing a
+       ticker can't widen the connector's reach. */
+    const symbols = (Array.isArray(o['symbols']) ? o['symbols'] : [])
+      .filter((s): s is string => typeof s === 'string')
+      .map((s) => s.trim().toUpperCase())
+      .filter((s) => heldSymbols.has(s))
+      .slice(0, MAX_SCAN_SYMBOLS)
+    out.push({
+      theme: theme as ScanDraftItem['theme'],
+      direction: SCAN_DIRECTIONS.has(direction)
+        ? (direction as ScanDraftItem['direction'])
+        : 'monitor',
+      title,
+      note,
+      symbols,
+    })
+    if (out.length >= MAX_SCAN_ITEMS) break
+  }
+  return out.length > 0 ? out : null
 }
 
 /* ── Chat — the portal's conversational surface ─────────────────────────────

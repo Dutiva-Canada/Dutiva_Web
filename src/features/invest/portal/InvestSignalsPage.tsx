@@ -16,6 +16,8 @@ const kindLabel: Record<SignalKind, keyof typeof IM> = {
   insight: 'invest_signal_kind_insight',
   alert: 'invest_signal_kind_alert',
   thesis: 'invest_signal_kind_thesis',
+  goal: 'invest_signal_kind_goal',
+  scan: 'invest_signal_kind_scan',
 }
 
 const statusLabel: Record<SignalStatus, keyof typeof IM> = {

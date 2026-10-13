@@ -35,7 +35,7 @@ All tables are **user-scoped** — `user_id` on every row, RLS
 | `invest_positions`        | Holdings per account across asset classes (`equity`, `etf`, `crypto`, `bond`, `cash`, `other`)                                                                                                                                                                                                                                                |
 | `invest_market_snapshots` | Latest price per (user, class, symbol) plus the technical pack (MA50/200, RSI-14, returns, vol, 52-wk range) and a `fundamentals` blob — `source` records `manual` / `coingecko` / `yahoo`                                                                                                                                                                                                                                                    |
 | `invest_strategies`       | Bot rule sets: `rules jsonb`, `enabled`, `cadence` (`daily` \| `weekly` \| `monthly`), `last_evaluated_at`, `template` (`tpl:*` / `ai-draft` / `''`), `scope` (`{watchlist, symbols[]}` — never empty, 0184), `notify` (`{in_app, email}`, 0184). `autonomy` is deprecated — per-rule `type` replaced it and all rows were reset to `suggest` |
-| `invest_signals`          | Bot output: `screen` \| `insight` \| `alert` \| `thesis`, triage status `new` → `acknowledged`/`dismissed`; `title_fr`/`body_fr` carry AI-authored bilingual insight text                                                                                                                                                                     |
+| `invest_signals`          | Bot output: `screen` \| `insight` \| `alert` \| `thesis` \| `goal` \| `scan`, triage status `new` → `acknowledged`/`dismissed`; `title_fr`/`body_fr` carry AI-authored bilingual insight text                                                                                                                                                                     |
 | `invest_orders`           | Order intents: `mode` `paper` \| `live`, status `draft`/`queued`/`executed`/`cancelled`/`failed`/`expired` (0185); `strategy_id` links a bot-proposed draft to its strategy (0184)                                                                                                                                                            |
 | `invest_bot_runs`         | Run log: counts + summary per sweep + diagnostics (0184): `symbols_scanned[]`, `rule_hits` (title → count), `duration_ms`, `strategy_id` (targeted test scans)                                                                                                                                                                                |
 
@@ -52,7 +52,16 @@ And `invest_theses` (`0219_invest_theses.sql`): one standing claim per
 `drift_rules` jsonb (engine signal-rule wire shape), and the sweep's
 persisted verdict: `status` (`healthy` | `drifting` | `broken`),
 `eval_detail` (per-rule fired/read + the bilingual posture line),
-`last_evaluated_at`. RLS owner-only like every invest table.
+`last_evaluated_at`, and `swot` jsonb (the qualitative quadrant —
+edited on `/invest/analysis`, never read by the evaluator). RLS
+owner-only like every invest table.
+
+`0220_invest_analysis.sql` adds the book-level layer:
+
+| Table                | Role                                                                                                                                                                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `invest_goals`       | SMART objectives: `metric` (`book_value` \| `cash_pct` \| `max_weight_pct` \| `unrealized_gain_pct` \| `thesis_coverage` \| `position_count`), `op` (`gte` \| `lte`), `target`, `baseline` (first-eval anchor), `deadline`, and the sweep's verdict — `status` (`on_track` \| `behind` \| `achieved` \| `missed`), `eval_detail` (current read + progress + bilingual line), `last_evaluated_at` |
+| `invest_scan_items`  | The environmental-scan watch board: `theme` (`economy` \| `policy` \| `sector` \| `currency` \| `geopolitical` \| `company`), `direction` (`tailwind` \| `headwind` \| `monitor`), `symbols[]` (empty = whole book), `last_reviewed_at` (freshness clock — the page badges stale items) |
 
 ## The bot (`supabase/functions/invest-bot`)
 
@@ -138,8 +147,10 @@ concentration, big gains, cash drag, an unwatched mover), `scope_add`
 signals keep getting dismissed → loosened thresholds, or a proposal whose
 drafts keep expiring → demote to a signal), and `thesis` (a held symbol
 with no claim yet → a seeded tracker whose drift/break conditions come
-pre-filled; the story line stays blank for the user). Learning is the
-resolution trail itself: dismissed dedupe keys stay suppressed for 30
+pre-filled; the story line stays blank for the user), and `goal` (a
+measurable starter — concentration cap, thesis coverage, idle-cash
+ceiling — for a book whose gaps the metrics already expose). Learning is
+the resolution trail itself: dismissed dedupe keys stay suppressed for 30
 days, a kind the user dismisses ~always cools down entirely, and the pass
 regenerates at most every ~20h (a manual scan bypasses). Order-proposal
 rules only ever appear in suggestions for the internal-staff tier — the
@@ -161,6 +172,19 @@ posture line is intent-shaped (`speculative` holds get no benefit of the
 doubt that `core` does) and tier-gated like everything else: internal
 accounts hear a direct posture call ("trim candidate", "exit candidate"),
 external accounts get the state and a review nudge.
+
+**Analysis pass** — last, `evaluateGoals` (`analysis.ts`) re-measures
+every `invest_goals` row against the book the sweep already loaded (marks
+through the same FX conversion the engine and theses use — no new feeds).
+`achieved`/`missed` are terminal; `behind` only earns its name inside 30
+days of a deadline; the first eval stamps `baseline` so progress math
+reads from the creation book. A status transition emits a `kind: 'goal'`
+signal deduped per status (`goal:{id}:{status}`). `connectScan` then
+links `invest_scan_items` to theses that just degraded — a watch item
+listing the symbol (or a whole-book item) emits a `kind: 'scan'` signal
+naming the connection ("your currency watch may explain ARM's drift").
+The whole pass shares the never-fatal contract — a failure warns on the
+run plan, it can't kill the sweep.
 
 ## Market sync (`supabase/functions/invest-market-sync`)
 

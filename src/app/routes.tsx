@@ -74,6 +74,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestSignalsPage = lazy(() => import('@/features/invest/portal/InvestSignalsPage').then((m) => ({ default: m.InvestSignalsPage })))
 /* prettier-ignore */ const InvestStrategiesPage = lazy(() => import('@/features/invest/portal/InvestStrategiesPage').then((m) => ({ default: m.InvestStrategiesPage })))
 /* prettier-ignore */ const InvestThesesPage = lazy(() => import('@/features/invest/portal/InvestThesesPage').then((m) => ({ default: m.InvestThesesPage })))
+/* prettier-ignore */ const InvestAnalysisPage = lazy(() => import('@/features/invest/portal/InvestAnalysisPage').then((m) => ({ default: m.InvestAnalysisPage })))
 /* prettier-ignore */ const InvestNotificationsPage = lazy(() => import('@/features/invest/portal/InvestNotificationsPage').then((m) => ({ default: m.InvestNotificationsPage })))
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
 /* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
@@ -230,6 +231,8 @@ function NotFoundRoute() {
  *   /invest/strategies      rules-based agent strategies + run history
  *   /invest/theses          per-holding standing claims — drift/break
  *                           conditions + the sweep's posture verdict
+ *   /invest/analysis        SMART goals + environmental watch board +
+ *                           SWOT per thesis — Tally's analytical layer
  *   /health                 health portal — standalone shell, shared auth,
  *                           gated by a health_access grant (invite-only);
  *                           non-clinical self-tracking + journal
@@ -417,6 +420,7 @@ function routeTree(): RouteObject[] {
             { path: 'signals', element: <InvestSignalsPage /> },
             { path: 'strategies', element: <InvestStrategiesPage /> },
             { path: 'theses', element: <InvestThesesPage /> },
+            { path: 'analysis', element: <InvestAnalysisPage /> },
             { path: 'notifications', element: <InvestNotificationsPage /> },
             { path: 'settings', element: <InvestSettingsPage /> },
           ],

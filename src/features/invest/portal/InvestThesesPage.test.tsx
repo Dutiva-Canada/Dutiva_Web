@@ -68,6 +68,8 @@ const STATE: InvestState = {
   watchlist: [],
   news: [],
   theses: [],
+  goals: [],
+  scanItems: [],
 }
 
 function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
@@ -80,6 +82,7 @@ function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
     intent: 'core',
     breakRules: [],
     driftRules: [],
+    swot: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
     status: 'healthy',
     evalDetail: null,
     lastEvaluatedAt: null,

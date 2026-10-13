@@ -19,7 +19,16 @@ import {
   thesisBookContext,
   thesisSignalTitle,
   type Thesis,
+  type ThesisEval,
 } from './theses.ts'
+import {
+  connectScan,
+  evaluateGoals,
+  goalBookContext,
+  goalSignalTitle,
+  type Goal,
+  type ScanItem,
+} from './analysis.ts'
 import { convertFx, fetchFxTable } from './fx.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
@@ -139,6 +148,28 @@ export async function runUser(
     drift_rules: parseRules(t.drift_rules) as StrategyRule[],
   }))
 
+  /* Goals + scan items load beside the theses — the suggestion pass reads
+     goals to spot missing-measurement starters, the analysis pass below
+     re-measures them and connects scan items to degraded theses. Same
+     degrade-to-none contract on schemas predating 0220. */
+  const { data: goalRows } = await adminClient
+    .from('invest_goals')
+    .select('*')
+    .eq('user_id', userId)
+  const goals = ((goalRows ?? []) as unknown as (Omit<Goal, 'target' | 'baseline'> & {
+    target: unknown
+    baseline: unknown
+  })[]).map((g) => ({
+    ...g,
+    target: Number(g.target),
+    baseline: g.baseline === null ? null : Number(g.baseline),
+  }))
+  const { data: scanRows } = await adminClient
+    .from('invest_scan_items')
+    .select('id, theme, direction, title, symbols')
+    .eq('user_id', userId)
+  const scanItems = (scanRows ?? []) as unknown as ScanItem[]
+
   /* Book currency follows the first active account's base — same rule the
      portal uses for its blended headline. FX rates convert every position
      and cash leg into it; without rates, foreign-currency rows stay out of
@@ -202,36 +233,47 @@ export async function runUser(
     strategies.filter((s) => s.notify_in_app === false).map((s) => s.id),
   )
   /* 0218 columns ride every insert on projects that have them; the first
-     'undefined column' error retires them for the rest of this run. */
+     'undefined column' error retires them for the rest of this run. The
+     shared inserter keeps that contract identical for strategy signals,
+     insight rows, thesis transitions, and goal/scan emissions. Returns
+     true when the row landed. */
+  type SignalInsert = Database['public']['Tables']['invest_signals']['Insert']
   let signalCols0218 = true
-  let writesFailed = false
-  for (const signal of plan.signals) {
-    const base = {
-      user_id: userId,
-      strategy_id: signal.strategy_id,
-      asset_class: signal.asset_class,
-      symbol: signal.symbol,
-      name: signal.name,
-      kind: signal.kind,
-      title: signal.title,
-      title_fr: signal.title_fr ?? null,
-      body: signal.body,
-      body_fr: signal.body_fr ?? null,
-      score: signal.score,
-    }
-    const withNewCols = {
-      ...base,
-      rule_id: signal.rule_id ?? null,
-      in_feed: !inAppOff.has(signal.strategy_id),
-    }
+  const insertFeedSignal = async (
+    base: SignalInsert,
+    cols0218: Pick<SignalInsert, 'in_feed' | 'rule_id'>,
+  ): Promise<boolean> => {
     let { error } = await adminClient
       .from('invest_signals')
-      .insert(signalCols0218 ? withNewCols : base)
+      .insert(signalCols0218 ? { ...base, ...cols0218 } : base)
     if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
       signalCols0218 = false
       ;({ error } = await adminClient.from('invest_signals').insert(base))
     }
-    if (error) writesFailed = true
+    return !error
+  }
+  let writesFailed = false
+  for (const signal of plan.signals) {
+    const ok = await insertFeedSignal(
+      {
+        user_id: userId,
+        strategy_id: signal.strategy_id,
+        asset_class: signal.asset_class,
+        symbol: signal.symbol,
+        name: signal.name,
+        kind: signal.kind,
+        title: signal.title,
+        title_fr: signal.title_fr ?? null,
+        body: signal.body,
+        body_fr: signal.body_fr ?? null,
+        score: signal.score,
+      },
+      {
+        rule_id: signal.rule_id ?? null,
+        in_feed: !inAppOff.has(signal.strategy_id),
+      },
+    )
+    if (!ok) writesFailed = true
   }
 
   /* Order proposals → DRAFT orders on the first active paper account.
@@ -344,30 +386,25 @@ export async function runUser(
     })
     if (existingKeys.has(key)) continue
     existingKeys.add(key)
-    const base = {
-      user_id: userId,
-      strategy_id: null,
-      asset_class: 'other',
-      symbol: '',
-      name: '',
-      /* Warn-severity observations render as alerts — a model-noticed decline
-         deserves the same warning pill a rule-driven drop gets. */
-      kind,
-      title: insight.title_en,
-      title_fr: insight.title_fr,
-      body: insight.body_en,
-      body_fr: insight.body_fr,
-      score: null,
-    }
-    const withNewCols = { ...base, in_feed: true, rule_id: null }
-    let { error } = await adminClient
-      .from('invest_signals')
-      .insert(signalCols0218 ? withNewCols : base)
-    if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
-      signalCols0218 = false
-      ;({ error } = await adminClient.from('invest_signals').insert(base))
-    }
-    if (!error) insightsInserted += 1
+    const ok = await insertFeedSignal(
+      {
+        user_id: userId,
+        strategy_id: null,
+        asset_class: 'other',
+        symbol: '',
+        name: '',
+        /* Warn-severity observations render as alerts — a model-noticed
+           decline deserves the same warning pill a rule-driven drop gets. */
+        kind,
+        title: insight.title_en,
+        title_fr: insight.title_fr,
+        body: insight.body_en,
+        body_fr: insight.body_fr,
+        score: null,
+      },
+      { in_feed: true, rule_id: null },
+    )
+    if (ok) insightsInserted += 1
   }
 
   /* Tally's proactive suggestions — a deterministic book review that files
@@ -385,6 +422,7 @@ export async function runUser(
       fx,
       bookCurrency,
       theses,
+      goals,
       /* authEmail was resolved for insights when they ran; the wrapper
          lazily re-derives the tier from the auth record when it wasn't. */
       advice: insightsDue ? isInternalDutivaAccount(authEmail) : undefined,
@@ -403,13 +441,16 @@ export async function runUser(
      kind 'thesis' signals (deduped per status through the same keys rule
      signals use); steady-state evals only refresh eval_detail so the
      Theses page always reads current conditions. Never fatal. */
+  /* Kept outside the try — the scan connector below reads which theses
+     degraded even when the analysis pass is the only writer left. */
+  let thesisEvals: ThesisEval[] = []
+  const thesisCtx = thesisBookContext(positions, snapshots, cashTotal, fx, bookCurrency)
   if (theses.length > 0) {
     try {
       const advice = isInternalDutivaAccount(authEmail)
-      const thesisCtx = thesisBookContext(positions, snapshots, cashTotal, fx, bookCurrency)
-      const evals = evaluateTheses(theses, snapshots, positions, thesisCtx, { advice })
+      thesisEvals = evaluateTheses(theses, snapshots, positions, thesisCtx, { advice })
       const evalAt = new Date().toISOString()
-      for (const ev of evals) {
+      for (const ev of thesisEvals) {
         if (ev.noSnapshot) continue /* silence isn't a verdict */
         await adminClient
           .from('invest_theses')
@@ -448,27 +489,22 @@ export async function runUser(
         })
         if (existingKeys.has(key)) continue
         existingKeys.add(key)
-        const thesisBase = {
-          user_id: userId,
-          strategy_id: null,
-          asset_class: ev.asset_class,
-          symbol: ev.symbol,
-          name: ev.name,
-          kind: 'thesis',
-          title: title.en,
-          title_fr: title.fr,
-          body: bodyEn,
-          body_fr: bodyFr,
-          score: null,
-        }
-        const thesisRow = { ...thesisBase, in_feed: true, rule_id: thesisRuleId }
-        let { error } = await adminClient
-          .from('invest_signals')
-          .insert(signalCols0218 ? thesisRow : thesisBase)
-        if (error && signalCols0218 && /rule_id|in_feed/.test(error.message)) {
-          signalCols0218 = false
-          ;({ error } = await adminClient.from('invest_signals').insert(thesisBase))
-        }
+        await insertFeedSignal(
+          {
+            user_id: userId,
+            strategy_id: null,
+            asset_class: ev.asset_class,
+            symbol: ev.symbol,
+            name: ev.name,
+            kind: 'thesis',
+            title: title.en,
+            title_fr: title.fr,
+            body: bodyEn,
+            body_fr: bodyFr,
+            score: null,
+          },
+          { in_feed: true, rule_id: thesisRuleId },
+        )
       }
     } catch (error) {
       plan.warnings.push(
@@ -476,6 +512,115 @@ export async function runUser(
       )
       plan.warningDetails.push({ code: 'theses_failed', params: {} })
       console.error('invest-bot: thesis pass failed', error)
+    }
+  }
+
+  /* Book-level analysis — goals re-measure every sweep and transitions
+     emit 'goal' signals; scan items aren't re-scored, they connect:
+     a watch item listing a symbol whose thesis just degraded emits a
+     'scan' signal naming the link. Same never-fatal contract. */
+  const degradedTheses = thesisEvals
+    .filter((ev) => ev.statusChanged && ev.status !== 'healthy')
+    .map((ev) => ({
+      asset_class: ev.asset_class,
+      symbol: ev.symbol,
+      status: ev.status as 'drifting' | 'broken',
+    }))
+  if (goals.length > 0 || (scanItems.length > 0 && degradedTheses.length > 0)) {
+    try {
+      const evalAt = new Date().toISOString()
+      if (goals.length > 0) {
+        const goalCtx = goalBookContext(positions, snapshots, thesisCtx, theses)
+        const titleById = new Map(goals.map((g) => [g.id, g.title]))
+        for (const ev of evaluateGoals(goals, goalCtx)) {
+          await adminClient
+            .from('invest_goals')
+            .update({
+              status: ev.status,
+              baseline: ev.baseline,
+              eval_detail: ev.detail as unknown as Json,
+              last_evaluated_at: evalAt,
+              updated_at: evalAt,
+            })
+            .eq('id', ev.id)
+            .eq('user_id', userId)
+          if (!ev.statusChanged) continue
+          const title = goalSignalTitle(titleById.get(ev.id) ?? '', ev.status)
+          /* Per-status pseudo rule_id — same dedupe contract as thesis
+             transitions: an open 'behind' row suppresses repeats while
+             'missed'/'achieved' still land as fresh keys. */
+          const goalRuleId = `goal:${ev.id}:${ev.status}`
+          const key = signalKey({
+            strategy_id: null,
+            symbol: '',
+            kind: 'goal',
+            title: title.en,
+            rule_id: goalRuleId,
+          })
+          if (existingKeys.has(key)) continue
+          existingKeys.add(key)
+          await insertFeedSignal(
+            {
+              user_id: userId,
+              strategy_id: null,
+              asset_class: 'other',
+              symbol: '',
+              name: '',
+              kind: 'goal',
+              title: title.en,
+              title_fr: title.fr,
+              body: ev.detail.line_en,
+              body_fr: ev.detail.line_fr,
+              score: null,
+            },
+            { in_feed: true, rule_id: goalRuleId },
+          )
+        }
+      }
+      for (const link of connectScan(scanItems, degradedTheses)) {
+        const scanRuleId = `scan:${link.item.id}:${link.symbol}`
+        const label =
+          link.thesisStatus === 'broken'
+            ? { en: 'thesis broke', fr: 'thèse brisée' }
+            : { en: 'thesis drifting', fr: 'thèse qui dérive' }
+        const title = {
+          en: `${link.symbol} — a watch item may connect`,
+          fr: `${link.symbol} — un élément de veille peut expliquer`,
+        }
+        const key = signalKey({
+          strategy_id: null,
+          symbol: link.symbol,
+          kind: 'scan',
+          title: title.en,
+          rule_id: scanRuleId,
+        })
+        if (existingKeys.has(key)) continue
+        existingKeys.add(key)
+        const assetClass =
+          degradedTheses.find((d) => d.symbol === link.symbol)?.asset_class ?? 'other'
+        await insertFeedSignal(
+          {
+            user_id: userId,
+            strategy_id: null,
+            asset_class: assetClass,
+            symbol: link.symbol,
+            name: '',
+            kind: 'scan',
+            title: title.en,
+            title_fr: title.fr,
+            body: `“${link.item.title}” (${link.item.theme}) — ${label.en}. Check whether the watch explains the fray.`,
+            body_fr: `« ${link.item.title} » (${link.item.theme}) — ${label.fr}. Vérifier si la veille explique l’éraflure.`,
+            score: null,
+          },
+          { in_feed: true, rule_id: scanRuleId },
+        )
+      }
+    } catch (error) {
+      plan.warnings.push(
+        `analysis pass failed: ${(error as Error).message.slice(0, 120)}`,
+      )
+      plan.warningDetails.push({ code: 'analysis_failed', params: {} })
+      console.error('invest-bot: analysis pass failed', error)
     }
   }
 

@@ -7,11 +7,17 @@ import { withCors } from '../_shared/cors.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
   buildDraftPrompt,
+  buildScanDraftPrompt,
+  buildSwotDraftPrompt,
   buildThesisDraftPrompt,
   draftSystemPrompt,
   parseDraft,
+  parseScanDraft,
+  parseSwotDraft,
   parseThesisDraft,
   sanitizeGoal,
+  SCAN_SYSTEM_PROMPT,
+  SWOT_SYSTEM_PROMPT,
   THESIS_SYSTEM_PROMPT,
   validateAiAction,
 } from './handlers.ts'
@@ -357,6 +363,147 @@ const handler = async (req: Request) => {
       dedupeKey: `thesis:${assetClass}:${symbol}`,
     })
     return json({ draft: thesisDraft, suggestionId: filed?.id ?? null })
+  }
+
+  /* draft-swot — the qualitative quadrant for one thesis. Files a 'swot'
+     suggestion in supersede mode: a re-draft replaces the stale pending
+     row rather than queuing behind it. */
+  if (actionCheck.value === 'draft-swot') {
+    const symbol =
+      typeof body['symbol'] === 'string' ? body['symbol'].trim().toUpperCase().slice(0, 12) : ''
+    const assetClass =
+      typeof body['assetClass'] === 'string' ? body['assetClass'].trim() : 'equity'
+    const name = typeof body['name'] === 'string' ? body['name'].trim().slice(0, 120) : ''
+    const thesis = typeof body['thesis'] === 'string' ? body['thesis'].trim().slice(0, 600) : ''
+    const intent = typeof body['intent'] === 'string' ? body['intent'].trim() : 'core'
+    if (!symbol || !/^[A-Z0-9.-]{1,12}$/.test(symbol)) {
+      return json({ error: 'symbol is required' }, 400)
+    }
+    if (!['equity', 'etf', 'crypto', 'bond', 'cash', 'other'].includes(assetClass)) {
+      return json({ error: 'invalid assetClass' }, 400)
+    }
+    const swotRouted = await modelRoute(adminClient)
+    if ('error' in swotRouted) return swotRouted.error
+    const sr = swotRouted
+    let swotUpstream: Response
+    try {
+      swotUpstream = await postChatCompletion(
+        sr.provider,
+        sr.apiKey,
+        {
+          model: sr.route.model_name,
+          messages: [
+            { role: 'system', content: SWOT_SYSTEM_PROMPT },
+            { role: 'user', content: buildSwotDraftPrompt({ symbol, name, thesis, intent }, lang) },
+          ],
+          max_tokens: sr.route.config?.max_tokens ?? 900,
+          temperature: 0.3,
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+    } catch (error) {
+      console.error('invest-ai: swot model call failed', error)
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    if (!swotUpstream.ok) {
+      const errText = await swotUpstream.text()
+      console.error('invest-ai: swot upstream error', swotUpstream.status, errText.slice(0, 300))
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    const swotCompletion = await swotUpstream.json()
+    const swotContent = swotCompletion?.choices?.[0]?.message?.content
+    if (typeof swotContent !== 'string') {
+      return json({ error: 'Empty response from model' }, 502)
+    }
+    const swotDraft = parseSwotDraft(swotContent)
+    if (!swotDraft) {
+      return json({ error: 'Could not draft a SWOT for that holding.', code: 'no_draft' }, 422)
+    }
+    const filed = await fileSuggestion(adminClient, {
+      userId,
+      surface: 'invest',
+      kind: 'swot',
+      title: `${symbol} SWOT`,
+      payload: { asset_class: assetClass, symbol, name, swot: swotDraft },
+      dedupeKey: `swot:${assetClass}:${symbol}`,
+      dedupeMode: 'supersede',
+    })
+    return json({ draft: swotDraft, suggestionId: filed?.id ?? null })
+  }
+
+  /* draft-scan — environmental-scan items for the held universe. Each
+     item files as its own 'scan' suggestion so the watch board accepts
+     or dismisses them one by one. */
+  if (actionCheck.value === 'draft-scan') {
+    const rawHoldings = Array.isArray(body['holdings']) ? body['holdings'] : []
+    const holdings = rawHoldings
+      .filter((h): h is Record<string, unknown> => h !== null && typeof h === 'object')
+      .map((h) => ({
+        assetClass: typeof h['assetClass'] === 'string' ? h['assetClass'] : 'equity',
+        symbol: typeof h['symbol'] === 'string' ? h['symbol'].trim().toUpperCase().slice(0, 12) : '',
+        name: typeof h['name'] === 'string' ? h['name'].trim().slice(0, 120) : '',
+      }))
+      .filter((h) => /^[A-Z0-9.-]{1,12}$/.test(h.symbol))
+      .slice(0, 20)
+    if (holdings.length === 0) return json({ error: 'holdings is required' }, 400)
+    const heldSymbols = new Set(holdings.map((h) => h.symbol))
+
+    const scanRouted = await modelRoute(adminClient)
+    if ('error' in scanRouted) return scanRouted.error
+    const sc = scanRouted
+    let scanUpstream: Response
+    try {
+      scanUpstream = await postChatCompletion(
+        sc.provider,
+        sc.apiKey,
+        {
+          model: sc.route.model_name,
+          messages: [
+            { role: 'system', content: SCAN_SYSTEM_PROMPT },
+            { role: 'user', content: buildScanDraftPrompt({ holdings }, lang) },
+          ],
+          max_tokens: sc.route.config?.max_tokens ?? 1100,
+          temperature: 0.3,
+        },
+        UPSTREAM_TIMEOUT_MS,
+      )
+    } catch (error) {
+      console.error('invest-ai: scan model call failed', error)
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    if (!scanUpstream.ok) {
+      const errText = await scanUpstream.text()
+      console.error('invest-ai: scan upstream error', scanUpstream.status, errText.slice(0, 300))
+      return json({ error: 'The AI service is temporarily unavailable.' }, 502)
+    }
+    const scanCompletion = await scanUpstream.json()
+    const scanContent = scanCompletion?.choices?.[0]?.message?.content
+    if (typeof scanContent !== 'string') {
+      return json({ error: 'Empty response from model' }, 502)
+    }
+    const scanItems = parseScanDraft(scanContent, heldSymbols)
+    if (!scanItems) {
+      return json({ error: 'Could not draft a scan for this book.', code: 'no_draft' }, 422)
+    }
+    const items: { item: (typeof scanItems)[number]; suggestionId: string | null }[] = []
+    for (const item of scanItems) {
+      const filed = await fileSuggestion(adminClient, {
+        userId,
+        surface: 'invest',
+        kind: 'scan',
+        title: item.title,
+        payload: {
+          theme: item.theme,
+          direction: item.direction,
+          note: item.note,
+          symbols: item.symbols,
+          lang,
+        },
+        dedupeKey: `scan:${item.theme}:${textDedupeKey(item.title)}`,
+      })
+      items.push({ item, suggestionId: filed?.id ?? null })
+    }
+    return json({ items })
   }
 
   /* draft-strategy */
