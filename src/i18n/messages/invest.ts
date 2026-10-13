@@ -272,14 +272,14 @@ const investCoreMessages = defineMessages({
     fr: 'Aucun taux {curs} en dossier — ces montants restent dans leur devise.',
   },
   invest_ov_total_value_split: {
-    en: 'Portfolio value by currency',
+    en: 'Value by currency',
     fr: 'Valeur par devise',
   },
   /* Share of the same-currency slice of the book — the honest proportion
      when no single total exists. */
   invest_alloc_of_cur: {
-    en: '{amt} · {pct}% of {cur} book',
-    fr: '{amt} · {pct} % de l’encours en {cur}',
+    en: '{amt} · {pct}% in {cur}',
+    fr: '{amt} · {pct} % en {cur}',
   },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },
