@@ -8,6 +8,7 @@ import type {
   InvestAccount,
   InvestBotRun,
   InvestGoal,
+  InvestMemory,
   InvestNewsItem,
   InvestOrder,
   InvestPosition,
@@ -17,6 +18,7 @@ import type {
   InvestThesis,
   InvestWatchItem,
   MarketSnapshot,
+  MemoryKind,
   MultiMatch,
   OrderStatus,
   RunWarning,
@@ -51,6 +53,7 @@ export interface InvestState {
   theses: InvestThesis[]
   goals: InvestGoal[]
   scanItems: InvestScanItem[]
+  memories: InvestMemory[]
 }
 
 type InvestRole = 'client' | 'admin'
@@ -83,7 +86,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories] =
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
@@ -104,6 +107,7 @@ export async function loadInvestState(): Promise<InvestState> {
       client.from('invest_theses').select('*').order('updated_at', { ascending: false }),
       client.from('invest_goals').select('*').order('created_at', { ascending: false }),
       client.from('invest_scan_items').select('*').order('created_at', { ascending: false }),
+      client.from('invest_memories').select('*').order('created_at', { ascending: false }),
     ])
   for (const res of [
     accounts,
@@ -117,12 +121,13 @@ export async function loadInvestState(): Promise<InvestState> {
   ]) {
     if (res.error) throw res.error
   }
-  /* invest_theses (0219) and the 0220 analysis tables can be absent while
-     code outruns the migration — the portal renders without those
-     surfaces instead of failing the whole state load. */
+  /* invest_theses (0219) and the 0220/0222 analysis+memory tables can be
+     absent while code outruns the migration — the portal renders without
+     those surfaces instead of failing the whole state load. */
   const thesisRows = theses.error ? [] : (theses.data ?? [])
   const goalRows = goals.error ? [] : (goals.data ?? [])
   const scanRows = scanItems.error ? [] : (scanItems.data ?? [])
+  const memoryRows = memories.error ? [] : (memories.data ?? [])
 
   /* News follows the same universe as market-sync: held ∪ watched symbols,
      plus general-market items (symbol ''). Server-side filter so general
@@ -166,6 +171,7 @@ export async function loadInvestState(): Promise<InvestState> {
     theses: thesisRows.map(toThesis),
     goals: goalRows.map(toGoal),
     scanItems: scanRows.map(toScanItem),
+    memories: memoryRows.map(toMemory),
   }
 }
 
@@ -1003,6 +1009,56 @@ export async function draftScan(input: {
     })
 }
 
+/* ── Memories (0222) ─────────────────────────────────────────────────────── */
+
+/** Write a memory by hand — 'manual' provenance. Tally-proposed facts
+    arrive through saveMemorySuggestion on the profile page instead, which
+    stamps source 'tally'. */
+export async function saveMemory(input: {
+  kind: MemoryKind
+  text: string
+  symbol?: string | null
+  source?: 'manual' | 'tally'
+}): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client.from('invest_memories').insert({
+    user_id: userId,
+    kind: input.kind,
+    text: input.text.trim().slice(0, 400),
+    symbol: input.symbol ? input.symbol.trim().toUpperCase().slice(0, 12) : null,
+    source: input.source ?? 'manual',
+  })
+  if (error) throw error
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { error } = await client.from('invest_memories').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** "Ask Tally to review what she's learned" — the model reads recent chat
+    turns and files durable facts as 'memory' suggestions. The accept on
+    the profile page is what turns one into a real memory. */
+export async function reviewMemories(input: {
+  lang: 'en' | 'fr'
+}): Promise<{ proposed: number; suggestionIds: string[] }> {
+  const client = supabase
+  if (!client) throw new Error('Supabase is not configured')
+  const { data, error } = await client.functions.invoke('invest-ai', {
+    body: { action: 'review-memories', lang: input.lang },
+  })
+  if (error) throw error
+  const raw = (data as { proposed?: number; suggestionIds?: unknown }) ?? {}
+  return {
+    proposed: typeof raw.proposed === 'number' ? raw.proposed : 0,
+    suggestionIds: Array.isArray(raw.suggestionIds)
+      ? (raw.suggestionIds as unknown[]).filter((s): s is string => typeof s === 'string')
+      : [],
+  }
+}
+
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1235,6 +1291,23 @@ function toScanItem(row: any): InvestScanItem {
       ? (row.symbols as unknown[]).filter((s): s is string => typeof s === 'string')
       : [],
     lastReviewedAt: row.last_reviewed_at ?? row.created_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toMemory(row: any): InvestMemory {
+  const kind =
+    row.kind === 'preference' || row.kind === 'plan' || row.kind === 'philosophy'
+      ? row.kind
+      : 'fact'
+  return {
+    id: row.id,
+    symbol: typeof row.symbol === 'string' && row.symbol ? row.symbol : null,
+    kind,
+    text: row.text ?? '',
+    source: row.source === 'tally' ? 'tally' : 'manual',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

@@ -200,6 +200,7 @@ const STATE: InvestState = {
   theses: [],
   goals: [],
   scanItems: [],
+  memories: [],
   news: [
     {
       id: 1,

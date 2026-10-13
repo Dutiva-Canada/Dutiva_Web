@@ -63,6 +63,16 @@ owner-only like every invest table.
 | `invest_goals`       | SMART objectives: `metric` (`book_value` \| `cash_pct` \| `max_weight_pct` \| `unrealized_gain_pct` \| `thesis_coverage` \| `position_count`), `op` (`gte` \| `lte`), `target`, `baseline` (first-eval anchor), `deadline`, and the sweep's verdict — `status` (`on_track` \| `behind` \| `achieved` \| `missed`), `eval_detail` (current read + progress + bilingual line), `last_evaluated_at` |
 | `invest_scan_items`  | The environmental-scan watch board: `theme` (`economy` \| `policy` \| `sector` \| `currency` \| `geopolitical` \| `company`), `direction` (`tailwind` \| `headwind` \| `monitor`), `symbols[]` (empty = whole book), `last_reviewed_at` (freshness clock — the page badges stale items) |
 
+`0222_invest_memories.sql` adds the "knows you" layer rendered on
+`/invest/profile`: `invest_user_profile.mandate` (the holder's philosophy
+in their own words) and `invest_memories` — durable facts (`kind`:
+`preference` | `plan` | `fact` | `philosophy`; `symbol` null = book-wide;
+`source`: `manual` | `tally`). Tally-proposed facts file to
+`agent_suggestions` kind `memory` and only become rows on accept. The
+suggestion pass also files `profile` nudges for blank dimensions/mandate
+and a first memory review — the accept resolves `opened` and routes to
+the page's section anchors.
+
 ## The bot (`supabase/functions/invest-bot`)
 
 - `POST { action: 'run' }` — portal JWT; scans the caller's enabled
@@ -236,6 +246,15 @@ drift/break conditions from the holder's plain-language story
 only; a model that emits order proposals gets them dropped). Filed to
 `agent_suggestions` kind `thesis` like every agent artifact; nothing
 persists until the user saves the thesis row.
+
+`draft-swot` and `draft-scan` serve `/invest/analysis` — the SWOT quadrant
+for a thesis and a seeded watch board, both filed for review.
+`review-memories` reads the holder's own chat turns and proposes durable
+facts (`invest_memories` candidates); each files as a `memory` suggestion
+and only becomes a row when the holder accepts on `/invest/profile`.
+Every draft prompt carries the holder's confirmed memories and mandate as
+context — quoted facts to align with, never instructions and never a
+change to the advice tier.
 
 ## What it deliberately is not
 

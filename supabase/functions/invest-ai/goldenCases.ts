@@ -85,12 +85,14 @@ const BOOK: InvestChatContext = {
   openOrders: [],
   market: [AMD, SOL],
   generalNews: [],
+  memories: [],
 }
 
 const EMPTY: InvestChatContext = {
   profile: null,
   accounts: [], positions: [], watchlist: [], strategies: [],
   newSignals: [], openOrders: [], market: [], generalNews: [],
+  memories: [],
 }
 
 export const TALLY_GOLDEN_CASES: TallyGoldenCase[] = [

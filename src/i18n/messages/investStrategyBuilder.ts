@@ -760,4 +760,120 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'SMART goals Tally re-measures, a watch board for outside factors, and a SWOT per holding.',
     fr: 'Objectifs SMART remesurés par Tally, veille des facteurs externes et FFOM par position.',
   },
+
+  /* Profile — the "what Tally knows about you" surface (0222). */
+  invest_tab_profile: { en: 'Profile', fr: 'Profil' },
+  invest_prof_title: { en: 'Your profile', fr: 'Votre profil' },
+  invest_prof_sub: {
+    en: 'What you’ve told Tally, what she remembers, and what she’s noticed — all yours to edit.',
+    fr: 'Ce que vous avez dit à Tally, ce qu’elle retient et ce qu’elle a remarqué — tout est modifiable.',
+  },
+  invest_prof_declared: { en: 'How Tally reads you', fr: 'Comment Tally vous lit' },
+  invest_prof_declared_sub: {
+    en: 'The profile from Settings shapes every draft and answer — depth, what she weighs, what she never names.',
+    fr: 'Le profil des Réglages oriente chaque brouillon et réponse — profondeur, ce qu’elle pèse, ce qu’elle ne nomme jamais.',
+  },
+  invest_prof_unset: { en: 'Not set', fr: 'Non défini' },
+  invest_prof_edit_settings: { en: 'Edit in Settings', fr: 'Modifier dans Réglages' },
+  invest_prof_mandate: { en: 'Your mandate', fr: 'Votre mandat' },
+  invest_prof_mandate_sub: {
+    en: 'Your philosophy in your own words — Tally weighs it more than any dropdown when she drafts.',
+    fr: 'Votre philosophie dans vos mots — Tally l’accorde plus de poids que tout menu déroulant.',
+  },
+  invest_prof_mandate_ph: {
+    en: 'e.g. Long-term compounding; I trim winners past 40% and never sell inside a year.',
+    fr: 'p. ex. Capitalisation à long terme ; je taille les gagnants après 40 % et ne vends jamais avant un an.',
+  },
+  invest_prof_mandate_saved: { en: 'Mandate saved.', fr: 'Mandat enregistré.' },
+  invest_prof_mandate_failed: { en: 'Couldn’t save — {error}', fr: 'Enregistrement impossible — {error}' },
+
+  invest_prof_memories: { en: 'What Tally remembers', fr: 'Ce que Tally retient' },
+  invest_prof_memories_sub: {
+    en: 'Confirmed facts from your chats — they shape her answers and drafts. Nothing is remembered without your say.',
+    fr: 'Faits confirmés de vos échanges — ils orientent ses réponses et brouillons. Rien n’est retenu sans votre accord.',
+  },
+  invest_mem_kind_preference: { en: 'Preference', fr: 'Préférence' },
+  invest_mem_kind_plan: { en: 'Plan', fr: 'Projet' },
+  invest_mem_kind_fact: { en: 'Fact', fr: 'Fait' },
+  invest_mem_kind_philosophy: { en: 'Philosophy', fr: 'Philosophie' },
+  invest_mem_source_tally: { en: 'From chat', fr: 'Du clavardage' },
+  invest_mem_source_manual: { en: 'Added by you', fr: 'Ajouté par vous' },
+  invest_mem_empty: {
+    en: 'No memories yet — add one yourself, or let Tally review your chats for what’s worth keeping.',
+    fr: 'Aucun souvenir — ajoutez-en un, ou laissez Tally réviser vos échanges pour ce qui mérite d’être retenu.',
+  },
+  invest_mem_add: { en: 'Add a memory', fr: 'Ajouter un souvenir' },
+  invest_mem_add_ph: {
+    en: 'Something Tally should keep in mind — e.g. “I bought ARM for the edge-AI moat.”',
+    fr: 'Ce que Tally devrait retenir — p. ex. « J’ai acheté ARM pour le fossé IA en périphérie. »',
+  },
+  invest_mem_symbol_ph: { en: 'Symbol (optional)', fr: 'Symbole (facultatif)' },
+  invest_mem_save: { en: 'Remember it', fr: 'Retenir' },
+  invest_mem_saved: { en: 'Remembered.', fr: 'Retenu.' },
+  invest_mem_failed: { en: 'Couldn’t save — {error}', fr: 'Enregistrement impossible — {error}' },
+  invest_mem_review: { en: 'Ask Tally to review', fr: 'Demander à Tally de réviser' },
+  invest_mem_review_busy: { en: 'Reviewing…', fr: 'Révision…' },
+  invest_mem_review_filed: {
+    en: '{n} to review below — accept the ones worth keeping.',
+    fr: '{n} à réviser ci-dessous — gardez ceux qui valent la peine.',
+  },
+  invest_mem_review_none: {
+    en: 'Nothing durable to file yet — keep talking with Tally.',
+    fr: 'Rien de durable à retenir pour l’instant — continuez d’échanger avec Tally.',
+  },
+  invest_mem_review_failed: { en: 'Tally couldn’t review right now — try again.', fr: 'Tally n’a pas pu réviser — réessayez.' },
+  invest_mem_suggest_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },
+  invest_mem_suggest_accept: { en: 'Remember it', fr: 'Retenir' },
+
+  invest_prof_observed: { en: 'What Tally notices', fr: 'Ce que Tally remarque' },
+  invest_prof_observed_sub: {
+    en: 'How you answer her suggestions shapes what she files next — this is what she’s learned so far.',
+    fr: 'Vos réponses à ses suggestions orientent les prochaines — voici ce qu’elle a appris jusqu’ici.',
+  },
+  invest_obs_empty: {
+    en: 'Nothing noticed yet — Tally learns from what you accept and dismiss.',
+    fr: 'Rien de remarqué — Tally apprend de ce que vous acceptez et écartez.',
+  },
+  invest_obs_accept_rate: {
+    en: 'You act on {rate} of Tally’s suggestions ({accepted} of {total}).',
+    fr: 'Vous donnez suite à {rate} des suggestions de Tally ({accepted} sur {total}).',
+  },
+  invest_obs_kind_dismiss: {
+    en: 'You dismiss most {kind} suggestions — Tally has cooled that kind down.',
+    fr: 'Vous écartez la plupart des suggestions {kind} — Tally en dépose moins.',
+  },
+  invest_sugg_kind_strategy: { en: 'strategy', fr: 'stratégie' },
+  invest_sugg_kind_rule_add: { en: 'rule', fr: 'règle' },
+  invest_sugg_kind_rule_tune: { en: 'tuning', fr: 'ajustement' },
+  invest_sugg_kind_scope_add: { en: 'scope', fr: 'portée' },
+  invest_sugg_kind_thesis: { en: 'thesis', fr: 'thèse' },
+  invest_sugg_kind_goal: { en: 'goal', fr: 'objectif' },
+  invest_sugg_kind_scan: { en: 'watch', fr: 'veille' },
+  invest_sugg_kind_swot: { en: 'SWOT', fr: 'FFOM' },
+  invest_sugg_kind_memory: { en: 'memory', fr: 'souvenir' },
+  invest_sugg_kind_profile: { en: 'profile', fr: 'profil' },
+  invest_obs_signals_dismissed_one: {
+    en: '{n} signal dismissed in the last ~2 months — loud rules earn tune-up suggestions.',
+    fr: '{n} signal écarté en ~2 mois — les règles bruyantes méritent un ajustement.',
+  },
+  invest_obs_signals_dismissed_many: {
+    en: '{n} signals dismissed in the last ~2 months — loud rules earn tune-up suggestions.',
+    fr: '{n} signaux écartés en ~2 mois — les règles bruyantes méritent un ajustement.',
+  },
+  invest_obs_memories_one: {
+    en: 'Tally remembers {n} fact about you.',
+    fr: 'Tally retient {n} fait à votre sujet.',
+  },
+  invest_obs_memories_many: {
+    en: 'Tally remembers {n} facts about you.',
+    fr: 'Tally retient {n} faits à votre sujet.',
+  },
+  invest_prof_open: { en: 'Open profile', fr: 'Ouvrir le profil' },
+  invest_prof_review_on: { en: 'On {page}', fr: 'Sur {page}' },
+
+  invest_seo_title_profile: { en: 'Profile — Dutiva Invest', fr: 'Profil — Dutiva Invest' },
+  invest_seo_desc_profile: {
+    en: 'What you told Tally, what she remembers, and what she’s noticed — the whole “knows you” layer.',
+    fr: 'Ce que vous avez dit à Tally, ce qu’elle retient et ce qu’elle a remarqué — tout ce qu’elle sait de vous.',
+  },
 })

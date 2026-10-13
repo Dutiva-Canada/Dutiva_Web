@@ -11,6 +11,13 @@ const emptyOutcomes = (): OutcomeHistory => ({
   expiredDrafts: new Map(),
 })
 
+const fullProfile = {
+  risk: 'balanced',
+  horizon: 'long',
+  goal: 'growth',
+  mandate: 'Long-term compounding.',
+}
+
 const ctx = (over: Partial<SuggestionContext> = {}): SuggestionContext => ({
   strategies: [],
   positions: [],
@@ -18,6 +25,11 @@ const ctx = (over: Partial<SuggestionContext> = {}): SuggestionContext => ({
   cashTotal: 0,
   fx: null,
   bookCurrency: 'CAD',
+  /* A complete profile by default — the book-shaped specs stay about the
+     book; the 'profile' specs below override it to exercise the gaps. */
+  profile: fullProfile,
+  chatTurns: 0,
+  memoryCount: 0,
   outcomes: emptyOutcomes(),
   advice: false,
   now: NOW,
@@ -64,8 +76,56 @@ const signalRule = (over: Partial<StrategyRule> = {}): StrategyRule => ({
 })
 
 describe('planSuggestions', () => {
-  it('files nothing for an empty book', () => {
-    expect(planSuggestions(ctx())).toEqual([])
+  it('files nothing for an empty book when the profile is complete', () => {
+    expect(planSuggestions(ctx({ profile: fullProfile, chatTurns: 0 }))).toEqual([])
+  })
+
+  /* ── profile — the "get to know you" nudges ─────────────────────────── */
+  it('nudges the blank profile even on an empty book — that holder is who it serves', () => {
+    const out = planSuggestions(ctx({ profile: null, chatTurns: 0 }))
+    expect(out).toHaveLength(1)
+    expect(out[0]!.kind).toBe('profile')
+    expect(out[0]!.dedupeKey).toBe('profile:dims')
+    expect((out[0]!.payload as Record<string, unknown>)['section']).toBe('declared')
+  })
+  it('escalates to the mandate nudge once the dimensions are set', () => {
+    const out = planSuggestions(
+      ctx({ profile: { risk: 'balanced', horizon: null, goal: null, mandate: null } }),
+    )
+    expect(out.map((c) => c.dedupeKey)).toEqual(['profile:mandate'])
+  })
+  it('nudges the memory review only when there is actually something said', () => {
+    /* No chat yet → nothing to mine → the nudge would promise a review
+       with nothing to review. */
+    expect(
+      planSuggestions(ctx({ profile: fullProfile, chatTurns: 0, memoryCount: 0 })),
+    ).toEqual([])
+    const out = planSuggestions(
+      ctx({ profile: fullProfile, chatTurns: 6, memoryCount: 0 }),
+    )
+    expect(out.map((c) => c.dedupeKey)).toEqual(['profile:memories'])
+    /* Already remembering → the nudge is done. */
+    expect(
+      planSuggestions(ctx({ profile: fullProfile, chatTurns: 6, memoryCount: 3 })),
+    ).toEqual([])
+  })
+  it('files every profile nudge alongside the book’s own work on a held book', () => {
+    const out = planSuggestions(
+      ctx({
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        strategies: [strat()],
+        profile: null,
+        chatTurns: 4,
+        memoryCount: 0,
+      }),
+    )
+    const kinds = out.map((c) => c.kind)
+    expect(kinds).toContain('profile')
+    /* The profile nudges score under the book's own filings — ranking
+       keeps them visible without crowding the strategy work out. */
+    const profileScores = out.filter((c) => c.kind === 'profile').map((c) => c.score)
+    expect(Math.max(...profileScores)).toBeLessThan(50)
   })
 
   it('seeds a disabled draft strategy when nothing watches the book', () => {

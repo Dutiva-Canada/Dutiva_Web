@@ -25,6 +25,7 @@ const NAV = [
   { to: '/invest/strategies', end: false, label: IM.invest_tab_strategies },
   { to: '/invest/theses', end: false, label: IM.invest_tab_theses },
   { to: '/invest/analysis', end: false, label: IM.invest_tab_analysis },
+  { to: '/invest/profile', end: false, label: IM.invest_tab_profile },
 ] as const
 
 /* Mobile menu shows the icon-nav destinations as text rows too —

@@ -107,6 +107,7 @@ const SENSITIVE_TABLES = [
   'invest_goals',
   'invest_market_news',
   'invest_market_snapshots',
+  'invest_memories',
   'invest_notification_prefs',
   'invest_orders',
   'invest_positions',

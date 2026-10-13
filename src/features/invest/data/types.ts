@@ -390,6 +390,36 @@ export interface InvestScanItem {
   updatedAt: string
 }
 
+/* ── Memories (0222) ──────────────────────────────────────────────────────
+   Confirmed, durable facts Tally retains about the holder — plans, stated
+   preferences, the reasons behind positions. Rows here are already
+   approved: written by hand on the profile page, or accepted from a
+   'memory' suggestion Tally filed after reviewing recent chat. They feed
+   her chat context and draft prompts — context, never permission. */
+
+export type MemoryKind = 'preference' | 'plan' | 'fact' | 'philosophy'
+
+export const MEMORY_KINDS: readonly MemoryKind[] = [
+  'preference',
+  'plan',
+  'fact',
+  'philosophy',
+]
+
+export interface InvestMemory {
+  id: string
+  /** null = a book-wide memory; a set symbol scopes the fact to one
+      holding. */
+  symbol: string | null
+  kind: MemoryKind
+  text: string
+  /** 'manual' = written by the holder; 'tally' = proposed from chat and
+      accepted through the review queue. */
+  source: 'manual' | 'tally'
+  createdAt: string
+  updatedAt: string
+}
+
 /** A symbol the user wants priced/tracked without holding it — feeds the
     market-sync universe (and thereby dip-watcher strategies) and the
     per-symbol news queries. */
