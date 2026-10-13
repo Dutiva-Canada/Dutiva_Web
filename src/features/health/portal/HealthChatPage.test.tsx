@@ -140,6 +140,7 @@ describe('HealthChatPage', () => {
     vi.mocked(sendHealthChat).mockResolvedValue({
       reply: 'Done — marked for today.',
       action: { type: 'mark_habit_done', detail: 'Walk', ok: true, refId: 'h1' },
+      userId: '11111111-2222-3333-4444-555555555556',
       assistantId: '11111111-2222-3333-4444-555555555555',
       suggests: [],
       reasoning: null,
@@ -166,6 +167,59 @@ describe('HealthChatPage', () => {
     /* A completed action writes to the health tables — the shared provider
        must refresh so Habits/Insights reflect it. */
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('does not duplicate the user bubble when the poll lands the persisted pair', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const userRowId = '11111111-2222-3333-4444-555555555556'
+      const assistantId = '11111111-2222-3333-4444-555555555555'
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+      vi.mocked(sendHealthChat).mockResolvedValue({
+        reply: 'Noted.',
+        action: null,
+        userId: userRowId,
+        assistantId,
+        suggests: [],
+        reasoning: null,
+      })
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+
+      fireEvent.change(screen.getByPlaceholderText(/Tell Mira/), {
+        target: { value: 'ping' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+      expect(await screen.findByText('Noted.')).toBeInTheDocument()
+
+      /* The 45s history poll lands the persisted rows — the optimistic
+         bubble already carries the real row id, so nothing new appends.
+         Without the adoption it would come back as a stranger and
+         duplicate under the reply. */
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([
+        {
+          id: userRowId,
+          role: 'user',
+          content: 'ping',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:00Z',
+        },
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: 'Noted.',
+          action: null,
+          reasoning: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:01Z',
+        },
+      ])
+      await vi.advanceTimersByTimeAsync(45_000)
+      await waitFor(() => expect(screen.getAllByText('ping')).toHaveLength(1))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('renders stored history including a stored action', async () => {

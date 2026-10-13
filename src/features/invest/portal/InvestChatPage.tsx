@@ -231,16 +231,25 @@ export function InvestChatPage() {
 
   /* Shared tail of send + regenerate — appends the assistant turn, adopts
      its suggestions, and refreshes a named thread's freshly-set title. */
-  const adoptReply = (result: {
-    reply: string
-    action: InvestChatAction | null
-    assistantId: string | null
-    suggests: string[]
-    reasoning: string | null
-    sources: ChatSourceRow[]
-  }) => {
+  const adoptReply = (
+    result: {
+      reply: string
+      action: InvestChatAction | null
+      userId: string | null
+      assistantId: string | null
+      suggests: string[]
+      reasoning: string | null
+      sources: ChatSourceRow[]
+    },
+    localUserId: string,
+  ) => {
     setTurns((prev) => [
-      ...(prev ?? []),
+      /* The optimistic user turn trades its local id for the persisted row
+         id — the history poll dedupes on ids, and a `u-…` turn would be
+         re-added as a duplicate bubble once the stored row arrives. */
+      ...(prev ?? []).map((t) =>
+        result.userId && t.id === localUserId ? { ...t, id: result.userId } : t,
+      ),
       {
         /* The persisted row id when the insert landed — rating needs it. */
         id: result.assistantId ?? `a-${Date.now()}`,
@@ -302,7 +311,7 @@ export function InvestChatPage() {
           if (code === 'web_search') setSearching(true)
         },
       })
-      await adoptReply(result)
+      await adoptReply(result, userTurn.id)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
@@ -380,11 +389,12 @@ export function InvestChatPage() {
        question's progress; the old answer swaps out only when the new one
        lands or the call fails (the pair is gone server-side either way). */
     const pairIds = [last.id, prevUser.id]
+    const reuserId = `u-${Date.now()}`
     setTurns((prev) => (prev ?? []).filter((t) => !pairIds.includes(t.id)))
     setTurns((prev) => [
       ...(prev ?? []),
       {
-        id: `u-${Date.now()}`,
+        id: reuserId,
         role: 'user',
         content: prevUser.content,
         action: null,
@@ -401,7 +411,7 @@ export function InvestChatPage() {
           if (code === 'web_search') setSearching(true)
         },
       })
-      await adoptReply(result)
+      await adoptReply(result, reuserId)
     } catch (err) {
       if (!(isAbort(err) || ctrl.signal.aborted)) showToast(IM.invest_chat_error)
     } finally {

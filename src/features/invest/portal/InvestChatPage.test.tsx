@@ -74,6 +74,7 @@ function renderPage(lang: Lang = 'en', auth: Partial<AuthContextValue> = {}) {
 }
 
 const ASSISTANT_ID = 'a1b2c3d4-0000-4000-8000-000000000001'
+const USER_ROW_ID = 'a1b2c3d4-0000-4000-8000-000000000002'
 
 describe('InvestChatPage', () => {
   afterEach(() => {
@@ -132,6 +133,7 @@ describe('InvestChatPage', () => {
     vi.mocked(sendInvestChat).mockResolvedValue({
       reply: 'On it.',
       action: null,
+      userId: USER_ROW_ID,
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
@@ -157,7 +159,7 @@ describe('InvestChatPage', () => {
     vi.mocked(loadInvestChatHistory).mockResolvedValue([])
     vi.mocked(sendInvestChat)
       .mockRejectedValueOnce(new Error('offline'))
-      .mockResolvedValueOnce({ reply: 'Back on.', action: null, assistantId: ASSISTANT_ID, suggests: [], reasoning: null, sources: [] })
+      .mockResolvedValueOnce({ reply: 'Back on.', action: null, userId: USER_ROW_ID, assistantId: ASSISTANT_ID, suggests: [], reasoning: null, sources: [] })
     renderPage()
     await screen.findByPlaceholderText(/Ask Tally/)
 
@@ -249,6 +251,7 @@ describe('InvestChatPage', () => {
     vi.mocked(sendInvestChat).mockResolvedValue({
       reply: 'Queued a draft order for review.',
       action: { type: 'create_order', detail: 'buy 5 XEQT', ok: true, refId: 'o1' },
+      userId: USER_ROW_ID,
       assistantId: ASSISTANT_ID,
       suggests: [],
       reasoning: null,
@@ -275,6 +278,59 @@ describe('InvestChatPage', () => {
     /* A completed action writes to the invest_* tables — the shared provider
        must refresh so Orders/Signals/Watchlist reflect it. */
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('does not duplicate the user bubble when the poll lands the persisted pair', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(loadInvestChatHistory).mockResolvedValue([])
+      vi.mocked(sendInvestChat).mockResolvedValue({
+        reply: 'Noted.',
+        action: null,
+        userId: USER_ROW_ID,
+        assistantId: ASSISTANT_ID,
+        suggests: [],
+        reasoning: null,
+        sources: [],
+      })
+      renderPage()
+      await screen.findByPlaceholderText(/Ask Tally/)
+
+      fireEvent.change(screen.getByPlaceholderText(/Ask Tally/), {
+        target: { value: 'ping' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+      expect(await screen.findByText('Noted.')).toBeInTheDocument()
+
+      /* The 45s history poll lands the persisted rows — the optimistic
+         bubble already carries the real row id, so nothing new appends.
+         Without the adoption it would come back as a stranger and
+         duplicate under the reply. */
+      vi.mocked(loadInvestChatHistory).mockResolvedValue([
+        {
+          id: USER_ROW_ID,
+          role: 'user',
+          content: 'ping',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:00Z',
+        },
+        {
+          id: ASSISTANT_ID,
+          role: 'assistant',
+          content: 'Noted.',
+          action: null,
+          reasoning: null,
+          sources: [],
+          feedback: null,
+          createdAt: '2026-10-13T10:01:01Z',
+        },
+      ])
+      await vi.advanceTimersByTimeAsync(45_000)
+      await waitFor(() => expect(screen.getAllByText('ping')).toHaveLength(1))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('renders stored history including a stored action', async () => {
