@@ -289,14 +289,14 @@ export function InvestPortfolioPage() {
 
   if (loading) {
     return (
-      <div className="sb sb-page flex items-center justify-center py-[80px]">
+      <div className="sb sb-page sb-page-wide flex items-center justify-center py-[80px]">
         <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className="sb sb-page">
+    <div className="sb sb-page sb-page-wide">
       <div className="sb-head-row">
         <h1>{x(IM.invest_tab_portfolios)}</h1>
         <button
