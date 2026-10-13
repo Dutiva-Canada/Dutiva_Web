@@ -173,7 +173,7 @@ const RSS = `<?xml version="1.0"?><rss><channel>
 
 describe('parseRssItems', () => {
   it('parses items, strips the " - Source" suffix and CDATA', () => {
-    const items = parseRssItems(RSS, { symbol: 'SHOP', asset_class: 'equity' })
+    const items = parseRssItems(RSS, { symbol: 'SHOP', asset_class: 'equity', name: 'Shopify' })
     expect(items).toHaveLength(2)
     expect(items[0]).toMatchObject({
       symbol: 'SHOP',
@@ -183,8 +183,22 @@ describe('parseRssItems', () => {
       published_at: '2026-09-26T12:00:00.000Z',
     })
     expect(items[0].summary).not.toContain('<a')
-    expect(items[1].title).toBe('Second headline & more')
+    /* 'Second headline & more' never names Shopify — the row stays but
+       the symbol tag doesn't claim a relation that isn't there. */
+    expect(items[1]).toMatchObject({ title: 'Second headline & more', symbol: '' })
     expect(items[1].published_at).toBeNull()
+  })
+
+  it('drops prediction-market listings — a wager board is not a headline', () => {
+    const xml = `<rss><channel>
+      <item><title>SOL price on Oct 13, 2026 at 4am EDT Crypto Prediction Market - Robinhood</title>
+        <link>https://robinhood.example/sol-pm</link><source>Robinhood</source></item>
+      <item><title>Solana slips on thin liquidity</title>
+        <link>https://news.example/sol-slips</link><source>CoinDesk</source></item>
+    </channel></rss>`
+    const items = parseRssItems(xml, { symbol: 'SOL', asset_class: 'crypto', name: 'Solana' })
+    expect(items).toHaveLength(1)
+    expect(items[0]).toMatchObject({ title: 'Solana slips on thin liquidity', symbol: 'SOL' })
   })
 
   it('caps items and tolerates empty xml', () => {
@@ -202,8 +216,8 @@ describe('newsQueries', () => {
     ])
     expect(q[0]).toEqual({ query: 'stock market Canada', symbol: '', asset_class: '' })
     expect(q).toHaveLength(3)
-    expect(q[1]).toEqual({ query: 'Shopify stock', symbol: 'SHOP.TO', asset_class: 'equity' })
-    expect(q[2].query).toBe('Bitcoin crypto')
+    expect(q[1]).toEqual({ query: 'Shopify stock', symbol: 'SHOP.TO', asset_class: 'equity', name: 'Shopify' })
+    expect(q[2]).toMatchObject({ query: 'Bitcoin crypto', name: 'Bitcoin' })
   })
 
   it('caps symbol feeds and falls back to the stripped symbol', () => {

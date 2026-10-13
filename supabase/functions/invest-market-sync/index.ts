@@ -410,7 +410,7 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
   for (const q of queries) {
     const xml = await fetchText(googleNewsUrl(q.query))
     if (!xml) continue
-    for (const item of parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class })) {
+    for (const item of parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class, name: q.name })) {
       const key = `${item.symbol}:${item.url}`
       if (seenUrls.has(key)) continue
       seenUrls.add(key)

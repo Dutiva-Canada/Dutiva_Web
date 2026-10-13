@@ -385,6 +385,25 @@ export interface NewsItem {
   published_at: string | null
 }
 
+/* Google News indexes betting-market listing pages (Robinhood prediction
+   markets, etc.) — a wager board is not a headline. Keep in sync with the
+   client-side copy in InvestHomePage.tsx. */
+export const JUNK_HEADLINE = /\bprediction markets?\b/i
+
+/** The title or deck mentions the tracked asset — by symbol, or by the
+    name the query ran under ('Solana' under SOL). A story Google News
+    returned for a query but that never names the asset keeps its row but
+    drops the symbol tag rather than claim a relation that isn't there. */
+export function mentionsHolding(
+  text: string,
+  meta: { symbol: string; name?: string },
+): boolean {
+  const terms = [meta.symbol, meta.name]
+    .map((t) => t?.trim().replace(/\.(TO|V|US)$/, ''))
+    .filter((t): t is string => !!t && t.length >= 2)
+  return terms.some((t) => new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text))
+}
+
 /** CA-edition Google News RSS for a query — free, unofficial, rate-limited. */
 export function googleNewsUrl(query: string): string {
   return `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-CA&gl=CA&ceid=CA:en`
@@ -413,7 +432,7 @@ function xmlText(block: string, tag: string): string {
  */
 export function parseRssItems(
   xml: string,
-  meta: { symbol: string; asset_class: string },
+  meta: { symbol: string; asset_class: string; name?: string },
   maxItems = 12,
 ): NewsItem[] {
   const items: NewsItem[] = []
@@ -424,16 +443,21 @@ export function parseRssItems(
     const suffix = ` - ${source}`
     if (source && title.endsWith(suffix)) title = title.slice(0, -suffix.length)
     const url = xmlText(block, 'link')
-    if (!title || !url) continue
+    if (!title || !url || JUNK_HEADLINE.test(title)) continue
+    const summary = xmlText(block, 'description').slice(0, 240)
+    /* The query returned it, but the symbol tag is only honest when the
+       story actually names the holding. */
+    const symbol =
+      meta.symbol && mentionsHolding(`${title} ${summary}`, meta) ? meta.symbol : ''
     const pub = xmlText(block, 'pubDate')
     const pubMs = pub ? Date.parse(pub) : NaN
     items.push({
-      symbol: meta.symbol,
+      symbol,
       asset_class: meta.asset_class,
       title: title.slice(0, 300),
       url: url.slice(0, 500),
       source: source.slice(0, 120),
-      summary: xmlText(block, 'description').slice(0, 240),
+      summary,
       published_at: Number.isFinite(pubMs) ? new Date(pubMs).toISOString() : null,
     })
     if (items.length >= maxItems) break
@@ -449,8 +473,8 @@ export function parseRssItems(
 export function newsQueries(
   targets: { asset_class: string; symbol: string; name?: string }[],
   maxSymbolFeeds = 8,
-): { query: string; symbol: string; asset_class: string }[] {
-  const queries: { query: string; symbol: string; asset_class: string }[] = [
+): { query: string; symbol: string; asset_class: string; name?: string }[] {
+  const queries: { query: string; symbol: string; asset_class: string; name?: string }[] = [
     { query: 'stock market Canada', symbol: '', asset_class: '' },
   ]
   const seen = new Set<string>()
@@ -459,8 +483,9 @@ export function newsQueries(
     if (!sym || seen.has(sym)) continue
     seen.add(sym)
     const hint = t.asset_class === 'crypto' ? 'crypto' : 'stock'
-    const term = t.name && t.name.trim() ? t.name.trim() : sym.replace(/\.(TO|V|US)$/, '')
-    queries.push({ query: `${term} ${hint}`, symbol: sym, asset_class: t.asset_class })
+    const name = t.name && t.name.trim() ? t.name.trim() : undefined
+    const term = name ?? sym.replace(/\.(TO|V|US)$/, '')
+    queries.push({ query: `${term} ${hint}`, symbol: sym, asset_class: t.asset_class, name })
     if (queries.length > maxSymbolFeeds) break
   }
   return queries

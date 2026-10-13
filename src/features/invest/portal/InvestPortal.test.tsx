@@ -403,12 +403,12 @@ describe('InvestHomePage', () => {
     /* The USD position can't convert — the headline keeps it as its own
        code-labelled line instead of dropping it from a CAD "total". */
     expect(await screen.findByText(/totals stay per currency/)).toBeInTheDocument()
-    expect(screen.getByText('Portfolio value by currency')).toBeInTheDocument()
+    expect(screen.getByText('Value by currency')).toBeInTheDocument()
     expect(screen.getAllByText('USD 1,000.00').length).toBe(1)
     expect(screen.getAllByText('CAD 25,000.00').length).toBe(2)
     /* No blended book, but each class still shows its share of the
        same-currency slice — a real proportion, not an invented one. */
-    expect(screen.getByText(/100% of USD book/)).toBeInTheDocument()
+    expect(screen.getByText(/100% in USD/)).toBeInTheDocument()
   })
 
   it('names the uncovered currency when rates exist but not for it', async () => {

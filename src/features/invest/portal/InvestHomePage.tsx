@@ -38,9 +38,14 @@ function sourceTint(source: string): string {
 }
 
 // The same wire story often lands from several publishers — keep the first.
+// Betting-market listings aren't headlines; the ingest filter keeps new
+// ones out, this one hides rows already in the table. Keep in sync with
+// JUNK_HEADLINE in supabase/functions/invest-market-sync/handlers.ts.
+const JUNK_HEADLINE = /\bprediction markets?\b/i
 function dedupeNews<T extends { title: string }>(items: T[]): T[] {
   const seen = new Set<string>()
   return items.filter((n) => {
+    if (JUNK_HEADLINE.test(n.title)) return false
     const key = n.title.trim().toLowerCase()
     if (seen.has(key)) return false
     seen.add(key)
@@ -417,19 +422,15 @@ export function InvestHomePage() {
                           : `${fmt.format(value)} · ${Math.round(pct)}%`}
                       </span>
                     </div>
-                    <div className="sb-bar-track">
-                      <div
-                        className="sb-bar-fill"
-                        style={{
-                          width: `${Math.max(
-                            2,
-                            book.missed > 0
-                              ? Math.max(...native.map((n) => nativePct(n)))
-                              : pct,
-                          )}%`,
-                        }}
-                      />
-                    </div>
+                    {/* Bars compare shares of one book — without a
+                        comparable total every class fills its own
+                        currency slice to 100%, which is noise not a
+                        proportion. Text carries the honest share. */}
+                    {book.missed === 0 && (
+                      <div className="sb-bar-track">
+                        <div className="sb-bar-fill" style={{ width: `${Math.max(2, pct)}%` }} />
+                      </div>
+                    )}
                   </li>
                 )
               })}
@@ -453,7 +454,10 @@ export function InvestHomePage() {
                       {/* Portfolio-level signals carry no symbol — skip the
                           separator rather than render a dangling '·'. */}
                       {s.symbol ? `${s.symbol} · ` : ''}
-                      {new Date(s.createdAt).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                      {new Date(s.createdAt).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+                        month: 'short',
+                        day: 'numeric',
+                      })}
                     </p>
                   </div>
                   {s.status === 'new' && (

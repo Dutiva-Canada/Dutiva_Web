@@ -32,9 +32,12 @@ export async function loadFxRates(): Promise<FxTable | null> {
   mem ??= readStore()
   if (mem) return mem
   try {
-    /* No `to=` param — one call returns every ECB currency (~30), so a
-       JPY/AUD/CHF position converts too instead of silently dropping. */
-    const res = await fetch('https://api.frankfurter.app/latest?from=CAD', {
+    /* frankfurter.dev is the live host — the .app domain 301-redirects
+       here, and CSP blocks redirect hops, so the old URL can never
+       succeed behind the site's connect-src. No `symbols` param — one
+       call returns every ECB currency (~30), so a JPY/AUD/CHF position
+       converts too instead of silently dropping. */
+    const res = await fetch('https://api.frankfurter.dev/v1/latest?base=CAD', {
       signal: AbortSignal.timeout(8_000),
     })
     if (!res.ok) return null
