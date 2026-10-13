@@ -24,6 +24,7 @@ import {
   upsertSnapshot,
 } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 
@@ -101,6 +102,18 @@ export function InvestPortfolioPage() {
   /* The add form collapses so the positions table leads the section —
      a data page shouldn't open on a wall of empty inputs. */
   const [showPosForm, setShowPosForm] = useState(false)
+  /* ECB reference rates, loaded once — null means 'no rate on file', and
+     cross-currency figures stay '—' rather than print a wrong number. */
+  const [fx, setFx] = useState<FxTable | null>(null)
+  useEffect(() => {
+    let live = true
+    void loadFxRates().then((t) => {
+      if (live) setFx(t)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
 
   const syncNow = async () => {
     setBusy(true)
@@ -136,26 +149,33 @@ export function InvestPortfolioPage() {
   }
 
   /* Real quotes only — a position with no snapshot and no synced last_price
-     renders '—', never its cost basis dressed up as a market price. */
+     renders '—', never its cost basis dressed up as a market price. A quote
+     denominated in another currency converts at the ECB reference rate and
+     carries an '≈' marker; with no rate on file it renders '—' too. */
   const rows = useMemo(
     () =>
       state.positions.map((p) => {
         const snap = state.snapshots.find(
           (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
         )
-        const px = snap?.price ?? p.lastPrice ?? null
+        const pxNative = snap?.price ?? p.lastPrice ?? null
         const pxAt = snap?.asOf ?? p.lastPriceAt
+        const pxCur = snap?.currency ?? p.currency
+        const px = pxNative === null ? null : convertFx(pxNative, pxCur, p.currency, fx)
         return {
           p,
           px,
           pxAt,
+          pxCur,
+          converted: pxNative !== null && px !== null && pxCur !== p.currency,
+          noFx: pxNative !== null && px === null,
           stale: pxAt !== null && Date.now() - Date.parse(pxAt) > STALE_MS,
           value: px === null ? null : p.quantity * px,
           pnl: px === null ? null : (px - p.avgCost) * p.quantity,
           pnlPct: px === null || p.avgCost === 0 ? null : (px / p.avgCost - 1) * 100,
         }
       }),
-    [state.positions, state.snapshots],
+    [state.positions, state.snapshots, fx],
   )
 
   const sorted = useMemo(() => {
@@ -175,17 +195,24 @@ export function InvestPortfolioPage() {
      position's own currency and render each group's figures. */
   const totals = useMemo(() => {
     const byCur = new Map<string, { cost: number; pricedCost: number; value: number }>()
+    const pairs = new Map<string, string>()
     let unpriced = 0
+    let noFx = 0
     for (const r of rows) {
       const cur = r.p.currency || 'CAD'
       const t = byCur.get(cur) ?? { cost: 0, pricedCost: 0, value: 0 }
       const basis = r.p.quantity * r.p.avgCost
       t.cost += basis
       if (r.value === null || r.pnl === null) {
-        unpriced++
+        if (r.noFx) noFx++
+        else unpriced++
       } else {
         t.pricedCost += basis
         t.value += r.value
+        if (r.converted) {
+          const rate = convertFx(1, r.pxCur, cur, fx)
+          if (rate !== null) pairs.set(`${r.pxCur}→${cur}`, rate.toFixed(4))
+        }
       }
       byCur.set(cur, t)
     }
@@ -195,8 +222,13 @@ export function InvestPortfolioPage() {
       pnl: t.value - t.pricedCost,
       pnlPct: t.pricedCost === 0 ? null : ((t.value - t.pricedCost) / t.pricedCost) * 100,
     }))
-    return { groups, unpriced }
-  }, [rows])
+    return {
+      groups,
+      unpriced,
+      noFx,
+      pairList: [...pairs.entries()].map(([pair, rate]) => `${pair} ${rate}`).join(' · '),
+    }
+  }, [rows, fx])
 
   const toggleSort = (key: PosSortKey) =>
     setSort((s) => ({
@@ -375,7 +407,7 @@ export function InvestPortfolioPage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map(({ p, px, pxAt, stale, value, pnl, pnlPct }) => (
+                {sorted.map(({ p, px, pxAt, stale, converted, value, pnl, pnlPct }) => (
                   <tr key={p.id}>
                     <td>
                       <span className="strong">{p.symbol}</span>
@@ -392,6 +424,7 @@ export function InvestPortfolioPage() {
                         <span className="dim">—</span>
                       ) : (
                         <>
+                          {converted && <span className="dim">≈ </span>}
                           {fmtFor(p.currency).format(px)}
                           {stale && pxAt !== null && (
                             <span className="dim" style={{ marginLeft: 4, fontSize: 11 }}>
@@ -402,7 +435,14 @@ export function InvestPortfolioPage() {
                       )}
                     </td>
                     <td className="num strong">
-                      {value === null ? <span className="dim">—</span> : fmtFor(p.currency).format(value)}
+                      {value === null ? (
+                        <span className="dim">—</span>
+                      ) : (
+                        <>
+                          {converted && <span className="dim">≈ </span>}
+                          {fmtFor(p.currency).format(value)}
+                        </>
+                      )}
                     </td>
                     <td
                       className="num"
@@ -416,6 +456,7 @@ export function InvestPortfolioPage() {
                         <span className="dim">—</span>
                       ) : (
                         <>
+                          {converted && <span className="dim">≈ </span>}
                           {pnl >= 0 ? '+' : ''}
                           {fmtFor(p.currency).format(pnl)}{' '}
                           <span className="dim">
@@ -443,6 +484,10 @@ export function InvestPortfolioPage() {
                                 assetClass: p.assetClass,
                                 symbol: p.symbol,
                                 price,
+                                /* A hand-entered price is in the position's
+                                   book currency — tagging it 'CAD' always
+                                   would feed the FX conversion a lie. */
+                                currency: p.currency,
                               }),
                             )
                           }
@@ -502,6 +547,18 @@ export function InvestPortfolioPage() {
             {totals.unpriced > 0 && (
               <p className="sb-helper" style={{ margin: '8px 0 0' }}>
                 {x(IM.invest_positions_no_quote)}
+              </p>
+            )}
+            {totals.noFx > 0 && (
+              <p className="sb-helper" style={{ margin: '4px 0 0' }}>
+                {x(IM.invest_positions_no_fx)}
+              </p>
+            )}
+            {totals.pairList && fx && (
+              <p className="sb-helper" style={{ margin: '4px 0 0' }}>
+                {x(IM.invest_fx_note)
+                  .replace('{pairs}', totals.pairList)
+                  .replace('{date}', fx.date)}
               </p>
             )}
           </div>

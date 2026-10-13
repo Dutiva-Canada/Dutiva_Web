@@ -132,12 +132,24 @@ export function StrategyEditor({
 
       <div className="sb-ed-head">
         <h1>{draft.name || x(IM.invest_sb_untitled)}</h1>
-        <span className={`sb-pill ${draft.enabled ? 'sb-pill-enabled' : 'sb-pill-draft'}`}>
-          {x(draft.enabled ? IM.invest_sb_pill_enabled : IM.invest_sb_pill_draft)}
+        {/* 'Draft' means never persisted — a saved strategy that's off is
+            paused, not a draft. */}
+        <span
+          className={`sb-pill ${
+            draft.enabled ? 'sb-pill-enabled' : draft.id ? 'sb-pill-paused' : 'sb-pill-draft'
+          }`}
+        >
+          {x(
+            draft.enabled
+              ? IM.invest_sb_pill_enabled
+              : draft.id
+                ? IM.invest_sb_pill_paused
+                : IM.invest_sb_pill_draft,
+          )}
         </span>
       </div>
 
-      {!draft.enabled && <div className="sb-draft-banner">{x(IM.invest_sb_draft_banner)}</div>}
+      {draft.id === null && <div className="sb-draft-banner">{x(IM.invest_sb_draft_banner)}</div>}
 
       <div className="sb-card sb-settings">
         <div className="sb-section-head sb-span" style={{ marginTop: 0 }}>

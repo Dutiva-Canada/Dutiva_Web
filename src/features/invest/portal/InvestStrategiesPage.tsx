@@ -19,13 +19,20 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useInvestData } from '../data/InvestDataContext'
 import { deleteStrategy, normalizeAiStrategyDraft, saveStrategy, scanNow, testScan } from '../data/api'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
-import type { InvestStrategy, StrategyRule } from '../data/types'
+import type { InvestStrategy, StrategyCadence, StrategyRule } from '../data/types'
 import { ruleFireCount } from '../data/strategyRules'
 import { relTimeLabel } from './relTime'
 import { StrategyEditor } from './StrategyEditor'
 import { StrategyWizard } from './StrategyWizard'
 import { useInvestHead } from './useInvestHead'
-import { pl, scopeSymbols, strategyMeta, trackedUniverse } from './strategyUi'
+import {
+  formatRunWhen,
+  pl,
+  scopeSymbols,
+  strategyMeta,
+  trackedUniverse,
+} from './strategyUi'
+import type { Lang } from '@/i18n/core'
 import {
   cloneDraft,
   draftsEqual,
@@ -36,6 +43,15 @@ import type { StrategyDraft } from './strategyDraft'
 import './strategies.css'
 
 type View = { kind: 'list' } | { kind: 'editor' } | { kind: 'wizard' }
+
+/* Cadence is "at most" — the strategy's run window reopens at last +
+   cadence (daily = next sweep, weekly = 7d, monthly = 30d), matching
+   strategyDue in the bot. */
+const CADENCE_MS: Record<StrategyCadence, number> = {
+  daily: 86_400_000,
+  weekly: 7 * 86_400_000,
+  monthly: 30 * 86_400_000,
+}
 
 export function InvestStrategiesPage() {
   const { x, lang } = useI18n()
@@ -56,6 +72,14 @@ export function InvestStrategiesPage() {
   const universe = useMemo(
     () => trackedUniverse(state.positions, state.watchlist),
     [state.positions, state.watchlist],
+  )
+  const fmtNext = useMemo(
+    () =>
+      new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+        month: 'short',
+        day: 'numeric',
+      }),
+    [lang],
   )
   const dirty = draft !== null && snapshot !== null && !draftsEqual(draft, snapshot)
 
@@ -352,32 +376,65 @@ export function InvestStrategiesPage() {
 
           <div className="sb-strat-grid">
             {state.strategies.map((s) => {
-              const last = state.runs.find(
-                (r) => r.strategyId === s.id || r.strategyId === null,
-              )
+              /* A sweep writes one run row per strategy evaluated — exact
+                 id match is the only honest attribution; the unscoped
+                 'null' insight row belongs to no card. */
+              const last = state.runs.find((r) => r.strategyId === s.id)
+              const outcome = last
+                ? [
+                    last.signalsEmitted > 0 &&
+                      pl(lang, last.signalsEmitted, IM.invest_sb_signal_one, IM.invest_sb_signal_many),
+                    last.proposalsCreated > 0 &&
+                      pl(
+                        lang,
+                        last.proposalsCreated,
+                        IM.invest_sb_proposal_one,
+                        IM.invest_sb_proposal_many,
+                      ),
+                    last.status !== 'ok' &&
+                      x(last.status === 'failed' ? IM.invest_sb_run_failed : IM.invest_sb_run_partial),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')
+                : ''
+              /* 'next' only means something for an enabled strategy with a
+                 real prior run — a paused card promising a next run would
+                 lie, and an overdue estimate reads better left out. */
+              const ranMs = last ? Date.parse(last.ranAt) : Number.NaN
+              const nextMs =
+                s.enabled && Number.isFinite(ranMs) ? ranMs + CADENCE_MS[s.cadence] : null
+              const next = nextMs !== null && nextMs > Date.now() ? nextMs : null
               return (
                 <button
                   type="button"
                   key={s.id}
                   className="sb-strat-card"
                   onClick={() => openEditor(s)}
+                  aria-label={`${s.name || x(IM.invest_sb_untitled)} — ${x(
+                    s.enabled ? IM.invest_sb_pill_enabled : IM.invest_sb_pill_paused,
+                  )}`}
                 >
                   <span className="sb-top">
                     <span className="sb-name">{s.name || x(IM.invest_sb_untitled)}</span>
                     <span
-                      className={`sb-pill ${s.enabled ? 'sb-pill-enabled' : 'sb-pill-draft'}`}
+                      className={`sb-pill ${s.enabled ? 'sb-pill-enabled' : 'sb-pill-paused'}`}
                     >
-                      {x(s.enabled ? IM.invest_sb_pill_enabled : IM.invest_sb_pill_draft)}
+                      {x(s.enabled ? IM.invest_sb_pill_enabled : IM.invest_sb_pill_paused)}
                     </span>
                   </span>
                   <span className="sb-meta" style={{ display: 'block' }}>
-                    {strategyMeta(lang, s, universe.length)}
+                    {strategyMeta(lang, s, scopeSymbols(s.scope, universe).length)}
                   </span>
                   {last && (
                     <span className="sb-meta" style={{ display: 'block' }}>
                       {fill(x(IM.invest_sb_last_run), {
-                        time: formatRel(last.ranAt, x),
+                        time: formatRel(last.ranAt, x, lang),
                       })}
+                      {outcome && ` · ${outcome}`}
+                      {next !== null &&
+                        ` · ${fill(x(IM.invest_sb_next_run), {
+                          time: fmtNext.format(next),
+                        })}`}
                     </span>
                   )}
                 </button>
@@ -423,6 +480,8 @@ export function InvestStrategiesPage() {
 }
 
 type X = (m: { en: string; fr: string }) => string
-function formatRel(iso: string, x: X): string {
-  return relTimeLabel(iso, x) ?? iso
+function formatRel(iso: string, x: X, lang: Lang): string {
+  /* A future or unparseable stamp can't be 'N hours ago' — fall back to
+     the absolute date rather than leak the raw ISO string. */
+  return relTimeLabel(iso, x) ?? (formatRunWhen(lang, iso) || '—')
 }

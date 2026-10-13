@@ -8,6 +8,7 @@ import { AuthProvider } from '@/features/app/auth/AuthProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { AuthContextValue } from '@/features/app/auth/authContext'
 import type { InvestState } from '@/features/invest/data/api'
+import type { FxTable } from '@/features/invest/data/fx'
 
 /* useAuth is mocked per-test to drive the signed-out / no-access / granted
    gates; the real AuthContext stays so AuthProvider still mounts. */
@@ -15,6 +16,13 @@ vi.mock('@/features/app/auth/authContext', async (importOriginal) => {
   const mod = await importOriginal<typeof import('@/features/app/auth/authContext')>()
   return { ...mod, useAuth: vi.fn() }
 })
+
+/* FX rates are network-bound — the conversion math stays real, the feed
+   is mocked per-test so 'no rate on file' is the default. */
+vi.mock('@/features/invest/data/fx', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/invest/data/fx')>()),
+  loadFxRates: vi.fn(),
+}))
 
 vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/features/invest/data/api')>()),
@@ -50,6 +58,7 @@ const {
   updatePosition,
   deletePosition,
 } = await import('@/features/invest/data/api')
+const { loadFxRates } = await import('@/features/invest/data/fx')
 
 function asAuth(status: AuthContextValue['status']): AuthContextValue {
   return {
@@ -199,6 +208,44 @@ const STATE: InvestState = {
   ],
 }
 
+/* 'No rate on file' is the default — every page that touches FX must
+   render deterministically; conversion specs opt in with FX_TABLE. */
+vi.mocked(loadFxRates).mockResolvedValue(null)
+
+const FX_TABLE = { date: '2026-10-12', rates: { CAD: 1, USD: 0.73 } }
+
+/* A CAD book holding a USD-quoted symbol — the case the conversion
+   exists for. $100 USD ÷ 0.73 ≈ $136.99 CAD. */
+const USD_QUOTED: InvestState = {
+  ...STATE,
+  positions: [
+    {
+      id: 'p9',
+      accountId: 'acc1',
+      assetClass: 'equity',
+      symbol: 'AMD',
+      name: 'Advanced Micro',
+      quantity: 10,
+      avgCost: 100,
+      currency: 'CAD',
+      lastPrice: null,
+      lastPriceAt: null,
+    },
+  ],
+  snapshots: [
+    {
+      assetClass: 'equity',
+      symbol: 'AMD',
+      price: 100,
+      dayChangePct: null,
+      ma50: null,
+      currency: 'USD',
+      source: 'yahoo',
+      asOf: '2026-10-12T00:00:00Z',
+    },
+  ],
+}
+
 function renderPortal(ui: ReactElement, route = '/invest') {
   return render(
     <ThemeProvider>
@@ -307,6 +354,23 @@ describe('InvestHomePage', () => {
     expect(vi.mocked(loadInvestState).mock.calls.length).toBeGreaterThanOrEqual(2)
     expect(await screen.findByText(/Prices refreshed/)).toBeInTheDocument()
   })
+
+  it('sums a mixed-currency book through the ECB rate and marks it ≈', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(USD_QUOTED)
+    vi.mocked(loadFxRates).mockResolvedValue(FX_TABLE)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* AMD: 10 × ($100 USD → ≈$136.99 CAD) = $1,369.86 + $25,000 cash —
+       the headline sums the converted figure, marked and disclosed. */
+    expect(await screen.findByText(/\$26,369\.86/)).toBeInTheDocument()
+    expect(screen.getByText(/USD→CAD 1\.3699/)).toBeInTheDocument()
+  })
 })
 
 describe('InvestSignalsPage', () => {
@@ -369,9 +433,10 @@ describe('InvestPortfolioPage positions', () => {
     vi.clearAllMocks()
   })
 
-  const renderPage = async (state: InvestState = STATE) => {
+  const renderPage = async (state: InvestState = STATE, fx: FxTable | null = null) => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(state)
+    vi.mocked(loadFxRates).mockResolvedValue(fx)
     const { InvestPortfolioPage } = await import('./InvestPortfolioPage')
     const { InvestDataProvider } = await import('../data/InvestDataProvider')
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -410,6 +475,26 @@ describe('InvestPortfolioPage positions', () => {
        the footnote, never its $50 cost in the price column. */
     expect(screen.getAllByText('—')).toHaveLength(3)
     expect(screen.getByText(/no quote on file/i)).toBeInTheDocument()
+  })
+
+  it('converts a USD quote into the CAD book at the ECB rate, marked ≈', async () => {
+    await renderPage(USD_QUOTED, FX_TABLE)
+    await screen.findByText('AMD')
+    /* $100 USD ÷ 0.73 ≈ $136.99 — the row never prints the raw $100 as
+       if it were CAD. The ≈ markers and the disclosed rate are the tell. */
+    expect(screen.getByText(/\$136\.99/)).toBeInTheDocument()
+    expect(screen.getAllByText('≈').length).toBeGreaterThanOrEqual(3)
+    expect(screen.getByText(/USD→CAD 1\.3699/)).toBeInTheDocument()
+  })
+
+  it('shows — for a cross-currency row when no FX rate is on file', async () => {
+    await renderPage(USD_QUOTED)
+    await screen.findByText('AMD')
+    /* The quote exists but can't be expressed in CAD — the cells stay
+       blank with the FX note, and the 'no quote' note stays hidden. */
+    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(screen.getByText(/no FX rate is on file/i)).toBeInTheDocument()
+    expect(screen.queryByText(/no quote on file/i)).not.toBeInTheDocument()
   })
 
   it('renders the totals row from priced rows only', async () => {
@@ -679,6 +764,29 @@ describe('InvestStrategiesPage', () => {
     )
     return userEvent.setup()
   }
+
+  it('shows scoped counts, Paused for a disabled strategy, and only its own runs', async () => {
+    await renderPage({
+      ...STATE,
+      strategies: [
+        /* Disabled + scoped to SHOP only — the card must not claim the
+           whole two-symbol universe or wear a 'Draft' pill. */
+        { ...STATE.strategies[0]!, enabled: false, scope: { watchlist: false, symbols: ['SHOP'] } },
+        { ...STATE.strategies[0]!, id: 's2', name: 'Runner', enabled: true },
+      ],
+      runs: [
+        STATE.runs[0]!, // unscoped insight run — belongs to no card
+        { ...STATE.runs[0]!, id: 'r2', strategyId: 's2', signalsEmitted: 2, proposalsCreated: 1 },
+      ],
+    })
+
+    expect(await screen.findByText('Paused')).toBeInTheDocument()
+    expect(screen.getByText(/1 tracked symbol/)).toBeInTheDocument()
+    /* Only Runner's own run lands a Last-run line — the sweep's null row
+       never stamps s1's card. */
+    expect(screen.getAllByText(/Last run/)).toHaveLength(1)
+    expect(screen.getByText(/2 signals · 1 proposal/)).toBeInTheDocument()
+  })
 
   it('lists strategies and opens the wizard from New strategy', async () => {
     const user = await renderPage()
