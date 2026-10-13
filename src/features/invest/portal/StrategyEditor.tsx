@@ -34,6 +34,7 @@ import {
   warningText,
 } from './strategyUi'
 import type { StrategyDraft } from './strategyDraft'
+import type { AgentSuggestion } from '@/lib/agentQueue'
 
 const RUN_HISTORY_MAX = 10
 const CONFIRM_MS = 2600
@@ -60,6 +61,12 @@ interface Props {
   bookCurrency: string
   strategyNameById: Record<string, string>
   fireCount: (rule: StrategyRule) => number | null
+  /** Pending review-queue rows scoped to this strategy — Tally's
+      proactive suggestions for the open draft (rule adds, tunes, scope
+      gaps). Apply stages into the draft; the row resolves on Save. */
+  suggestions?: AgentSuggestion[]
+  onApplySuggestion?: (s: AgentSuggestion) => void
+  onDismissSuggestion?: (s: AgentSuggestion) => void
   onChange: (next: StrategyDraft) => void
   onBack: () => void
   onSave: () => void
@@ -81,6 +88,9 @@ export function StrategyEditor({
   bookCurrency,
   strategyNameById,
   fireCount,
+  suggestions = [],
+  onApplySuggestion,
+  onDismissSuggestion,
   onChange,
   onBack,
   onSave,
@@ -388,6 +398,60 @@ export function StrategyEditor({
           </button>
         </div>
       </div>
+
+      {suggestions.length > 0 && (
+        <div className="sb-card" style={{ marginBottom: 16 }}>
+          <p className="sb-flabel" style={{ margin: '0 0 8px' }}>
+            {x(IM.invest_suggest_editor_label)}
+          </p>
+          {suggestions.map((s) => {
+            const p = (s.payload ?? {}) as Record<string, unknown>
+            const title =
+              lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+            const detail =
+              (lang === 'fr' && typeof p.detail_fr === 'string'
+                ? p.detail_fr
+                : typeof p.detail_en === 'string'
+                  ? p.detail_en
+                  : null) ?? null
+            return (
+              <div
+                key={s.id}
+                className="sb-notify-row"
+                style={{ alignItems: 'flex-start', marginBottom: 8, cursor: 'default' }}
+              >
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{title}</strong>
+                  {detail && <span className="sb-notify-hint">{detail}</span>}
+                </span>
+                <span className="sb-row-actions" style={{ flexShrink: 0 }}>
+                  {onApplySuggestion && (
+                    <button
+                      type="button"
+                      className="sb-btn sb-btn-secondary sb-btn-sm"
+                      onClick={() => onApplySuggestion(s)}
+                    >
+                      {x(IM.invest_suggest_apply)}
+                    </button>
+                  )}
+                  {onDismissSuggestion && (
+                    <button
+                      type="button"
+                      className="sb-btn sb-btn-secondary sb-btn-sm"
+                      onClick={() => onDismissSuggestion(s)}
+                    >
+                      {x(IM.invest_dismiss)}
+                    </button>
+                  )}
+                </span>
+              </div>
+            )
+          })}
+          <p className="sb-helper" style={{ margin: 0 }}>
+            {x(IM.invest_suggest_applied)}
+          </p>
+        </div>
+      )}
 
       <div className="sb-section-head">
         <div>

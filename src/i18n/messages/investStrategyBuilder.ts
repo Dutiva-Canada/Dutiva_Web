@@ -109,10 +109,6 @@ export const investStrategyBuilderMessages = defineMessages({
 
   /* Review queue — AI-drafted strategies filed while the wizard was open.
      [FR self-authored] */
-  invest_review_hint: {
-    en: 'Drafted by an agent — each waits on your call.',
-    fr: 'Rédigées par un agent — chacune attend votre décision.',
-  },
   invest_review_add: { en: 'Add it', fr: 'L’ajouter' },
   invest_review_meta: {
     en: '{rules} · {cadence} · disabled until you enable it',
@@ -123,6 +119,54 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_review_not_filed: {
     en: 'Draft ready — not kept for review; leaving the wizard loses it.',
     fr: 'Brouillon prêt — non conservé pour validation ; quitter l’assistant le perd.',
+  },
+
+  /* Tally's proactive suggestions — filed by the sweep's book review, not
+     by anything you asked for. [FR self-authored] */
+  invest_suggest_hint: {
+    en: 'Tally reviewed the book — each suggestion waits on your call.',
+    fr: 'Tally a passé le carnet en revue — chaque suggestion attend votre décision.',
+  },
+  invest_suggest_apply: { en: 'Apply', fr: 'Appliquer' },
+  invest_suggest_apply_rule: { en: 'Add rule', fr: 'Ajouter la règle' },
+  invest_suggest_apply_scope: { en: 'Add symbols', fr: 'Ajouter les symboles' },
+  invest_suggest_applied: {
+    en: 'Applied — review and save to keep it',
+    fr: 'Appliqué — vérifiez puis enregistrez pour le garder',
+  },
+  invest_suggest_added_rule: {
+    en: 'Rule added to “{name}”',
+    fr: 'Règle ajoutée à « {name} »',
+  },
+  invest_suggest_tuned: {
+    en: '“{name}” updated',
+    fr: '« {name} » mise à jour',
+  },
+  invest_suggest_scope_added: {
+    en: 'Scope updated on “{name}”',
+    fr: 'Portée mise à jour sur « {name} »',
+  },
+  /* The strategy a suggestion targets was deleted/renamed since the pass
+     filed it — the row can only be dismissed. [FR self-authored] */
+  invest_suggest_stale: {
+    en: 'The strategy this points at no longer exists.',
+    fr: 'La stratégie visée n’existe plus.',
+  },
+  invest_suggest_editor_label: {
+    en: 'Tally suggests for this strategy',
+    fr: 'Suggestions de Tally pour cette stratégie',
+  },
+  /* Wizard step 1 — pending book-review drafts offered alongside the
+     templates. [FR self-authored] */
+  invest_suggest_wiz_label: {
+    en: 'Tally’s picks from the last book review',
+    fr: 'Choix de Tally depuis la dernière revue du carnet',
+  },
+  /* Rule summary line under a rule_add/rule_tune card — what applying
+     writes. [FR self-authored] */
+  invest_suggest_rule_meta: {
+    en: 'On “{name}” — {rule}',
+    fr: 'Sur « {name} » — {rule}',
   },
   invest_sb_delete_strategy: { en: 'Delete strategy', fr: 'Supprimer la stratégie' },
   invest_sb_untitled: { en: 'Untitled strategy', fr: 'Stratégie sans titre' },
