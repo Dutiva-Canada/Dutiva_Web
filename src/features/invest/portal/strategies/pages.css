@@ -162,11 +162,20 @@
   min-width: 780px;
 }
 .sb-table-positions td:first-child {
-  min-width: 170px;
+  min-width: 200px;
 }
+/* The actions column pins to the right edge so Edit/Set price/Remove stay
+   reachable when the table scrolls sideways — otherwise Remove (the most
+   destructive control) is the cell that clips. */
+.sb-table-positions th:last-child,
 .sb-table-positions td:last-child {
   width: 1%;
   white-space: nowrap;
+  position: sticky;
+  right: 0;
+  background: var(--sb-card);
+  border-left: 1px solid var(--sb-line);
+  padding-left: 12px;
 }
 /* Review-queue rows (agent suggestions): on narrow screens the button
    cluster drops under the text instead of squeezing it into a column. */

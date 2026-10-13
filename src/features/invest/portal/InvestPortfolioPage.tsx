@@ -58,7 +58,7 @@ const kindHelp: Record<AccountKind, keyof typeof IM> = {
   external: 'invest_kind_help_external',
 }
 
-type PosSortKey = 'symbol' | 'price' | 'value' | 'pnl'
+type PosSortKey = 'symbol' | 'account' | 'price' | 'value' | 'pnl'
 
 /* A quote older than this reads stale rather than current — the sync runs
    daily, so past ~3 days means the symbol fell out of the feed. */
@@ -103,12 +103,34 @@ export function InvestPortfolioPage() {
   /* The add form collapses so the positions table leads the section —
      a data page shouldn't open on a wall of empty inputs. */
   const [showPosForm, setShowPosForm] = useState(false)
+  /* Paste-import mode — re-entering a lost book row by row was the pain
+     point the cascade incident exposed. */
+  const [showBulk, setShowBulk] = useState(false)
   /* Removing an account cascades to its positions — the table shows the
      owning account on every row so the blast radius is visible before
-     the delete, not discovered after. */
+     the delete, not discovered after. The column only earns its width
+     once a second account exists; with one, every row reads identically
+     and the delete confirm already names the cascade. */
   const accountName = useMemo(
     () => new Map(state.accounts.map((a) => [a.id, a.name])),
     [state.accounts],
+  )
+  const multiAccount = state.accounts.length > 1
+  /* Symbol → quote currency, so the add form can suggest the book
+     currency that matches the feed instead of defaulting to CAD. */
+  const snapCur = useMemo(
+    () => new Map(state.snapshots.map((s) => [`${s.assetClass}|${s.symbol}`, s.currency])),
+    [state.snapshots],
+  )
+  /* The newest quote timestamp on the page — freshness should be stated,
+     not only implied by the absence of a stale tag. */
+  const pricesAsOf = useMemo(
+    () =>
+      state.snapshots.reduce<string | undefined>(
+        (max, s) => (max === undefined || s.asOf > max ? s.asOf : max),
+        undefined,
+      ),
+    [state.snapshots],
   )
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency figures stay '—' rather than print a wrong number. */
@@ -188,7 +210,15 @@ export function InvestPortfolioPage() {
 
   const sorted = useMemo(() => {
     const val = (r: (typeof rows)[number]): string | number | null =>
-      sort.key === 'symbol' ? r.p.symbol : sort.key === 'price' ? r.px : sort.key === 'value' ? r.value : r.pnl
+      sort.key === 'symbol'
+        ? r.p.symbol
+        : sort.key === 'account'
+          ? (accountName.get(r.p.accountId) ?? '')
+          : sort.key === 'price'
+            ? r.px
+            : sort.key === 'value'
+              ? r.value
+              : r.pnl
     return [...rows].sort((a, b) => {
       const av = val(a)
       const bv = val(b)
@@ -197,7 +227,7 @@ export function InvestPortfolioPage() {
       const cmp = typeof av === 'string' ? av.localeCompare(String(bv)) : av - (bv as number)
       return cmp * sort.dir
     })
-  }, [rows, sort])
+  }, [rows, sort, accountName])
 
   /* Summing across currencies is meaningless — group the totals by the
      position's own currency and render each group's figures. */
@@ -356,15 +386,24 @@ export function InvestPortfolioPage() {
       <section className={cardClass} style={{ marginTop: 16 }}>
         <div className="sb-head-row">
           <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
-          {state.accounts.length > 0 && !showPosForm && (
-            <button
-              type="button"
-              onClick={() => setShowPosForm(true)}
-              className="sb-btn sb-btn-secondary sb-btn-sm"
-            >
-              <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
-              {x(IM.invest_add_position)}
-            </button>
+          {state.accounts.length > 0 && !showPosForm && !showBulk && (
+            <span style={{ display: 'inline-flex', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setShowPosForm(true)}
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+              >
+                <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
+                {x(IM.invest_add_position)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowBulk(true)}
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+              >
+                {x(IM.invest_bulk_add)}
+              </button>
+            </span>
           )}
         </div>
         {/* Positions are manual tracking records — say so up front so the
@@ -374,11 +413,85 @@ export function InvestPortfolioPage() {
           <p className="sb-helper" style={{ marginTop: 10 }}>
             {x(IM.invest_positions_need_account)}
           </p>
+        ) : showBulk ? (
+          <BulkAddForm
+            busy={busy}
+            accounts={state.accounts}
+            onCancel={() => setShowBulk(false)}
+            onCreate={async ({ accountId, assetClass, currency, lines }) => {
+              /* 'SYMBOL, qty, cost[, CUR]' per line. Bad lines (unparseable,
+                 dup against the book or within the batch) go back into the
+                 box untouched so the person fixes them in place. */
+              const held = new Set(
+                state.positions.map((p) => `${p.accountId}|${p.assetClass}|${p.symbol}`),
+              )
+              const batch = new Set<string>()
+              const bad: string[] = []
+              const good: Parameters<typeof createPosition>[0][] = []
+              for (const raw of lines) {
+                const t = raw.trim()
+                if (!t) continue
+                const [symS, qtyS, costS, curS] = t.split(',').map((s) => s.trim())
+                const sym = (symS ?? '').toUpperCase()
+                const qty = Number(qtyS)
+                const cost = Number(costS)
+                const cur = curS ? curS.toUpperCase() : currency
+                const key = `${accountId}|${assetClass}|${sym}`
+                if (
+                  !sym ||
+                  !qtyS ||
+                  !costS ||
+                  !(qty > 0) ||
+                  !(cost >= 0) ||
+                  (curS !== undefined && !/^[A-Za-z]{3}$/.test(curS)) ||
+                  held.has(key) ||
+                  batch.has(key)
+                ) {
+                  bad.push(raw)
+                  continue
+                }
+                batch.add(key)
+                good.push({
+                  accountId,
+                  assetClass,
+                  symbol: sym,
+                  name: sym,
+                  quantity: qty,
+                  avgCost: cost,
+                  currency: cur,
+                })
+              }
+              if (good.length > 0) {
+                await run(async () => {
+                  for (const input of good) await createPosition(input)
+                  /* Stay open when lines were skipped — closing would
+                     drop the very lines the note says are still there. */
+                  if (bad.length === 0) setShowBulk(false)
+                  priceInBackground()
+                })
+                setSyncNote(
+                  x(IM.invest_bulk_done).replace(
+                    '{count}',
+                    pl(lang, good.length, IM.invest_position_one, IM.invest_position_many),
+                  ) +
+                    (bad.length > 0
+                      ? ' ' + x(IM.invest_bulk_skipped).replace('{count}', String(bad.length))
+                      : ''),
+                )
+              } else if (bad.length > 0) {
+                setError(x(IM.invest_bulk_skipped).replace('{count}', String(bad.length)))
+              }
+              return bad
+            }}
+          />
         ) : (
           showPosForm && (
             <PositionForm
               busy={busy}
               accounts={state.accounts}
+              quoteCurrency={(cls, sym) =>
+                snapCur.get(`${cls}|${sym.trim().toUpperCase()}`)
+              }
               onCancel={() => setShowPosForm(false)}
               onCreate={async (input) => {
                 /* The unique key is (account, class, symbol) — re-adding an
@@ -425,7 +538,9 @@ export function InvestPortfolioPage() {
               <thead>
                 <tr>
                   <SortTh label={x(IM.invest_field_symbol)} k="symbol" num={false} sort={sort} onToggle={toggleSort} />
-                  <th>{x(IM.invest_field_account)}</th>
+                  {multiAccount && (
+                    <SortTh label={x(IM.invest_field_account)} k="account" num={false} sort={sort} onToggle={toggleSort} />
+                  )}
                   <th>{x(IM.invest_field_asset_class)}</th>
                   <th className="num">{x(IM.invest_field_quantity)}</th>
                   <th className="num">{x(IM.invest_field_avg_cost)}</th>
@@ -445,7 +560,9 @@ export function InvestPortfolioPage() {
                         <span className="dim" style={{ marginLeft: 6 }}>{p.currency}</span>
                       )}
                     </td>
-                    <td className="dim">{accountName.get(p.accountId) ?? '—'}</td>
+                    {multiAccount && (
+                      <td className="dim">{accountName.get(p.accountId) ?? '—'}</td>
+                    )}
                     <td>{x(IM[assetLabel[p.assetClass]])}</td>
                     <td className="num">{fmtQty.format(p.quantity)}</td>
                     <td className="num">{fmtFor(p.currency).format(p.avgCost)}</td>
@@ -535,40 +652,35 @@ export function InvestPortfolioPage() {
               <tfoot>
                 <tr>
                   <td className="strong">{x(IM.invest_positions_total)}</td>
+                  {multiAccount && <td />}
                   <td />
                   <td />
-                  <td />
+                  {/* Currency groups stack one per line — inline '·'
+                      separators read as a single blended figure. */}
                   <td className="num">
-                    {totals.groups.map((g, i) => (
-                      <span key={g.currency}>
-                        {i > 0 && <span className="dim"> · </span>}
-                        {fmtFor(g.currency).format(g.cost)}
-                      </span>
+                    {totals.groups.map((g) => (
+                      <div key={g.currency}>{fmtFor(g.currency).format(g.cost)}</div>
                     ))}
                   </td>
                   <td />
                   <td className="num strong">
-                    {totals.groups.map((g, i) => (
-                      <span key={g.currency}>
-                        {i > 0 && <span className="dim"> · </span>}
-                        {fmtFor(g.currency).format(g.value)}
-                      </span>
+                    {totals.groups.map((g) => (
+                      <div key={g.currency}>{fmtFor(g.currency).format(g.value)}</div>
                     ))}
                   </td>
                   <td className="num">
-                    {totals.groups.map((g, i) => (
-                      <span
+                    {totals.groups.map((g) => (
+                      <div
                         key={g.currency}
                         style={{ color: g.pnl >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
                       >
-                        {i > 0 && <span className="dim"> · </span>}
                         {g.pnl >= 0 ? '+' : ''}
                         {fmtFor(g.currency).format(g.pnl)}{' '}
                         <span className="dim">
                           ({g.pnlPct !== null && g.pnlPct >= 0 ? '+' : ''}
                           {g.pnlPct?.toFixed(1)}%)
                         </span>
-                      </span>
+                      </div>
                     ))}
                   </td>
                   <td />
@@ -590,6 +702,14 @@ export function InvestPortfolioPage() {
                 {x(IM.invest_fx_note)
                   .replace('{pairs}', totals.pairList)
                   .replace('{date}', fx.date)}
+              </p>
+            )}
+            {pricesAsOf && (
+              <p className="sb-helper" style={{ margin: '4px 0 0' }}>
+                {x(IM.invest_prices_as_of).replace(
+                  '{time}',
+                  new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
+                )}
               </p>
             )}
           </div>
@@ -999,11 +1119,15 @@ function AccountTile({
 function PositionForm({
   busy,
   accounts,
+  quoteCurrency,
   onCreate,
   onCancel,
 }: {
   busy: boolean
   accounts: { id: string; name: string }[]
+  /* The symbol's quote currency when one is already on file — the form
+     pre-selects it and says why, so a USD feed doesn't get booked as CAD. */
+  quoteCurrency: (assetClass: AssetClass, symbol: string) => string | undefined
   /* Returns false when the row wasn't created (dup guard, save error) —
      the form keeps its fields so the person doesn't retype. */
   onCreate: (input: {
@@ -1025,6 +1149,13 @@ function PositionForm({
   const [quantity, setQuantity] = useState('')
   const [avgCost, setAvgCost] = useState('')
   const [currency, setCurrency] = useState('CAD')
+  /* Once the person picks a currency by hand, a later suggestion doesn't
+     override their choice. */
+  const [currencyTouched, setCurrencyTouched] = useState(false)
+  const suggested = symbol.trim() ? quoteCurrency(assetClass, symbol) : undefined
+  useEffect(() => {
+    if (suggested && !currencyTouched) setCurrency(suggested)
+  }, [suggested, currencyTouched])
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -1146,8 +1277,12 @@ function PositionForm({
         <select
           id="inv-pos-cur"
           value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
+          onChange={(e) => {
+            setCurrency(e.target.value)
+            setCurrencyTouched(true)
+          }}
           className={fieldClass}
+          aria-describedby="inv-pos-cur-hint"
         >
           {CURRENCIES.map((c) => (
             <option key={c} value={c}>
@@ -1155,6 +1290,17 @@ function PositionForm({
             </option>
           ))}
         </select>
+        {/* Cost basis is self-declared — the quote side converts, but a
+            USD statement number entered as CAD silently corrupts P&L, so
+            the field says what it's asking for and flags the feed's own
+            currency when we know it. */}
+        <p id="inv-pos-cur-hint" className="sb-helper" style={{ margin: '4px 0 0', fontSize: 12 }}>
+          {suggested
+            ? x(IM.invest_currency_hint_quote)
+                .replace('{symbol}', symbol.trim().toUpperCase())
+                .replace('{cur}', suggested)
+            : x(IM.invest_currency_hint)}
+        </p>
       </div>
       <div className="sb-form-actions">
         <button
@@ -1170,6 +1316,130 @@ function PositionForm({
         >
           <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
           {x(IM.invest_add_position)}
+        </button>
+        <button type="button" onClick={onCancel} className="sb-btn sb-btn-secondary">
+          {x(IM.invest_cancel)}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/* Paste-import — 'SYMBOL, quantity, average cost[, CUR]' per line against
+   one account/class. Returns the lines it couldn't use; they stay in the
+   box so typos get fixed instead of retyped. */
+function BulkAddForm({
+  busy,
+  accounts,
+  onCreate,
+  onCancel,
+}: {
+  busy: boolean
+  accounts: { id: string; name: string }[]
+  onCreate: (input: {
+    accountId: string
+    assetClass: AssetClass
+    currency: string
+    lines: string[]
+  }) => Promise<string[]>
+  onCancel: () => void
+}) {
+  const { x } = useI18n()
+  const [accountId, setAccountId] = useState(accounts[0]?.id ?? '')
+  const [assetClass, setAssetClass] = useState<AssetClass>('equity')
+  const [currency, setCurrency] = useState('CAD')
+  const [text, setText] = useState('')
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    if (!accountId || !text.trim()) return
+    void onCreate({ accountId, assetClass, currency, lines: text.split('\n') }).then(
+      (left) => setText(left.join('\n')),
+    )
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <div className="sb-form-grid">
+        <div className="sb-field">
+          <label className={labelClass} htmlFor="inv-bulk-acc">
+            {x(IM.invest_field_account)}
+          </label>
+          <select
+            id="inv-bulk-acc"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            className={fieldClass}
+          >
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="sb-field">
+          <label className={labelClass} htmlFor="inv-bulk-class">
+            {x(IM.invest_field_asset_class)}
+          </label>
+          <select
+            id="inv-bulk-class"
+            value={assetClass}
+            onChange={(e) => setAssetClass(e.target.value as AssetClass)}
+            className={fieldClass}
+          >
+            {ASSET_CLASSES.map((cls) => (
+              <option key={cls} value={cls}>
+                {x(IM[assetLabel[cls]])}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="sb-field">
+          <label className={labelClass} htmlFor="inv-bulk-cur">
+            {x(IM.invest_field_currency)}
+          </label>
+          <select
+            id="inv-bulk-cur"
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className={fieldClass}
+            aria-describedby="inv-bulk-cur-hint"
+          >
+            {CURRENCIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <p id="inv-bulk-cur-hint" className="sb-helper" style={{ margin: '4px 0 0', fontSize: 12 }}>
+            {x(IM.invest_currency_hint)}
+          </p>
+        </div>
+      </div>
+      <div className="sb-field" style={{ marginTop: 10 }}>
+        <label className={labelClass} htmlFor="inv-bulk-lines">
+          {x(IM.invest_bulk_lines)}
+        </label>
+        <textarea
+          id="inv-bulk-lines"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={'SHOP.TO, 10, 141.12\nMSFT, 0.79, 527, USD'}
+          rows={5}
+          className={fieldClass}
+          style={{ fontFamily: 'monospace' }}
+          aria-describedby="inv-bulk-hint"
+          required
+        />
+        <p id="inv-bulk-hint" className="sb-helper" style={{ margin: '4px 0 0', fontSize: 12 }}>
+          {x(IM.invest_bulk_hint)}
+        </p>
+      </div>
+      <div className="sb-form-actions" style={{ marginTop: 10 }}>
+        <button type="submit" disabled={busy || !accountId || !text.trim()} className={btnClass}>
+          <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+          {x(IM.invest_bulk_submit)}
         </button>
         <button type="button" onClick={onCancel} className="sb-btn sb-btn-secondary">
           {x(IM.invest_cancel)}

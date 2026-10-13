@@ -276,6 +276,29 @@ const investCoreMessages = defineMessages({
     en: 'Added {symbol} — fetching a quote…',
     fr: '{symbol} ajouté — recherche du cours…',
   },
+  invest_currency_hint: {
+    en: 'The currency your numbers are in.',
+    fr: 'La devise des chiffres saisis.',
+  },
+  invest_currency_hint_quote: {
+    en: '{symbol} quotes in {cur} — costs usually follow the quote.',
+    fr: '{symbol} cote en {cur} — le coût suit d’habitude le cours.',
+  },
+  invest_bulk_add: { en: 'Add many', fr: 'Ajout groupé' },
+  invest_bulk_hint: {
+    en: 'One holding per line — symbol, quantity, average cost, currency optional.',
+    fr: 'Un titre par ligne — symbole, quantité, coût moyen, devise facultative.',
+  },
+  invest_bulk_lines: { en: 'Holdings', fr: 'Titres' },
+  invest_bulk_submit: { en: 'Add positions', fr: 'Ajouter les titres' },
+  invest_bulk_done: {
+    en: 'Added {count} — fetching quotes…',
+    fr: '{count} ajoutées — récupération des cours…',
+  },
+  invest_bulk_skipped: {
+    en: '{count} line(s) skipped — they’re still in the box.',
+    fr: '{count} ligne(s) ignorée(s) — elles sont encore dans la boîte.',
+  },
   invest_account_remove_confirm: {
     en: 'Remove + its positions?',
     fr: 'Retirer avec ses positions ?',
