@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyFill,
+  buildDigestEmail,
   buildSignalEmail,
+  digestFlushDue,
   draftExpiryCutoff,
   DRAFT_EXPIRY_DAYS,
   parseRules,
@@ -614,6 +616,78 @@ describe('buildSignalEmail', () => {
     const { text } = buildSignalEmail({ ...summary, proposals: [] })
     expect(text).not.toContain('proposals')
     expect(text).not.toContain('Propositions')
+  })
+})
+
+describe('digestFlushDue', () => {
+  const day = 86_400_000
+  const now = Date.parse('2026-10-15T12:00:00Z')
+
+  it('never flushes an empty buffer, even long overdue', () => {
+    expect(digestFlushDue('daily', 0, '2026-10-01T12:00:00Z', now)).toBe(false)
+    expect(digestFlushDue('weekly', 0, null, now)).toBe(false)
+  })
+
+  it('flushes daily once 24h has passed, not before', () => {
+    const sent = new Date(now - day + 1000).toISOString()
+    expect(digestFlushDue('daily', 2, sent, now)).toBe(false)
+    expect(digestFlushDue('daily', 2, new Date(now - day).toISOString(), now)).toBe(true)
+  })
+
+  it('uses a seven-day window for weekly', () => {
+    const sixDays = new Date(now - 6 * day).toISOString()
+    const sevenDays = new Date(now - 7 * day).toISOString()
+    expect(digestFlushDue('weekly', 1, sixDays, now)).toBe(false)
+    expect(digestFlushDue('weekly', 1, sevenDays, now)).toBe(true)
+  })
+
+  it('treats a missing or corrupt last-sent stamp as due', () => {
+    expect(digestFlushDue('daily', 1, null, now)).toBe(true)
+    expect(digestFlushDue('daily', 1, 'not-a-date', now)).toBe(true)
+  })
+})
+
+describe('buildDigestEmail', () => {
+  const digest = {
+    items: [
+      { name: 'Dip watcher', signals: ['ACME fell 6% (ACME)'], proposals: ['buy 10 ACME'] },
+      { name: 'Momentum', signals: ['MSFT crossed above MA50'], proposals: [] },
+    ],
+    portalUrl: 'https://dutiva.ca/invest',
+    cadence: 'daily' as const,
+  }
+
+  it('groups every strategy in one bilingual email with the total in the lead', () => {
+    const { subject, text } = buildDigestEmail(digest)
+    expect(subject).toContain('daily')
+    expect(text).toContain('3 hit(s)')
+    expect(text).toContain('Dip watcher')
+    expect(text).toContain('Momentum')
+    expect(text).toContain('sommaire quotidien')
+    expect(text).toContain('https://dutiva.ca/invest')
+  })
+
+  it('labels proposals as drafts in both languages', () => {
+    const { text } = buildDigestEmail(digest)
+    expect(text).toContain('drafts only')
+    expect(text).toContain('brouillons')
+    expect(text).toContain('buy 10 ACME (draft)')
+  })
+
+  it('drops the drafts disclaimer when the digest has no proposals', () => {
+    const { text } = buildDigestEmail({
+      ...digest,
+      items: [{ name: 'Momentum', signals: ['MSFT crossed above MA50'], proposals: [] }],
+    })
+    expect(text).not.toContain('drafts only')
+    expect(text).not.toContain('brouillons')
+  })
+
+  it('names the weekly window in both languages', () => {
+    const { subject, text } = buildDigestEmail({ ...digest, cadence: 'weekly' })
+    expect(subject).toContain('weekly')
+    expect(text).toContain('last weekly digest')
+    expect(text).toContain('sommaire hebdomadaire')
   })
 })
 

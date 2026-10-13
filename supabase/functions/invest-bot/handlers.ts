@@ -845,3 +845,69 @@ export function buildSignalEmail(s: SignalEmailSummary): { subject: string; text
     text: `${en}\n\n—\n\n${fr}`,
   }
 }
+
+/** True when a buffered digest should flush now: something is pending and
+    a full cadence window has elapsed since the last send (or no send is on
+    record at all — an unparseable/absent timestamp counts as due). */
+export function digestFlushDue(
+  cadence: 'daily' | 'weekly',
+  pendingCount: number,
+  lastSentIso: string | null | undefined,
+  now = Date.now(),
+): boolean {
+  if (pendingCount <= 0) return false
+  const lastSent = lastSentIso ? Date.parse(lastSentIso) : NaN
+  const windowMs = cadence === 'daily' ? 86_400_000 : 7 * 86_400_000
+  return !Number.isFinite(lastSent) || now - lastSent >= windowMs
+}
+
+/** The consolidated digest for daily/weekly cadences — one email covering
+    every strategy's buffered hits since the last send. Same bilingual
+    shape as the per-scan summary, same drafts-not-trades wording. */
+export function buildDigestEmail(d: {
+  items: { name: string; signals: string[]; proposals: string[] }[]
+  portalUrl: string
+  cadence: 'daily' | 'weekly'
+}): { subject: string; text: string } {
+  const total = d.items.reduce((n, i) => n + i.signals.length + i.proposals.length, 0)
+  const hasProposals = d.items.some((i) => i.proposals.length > 0)
+  const blocks = d.items
+    .map(
+      (i) =>
+        `${i.name} — ${i.signals.length + i.proposals.length} hit(s)\n` +
+        [...i.signals, ...i.proposals.map((p) => `${p} (draft)`)].map((l) => `— ${l}`).join('\n'),
+    )
+    .join('\n\n')
+  const en = [
+    `Your strategies produced ${total} hit(s) since the last ${d.cadence} digest.`,
+    '',
+    blocks,
+    '',
+    ...(hasProposals
+      ? [
+          'Order proposals are drafts only — nothing executes without your approval.',
+          '',
+        ]
+      : []),
+    `Review: ${d.portalUrl}`,
+    'You’re receiving this digest because you picked digest email alerts in Settings.',
+  ].join('\n')
+  const fr = [
+    `Vos stratégies ont produit ${total} déclenchement(s) depuis le dernier sommaire ${d.cadence === 'daily' ? 'quotidien' : 'hebdomadaire'}.`,
+    '',
+    blocks,
+    '',
+    ...(hasProposals
+      ? [
+          'Les propositions d’ordre sont des brouillons — rien ne s’exécute sans votre approbation.',
+          '',
+        ]
+      : []),
+    `Révision : ${d.portalUrl}`,
+    'Vous recevez ce sommaire parce que vous avez choisi les alertes par courriel groupées dans les paramètres.',
+  ].join('\n')
+  return {
+    subject: `Dutiva Invest — ${d.cadence === 'daily' ? 'daily' : 'weekly'} digest`,
+    text: `${en}\n\n—\n\n${fr}`,
+  }
+}

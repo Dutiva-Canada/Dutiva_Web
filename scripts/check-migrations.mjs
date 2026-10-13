@@ -77,6 +77,7 @@ function managementApiNameAliases() {
     ['0213', 'invest_market_analysis'],
     ['0214', 'chat_reasoning'],
     ['0215', 'chat_sources'],
+    ['0216', 'invest_notification_prefs_wipe'],
   ]
   const reason =
     'applied via MCP as NNNN_slug; live schema matches supabase/migrations/NNNN_slug.sql'

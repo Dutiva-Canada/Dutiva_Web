@@ -83,6 +83,7 @@ describe('InvestSettingsPage', () => {
       'Display currency',
       'Delivery per strategy',
       'Defaults',
+      'Notifications',
       'Getting-started tour',
       'My data',
       'Account',
@@ -139,5 +140,27 @@ describe('InvestSettingsPage', () => {
     expect(screen.getByText(/cannot be undone/)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByText('Delete permanently')).not.toBeInTheDocument()
+  })
+
+  it('gates the full data wipe behind typing DELETE', async () => {
+    vi.mocked(useAuth).mockReturnValue(auth)
+    const { InvestSettingsPage } = await import('./InvestSettingsPage')
+    const user = userEvent.setup()
+    renderSettings(<InvestSettingsPage />)
+
+    const wipe = screen.getByRole('button', { name: 'Delete all Invest data' })
+    expect(wipe).toBeDisabled()
+    await user.type(screen.getByLabelText('Type DELETE to confirm'), 'DELETE')
+    expect(wipe).toBeEnabled()
+  })
+
+  it('offers immediate, daily, and weekly email cadences', async () => {
+    vi.mocked(useAuth).mockReturnValue(auth)
+    const { InvestSettingsPage } = await import('./InvestSettingsPage')
+    renderSettings(<InvestSettingsPage />)
+
+    const select = screen.getByLabelText('Email alerts')
+    const labels = Array.from((select as HTMLSelectElement).options).map((o) => o.textContent)
+    expect(labels).toEqual(['Immediate', 'Daily digest', 'Weekly digest'])
   })
 })
