@@ -63,11 +63,22 @@ export function InvestHomePage() {
   const [fx, setFx] = useState<FxTable | null>(null)
   useEffect(() => {
     let live = true
+    let retry: ReturnType<typeof setTimeout> | undefined
     void loadFxRates().then((t) => {
-      if (live) setFx(t)
+      if (!live) return
+      setFx(t)
+      /* A blocked/down feed misses once — one retry covers the transient
+         case without polling a host that may be unreachable all session. */
+      if (!t) {
+        retry = setTimeout(
+          () => void loadFxRates().then((t2) => live && setFx(t2)),
+          4_000,
+        )
+      }
     })
     return () => {
       live = false
+      if (retry) clearTimeout(retry)
     }
   }, [])
   /* Headline figures are denominated in the primary account's currency. */
@@ -80,6 +91,13 @@ export function InvestHomePage() {
       }),
     [lang, homeCur],
   )
+  /* Per-currency formatters for the no-FX fallback — each line is honest
+     native money, never converted. */
+  const fmtFor = (cur: string) =>
+    new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+      style: 'currency',
+      currency: cur,
+    })
 
   const book = useMemo(() => {
     let used = false
@@ -110,16 +128,46 @@ export function InvestHomePage() {
       }
       return conv(p.quantity * p.avgCost, p.currency)
     }
+    /* The same figure in its own money — the fallback display when a
+       conversion can't happen. Priced at quote currency, unpriced at the
+       position's cost currency — same rule valueOf uses before conv(). */
+    const nativeOf = (p: (typeof state.positions)[number]): { cur: string; amt: number } => {
+      const snap = state.snapshots.find(
+        (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
+      )
+      const pxNative = snap?.price ?? p.lastPrice
+      const cur =
+        (pxNative !== null ? (snap?.currency ?? p.currency) : p.currency) || 'CAD'
+      return {
+        cur,
+        amt: pxNative !== null ? pxNative * p.quantity : p.quantity * p.avgCost,
+      }
+    }
+    const addTo = (m: Map<string, number>, cur: string, amt: number) =>
+      m.set(cur, (m.get(cur) ?? 0) + amt)
+    const posByCur = new Map<string, number>()
+    const cashByCur = new Map<string, number>()
     let positionsValue = 0
     for (const p of state.positions) {
       const v = valueOf(p)
       if (v !== null) positionsValue += v
+      const n = nativeOf(p)
+      addTo(posByCur, n.cur, n.amt)
     }
     let cash = 0
     for (const a of state.accounts) {
       const c = conv(a.cashBalance, a.baseCurrency)
       if (c !== null) cash += c
+      addTo(cashByCur, a.baseCurrency || 'CAD', a.cashBalance)
     }
+    /* Book currency first, the rest alphabetical — one honest line each. */
+    const orderCurs = (m: Map<string, number>): [string, number][] =>
+      [...m.entries()].sort(([a], [b]) =>
+        a === homeCur ? -1 : b === homeCur ? 1 : a.localeCompare(b),
+      )
+    const totalByCur = new Map<string, number>()
+    for (const [c, v] of posByCur) addTo(totalByCur, c, v)
+    for (const [c, v] of cashByCur) addTo(totalByCur, c, v)
     const pairList = [...pairs]
       .map((pair) => {
         const [f, t] = pair.split('→') as [string, string]
@@ -127,7 +175,17 @@ export function InvestHomePage() {
         return r === null ? pair : `${pair} ${r.toFixed(4)}`
       })
       .join(' · ')
-    return { positionsValue, cash, valueOf, used, missed, pairList }
+    return {
+      positionsValue,
+      cash,
+      valueOf,
+      nativeOf,
+      used,
+      missed,
+      pairList,
+      totalByCur: orderCurs(totalByCur),
+      cashByCur: orderCurs(cashByCur),
+    }
   }, [state.positions, state.accounts, state.snapshots, fx, homeCur])
   const openSignals = state.signals.filter((s) => s.status === 'new').length
   const lastRun = state.runs[0]
@@ -150,6 +208,9 @@ export function InvestHomePage() {
           : x(IM.invest_sync_done).replace('{count}', String(r.synced)),
       )
       await refresh()
+      /* Refresh doubles as the FX retry — a manual resync should also
+         pull the rate table when the first load missed it. */
+      void loadFxRates().then(setFx)
     } catch {
       setError(x(IM.invest_error_generic))
     } finally {
@@ -164,12 +225,18 @@ export function InvestHomePage() {
      locally from the same state the stats read. No model call. */
   const noticed = tallyNoticed(state, lang)
 
-  const allocation = ASSET_CLASSES.map((cls) => ({
-    cls,
-    value: state.positions
-      .filter((p) => p.assetClass === cls)
-      .reduce((sum, p) => sum + (book.valueOf(p) ?? 0), 0),
-  })).filter((a) => a.value > 0)
+  const allocation = ASSET_CLASSES.map((cls) => {
+    let value = 0
+    const native = new Map<string, number>()
+    for (const p of state.positions.filter((p) => p.assetClass === cls)) {
+      value += book.valueOf(p) ?? 0
+      const n = book.nativeOf(p)
+      native.set(n.cur, (native.get(n.cur) ?? 0) + n.amt)
+    }
+    return { cls, value, native: [...native.entries()] }
+    /* A class shows when it holds anything — an unconvertible position
+       still counts even though `value` (the converted sum) reads zero. */
+  }).filter((a) => a.native.some(([, v]) => v > 0))
 
   if (loading) {
     return (
@@ -241,14 +308,32 @@ export function InvestHomePage() {
       <div className="sb-stats">
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_total_value)}</p>
-          <p className="v" style={{ margin: '8px 0 0' }}>
-            {book.used && <span className="dim">≈ </span>}
-            {fmt.format(book.positionsValue + book.cash)}
-          </p>
+          {book.missed > 0 ? (
+            /* Anything unconvertible means a single blended figure would
+               be wrong — one honest line per currency instead. */
+            <p className="v" style={{ margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {book.totalByCur.map(([cur, amt]) => (
+                <span key={cur}>{fmtFor(cur).format(amt)}</span>
+              ))}
+            </p>
+          ) : (
+            <p className="v" style={{ margin: '8px 0 0' }}>
+              {book.used && <span className="dim">≈ </span>}
+              {fmt.format(book.positionsValue + book.cash)}
+            </p>
+          )}
         </div>
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_cash)}</p>
-          <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(book.cash)}</p>
+          {book.missed > 0 ? (
+            <p className="v" style={{ margin: '8px 0 0', display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {book.cashByCur.map(([cur, amt]) => (
+                <span key={cur}>{fmtFor(cur).format(amt)}</span>
+              ))}
+            </p>
+          ) : (
+            <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(book.cash)}</p>
+          )}
         </div>
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_open_signals)}</p>
@@ -275,7 +360,7 @@ export function InvestHomePage() {
       )}
       {book.missed > 0 && (
         <p className="sb-helper" style={{ margin: '4px 0 0' }}>
-          {x(IM.invest_home_fx_partial)}
+          {x(IM.invest_home_fx_split)}
         </p>
       )}
 
@@ -286,19 +371,25 @@ export function InvestHomePage() {
             <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
           ) : (
             <ul style={{ margin: '14px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {allocation.map(({ cls, value }) => {
+              {allocation.map(({ cls, value, native }) => {
                 const pct = book.positionsValue > 0 ? (value / book.positionsValue) * 100 : 0
                 return (
                   <li key={cls}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13.5px' }}>
                       <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[assetLabel[cls]])}</span>
                       <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--sb-muted)' }}>
-                        {fmt.format(value)} · {Math.round(pct)}%
+                        {book.missed > 0
+                          ? /* A share of a book whose pieces can't be summed
+                               is a made-up number — native amounts only. */
+                            native.map(([c, a]) => fmtFor(c).format(a)).join(' + ')
+                          : `${fmt.format(value)} · ${Math.round(pct)}%`}
                       </span>
                     </div>
-                    <div className="sb-bar-track">
-                      <div className="sb-bar-fill" style={{ width: `${Math.max(2, pct)}%` }} />
-                    </div>
+                    {book.missed === 0 && (
+                      <div className="sb-bar-track">
+                        <div className="sb-bar-fill" style={{ width: `${Math.max(2, pct)}%` }} />
+                      </div>
+                    )}
                   </li>
                 )
               })}

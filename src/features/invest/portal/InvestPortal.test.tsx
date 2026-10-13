@@ -388,6 +388,26 @@ describe('InvestHomePage', () => {
     expect(await screen.findByText(/\$26,369\.86/)).toBeInTheDocument()
     expect(screen.getByText(/USD→CAD 1\.3699/)).toBeInTheDocument()
   })
+
+  it('lists totals per currency instead of a blended figure when no FX rate loads', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(USD_QUOTED)
+    vi.mocked(loadFxRates).mockResolvedValue(null)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* The USD position can't convert — the headline keeps it as its own
+       line instead of dropping it from a CAD-labelled "total". */
+    expect(await screen.findByText(/totals stay per currency/)).toBeInTheDocument()
+    expect(screen.getAllByText('US$1,000.00').length).toBe(2)
+    expect(screen.getAllByText('$25,000.00').length).toBe(2)
+    /* A share of an unsummable book is invented — no % or bar renders. */
+    expect(screen.queryByText(/100%/)).not.toBeInTheDocument()
+  })
 })
 
 describe('InvestSignalsPage', () => {
