@@ -141,6 +141,23 @@ async function loadMemories(
   }))
 }
 
+/** Memories plus the declared mandate — the full personal context a
+    draft should align with. Two reads in parallel; both are cheap. */
+async function loadPersonalContext(
+  adminClient: SupabaseClient,
+  userId: string,
+): Promise<{ memories: MemoryPromptFact[]; mandate: string | null }> {
+  const [memories, { data: profile }] = await Promise.all([
+    loadMemories(adminClient, userId),
+    adminClient
+      .from('invest_user_profile')
+      .select('mandate')
+      .eq('user_id', userId)
+      .maybeSingle(),
+  ])
+  return { memories, mandate: (profile?.mandate as string | null) ?? null }
+}
+
 const handler = async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
@@ -336,7 +353,7 @@ const handler = async (req: Request) => {
     const thesisRouted = await modelRoute(adminClient)
     if ('error' in thesisRouted) return thesisRouted.error
     const tr = thesisRouted
-    const thesisMemories = await loadMemories(adminClient, userId)
+    const thesisPersonal = await loadPersonalContext(adminClient, userId)
     let thesisUpstream: Response
     try {
       thesisUpstream = await postChatCompletion(
@@ -348,7 +365,12 @@ const handler = async (req: Request) => {
             { role: 'system', content: THESIS_SYSTEM_PROMPT },
             {
               role: 'user',
-              content: buildThesisDraftPrompt({ symbol, name, description }, lang, thesisMemories),
+              content: buildThesisDraftPrompt(
+                { symbol, name, description },
+                lang,
+                thesisPersonal.memories,
+                thesisPersonal.mandate,
+              ),
             },
           ],
           max_tokens: tr.route.config?.max_tokens ?? 900,
@@ -419,7 +441,7 @@ const handler = async (req: Request) => {
     const swotRouted = await modelRoute(adminClient)
     if ('error' in swotRouted) return swotRouted.error
     const sr = swotRouted
-    const swotMemories = await loadMemories(adminClient, userId)
+    const swotPersonal = await loadPersonalContext(adminClient, userId)
     let swotUpstream: Response
     try {
       swotUpstream = await postChatCompletion(
@@ -431,7 +453,12 @@ const handler = async (req: Request) => {
             { role: 'system', content: SWOT_SYSTEM_PROMPT },
             {
               role: 'user',
-              content: buildSwotDraftPrompt({ symbol, name, thesis, intent }, lang, swotMemories),
+              content: buildSwotDraftPrompt(
+                { symbol, name, thesis, intent },
+                lang,
+                swotPersonal.memories,
+                swotPersonal.mandate,
+              ),
             },
           ],
           max_tokens: sr.route.config?.max_tokens ?? 900,
@@ -489,7 +516,7 @@ const handler = async (req: Request) => {
     const scanRouted = await modelRoute(adminClient)
     if ('error' in scanRouted) return scanRouted.error
     const sc = scanRouted
-    const scanMemories = await loadMemories(adminClient, userId)
+    const scanPersonal = await loadPersonalContext(adminClient, userId)
     let scanUpstream: Response
     try {
       scanUpstream = await postChatCompletion(
@@ -499,7 +526,15 @@ const handler = async (req: Request) => {
           model: sc.route.model_name,
           messages: [
             { role: 'system', content: SCAN_SYSTEM_PROMPT },
-            { role: 'user', content: buildScanDraftPrompt({ holdings }, lang, scanMemories) },
+            {
+              role: 'user',
+              content: buildScanDraftPrompt(
+                { holdings },
+                lang,
+                scanPersonal.memories,
+                scanPersonal.mandate,
+              ),
+            },
           ],
           max_tokens: sc.route.config?.max_tokens ?? 1100,
           temperature: 0.3,
@@ -647,6 +682,7 @@ const handler = async (req: Request) => {
   const routed = await modelRoute(adminClient)
   if ('error' in routed) return routed.error
   const { route, provider, apiKey } = routed
+  const strategyPersonal = await loadPersonalContext(adminClient, userId)
 
   let upstream: Response
   try {
@@ -657,7 +693,7 @@ const handler = async (req: Request) => {
         model: route.model_name,
         messages: [
           { role: 'system', content: draftSystemPrompt(advice) },
-          { role: 'user', content: buildDraftPrompt(goal, lang) },
+          { role: 'user', content: buildDraftPrompt(goal, lang, strategyPersonal) },
         ],
         max_tokens: route.config?.max_tokens ?? 900,
         temperature: 0.3,
