@@ -15,7 +15,8 @@ import { fill } from '@/lib/format'
 import { pick } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { draftStrategy } from '../data/api'
+import { draftStrategy, normalizeAiStrategyDraft } from '../data/api'
+import type { AgentSuggestion } from '@/lib/agentQueue'
 import { STRATEGY_TEMPLATES } from '../data/strategyTemplates'
 import type { StrategyCadence, StrategyNotify } from '../data/types'
 import { RulesAccordion } from './RulesAccordion'
@@ -31,11 +32,15 @@ interface Props {
   busy: boolean
   /** Book currency for money thresholds/qty previews in the review step. */
   bookCurrency?: string
+  /** Pending 'strategy' review-queue rows — Tally's proactive drafts, shown
+      as pickable cards in step 1. Picking one loads it straight to step 2
+      and keeps the suggestion id so Create resolves the queue row. */
+  suggestions?: AgentSuggestion[]
 }
 
 type WizardScope = 'all' | 'specific'
 
-export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy, bookCurrency }: Props) {
+export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy, bookCurrency, suggestions = [] }: Props) {
   const { x, lang } = useI18n()
   const { showToast } = useToasts()
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -85,6 +90,25 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy, bookC
     if (!tpl) return
     setTplSlug(slug)
     setDesc(pick(tpl.blurb, lang))
+  }
+
+  /* A Tally pick loads the filed draft directly — no model call, no wait —
+     and the suggestion id rides through onCreate so finishing the wizard
+     resolves the queue row (same contract as the free-text draft path). */
+  const pickSuggestion = (s: AgentSuggestion) => {
+    const raw = (s.payload as { draft?: Record<string, unknown> } | null)?.draft
+    if (!raw) return
+    const d = normalizeAiStrategyDraft(raw)
+    setTplSlug(null)
+    setDesc('')
+    setName(d.name)
+    setRules(toDrafts(d.rules))
+    setCadence(d.cadence)
+    setScope(d.scope.watchlist ? 'all' : 'specific')
+    setSymbols(d.scope.symbols)
+    setNotify(d.notify)
+    setSuggestionId(s.id)
+    setStep(2)
   }
 
   /* Step 1 → 2: template rules come straight from the gallery; free text
@@ -178,6 +202,25 @@ export function StrategyWizard({ trackedSymbols, onCancel, onCreate, busy, bookC
                   if (tplSlug) setTplSlug(null)
                 }}
               />
+              {suggestions.length > 0 && (
+                <div style={{ marginTop: 14 }}>
+                  <p className="sb-helper" style={{ marginBottom: 8 }}>
+                    {x(IM.invest_suggest_wiz_label)}
+                  </p>
+                  <div className="sb-template-chips">
+                    {suggestions.map((s) => {
+                      const p = (s.payload ?? {}) as { title_fr?: string }
+                      const label =
+                        lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+                      return (
+                        <button key={s.id} type="button" onClick={() => pickSuggestion(s)}>
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
               <p className="sb-helper">{x(IM.invest_sb_wiz_helper)}</p>
             </div>
           </div>

@@ -11,6 +11,7 @@ import {
   type Position,
 } from './handlers.ts'
 import { maybeEmitInsights } from './insights.ts'
+import { fileBookSuggestions } from './suggestions.ts'
 import { convertFx, fetchFxTable } from './fx.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
@@ -343,6 +344,33 @@ export async function runUser(
       ;({ error } = await adminClient.from('invest_signals').insert(base))
     }
     if (!error) insightsInserted += 1
+  }
+
+  /* Tally's proactive suggestions — a deterministic book review that files
+     durable agent_suggestions rows (gaps worth a rule, rules worth a tune,
+     a seeded strategy for an unwatched book). Runs on its own ~daily
+     refile window rather than the strategy cadence: prices move while a
+     monthly strategy sleeps, and a book with no strategy at all is the
+     pass's biggest case. Never fatal — a failure joins the warnings. */
+  try {
+    await fileBookSuggestions(adminClient, userId, {
+      strategies,
+      positions,
+      snapshots,
+      cashTotal,
+      fx,
+      bookCurrency,
+      /* authEmail was resolved for insights when they ran; the wrapper
+         lazily re-derives the tier from the auth record when it wasn't. */
+      advice: insightsDue ? isInternalDutivaAccount(authEmail) : undefined,
+      force: opts.force === true,
+    })
+  } catch (error) {
+    plan.warnings.push(
+      `suggestion pass failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    plan.warningDetails.push({ code: 'suggestions_failed', params: {} })
+    console.error('invest-bot: suggestion pass failed', error)
   }
 
   /* Email alerts — notify.email strategies get one bilingual summary per

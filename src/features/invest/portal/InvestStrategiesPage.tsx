@@ -20,7 +20,8 @@ import { useInvestData } from '../data/InvestDataContext'
 import { deleteStrategy, normalizeAiStrategyDraft, saveStrategy, scanNow, testScan } from '../data/api'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type { InvestStrategy, StrategyCadence, StrategyRule } from '../data/types'
-import { ruleFireCount, validateRules } from '../data/strategyRules'
+import { normalizeRules, ruleFireCount, validateRules } from '../data/strategyRules'
+import { newRulePersistId, toDrafts } from './ruleDrafts'
 import { relTimeLabel } from './relTime'
 import { StrategyEditor } from './StrategyEditor'
 import { StrategyWizard } from './StrategyWizard'
@@ -29,6 +30,7 @@ import {
   formatRunWhen,
   pl,
   ruleProblemText,
+  ruleTitle,
   scopeSymbols,
   strategyMeta,
   trackedUniverse,
@@ -69,6 +71,10 @@ export function InvestStrategiesPage() {
      leaves the draft waiting here instead of vanishing. */
   const [pending, setPending] = useState<AgentSuggestion[]>([])
   const [pendingBusy, setPendingBusy] = useState<string | null>(null)
+  /* Suggestions applied into the open draft — staged, not resolved: the
+     row resolves when the draft saves and re-shows if it discards, so a
+     suggestion can't be consumed by an edit that never lands. */
+  const [appliedSuggest, setAppliedSuggest] = useState<Set<string>>(new Set())
 
   const universe = useMemo(
     () => trackedUniverse(state.positions, state.watchlist),
@@ -102,7 +108,7 @@ export function InvestStrategiesPage() {
 
   useEffect(() => {
     loadPendingSuggestions('invest')
-      .then((rows) => setPending(rows.filter((r) => r.kind === 'strategy')))
+      .then((rows) => setPending(rows))
       .catch(() => {})
   }, [])
 
@@ -148,6 +154,128 @@ export function InvestStrategiesPage() {
     setPending((cur) => cur.filter((r) => r.id !== s.id))
     await resolveSuggestion(s.id, 'dismissed', 'dismissed').catch(() => {})
   }, [])
+
+  /* rule_add / rule_tune / scope_add — the suggestion carries the strategy
+     row it targets; applying mutates that strategy through saveStrategy,
+     so the edit lands live (rules validate inside saveStrategy anyway).
+     A suggestion whose strategy vanished is stale — dismiss-only. */
+  const acceptSuggestion = useCallback(
+    async (s: AgentSuggestion) => {
+      if (pendingBusy) return
+      const p = (s.payload ?? {}) as Record<string, unknown>
+      const strategyId = typeof p.strategy_id === 'string' ? p.strategy_id : null
+      const strategy = strategyId
+        ? state.strategies.find((t) => t.id === strategyId)
+        : null
+      if (!strategy) return
+      setPendingBusy(s.id)
+      try {
+        const strategyName = strategy.name || x(IM.invest_sb_untitled)
+        if (s.kind === 'rule_add' || s.kind === 'rule_tune') {
+          const [rule] = normalizeRules([p.rule])
+          if (!rule) throw new Error('Suggestion payload unreadable')
+          if (s.kind === 'rule_add') {
+            await saveStrategy({
+              ...strategy,
+              rules: [...strategy.rules, { ...rule, id: newRulePersistId() }],
+            })
+            await resolveSuggestion(s.id, 'accepted', 'rule_added')
+            showToast(fill(x(IM.invest_suggest_added_rule), { name: strategyName }))
+          } else {
+            const ident =
+              typeof p.rule_ident === 'string'
+                ? p.rule_ident
+                : typeof p.rule_id === 'string'
+                  ? p.rule_id
+                  : null
+            const idx = strategy.rules.findIndex((r) => (r.id ?? r.title) === ident)
+            if (idx < 0) throw new Error('The rule this tunes no longer exists')
+            /* The tuned rule keeps its identity — dedupe slots and firing
+               history follow it through the change. */
+            const rules = strategy.rules.map((r, i) =>
+              i === idx ? { ...rule, ...(r.id ? { id: r.id } : {}) } : r,
+            )
+            await saveStrategy({ ...strategy, rules })
+            await resolveSuggestion(s.id, 'accepted', 'tuned')
+            showToast(fill(x(IM.invest_suggest_tuned), { name: strategyName }))
+          }
+        } else if (s.kind === 'scope_add') {
+          const syms = Array.isArray(p.symbols)
+            ? (p.symbols as string[]).map((v) => String(v).toUpperCase())
+            : []
+          await saveStrategy({
+            ...strategy,
+            scope: {
+              ...strategy.scope,
+              symbols: [...new Set([...strategy.scope.symbols, ...syms])],
+            },
+          })
+          await resolveSuggestion(s.id, 'accepted', 'scope_added')
+          showToast(fill(x(IM.invest_suggest_scope_added), { name: strategyName }))
+        } else {
+          return
+        }
+        setPending((cur) => cur.filter((r) => r.id !== s.id))
+        await refresh()
+      } catch (e) {
+        showToast(
+          fill(x(IM.invest_sb_save_failed), {
+            error: e instanceof Error ? e.message : String(e),
+          }),
+        )
+      } finally {
+        setPendingBusy(null)
+      }
+    },
+    [pendingBusy, refresh, showToast, state.strategies, x],
+  )
+
+  /* Apply a suggestion INTO the open draft — staged, resolved on Save.
+     Dismiss resolves immediately (it's final either way). */
+  const applyToDraft = useCallback((s: AgentSuggestion) => {
+    const p = (s.payload ?? {}) as Record<string, unknown>
+    const [rule] = normalizeRules([p.rule])
+    if (s.kind === 'rule_add' && rule) {
+      setDraft((d) => d && { ...d, rules: [...d.rules, ...toDrafts([rule])] })
+    } else if (s.kind === 'rule_tune' && rule) {
+      const ident =
+        typeof p.rule_ident === 'string'
+          ? p.rule_ident
+          : typeof p.rule_id === 'string'
+            ? p.rule_id
+            : null
+      if (!ident) return
+      setDraft(
+        (d) =>
+          d && {
+            ...d,
+            rules: d.rules.map((rd) =>
+              (rd.rule.id ?? rd.rule.title) === ident
+                ? toDrafts([{ ...rule, ...(rd.rule.id ? { id: rd.rule.id } : {}) }])[0]!
+                : rd,
+            ),
+          },
+      )
+    } else if (s.kind === 'scope_add') {
+      const syms = Array.isArray(p.symbols)
+        ? (p.symbols as string[]).map((v) => String(v).toUpperCase())
+        : []
+      setDraft(
+        (d) =>
+          d && {
+            ...d,
+            scope: {
+              ...d.scope,
+              symbols: [...new Set([...d.scope.symbols, ...syms])],
+            },
+          },
+      )
+    } else {
+      return
+    }
+    setAppliedSuggest((cur) => new Set(cur).add(s.id))
+    showToast(IM.invest_suggest_applied)
+  }, [showToast])
 
   const openEditor = useCallback((s: InvestStrategy) => {
     const d = toDraft(s)
@@ -225,6 +353,16 @@ export function InvestStrategiesPage() {
     setBusy('save')
     try {
       const id = await saveStrategy(toWire(draft))
+      /* Staged suggestions become real with the draft — resolve them and
+         drop them from the review list in the same beat. */
+      const applied = [...appliedSuggest]
+      for (const sid of applied) {
+        void resolveSuggestion(sid, 'accepted', 'applied').catch(() => {})
+      }
+      if (applied.length > 0) {
+        setPending((cur) => cur.filter((r) => !appliedSuggest.has(r.id)))
+        setAppliedSuggest(new Set())
+      }
       const next = { ...draft, id: id ?? draft.id }
       setDraft(next)
       setSnapshot(cloneDraft(next))
@@ -239,11 +377,13 @@ export function InvestStrategiesPage() {
     } finally {
       setBusy(null)
     }
-  }, [draft, busy, refresh, showToast, x, ruleProblem])
+  }, [draft, busy, refresh, showToast, x, ruleProblem, appliedSuggest])
 
   const discardDraft = useCallback(() => {
     if (!snapshot) return
     setDraft(cloneDraft(snapshot))
+    /* Staged suggestions go back to the queue — nothing was committed. */
+    setAppliedSuggest(new Set())
     showToast(IM.invest_sb_discarded)
   }, [snapshot, showToast])
 
@@ -373,24 +513,72 @@ export function InvestStrategiesPage() {
           {pending.length > 0 && (
             <div className="sb-mini-list" style={{ marginBottom: 16 }}>
               <p className="sb-caption" style={{ marginTop: 0 }}>
-                {x(IM.invest_review_hint)}
+                {x(IM.invest_suggest_hint)}
               </p>
               {pending.map((s) => {
-                const p = (s.payload ?? {}) as {
-                  draft?: { cadence?: string; rules?: unknown[] }
+                const p = (s.payload ?? {}) as Record<string, unknown>
+                const title =
+                  lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+                const detail =
+                  (lang === 'fr' && typeof p.detail_fr === 'string'
+                    ? p.detail_fr
+                    : typeof p.detail_en === 'string'
+                      ? p.detail_en
+                      : null) ?? null
+                /* What the row does and what its accept button says — per
+                   kind. 'strategy' keeps the original rules+cadence meta. */
+                let meta = ''
+                let actionLabel = ''
+                let act: (() => void) | null = null
+                let stale = false
+                if (s.kind === 'strategy') {
+                  const d = (p.draft ?? {}) as { cadence?: string; rules?: unknown[] }
+                  const ruleCount = Array.isArray(d.rules) ? d.rules.length : 0
+                  const cadence =
+                    d.cadence === 'weekly' || d.cadence === 'monthly' ? d.cadence : 'daily'
+                  const cadenceLabel = x(
+                    cadence === 'weekly'
+                      ? IM.invest_cadence_weekly
+                      : cadence === 'monthly'
+                        ? IM.invest_cadence_monthly
+                        : IM.invest_cadence_daily,
+                  )
+                  meta = fill(x(IM.invest_review_meta), {
+                    rules: pl(lang, ruleCount, IM.invest_sb_rule_one, IM.invest_sb_rule_many),
+                    cadence: cadenceLabel,
+                  })
+                  actionLabel = x(IM.invest_review_add)
+                  act = () => void acceptPending(s)
+                } else {
+                  const targetId = typeof p.strategy_id === 'string' ? p.strategy_id : ''
+                  const target = state.strategies.find((t) => t.id === targetId)
+                  stale = !target
+                  const targetName = stale
+                    ? ''
+                    : target!.name || x(IM.invest_sb_untitled)
+                  if (s.kind === 'rule_add' || s.kind === 'rule_tune') {
+                    const [rule] = normalizeRules([p.rule])
+                    meta = rule
+                      ? fill(x(IM.invest_suggest_rule_meta), {
+                          name: targetName,
+                          rule: ruleTitle(lang, rule, bookCurrency),
+                        })
+                      : ''
+                    actionLabel = x(
+                      s.kind === 'rule_add' ? IM.invest_suggest_apply_rule : IM.invest_suggest_apply,
+                    )
+                  } else if (s.kind === 'scope_add') {
+                    const syms = Array.isArray(p.symbols)
+                      ? (p.symbols as string[]).join(', ')
+                      : ''
+                    meta = fill(x(IM.invest_suggest_rule_meta), {
+                      name: targetName,
+                      rule: syms,
+                    })
+                    actionLabel = x(IM.invest_suggest_apply_scope)
+                  }
+                  act = stale ? null : () => void acceptSuggestion(s)
                 }
-                const ruleCount = p.draft?.rules?.length ?? 0
-                const cadence =
-                  p.draft?.cadence === 'weekly' || p.draft?.cadence === 'monthly'
-                    ? p.draft.cadence
-                    : 'daily'
-                const cadenceLabel = x(
-                  cadence === 'weekly'
-                    ? IM.invest_cadence_weekly
-                    : cadence === 'monthly'
-                      ? IM.invest_cadence_monthly
-                      : IM.invest_cadence_daily,
-                )
                 return (
                   <div
                     key={s.id}
@@ -398,26 +586,27 @@ export function InvestStrategiesPage() {
                     style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
                   >
                     <span style={{ flex: 1, minWidth: 0 }}>
-                      <strong>{s.title}</strong>
-                      <span className="sb-notify-hint">
-                        {fill(x(IM.invest_review_meta), {
-                          rules: pl(lang, ruleCount, IM.invest_sb_rule_one, IM.invest_sb_rule_many),
-                          cadence: cadenceLabel,
-                        })}
-                      </span>
+                      <strong>{title}</strong>
+                      {meta && <span className="sb-notify-hint">{meta}</span>}
+                      {detail && <span className="sb-notify-hint">{detail}</span>}
+                      {stale && (
+                        <span className="sb-notify-hint">{x(IM.invest_suggest_stale)}</span>
+                      )}
                     </span>
                     <span className="sb-row-actions" style={{ flexShrink: 0 }}>
-                      <button
-                        type="button"
-                        className="sb-btn sb-btn-secondary sb-btn-sm"
-                        disabled={pendingBusy !== null}
-                        onClick={() => void acceptPending(s)}
-                      >
-                        {pendingBusy === s.id && (
-                          <Loader2 size={13} className="animate-spin" aria-hidden="true" />
-                        )}
-                        {x(IM.invest_review_add)}
-                      </button>
+                      {act && (
+                        <button
+                          type="button"
+                          className="sb-btn sb-btn-secondary sb-btn-sm"
+                          disabled={pendingBusy !== null}
+                          onClick={act}
+                        >
+                          {pendingBusy === s.id && (
+                            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                          )}
+                          {actionLabel}
+                        </button>
+                      )}
                       <button
                         type="button"
                         className="sb-btn sb-btn-secondary sb-btn-sm"
@@ -531,6 +720,14 @@ export function InvestStrategiesPage() {
           bookCurrency={bookCurrency}
           strategyNameById={strategyNameById}
           fireCount={fireCount}
+          suggestions={pending.filter(
+            (s) =>
+              !appliedSuggest.has(s.id) &&
+              draft.id !== null &&
+              (s.payload as { strategy_id?: string } | null)?.strategy_id === draft.id,
+          )}
+          onApplySuggestion={applyToDraft}
+          onDismissSuggestion={(s) => void dismissPending(s)}
           onChange={setDraft}
           onBack={() => backToList(true)}
           onSave={() => void saveDraft()}
@@ -545,8 +742,9 @@ export function InvestStrategiesPage() {
           trackedSymbols={universe}
           busy={busy === 'create'}
           bookCurrency={bookCurrency}
+          suggestions={pending.filter((s) => s.kind === 'strategy')}
           onCancel={() => backToList(false)}
-          onCreate={(d) => void createFromWizard(d)}
+          onCreate={(d, sid) => void createFromWizard(d, sid)}
         />
       )}
     </div>

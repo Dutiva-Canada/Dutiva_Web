@@ -208,6 +208,8 @@ Tally is the book's watch clerk — plain, precise, numbers before adjectives. T
 
 Order-proposal rules emit **draft** orders that wait in the Orders tab for explicit user approval. `chat_undo` can reverse a queued order only while untouched.
 
+**Suggestion pass.** Every sweep also runs Tally's deterministic book review (`invest-bot/suggestions.ts`), which files `agent_suggestions` rows — seeded strategy drafts for unwatched books, gap rules, scope coverage, and tune-ups for rules the person keeps dismissing. The review queue is where her "self-improvement" lives: resolved rows are the outcome data future passes learn from — dismissed shapes stay suppressed, and a kind the person always dismisses cools down entirely. She never mutates a live strategy silently; every suggestion waits on the person.
+
 **Market data.** `invest-market-sync` refreshes `invest_market_snapshots` from free public feeds and stores shared headlines in `invest_market_news`, so strategies evaluate fresh prices without manual entry.
 
 Sources: [supabase/functions/invest-ai/index.ts:24-56](), [supabase/functions/invest-ai/handlers.ts:215-240](), [supabase/functions/invest-ai/handlers.ts:398-434](), [supabase/functions/invest-bot/index.ts:17-45](), [supabase/functions/invest-market-sync/index.ts]()

@@ -70,13 +70,22 @@ const handler = async (req: Request) => {
       if (authed instanceof Response) return authed
     }
     const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
-    /* Every strategy owner runs — even with all strategies paused,
-       pending-state maintenance (digest flush, draft expiry) still needs
-       the sweep. runUser cheap-exits when nothing is actually due. */
-    const { data: userRows } = await adminClient
-      .from('invest_strategies')
-      .select('user_id')
-    const userIds = [...new Set((userRows ?? []).map((r) => r.user_id as string))]
+    /* Strategy owners AND portal-granted users — a book holder who never
+       made a strategy is the suggestion pass's biggest case, and paused
+       owners still need draft-expiry/digest maintenance. runUser
+       cheap-exits when nothing is actually due. */
+    const [strategyOwners, accessRows] = await Promise.all([
+      adminClient.from('invest_strategies').select('user_id'),
+      adminClient.from('invest_access').select('user_id'),
+    ])
+    const userIds = [
+      ...new Set(
+        [
+          ...(strategyOwners.data ?? []).map((r) => r.user_id as string),
+          ...(accessRows.data ?? []).map((r) => r.user_id as string),
+        ],
+      ),
+    ]
     const results: Record<string, unknown>[] = []
     for (const userId of userIds) {
       try {

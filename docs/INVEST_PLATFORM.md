@@ -101,8 +101,9 @@ a send failure becomes a run warning, never a failed scan.
 
 **Run history (0184)** — one `invest_bot_runs` row per evaluated strategy
 (`strategy_id`, `symbols_scanned`, per-rule `rule_hits`, `duration_ms`),
-plus an unattributed row when the sweep writes AI insights or evaluates
-nothing. Per-strategy rows keep same-title rules on different strategies
+plus an unattributed row when the sweep writes AI insights. A sweep that
+evaluates nothing writes no row — idle `run-all` passes stay out of the
+history. Per-strategy rows keep same-title rules on different strategies
 from mixing, and show each strategy's own scanned set.
 
 **Cadence gating (0182)** — `strategyDue` skips a strategy whose
@@ -117,6 +118,22 @@ observations and records them as `insight` signals with both `title`/`body`
 and `title_fr`/`body_fr`. AI authors commentary only — it never writes
 orders; execution stays in the deterministic engine. Failures degrade to
 no insights, never a failed run.
+
+**Suggestion pass** — after insights, `fileBookSuggestions`
+(`suggestions.ts`) runs a deterministic book review and files durable
+`agent_suggestions` rows the Strategies page renders as a review list.
+Four kinds: `strategy` (a seeded, disabled draft for a book with no
+enabled strategy — the same payload shape the invest-ai drafter returns,
+so the existing accept path consumes it), `rule_add` (a gap worth a rule —
+concentration, big gains, cash drag, an unwatched mover), `scope_add`
+(held symbols no enabled strategy covers), and `rule_tune` (a rule whose
+signals keep getting dismissed → loosened thresholds, or a proposal whose
+drafts keep expiring → demote to a signal). Learning is the resolution
+trail itself: dismissed dedupe keys stay suppressed for 30 days, a kind
+the user dismisses ~always cools down entirely, and the pass regenerates
+at most every ~20h (a manual scan bypasses). Order-proposal rules only
+ever appear in suggestions for the internal-staff tier — the same
+`isInternalDutivaAccount` gate as the insight pass.
 
 ## Market sync (`supabase/functions/invest-market-sync`)
 
@@ -172,7 +189,8 @@ the `advisor_chat` route when no `invest_ai` row exists).
   output is constrained the same way for client accounts — it drafts rules
   and commentary, never orders. Verified `@dutiva.ca` sign-ins are the
   exception: every model surface (Tally chat, react lines, draft-strategy,
-  and the bot's insight pass) runs an internal-staff register that may
+  the bot's insight pass, and the suggestion pass) runs an
+  internal-staff register that may
   advise directly on the book. The tier is decided server-side from the
   auth email (`isInternalDutivaAccount`), it changes only what the model
   may say — the write whitelist, queued-draft orders, and human-approved
