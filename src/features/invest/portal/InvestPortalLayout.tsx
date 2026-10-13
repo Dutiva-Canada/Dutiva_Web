@@ -71,7 +71,7 @@ export function ThemeCycleButton({ className }: { className: string }) {
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
+  `whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
     isActive
       ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
       : 'text-text-muted hover:text-text-2'
@@ -180,7 +180,7 @@ export function InvestPortalLayout() {
               >
                 {x(IM.invest_portal_title)}
               </NavLink>
-              <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden min-w-0 flex-wrap items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
                 {NAV.map((item) => (
                   <NavLink
                     key={item.to}

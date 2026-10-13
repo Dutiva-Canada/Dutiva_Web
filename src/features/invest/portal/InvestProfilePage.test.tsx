@@ -139,13 +139,15 @@ describe('InvestProfilePage — declared', () => {
     expect(area).toHaveValue('Long-term compounding.')
     await user.clear(area)
     await user.type(area, 'Never sell inside a year.')
-    await user.click(screen.getByRole('button', { name: /Remember it/i }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(upsert).toHaveBeenCalled())
+    /* The upsert writes only the mandate — the rest of the row is
+       untouched so a concurrent Settings edit can't be reverted. */
     expect(upsert.mock.calls[0]![0]).toMatchObject({
       user_id: 'u1',
       mandate: 'Never sell inside a year.',
-      risk_tolerance: 'balanced',
     })
+    expect(upsert.mock.calls[0]![0]).not.toHaveProperty('risk_tolerance')
   })
 })
 

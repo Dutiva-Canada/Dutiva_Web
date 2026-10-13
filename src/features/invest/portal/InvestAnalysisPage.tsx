@@ -135,29 +135,40 @@ export function InvestAnalysisPage() {
       if (pendingBusy) return
       setPendingBusy(s.id)
       const p = (s.payload ?? {}) as Record<string, unknown>
+      /* Title-twin guards — the resolve below is fire-and-forget, so a
+         retry on a row whose first save landed must not double-write. */
+      const twin = (a: string, b: string) =>
+        a.trim().toLowerCase().replace(/\s+/g, ' ') ===
+        b.trim().toLowerCase().replace(/\s+/g, ' ')
       try {
         if (s.kind === 'goal') {
           const seed = (p.seed ?? {}) as Record<string, unknown>
-          await saveGoal({
-            title: typeof seed.title === 'string' ? seed.title : s.title,
-            detail: typeof seed.detail === 'string' ? seed.detail : '',
-            metric: (typeof seed.metric === 'string' ? seed.metric : 'book_value') as GoalMetric,
-            op: seed.op === 'lte' ? 'lte' : 'gte',
-            target: Number(seed.target) || 0,
-            deadline: typeof seed.deadline === 'string' ? seed.deadline : null,
-          })
+          const title = typeof seed.title === 'string' ? seed.title : s.title
+          if (!state.goals.some((g) => twin(g.title, title))) {
+            await saveGoal({
+              title,
+              detail: typeof seed.detail === 'string' ? seed.detail : '',
+              metric: (typeof seed.metric === 'string' ? seed.metric : 'book_value') as GoalMetric,
+              op: seed.op === 'lte' ? 'lte' : 'gte',
+              target: Number(seed.target) || 0,
+              deadline: typeof seed.deadline === 'string' ? seed.deadline : null,
+            })
+          }
         } else if (s.kind === 'scan') {
-          await saveScanItem({
-            theme: (typeof p.theme === 'string' ? p.theme : 'sector') as ScanTheme,
-            direction: (typeof p.direction === 'string'
-              ? p.direction
-              : 'monitor') as ScanDirection,
-            title: typeof p.title === 'string' && p.title ? p.title : s.title,
-            note: typeof p.note === 'string' ? p.note : '',
-            symbols: Array.isArray(p.symbols)
-              ? (p.symbols as unknown[]).filter((v): v is string => typeof v === 'string')
-              : [],
-          })
+          const title = typeof p.title === 'string' && p.title ? p.title : s.title
+          if (!state.scanItems.some((it) => twin(it.title, title))) {
+            await saveScanItem({
+              theme: (typeof p.theme === 'string' ? p.theme : 'sector') as ScanTheme,
+              direction: (typeof p.direction === 'string'
+                ? p.direction
+                : 'monitor') as ScanDirection,
+              title,
+              note: typeof p.note === 'string' ? p.note : '',
+              symbols: Array.isArray(p.symbols)
+                ? (p.symbols as unknown[]).filter((v): v is string => typeof v === 'string')
+                : [],
+            })
+          }
         } else if (s.kind === 'swot') {
           const assetClass = typeof p.asset_class === 'string' ? p.asset_class : ''
           const symbol = typeof p.symbol === 'string' ? p.symbol.toUpperCase() : ''
@@ -187,7 +198,7 @@ export function InvestAnalysisPage() {
         setPendingBusy(null)
       }
     },
-    [pendingBusy, state.theses, refresh, showToast, x, loadPending],
+    [pendingBusy, state.theses, state.goals, state.scanItems, refresh, showToast, x, loadPending],
   )
 
   const saveGoalDraft = useCallback(async () => {

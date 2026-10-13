@@ -138,17 +138,15 @@ export function InvestProfilePage() {
   const saveMandate = async () => {
     if (!supabase || !session?.user.id || mandateSave === 'saving') return
     setMandateSave('saving')
-    const row = profile ?? EMPTY_ROW
+    /* Upsert only the column this editor owns — a full-row write would
+       resurrect the mount-time snapshot over a concurrent Settings edit
+       (PostgREST updates only the provided columns on conflict). */
+    /* slice(0, 800) mirrors the textarea's maxLength — maxLength is a UI
+       hint only, the write still needs the ceiling. */
+    const next = mandate.trim().slice(0, 800) || null
     const { error } = await supabase.from('invest_user_profile').upsert({
       user_id: session.user.id,
-      risk_tolerance: row.risk_tolerance,
-      horizon: row.horizon,
-      goal: row.goal,
-      experience: row.experience,
-      answer_style: row.answer_style,
-      sectors: row.sectors ?? [],
-      exclusions: row.exclusions ?? [],
-      mandate: mandate.trim() || null,
+      mandate: next,
       updated_at: new Date().toISOString(),
     })
     if (error) {
@@ -157,7 +155,7 @@ export function InvestProfilePage() {
       return
     }
     setMandateSave('saved')
-    setProfile({ ...row, mandate: mandate.trim() || null })
+    setProfile({ ...(profile ?? EMPTY_ROW), mandate: next })
   }
 
   /* 'memory' accepts write the real row (source 'tally'); 'profile' nudges
@@ -174,12 +172,18 @@ export function InvestProfilePage() {
           const kind = MEMORY_KINDS.includes(p.kind as MemoryKind)
             ? (p.kind as MemoryKind)
             : 'fact'
-          await saveMemory({
-            kind,
-            text,
-            symbol: typeof p.symbol === 'string' ? p.symbol : null,
-            source: 'tally',
-          })
+          /* If the insert already landed but the resolve failed, a retry
+             must not write a twin — same normalized compare as the
+             review pass. */
+          const key = text.trim().toLowerCase().replace(/\s+/g, ' ')
+          if (!state.memories.some((m) => m.text.trim().toLowerCase().replace(/\s+/g, ' ') === key)) {
+            await saveMemory({
+              kind,
+              text,
+              symbol: typeof p.symbol === 'string' ? p.symbol : null,
+              source: 'tally',
+            })
+          }
           await resolveSuggestion(s.id, 'accepted', 'added')
           await refresh()
         } else {
@@ -197,7 +201,7 @@ export function InvestProfilePage() {
         setPendingBusy(null)
       }
     },
-    [pendingBusy, refresh, showToast, x, loadPending],
+    [pendingBusy, refresh, showToast, x, loadPending, state.memories],
   )
 
   const dismissPending = useCallback(async (s: AgentSuggestion) => {
@@ -236,7 +240,12 @@ export function InvestProfilePage() {
         lines.push(fill(x(IM.invest_obs_kind_dismiss), { kind: x(label) }))
       }
     }
-    const dismissedSignals = state.signals.filter((s) => s.status === 'dismissed').length
+    /* Same 60-day window the suggestion pass learns on — the copy says
+       "~2 months", so the count must be one. */
+    const signalCutoff = Date.now() - 60 * 24 * 60 * 60 * 1000
+    const dismissedSignals = state.signals.filter(
+      (s) => s.status === 'dismissed' && Date.parse(s.createdAt) >= signalCutoff,
+    ).length
     if (dismissedSignals > 0) {
       lines.push(
         fill(
@@ -412,7 +421,7 @@ export function InvestProfilePage() {
                   ) : (
                     <Check size={14} strokeWidth={2.2} aria-hidden="true" />
                   )}
-                  {x(IM.invest_mem_save)}
+                  {x(IM.invest_save)}
                 </button>
                 {mandateSave === 'saved' && (
                   <span className="sb-notify-hint">{x(IM.invest_prof_mandate_saved)}</span>

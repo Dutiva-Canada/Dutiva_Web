@@ -16,6 +16,10 @@ import { useInvestData } from '../data/InvestDataContext'
 import { deleteMemory, reviewMemories, saveMemory } from '../data/api'
 import { MEMORY_KINDS, type MemoryKind } from '../data/types'
 
+/** Same normalized compare as the server's textDedupeKey — a near-twin
+    already on file doesn't need a second row. */
+const memKey = (s: string) => s.trim().toLowerCase().replace(/\s+/g, ' ')
+
 const KIND_LABEL: Record<MemoryKind, (typeof IM)[keyof typeof IM]> = {
   preference: IM.invest_mem_kind_preference,
   plan: IM.invest_mem_kind_plan,
@@ -35,16 +39,32 @@ export function ProfileMemories({ onFiled }: { onFiled: () => void }) {
   const [busy, setBusy] = useState<'save' | 'review' | `del:${string}` | null>(null)
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
 
-  /* Held symbols for the scope pick — a memory can name the holding it
-     explains. Empty = applies to the book as a whole. */
+  /* Held ∪ watched symbols for the scope pick — a memory can name any
+     name the book tracks, matching the review pass's symbol validation.
+     Empty = applies to the book as a whole. */
   const heldSymbols = useMemo(
-    () => [...new Set(state.positions.map((p) => p.symbol.toUpperCase()))].sort(),
-    [state.positions],
+    () =>
+      [
+        ...new Set(
+          [...state.positions.map((p) => p.symbol), ...state.watchlist.map((w) => w.symbol)].map(
+            (s) => s.toUpperCase(),
+          ),
+        ),
+      ].sort(),
+    [state.positions, state.watchlist],
   )
 
   const save = async () => {
     const t = text.trim()
     if (busy || t.length < 8) return
+    /* A twin already on file is a success, not a new row — the dedupe is
+       the same normalized-text compare the review pass uses. */
+    if (state.memories.some((m) => memKey(m.text) === memKey(t))) {
+      setComposerOpen(false)
+      setText('')
+      showToast(IM.invest_mem_exists)
+      return
+    }
     setBusy('save')
     try {
       await saveMemory({ kind, text: t, symbol: symbol.trim() || null, source: 'manual' })
