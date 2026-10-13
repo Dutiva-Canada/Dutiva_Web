@@ -149,6 +149,10 @@ export function InvestSettingsPage() {
     risk: '', horizon: '', goal: '', experience: '', style: '',
     sectors: '', exclusions: '',
   })
+  /* Backend writes surface their result inline — a silent success read as
+     "nothing happened" and a silent failure looked identical. */
+  const [cadenceSave, setCadenceSave] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [profileSave, setProfileSave] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
 
   useEffect(() => {
     if (!supabase || !session?.user.id) return
@@ -188,11 +192,19 @@ export function InvestSettingsPage() {
   const setEmailCadence = (v: 'immediate' | 'daily' | 'weekly') => {
     setCadence(v)
     if (!supabase || !session?.user.id) return
-    void supabase.from('invest_notification_prefs').upsert({
-      user_id: session.user.id,
-      email_cadence: v,
-      updated_at: new Date().toISOString(),
-    })
+    setCadenceSave('saving')
+    void (async () => {
+      try {
+        const { error } = await supabase.from('invest_notification_prefs').upsert({
+          user_id: session.user.id!,
+          email_cadence: v,
+          updated_at: new Date().toISOString(),
+        })
+        setCadenceSave(error ? 'error' : 'saved')
+      } catch {
+        setCadenceSave('error')
+      }
+    })()
   }
 
   /* One upsert carries the whole profile row — an empty string writes NULL
@@ -202,18 +214,40 @@ export function InvestSettingsPage() {
     if (!supabase || !session?.user.id) return
     const tags = (s: string) =>
       s.split(',').map((t) => t.trim()).filter(Boolean).slice(0, 20)
-    void supabase.from('invest_user_profile').upsert({
-      user_id: session.user.id,
-      risk_tolerance: p.risk || null,
-      horizon: p.horizon || null,
-      goal: p.goal || null,
-      experience: p.experience || null,
-      answer_style: p.style || null,
-      sectors: tags(p.sectors),
-      exclusions: tags(p.exclusions),
-      updated_at: new Date().toISOString(),
-    })
+    setProfileSave('saving')
+    void (async () => {
+      try {
+        const { error } = await supabase.from('invest_user_profile').upsert({
+          user_id: session.user.id!,
+          risk_tolerance: p.risk || null,
+          horizon: p.horizon || null,
+          goal: p.goal || null,
+          experience: p.experience || null,
+          answer_style: p.style || null,
+          sectors: tags(p.sectors),
+          exclusions: tags(p.exclusions),
+          updated_at: new Date().toISOString(),
+        })
+        setProfileSave(error ? 'error' : 'saved')
+      } catch {
+        setProfileSave('error')
+      }
+    })()
   }
+
+  const saveStatus = (s: 'idle' | 'saving' | 'saved' | 'error') =>
+    s === 'idle' ? null : (
+      <p
+        role="status"
+        className={`m-0 mt-[8px] text-[12px] font-semibold ${s === 'error' ? 'text-risk-fg' : 'text-text-muted'}`}
+      >
+        {s === 'saving'
+          ? x(IM.invest_saving)
+          : s === 'saved'
+            ? x(IM.invest_saved)
+            : x(IM.invest_save_error)}
+      </p>
+    )
 
   const wipeAllData = async () => {
     if (!supabase) return
@@ -457,6 +491,7 @@ export function InvestSettingsPage() {
             <option value="daily">{x(IM.invest_cadence_email_daily)}</option>
             <option value="weekly">{x(IM.invest_cadence_email_weekly)}</option>
           </select>
+          {saveStatus(cadenceSave)}
         </div>
       </section>
 
@@ -503,6 +538,7 @@ export function InvestSettingsPage() {
             </div>
           ))}
         </div>
+        {saveStatus(profileSave)}
       </section>
 
       <section className={cardClass}>
