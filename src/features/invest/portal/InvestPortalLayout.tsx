@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Bell, Contrast, Globe, Loader2, LogOut, Menu, Moon, Settings, Sun, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi, Lang } from '@/i18n/core'
@@ -14,6 +14,7 @@ import { hasInvestAccess } from '@/features/invest/data/api'
 import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { InvestAuthPanel } from './InvestAuthPanel'
 import { InvestFooter } from './InvestFooter'
+import { readBadgeScope, readHomeTab } from './investPrefs'
 
 const NAV = [
   { to: '/invest', end: true, label: IM.invest_tab_overview },
@@ -85,6 +86,24 @@ export function InvestPortalLayout() {
   const { status, signOut } = useAuth()
   const [access, setAccess] = useState<'checking' | 'yes' | 'no'>('checking')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  /* Start-page preference: the FIRST landing on the bare /invest index in
+     a session redirects to the preferred tab — sessionStorage keeps it
+     once-per-session so navigating to the Overview deliberately afterwards
+     stays put. */
+  useEffect(() => {
+    if (access !== 'yes' || location.pathname !== '/invest') return
+    try {
+      if (sessionStorage.getItem('dutiva.invest.landed') === '1') return
+      sessionStorage.setItem('dutiva.invest.landed', '1')
+    } catch {
+      /* private mode — still honor the pref, just without the once guard */
+    }
+    const target = readHomeTab()
+    if (target !== '/invest') navigate(target, { replace: true })
+  }, [access, location.pathname, navigate])
 
   const other: Lang = lang === 'fr' ? 'en' : 'fr'
   const label = lang === 'en' ? 'FR' : 'EN'
@@ -302,16 +321,19 @@ export function InvestPortalLayout() {
 }
 
 /**
- * Unseen-work count on the header bell: new signals + draft proposals.
+ * Unseen-work count on the header bell: new signals + draft proposals
+ * (drafts drop out when the badge-scope setting is signals-only).
  * Reads the context directly — it is absent while the access check runs
  * (and for users without a grant), in which case there is nothing to badge.
  */
 function PendingBadge() {
   const ctx = useContext(InvestDataContext)
-  const pending = ctx
-    ? ctx.state.signals.filter((s) => s.status === 'new').length +
-      ctx.state.orders.filter((o) => o.status === 'draft').length
-    : 0
+  const signals = ctx ? ctx.state.signals.filter((s) => s.status === 'new').length : 0
+  const drafts =
+    ctx && readBadgeScope() === 'all'
+      ? ctx.state.orders.filter((o) => o.status === 'draft').length
+      : 0
+  const pending = signals + drafts
   if (pending === 0) return null
   return (
     <span

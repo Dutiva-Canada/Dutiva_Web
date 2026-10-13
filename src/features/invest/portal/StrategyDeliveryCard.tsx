@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BellOff, Inbox, Mail } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 
@@ -35,11 +36,17 @@ export function StrategyDeliveryCard() {
             >
               <div className="min-w-0">
                 <p className="m-0 text-[13px] font-semibold text-text">{s.name}</p>
-                <p className="m-0 mt-[2px] text-[11.5px] text-text-muted">
+                <span
+                  className={`mt-[4px] ${chipClass} ${
+                    s.enabled ? '' : 'opacity-60'
+                  }`}
+                >
                   {x(s.enabled ? IM.invest_strategy_enabled : IM.invest_strategy_disabled)}
-                </p>
+                </span>
               </div>
-              <span className="flex flex-wrap items-center gap-[6px]">
+              <span
+                className={`flex flex-wrap items-center gap-[6px] ${s.enabled ? '' : 'opacity-60'}`}
+              >
                 {s.notify.inApp && (
                   <span className={chipClass}>
                     <Inbox size={11} strokeWidth={2} aria-hidden="true" />
@@ -60,6 +67,7 @@ export function StrategyDeliveryCard() {
                 )}
                 <Link
                   to="/invest/strategies"
+                  aria-label={fill(x(IM.invest_delivery_edit_aria), { name: s.name })}
                   className="text-[12px] font-semibold text-accent no-underline hover:underline"
                 >
                   {x(IM.invest_delivery_edit)}

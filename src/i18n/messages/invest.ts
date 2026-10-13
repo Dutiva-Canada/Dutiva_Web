@@ -169,6 +169,44 @@ const investCoreMessages = defineMessages({
     fr: 'Code par courriel sans mot de passe',
   },
   invest_settings_signout_all: { en: 'Sign out everywhere', fr: 'Se déconnecter partout' },
+  invest_settings_appearance: { en: 'Appearance', fr: 'Apparence' },
+  invest_settings_start_page: { en: 'Start page', fr: 'Page de départ' },
+  invest_settings_start_page_note: {
+    en: 'Where Invest opens the first time you enter the portal each session.',
+    fr: 'Où Invest s’ouvre à la première entrée dans le portail de chaque session.',
+  },
+  invest_settings_currency: { en: 'Display currency', fr: 'Devise d’affichage' },
+  invest_settings_currency_note: {
+    en: 'Blended totals convert into this currency. “Book default” uses your first account’s base currency.',
+    fr: 'Les totaux combinés sont convertis dans cette devise. « Devise du livre » utilise la devise de base du premier compte.',
+  },
+  invest_settings_currency_auto: { en: 'Book default', fr: 'Devise du livre' },
+  invest_settings_defaults: { en: 'Defaults', fr: 'Valeurs par défaut' },
+  invest_settings_order_mode: { en: 'New orders default to', fr: 'Les nouveaux ordres passent en' },
+  invest_settings_badge: { en: 'Unread badge counts', fr: 'Le badge compte' },
+  invest_settings_badge_all: { en: 'Signals + draft orders', fr: 'Signaux + brouillons d’ordres' },
+  invest_settings_badge_signals: { en: 'New signals only', fr: 'Nouveaux signaux seulement' },
+  invest_settings_data: { en: 'My data', fr: 'Mes données' },
+  invest_settings_export: { en: 'Download my data', fr: 'Télécharger mes données' },
+  invest_settings_export_note: {
+    en: 'A JSON snapshot of everything the portal has loaded — accounts, positions, watchlist, strategies, signals, and orders.',
+    fr: 'Un instantané JSON de tout ce que le portail a chargé — comptes, positions, liste de suivi, stratégies, signaux et ordres.',
+  },
+  invest_settings_clear_chat: { en: 'Clear Tally history', fr: 'Effacer l’historique de Tally' },
+  invest_settings_clear_chat_note: {
+    en: 'Deletes every Tally conversation on this account. Book data is untouched.',
+    fr: 'Supprime toutes les conversations Tally de ce compte. Les données du livre sont intactes.',
+  },
+  invest_settings_clear_chat_confirm: {
+    en: 'Delete the whole Tally history? This cannot be undone.',
+    fr: 'Supprimer tout l’historique de Tally ? Cette action est irréversible.',
+  },
+  invest_settings_clear_chat_yes: { en: 'Delete permanently', fr: 'Supprimer définitivement' },
+  invest_settings_clear_chat_done: { en: 'History cleared.', fr: 'Historique effacé.' },
+  invest_delivery_edit_aria: {
+    en: 'Edit {name} delivery',
+    fr: 'Modifier l’envoi de {name}',
+  },
 
   /* First-run tour */
   invest_tour_title: { en: 'Get set up in four steps', fr: 'Prêt en quatre étapes' },
