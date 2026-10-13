@@ -1594,7 +1594,16 @@ function PositionEditor({
       </select>
       <button
         type="button"
-        disabled={busy || !quantity || !avgCost}
+        /* Zero is legal (a flattened lot); negatives are not — the old
+           truthy-string check let "-5" through and broke the basis math.
+           Empty stays blocked — Number('') would slip through as 0. */
+        disabled={
+          busy ||
+          quantity === '' ||
+          avgCost === '' ||
+          !(Number(quantity) >= 0) ||
+          !(Number(avgCost) >= 0)
+        }
         onClick={() =>
           void onSave({
             name: name.trim() || position.name,

@@ -55,7 +55,7 @@ function renderSettings(ui: ReactElement, state: InvestState = STATE) {
       <LangProvider>
         <AuthProvider>
           <MemoryRouter>
-            <InvestDataContext value={{ state, loading: false, refresh: vi.fn() }}>
+            <InvestDataContext value={{ state, loading: false, error: false, refresh: vi.fn() }}>
               {ui}
             </InvestDataContext>
           </MemoryRouter>

@@ -22,6 +22,17 @@ export async function executeOrder(
     return json({ error: `Order is ${order.status}`, code: 'not_executable' }, 409)
   }
 
+  /* The service role bypasses RLS, so bind the book to the caller: an order
+     naming another user's account_id must not read their position or move
+     their cash. */
+  const { data: account } = await adminClient
+    .from('invest_accounts')
+    .select('cash_balance')
+    .eq('id', order.account_id)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!account) return json({ error: 'Account not found', code: 'no_account' }, 404)
+
   let price = fillPrice
   if (price === null) {
     if (order.mode === 'live') {
@@ -48,9 +59,38 @@ export async function executeOrder(
     .from('invest_positions')
     .select('id, quantity, avg_cost')
     .eq('account_id', order.account_id)
+    .eq('user_id', userId)
     .eq('asset_class', order.asset_class)
     .eq('symbol', order.symbol)
     .maybeSingle()
+  /* A sell bigger than the holding can't fill — applyFill would floor the
+     position at zero while cash still credited the full quantity. Reject
+     instead of letting the ledger invent money. */
+  const held = position ? Number(position.quantity) : 0
+  if (side === 'sell' && qty > held) {
+    return json(
+      {
+        error: `Only ${held} ${order.symbol} on hand — a sell of ${qty} can't fill.`,
+        code: 'oversize_sell',
+      },
+      409,
+    )
+  }
+
+  /* Claim the order before touching the book: the conditional update only
+     lands while the row is still draft/queued, so a second concurrent
+     execute call finds nothing to claim instead of double-filling. */
+  const { data: claimed } = await adminClient
+    .from('invest_orders')
+    .update({ status: 'executed', executed_price: price, executed_at: now, updated_at: now })
+    .eq('id', orderId)
+    .eq('user_id', userId)
+    .in('status', ['draft', 'queued'])
+    .select('id')
+  if (!claimed || claimed.length === 0) {
+    return json({ error: `Order is ${order.status}`, code: 'not_executable' }, 409)
+  }
+
   const fill = applyFill(
     position
       ? {
@@ -66,8 +106,19 @@ export async function executeOrder(
     price,
   )
 
-  if (position) {
+  /* The order is already claimed 'executed' — if a book write fails from
+     here, hand the claim back so the row isn't a phantom fill. */
+  const release = async (err: string): Promise<Response> => {
     await adminClient
+      .from('invest_orders')
+      .update({ status: String(order.status), executed_price: null, executed_at: null, error: err, updated_at: now })
+      .eq('id', orderId)
+      .eq('user_id', userId)
+    return json({ error: `Execution failed: ${err}`, code: 'write_failed' }, 500)
+  }
+
+  if (position) {
+    const { error } = await adminClient
       .from('invest_positions')
       .update({
         quantity: fill.quantity,
@@ -77,8 +128,9 @@ export async function executeOrder(
         updated_at: now,
       })
       .eq('id', position.id)
+    if (error) return release(error.message)
   } else if (side === 'buy') {
-    await adminClient.from('invest_positions').insert({
+    const { error } = await adminClient.from('invest_positions').insert({
       user_id: userId,
       account_id: order.account_id,
       asset_class: order.asset_class,
@@ -89,28 +141,19 @@ export async function executeOrder(
       last_price: price,
       last_price_at: now,
     })
+    if (error) return release(error.message)
   }
 
   const cost = qty * price
-  const { data: account } = await adminClient
+  const { error: cashError } = await adminClient
     .from('invest_accounts')
-    .select('cash_balance')
+    .update({
+      cash_balance: Number(account.cash_balance) + (side === 'sell' ? cost : -cost),
+      updated_at: now,
+    })
     .eq('id', order.account_id)
-    .maybeSingle()
-  if (account) {
-    await adminClient
-      .from('invest_accounts')
-      .update({
-        cash_balance: Number(account.cash_balance) + (side === 'sell' ? cost : -cost),
-        updated_at: now,
-      })
-      .eq('id', order.account_id)
-  }
-
-  await adminClient
-    .from('invest_orders')
-    .update({ status: 'executed', executed_price: price, executed_at: now, updated_at: now })
-    .eq('id', orderId)
+    .eq('user_id', userId)
+  if (cashError) return release(cashError.message)
 
   return json({ status: 'executed', executed_price: price })
 }

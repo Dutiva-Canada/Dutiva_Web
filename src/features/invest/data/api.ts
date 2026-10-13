@@ -355,7 +355,25 @@ export async function createOrder(input: {
   mode: 'paper' | 'live'
   note?: string
 }): Promise<void> {
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0) {
+    throw new Error('Order quantity must be greater than zero')
+  }
+  if (
+    input.orderType === 'limit' &&
+    (!Number.isFinite(Number(input.limitPrice)) || Number(input.limitPrice) <= 0)
+  ) {
+    throw new Error('A limit order needs a positive limit price')
+  }
   const { client, userId } = await requireUserId()
+  /* The row's RLS only binds user_id — account_id is just a foreign key, so
+     verify the target book is actually the caller's before inserting. */
+  const { data: account } = await client
+    .from('invest_accounts')
+    .select('id')
+    .eq('id', input.accountId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!account) throw new Error('Account not found')
   const { error } = await client.from('invest_orders').insert({
     user_id: userId,
     account_id: input.accountId,
@@ -374,12 +392,12 @@ export async function createOrder(input: {
 }
 
 export async function setOrderStatus(id: string, status: OrderStatus): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
+  const { client, userId } = await requireUserId()
   const { error } = await client
     .from('invest_orders')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 

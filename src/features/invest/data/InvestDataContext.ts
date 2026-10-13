@@ -9,6 +9,8 @@ import type { InvestState } from './api'
 interface InvestDataContextValue {
   state: InvestState
   loading: boolean
+  /** Set when the initial load fails — the state is stale/empty, not real. */
+  error: boolean
   refresh: () => Promise<void>
 }
 
@@ -31,6 +33,7 @@ export const EMPTY_INVEST_STATE: InvestState = {
 export const InvestDataContext = createContext<InvestDataContextValue>({
   state: EMPTY_INVEST_STATE,
   loading: true,
+  error: false,
   refresh: async () => {},
 })
 

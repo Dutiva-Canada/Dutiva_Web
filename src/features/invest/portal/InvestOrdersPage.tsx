@@ -49,26 +49,47 @@ export function InvestOrdersPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
   useInvestHead(IM.invest_seo_title_orders, IM.invest_seo_desc_orders)
-  const fmt = useMemo(
-    () =>
+  /* Prices print in the symbol's own listing currency — an order on a
+     USD-quoted name must not wear a CAD format. */
+  const fmtFor = useMemo(
+    () => (cur: string) =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
         style: 'currency',
-        currency: 'CAD',
+        currency: cur,
       }),
     [lang],
+  )
+  /* Held → snapshot → book default: the order row itself stores no
+     currency, so the listing's own rows carry it. */
+  const currencyFor = useMemo(() => {
+    const pos = new Map(state.positions.map((p) => [`${p.assetClass}:${p.symbol.toUpperCase()}`, p.currency]))
+    const snap = new Map(state.snapshots.map((s) => [`${s.assetClass}:${s.symbol.toUpperCase()}`, s.currency]))
+    const book = (state.accounts.find((a) => a.status === 'active')?.baseCurrency ?? 'CAD').toUpperCase()
+    return (o: InvestOrder) =>
+      pos.get(`${o.assetClass}:${o.symbol.toUpperCase()}`) ??
+      snap.get(`${o.assetClass}:${o.symbol.toUpperCase()}`) ??
+      book
+  }, [state.positions, state.snapshots, state.accounts])
+  const accountName = useMemo(
+    () => new Map(state.accounts.map((a) => [a.id, a.name])),
+    [state.accounts],
   )
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
 
-  const run = async (fn: () => Promise<void>) => {
+  /* Returns whether the write landed — the form only clears on success;
+     a failed insert keeping its values beats retyping. */
+  const run = async (fn: () => Promise<void>): Promise<boolean> => {
     setBusy(true)
     setError(undefined)
     try {
       await fn()
       await refresh()
+      return true
     } catch {
       setError(x(IM.invest_error_generic))
+      return false
     } finally {
       setBusy(false)
     }
@@ -148,7 +169,12 @@ export function InvestOrdersPage() {
                     key={o.id}
                     order={o}
                     busy={busy}
-                    fmt={fmt}
+                    fmt={fmtFor(currencyFor(o))}
+                    account={
+                      state.accounts.length > 1
+                        ? (accountName.get(o.accountId) ?? null)
+                        : null
+                    }
                     onExecute={(fill) => run(() => executeOrder(o.id, fill))}
                     onCancel={() => run(() => setOrderStatus(o.id, 'cancelled'))}
                   />
@@ -166,23 +192,32 @@ function OrderRow({
   order: o,
   busy,
   fmt,
+  account,
   onExecute,
   onCancel,
 }: {
   order: InvestOrder
   busy: boolean
   fmt: Intl.NumberFormat
-  onExecute: (fillPrice?: number) => Promise<void>
-  onCancel: () => Promise<void>
+  /** Account label — shown only when the book has more than one. */
+  account: string | null
+  onExecute: (fillPrice?: number) => Promise<unknown>
+  onCancel: () => Promise<unknown>
 }) {
   const { x } = useI18n()
   const [fill, setFill] = useState('')
   const actionable = o.status === 'queued' || o.status === 'draft'
+  const fillNum = Number(fill)
 
   return (
     <tr>
       <td>
         <span className="strong">{o.symbol}</span>
+        {account && (
+          <span className="dim" style={{ marginLeft: 6 }}>
+            {account}
+          </span>
+        )}
         <span className="dim" style={{ marginLeft: 6 }}>
           {x(o.mode === 'paper' ? IM.invest_mode_paper : IM.invest_mode_live)}
         </span>
@@ -225,8 +260,8 @@ function OrderRow({
             )}
             <button
               type="button"
-              disabled={busy || (o.mode === 'live' && !fill)}
-              onClick={() => void onExecute(o.mode === 'live' ? Number(fill) : undefined)}
+              disabled={busy || (o.mode === 'live' && !(fillNum > 0))}
+              onClick={() => void onExecute(o.mode === 'live' ? fillNum : undefined)}
               className="sb-btn sb-btn-primary sb-btn-sm"
             >
               {x(IM.invest_mark_executed)}
@@ -264,6 +299,8 @@ function OrderForm({
 }: {
   busy: boolean
   accounts: { id: string; name: string }[]
+  /** Resolves true when the order row landed — the form keeps its values
+     on a failed insert so the holder isn't retyping into the void. */
   onCreate: (input: {
     accountId: string
     assetClass: AssetClass
@@ -273,7 +310,7 @@ function OrderForm({
     orderType: OrderType
     limitPrice?: number | null
     mode: OrderMode
-  }) => Promise<void>
+  }) => Promise<boolean>
 }) {
   const { x } = useI18n()
   const [accountId, setAccountId] = useState(accounts[0]?.id ?? '')
@@ -285,19 +322,34 @@ function OrderForm({
   const [limitPrice, setLimitPrice] = useState('')
   const [mode, setMode] = useState<OrderMode>(readOrderMode)
 
+  /* The selection is captured state — if the account row goes away (deleted
+     elsewhere) fall back to the first rather than submitting a stale id. */
+  const effectiveAccountId = accounts.some((a) => a.id === accountId)
+    ? accountId
+    : (accounts[0]?.id ?? '')
+  const qtyNum = Number(quantity)
+  const limitNum = Number(limitPrice)
+  const valid =
+    !!effectiveAccountId &&
+    !!symbol.trim() &&
+    qtyNum > 0 &&
+    Number.isFinite(qtyNum) &&
+    (orderType === 'market' || (limitNum > 0 && Number.isFinite(limitNum)))
+
   const submit = (e: FormEvent) => {
     e.preventDefault()
-    if (!accountId || !symbol.trim() || !quantity) return
+    if (!valid) return
     void onCreate({
-      accountId,
+      accountId: effectiveAccountId,
       assetClass,
       symbol: symbol.trim(),
       side,
-      quantity: Number(quantity),
+      quantity: qtyNum,
       orderType,
-      limitPrice: orderType === 'limit' && limitPrice ? Number(limitPrice) : null,
+      limitPrice: orderType === 'limit' ? limitNum : null,
       mode,
-    }).then(() => {
+    }).then((ok) => {
+      if (!ok) return
       setSymbol('')
       setQuantity('')
       setLimitPrice('')
@@ -313,7 +365,7 @@ function OrderForm({
         </label>
         <select
           id="inv-ord-acc"
-          value={accountId}
+          value={effectiveAccountId}
           onChange={(e) => setAccountId(e.target.value)}
           className={fieldClass}
         >
@@ -430,7 +482,7 @@ function OrderForm({
       <div className="sb-form-actions">
         <button
           type="submit"
-          disabled={busy || !accountId || !symbol.trim() || !quantity}
+          disabled={busy || !valid}
           className={btnClass}
         >
           <Plus size={16} strokeWidth={2.4} aria-hidden="true" />

@@ -59,7 +59,7 @@ function renderPage(lang: Lang = 'en', auth: Partial<AuthContextValue> = {}) {
     <LangContext value={langValue(lang)}>
       <AuthContext.Provider value={authValue}>
         <InvestDataContext
-          value={{ state: EMPTY_INVEST_STATE, loading: false, refresh }}
+          value={{ state: EMPTY_INVEST_STATE, loading: false, error: false, refresh }}
         >
           <ToastsProvider>
             <MemoryRouter initialEntries={['/invest/chat']}>
@@ -104,7 +104,7 @@ describe('InvestChatPage', () => {
           }}
         >
           <InvestDataContext
-            value={{ state: EMPTY_INVEST_STATE, loading: false, refresh: vi.fn() }}
+            value={{ state: EMPTY_INVEST_STATE, loading: false, error: false, refresh: vi.fn() }}
           >
             <ToastsProvider>
               <MemoryRouter initialEntries={['/invest/chat']}>

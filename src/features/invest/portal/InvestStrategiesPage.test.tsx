@@ -51,7 +51,7 @@ function mount() {
       <ToastsProvider>
         <MemoryRouter initialEntries={['/invest/strategies']}>
           <InvestDataContext.Provider
-            value={{ state: EMPTY_INVEST_STATE, loading: false, refresh: vi.fn() }}
+            value={{ state: EMPTY_INVEST_STATE, loading: false, error: false, refresh: vi.fn() }}
           >
             <Routes>
               <Route path="/invest/strategies" element={<InvestStrategiesPage />} />
