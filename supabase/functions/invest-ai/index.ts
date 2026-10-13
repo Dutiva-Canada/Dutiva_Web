@@ -23,7 +23,6 @@ import {
   SWOT_SYSTEM_PROMPT,
   THESIS_SYSTEM_PROMPT,
   validateAiAction,
-  type MemoryPromptFact,
 } from './handlers.ts'
 import {
   json,
@@ -32,6 +31,7 @@ import {
   runChatUndo,
   UPSTREAM_TIMEOUT_MS,
 } from './runtime.ts'
+import { loadMemories, loadPersonalContext } from './personalContext.ts'
 import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
 
 /**
@@ -123,40 +123,9 @@ async function authenticateInvestUser(
 }
 
 /** Confirmed memories for the draft prompts — the holder's own retained
-    facts shape drafts the same way they shape chat context. */
-async function loadMemories(
-  adminClient: SupabaseClient,
-  userId: string,
-): Promise<MemoryPromptFact[]> {
-  const { data } = await adminClient
-    .from('invest_memories')
-    .select('symbol, kind, text')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(30)
-  return (data ?? []).map((m) => ({
-    symbol: m.symbol ? String(m.symbol) : null,
-    kind: String(m.kind ?? 'fact'),
-    text: String(m.text ?? '').slice(0, 400),
-  }))
-}
-
-/** Memories plus the declared mandate — the full personal context a
-    draft should align with. Two reads in parallel; both are cheap. */
-async function loadPersonalContext(
-  adminClient: SupabaseClient,
-  userId: string,
-): Promise<{ memories: MemoryPromptFact[]; mandate: string | null }> {
-  const [memories, { data: profile }] = await Promise.all([
-    loadMemories(adminClient, userId),
-    adminClient
-      .from('invest_user_profile')
-      .select('mandate')
-      .eq('user_id', userId)
-      .maybeSingle(),
-  ])
-  return { memories, mandate: (profile?.mandate as string | null) ?? null }
-}
+    facts shape drafts the same way they shape chat context. The loaders
+    live in personalContext.ts so the chat-side draft path (chatActions.ts)
+    shares them without a module cycle. */
 
 const handler = async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok')
@@ -586,18 +555,36 @@ const handler = async (req: Request) => {
      when the holder accepts it on the profile page. A holder with no
      chat yet gets an honest empty answer rather than fabricated facts. */
   if (actionCheck.value === 'review-memories') {
-    const [{ data: msgRows }, memories, { data: posRows }, { data: watchRows }] =
-      await Promise.all([
-        adminClient
-          .from('invest_chat_messages')
-          .select('role, content, created_at')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false })
-          .limit(80),
-        loadMemories(adminClient, userId),
-        adminClient.from('invest_positions').select('symbol').eq('user_id', userId).limit(60),
-        adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId).limit(60),
-      ])
+    const [
+      { data: msgRows },
+      memories,
+      { data: posRows },
+      { data: watchRows },
+      { data: dismissedRows },
+    ] = await Promise.all([
+      /* role filtered server-side — the 80-row window is all holder turns,
+         not half assistant replies. */
+      adminClient
+        .from('invest_chat_messages')
+        .select('role, content, created_at')
+        .eq('user_id', userId)
+        .eq('role', 'user')
+        .order('created_at', { ascending: false })
+        .limit(80),
+      loadMemories(adminClient, userId),
+      adminClient.from('invest_positions').select('symbol').eq('user_id', userId).limit(60),
+      adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId).limit(60),
+      /* Dismissed memory proposals — the dismiss is a verdict, not a
+         pause. Without it the same chat re-proposes the same fact every
+         review: whack-a-mole. */
+      adminClient
+        .from('agent_suggestions')
+        .select('dedupe_key')
+        .eq('user_id', userId)
+        .eq('surface', 'invest')
+        .eq('kind', 'memory')
+        .eq('status', 'dismissed'),
+    ])
     const userTurns = (msgRows ?? []).filter((m) => m.role === 'user')
     if (userTurns.length === 0) return json({ proposed: 0, suggestionIds: [] })
 
@@ -655,10 +642,18 @@ const handler = async (req: Request) => {
     if (!items) {
       return json({ error: 'Could not review memories this time.', code: 'no_draft' }, 422)
     }
-    /* Post-parse guard — the model saw the confirmed list but a near-twin
-       of an existing memory still isn't worth a queue row. */
+    /* Post-parse guards — the model saw the confirmed list but a near-twin
+       of an existing memory still isn't worth a queue row, and a fact the
+       holder already dismissed stays dismissed. */
     const existingKeys = new Set(memories.map((m) => textDedupeKey(m.text)))
-    const fresh = items.filter((i) => !existingKeys.has(textDedupeKey(i.text)))
+    const dismissedKeys = new Set(
+      (dismissedRows ?? []).map((r) => String(r.dedupe_key ?? '')),
+    )
+    const fresh = items.filter(
+      (i) =>
+        !existingKeys.has(textDedupeKey(i.text)) &&
+        !dismissedKeys.has(`memory:${textDedupeKey(i.text)}`),
+    )
 
     const suggestionIds: string[] = []
     for (const i of fresh) {
@@ -672,7 +667,9 @@ const handler = async (req: Request) => {
       })
       if (filed?.id) suggestionIds.push(filed.id)
     }
-    return json({ proposed: fresh.length, suggestionIds })
+    /* proposed counts what actually filed — a pending twin dedupes out
+       of fileSuggestion and shouldn't inflate the toast. */
+    return json({ proposed: suggestionIds.length, suggestionIds })
   }
 
   /* draft-strategy */

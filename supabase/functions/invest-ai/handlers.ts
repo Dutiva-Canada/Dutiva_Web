@@ -48,6 +48,9 @@ export interface MemoryPromptFact {
 
 const MAX_MEMORY_PROMPT_FACTS = 8
 const MAX_MEMORY_PROMPT_LEN = 200
+/** The mandate is a sentence or two by design — prompts render at most
+    this much of it, on every surface, so the same ceiling everywhere. */
+const MAX_MANDATE_PROMPT_LEN = 400
 
 /** Bracket tag for one memory line — the kind tells the model how to
     weigh it (a plan is intent, a fact is state), the symbol scopes it. */
@@ -77,7 +80,9 @@ export function memoryPromptBlock(
   const lines: string[] = []
   const m = mandate?.trim()
   if (m) {
-    lines.push(`  - their mandate, in their words: "${m.slice(0, 400)}"`)
+    lines.push(
+      `  - their mandate, in their words: "${m.slice(0, MAX_MANDATE_PROMPT_LEN)}"`,
+    )
   }
   for (const fact of relevant) {
     lines.push(`  - ${memoryTag(fact)}${fact.text.slice(0, MAX_MEMORY_PROMPT_LEN)}`)
@@ -1003,7 +1008,7 @@ function buildProfileLines(p: InvestUserProfile | null): string[] {
   }
   const out: string[] = []
   if (dims.length > 0) out.push(`  - ${dims.join('; ')}`)
-  if (p.mandate) out.push(`  - their mandate, in their words: "${p.mandate.slice(0, 600)}"`)
+  if (p.mandate) out.push(`  - their mandate, in their words: "${p.mandate.slice(0, MAX_MANDATE_PROMPT_LEN)}"`)
   if (p.sectors.length > 0) out.push(`  - sectors they follow: ${p.sectors.join(', ')}`)
   if (p.exclusions.length > 0) {
     out.push(`  - screens out: ${p.exclusions.join(', ')} — never name or recommend these`)

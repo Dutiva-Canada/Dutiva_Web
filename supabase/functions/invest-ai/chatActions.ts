@@ -11,6 +11,7 @@ import {
 } from './handlers.ts'
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
 import { fetchOnDemandMarket } from './marketFetch.ts'
+import { loadPersonalContext } from './personalContext.ts'
 
 /* The action lifecycle for Tally's chat — the whitelisted write path
    (executeChatAction) plus its reversal (undoChatAction / runChatUndo).
@@ -272,9 +273,12 @@ export async function executeChatAction(
     }
     case 'draft_strategy': {
       /* Run the existing draft pipeline — the model authors a draft the
-         same way the wizard does, then files it for review. */
+         same way the wizard does, then files it for review. The holder's
+         mandate and confirmed memories ride along here too — a draft
+         asked for in conversation is the most personal surface of all. */
       const goal = sanitizeGoal(action.goal)
       if (!goal) return { type: action.type, detail: action.goal, ok: false }
+      const personal = await loadPersonalContext(adminClient, userId)
       let upstream: Response
       try {
         upstream = await postChatCompletion(
@@ -284,7 +288,7 @@ export async function executeChatAction(
             model: deps.route.model_name,
             messages: [
               { role: 'system', content: draftSystemPrompt(deps.advice) },
-              { role: 'user', content: buildDraftPrompt(goal, deps.lang) },
+              { role: 'user', content: buildDraftPrompt(goal, deps.lang, personal) },
             ],
             max_tokens: deps.route.config?.max_tokens ?? 900,
             temperature: 0.3,

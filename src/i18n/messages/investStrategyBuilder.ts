@@ -810,6 +810,7 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_mem_symbol_ph: { en: 'Symbol (optional)', fr: 'Symbole (facultatif)' },
   invest_mem_save: { en: 'Remember it', fr: 'Retenir' },
   invest_mem_saved: { en: 'Remembered.', fr: 'Retenu.' },
+  invest_mem_exists: { en: 'Already on file.', fr: 'Déjà retenu.' },
   invest_mem_failed: { en: 'Couldn’t save — {error}', fr: 'Enregistrement impossible — {error}' },
   invest_mem_review: { en: 'Ask Tally to review', fr: 'Demander à Tally de réviser' },
   invest_mem_review_busy: { en: 'Reviewing…', fr: 'Révision…' },

@@ -1021,11 +1021,19 @@ export async function saveMemory(input: {
   source?: 'manual' | 'tally'
 }): Promise<void> {
   const { client, userId } = await requireUserId()
+  const text = input.text.trim().slice(0, 400)
+  /* Same minimum the review-memories parser enforces — a blank or near-
+     blank row would render as an empty bullet in every prompt. */
+  if (text.length < 8) throw new Error('memory text must be at least 8 characters')
+  const symbol = input.symbol ? input.symbol.trim().toUpperCase().slice(0, 12) : null
+  if (symbol !== null && !/^[A-Z0-9.-]{1,12}$/.test(symbol)) {
+    throw new Error('memory symbol is not a ticker')
+  }
   const { error } = await client.from('invest_memories').insert({
     user_id: userId,
     kind: input.kind,
-    text: input.text.trim().slice(0, 400),
-    symbol: input.symbol ? input.symbol.trim().toUpperCase().slice(0, 12) : null,
+    text,
+    symbol,
     source: input.source ?? 'manual',
   })
   if (error) throw error
