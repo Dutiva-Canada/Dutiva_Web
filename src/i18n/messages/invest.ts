@@ -262,8 +262,24 @@ const investCoreMessages = defineMessages({
     fr: '≈ converti aux taux de référence de la BCE — {pairs} ({date}). À titre indicatif.',
   },
   invest_home_fx_split: {
-    en: 'No FX rate on file — totals stay per currency rather than blend wrong.',
-    fr: 'Aucun taux de change en dossier — les totaux restent par devise plutôt qu’un mélange inexact.',
+    en: 'No FX rate on file — totals stay per currency, not blended. Refresh prices retries it.',
+    fr: 'Aucun taux de change en dossier — les totaux restent par devise, sans mélange. « Actualiser les cours » réessaie.',
+  },
+  /* FX table loaded but the book holds a currency it doesn't cover —
+     name it instead of implying no rates exist at all. */
+  invest_home_fx_uncovered: {
+    en: 'No {curs} rate on file — those amounts stay in their own currency.',
+    fr: 'Aucun taux {curs} en dossier — ces montants restent dans leur devise.',
+  },
+  invest_ov_total_value_split: {
+    en: 'Portfolio value by currency',
+    fr: 'Valeur par devise',
+  },
+  /* Share of the same-currency slice of the book — the honest proportion
+     when no single total exists. */
+  invest_alloc_of_cur: {
+    en: '{amt} · {pct}% of {cur} book',
+    fr: '{amt} · {pct} % de l’encours en {cur}',
   },
   invest_field_asset_class: { en: 'Asset class', fr: 'Classe d’actifs' },
   invest_field_currency: { en: 'Currency', fr: 'Devise' },

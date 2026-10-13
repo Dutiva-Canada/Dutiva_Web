@@ -92,22 +92,26 @@ export function InvestHomePage() {
     [lang, homeCur],
   )
   /* Per-currency formatters for the no-FX fallback — each line is honest
-     native money, never converted. */
+     native money, never converted. `code` display names the currency
+     ('CAD 5,614.51') so a bare '$' can't be misread next to a USD line. */
   const fmtFor = (cur: string) =>
     new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
       style: 'currency',
       currency: cur,
+      currencyDisplay: 'code',
     })
 
   const book = useMemo(() => {
     let used = false
     let missed = 0
+    const missedCurs = new Set<string>()
     const pairs = new Set<string>()
     const conv = (n: number, from: string): number | null => {
       if (from === homeCur) return n
       const c = convertFx(n, from, homeCur, fx)
       if (c === null) {
         missed++
+        missedCurs.add(from)
         return null
       }
       used = true
@@ -185,9 +189,14 @@ export function InvestHomePage() {
       pairList,
       totalByCur: orderCurs(totalByCur),
       cashByCur: orderCurs(cashByCur),
+      posByCur,
+      missedCurs,
     }
   }, [state.positions, state.accounts, state.snapshots, fx, homeCur])
-  const openSignals = state.signals.filter((s) => s.status === 'new').length
+  /* 'Open' means still actionable — new or acknowledged. Dismissed is
+     closed and drops out of both the count and the latest list. */
+  const openSignals = state.signals.filter((s) => s.status !== 'dismissed').length
+  const latestSignals = state.signals.filter((s) => s.status !== 'dismissed').slice(0, 5)
   const lastRun = state.runs[0]
   const pricesAsOf = useMemo(() => {
     let latest: string | undefined
@@ -256,7 +265,10 @@ export function InvestHomePage() {
             <p className="sb-helper" style={{ margin: '6px 0 0' }}>
               {x(IM.invest_prices_as_of).replace(
                 '{time}',
-                new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA'),
+                new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }),
               )}
             </p>
           )}
@@ -289,7 +301,7 @@ export function InvestHomePage() {
       <InvestOnboarding />
 
       {noticed && (
-        <div className="sb-note" style={{ marginBottom: 16, alignItems: 'center' }}>
+        <div className="sb-note sb-note-accent" style={{ marginBottom: 16, alignItems: 'center' }}>
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
             <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed}{' '}
@@ -307,7 +319,9 @@ export function InvestHomePage() {
 
       <div className="sb-stats">
         <div className="sb-stat">
-          <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_total_value)}</p>
+          <p className="k" style={{ margin: 0 }}>
+            {x(book.missed > 0 ? IM.invest_ov_total_value_split : IM.invest_ov_total_value)}
+          </p>
           {book.missed > 0 ? (
             /* Anything unconvertible means a single blended figure would
                be wrong — one honest line per currency instead. */
@@ -360,7 +374,13 @@ export function InvestHomePage() {
       )}
       {book.missed > 0 && (
         <p className="sb-helper" style={{ margin: '4px 0 0' }}>
-          {x(IM.invest_home_fx_split)}
+          {fx
+            ? /* Rates exist — just not for the named currencies. */
+              x(IM.invest_home_fx_uncovered).replace(
+                '{curs}',
+                [...book.missedCurs].join(', '),
+              )
+            : x(IM.invest_home_fx_split)}
         </p>
       )}
 
@@ -373,23 +393,43 @@ export function InvestHomePage() {
             <ul style={{ margin: '14px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {allocation.map(({ cls, value, native }) => {
                 const pct = book.positionsValue > 0 ? (value / book.positionsValue) * 100 : 0
+                /* No blended book → no share-of-book. Each native amount
+                   still gets its own honest proportion: its share of the
+                   positions held in that same currency. */
+                const nativePct = ([c, a]: [string, number]) => {
+                  const denom = book.posByCur.get(c) ?? 0
+                  return denom > 0 ? (a / denom) * 100 : 0
+                }
                 return (
                   <li key={cls}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13.5px' }}>
                       <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[assetLabel[cls]])}</span>
                       <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--sb-muted)' }}>
                         {book.missed > 0
-                          ? /* A share of a book whose pieces can't be summed
-                               is a made-up number — native amounts only. */
-                            native.map(([c, a]) => fmtFor(c).format(a)).join(' + ')
+                          ? native
+                              .map(([c, a]) =>
+                                x(IM.invest_alloc_of_cur)
+                                  .replace('{pct}', String(Math.round(nativePct([c, a]))))
+                                  .replace('{cur}', c)
+                                  .replace('{amt}', fmtFor(c).format(a)),
+                              )
+                              .join(' + ')
                           : `${fmt.format(value)} · ${Math.round(pct)}%`}
                       </span>
                     </div>
-                    {book.missed === 0 && (
-                      <div className="sb-bar-track">
-                        <div className="sb-bar-fill" style={{ width: `${Math.max(2, pct)}%` }} />
-                      </div>
-                    )}
+                    <div className="sb-bar-track">
+                      <div
+                        className="sb-bar-fill"
+                        style={{
+                          width: `${Math.max(
+                            2,
+                            book.missed > 0
+                              ? Math.max(...native.map((n) => nativePct(n)))
+                              : pct,
+                          )}%`,
+                        }}
+                      />
+                    </div>
                   </li>
                 )
               })}
@@ -399,18 +439,21 @@ export function InvestHomePage() {
 
         <section className={cardClass}>
           <h2 style={{ margin: 0 }}>{x(IM.invest_ov_recent_signals)}</h2>
-          {state.signals.length === 0 ? (
+          {latestSignals.length === 0 ? (
             <p className="sb-empty">{x(IM.invest_signals_empty)}</p>
           ) : (
             <ul className="sb-mini-list">
-              {state.signals.slice(0, 5).map((s) => (
+              {latestSignals.map((s) => (
                 <li key={s.id}>
                   <div style={{ minWidth: 0 }}>
                     <p className="sb-sig-title" style={{ fontSize: 14.5 }}>
                       {lang === 'fr' && s.titleFr ? s.titleFr : s.title}
                     </p>
                     <p className="sb-helper" style={{ margin: '3px 0 0' }}>
-                      {s.symbol} · {new Date(s.createdAt).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
+                      {/* Portfolio-level signals carry no symbol — skip the
+                          separator rather than render a dangling '·'. */}
+                      {s.symbol ? `${s.symbol} · ` : ''}
+                      {new Date(s.createdAt).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')}
                     </p>
                   </div>
                   {s.status === 'new' && (
