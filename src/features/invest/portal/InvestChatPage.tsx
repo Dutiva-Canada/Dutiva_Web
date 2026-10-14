@@ -82,6 +82,18 @@ function actionLabel(
       return x(IM.invest_chat_did_strategy).replace('{name}', name)
     case 'add_position':
       return x(IM.invest_chat_did_position).replace('{name}', name)
+    case 'draft_thesis':
+      return x(IM.invest_chat_did_thesis).replace('{name}', name)
+    case 'set_goal':
+      return x(IM.invest_chat_did_goal).replace('{name}', name)
+    case 'record_cash':
+      return x(IM.invest_chat_did_cash).replace('{name}', name)
+    case 'set_recurring':
+      return x(IM.invest_chat_did_recurring).replace('{name}', name)
+    case 'record_dividend':
+      return x(IM.invest_chat_did_dividend).replace('{name}', name)
+    case 'record_split':
+      return x(IM.invest_chat_did_split).replace('{name}', name)
     default:
       return ''
   }
@@ -100,6 +112,15 @@ function actionRoute(action: InvestChatAction): string | null {
       return '/invest/signals'
     case 'draft_strategy':
       return '/invest/strategies'
+    case 'draft_thesis':
+      return '/invest/theses'
+    case 'set_goal':
+      return '/invest/analysis'
+    case 'record_cash':
+    case 'set_recurring':
+    case 'record_dividend':
+    case 'record_split':
+      return '/invest/portfolio'
     default:
       return null
   }

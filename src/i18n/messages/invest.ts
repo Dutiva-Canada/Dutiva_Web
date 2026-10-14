@@ -1336,6 +1336,18 @@ const investCoreMessages = defineMessages({
   invest_chat_did_signal: { en: 'Signal “{name}” updated', fr: 'Signal « {name} » mis à jour' },
   invest_chat_did_strategy: { en: 'Strategy “{name}” filed for review', fr: 'Stratégie « {name} » déposée pour validation' },
   invest_chat_did_position: { en: 'Position logged — {name}', fr: 'Position notée — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_thesis: { en: 'Thesis draft filed — {name}', fr: 'Thèse déposée — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_goal: { en: 'Goal set — {name}', fr: 'Objectif noté — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_cash: { en: 'Cash movement recorded — {name}', fr: 'Mouvement de trésorerie noté — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_recurring: { en: 'Recurring contribution scheduled — {name}', fr: 'Versement récurrent programmé — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_dividend: { en: 'Dividend recorded — {name}', fr: 'Dividende noté — {name}' },
+  /* [FR self-authored] */
+  invest_chat_did_split: { en: 'Split recorded — {name}', fr: 'Fractionnement noté — {name}' },
   invest_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',

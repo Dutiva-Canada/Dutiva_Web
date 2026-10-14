@@ -26,7 +26,7 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useInvestData } from '../data/InvestDataContext'
-import { deleteGoal, saveGoal, saveScanItem, saveSwot } from '../data/api'
+import { deleteGoal, saveGoal, saveScanItem, saveStressScenario, saveSwot } from '../data/api'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type {
   GoalMetric,
@@ -34,6 +34,7 @@ import type {
   InvestGoal,
   ScanDirection,
   ScanTheme,
+  StressShock,
 } from '../data/types'
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
@@ -143,7 +144,15 @@ export function InvestAnalysisPage() {
   const loadPending = useCallback(() => {
     loadPendingSuggestions('invest')
       .then((rows) =>
-        setPending(rows.filter((r) => r.kind === 'goal' || r.kind === 'scan' || r.kind === 'swot')),
+        setPending(
+          rows.filter(
+            (r) =>
+              r.kind === 'goal' ||
+              r.kind === 'scan' ||
+              r.kind === 'swot' ||
+              r.kind === 'stress_scenario',
+          ),
+        ),
       )
       .catch(() => {})
   }, [])
@@ -225,6 +234,26 @@ export function InvestAnalysisPage() {
             opportunities: list(swot['opportunities']),
             threats: list(swot['threats']),
           })
+        } else if (s.kind === 'stress_scenario') {
+          /* Tally named the book's real exposure — the accept persists it
+             as a saved scenario; the Stress panel replays it on pick. */
+          const name = typeof p.name === 'string' ? p.name.trim() : ''
+          const shocks = Array.isArray(p.shocks)
+            ? (p.shocks as unknown[]).filter(
+                (sh): sh is StressShock =>
+                  typeof sh === 'object' &&
+                  sh !== null &&
+                  typeof (sh as StressShock).match === 'string' &&
+                  Number.isFinite(Number((sh as StressShock).pct)),
+              )
+            : []
+          if (!name || shocks.length === 0) {
+            showToast(IM.invest_form_error)
+            return
+          }
+          if (!state.stressScenarios.some((sc) => twin(sc.name, name))) {
+            await saveStressScenario({ name, shocks })
+          }
         }
         void resolveSuggestion(s.id, 'accepted', 'added').catch(() => {})
         setPending((cur) => cur.filter((r) => r.id !== s.id))
@@ -238,7 +267,17 @@ export function InvestAnalysisPage() {
         setPendingBusy(null)
       }
     },
-    [pendingBusy, state.theses, state.goals, state.scanItems, refresh, showToast, x, loadPending],
+    [
+      pendingBusy,
+      state.theses,
+      state.goals,
+      state.scanItems,
+      state.stressScenarios,
+      refresh,
+      showToast,
+      x,
+      loadPending,
+    ],
   )
 
   const goalTargetNum = Number(goal.target)
@@ -355,7 +394,9 @@ export function InvestAnalysisPage() {
                         ? x(IM.invest_goal_suggest_accept)
                         : s.kind === 'scan'
                           ? x(IM.invest_scan_suggest_accept)
-                          : x(IM.invest_swot_suggest_apply)}
+                          : s.kind === 'stress_scenario'
+                            ? x(IM.invest_stress_suggest_save)
+                            : x(IM.invest_swot_suggest_apply)}
                     </button>
                     <button
                       type="button"

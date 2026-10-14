@@ -2,6 +2,7 @@
     share these so a row's type is scannable at a glance (a theme watch
     doesn't look like a rule-add). Unknown kinds get Sparkles. */
 import {
+  Activity,
   ArrowLeftRight,
   BookOpen,
   Bot,
@@ -11,6 +12,7 @@ import {
   LayoutGrid,
   ListPlus,
   Radar,
+  Repeat,
   SlidersHorizontal,
   Sparkles,
   Target,
@@ -31,6 +33,8 @@ const KIND_ICONS: Record<string, LucideIcon> = {
   memory: Brain,
   profile: UserRound,
   order_cross: ArrowLeftRight,
+  stress_scenario: Activity,
+  recurring: Repeat,
 }
 
 export function suggestionIcon(kind: string): LucideIcon {

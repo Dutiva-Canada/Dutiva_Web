@@ -115,6 +115,9 @@ describe('planSuggestions', () => {
         positions: [pos('ACME', 5)],
         snapshots: [snap('ACME')],
         strategies: [strat()],
+        /* The thesis is covered so the five-row cap leaves room — this
+           spec is about nudges coexisting with book work, not ranking. */
+        theses: [{ asset_class: 'equity', symbol: 'ACME' }],
         profile: null,
         chatTurns: 4,
         memoryCount: 0,
@@ -132,9 +135,12 @@ describe('planSuggestions', () => {
     const out = planSuggestions(
       ctx({ positions: [pos('ACME', 5)], snapshots: [snap('ACME')] }),
     )
-    expect(out).toHaveLength(1)
-    const s = out[0]!
-    expect(s.kind).toBe('strategy')
+    /* The draft leads on score; the book's 100% concentration also earns
+       the stress-scenario row — it lands on Analysis, not a strategy, so
+       the no-strategy gate doesn't silence it. */
+    const s = out.find((c) => c.kind === 'strategy')!
+    expect(s).toBeDefined()
+    expect(out[0]).toBe(s)
     const draft = s.payload['draft'] as { rules: { type: string }[] }
     /* Generic tier stays observation-only — order proposals belong to the
        advice tier, never to a suggestion a generic user could accept. */
@@ -456,8 +462,10 @@ describe('planSuggestions', () => {
 
   it('does not file thesis rows when no strategy watches the book yet', () => {
     /* The whole-strategy draft is the answer to an unwatched book — the
-       pass returns early, so thesis suggestions wait for a strategy to
-       land first rather than pile onto the empty queue. */
+       pass returns before the strategy-dependent detectors, so thesis
+       suggestions wait for a strategy to land first. The strategy-free
+       kinds (stress_scenario here, since ACME is the whole book) still
+       file — they land on Analysis, not on a strategy. */
     const out = planSuggestions(
       ctx({
         positions: [pos('ACME', 5)],
@@ -465,6 +473,155 @@ describe('planSuggestions', () => {
         theses: [],
       }),
     )
-    expect(out.every((c) => c.kind === 'strategy')).toBe(true)
+    expect(out.some((c) => c.kind === 'thesis')).toBe(false)
+    expect(out.some((c) => c.kind === 'strategy')).toBe(true)
+    expect(out.every((c) => c.kind === 'strategy' || c.kind === 'stress_scenario')).toBe(true)
+  })
+
+  /* ── stress_scenario — the book's dominant exposure, saved for the Stress
+     panel ─────────────────────────────────────────────────────────────── */
+  it('names the dominant holding as the scenario worth saving', () => {
+    /* ACME 4 000 of a 5 000 book → 80%; the shock is ACME −25%. The
+       strategy already watches both symbols with a weight rule and the
+       theses exist, so the quieter filings don't crowd the 35-scored row
+       out of the five-row cap. */
+    const out = planSuggestions(
+      ctx({
+        strategies: [
+          strat({
+            scope_symbols: ['ACME', 'BETA'],
+            rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 30 })],
+          }),
+        ],
+        positions: [pos('ACME', 40), pos('BETA', 10)],
+        snapshots: [snap('ACME'), snap('BETA')],
+        theses: [
+          { asset_class: 'equity', symbol: 'ACME' },
+          { asset_class: 'equity', symbol: 'BETA' },
+        ],
+      }),
+    )
+    const s = out.find((c) => c.kind === 'stress_scenario')
+    expect(s).toBeDefined()
+    expect(s!.dedupeKey).toBe('stress:ACME:-25')
+    const payload = s!.payload as { name: string; shocks: { match: string; pct: number }[] }
+    expect(payload.name).toBe('ACME -25%')
+    expect(payload.shocks).toEqual([{ match: 'ACME', pct: -25 }])
+    expect(s!.detail_en).toMatch(/25% off your biggest position/)
+    expect(s!.detail_fr).toMatch(/baisse de 25 %/)
+  })
+
+  it('files the scenario even on a one-position book — it IS the exposure', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat()],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        theses: [{ asset_class: 'equity', symbol: 'ACME' }],
+      }),
+    )
+    expect(out.some((c) => c.kind === 'stress_scenario')).toBe(true)
+  })
+
+  it('skips the scenario on a book with no dominant holding', () => {
+    /* Five equal positions → each 20%, under the concentration line. */
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat({ scope_symbols: ['A', 'B', 'C', 'D', 'E'] })],
+        positions: [pos('A', 1), pos('B', 1), pos('C', 1), pos('D', 1), pos('E', 1)],
+        snapshots: [snap('A'), snap('B'), snap('C'), snap('D'), snap('E')],
+        theses: ['A', 'B', 'C', 'D', 'E'].map((symbol) => ({ asset_class: 'equity', symbol })),
+      }),
+    )
+    expect(out.some((c) => c.kind === 'stress_scenario')).toBe(false)
+  })
+
+  /* ── recurring — deposits already on a rhythm, minus the schedule ─────── */
+  const deposits = (
+    accountId: string,
+    dates: string[],
+    amount = 500,
+  ): NonNullable<SuggestionContext['cashEvents']> =>
+    dates.map((occurred_at) => ({
+      account_id: accountId,
+      kind: 'deposit',
+      amount,
+      occurred_at,
+    }))
+
+  it('spots a monthly deposit rhythm and offers the schedule', () => {
+    const out = planSuggestions(
+      ctx({
+        cashTotal: 1500,
+        cashEvents: deposits('acc-1', ['2023-09-15', '2023-10-15', '2023-11-13']),
+        recurring: [],
+      }),
+    )
+    const s = out.find((c) => c.kind === 'recurring')
+    expect(s).toBeDefined()
+    expect(s!.dedupeKey).toBe('recurring:acc-1:monthly:500')
+    const payload = s!.payload as { account_id: string; amount: number; cadence: string }
+    expect(payload).toMatchObject({ account_id: 'acc-1', amount: 500, cadence: 'monthly' })
+  })
+
+  it('spots a weekly rhythm too', () => {
+    const out = planSuggestions(
+      ctx({
+        cashTotal: 1500,
+        cashEvents: deposits('acc-1', ['2023-10-31', '2023-11-07', '2023-11-13']),
+        recurring: [],
+      }),
+    )
+    const s = out.find((c) => c.kind === 'recurring')
+    expect(s).toBeDefined()
+    expect(s!.dedupeKey).toBe('recurring:acc-1:weekly:500')
+  })
+
+  it('never asks about an account that already has a schedule', () => {
+    const out = planSuggestions(
+      ctx({
+        cashTotal: 1500,
+        cashEvents: deposits('acc-1', ['2023-09-15', '2023-10-15', '2023-11-13']),
+        recurring: [{ account_id: 'acc-1' }],
+      }),
+    )
+    expect(out.some((c) => c.kind === 'recurring')).toBe(false)
+  })
+
+  it('ignores deposits whose amounts or spacing wander', () => {
+    /* 500 / 900 / 500 → ±80% around the median, over the 15% band. */
+    const erratic = planSuggestions(
+      ctx({
+        cashTotal: 1900,
+        cashEvents: [
+          { account_id: 'acc-1', kind: 'deposit', amount: 500, occurred_at: '2023-09-15' },
+          { account_id: 'acc-1', kind: 'deposit', amount: 900, occurred_at: '2023-10-15' },
+          { account_id: 'acc-1', kind: 'deposit', amount: 500, occurred_at: '2023-11-13' },
+        ],
+        recurring: [],
+      }),
+    )
+    expect(erratic.some((c) => c.kind === 'recurring')).toBe(false)
+    /* Even spacing: 15-day gaps fit neither weekly nor monthly. */
+    const uneven = planSuggestions(
+      ctx({
+        cashTotal: 1500,
+        cashEvents: deposits('acc-1', ['2023-10-01', '2023-10-16', '2023-10-31']),
+        recurring: [],
+      }),
+    )
+    expect(uneven.some((c) => c.kind === 'recurring')).toBe(false)
+  })
+
+  it('files the recurring nudge even when no strategy watches the book', () => {
+    /* Strategy-independent — the accept writes a schedule row, not a rule. */
+    const out = planSuggestions(
+      ctx({
+        cashTotal: 1500,
+        cashEvents: deposits('acc-1', ['2023-09-15', '2023-10-15', '2023-11-13']),
+        recurring: [],
+      }),
+    )
+    expect(out.some((c) => c.kind === 'recurring')).toBe(true)
   })
 })

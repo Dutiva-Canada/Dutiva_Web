@@ -106,9 +106,19 @@ export async function loadBookContext(
   userId: string,
 ): Promise<{
   ctx: InvestChatContext
-  accounts: { id: string; name: string; kind: string }[]
+  accounts: { id: string; name: string; kind: string; base_currency: string; cash_balance: number }[]
   watchlist: { id: string; symbol: string; asset_class: string; name: string }[]
   signals: { id: string; title: string; status: string }[]
+  positions: {
+    id: string
+    account_id: string
+    asset_class: string
+    symbol: string
+    name: string
+    quantity: number
+    avg_cost: number
+    currency: string
+  }[]
 }> {
   const [
     { data: accounts },
@@ -125,7 +135,7 @@ export async function loadBookContext(
       .select('id, name, kind, base_currency, cash_balance, status')
       .eq('user_id', userId).eq('status', 'active').limit(CHAT_LIST_CAP),
     adminClient.from('invest_positions')
-      .select('symbol, name, quantity, last_price, last_price_at, currency')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, last_price, last_price_at, currency')
       .eq('user_id', userId).limit(CHAT_LIST_CAP),
     adminClient.from('invest_watchlist')
       .select('id, symbol, asset_class, name')
@@ -285,9 +295,25 @@ export async function loadBookContext(
   }
   return {
     ctx,
-    accounts: (accounts ?? []) as { id: string; name: string; kind: string }[],
+    accounts: (accounts ?? []) as {
+      id: string
+      name: string
+      kind: string
+      base_currency: string
+      cash_balance: number
+    }[],
     watchlist: (watchlist ?? []) as { id: string; symbol: string; asset_class: string; name: string }[],
     signals: (signals ?? []) as { id: string; title: string; status: string }[],
+    positions: (positions ?? []) as {
+      id: string
+      account_id: string
+      asset_class: string
+      symbol: string
+      name: string
+      quantity: number
+      avg_cost: number
+      currency: string
+    }[],
   }
 }
 
@@ -643,6 +669,7 @@ export async function runChat(
           accounts: book.accounts,
           watchlist: book.watchlist,
           signals: book.signals,
+          positions: book.positions,
           route,
           provider,
           apiKey,

@@ -148,28 +148,40 @@ no insights, never a failed run.
 
 **Suggestion pass** — after insights, `fileBookSuggestions`
 (`suggestions.ts`) runs a deterministic book review and files durable
-`agent_suggestions` rows the Strategies page renders as a review list.
-Five kinds: `strategy` (a seeded, disabled draft for a book with no
-enabled strategy — the same payload shape the invest-ai drafter returns,
-so the existing accept path consumes it), `rule_add` (a gap worth a rule —
-concentration, big gains, cash drag, an unwatched mover; when the rule's
-own metric needs a faster cadence than the target's, `payload.cadence`
-carries the upgrade and the detail discloses it — accepting applies both),
-`scope_add`
-(held symbols no enabled strategy covers), `rule_tune` (a rule whose
-signals keep getting dismissed → loosened thresholds, or a proposal whose
-drafts keep expiring → demote to a signal), and `thesis` (a held symbol
-with no claim yet → a seeded tracker whose detail names the holding's
-qty/cost-basis and whose drift/break conditions come pre-filled; the
-story line stays blank — 'Draft with Tally' on the card runs
-`draft-thesis` against an auto-built brief of the position's facts, and
-the filed draft **supersedes** the scaffold under the same dedupe key),
-and `goal` (a Learning is
-the resolution trail itself: dismissed dedupe keys stay suppressed for 30
-days, a kind the user dismisses ~always cools down entirely, and the pass
-regenerates at most every ~20h (a manual scan bypasses). Order-proposal
-rules only ever appear in suggestions for the internal-staff tier — the
-same `isInternalDutivaAccount` gate as the insight pass.
+`agent_suggestions` rows the portal renders as review strips on the page
+each kind belongs to (Strategies is the catch-all inbox; Portfolio,
+Analysis, Theses, Orders and Profile each serve their own kinds).
+Strategy-surface kinds: `strategy` (a seeded, disabled draft for a book
+with no enabled strategy — the same payload shape the invest-ai drafter
+returns, so the existing accept path consumes it), `rule_add` (a gap
+worth a rule — concentration, big gains, cash drag, an unwatched mover;
+when the rule's own metric needs a faster cadence than the target's,
+`payload.cadence` carries the upgrade and the detail discloses it —
+accepting applies both), `scope_add` (held symbols no enabled strategy
+covers), and `rule_tune` (a rule whose signals keep getting dismissed →
+loosened thresholds, or a proposal whose drafts keep expiring → demote
+to a signal). Then `thesis` (a held symbol with no claim yet → a seeded
+tracker whose detail names the holding's qty/cost-basis and whose
+drift/break conditions come pre-filled; the story line stays blank —
+'Draft with Tally' on the card runs `draft-thesis` against an auto-built
+brief of the position's facts, and the filed draft **supersedes** the
+scaffold under the same dedupe key), `goal` (a starter goal), `scan`
+and `swot` (analysis artifacts), `profile` and `memory` (the get-to-know-
+you nudges), plus two **portfolio-surface** kinds that file even on a
+book with no strategy — their accepts write schedule/scenario rows, not
+rules: `recurring` (three or more same-ish deposits at a steady weekly
+or monthly spacing on an account with no enabled schedule → the payload
+carries `account_id`/`amount`/`cadence` and the Portfolio strip's accept
+writes the `invest_recurring_contributions` row directly) and
+`stress_scenario` (the holding past the concentration line → a named
+"SYM −25%" scenario saved to `invest_stress_scenarios`, where the Stress
+panel replays it on pick). Every exit from the planner funnels through
+one suppression+rank pass — a dismissed dedupe key stays suppressed for
+30 days, a kind the user dismisses ~always cools down entirely, the five
+highest scores file, and the pass regenerates at most every ~20h (a
+manual scan bypasses). Order-proposal rules only ever appear in
+suggestions for the internal-staff tier — the same
+`isInternalDutivaAccount` gate as the insight pass.
 
 **Thesis pass** — after suggestions, `evaluateTheses` (`theses.ts`) reads
 every `invest_theses` row against the freshest snapshots on every sweep
@@ -260,6 +272,38 @@ and only becomes a row when the holder accepts on `/invest/profile`.
 Every draft prompt carries the holder's confirmed memories and mandate as
 context — quoted facts to align with, never instructions and never a
 change to the advice tier.
+
+**Chat actions** — inside a chat reply the model may emit one action
+object, parsed server-side by `parseInvestChatAction` (unknown types and
+malformed payloads drop before any write) and executed by
+`executeChatAction` in `chatActions.ts` against the holder's own rows.
+The grammar covers the portal's everyday writes: `add_watch_symbol`,
+`remove_watch_symbol`, `add_position`, `create_order` (always queued —
+chat never fills), `update_signal`, `draft_strategy`, `draft_thesis`
+(same draft-thesis pipeline the Theses page runs; the draft supersedes
+the scaffold under the shared dedupe key), `set_goal` (a measurable book
+goal the sweep scores), `record_cash` (deposit/withdrawal — event +
+balance move as a pair, overdrafts rejected), `set_recurring` (a
+scheduled contribution), `record_dividend` (perShare × held quantity
+into the ledger for a held position) and `record_split` (quantity ×
+ratio, average cost ÷ ratio). Held-position actions resolve the symbol
+through `resolveHeldPosition` — ambiguous or unheld symbols fail
+`ok: false` rather than guessing. Every executed action persists on the
+assistant message; `undoChatAction` reverses what is still reversible
+(a queued order that hasn't moved, the event+balance pair, the split's
+prior quantity/cost) and reports `not_undoable` for what isn't. Action
+outcomes render as chips with a route link to the surface they touched.
+
+**Reactions** — `sendInvestReaction` (`{ action: 'react' }` →
+`reactRuntime.ts`) gives Tally an ambient line after the holder's own
+UI writes, parsed from a closed event vocabulary: `watch_added`,
+`order_queued`, `signal_updated`, `position_logged`, `account_added`,
+`cash_recorded` (deposit/withdrawal/dividend), `recurring_created`,
+`scenario_run` (the stress panel's pick, with the book delta it showed),
+`split_recorded` and `fill_recorded`. The portal fires them on the
+write's success path only — a throttled or failed reaction returns null
+and never disturbs the save. The reply also lands in the chat thread, so
+the ambient line and the permanent record stay the same observation.
 
 ## What it deliberately is not
 

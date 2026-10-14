@@ -29,12 +29,16 @@ export function RecurringCard({
   busy,
   run,
   fmtFor,
+  onRecorded,
 }: {
   accounts: InvestAccount[]
   items: RecurringContribution[]
   busy: boolean
   run: (fn: () => Promise<void>) => Promise<void>
   fmtFor: (cur: string) => Intl.NumberFormat
+  /** Fires once a schedule lands — the page hands it to Tally's
+      reaction line. */
+  onRecorded?: (r: { amount: number; cadence: RecurringCadence }) => void
 }) {
   const { x, lang } = useI18n()
   const [accountId, setAccountId] = useState('')
@@ -71,7 +75,10 @@ export function RecurringCard({
         cadence,
         nextRunOn,
       }),
-    ).then(() => setAmount(''))
+    ).then(() => {
+      setAmount('')
+      onRecorded?.({ amount: amountNum, cadence })
+    })
   }
 
   return (

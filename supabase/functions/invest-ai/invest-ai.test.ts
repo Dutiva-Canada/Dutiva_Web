@@ -219,6 +219,136 @@ describe('parseInvestChatReply', () => {
       ),
     ).toBeNull()
   })
+
+  it('parses draft_thesis with a valid symbol only', () => {
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'draft_thesis', symbol: 'shop' } }),
+      )?.action,
+    ).toMatchObject({ type: 'draft_thesis', symbol: 'SHOP' })
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'draft_thesis', symbol: 'not a symbol!!' } }),
+      ),
+    ).toBeNull()
+  })
+
+  it('parses set_goal with whitelisted metrics and signed-target rules', () => {
+    const ok = parseInvestChatReply(
+      JSON.stringify({
+        reply: 'ok',
+        action: {
+          type: 'set_goal',
+          title: 'Reach 100k',
+          metric: 'book_value',
+          op: 'gte',
+          target: 100000,
+          deadline: '2030-01-01',
+        },
+      }),
+    )
+    expect(ok?.action).toMatchObject({ type: 'set_goal', metric: 'book_value', target: 100000 })
+    /* an unlisted metric, a negative target on an unsigned metric, and a
+       malformed deadline field all reject */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'set_goal', title: 'x'.repeat(4), metric: 'vibes', op: 'gte', target: 5 },
+        }),
+      ),
+    ).toBeNull()
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'set_goal', title: 'Cash floor', metric: 'cash_pct', op: 'gte', target: -5 },
+        }),
+      ),
+    ).toBeNull()
+    /* the signed metric keeps negatives — a loss floor is legal there */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'set_goal', title: 'Loss floor', metric: 'unrealized_gain_pct', op: 'gte', target: -20 },
+        }),
+      )?.action,
+    ).toMatchObject({ type: 'set_goal', target: -20 })
+  })
+
+  it('parses record_cash for deposit/withdrawal with a positive amount', () => {
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'record_cash', kind: 'deposit', amount: 250, account: 'TFSA' },
+        }),
+      )?.action,
+    ).toMatchObject({ type: 'record_cash', kind: 'deposit', amount: 250, account: 'TFSA' })
+    /* dividends book through record_dividend, not the generic ledger kind */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'record_cash', kind: 'dividend', amount: 50 },
+        }),
+      ),
+    ).toBeNull()
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_cash', kind: 'deposit', amount: -1 } }),
+      ),
+    ).toBeNull()
+  })
+
+  it('parses set_recurring with a cadence and sane date', () => {
+    const ok = parseInvestChatReply(
+      JSON.stringify({
+        reply: 'ok',
+        action: { type: 'set_recurring', amount: 500, cadence: 'monthly', nextRunOn: '2026-01-01' },
+      }),
+    )
+    expect(ok?.action).toMatchObject({ type: 'set_recurring', cadence: 'monthly', nextRunOn: '2026-01-01' })
+    /* a non-date nextRunOn drops the field instead of rejecting */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'set_recurring', amount: 500, cadence: 'weekly', nextRunOn: 'soon' },
+        }),
+      )?.action,
+    ).toMatchObject({ type: 'set_recurring', cadence: 'weekly', nextRunOn: undefined })
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'set_recurring', amount: 500, cadence: 'daily' } }),
+      ),
+    ).toBeNull()
+  })
+
+  it('parses record_dividend and record_split against held symbols', () => {
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_dividend', symbol: 'ry', perShare: 1.08 } }),
+      )?.action,
+    ).toMatchObject({ type: 'record_dividend', symbol: 'RY', perShare: 1.08 })
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_dividend', symbol: 'RY', perShare: 0 } }),
+      ),
+    ).toBeNull()
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_split', symbol: 'SHOP', ratio: 10 } }),
+      )?.action,
+    ).toMatchObject({ type: 'record_split', symbol: 'SHOP', ratio: 10 })
+    /* a 1:1 split is a no-op the model shouldn't file */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_split', symbol: 'SHOP', ratio: 1 } }),
+      ),
+    ).toBeNull()
+  })
 })
 
 describe('resolveInvestRef', () => {
@@ -710,6 +840,51 @@ describe('investReactPrompt — the wider book events', () => {
     )
     expect(a).toContain('TFSA')
     expect(a).toContain('paper')
+  })
+
+  it('names the quiet-ledger events — cash, schedule, split, fill', () => {
+    expect(
+      investReactPrompt(
+        { type: 'cash_recorded', kind: 'deposit', amount: 500, currency: 'CAD' },
+        EMPTY_CTX,
+        'en',
+      ),
+    ).toContain('deposit of 500 CAD')
+    expect(
+      investReactPrompt(
+        { type: 'recurring_created', amount: 500, cadence: 'monthly' },
+        EMPTY_CTX,
+        'en',
+      ),
+    ).toContain('monthly recurring contribution of 500')
+    expect(
+      investReactPrompt(
+        { type: 'split_recorded', symbol: 'shop', ratio: 10 },
+        EMPTY_CTX,
+        'en',
+      ),
+    ).toContain('10-for-1 split on SHOP')
+    expect(
+      investReactPrompt(
+        { type: 'fill_recorded', symbol: 'xeqt', quantity: 5 },
+        EMPTY_CTX,
+        'en',
+      ),
+    ).toContain('5 XEQT')
+  })
+
+  it('names a stress run with its book delta when present', () => {
+    const p = investReactPrompt(
+      { type: 'scenario_run', name: 'ACME -25%', deltaPct: -8.34 },
+      EMPTY_CTX,
+      'en',
+    )
+    expect(p).toContain('ACME -25%')
+    expect(p).toContain('-8.3%')
+    /* delta omitted → just the scenario name */
+    expect(
+      investReactPrompt({ type: 'scenario_run', name: 'Cash shock' }, EMPTY_CTX, 'en'),
+    ).not.toContain('book moved')
   })
 })
 

@@ -30,6 +30,7 @@ export function CashLedger({
   busy,
   run,
   fmtFor,
+  onRecorded,
 }: {
   accounts: InvestAccount[]
   events: InvestCashEvent[]
@@ -37,6 +38,9 @@ export function CashLedger({
   /** The page's guarded mutation runner — refreshes state on success. */
   run: (fn: () => Promise<void>) => Promise<void>
   fmtFor: (cur: string) => Intl.NumberFormat
+  /** Fires once a movement lands — the page hands it to Tally's
+      reaction line. */
+  onRecorded?: (ev: { kind: CashEventKind; amount: number; currency: string }) => void
 }) {
   const { x, lang } = useI18n()
   const [kind, setKind] = useState<CashEventKind>('deposit')
@@ -72,6 +76,11 @@ export function CashLedger({
       })
       setAmount('')
       setNote('')
+      onRecorded?.({
+        kind,
+        amount: amountNum,
+        currency: accounts.find((a) => a.id === target)?.baseCurrency ?? 'CAD',
+      })
     })
   }
 

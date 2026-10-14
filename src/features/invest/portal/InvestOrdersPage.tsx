@@ -352,7 +352,18 @@ export function InvestOrdersPage() {
                         : null
                     }
                     onExecute={(fill, qty, at) =>
-                      run(() => executeOrder(o.id, fill, qty, at))
+                      run(async () => {
+                        await executeOrder(o.id, fill, qty, at)
+                        sendInvestReaction(
+                          { type: 'fill_recorded', symbol: o.symbol, quantity: qty ?? o.quantity },
+                          lang,
+                          setTallyLine,
+                        )
+                          .then((r) => {
+                            if (r.reply) setTallyLine(r.reply)
+                          })
+                          .catch(() => {})
+                      })
                     }
                     onEdit={(input) => run(() => updateQueuedOrder(o.id, input))}
                     onCancel={() => run(() => setOrderStatus(o.id, 'cancelled'))}

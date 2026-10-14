@@ -740,6 +740,34 @@ export type InvestChatAction =
       account?: string
       currency?: string
     }
+  | { type: 'draft_thesis'; symbol: string; name?: string }
+  | {
+      type: 'set_goal'
+      title: string
+      metric: string
+      op: 'gte' | 'lte'
+      target: number
+      deadline?: string
+    }
+  | {
+      type: 'record_cash'
+      kind: 'deposit' | 'withdrawal'
+      amount: number
+      account?: string
+      currency?: string
+      note?: string
+    }
+  | {
+      type: 'set_recurring'
+      amount: number
+      cadence: 'weekly' | 'monthly'
+      account?: string
+      currency?: string
+      nextRunOn?: string
+      note?: string
+    }
+  | { type: 'record_dividend'; symbol: string; perShare: number; account?: string }
+  | { type: 'record_split'; symbol: string; ratio: number; account?: string }
 
 export interface InvestChatReply {
   reply: string
@@ -765,6 +793,12 @@ export const INVEST_CHAT_ACTION_TYPES = new Set([
   'update_signal',
   'draft_strategy',
   'add_position',
+  'draft_thesis',
+  'set_goal',
+  'record_cash',
+  'set_recurring',
+  'record_dividend',
+  'record_split',
 ])
 
 const ASSET_CLASSES = new Set(['equity', 'etf', 'crypto', 'bond', 'cash', 'other'])
@@ -1053,6 +1087,12 @@ export function investChatPrompt(
       '  {"type":"update_signal","signalId":"<id from the list below>","status":"<acknowledged|dismissed>"}',
       '  {"type":"draft_strategy","goal":"<plain-language goal the person stated>"}',
       '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"currency":"<optional, default CAD>","account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
+      '  {"type":"draft_thesis","symbol":"<TICKER>"}   — drafts a thesis (claim + watch conditions) from the position\'s facts and files it for review on Theses; nothing is saved until the person accepts it there',
+      '  {"type":"set_goal","title":"<short name>","metric":"<book_value|cash_pct|max_weight_pct|unrealized_gain_pct|thesis_coverage|position_count>","op":"<gte|lte>","target":<number>,"deadline":"<YYYY-MM-DD, optional>"}   — creates a measurable book goal the sweep scores',
+      '  {"type":"record_cash","kind":"<deposit|withdrawal>","amount":<number>,"account":"<account name if more than one>","currency":"<optional>","note":"<optional>"}   — records a cash movement and moves the account balance; a withdrawal that exceeds the balance fails',
+      '  {"type":"set_recurring","amount":<number>,"cadence":"<weekly|monthly>","account":"<account name if more than one>","currency":"<optional>","nextRunOn":"<YYYY-MM-DD, optional>","note":"<optional>"}   — schedules a repeating contribution the sweep books',
+      '  {"type":"record_dividend","symbol":"<TICKER>","perShare":<number>,"account":"<optional>"}   — books a dividend of perShare × held quantity into the ledger for a position the person holds',
+      '  {"type":"record_split","symbol":"<TICKER>","ratio":<number>,"account":"<optional>"}   — applies a ratio-for-1 split to the held position (quantity × ratio, average cost ÷ ratio); bookkeeping, not an order',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
       'Output ONLY strict JSON: {"reply":"<sized to the ask — a sentence or two for quick questions and confirmations; a full structured answer when they ask for analysis, a comparison, or a plan>","action":<object or null>,"suggests":["<prompt>"]}. No markdown fences.',
@@ -1235,6 +1275,94 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
           currency: optStr(action.currency, 8)?.toUpperCase(),
         })
       }
+      case 'draft_thesis': {
+        const symbol = optStr(action.symbol, 12)?.toUpperCase()
+        if (!symbol || !SYMBOL_RE.test(symbol)) return null
+        return finish({
+          type: 'draft_thesis',
+          symbol,
+          name: optStr(action.name, 80),
+        })
+      }
+      case 'set_goal': {
+        const title = optStr(action.title, 120)
+        const metric = optEnum(action.metric, [
+          'book_value',
+          'cash_pct',
+          'max_weight_pct',
+          'unrealized_gain_pct',
+          'thesis_coverage',
+          'position_count',
+        ])
+        const op = optEnum(action.op, ['gte', 'lte'])
+        const target = Number(action.target)
+        if (!title || title.length < 3 || !metric || !op) return null
+        if (!Number.isFinite(target) || (metric !== 'unrealized_gain_pct' && target < 0)) {
+          return null
+        }
+        const deadline = optStr(action.deadline, 10)
+        return finish({
+          type: 'set_goal',
+          title,
+          metric,
+          op: op as 'gte' | 'lte',
+          target,
+          deadline: deadline && /^\d{4}-\d{2}-\d{2}$/.test(deadline) ? deadline : undefined,
+        })
+      }
+      case 'record_cash': {
+        const kind = optEnum(action.kind, ['deposit', 'withdrawal'])
+        const amount = Number(action.amount)
+        if (!kind || !Number.isFinite(amount) || amount <= 0) return null
+        return finish({
+          type: 'record_cash',
+          kind: kind as 'deposit' | 'withdrawal',
+          amount,
+          account: optStr(action.account, 80),
+          currency: optStr(action.currency, 8)?.toUpperCase(),
+          note: optStr(action.note, 200),
+        })
+      }
+      case 'set_recurring': {
+        const amount = Number(action.amount)
+        const cadence = optEnum(action.cadence, ['weekly', 'monthly'])
+        if (!Number.isFinite(amount) || amount <= 0 || !cadence) return null
+        const nextRunOn = optStr(action.nextRunOn, 10)
+        return finish({
+          type: 'set_recurring',
+          amount,
+          cadence: cadence as 'weekly' | 'monthly',
+          account: optStr(action.account, 80),
+          currency: optStr(action.currency, 8)?.toUpperCase(),
+          nextRunOn:
+            nextRunOn && /^\d{4}-\d{2}-\d{2}$/.test(nextRunOn) ? nextRunOn : undefined,
+          note: optStr(action.note, 200),
+        })
+      }
+      case 'record_dividend': {
+        const symbol = optStr(action.symbol, 12)?.toUpperCase()
+        const perShare = Number(action.perShare)
+        if (!symbol || !SYMBOL_RE.test(symbol)) return null
+        if (!Number.isFinite(perShare) || perShare <= 0) return null
+        return finish({
+          type: 'record_dividend',
+          symbol,
+          perShare,
+          account: optStr(action.account, 80),
+        })
+      }
+      case 'record_split': {
+        const symbol = optStr(action.symbol, 12)?.toUpperCase()
+        const ratio = Number(action.ratio)
+        if (!symbol || !SYMBOL_RE.test(symbol)) return null
+        if (!Number.isFinite(ratio) || ratio <= 0 || ratio === 1) return null
+        return finish({
+          type: 'record_split',
+          symbol,
+          ratio,
+          account: optStr(action.account, 80),
+        })
+      }
     }
     return null
   } catch {
@@ -1273,6 +1401,11 @@ export type InvestReactEvent =
   | { type: 'signal_updated'; status: 'acknowledged' | 'dismissed'; symbol?: string }
   | { type: 'position_logged'; symbol: string; quantity: number }
   | { type: 'account_added'; name: string; kind?: string }
+  | { type: 'cash_recorded'; kind: 'deposit' | 'withdrawal' | 'dividend'; amount: number; currency?: string }
+  | { type: 'recurring_created'; amount: number; cadence: 'weekly' | 'monthly' }
+  | { type: 'scenario_run'; name: string; deltaPct?: number }
+  | { type: 'split_recorded'; symbol: string; ratio: number }
+  | { type: 'fill_recorded'; symbol: string; quantity: number }
 
 export function investReactPrompt(
   event: InvestReactEvent,
@@ -1289,7 +1422,17 @@ export function investReactPrompt(
           ? `just marked a signal ${event.status}${event.symbol ? ` on ${event.symbol.slice(0, 12).toUpperCase()}` : ''}`
           : event.type === 'position_logged'
             ? `just logged a position: ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
-            : `just added an account: "${event.name.slice(0, 80)}"${event.kind ? ` (${event.kind})` : ''}`
+            : event.type === 'account_added'
+              ? `just added an account: "${event.name.slice(0, 80)}"${event.kind ? ` (${event.kind})` : ''}`
+              : event.type === 'cash_recorded'
+                ? `just recorded a ${event.kind} of ${event.amount} ${event.currency ?? 'CAD'} in the cash ledger`
+                : event.type === 'recurring_created'
+                  ? `just set up a ${event.cadence} recurring contribution of ${event.amount}`
+                  : event.type === 'scenario_run'
+                    ? `just ran the "${event.name.slice(0, 60)}" stress scenario${typeof event.deltaPct === 'number' ? ` — book moved ${event.deltaPct > 0 ? '+' : ''}${Math.round(event.deltaPct * 10) / 10}%` : ''}`
+                    : event.type === 'split_recorded'
+                      ? `just recorded a ${event.ratio}-for-1 split on ${event.symbol.slice(0, 12).toUpperCase()}`
+                      : `just recorded a fill: ${event.quantity} ${event.symbol.slice(0, 12).toUpperCase()}`
   /* Wider than counts — symbols and names let the observation point at
      something concrete on the book without inventing numbers. */
   const contextBits = [
