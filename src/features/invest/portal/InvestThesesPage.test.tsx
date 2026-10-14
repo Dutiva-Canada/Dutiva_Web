@@ -201,6 +201,42 @@ describe('InvestThesesPage — composer', () => {
     expect(refresh).toHaveBeenCalled()
   })
 
+  it('restores the writer\u2019s version when a landed draft is undone', async () => {
+    const user = userEvent.setup()
+    draftThesis.mockResolvedValue({
+      suggestionId: 'sug-draft1',
+      draft: { thesis: 'Tally wrote this.', intent: 'growth', breakRules: [], driftRules: [] },
+    })
+    mount()
+    await user.click(screen.getByRole('button', { name: /New thesis/i }))
+    await user.selectOptions(screen.getByLabelText('Symbol'), 'equity:SHOP')
+    await user.type(screen.getByLabelText('The thesis'), 'My own claim.')
+    await user.type(
+      screen.getByLabelText('Tell Tally the story'),
+      'A long enough story for Tally to draft from.',
+    )
+    await user.click(screen.getByRole('button', { name: /Draft it/i }))
+    /* The draft replaces the fields. */
+    await waitFor(() =>
+      expect(screen.getByLabelText('The thesis')).toHaveValue('Tally wrote this.'),
+    )
+    expect(screen.getByRole('button', { name: 'Growth' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    await user.click(screen.getByRole('button', { name: /Restore my version/i }))
+    /* Undo brings the writer's text and intent back. */
+    expect(screen.getByLabelText('The thesis')).toHaveValue('My own claim.')
+    expect(screen.getByRole('button', { name: 'Core' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    /* The reverted draft's queue row stays pending — the save resolves nothing. */
+    await user.click(screen.getByRole('button', { name: /Save thesis/i }))
+    await waitFor(() => expect(saveThesis).toHaveBeenCalled())
+    expect(resolveSuggestion).not.toHaveBeenCalled()
+  })
+
   it('hides the order-proposal action — thesis conditions only observe', async () => {
     const user = userEvent.setup()
     mount()

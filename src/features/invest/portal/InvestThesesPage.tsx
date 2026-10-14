@@ -60,6 +60,14 @@ interface ThesisDraftState {
   tallyDescription: string
   tallyBusy: boolean
   tallyNote: boolean
+  /** What a landed draft overwrote — the note offers a one-shot restore. */
+  prevDraft: {
+    thesis: string
+    intent: ThesisIntent
+    breakDrafts: RuleDraft[]
+    driftDrafts: RuleDraft[]
+    suggestionId: string | null
+  } | null
 }
 
 const emptyComposer = (): ThesisDraftState => ({
@@ -75,6 +83,7 @@ const emptyComposer = (): ThesisDraftState => ({
   tallyDescription: '',
   tallyBusy: false,
   tallyNote: false,
+  prevDraft: null,
 })
 
 const STATUS_PILL: Record<InvestThesis['status'], string> = {
@@ -261,6 +270,15 @@ export function InvestThesesPage() {
         }
         return {
           ...cur,
+          /* Snapshot before replacing — `cur` carries anything typed while
+             the draft was in flight, so the restore is lossless either way. */
+          prevDraft: {
+            thesis: cur.thesis,
+            intent: cur.intent,
+            breakDrafts: cur.breakDrafts,
+            driftDrafts: cur.driftDrafts,
+            suggestionId: cur.suggestionId,
+          },
           thesis: res.draft.thesis,
           intent: res.draft.intent,
           breakDrafts: toDrafts(res.draft.breakRules),
@@ -277,6 +295,18 @@ export function InvestThesesPage() {
       showToast(IM.invest_thesis_tally_failed)
     }
   }, [composer, lang, showToast])
+
+  /* Restore what a draft overwrote. suggestionId rolls back with it — a
+     reverted draft's queue row stays pending (it resurfaces as a strip
+     card on next mount) instead of resolving 'added' behind a save that
+     didn't adopt it. */
+  const undoTallyDraft = useCallback(() => {
+    setComposer((cur) =>
+      cur.prevDraft
+        ? { ...cur, ...cur.prevDraft, prevDraft: null, tallyNote: false }
+        : cur,
+    )
+  }, [])
 
   const save = useCallback(async () => {
     const c = composer
@@ -596,6 +626,11 @@ export function InvestThesesPage() {
                     }}
                   >
                     <option value="equity:">{x(IM.invest_thesis_pick_symbol)}</option>
+                    {candidates.length === 0 && (
+                      <option disabled value="">
+                        {x(IM.invest_thesis_no_symbols)}
+                      </option>
+                    )}
                     {candidates.map((c) => (
                       <option key={`${c.assetClass}:${c.symbol}`} value={`${c.assetClass}:${c.symbol}`}>
                         {c.symbol}
@@ -690,7 +725,19 @@ export function InvestThesesPage() {
                   </button>
                 </div>
                 {composer.tallyNote && (
-                  <p className="sb-helper">{x(IM.invest_thesis_tally_note)}</p>
+                  <p className="sb-helper">
+                    {x(IM.invest_thesis_tally_note)}{' '}
+                    {composer.prevDraft && (
+                      <button
+                        type="button"
+                        className="sb-linklike"
+                        style={{ fontSize: 'inherit' }}
+                        onClick={undoTallyDraft}
+                      >
+                        {x(IM.invest_thesis_tally_undo)}
+                      </button>
+                    )}
+                  </p>
                 )}
               </div>
             </div>
