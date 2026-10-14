@@ -137,6 +137,20 @@ const SENSITIVE_TABLES = [
   'pr_mentions',
 ]
 
+/* Tables added by a migration that is committed but not yet applied to the
+   project — probing them before that lands returns 404, which would fail the
+   check on a table that doesn't exist rather than a real policy gap. They get
+   the same lockdown verification once present; a missing table is reported as
+   a pending skip so the gap stays visible. MOVE each name into
+   SENSITIVE_TABLES once its migration is confirmed applied (see
+   check:migrations output when SUPABASE_ACCESS_TOKEN is valid). */
+const PENDING_SENSITIVE_TABLES = [
+  // 0223 invest_track_record: book-value history and cash movements are as
+  // sensitive as the positions they summarize.
+  'invest_book_snapshots',
+  'invest_cash_events',
+]
+
 /**
  * Employer-internal columns on hr_job_postings that must stay ungranted to
  * anon (0167 grants only the public board columns). Probed one column at a
@@ -300,6 +314,44 @@ for (const table of SENSITIVE_TABLES) {
      cannot even attempt the read. An empty 200 is also safe — RLS returned no
      rows. Any other status is unexpected on a table we know exists, so treat it
      as a failure to determine rather than a pass. */
+  if (result.status === 401 || result.status === 403) {
+    console.log(`check-rls: ${table} denied to anon (${result.status}) — OK`)
+    continue
+  }
+  if (![200, 206].includes(result.status)) {
+    const bodyHint = result.body ? ` (body: ${result.body})` : ''
+    problems.push(
+      `${table}: unexpected status ${result.status} as anon — cannot confirm it is ` +
+        'locked down' +
+        bodyHint,
+    )
+    continue
+  }
+  if (result.count && result.count > 0) {
+    problems.push(
+      `${table}: readable by the anonymous role — ${result.count} row(s) exposed to the ` +
+        'public. A world-open RLS policy is live; revoke it (see migration 0073).',
+    )
+    continue
+  }
+  console.log(`check-rls: ${table} returns no rows to anon — OK`)
+}
+
+/* ── 2b. Pending tables: verify lockdown once the migration lands ─────────── */
+
+for (const table of PENDING_SENSITIVE_TABLES) {
+  let result
+  try {
+    result = await probe(table)
+  } catch (error) {
+    console.error(`check-rls: could not probe ${table} — ${error.message}`)
+    process.exit(1)
+  }
+
+  if (result.status === 404) {
+    console.log(`check-rls: ${table} not applied yet — pending`)
+    continue
+  }
   if (result.status === 401 || result.status === 403) {
     console.log(`check-rls: ${table} denied to anon (${result.status}) — OK`)
     continue
