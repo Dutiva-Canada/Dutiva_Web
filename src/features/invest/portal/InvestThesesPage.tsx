@@ -37,6 +37,7 @@ import type {
 import { THESIS_INTENTS } from '../data/types'
 import { newRuleDraft, newRulePersistId, toDrafts } from './ruleDrafts'
 import { fmtNum, fmtPct } from './strategyUi'
+import { suggestionIcon } from './suggestionIcons'
 import type { RuleDraft } from './ruleDrafts'
 import { RulesAccordion } from './RulesAccordion'
 import { InfoHint } from './InfoHint'
@@ -524,6 +525,7 @@ export function InvestThesesPage() {
               </p>
               {pending.map((s) => {
                 const p = (s.payload ?? {}) as Record<string, unknown>
+                const KindIcon = suggestionIcon(s.kind)
                 const seed = (p.seed ?? {}) as Record<string, unknown>
                 const sym = typeof p.symbol === 'string' ? p.symbol.toUpperCase() : ''
                 /* A 'thesis' row whose seed already carries a claim is a
@@ -568,6 +570,7 @@ export function InvestThesesPage() {
                     className="sb-notify-row"
                     style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
                   >
+                    <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <strong>{title}</strong>
                       {drafted ? (

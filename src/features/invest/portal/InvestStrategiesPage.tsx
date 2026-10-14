@@ -36,6 +36,7 @@ import {
   strategyMeta,
   trackedUniverse,
 } from './strategyUi'
+import { suggestionIcon } from './suggestionIcons'
 import type { Lang } from '@/i18n/core'
 import {
   cloneDraft,
@@ -74,6 +75,10 @@ const CADENCE_MS: Record<StrategyCadence, number> = {
   monthly: 30 * 86_400_000,
 }
 
+/* Suggestion kinds this page can act on itself — everything else is a
+   foreign row that routes to its home page. */
+const NATIVE_KINDS = new Set(['strategy', 'rule_add', 'rule_tune', 'scope_add'])
+
 export function InvestStrategiesPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
@@ -92,6 +97,15 @@ export function InvestStrategiesPage() {
   /* Long strips bury the strategies they're advising on — cap the visible
      rows and let the user expand. */
   const [showAllPending, setShowAllPending] = useState(false)
+  /* Rows that act here outrank rows that only route elsewhere — a foreign
+     nav link shouldn't push an actionable rule below the fold. */
+  const orderedPending = useMemo(
+    () =>
+      [...pending].sort(
+        (a, b) => Number(!NATIVE_KINDS.has(a.kind)) - Number(!NATIVE_KINDS.has(b.kind)),
+      ),
+    [pending],
+  )
   const [pendingBusy, setPendingBusy] = useState<string | null>(null)
   /* Suggestions applied into the open draft — staged, not resolved: the
      row resolves when the draft saves and re-shows if it discards, so a
@@ -579,8 +593,9 @@ export function InvestStrategiesPage() {
               <p className="sb-caption" style={{ marginTop: 0 }}>
                 {x(IM.invest_suggest_hint)}
               </p>
-              {(showAllPending ? pending : pending.slice(0, 4)).map((s) => {
+              {(showAllPending ? orderedPending : orderedPending.slice(0, 4)).map((s) => {
                 const p = (s.payload ?? {}) as Record<string, unknown>
+                const KindIcon = suggestionIcon(s.kind)
                 const title =
                   lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
                 const detail =
@@ -656,6 +671,7 @@ export function InvestStrategiesPage() {
                     className="sb-notify-row"
                     style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
                   >
+                    <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <strong>{title}</strong>
                       {meta && <span className="sb-notify-hint">{meta}</span>}
