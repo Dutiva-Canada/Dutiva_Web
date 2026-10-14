@@ -1,7 +1,7 @@
 import './strategies.css'
-import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, DollarSign, Loader2, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bell, DollarSign, Download, Loader2, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import {
@@ -10,6 +10,8 @@ import {
   type AssetClass,
   type InvestAccount,
   type InvestPosition,
+  type InvestStrategy,
+  type MarketSnapshot,
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import {
@@ -19,6 +21,7 @@ import {
   deleteAccount,
   deletePosition,
   removeWatchSymbol,
+  saveStrategy,
   syncPrices,
   updateAccount,
   updatePosition,
@@ -28,7 +31,15 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
+import { CashLedger } from './CashLedger'
+import { RebalanceCard } from './RebalanceCard'
+import { downloadCsv } from './csv'
 import { useInvestHead } from './useInvestHead'
+
+/* recharts stays an on-demand chunk — see BookCurve.tsx. */
+const AllocationDonut = lazy(() =>
+  import('./AllocationDonut').then((m) => ({ default: m.AllocationDonut })),
+)
 
 const cardClass = 'sb-card sb-card-pad'
 const fieldClass = 'sb-input'
@@ -116,6 +127,11 @@ export function InvestPortfolioPage() {
   /* Paste-import mode — re-entering a lost book row by row was the pain
      point the cascade incident exposed. */
   const [showBulk, setShowBulk] = useState(false)
+  /* Watchlist price alert — the bell opens a two-field form that writes
+     a real single-symbol strategy (the 'price' metric). One slot per
+     symbol+direction: re-saving edits the rule's threshold, it doesn't
+     stack a twin strategy. */
+  const [alertSym, setAlertSym] = useState<string | null>(null)
   /* Removing an account cascades to its positions — the table shows the
      owning account on every row so the blast radius is visible before
      the delete, not discovered after. The column only earns its width
@@ -154,6 +170,56 @@ export function InvestPortfolioPage() {
       live = false
     }
   }, [])
+
+  /* Book currency = the first active account's base — the same rule the
+     engine uses. All cash converted into it for the shared-weight math. */
+  const bookCcy = useMemo(
+    () =>
+      (state.accounts.find((a) => a.status === 'active')?.baseCurrency ?? 'CAD').toUpperCase(),
+    [state.accounts],
+  )
+  const cashTotalBook = useMemo(() => {
+    let t = 0
+    for (const a of state.accounts) {
+      const c = convertFx(a.cashBalance, a.baseCurrency, bookCcy, fx)
+      if (c !== null) t += c
+    }
+    return t
+  }, [state.accounts, bookCcy, fx])
+
+  /* The export is exactly what the table shows — formatted cells, the
+     visible sort order, the active symbol filter. */
+  const exportPositions = () => {
+    downloadCsv(
+      'dutiva-invest-positions.csv',
+      [
+        x(IM.invest_field_symbol),
+        x(IM.invest_field_name),
+        x(IM.invest_field_account),
+        x(IM.invest_field_asset_class),
+        x(IM.invest_field_quantity),
+        x(IM.invest_field_avg_cost),
+        x(IM.invest_field_last_price),
+        x(IM.invest_field_value),
+        x(IM.invest_field_pnl),
+        x(IM.invest_rebal_target),
+        'Currency',
+      ],
+      sorted.map(({ p, px, value, pnl }) => [
+        p.symbol,
+        p.name,
+        accountName.get(p.accountId) ?? '',
+        x(IM[assetLabel[p.assetClass]]),
+        p.quantity,
+        p.avgCost,
+        px ?? '',
+        value ?? '',
+        pnl ?? '',
+        p.targetWeightPct ?? '',
+        p.currency,
+      ]),
+    )
+  }
 
   const syncNow = async () => {
     setBusy(true)
@@ -403,6 +469,17 @@ export function InvestPortfolioPage() {
           <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
           {state.accounts.length > 0 && !showPosForm && !showBulk && (
             <span style={{ display: 'inline-flex', gap: 8 }}>
+              {state.positions.length > 0 && (
+                <button
+                  type="button"
+                  onClick={exportPositions}
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  title={x(IM.invest_export_csv)}
+                >
+                  <Download size={14} strokeWidth={2.2} aria-hidden="true" />
+                  {x(IM.invest_export_csv)}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setShowPosForm(true)}
@@ -749,6 +826,40 @@ export function InvestPortfolioPage() {
         )}
       </section>
 
+      {state.positions.length > 0 && (
+        <div className="sb-duo" style={{ marginTop: 16 }}>
+          <Suspense fallback={null}>
+            <AllocationDonut
+              positions={state.positions}
+              snapshots={state.snapshots}
+              cashTotal={cashTotalBook}
+              bookCcy={bookCcy}
+              fx={fx}
+            />
+          </Suspense>
+          <RebalanceCard
+            positions={state.positions}
+            snapshots={state.snapshots}
+            accounts={state.accounts}
+            cashTotal={cashTotalBook}
+            bookCcy={bookCcy}
+            fx={fx}
+            busy={busy}
+            run={run}
+          />
+        </div>
+      )}
+
+      <div style={{ marginTop: 16 }}>
+        <CashLedger
+          accounts={state.accounts}
+          events={state.cashEvents}
+          busy={busy}
+          run={run}
+          fmtFor={fmtFor}
+        />
+      </div>
+
       <section className={cardClass} style={{ marginTop: 16 }}>
         <h2 style={{ margin: 0 }}>{x(IM.invest_watchlist_title)}</h2>
         <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_watchlist_sub)}</p>
@@ -773,6 +884,7 @@ export function InvestPortfolioPage() {
         {state.watchlist.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_watchlist_empty)}</p>
         ) : (
+          <>
           <ul className="sb-chips">
             {state.watchlist.map((w) => (
               <li key={w.id} className="sb-chip-sym">
@@ -785,6 +897,15 @@ export function InvestPortfolioPage() {
                 <button
                   type="button"
                   disabled={busy}
+                  onClick={() => setAlertSym(w.symbol)}
+                  aria-label={x(IM.invest_watch_alert_aria).replace('{symbol}', w.symbol)}
+                  title={x(IM.invest_watch_alert_aria).replace('{symbol}', w.symbol)}
+                >
+                  <Bell size={13} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
                   onClick={() => void run(() => removeWatchSymbol(w.id))}
                   aria-label={`${x(IM.invest_rule_remove)} ${w.symbol}`}
                 >
@@ -793,6 +914,64 @@ export function InvestPortfolioPage() {
               </li>
             ))}
           </ul>
+          {alertSym && (
+            <WatchAlertForm
+              symbol={alertSym}
+              snap={state.snapshots.find((s) => s.symbol === alertSym)}
+              strategies={state.strategies}
+              busy={busy}
+              onClose={() => setAlertSym(null)}
+              onSave={(op, value) =>
+                run(async () => {
+                  /* One slot per symbol+direction: a matching strategy's
+                     rule gets its threshold updated, it doesn't stack a
+                     twin. The strategy stays an ordinary row on the Agent
+                     tab — rename, disable, delete all work there. */
+                  const existing = state.strategies.find(
+                    (s) =>
+                      !s.scope.watchlist &&
+                      s.scope.symbols.length === 1 &&
+                      s.scope.symbols[0] === alertSym &&
+                      s.rules.some((r) => r.metric === 'price' && r.op === op),
+                  )
+                  const dir = op === 'gt' ? 'above' : 'below'
+                  if (existing) {
+                    await saveStrategy({
+                      ...existing,
+                      rules: existing.rules.map((r) =>
+                        r.metric === 'price' && r.op === op ? { ...r, value } : r,
+                      ),
+                    })
+                  } else {
+                    await saveStrategy({
+                      name: `${alertSym} ${dir} ${value}`,
+                      enabled: true,
+                      scope: { watchlist: false, symbols: [alertSym] },
+                      rules: [
+                        {
+                          type: 'signal',
+                          metric: 'price',
+                          op,
+                          value,
+                          severity: 'alert',
+                          title: '',
+                        },
+                      ],
+                      notify: { inApp: true, email: false },
+                      cadence: 'daily',
+                      multiMatch: 'each',
+                      template: '',
+                    })
+                  }
+                  setSyncNote(
+                    x(IM.invest_watch_alert_saved).replace('{symbol}', alertSym),
+                  )
+                  setAlertSym(null)
+                })
+              }
+            />
+          )}
+          </>
         )}
       </section>
     </div>
@@ -873,6 +1052,96 @@ function WatchForm({
           {x(IM.invest_watchlist_add)}
         </button>
       </div>
+    </form>
+  )
+}
+
+/** Watchlist price alert — a two-field front door onto the rules
+    engine. Writes a real single-symbol strategy with a 'price' rule;
+    the Agent tab owns it from there. */
+function WatchAlertForm({
+  symbol,
+  snap,
+  strategies,
+  busy,
+  onSave,
+  onClose,
+}: {
+  symbol: string
+  snap: MarketSnapshot | undefined
+  strategies: InvestStrategy[]
+  busy: boolean
+  onSave: (op: 'gt' | 'lt', value: number) => Promise<void>
+  onClose: () => void
+}) {
+  const { x, lang } = useI18n()
+  const [op, setOp] = useState<'gt' | 'lt'>('gt')
+  const [amount, setAmount] = useState('')
+  const num = Number(amount)
+  const valid = Number.isFinite(num) && num > 0
+  /* Prefill the threshold an existing alert already uses for that
+     direction — the form edits the slot, it doesn't stack twins. */
+  const existingFor = (o: 'gt' | 'lt') =>
+    strategies.find(
+      (s) =>
+        !s.scope.watchlist &&
+        s.scope.symbols.length === 1 &&
+        s.scope.symbols[0] === symbol &&
+        s.rules.some((r) => r.metric === 'price' && r.op === o),
+    )
+  const setDir = (o: 'gt' | 'lt') => {
+    setOp(o)
+    const cur = existingFor(o)?.rules.find((r) => r.metric === 'price' && r.op === o)
+    if (cur) setAmount(String(cur.value))
+  }
+  return (
+    <form
+      className="sb-watch-alert"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (busy || !valid) return
+        void onSave(op, num)
+      }}
+    >
+      <Bell size={14} strokeWidth={2.2} aria-hidden="true" />
+      <span className="sb-watch-alert-lead">
+        {x(IM.invest_watch_alert_lead).replace('{symbol}', symbol)}
+        {snap && (
+          <span className="dim">
+            {' '}
+            {x(IM.invest_watch_alert_now)
+              .replace('{price}', new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA').format(snap.price))
+              .replace('{ccy}', snap.currency)}
+          </span>
+        )}
+      </span>
+      <select
+        className="sb-input sb-watch-alert-op"
+        aria-label={x(IM.invest_rule_operator)}
+        value={op}
+        onChange={(e) => setDir(e.target.value as 'gt' | 'lt')}
+      >
+        <option value="gt">{x(IM.invest_watch_alert_above)}</option>
+        <option value="lt">{x(IM.invest_watch_alert_below)}</option>
+      </select>
+      <input
+        className="sb-input sb-watch-alert-amt"
+        type="number"
+        min="0"
+        step="any"
+        inputMode="decimal"
+        required
+        autoFocus
+        aria-label={x(IM.invest_rule_value)}
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
+      <button type="submit" className="sb-btn sb-btn-primary sb-btn-sm" disabled={busy || !valid}>
+        {x(IM.invest_watch_alert_save)}
+      </button>
+      <button type="button" className="sb-linklike" onClick={onClose}>
+        {x(IM.invest_cancel)}
+      </button>
     </form>
   )
 }

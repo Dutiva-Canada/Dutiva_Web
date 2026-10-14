@@ -9,6 +9,9 @@
  *            the verdict it stamped — progress, days left, status line.
  *   Watch  — the environmental-scan board (AnalysisScan): theme-level
  *            factors the sweep connects to a degrading thesis.
+ *   Stress — the scenario panel (StressTest): replays the book under a
+ *            hypothetical move and re-fires the user's own rules, all
+ *            client-side — nothing is written or filed.
  *   SWOT   — the qualitative quadrant beside each thesis (AnalysisSwot).
  *
  * Everything Tally authors — goals, scan items, quadrants — flows
@@ -33,6 +36,7 @@ import type {
 } from '../data/types'
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
+import { StressTest } from './StressTest'
 import { useInvestHead } from './useInvestHead'
 import { AnalysisScan } from './AnalysisScan'
 import { AnalysisSwot } from './AnalysisSwot'
@@ -573,6 +577,15 @@ export function InvestAnalysisPage() {
         </section>
 
         <AnalysisScan />
+        <StressTest
+          positions={state.positions}
+          snapshots={state.snapshots}
+          strategies={state.strategies}
+          theses={state.theses}
+          goals={state.goals}
+          watchSymbols={state.watchlist.map((w) => w.symbol)}
+          accounts={state.accounts}
+        />
         <AnalysisSwot theses={state.theses} />
       </div>
     </div>

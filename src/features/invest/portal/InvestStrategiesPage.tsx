@@ -44,6 +44,7 @@ import {
   toWire,
 } from './strategyDraft'
 import type { StrategyDraft } from './strategyDraft'
+import { STRATEGY_TEMPLATES, type StrategyTemplate } from '../data/strategyTemplates'
 import './strategies.css'
 
 type View = { kind: 'list' } | { kind: 'editor' } | { kind: 'wizard' }
@@ -54,6 +55,8 @@ type View = { kind: 'list' } | { kind: 'editor' } | { kind: 'wizard' }
    'opened' and routes to their own page instead. */
 const FOREIGN_SUGGESTION_PAGE: Record<string, { to: string; page: (typeof IM)[keyof typeof IM] }> = {
   thesis: { to: '/invest/theses', page: IM.invest_tab_theses },
+  exit_proposal: { to: '/invest/theses', page: IM.invest_tab_theses },
+  order_cross: { to: '/invest/orders', page: IM.invest_tab_orders },
   goal: { to: '/invest/analysis', page: IM.invest_tab_analysis },
   scan: { to: '/invest/analysis', page: IM.invest_tab_analysis },
   swot: { to: '/invest/analysis', page: IM.invest_tab_analysis },
@@ -304,6 +307,27 @@ export function InvestStrategiesPage() {
     setView({ kind: 'wizard' })
     window.scrollTo({ top: 0 })
   }, [])
+
+  /* Gallery seed — blank titles so the accordion renders the generated
+     localized label, empty scope so the user picks what it scans (the
+     template file's own contract), tpl:<slug> provenance for the row. */
+  const openTemplate = useCallback((t: StrategyTemplate) => {
+    const d: StrategyDraft = {
+      id: null,
+      name: t.name[lang],
+      enabled: true,
+      cadence: t.cadence,
+      scope: { watchlist: false, symbols: [] },
+      notify: { inApp: true, email: false },
+      multiMatch: 'each',
+      template: `tpl:${t.slug}`,
+      rules: toDrafts(t.rules.map((r) => ({ ...r, title: '' }))),
+    }
+    setDraft(d)
+    setSnapshot(cloneDraft(d))
+    setView({ kind: 'editor' })
+    window.scrollTo({ top: 0 })
+  }, [lang])
 
   const backToList = useCallback(
     (discardToast: boolean) => {
@@ -742,6 +766,39 @@ export function InvestStrategiesPage() {
           {state.strategies.length === 0 && (
             <p className="sb-caption">{x(IM.invest_sb_empty_hint)}</p>
           )}
+
+          <section className="sb-tpl" aria-label={x(IM.invest_tpl_gallery_title)}>
+            <h2 className="sb-flabel">{x(IM.invest_tpl_gallery_title)}</h2>
+            <p className="sb-caption" style={{ marginTop: 0 }}>
+              {x(IM.invest_tpl_gallery_sub)}
+            </p>
+            <div className="sb-tpl-grid">
+              {STRATEGY_TEMPLATES.map((t) => (
+                <div key={t.slug} className="sb-tpl-card">
+                  <strong>{t.name[lang]}</strong>
+                  <p>{t.blurb[lang]}</p>
+                  <span className="sb-meta">
+                    {x(
+                      t.cadence === 'weekly'
+                        ? IM.invest_cadence_weekly
+                        : t.cadence === 'monthly'
+                          ? IM.invest_cadence_monthly
+                          : IM.invest_cadence_daily,
+                    )}
+                    {' · '}
+                    {pl(lang, t.rules.length, IM.invest_sb_rule_one, IM.invest_sb_rule_many)}
+                  </span>
+                  <button
+                    type="button"
+                    className="sb-btn sb-btn-secondary sb-btn-sm"
+                    onClick={() => openTemplate(t)}
+                  >
+                    {x(IM.invest_tpl_use)}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       )}
 

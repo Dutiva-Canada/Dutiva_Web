@@ -58,6 +58,7 @@ const STATE: InvestState = {
       currency: 'CAD',
       lastPrice: 120,
       lastPriceAt: '2026-02-01T00:00:00Z',
+      targetWeightPct: null,
     },
   ],
   snapshots: [],
@@ -71,6 +72,8 @@ const STATE: InvestState = {
   goals: [],
   scanItems: [],
   memories: [],
+  bookSnapshots: [],
+  cashEvents: [],
 }
 
 function thesis(over: Partial<InvestThesis> = {}): InvestThesis {

@@ -8,7 +8,9 @@ import {
   planRun,
   signalKey,
   strategyDue,
+  type AssetClass,
   type MarketSnapshot,
+  type OrderSide,
   type Position,
   type StrategyRule,
 } from './handlers.ts'
@@ -30,6 +32,7 @@ import {
   type ScanItem,
 } from './analysis.ts'
 import { convertFx, fetchFxTable } from './fx.ts'
+import { fileSuggestion } from '../_shared/agentQueue.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import { resendSend } from '../_shared/resendSend.ts'
 import type { SupabaseClient } from './botShared.ts'
@@ -338,6 +341,66 @@ export async function runUser(
     }
   }
 
+  /* Queued limit orders watch the same marks — a cross means the price
+     the user asked for is available now, so file a suggestion pointing
+     back at the order. The sweep proposes; the only fill path is still
+     the user's execute call in index.ts. Never fatal. */
+  try {
+    const { data: queuedLimits, error: limitErr } = await adminClient
+      .from('invest_orders')
+      .select('id, asset_class, symbol, name, side, quantity, limit_price')
+      .eq('user_id', userId)
+      .eq('status', 'queued')
+      .eq('order_type', 'limit')
+      .not('limit_price', 'is', null)
+    if (limitErr) throw limitErr
+    for (const o of (queuedLimits ?? []) as {
+      id: string
+      asset_class: AssetClass
+      symbol: string
+      name: string
+      side: OrderSide
+      quantity: number
+      limit_price: number
+    }[]) {
+      const snap = snapshots.find(
+        (s) => s.asset_class === o.asset_class && s.symbol === o.symbol,
+      )
+      if (!snap) continue
+      const mark = Number(snap.price)
+      const limit = Number(o.limit_price)
+      if (!(Number.isFinite(mark) && Number.isFinite(limit))) continue
+      const crossed = o.side === 'buy' ? mark <= limit : mark >= limit
+      if (!crossed) continue
+      await fileSuggestion(adminClient, {
+        userId,
+        surface: 'invest',
+        kind: 'order_cross',
+        title: `${o.symbol} crossed your ${o.side} limit — mark ${mark}, limit ${limit}`,
+        payload: {
+          order_id: o.id,
+          asset_class: o.asset_class,
+          symbol: o.symbol,
+          name: o.name,
+          side: o.side,
+          quantity: Number(o.quantity),
+          limit_price: limit,
+          mark,
+          currency: snap.currency,
+          detail_en: `${o.symbol} is marked ${mark} ${snap.currency} — ${o.side === 'buy' ? 'at or below' : 'at or above'} your ${limit} limit. Reviewing it executes nothing; the order still waits for you.`,
+          detail_fr: `${o.symbol} est coté ${mark} ${snap.currency} — ${o.side === 'buy' ? 'à ou sous' : 'à ou au-dessus de'} votre limite de ${limit}. Rien ne s'exécute sans vous; l'ordre attend toujours.`,
+        },
+        source: 'rule',
+        dedupeKey: `order_cross:${o.id}`,
+      })
+    }
+  } catch (error) {
+    plan.warnings.push(
+      `limit-order sweep failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    console.error('invest-bot: limit-order sweep failed', error)
+  }
+
   /* Stamp the evaluation clock only when every write landed — see the
      comment above evaluatedIds. */
   if (evaluatedIds.length > 0 && !writesFailed) {
@@ -445,6 +508,34 @@ export async function runUser(
      degraded even when the analysis pass is the only writer left. */
   let thesisEvals: ThesisEval[] = []
   const thesisCtx = thesisBookContext(positions, snapshots, cashTotal, fx, bookCurrency)
+
+  /* Book snapshot — the track record's substrate. One upserted row per
+     sweep-day keeps the series clean when a run is re-fired manually; the
+     Overview curve reads it. Never fatal — a missing 0223 table or a
+     transient write failure must not fail the run. */
+  try {
+    const { error: snapError } = await adminClient.from('invest_book_snapshots').upsert(
+      {
+        user_id: userId,
+        as_of: new Date().toISOString().slice(0, 10),
+        book_value: thesisCtx.bookValue,
+        cash: thesisCtx.cashTotal,
+        invested: thesisCtx.bookValue - thesisCtx.cashTotal,
+        currency: thesisCtx.bookCurrency,
+      },
+      { onConflict: 'user_id,as_of' },
+    )
+    /* PostgREST answers errors in-band — a missing 0223 table surfaces
+       here, not as a throw. */
+    if (snapError) throw snapError
+  } catch (error) {
+    plan.warnings.push(
+      `book snapshot failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    plan.warningDetails.push({ code: 'snapshot_failed', params: {} })
+    console.error('invest-bot: book snapshot failed', error)
+  }
+
   if (theses.length > 0) {
     try {
       const advice = isInternalDutivaAccount(authEmail)
@@ -526,6 +617,49 @@ export async function runUser(
       symbol: ev.symbol,
       status: ev.status as 'drifting' | 'broken',
     }))
+
+  /* A broken thesis asks the question directly — close or trim? File an
+     order-shaped suggestion naming the held quantity; the review card
+     can turn it into a draft sell. The sweep proposes, it never orders.
+     Same dedupe contract as signals: a broken thesis that heals and
+     re-breaks files fresh; one staying broken doesn't re-file while the
+     suggestion sits pending. */
+  try {
+    for (const ev of thesisEvals) {
+      if (!ev.statusChanged || ev.status !== 'broken') continue
+      const pos = positions.find(
+        (p) => p.asset_class === ev.asset_class && p.symbol === ev.symbol,
+      )
+      if (!pos || pos.quantity <= 0) continue
+      await fileSuggestion(adminClient, {
+        userId,
+        surface: 'invest',
+        kind: 'exit_proposal',
+        title: `${ev.symbol}'s thesis broke — close or trim the position?`,
+        payload: {
+          thesis_id: ev.id,
+          asset_class: ev.asset_class,
+          symbol: ev.symbol,
+          name: ev.name,
+          side: 'sell',
+          quantity: pos.quantity,
+          detail_en:
+            'The break conditions fired. If the claim no longer holds, a sell draft is one step away — nothing happens without your confirmation.',
+          detail_fr:
+            "Les conditions de cassure se sont déclenchées. Si la thèse ne tient plus, un brouillon de vente est à un pas — rien ne se fait sans votre confirmation.",
+        },
+        source: 'rule',
+        dedupeKey: `exit:${ev.id}`,
+      })
+    }
+  } catch (error) {
+    plan.warnings.push(
+      `exit-proposal pass failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    plan.warningDetails.push({ code: 'exit_proposals_failed', params: {} })
+    console.error('invest-bot: exit-proposal pass failed', error)
+  }
+
   if (goals.length > 0 || (scanItems.length > 0 && degradedTheses.length > 0)) {
     try {
       const evalAt = new Date().toISOString()

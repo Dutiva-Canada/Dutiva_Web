@@ -1,5 +1,5 @@
 import './strategies.css'
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -10,6 +10,7 @@ import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
+import { MorningBrief } from './MorningBrief'
 import { readDisplayCurrency } from './investPrefs'
 import { tallyNoticed } from './strategyUi'
 
@@ -23,6 +24,13 @@ const assetLabel: Record<AssetClass, keyof typeof IM> = {
 }
 
 const cardClass = 'sb-card sb-card-pad'
+
+/* recharts (~420kB with its d3 tree) must stay an on-demand chunk — the
+   same rule as components/advisor/ChatChart.tsx. The curve mounts once
+   when the overview first renders. */
+const BookCurve = lazy(() =>
+  import('./BookCurve').then((m) => ({ default: m.BookCurve })),
+)
 
 // Publisher-badge tints — token pairs only, hashed by source name.
 const SOURCE_TINTS = [
@@ -63,6 +71,9 @@ export function InvestHomePage() {
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [newsExpanded, setNewsExpanded] = useState(false)
+  /* 'book' shows only headlines tagged to a held or watched symbol —
+     the news-for-your-book cut. */
+  const [newsFilter, setNewsFilter] = useState<'all' | 'book'>('all')
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency amounts drop out of the totals with a note below
      rather than sum into a wrong number. */
@@ -235,7 +246,15 @@ export function InvestHomePage() {
   }
 
   const headlines = useMemo(() => dedupeNews(state.news), [state.news])
-  const visibleHeadlines = newsExpanded ? headlines : headlines.slice(0, 12)
+  const bookHeadlines = useMemo(
+    () => headlines.filter((n) => n.symbol !== ''),
+    [headlines],
+  )
+  /* A 'book' selection outlives its items (a refresh clears the symbols)
+     → the filter falls back to 'all' rather than blank the list. */
+  const effectiveNewsFilter = bookHeadlines.length === 0 ? 'all' : newsFilter
+  const scopedHeadlines = effectiveNewsFilter === 'book' ? bookHeadlines : headlines
+  const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
   /* Tally's presence outside the chat tab — one noticed thing, built
      locally from the same state the stats read. No model call. */
@@ -324,6 +343,18 @@ export function InvestHomePage() {
         <span>{x(IM.invest_info_note)}</span>
       </div>
 
+      <div style={{ marginBottom: 16 }}>
+        <MorningBrief
+          positions={state.positions}
+          watchSymbols={state.watchlist.map((w) => w.symbol)}
+          snapshots={state.snapshots}
+          signals={state.signals}
+          theses={state.theses}
+          goals={state.goals}
+          orders={state.orders}
+        />
+      </div>
+
       <div className="sb-stats">
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>
@@ -390,6 +421,12 @@ export function InvestHomePage() {
             : x(IM.invest_home_fx_split)}
         </p>
       )}
+
+      <div style={{ marginBottom: 16 }}>
+        <Suspense fallback={null}>
+          <BookCurve snapshots={state.bookSnapshots} cashEvents={state.cashEvents} fx={fx} />
+        </Suspense>
+      </div>
 
       <div className="sb-duo">
         <section className={cardClass}>
@@ -490,11 +527,33 @@ export function InvestHomePage() {
               {x(IM.invest_news_note)}
             </p>
           </div>
-          {headlines.length > 12 && (
-            <span className="mt-[3px] shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
-              {x(IM.invest_news_count).replace('{count}', String(headlines.length))}
-            </span>
-          )}
+          <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
+            {/* 'Your book' keeps only headlines tagged to a held or
+                watched symbol — the general market wrap drops out. */}
+            {bookHeadlines.length > 0 && bookHeadlines.length !== headlines.length && (
+              <div className="sb-seg sb-seg-sm">
+                <button
+                  type="button"
+                  aria-pressed={newsFilter === 'all'}
+                  onClick={() => setNewsFilter('all')}
+                >
+                  {x(IM.invest_news_all)}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={newsFilter === 'book'}
+                  onClick={() => setNewsFilter('book')}
+                >
+                  {x(IM.invest_news_book)}
+                </button>
+              </div>
+            )}
+            {scopedHeadlines.length > 12 && (
+              <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
+                {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}
+              </span>
+            )}
+          </div>
         </div>
         {state.news.length === 0 ? (
           <p className="sb-empty">{x(IM.invest_news_empty)}</p>

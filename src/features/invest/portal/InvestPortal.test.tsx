@@ -96,6 +96,7 @@ const STATE: InvestState = {
       currency: 'CAD',
       lastPrice: 120,
       lastPriceAt: '2026-01-20T00:00:00Z',
+      targetWeightPct: null,
     },
   ],
   snapshots: [
@@ -201,6 +202,8 @@ const STATE: InvestState = {
   goals: [],
   scanItems: [],
   memories: [],
+  bookSnapshots: [],
+  cashEvents: [],
   news: [
     {
       id: 1,
@@ -237,6 +240,7 @@ const USD_QUOTED: InvestState = {
       currency: 'CAD',
       lastPrice: null,
       lastPriceAt: null,
+      targetWeightPct: null,
     },
   ],
   snapshots: [
@@ -609,6 +613,20 @@ describe('InvestOrdersPage', () => {
   })
 })
 
+/* Symbols legitimately repeat on the portfolio page now — the allocation
+   donut legend and the rebalance card both list them. Position-table
+   assertions scope to the table, not the whole document. */
+const posCell = async (text: string | RegExp) => {
+  const found = (await screen.findAllByText(text)).find((el) => el.closest('table'))
+  if (!found) throw new Error(`${String(text)} not found inside a table`)
+  return found
+}
+const posCellNow = (text: string | RegExp) => {
+  const found = screen.getAllByText(text).find((el) => el.closest('table'))
+  if (!found) throw new Error(`${String(text)} not found inside a table`)
+  return found
+}
+
 describe('InvestPortfolioPage positions', () => {
   afterEach(() => {
     vi.clearAllMocks()
@@ -645,6 +663,7 @@ describe('InvestPortfolioPage positions', () => {
     currency: 'CAD',
     lastPrice: null,
     lastPriceAt: null,
+    targetWeightPct: null,
   }
 
   it('shows — for an unpriced row instead of dressing cost up as a market price', async () => {
@@ -652,19 +671,21 @@ describe('InvestPortfolioPage positions', () => {
 
     /* SHOP is priced at $120 against a $100 cost basis — P&L lands on the
        row and repeats in the totals footer. */
-    expect(await screen.findByText('SHOP')).toBeInTheDocument()
+    expect(await posCell('SHOP')).toBeInTheDocument()
     expect(screen.getAllByText(/\+\$200\.00/)).toHaveLength(2)
     expect(screen.getAllByText(/\(\+20\.0%\)/)).toHaveLength(2)
 
     /* NQ has no snapshot and no synced last price — three muted dashes and
        the footnote, never its $50 cost in the price column. */
-    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(
+      within(posCellNow('SHOP').closest('table')!).getAllByText('—'),
+    ).toHaveLength(3)
     expect(screen.getByText(/no quote on file/i)).toBeInTheDocument()
   })
 
   it('converts a USD quote into the CAD book at the ECB rate, marked ≈', async () => {
     await renderPage(USD_QUOTED, FX_TABLE)
-    await screen.findByText('AMD')
+    await posCell('AMD')
     /* $100 USD ÷ 0.73 ≈ $136.99 — the row never prints the raw $100 as
        if it were CAD. The ≈ markers and the disclosed rate are the tell. */
     expect(screen.getByText(/\$136\.99/)).toBeInTheDocument()
@@ -674,17 +695,19 @@ describe('InvestPortfolioPage positions', () => {
 
   it('shows — for a cross-currency row when no FX rate is on file', async () => {
     await renderPage(USD_QUOTED)
-    await screen.findByText('AMD')
+    await posCell('AMD')
     /* The quote exists but can't be expressed in CAD — the cells stay
        blank with the FX note, and the 'no quote' note stays hidden. */
-    expect(screen.getAllByText('—')).toHaveLength(3)
+    expect(
+      within(posCellNow('AMD').closest('table')!).getAllByText('—'),
+    ).toHaveLength(3)
     expect(screen.getByText(/no FX rate is on file/i)).toBeInTheDocument()
     expect(screen.queryByText(/no quote on file/i)).not.toBeInTheDocument()
   })
 
   it('renders the totals row from priced rows only', async () => {
     await renderPage({ ...STATE, positions: [...STATE.positions, UNPRICED] })
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     /* Total cost covers both rows ($1,100); value counts only the priced
        one ($1,200 — once on the row, once in the footer). */
     expect(screen.getByText('$1,100.00')).toBeInTheDocument()
@@ -694,7 +717,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('sorts by the column header when clicked', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     const valueTh = screen.getByRole('columnheader', { name: /Value/i })
     expect(valueTh.getAttribute('aria-sort')).toBeNull()
     await user.click(screen.getByRole('button', { name: /^Value$/i }))
@@ -705,11 +728,11 @@ describe('InvestPortfolioPage positions', () => {
 
   it('edits quantity and average cost through the row Edit control', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(updatePosition).mockResolvedValue(undefined)
 
     await user.click(screen.getByRole('button', { name: /Edit SHOP/i }))
-    const row = screen.getByText('SHOP').closest('tr')
+    const row = posCellNow('SHOP').closest('tr')
     expect(row).not.toBeNull()
     const cost = within(row as HTMLElement).getByRole('spinbutton', { name: /Average cost/i })
     await user.clear(cost)
@@ -726,7 +749,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('removes a position only after the inline confirm', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(deletePosition).mockResolvedValue(undefined)
 
     const remove = screen.getByRole('button', { name: /Remove SHOP/i })
@@ -747,18 +770,22 @@ describe('InvestPortfolioPage positions', () => {
     )
     /* The signal-pill deep link lands on just the named position — the
        filter chip names the scope and offers the way back out. */
-    expect(await screen.findByText('SHOP')).toBeInTheDocument()
-    expect(screen.queryByText('NQ')).not.toBeInTheDocument()
+    expect(await posCell('SHOP')).toBeInTheDocument()
+    /* NQ leaves the filtered TABLE — the book-level cards beside it still
+       legitimately show the whole book. */
+    expect(
+      within(posCellNow('SHOP').closest('table')!).queryByText('NQ'),
+    ).not.toBeInTheDocument()
     expect(screen.getByText('Symbol: SHOP')).toBeInTheDocument()
     /* Totals describe the filtered rows — SHOP alone: cost $1,000. */
     expect(screen.getByText('$1,000.00')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /Show all/i }))
-    expect(await screen.findByText('NQ')).toBeInTheDocument()
+    expect(await posCell('NQ')).toBeInTheDocument()
   })
 
   it('keeps the add form behind a toggle so the table leads the section', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     expect(document.getElementById('inv-pos-symbol')).toBeNull()
     await user.click(screen.getByRole('button', { name: /Add position/i }))
     expect(document.getElementById('inv-pos-symbol')).not.toBeNull()
@@ -766,7 +793,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('re-prices in the background after a position is added', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(createPosition).mockResolvedValue(undefined)
     vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
 
@@ -794,7 +821,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('refuses to re-add a symbol the account already holds', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(createPosition).mockResolvedValue(undefined)
 
     await user.click(screen.getByRole('button', { name: /Add position/i }))
@@ -813,7 +840,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('sends the chosen currency with a new position', async () => {
     const user = await renderPage(STATE)
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(createPosition).mockResolvedValue(undefined)
     vi.mocked(syncPrices).mockResolvedValue({ symbols: 0, synced: 0, failed: [] })
 
@@ -833,7 +860,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('hides the Account column in a single-account book', async () => {
     await renderPage()
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     /* One account means every cell would read identically — the column
        stays out and its width goes back to the data. */
     expect(screen.queryByRole('columnheader', { name: 'Account' })).toBeNull()
@@ -844,13 +871,13 @@ describe('InvestPortfolioPage positions', () => {
     expect(
       await screen.findByRole('columnheader', { name: 'Account' }),
     ).toBeInTheDocument()
-    const row = (await screen.findByText('SHOP')).closest('tr')
+    const row = (await posCell('SHOP')).closest('tr')
     expect(within(row as HTMLElement).getByText('Paper book')).toBeInTheDocument()
   })
 
   it('suggests the quote currency when the symbol already has a snapshot', async () => {
     const user = await renderPage(USD_QUOTED)
-    await screen.findByText('AMD')
+    await posCell('AMD')
 
     await user.click(screen.getByRole('button', { name: /Add position/i }))
     await user.type(document.getElementById('inv-pos-symbol')!, 'amd')
@@ -865,7 +892,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('imports a pasted list and keeps the lines that did not parse', async () => {
     const user = await renderPage()
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     vi.mocked(createPosition).mockResolvedValue(undefined)
     vi.mocked(syncPrices).mockResolvedValue({ symbols: 2, synced: 2, failed: [] })
 
@@ -896,7 +923,7 @@ describe('InvestPortfolioPage positions', () => {
 
   it('states quote freshness under the positions table', async () => {
     await renderPage()
-    await screen.findByText('SHOP')
+    await posCell('SHOP')
     expect(await screen.findByText(/Prices as of/)).toBeInTheDocument()
   })
 })
@@ -944,7 +971,7 @@ describe('InvestPortfolioPage accounts', () => {
     /* Every row names its owning account once a second account exists —
        the blast radius is visible before the delete, not discovered
        after. */
-    const row = (await screen.findByText('SHOP')).closest('tr')
+    const row = (await posCell('SHOP')).closest('tr')
     expect(row).not.toBeNull()
     expect(within(row as HTMLElement).getByText('Paper book')).toBeInTheDocument()
     vi.mocked(deleteAccount).mockResolvedValue(undefined)

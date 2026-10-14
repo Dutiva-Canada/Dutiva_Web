@@ -28,6 +28,8 @@ export const EMPTY_INVEST_STATE: InvestState = {
   goals: [],
   scanItems: [],
   memories: [],
+  bookSnapshots: [],
+  cashEvents: [],
 }
 
 export const InvestDataContext = createContext<InvestDataContextValue>({

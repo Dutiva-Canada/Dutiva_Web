@@ -46,8 +46,12 @@ export function fmtCad(lang: Lang, n: number, ccy = 'CAD'): string {
   return lang === 'fr' ? `${fmtNum(lang, n)} $ ${ccy}` : `$${fmtNum(lang, n)} ${ccy}`
 }
 
-/** Metrics whose threshold is a money amount — the input/labels carry the
-    "$ … {ccy}" suffix treatment (fix #5). Everything else is a percentage. */
+/** Metrics whose threshold is a money amount in the BOOK currency — the
+    input/labels carry the "$ … {ccy}" suffix treatment (fix #5).
+    Everything else is a percentage. `price` is deliberately absent: its
+    amount is in the symbol's *listing* currency, which varies across a
+    scope — it formats unitless ("Price rises above 150") and takes the
+    bare-$ input treatment instead of a possibly-wrong {ccy} label. */
 export const CURRENCY_METRICS: readonly RuleMetric[] = ['value_floor', 'cash_above']
 
 export function isCurrencyMetric(metric: RuleMetric): boolean {
@@ -75,11 +79,13 @@ function metricLabel(lang: Lang, metric: RuleMetric): string {
  */
 export function ruleTitle(lang: Lang, rule: StrategyRule, ccy = 'CAD'): string {
   const fmt = (n: number) =>
-    isCurrencyMetric(rule.metric)
-      ? fmtCad(lang, n, ccy)
-      : Number.isFinite(n)
-        ? fmtPct(lang, n)
-        : ''
+    rule.metric === 'price'
+      ? fmtNum(lang, n)
+      : isCurrencyMetric(rule.metric)
+        ? fmtCad(lang, n, ccy)
+        : Number.isFinite(n)
+          ? fmtPct(lang, n)
+          : ''
   if (rule.op === 'between') {
     const lo = Math.min(rule.value, rule.value2 ?? rule.value)
     const hi = Math.max(rule.value, rule.value2 ?? rule.value)
@@ -269,9 +275,12 @@ function matchReading(
   rule: StrategyRule | undefined,
   ccy: string,
 ): string {
-  const v = isCurrencyMetric(rule?.metric ?? 'cash_above')
-    ? fmtCad(lang, match.metricValue, ccy)
-    : fmtPct(lang, match.metricValue)
+  const v =
+    rule?.metric === 'price'
+      ? fmtNum(lang, match.metricValue)
+      : isCurrencyMetric(rule?.metric ?? 'cash_above')
+        ? fmtCad(lang, match.metricValue, ccy)
+        : fmtPct(lang, match.metricValue)
   const label = rule ? metricLabel(lang, rule.metric) : match.ruleTitle
   return rule && isCurrencyMetric(rule.metric)
     ? fill(pick(IM.invest_sb_balance_at, lang), { value: v })
