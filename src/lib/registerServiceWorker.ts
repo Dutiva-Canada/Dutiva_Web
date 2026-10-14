@@ -40,14 +40,28 @@ export function registerServiceWorker(): void {
  *    install's initial claim, or a hard reload (worker bypassed) — either way
  *    already the freshest load, with nothing stale to escape. Also means the
  *    reload only ever fires for an *update* replacing a running worker.
- *  - The app surface (`/app*`): workspace drafts — the Advisor composer text,
- *    a half-filled new-case form — live only in React state, so reloading
- *    would silently discard unsent work. The stale-content symptom this fixes
- *    was on the public marketing pages, which hold no such unsaved state, so
- *    recovery is limited to them. Read at takeover time so a client-side
- *    navigation into /app is respected.
+ *  - The workspace + portal surfaces: drafts — the Advisor/Tally composer
+ *    text, a half-filled order or mandate field, a half-signed document —
+ *    live only in React state, so reloading would silently discard unsent
+ *    work. The stale-content symptom this fixes was on the public marketing
+ *    pages, which hold no such state, so recovery is limited to them.
+ *    Segment-matched (`/pr` must not shadow `/pricing`). Read at takeover
+ *    time so a client-side navigation into a workspace is respected.
  *  - `reloaded` latch: one reload per page load, so it can never loop.
  */
+const NO_TAKEOVER_RELOAD = [
+  '/app',
+  '/invest',
+  '/health',
+  '/pr',
+  '/careers',
+  '/fr/carrieres',
+  '/employer',
+  '/fr/employeur',
+  '/sign',
+  '/fr/sign',
+]
+
 export function reloadOnWorkerTakeover(
   container: ServiceWorkerContainer,
   location: Pick<Location, 'pathname' | 'reload'>,
@@ -56,7 +70,8 @@ export function reloadOnWorkerTakeover(
   let reloaded = false
   container.addEventListener('controllerchange', () => {
     if (reloaded || !hadController) return
-    if (location.pathname.startsWith('/app')) return
+    const path = location.pathname
+    if (NO_TAKEOVER_RELOAD.some((p) => path === p || path.startsWith(`${p}/`))) return
     reloaded = true
     location.reload()
   })
