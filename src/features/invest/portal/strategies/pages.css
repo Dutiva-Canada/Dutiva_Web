@@ -1640,3 +1640,85 @@
   color: var(--sb-body);
   font-weight: 600;
 }
+
+/* Order detail rows — fills list, record-fill and edit forms (0224) */
+.sb-ord-detail > td {
+  padding: 0 14px 12px;
+  background: var(--sb-surface-2, rgba(255, 255, 255, 0.02));
+  border-bottom: 1px solid var(--sb-border);
+}
+
+.sb-ord-fill {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  padding-top: 10px;
+}
+
+.sb-ord-fill .sb-field {
+  min-width: 120px;
+}
+
+.sb-fill-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+/* Recurring contributions list (0224) */
+.sb-recur-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sb-recur-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-radius, 10px);
+}
+
+/* Curve controls — scope segment stacks above the range segment on
+   narrow widths. */
+.sb-curve-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+/* Saved stress scenarios (0224) */
+.sb-stress-saved {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.sb-stress-saved .sb-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.sb-stress-save {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.sb-stress-save .sb-input {
+  flex: 1;
+  min-width: 0;
+  max-width: 260px;
+}

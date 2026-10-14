@@ -13,6 +13,14 @@
 import { convertFx, type FxTable } from './fx.ts'
 
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
+export const ASSET_CLASSES: readonly AssetClass[] = [
+  'equity',
+  'etf',
+  'crypto',
+  'bond',
+  'cash',
+  'other',
+]
 export type RuleMetric =
   'day_change_pct' | 'vs_ma50' | 'price' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
 export type RuleOp = 'lt' | 'gt' | 'between'
@@ -905,7 +913,7 @@ export function applyFill(
 
 /* --- Request validation ------------------------------------------------------ */
 
-export type BotAction = 'run' | 'run-all' | 'execute-order' | 'test-scan'
+export type BotAction = 'run' | 'run-all' | 'execute-order' | 'import-fill' | 'test-scan'
 
 export function validateBotAction(
   action: unknown,
@@ -914,6 +922,7 @@ export function validateBotAction(
     action === 'run' ||
     action === 'run-all' ||
     action === 'execute-order' ||
+    action === 'import-fill' ||
     action === 'test-scan'
   ) {
     return { ok: true, value: action }

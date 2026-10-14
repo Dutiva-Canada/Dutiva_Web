@@ -1015,6 +1015,87 @@ const investCoreMessages = defineMessages({
     fr: 'Les ordres restent en file jusqu’à votre exécution. Les ordres réels demandent le prix obtenu.',
   },
 
+  /* 0224 — fill recording, closed trades, external backfill.
+     [FR self-authored] */
+  invest_fills_progress: {
+    en: '{filled} of {total} filled',
+    fr: '{filled} sur {total} exécutés',
+  },
+  invest_fills_count: { en: '{count} fills', fr: '{count} exécutions' },
+  invest_fill_price_mark_hint: { en: 'blank = current mark', fr: 'vide = cours actuel' },
+  invest_fill_date: { en: 'Fill date (optional)', fr: 'Date d’exécution (optionnel)' },
+  invest_fill_partial: { en: 'Record partial fill', fr: 'Exécution partielle' },
+  invest_fill_record: { en: 'Record fill', fr: 'Enregistrer l’exécution' },
+  invest_fill_note: { en: 'Note', fr: 'Note' },
+  invest_closed_title: { en: 'Closed trades', fr: 'Transactions closes' },
+  invest_closed_avg_cost: { en: 'Avg cost', fr: 'Coût moyen' },
+  invest_closed_sold_at: { en: 'Sold at', fr: 'Vendu à' },
+  invest_closed_realized: { en: 'Realized', fr: 'Réalisé' },
+  invest_closed_date: { en: 'Date', fr: 'Date' },
+  invest_closed_total: { en: 'Realized ({ccy})', fr: 'Réalisé ({ccy})' },
+  invest_hint_closed_aria: { en: 'About closed trades', fr: 'À propos des transactions closes' },
+  invest_hint_closed: {
+    en: 'Each sell fill is scored against what the shares cost when it landed — that gap is your realized gain or loss. Unrealized moves on open positions stay on the Overview.',
+    fr: 'Chaque vente exécutée se compare au coût des titres au moment de l’exécution — l’écart est votre gain ou perte réalisé. Les variations sur positions ouvertes restent dans l’aperçu.',
+  },
+  invest_import_open: { en: 'Import fills', fr: 'Importer des exécutions' },
+  invest_import_title: { en: 'Import fill history', fr: 'Importer un historique' },
+  invest_import_help: {
+    en: 'One fill per line: symbol, buy or sell, quantity, price, date (YYYY-MM-DD). Lines import oldest-first so average cost lands right.',
+    fr: 'Une exécution par ligne : symbole, buy ou sell, quantité, prix, date (AAAA-MM-JJ). Les lignes s’importent de la plus ancienne à la plus récente pour un coût moyen exact.',
+  },
+  invest_import_rows: { en: 'Fills', fr: 'Exécutions' },
+  invest_import_placeholder: {
+    en: 'SHOP, buy, 10, 82.50, 2024-03-14',
+    fr: 'SHOP, buy, 10, 82,50, 2024-03-14',
+  },
+  invest_import_apply_book: {
+    en: 'Update positions and cash — off records history only, for books already mirrored by hand',
+    fr: 'Mettre à jour positions et liquidités — désactivé, l’historique seul s’enregistre, pour les livres déjà saisis à la main',
+  },
+  invest_import_run: { en: 'Import', fr: 'Importer' },
+  invest_import_bad_line: { en: 'Line {line}: skipped — needs symbol, buy|sell, qty, price, date', fr: 'Ligne {line} : ignorée — symbole, buy|sell, quantité, prix et date requis' },
+  invest_hint_import_aria: { en: 'About importing fills', fr: 'À propos de l’import' },
+  invest_hint_import: {
+    en: 'For an account you mirror from elsewhere: paste the fills that built it and the book reconstructs itself. Nothing syncs — this is history you type in once.',
+    fr: 'Pour un compte que vous reflétez d’ailleurs : collez les exécutions qui l’ont bâti et le livre se reconstruit. Rien ne se synchronise — c’est un historique saisi une fois.',
+  },
+
+  /* Position shortcuts + recurring contributions + curve scope (0224).
+     [FR self-authored] */
+  invest_dividend_record: { en: 'Record dividend', fr: 'Enregistrer un dividende' },
+  invest_dividend_per_share: { en: 'Per share', fr: 'Par action' },
+  invest_split_record: { en: 'Record split', fr: 'Enregistrer une division' },
+  invest_split_ratio: { en: 'Split ratio', fr: 'Ratio de division' },
+  invest_split_ratio_hint: { en: '2 = two-for-one', fr: '2 = deux pour une' },
+  invest_recur_title: { en: 'Recurring contributions', fr: 'Versements périodiques' },
+  invest_recur_sub: {
+    en: 'A deposit the sweep writes automatically when its date lands — the curve still backs it out of performance.',
+    fr: 'Un dépôt que l’analyse inscrit automatiquement à la date prévue — la courbe l’exclut toujours du rendement.',
+  },
+  invest_recur_amount: { en: 'Amount', fr: 'Montant' },
+  invest_recur_cadence: { en: 'Every', fr: 'Fréquence' },
+  invest_recur_weekly: { en: 'week', fr: 'semaine' },
+  invest_recur_monthly: { en: 'month', fr: 'mois' },
+  invest_recur_next_date: { en: 'First deposit on', fr: 'Premier versement le' },
+  invest_recur_next: { en: 'next {date}', fr: 'prochain {date}' },
+  invest_recur_add: { en: 'Schedule', fr: 'Programmer' },
+  invest_recur_pause: { en: 'Pause', fr: 'Suspendre' },
+  invest_recur_resume: { en: 'Resume', fr: 'Reprendre' },
+  invest_recur_paused: { en: 'Paused', fr: 'Suspendu' },
+  invest_hint_recur_aria: { en: 'About recurring contributions', fr: 'À propos des versements' },
+  invest_hint_recur: {
+    en: 'When a due date lands, the sweep records a real deposit on the account and bumps the next date — weekly or monthly. Pausing stops new deposits; past ones stay in the ledger.',
+    fr: 'À la date prévue, l’analyse inscrit un vrai dépôt sur le compte et reporte l’échéance — hebdomadaire ou mensuelle. Suspendre arrête les prochains versements ; ceux passés restent au registre.',
+  },
+  invest_curve_scope_all: { en: 'Whole book', fr: 'Tout le livre' },
+  invest_curve_scope_aria: { en: 'Curve scope', fr: 'Portée de la courbe' },
+  /* Saved stress scenarios (0224). [FR self-authored] */
+  invest_stress_saved_label: { en: 'Saved scenarios…', fr: 'Scénarios enregistrés…' },
+  invest_stress_delete_saved: { en: 'Delete saved scenario', fr: 'Supprimer le scénario' },
+  invest_stress_save_name: { en: 'Name this scenario', fr: 'Nommer ce scénario' },
+  invest_stress_save: { en: 'Save scenario', fr: 'Enregistrer' },
+
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

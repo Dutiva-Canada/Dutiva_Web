@@ -42,22 +42,51 @@ interface Point {
 }
 
 interface Props {
-  /** Ascending by asOf (the state load orders it). */
+  /** Ascending by asOf (the state load orders it). accountId null = the
+      book-wide row; a value scopes the row to one account (0224). */
   snapshots: InvestBookSnapshot[]
   cashEvents: InvestCashEvent[]
+  /** Active accounts — the scope segment lists the ones that have marks. */
+  accounts: { id: string; name: string }[]
   /** ECB table for converting recorded flows into the book currency —
       null means 'no rate on file'; unconvertible events drop out of the
       flow adjustment rather than distort it. */
   fx: FxTable | null
 }
 
-export function BookCurve({ snapshots, cashEvents, fx }: Props) {
+export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
   const { x, lang } = useI18n()
   const [range, setRange] = useState<Range>('all')
+  const [scope, setScope] = useState<string | 'all'>('all')
+
+  /* Which accounts actually carry marks — the segment offers real
+     choices only. */
+  const scopedAccounts = useMemo(() => {
+    const withMarks = new Set(
+      snapshots.filter((s) => s.accountId !== null).map((s) => s.accountId),
+    )
+    return accounts.filter((a) => withMarks.has(a.id))
+  }, [snapshots, accounts])
+  const effectiveScope =
+    scope !== 'all' && scopedAccounts.some((a) => a.id === scope) ? scope : 'all'
+  const scopedSnapshots = useMemo(
+    () =>
+      snapshots.filter((s) =>
+        effectiveScope === 'all' ? s.accountId === null : s.accountId === effectiveScope,
+      ),
+    [snapshots, effectiveScope],
+  )
+  const scopedEvents = useMemo(
+    () =>
+      effectiveScope === 'all'
+        ? cashEvents
+        : cashEvents.filter((e) => e.accountId === effectiveScope),
+    [cashEvents, effectiveScope],
+  )
 
   /* The series displays in the newest mark's currency — that's the book
      currency the sweep wrote it in. */
-  const ccy = snapshots[snapshots.length - 1]?.currency ?? 'CAD'
+  const ccy = scopedSnapshots[scopedSnapshots.length - 1]?.currency ?? 'CAD'
   const fmt = useMemo(
     () =>
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -72,7 +101,7 @@ export function BookCurve({ snapshots, cashEvents, fx }: Props) {
   const points = useMemo<Point[]>(() => {
     const since =
       cutoff === null ? null : new Date(Date.now() - cutoff * 86_400_000).toISOString().slice(0, 10)
-    return snapshots
+    return scopedSnapshots
       .filter((s) => since === null || s.asOf >= since)
       .map((s) => ({
         asOf: s.asOf,
@@ -84,7 +113,7 @@ export function BookCurve({ snapshots, cashEvents, fx }: Props) {
         invested: s.invested,
         cash: s.cash,
       }))
-  }, [snapshots, cutoff, lang])
+  }, [scopedSnapshots, cutoff, lang])
 
   const stats = useMemo(() => {
     if (points.length < 2) return { chg: null as number | null, hasFlows: false, maxDD: null as number | null }
@@ -95,7 +124,7 @@ export function BookCurve({ snapshots, cashEvents, fx }: Props) {
        their occurred_at date; the window is (first.asOf, last.asOf]. */
     let netFlow = 0
     let hasFlows = false
-    for (const e of cashEvents) {
+    for (const e of scopedEvents) {
       if (e.kind === 'dividend') continue
       if (e.occurredAt <= first.asOf || e.occurredAt > last.asOf) continue
       const v = convertFx(e.amount, e.currency, ccy, fx)
@@ -112,7 +141,7 @@ export function BookCurve({ snapshots, cashEvents, fx }: Props) {
       if (peak > 0) maxDD = Math.min(maxDD, ((p.book - peak) / peak) * 100)
     }
     return { chg, hasFlows, maxDD: maxDD < 0 ? maxDD : null }
-  }, [points, cashEvents, ccy, fx])
+  }, [points, scopedEvents, ccy, fx])
 
   const pctFmt = (n: number) =>
     `${n > 0 ? '+' : '−'}${Math.abs(n).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
@@ -138,17 +167,40 @@ export function BookCurve({ snapshots, cashEvents, fx }: Props) {
               })}`}
           </p>
         </div>
-        <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_title)}>
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              aria-pressed={range === r.id}
-              onClick={() => setRange(r.id)}
-            >
-              {x(IM[r.key])}
-            </button>
-          ))}
+        <div className="sb-curve-controls">
+          {scopedAccounts.length > 0 && (
+            <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_scope_aria)}>
+              <button
+                type="button"
+                aria-pressed={effectiveScope === 'all'}
+                onClick={() => setScope('all')}
+              >
+                {x(IM.invest_curve_scope_all)}
+              </button>
+              {scopedAccounts.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  aria-pressed={effectiveScope === a.id}
+                  onClick={() => setScope(a.id)}
+                >
+                  {a.name}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_title)}>
+            {RANGES.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                aria-pressed={range === r.id}
+                onClick={() => setRange(r.id)}
+              >
+                {x(IM[r.key])}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

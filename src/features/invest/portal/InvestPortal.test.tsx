@@ -204,6 +204,9 @@ const STATE: InvestState = {
   memories: [],
   bookSnapshots: [],
   cashEvents: [],
+  fills: [],
+  stressScenarios: [],
+  recurring: [],
   news: [
     {
       id: 1,
@@ -606,9 +609,13 @@ describe('InvestOrdersPage', () => {
     expect(await screen.findByText('SHOP')).toBeInTheDocument()
     expect(screen.getByText('Queued')).toBeInTheDocument()
     const { default: userEvent } = await import('@testing-library/user-event')
-    await userEvent.setup().click(screen.getByRole('button', { name: /Mark executed/i }))
+    const user = userEvent.setup()
+    /* 'Mark executed' opens the fill row; 'Record fill' submits it — a
+       blank qty/price means 'all of it, at the current mark'. */
+    await user.click(screen.getByRole('button', { name: /Mark executed/i }))
+    await user.click(screen.getByRole('button', { name: /Record fill/i }))
     await vi.waitFor(() => {
-      expect(executeOrder).toHaveBeenCalledWith('o1', undefined)
+      expect(executeOrder).toHaveBeenCalledWith('o1', undefined, undefined, undefined)
     })
   })
 })

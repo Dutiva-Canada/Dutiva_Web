@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Activity, AlertTriangle } from 'lucide-react'
+import { Activity, AlertTriangle, Bookmark, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, loadFxRates, type FxTable } from '../data/fx'
 import { runStress, type Shock, type StressResult } from '../data/stressTest'
+import { deleteStressScenario, saveStressScenario } from '../data/api'
 import type {
   InvestAccount,
   InvestGoal,
@@ -11,6 +12,7 @@ import type {
   InvestStrategy,
   InvestThesis,
   MarketSnapshot,
+  StressScenario,
   ThesisStatus,
 } from '../data/types'
 
@@ -37,14 +39,23 @@ export function StressTest(props: {
   goals: InvestGoal[]
   watchSymbols: string[]
   accounts: InvestAccount[]
+  /** Saved named scenarios (0224) — a pick replays its shock set. */
+  scenarios: StressScenario[]
+  onScenariosChanged: () => Promise<void>
 }) {
   const { positions, snapshots, strategies, theses, goals, watchSymbols, accounts } = props
+  const { scenarios, onScenariosChanged } = props
   const { lang, x } = useI18n()
   const [preset, setPreset] = useState<PresetId>('all10')
   const [customSymbol, setCustomSymbol] = useState('')
   const [customPct, setCustomPct] = useState('')
   const [result, setResult] = useState<StressResult | null>(null)
   const [fx, setFx] = useState<FxTable | null>(null)
+  /* The shocks behind the visible result — what a save persists. */
+  const [lastShocks, setLastShocks] = useState<Shock[] | null>(null)
+  const [saveName, setSaveName] = useState('')
+  const [saveBusy, setSaveBusy] = useState(false)
+  const [selSaved, setSelSaved] = useState('')
 
   useEffect(() => {
     let live = true
@@ -139,6 +150,7 @@ export function StressTest(props: {
   }
 
   const run = (shocks: Shock[]) => {
+    setLastShocks(shocks)
     setResult(
       runStress({
         snapshots,
@@ -221,6 +233,81 @@ export function StressTest(props: {
           </button>
         ))}
       </div>
+
+      {scenarios.length > 0 && (
+        <div className="sb-stress-saved">
+          <select
+            className="sb-input"
+            value={selSaved}
+            aria-label={x(IM.invest_stress_saved_label)}
+            onChange={(e) => {
+              setSelSaved(e.target.value)
+              const s = scenarios.find((sc) => sc.id === e.target.value)
+              if (!s) return
+              setPreset('custom')
+              /* Saved rows persist plain shock objects — the evaluator
+                 reads the same fields either way. */
+              run(s.shocks as Shock[])
+            }}
+          >
+            <option value="" disabled>
+              {x(IM.invest_stress_saved_label)}
+            </option>
+            {scenarios.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            aria-label={x(IM.invest_stress_delete_saved)}
+            disabled={saveBusy || !selSaved || !scenarios.some((s) => s.id === selSaved)}
+            onClick={() => {
+              const s = scenarios.find((sc) => sc.id === selSaved)
+              if (!s) return
+              setSaveBusy(true)
+              void deleteStressScenario(s.id)
+                .then(() => {
+                  setSelSaved('')
+                  return onScenariosChanged()
+                })
+                .finally(() => setSaveBusy(false))
+            }}
+          >
+            <Trash2 size={14} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {result && lastShocks && (
+        <div className="sb-stress-save">
+          <input
+            className="sb-input"
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value)}
+            placeholder={x(IM.invest_stress_save_name)}
+            aria-label={x(IM.invest_stress_save_name)}
+          />
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            disabled={saveBusy || !saveName.trim()}
+            onClick={() => {
+              setSaveBusy(true)
+              void saveStressScenario({ name: saveName, shocks: lastShocks })
+                .then(() => {
+                  setSaveName('')
+                  return onScenariosChanged()
+                })
+                .finally(() => setSaveBusy(false))
+            }}
+          >
+            <Bookmark size={14} aria-hidden="true" /> {x(IM.invest_stress_save)}
+          </button>
+        </div>
+      )}
 
       {preset === 'custom' && (
         <div className="sb-stress-custom">

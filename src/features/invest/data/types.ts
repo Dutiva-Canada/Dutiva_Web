@@ -454,6 +454,8 @@ export interface InvestNewsItem {
 export interface InvestBookSnapshot {
   id: string
   asOf: string
+  /** null = book-wide row; a value scopes the snapshot to one account. */
+  accountId: string | null
   bookValue: number
   cash: number
   invested: number
@@ -472,5 +474,51 @@ export interface InvestCashEvent {
   currency: string
   occurredAt: string
   note: string
+  createdAt: string
+}
+
+/* ── Fills, saved scenarios, recurring contributions (0224) ─────────────── */
+
+/** One fill against an order — a queued order can fill in parts; the row
+    stores the position's avg cost the instant it landed so realized P&L
+    on sells stays right after the position mutates. */
+export interface OrderFill {
+  id: string
+  orderId: string
+  quantity: number
+  price: number
+  filledAt: string
+  avgCostAtFill: number | null
+  note: string
+}
+
+export type RecurringCadence = 'weekly' | 'monthly'
+
+/** A scheduled deposit — the sweep writes a cash event and advances the
+    date when next_run_on lands. */
+export interface RecurringContribution {
+  id: string
+  accountId: string
+  amount: number
+  currency: string
+  cadence: RecurringCadence
+  nextRunOn: string
+  enabled: boolean
+  note: string
+}
+
+/* Matches StressTest's Shock — declared here so the persisted row type
+   doesn't drag the evaluator into every consumer of state. */
+export interface StressShock {
+  match: 'ALL' | string
+  pct: number
+  kind?: 'price' | 'fx'
+}
+
+/** A named shock set the stress panel saves for reuse. */
+export interface StressScenario {
+  id: string
+  name: string
+  shocks: StressShock[]
   createdAt: string
 }

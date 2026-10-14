@@ -606,6 +606,8 @@ export function InvestAnalysisPage() {
           goals={state.goals}
           watchSymbols={state.watchlist.map((w) => w.symbol)}
           accounts={state.accounts}
+          scenarios={state.stressScenarios}
+          onScenariosChanged={refresh}
         />
         <AnalysisSwot theses={state.theses} />
       </div>

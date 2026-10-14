@@ -9981,6 +9981,7 @@ export type Database = {
       }
       invest_book_snapshots: {
         Row: {
+          account_id: string | null
           as_of: string
           book_value: number
           cash: number
@@ -9991,6 +9992,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           as_of: string
           book_value: number
           cash: number
@@ -10001,6 +10003,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
           as_of?: string
           book_value?: number
           cash?: number
@@ -10010,7 +10013,15 @@ export type Database = {
           invested?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invest_book_snapshots_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invest_bot_runs: {
         Row: {
@@ -10393,6 +10404,50 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_order_fills: {
+        Row: {
+          avg_cost_at_fill: number | null
+          created_at: string
+          filled_at: string
+          id: string
+          note: string
+          order_id: string
+          price: number
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          avg_cost_at_fill?: number | null
+          created_at?: string
+          filled_at?: string
+          id?: string
+          note?: string
+          order_id: string
+          price: number
+          quantity: number
+          user_id: string
+        }
+        Update: {
+          avg_cost_at_fill?: number | null
+          created_at?: string
+          filled_at?: string
+          id?: string
+          note?: string
+          order_id?: string
+          price?: number
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_order_fills_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "invest_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invest_orders: {
         Row: {
           account_id: string
@@ -10542,6 +10597,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "invest_positions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invest_recurring_contributions: {
+        Row: {
+          account_id: string
+          amount: number
+          cadence: string
+          created_at: string
+          currency: string
+          enabled: boolean
+          id: string
+          next_run_on: string
+          note: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          cadence: string
+          created_at?: string
+          currency?: string
+          enabled?: boolean
+          id?: string
+          next_run_on: string
+          note?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          cadence?: string
+          created_at?: string
+          currency?: string
+          enabled?: boolean
+          id?: string
+          next_run_on?: string
+          note?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_recurring_contributions_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "invest_accounts"
@@ -10702,6 +10807,33 @@ export type Database = {
           rules?: Json
           scope?: Json
           template?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_stress_scenarios: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          shocks: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          shocks?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          shocks?: Json
           updated_at?: string
           user_id?: string
         }
