@@ -395,6 +395,38 @@ describe('planSuggestions', () => {
     )
   })
 
+  it('day-move rule on a slower strategy carries the cadence switch it needs', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat({ cadence: 'monthly' })],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME', 100, -8)],
+        theses: [],
+      }),
+    )
+    const s = out.find((c) => c.dedupeKey?.includes('day_change_pct'))
+    expect(s).toBeDefined()
+    /* The promise "a daily watcher would catch it" is only honest if the
+       accept actually moves the strategy to daily — the payload carries it. */
+    expect(s!.payload['cadence']).toBe('daily')
+    expect(s!.detail_en).toMatch(/switches it to daily/)
+    expect(s!.detail_fr).toMatch(/passe en quotidien/)
+    /* On a daily strategy the rule just lands — no cadence field. */
+    const out2 = planSuggestions(
+      ctx({
+        strategies: [strat()],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME', 100, -8)],
+        theses: [],
+      }),
+    )
+    const s2 = out2.find((c) => c.dedupeKey?.includes('day_change_pct'))
+    expect(s2!.payload['cadence']).toBeUndefined()
+    expect(s2!.detail_en).toBe('Adds one rule to “Watcher”.')
+    /* FR keeps the comma decimal. */
+    expect(s2!.title_fr).toMatch(/a bougé de -8,0 %|a bougé de −8,0 %/)
+  })
+
   it('skips a symbol that already carries a thesis', () => {
     const out = planSuggestions(
       ctx({
