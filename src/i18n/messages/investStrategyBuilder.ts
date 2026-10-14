@@ -633,6 +633,11 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'Tally drafted the claim and its conditions — edit anything before saving.',
     fr: 'Tally a rédigé la thèse et ses conditions — modifiez avant d’enregistrer.',
   },
+  invest_thesis_tally_undo: { en: 'Restore my version', fr: 'Rétablir ma version' },
+  invest_thesis_no_symbols: {
+    en: 'Nothing tracked yet — add a holding or a watched symbol in Portfolios first.',
+    fr: 'Rien de suivi — ajoutez d’abord une position ou un symbole suivi dans Portefeuilles.',
+  },
   invest_thesis_tally_failed: { en: 'Tally couldn’t draft that — try rephrasing.', fr: 'Tally n’a pas pu la rédiger — essayez autrement.' },
   invest_thesis_suggest_accept: { en: 'Start tracking', fr: 'Commencer le suivi' },
   invest_thesis_suggest_stale: { en: 'A thesis already covers this symbol — dismiss to clear.', fr: 'Une thèse couvre déjà ce symbole — écartez pour nettoyer.' },
