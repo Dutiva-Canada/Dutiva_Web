@@ -47,7 +47,12 @@ export function RecurringCard({
   const target = accountId || active[0]?.id || ''
   const targetAccount = accounts.find((a) => a.id === target)
   const amountNum = Number(amount)
-  const valid = !!target && Number.isFinite(amountNum) && amountNum > 0 && !!nextRunOn
+  /* ISO strings compare lexically — typing a past date past the picker
+     constraint stays invalid. */
+  const dateOk =
+    !!nextRunOn && nextRunOn >= new Date().toISOString().slice(0, 10)
+  const valid =
+    !!target && Number.isFinite(amountNum) && amountNum > 0 && dateOk
 
   const accountName = useMemo(
     () => new Map(accounts.map((a) => [a.id, a.name])),
@@ -82,6 +87,9 @@ export function RecurringCard({
         {x(IM.invest_recur_sub)}
       </p>
 
+      {items.length === 0 && (
+        <p className="sb-empty">{x(IM.invest_recur_empty)}</p>
+      )}
       {items.length > 0 && (
         <ul className="sb-recur-list">
           {items.map((r) => (
@@ -156,7 +164,7 @@ export function RecurringCard({
       {active.length > 0 && (
         <form onSubmit={submit} className="sb-form-grid" style={{ marginTop: 12 }}>
           <div className="sb-field">
-            <label className="sb-flabel" htmlFor="inv-recur-acct">{x(IM.invest_accounts_title)}</label>
+            <label className="sb-flabel" htmlFor="inv-recur-acct">{x(IM.invest_field_account)}</label>
             <select
               id="inv-recur-acct"
               value={target}
@@ -200,6 +208,9 @@ export function RecurringCard({
             <input
               id="inv-recur-date"
               type="date"
+              /* A past "first deposit" isn't a schedule — it fires on the
+                 next sweep, dated today. Keep the picker at today+. */
+              min={new Date().toISOString().slice(0, 10)}
               value={nextRunOn}
               onChange={(e) => setNextRunOn(e.target.value)}
               className="sb-input"

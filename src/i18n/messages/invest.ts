@@ -700,8 +700,8 @@ const investCoreMessages = defineMessages({
   invest_ledger_title: { en: 'Cash movements', fr: 'Mouvements de liquidités' },
   /* [FR self-authored] */
   invest_ledger_note: {
-    en: 'Recorded movements move the account balance — and back deposits and withdrawals out of the track record’s change, so money moved never reads as performance.',
-    fr: 'Les mouvements inscrits ajustent le solde du compte — et sont retranchés de la variation de l’historique, pour que l’argent déplacé ne passe jamais pour du rendement.',
+    en: 'Each entry moves the account balance. Deposits and withdrawals are backed out of the track record’s change — money moved never reads as performance.',
+    fr: 'Chaque inscription ajuste le solde du compte. Les dépôts et retraits sont retranchés de la variation de l’historique — l’argent déplacé ne passe jamais pour du rendement.',
   },
   /* [FR self-authored] */
   invest_ledger_kind: { en: 'Kind', fr: 'Type' },
@@ -1089,9 +1089,16 @@ const investCoreMessages = defineMessages({
     fr: 'Un dépôt que l’analyse inscrit automatiquement à la date prévue — la courbe l’exclut toujours du rendement.',
   },
   invest_recur_amount: { en: 'Amount', fr: 'Montant' },
-  invest_recur_cadence: { en: 'Every', fr: 'Fréquence' },
-  invest_recur_weekly: { en: 'week', fr: 'semaine' },
-  invest_recur_monthly: { en: 'month', fr: 'mois' },
+  /* Options pair with the "Frequency" label and read standalone in the
+     row list ("$500 · Monthly"). */
+  invest_recur_cadence: { en: 'Frequency', fr: 'Fréquence' },
+  invest_recur_weekly: { en: 'Weekly', fr: 'Hebdomadaire' },
+  invest_recur_monthly: { en: 'Monthly', fr: 'Mensuelle' },
+  /* [FR self-authored] */
+  invest_recur_empty: {
+    en: 'Nothing scheduled yet — set an amount and a first date above.',
+    fr: 'Rien de programmé — indiquez un montant et une première date ci-dessus.',
+  },
   invest_recur_next_date: { en: 'First deposit on', fr: 'Premier versement le' },
   invest_recur_next: { en: 'next {date}', fr: 'prochain {date}' },
   invest_recur_add: { en: 'Schedule', fr: 'Programmer' },
