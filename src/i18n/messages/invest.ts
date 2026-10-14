@@ -657,13 +657,18 @@ const investCoreMessages = defineMessages({
   invest_curve_title: { en: 'Track record', fr: 'Historique' },
   /* [FR self-authored] */
   invest_curve_note: {
-    en: 'One mark per sweep-day.',
-    fr: 'Un relevé par jour de balayage.',
+    en: 'One mark per sweep-day',
+    fr: 'Un relevé par jour de balayage',
   },
   /* [FR self-authored] */
   invest_curve_empty: {
     en: 'No marks yet — the curve starts with the next sweep.',
     fr: 'Aucun relevé — la courbe commence au prochain balayage.',
+  },
+  /* [FR self-authored] */
+  invest_curve_empty_one: {
+    en: 'One mark so far — the curve starts with the next sweep.',
+    fr: 'Un seul relevé — la courbe commence au prochain balayage.',
   },
   /* [FR self-authored] */
   invest_curve_range_1m: { en: '1M', fr: '1 m' },

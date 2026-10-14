@@ -188,24 +188,31 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
               ))}
             </div>
           )}
-          <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_title)}>
-            {RANGES.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                aria-pressed={range === r.id}
-                onClick={() => setRange(r.id)}
-              >
-                {x(IM[r.key])}
-              </button>
-            ))}
-          </div>
+          {/* Range pills do nothing on an empty curve — dead chrome. The
+              account scope stays: hiding it could strand a user on a
+              scoped account that has no marks to switch back with. */}
+          {points.length >= 2 && (
+            <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_title)}>
+              {RANGES.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  aria-pressed={range === r.id}
+                  onClick={() => setRange(r.id)}
+                >
+                  {x(IM[r.key])}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {points.length < 2 ? (
         <p className="sb-empty" style={{ marginBottom: 0 }}>
-          {x(IM.invest_curve_empty)}
+          {/* A single mark already exists — "no marks" would contradict the
+              'since' line right above it. */}
+          {x(points.length === 1 ? IM.invest_curve_empty_one : IM.invest_curve_empty)}
         </p>
       ) : (
         <>
