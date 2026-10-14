@@ -87,9 +87,10 @@ describe('InvestStrategiesPage — foreign suggestion kinds', () => {
     await waitFor(() =>
       expect(screen.getByText('thesis suggestion title')).toBeInTheDocument(),
     )
-    /* The meta names the destination — not a stale-strategy read. */
-    expect(screen.getByText('On Theses')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Theses' }))
+    /* The button names the destination as an action — no separate
+       'On Theses' hint line. */
+    expect(screen.queryByText('On Theses')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Open Theses' }))
     await waitFor(() => expect(screen.getByText('theses-page')).toBeInTheDocument())
     /* A nav click isn't acceptance — resolving here would evict the row
        before the theses strip can serve it. */
@@ -97,17 +98,19 @@ describe('InvestStrategiesPage — foreign suggestion kinds', () => {
   })
 
   it.each([
-    ['goal', 'analysis-page', 'On Analysis'],
-    ['scan', 'analysis-page', 'On Analysis'],
-    ['swot', 'analysis-page', 'On Analysis'],
-    ['memory', 'profile-page', 'On Profile'],
-    ['profile', 'profile-page', 'On Profile'],
-  ])('routes a %s suggestion to its review surface', async (kind, marker, meta) => {
+    ['goal', 'analysis-page', 'Open Analysis'],
+    ['scan', 'analysis-page', 'Open Analysis'],
+    ['swot', 'analysis-page', 'Open Analysis'],
+    ['memory', 'profile-page', 'Open Profile'],
+    ['profile', 'profile-page', 'Open Profile'],
+  ])('routes a %s suggestion to its review surface', async (kind, marker, btn) => {
     const user = userEvent.setup()
     loadPendingSuggestions.mockResolvedValue([pendingRow(kind)])
     mount()
-    await waitFor(() => expect(screen.getByText(meta)).toBeInTheDocument())
-    await user.click(screen.getByRole('button', { name: meta.slice(3) }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: btn })).toBeInTheDocument(),
+    )
+    await user.click(screen.getByRole('button', { name: btn }))
     await waitFor(() => expect(screen.getByText(marker)).toBeInTheDocument())
   })
 
