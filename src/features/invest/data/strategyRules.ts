@@ -18,6 +18,7 @@ import type {
 export const RULE_METRICS: readonly RuleMetric[] = [
   'day_change_pct',
   'vs_ma50',
+  'price',
   'value_floor',
   'weight_pct',
   'unrealized_gain_pct',
@@ -33,6 +34,7 @@ export const BOOK_METRICS: readonly RuleMetric[] = ['cash_above']
 export const RULE_METRIC_LABELS: Record<RuleMetric, string> = {
   day_change_pct: 'invest_rule_metric_day_change',
   vs_ma50: 'invest_rule_metric_vs_ma50',
+  price: 'invest_rule_metric_price',
   value_floor: 'invest_rule_metric_value_floor',
   weight_pct: 'invest_rule_metric_weight',
   unrealized_gain_pct: 'invest_rule_metric_gain',

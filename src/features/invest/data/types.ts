@@ -44,6 +44,9 @@ export interface InvestPosition {
   currency: string
   lastPrice: number | null
   lastPriceAt: string | null
+  /** 0223 — share of book value this position should hold; the rebalance
+     card measures drift against it. Null = untargeted. */
+  targetWeightPct: number | null
 }
 
 export interface MarketSnapshot {
@@ -60,7 +63,7 @@ export interface MarketSnapshot {
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
 
 export type RuleMetric =
-  'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
+  'day_change_pct' | 'vs_ma50' | 'price' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
 export type SignalSeverity = 'insight' | 'alert'
 export type QuantityUnit = 'shares' | 'percent_of_position' | 'currency'
 
@@ -442,4 +445,32 @@ export interface InvestNewsItem {
   source: string
   summary: string
   publishedAt: string | null
+}
+
+/* ── Track record + cash ledger (0223) ──────────────────────────────────── */
+
+/** One sweep-day's marked book value — the performance curve's series.
+    Written by the bot's run pass; one row per user per calendar day. */
+export interface InvestBookSnapshot {
+  id: string
+  asOf: string
+  bookValue: number
+  cash: number
+  invested: number
+  currency: string
+}
+
+export type CashEventKind = 'deposit' | 'withdrawal' | 'dividend'
+
+/** A recorded cash movement — deposits and withdrawals change the book's
+    footing without being performance; dividends are gains paid out. */
+export interface InvestCashEvent {
+  id: string
+  accountId: string
+  kind: CashEventKind
+  amount: number
+  currency: string
+  occurredAt: string
+  note: string
+  createdAt: string
 }

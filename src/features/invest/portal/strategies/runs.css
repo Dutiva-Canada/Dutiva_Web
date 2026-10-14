@@ -260,3 +260,45 @@ textarea.sb-input {
   resize: vertical;
   line-height: 1.5;
 }
+
+/* ── Run inspector (0223) — details/summary keeps the toggle free. ────── */
+details.sb-run {
+  display: block;
+  padding: 0;
+}
+details.sb-run > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+details.sb-run > summary::-webkit-details-marker {
+  display: none;
+}
+.sb-run-caret {
+  color: var(--sb-muted);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+details.sb-run[open] .sb-run-caret {
+  transform: rotate(180deg);
+}
+.sb-run-detail {
+  padding: 0 16px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sb-body);
+}
+.sb-run-k {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sb-muted);
+}

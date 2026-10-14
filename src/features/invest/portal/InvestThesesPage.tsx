@@ -23,7 +23,8 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useInvestData } from '../data/InvestDataContext'
-import { deleteThesis, draftThesis, saveThesis } from '../data/api'
+import { createOrder, deleteThesis, draftThesis, saveThesis } from '../data/api'
+import { readOrderMode } from './investPrefs'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type {
   AssetClass,
@@ -192,7 +193,9 @@ export function InvestThesesPage() {
 
   useEffect(() => {
     loadPendingSuggestions('invest')
-      .then((rows) => setPending(rows.filter((r) => r.kind === 'thesis')))
+      .then((rows) =>
+        setPending(rows.filter((r) => r.kind === 'thesis' || r.kind === 'exit_proposal')),
+      )
       .catch(() => {})
   }, [])
 
@@ -246,6 +249,47 @@ export function InvestThesesPage() {
       })
     },
     [openComposer],
+  )
+
+  /* 'exit_proposal' accept — the thesis already broke; the row turns into
+     a QUEUED sell for the held quantity, never an execution. It waits on
+     the Orders page like every other proposal. */
+  const acceptExit = useCallback(
+    async (s: AgentSuggestion) => {
+      const p = (s.payload ?? {}) as Record<string, unknown>
+      const symbol = typeof p.symbol === 'string' ? p.symbol.toUpperCase() : ''
+      const pos = state.positions.find(
+        (r) => r.assetClass === p.asset_class && r.symbol.toUpperCase() === symbol,
+      )
+      if (!pos) return
+      setPendingBusy(s.id)
+      try {
+        await createOrder({
+          accountId: pos.accountId,
+          assetClass: pos.assetClass,
+          symbol: pos.symbol,
+          name: pos.name,
+          side: 'sell',
+          quantity: pos.quantity,
+          orderType: 'market',
+          mode: readOrderMode(),
+          note: `Thesis exit — ${symbol}`,
+        })
+        void resolveSuggestion(s.id, 'accepted', 'drafted').catch(() => {})
+        setPending((cur) => cur.filter((r) => r.id !== s.id))
+        showToast(IM.invest_exit_drafted)
+        await refresh()
+      } catch (e) {
+        showToast(
+          fill(x(IM.invest_exit_failed), {
+            error: e instanceof Error ? e.message : String(e),
+          }),
+        )
+      } finally {
+        setPendingBusy(null)
+      }
+    },
+    [state.positions, showToast, refresh, x],
   )
 
   const runTallyDraft = useCallback(async () => {
@@ -420,10 +464,20 @@ export function InvestThesesPage() {
                     : typeof p.detail_en === 'string'
                       ? p.detail_en
                       : null) ?? null
-                const stale =
+                const key =
                   typeof p.asset_class === 'string' && typeof p.symbol === 'string'
-                    ? thesised.has(`${p.asset_class}:${p.symbol.toUpperCase()}`)
-                    : false
+                    ? `${p.asset_class}:${p.symbol.toUpperCase()}`
+                    : ''
+                /* Stale reads differently per kind — a thesis seed is
+                   stale when the thesis exists; an exit is stale when the
+                   position it would sell is already gone. */
+                const stale =
+                  s.kind === 'exit_proposal'
+                    ? key === '' ||
+                      !state.positions.some(
+                        (r) => `${r.assetClass}:${r.symbol.toUpperCase()}` === key,
+                      )
+                    : key !== '' && thesised.has(key)
                 return (
                   <div
                     key={s.id}
@@ -435,12 +489,16 @@ export function InvestThesesPage() {
                       {detail && <span className="sb-notify-hint">{detail}</span>}
                       {stale && (
                         <span className="sb-notify-hint">
-                          {x(IM.invest_thesis_suggest_stale)}
+                          {x(
+                            s.kind === 'exit_proposal'
+                              ? IM.invest_exit_stale
+                              : IM.invest_thesis_suggest_stale,
+                          )}
                         </span>
                       )}
                     </span>
                     <span className="sb-row-actions" style={{ flexShrink: 0 }}>
-                      {!stale && (
+                      {!stale && s.kind === 'thesis' && (
                         <button
                           type="button"
                           className="sb-btn sb-btn-secondary sb-btn-sm"
@@ -452,6 +510,19 @@ export function InvestThesesPage() {
                           }}
                         >
                           {x(IM.invest_thesis_suggest_accept)}
+                        </button>
+                      )}
+                      {!stale && s.kind === 'exit_proposal' && (
+                        <button
+                          type="button"
+                          className="sb-btn sb-btn-secondary sb-btn-sm"
+                          disabled={pendingBusy !== null}
+                          onClick={() => void acceptExit(s)}
+                        >
+                          {pendingBusy === s.id && (
+                            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                          )}
+                          {x(IM.invest_exit_accept)}
                         </button>
                       )}
                       <button

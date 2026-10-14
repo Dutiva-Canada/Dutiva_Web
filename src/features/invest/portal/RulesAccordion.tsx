@@ -166,6 +166,15 @@ export function RulesAccordion({
         const fired = fireCount?.(r) ?? null
         const bodyId = `${idPrefix}-body-${draft.id}`
         const isBook = BOOK_METRICS.includes(r.metric)
+        /* `price` thresholds are money but in the symbol's listing
+           currency — the scope can span currencies, so the input takes
+           the bare-$ treatment, never a possibly-wrong {ccy} suffix. */
+        const isMoney = isCurrencyMetric(r.metric) || r.metric === 'price'
+        const sufText = isCurrencyMetric(r.metric)
+          ? bookCurrency
+          : r.metric === 'price'
+            ? null
+            : '%'
         return (
           <div
             key={draft.id}
@@ -306,7 +315,7 @@ export function RulesAccordion({
                         {i > 0 && (
                           <span className="sb-and-join">{x(IM.invest_sb_and)}</span>
                         )}
-                        {isCurrencyMetric(r.metric) && <span className="sb-pre">$</span>}
+                        {isMoney && <span className="sb-pre">$</span>}
                         <input
                           className="sb-input"
                           type="number"
@@ -329,9 +338,7 @@ export function RulesAccordion({
                             })
                           }
                         />
-                        <span className="sb-suf">
-                          {isCurrencyMetric(r.metric) ? bookCurrency : '%'}
-                        </span>
+                        {sufText !== null && <span className="sb-suf">{sufText}</span>}
                       </div>
                     ))}
                     </div>

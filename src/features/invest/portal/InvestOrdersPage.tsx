@@ -1,5 +1,5 @@
 import './strategies.css'
-import { useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Info, Loader2, Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -20,6 +20,11 @@ import { TallyNote } from './TallyNote'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
+import {
+  loadPendingSuggestions,
+  resolveSuggestion,
+  type AgentSuggestion,
+} from '@/lib/agentQueue'
 
 const cardClass = 'sb-card sb-card-pad'
 const fieldClass = 'sb-input'
@@ -77,6 +82,41 @@ export function InvestOrdersPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
+  const [pending, setPending] = useState<AgentSuggestion[]>([])
+  const [pendingBusy, setPendingBusy] = useState<string | null>(null)
+
+  /* 'order_cross' rows — the limit-order sweep files one when a queued
+     order's limit is crossed. Accepting executes AT the limit the user
+     already committed to; anything else stays queued as it was. */
+  useEffect(() => {
+    loadPendingSuggestions('invest')
+      .then((rows) => setPending(rows.filter((r) => r.kind === 'order_cross')))
+      .catch(() => {})
+  }, [])
+
+  const acceptCross = async (s: AgentSuggestion) => {
+    const p = (s.payload ?? {}) as Record<string, unknown>
+    const orderId = typeof p.order_id === 'string' ? p.order_id : ''
+    const limit = typeof p.limit_price === 'number' ? p.limit_price : null
+    const order = state.orders.find((o) => o.id === orderId)
+    if (!order || limit === null || pendingBusy) return
+    setPendingBusy(s.id)
+    try {
+      await executeOrder(orderId, limit)
+      void resolveSuggestion(s.id, 'accepted', 'executed').catch(() => {})
+      setPending((cur) => cur.filter((r) => r.id !== s.id))
+      await refresh()
+    } catch {
+      setError(x(IM.invest_error_generic))
+    } finally {
+      setPendingBusy(null)
+    }
+  }
+
+  const dismissPending = async (s: AgentSuggestion) => {
+    setPending((cur) => cur.filter((r) => r.id !== s.id))
+    await resolveSuggestion(s.id, 'dismissed', 'dismissed').catch(() => {})
+  }
 
   /* Returns whether the write landed — the form only clears on success;
      a failed insert keeping its values beats retyping. */
@@ -118,6 +158,72 @@ export function InvestOrdersPage() {
         <Info size={16} strokeWidth={1.7} aria-hidden="true" />
         <span>{x(IM.invest_live_note)}</span>
       </div>
+
+      {pending.length > 0 && (
+        <div className="sb-mini-list" style={{ marginBottom: 16 }}>
+          <p className="sb-caption" style={{ marginTop: 0 }}>
+            {x(IM.invest_suggest_hint)}
+          </p>
+          {pending.map((s) => {
+            const p = (s.payload ?? {}) as Record<string, unknown>
+            const title =
+              lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+            const detail =
+              (lang === 'fr' && typeof p.detail_fr === 'string'
+                ? p.detail_fr
+                : typeof p.detail_en === 'string'
+                  ? p.detail_en
+                  : null) ?? null
+            const orderId = typeof p.order_id === 'string' ? p.order_id : ''
+            const order = state.orders.find((o) => o.id === orderId)
+            /* Stale = the order already moved on — executed elsewhere,
+               cancelled, or deleted between the sweep and the click. */
+            const stale = !order || (order.status !== 'queued' && order.status !== 'draft')
+            const limit = typeof p.limit_price === 'number' ? p.limit_price : null
+            const cur = typeof p.currency === 'string' ? p.currency : order ? currencyFor(order) : 'CAD'
+            return (
+              <div
+                key={s.id}
+                className="sb-notify-row"
+                style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
+              >
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{title}</strong>
+                  {detail && <span className="sb-notify-hint">{detail}</span>}
+                  {stale && (
+                    <span className="sb-notify-hint">{x(IM.invest_cross_stale)}</span>
+                  )}
+                </span>
+                <span className="sb-row-actions" style={{ flexShrink: 0 }}>
+                  {!stale && limit !== null && (
+                    <button
+                      type="button"
+                      className="sb-btn sb-btn-primary sb-btn-sm"
+                      disabled={pendingBusy !== null}
+                      onClick={() => void acceptCross(s)}
+                    >
+                      {pendingBusy === s.id && (
+                        <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                      )}
+                      {fillSlots(x(IM.invest_cross_execute), {
+                        price: fmtFor(cur).format(limit),
+                      })}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="sb-btn sb-btn-secondary sb-btn-sm"
+                    disabled={pendingBusy !== null}
+                    onClick={() => void dismissPending(s)}
+                  >
+                    {x(IM.invest_dismiss)}
+                  </button>
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {state.accounts.length > 0 && (
         <section className={cardClass} style={{ marginBottom: 16 }}>

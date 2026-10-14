@@ -636,6 +636,292 @@ const investCoreMessages = defineMessages({
     en: '{count} headlines',
     fr: '{count} manchettes',
   },
+  /* [FR self-authored] */
+  invest_news_book: { en: 'Your book', fr: 'Votre portefeuille' },
+  /* [FR self-authored] */
+  invest_news_all: { en: 'All', fr: 'Tout' },
+
+  /* Track record (0223) — one mark per sweep-day; deposits and
+     withdrawals are backed out so the change reads as performance,
+     not as money you moved. */
+  /* [FR self-authored] */
+  invest_curve_title: { en: 'Track record', fr: 'Historique' },
+  /* [FR self-authored] */
+  invest_curve_note: {
+    en: 'One mark per sweep-day.',
+    fr: 'Un relevé par jour de balayage.',
+  },
+  /* [FR self-authored] */
+  invest_curve_empty: {
+    en: 'No marks yet — the curve starts with the next sweep.',
+    fr: 'Aucun relevé — la courbe commence au prochain balayage.',
+  },
+  /* [FR self-authored] */
+  invest_curve_range_1m: { en: '1M', fr: '1 m' },
+  /* [FR self-authored] */
+  invest_curve_range_3m: { en: '3M', fr: '3 m' },
+  /* [FR self-authored] */
+  invest_curve_range_1y: { en: '1Y', fr: '1 a' },
+  /* [FR self-authored] */
+  invest_curve_range_all: { en: 'All', fr: 'Tout' },
+  /* [FR self-authored] */
+  invest_curve_change: { en: 'Change', fr: 'Variation' },
+  /* [FR self-authored] */
+  invest_curve_net_flows: {
+    en: 'net of recorded deposits and withdrawals',
+    fr: 'nette des dépôts et retraits inscrits',
+  },
+  /* [FR self-authored] */
+  invest_curve_maxdd: { en: 'Deepest dip', fr: 'Creux maximal' },
+  /* [FR self-authored] */
+  invest_curve_since: { en: 'since {date}', fr: 'depuis le {date}' },
+  /* [FR self-authored] */
+  invest_curve_invested: { en: 'Invested', fr: 'Investi' },
+  /* [FR self-authored] */
+  invest_curve_cash: { en: 'Cash', fr: 'Liquidités' },
+  /* [FR self-authored] */
+  invest_rule_metric_price: { en: 'Price', fr: 'Cours' },
+
+  /* Cash ledger (0223) */
+  /* [FR self-authored] */
+  invest_ledger_title: { en: 'Cash movements', fr: 'Mouvements de liquidités' },
+  /* [FR self-authored] */
+  invest_ledger_note: {
+    en: 'Recorded movements move the account balance — and back deposits and withdrawals out of the track record’s change, so money moved never reads as performance.',
+    fr: 'Les mouvements inscrits ajustent le solde du compte — et sont retranchés de la variation de l’historique, pour que l’argent déplacé ne passe jamais pour du rendement.',
+  },
+  /* [FR self-authored] */
+  invest_ledger_kind: { en: 'Kind', fr: 'Type' },
+  /* [FR self-authored] */
+  invest_ledger_deposit: { en: 'Deposit', fr: 'Dépôt' },
+  /* [FR self-authored] */
+  invest_ledger_withdrawal: { en: 'Withdrawal', fr: 'Retrait' },
+  /* [FR self-authored] */
+  invest_ledger_dividend: { en: 'Dividend', fr: 'Dividende' },
+  /* [FR self-authored] */
+  invest_ledger_amount: { en: 'Amount', fr: 'Montant' },
+  /* [FR self-authored] */
+  invest_ledger_date: { en: 'Date', fr: 'Date' },
+  /* [FR self-authored] */
+  invest_ledger_memo: { en: 'Note (optional)', fr: 'Note (facultative)' },
+  /* [FR self-authored] */
+  invest_ledger_record: { en: 'Record', fr: 'Inscrire' },
+  /* [FR self-authored] */
+  invest_ledger_empty: {
+    en: 'Nothing recorded yet — deposits and withdrawals you log here stop counting as performance.',
+    fr: 'Rien d’inscrit — les dépôts et retraits consignés ici cessent de compter comme du rendement.',
+  },
+  /* [FR self-authored] */
+  invest_ledger_confirm_del: { en: 'Remove & reverse?', fr: 'Retirer et renverser ?' },
+  /* [FR self-authored] */
+  invest_ledger_more: { en: '{count} movements on file', fr: '{count} mouvements inscrits' },
+
+  /* Rebalance (0223) */
+  /* [FR self-authored] */
+  invest_rebal_title: { en: 'Rebalance', fr: 'Rééquilibrage' },
+  /* [FR self-authored] */
+  invest_rebal_note: {
+    en: 'Weights are marked in {ccy}. Set a target share; a draft order closes the gap — nothing moves on its own.',
+    fr: 'Les poids sont évalués en {ccy}. Fixez une part cible; un ordre brouillon comble l’écart — rien ne bouge tout seul.',
+  },
+  /* [FR self-authored] */
+  invest_rebal_weight: { en: 'Weight', fr: 'Poids' },
+  /* [FR self-authored] */
+  invest_rebal_target: { en: 'Target', fr: 'Cible' },
+  /* [FR self-authored] */
+  invest_rebal_drift: { en: 'Drift', fr: 'Écart' },
+  /* [FR self-authored] */
+  invest_rebal_set: { en: 'Set', fr: 'Définir' },
+  /* [FR self-authored] */
+  invest_rebal_draft_sell: { en: 'Draft sell', fr: 'Vente brouillon' },
+  /* [FR self-authored] */
+  invest_rebal_draft_buy: { en: 'Draft buy', fr: 'Achat brouillon' },
+  /* [FR self-authored] */
+  invest_rebal_empty: {
+    en: 'No targets yet — set one on any row to start measuring drift.',
+    fr: 'Aucune cible — définissez-en une sur une ligne pour mesurer l’écart.',
+  },
+  /* [FR self-authored] */
+  invest_rebal_review: {
+    en: 'Draft orders land on the Orders tab for your review — they never fill on their own.',
+    fr: 'Les ordres brouillons arrivent dans l’onglet Ordres pour votre revue — ils ne s’exécutent jamais seuls.',
+  },
+
+  /* Allocation donut (0223) */
+  /* [FR self-authored] */
+  invest_alloc_title: { en: 'Holdings allocation', fr: 'Répartition des positions' },
+  /* [FR self-authored] */
+  invest_alloc_top: {
+    en: '{symbol} is {pct}% of your book.',
+    fr: '{symbol} représente {pct} % du portefeuille.',
+  },
+  /* [FR self-authored] */
+  invest_alloc_other: { en: 'Other', fr: 'Autres' },
+  /* [FR self-authored] */
+  invest_alloc_skipped: {
+    en: 'Unpriced positions don’t appear.',
+    fr: 'Les positions sans cours n’y figurent pas.',
+  },
+  /* [FR self-authored] */
+  invest_export_csv: { en: 'Export CSV', fr: 'Exporter en CSV' },
+
+  /* Watchlist price alert (0223) — writes a real 'price'-metric
+     strategy; the Agent tab owns it from there. */
+  /* [FR self-authored] */
+  invest_watch_alert_aria: { en: 'Set a price alert for {symbol}', fr: 'Créer une alerte de cours sur {symbol}' },
+  /* [FR self-authored] */
+  invest_watch_alert_lead: { en: 'Alert me when {symbol} is', fr: 'M’alerter quand {symbol} est' },
+  /* [FR self-authored] */
+  invest_watch_alert_now: { en: '(now {price} {ccy})', fr: '(actuellement {price} {ccy})' },
+  /* [FR self-authored] */
+  invest_watch_alert_above: { en: 'above', fr: 'au-dessus de' },
+  /* [FR self-authored] */
+  invest_watch_alert_below: { en: 'below', fr: 'sous' },
+  /* [FR self-authored] */
+  invest_watch_alert_save: { en: 'Save alert', fr: 'Enregistrer l’alerte' },
+  /* [FR self-authored] */
+  invest_watch_alert_saved: {
+    en: 'Price alert saved for {symbol} — it fires on the next sweep.',
+    fr: 'Alerte de cours enregistrée pour {symbol} — elle se déclenche au prochain balayage.',
+  },
+
+  /* Stress test (0223) — client-side scenario math over the user's own
+     rules, theses, and goals. Nothing is written; the panel reads like
+     the sweep's verdict would. */
+  /* [FR self-authored] */
+  invest_stress_title: { en: 'Stress test', fr: 'Simulation de choc' },
+  /* [FR self-authored] */
+  invest_stress_sub: {
+    en: 'Replay the book under a sharp move — which rules fire, which theses bend, which goals slip. Scenario math, not a forecast.',
+    fr: 'Rejouez le portefeuille sous un mouvement brusque — quelles règles se déclenchent, quelles thèses plient, quels objectifs reculent. Un scénario, pas une prévision.',
+  },
+  /* [FR self-authored] */
+  invest_stress_empty: {
+    en: 'Add a holding or a watched symbol first — the scenario needs marks to shock.',
+    fr: 'Ajoutez d’abord une position ou un symbole suivi — le scénario a besoin de cours à choquer.',
+  },
+  /* [FR self-authored] */
+  invest_stress_scenario_all10: { en: 'Everything −10%', fr: 'Tout −10 %' },
+  /* [FR self-authored] */
+  invest_stress_scenario_top15: { en: 'Top holding −15%', fr: 'Première position −15 %' },
+  /* [FR self-authored] */
+  invest_stress_scenario_cad5: { en: 'CAD +5%', fr: 'CAD +5 %' },
+  /* [FR self-authored] */
+  invest_stress_scenario_winners: { en: 'Winners give back 20%', fr: 'Les gagnants rendent 20 %' },
+  /* [FR self-authored] */
+  invest_stress_scenario_custom: { en: 'Custom', fr: 'Sur mesure' },
+  /* [FR self-authored] */
+  invest_stress_pick_symbol: { en: 'Pick a symbol', fr: 'Choisir un symbole' },
+  /* [FR self-authored] */
+  invest_stress_pct_label: { en: 'Move in percent', fr: 'Mouvement en pourcentage' },
+  /* [FR self-authored] */
+  invest_stress_run: { en: 'Run', fr: 'Lancer' },
+  /* [FR self-authored] */
+  invest_stress_book: { en: 'Book under the scenario', fr: 'Portefeuille sous le scénario' },
+  /* [FR self-authored] */
+  invest_stress_unmatched: {
+    en: 'No market data for {symbols} — skipped.',
+    fr: 'Pas de données de marché pour {symbols} — ignoré.',
+  },
+  /* [FR self-authored] */
+  invest_stress_none: {
+    en: 'Nothing fires under that scenario — the book just takes the hit.',
+    fr: 'Rien ne se déclenche sous ce scénario — le portefeuille encaisse en silence.',
+  },
+  /* [FR self-authored] */
+  invest_stress_strategies: { en: 'Rules that would fire', fr: 'Règles qui se déclencheraient' },
+  /* [FR self-authored] */
+  invest_stress_theses: { en: 'Theses that would move', fr: 'Thèses qui bougeraient' },
+  /* [FR self-authored] */
+  invest_stress_goals: { en: 'Goals under the scenario', fr: 'Objectifs sous le scénario' },
+  /* [FR self-authored] */
+  invest_stress_goal_holds: { en: 'holds', fr: 'tient' },
+  /* [FR self-authored] */
+  invest_stress_goal_slips: { en: 'slips', fr: 'recule' },
+  /* [FR self-authored] */
+  invest_stress_goal_unknown: { en: 'can’t read', fr: 'illisible' },
+  /* [FR self-authored] */
+  invest_stress_note: {
+    en: 'Runs on the latest marks, your rules — the same math the sweep uses. Nothing here is written or filed.',
+    fr: 'Calculé sur les derniers cours et vos règles — les mêmes calculs que le balayage. Rien n’est écrit ni proposé.',
+  },
+  /* Template gallery (0223) — seeds a real draft in the editor; scope is
+     the user's pick before saving. */
+  /* [FR self-authored] */
+  invest_tpl_gallery_title: { en: 'Start from a template', fr: 'Partir d’un gabarit' },
+  /* [FR self-authored] */
+  invest_tpl_gallery_sub: {
+    en: 'A starting point, not a locked product — you pick what it scans, then save.',
+    fr: 'Un point de départ, pas un produit figé — vous choisissez ce qu’elle surveille, puis vous enregistrez.',
+  },
+  /* [FR self-authored] */
+  invest_tpl_use: { en: 'Use this template', fr: 'Utiliser ce gabarit' },
+  /* Run inspector (0223) — expandable detail under a run row: what the
+     sweep read and which rules matched. */
+  /* [FR self-authored] */
+  invest_run_detail_read: { en: 'Read', fr: 'Lus' },
+  /* [FR self-authored] */
+  invest_run_detail_hits: { en: 'Rules matched', fr: 'Règles déclenchées' },
+  /* [FR self-authored] */
+  invest_run_detail_none: {
+    en: 'Nothing recorded for this run.',
+    fr: 'Rien de consigné pour ce passage.',
+  },
+  /* Morning brief (0223) — the digest card atop Overview: overnight
+     movers, fresh signals, bent theses, slipping goals, queued orders.
+     Dismiss once and it stays down until tomorrow. */
+  /* [FR self-authored] */
+  invest_brief_title: { en: 'This morning', fr: 'Ce matin' },
+  /* [FR self-authored] */
+  invest_brief_movers: { en: 'Overnight: {list}', fr: 'Pendant la nuit : {list}' },
+  /* [FR self-authored] */
+  invest_brief_signal_one: { en: 'signal fired since yesterday', fr: 'signal déclenché depuis hier' },
+  /* [FR self-authored] */
+  invest_brief_signal_many: { en: 'signals fired since yesterday', fr: 'signaux déclenchés depuis hier' },
+  /* [FR self-authored] */
+  invest_brief_theses: {
+    en: 'Theses: {broken} broken · {drifting} drifting',
+    fr: 'Thèses : {broken} brisée(s) · {drifting} en dérive',
+  },
+  /* [FR self-authored] */
+  invest_brief_goal_one: { en: 'goal off pace', fr: 'objectif qui recule' },
+  /* [FR self-authored] */
+  invest_brief_goal_many: { en: 'goals off pace', fr: 'objectifs qui reculent' },
+  /* [FR self-authored] */
+  invest_brief_order_one: { en: 'order waiting for a decision', fr: 'ordre en attente de décision' },
+  /* [FR self-authored] */
+  invest_brief_order_many: { en: 'orders waiting for a decision', fr: 'ordres en attente de décision' },
+  /* [FR self-authored] */
+  invest_brief_open: { en: 'Open the signals feed', fr: 'Ouvrir les signaux' },
+  /* [FR self-authored] */
+  invest_brief_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  /* Suggestion accept paths (0223) — a crossed limit executes AT the
+     limit the user set; a broken thesis turns into a sell draft on
+     Orders, never an execution. */
+  /* [FR self-authored] */
+  invest_cross_execute: { en: 'Execute at {price}', fr: 'Exécuter à {price}' },
+  /* [FR self-authored] */
+  invest_cross_stale: {
+    en: 'That order already moved on.',
+    fr: 'Cet ordre n’attend plus.',
+  },
+  /* [FR self-authored] */
+  invest_exit_accept: { en: 'Queue the sell', fr: 'Mettre la vente en file' },
+  /* [FR self-authored] */
+  invest_exit_stale: {
+    en: 'The position is already closed.',
+    fr: 'La position est déjà fermée.',
+  },
+  /* [FR self-authored] */
+  invest_exit_drafted: {
+    en: 'Sell order queued — review it in Orders.',
+    fr: 'Ordre de vente en file — passez-le en revue dans Ordres.',
+  },
+  /* [FR self-authored] */
+  invest_exit_failed: {
+    en: 'Couldn’t queue the sell — {error}',
+    fr: 'Impossible de mettre la vente en file — {error}',
+  },
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

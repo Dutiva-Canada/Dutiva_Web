@@ -14,7 +14,7 @@ import { convertFx, type FxTable } from './fx.ts'
 
 export type AssetClass = 'equity' | 'etf' | 'crypto' | 'bond' | 'cash' | 'other'
 export type RuleMetric =
-  'day_change_pct' | 'vs_ma50' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
+  'day_change_pct' | 'vs_ma50' | 'price' | 'value_floor' | 'weight_pct' | 'unrealized_gain_pct' | 'cash_above'
 export type RuleOp = 'lt' | 'gt' | 'between'
 export type SignalKind = 'screen' | 'insight' | 'alert' | 'thesis'
 export type SignalSeverity = 'insight' | 'alert'
@@ -146,6 +146,7 @@ export interface NewOrderProposal {
 const METRICS: readonly string[] = [
   'day_change_pct',
   'vs_ma50',
+  'price',
   'value_floor',
   'weight_pct',
   'unrealized_gain_pct',
@@ -296,6 +297,11 @@ export function metricValue(
     case 'vs_ma50':
       if (snap.ma50 === null || snap.ma50 === 0) return null
       return ((snap.price - snap.ma50) / snap.ma50) * 100
+    /* Raw last mark in the listing currency — the watchlist price alert's
+       substrate. Not FX-converted: a "SHOP above 150" rule means 150 of
+       the currency the symbol quotes in, same as the exchange ticket. */
+    case 'price':
+      return snap.price
     case 'value_floor':
       return position ? positionBookValue(position, snap, ctx) : null
     case 'weight_pct': {

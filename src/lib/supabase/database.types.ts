@@ -9979,6 +9979,39 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_book_snapshots: {
+        Row: {
+          as_of: string
+          book_value: number
+          cash: number
+          created_at: string
+          currency: string
+          id: string
+          invested: number
+          user_id: string
+        }
+        Insert: {
+          as_of: string
+          book_value: number
+          cash: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invested: number
+          user_id: string
+        }
+        Update: {
+          as_of?: string
+          book_value?: number
+          cash?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          invested?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_bot_runs: {
         Row: {
           duration_ms: number | null
@@ -10102,6 +10135,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      invest_cash_events: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          note: string
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          note?: string
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          note?: string
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_cash_events_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invest_goals: {
         Row: {
@@ -10426,6 +10503,7 @@ export type Database = {
           name: string
           quantity: number
           symbol: string
+          target_weight_pct: number | null
           updated_at: string
           user_id: string
         }
@@ -10441,6 +10519,7 @@ export type Database = {
           name?: string
           quantity?: number
           symbol: string
+          target_weight_pct?: number | null
           updated_at?: string
           user_id: string
         }
@@ -10456,6 +10535,7 @@ export type Database = {
           name?: string
           quantity?: number
           symbol?: string
+          target_weight_pct?: number | null
           updated_at?: string
           user_id?: string
         }

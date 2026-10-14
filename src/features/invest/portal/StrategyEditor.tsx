@@ -9,7 +9,7 @@
  */
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronLeft, Lock, ScanSearch, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, Lock, ScanSearch, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -566,38 +566,72 @@ export function StrategyEditor({
             <div className="sb-txt">{x(IM.invest_sb_no_runs)}</div>
           </div>
         ) : (
-          recentRuns.map((r) => (
-            <div className="sb-run" key={r.id}>
-              <div className="sb-txt">
-                {runLine(lang, r, r.strategyId ? strategyNameById[r.strategyId] : undefined)}
-                {r.proposalsCreated > 0 && (
-                  <>
-                    {' · '}
-                    <Link to="/invest/orders" className="sb-linklike">
-                      {x(IM.invest_run_view_orders)}
-                    </Link>
-                  </>
-                )}
-              </div>
-              <span
-                className={`sb-pill ${
-                  r.status === 'ok'
-                    ? 'sb-pill-ok'
-                    : r.status === 'partial'
-                      ? 'sb-pill-warn'
-                      : 'sb-pill-fail'
-                }`}
-              >
-                {x(
-                  r.status === 'ok'
-                    ? IM.invest_sb_run_ok
-                    : r.status === 'partial'
-                      ? IM.invest_sb_run_partial
-                      : IM.invest_sb_run_failed,
-                )}
-              </span>
-            </div>
-          ))
+          recentRuns.map((r) => {
+            const hitEntries = Object.entries(r.ruleHits)
+            const empty =
+              r.symbolsScanned.length === 0 &&
+              hitEntries.length === 0 &&
+              r.proposalsCreated === 0
+            return (
+              <details className="sb-run sb-run-x" key={r.id}>
+                <summary>
+                  <span className="sb-txt">
+                    {runLine(
+                      lang,
+                      r,
+                      r.strategyId ? strategyNameById[r.strategyId] : undefined,
+                    )}
+                  </span>
+                  <span
+                    className={`sb-pill ${
+                      r.status === 'ok'
+                        ? 'sb-pill-ok'
+                        : r.status === 'partial'
+                          ? 'sb-pill-warn'
+                          : 'sb-pill-fail'
+                    }`}
+                  >
+                    {x(
+                      r.status === 'ok'
+                        ? IM.invest_sb_run_ok
+                        : r.status === 'partial'
+                          ? IM.invest_sb_run_partial
+                          : IM.invest_sb_run_failed,
+                    )}
+                  </span>
+                  <ChevronDown size={15} className="sb-run-caret" aria-hidden="true" />
+                </summary>
+                <div className="sb-run-detail">
+                  {r.symbolsScanned.length > 0 && (
+                    <div className="sb-run-line">
+                      <span className="sb-run-k">{x(IM.invest_run_detail_read)}</span>
+                      {r.symbolsScanned.join(', ')}
+                    </div>
+                  )}
+                  {hitEntries.length > 0 && (
+                    <div className="sb-run-line">
+                      <span className="sb-run-k">{x(IM.invest_run_detail_hits)}</span>
+                      <span>
+                        {hitEntries
+                          .map(([title, n]) => `${title} ×${n}`)
+                          .join(' · ')}
+                      </span>
+                    </div>
+                  )}
+                  {r.proposalsCreated > 0 && (
+                    <div className="sb-run-line">
+                      <Link to="/invest/orders" className="sb-linklike">
+                        {x(IM.invest_run_view_orders)}
+                      </Link>
+                    </div>
+                  )}
+                  {empty && (
+                    <div className="sb-run-line">{x(IM.invest_run_detail_none)}</div>
+                  )}
+                </div>
+              </details>
+            )
+          })
         )}
       </div>
       <p className="sb-runs-foot">{x(IM.invest_sb_runs_foot)}</p>

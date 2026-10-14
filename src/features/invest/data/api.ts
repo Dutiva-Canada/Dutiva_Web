@@ -3,10 +3,13 @@ import { normalizeRules, validateRules } from './strategyRules'
 import { ASSET_CLASSES } from './types'
 import type {
   AssetClass,
+  CashEventKind,
   GoalMetric,
   GoalOp,
   InvestAccount,
+  InvestBookSnapshot,
   InvestBotRun,
+  InvestCashEvent,
   InvestGoal,
   InvestMemory,
   InvestNewsItem,
@@ -54,6 +57,8 @@ export interface InvestState {
   goals: InvestGoal[]
   scanItems: InvestScanItem[]
   memories: InvestMemory[]
+  bookSnapshots: InvestBookSnapshot[]
+  cashEvents: InvestCashEvent[]
 }
 
 type InvestRole = 'client' | 'admin'
@@ -86,7 +91,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts] =
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
@@ -108,6 +113,14 @@ export async function loadInvestState(): Promise<InvestState> {
       client.from('invest_goals').select('*').order('created_at', { ascending: false }),
       client.from('invest_scan_items').select('*').order('created_at', { ascending: false }),
       client.from('invest_memories').select('*').order('created_at', { ascending: false }),
+      client
+        .from('invest_book_snapshots')
+        .select('*')
+        .order('as_of', { ascending: true }),
+      client
+        .from('invest_cash_events')
+        .select('*')
+        .order('occurred_at', { ascending: false }),
     ])
   for (const res of [
     accounts,
@@ -128,6 +141,10 @@ export async function loadInvestState(): Promise<InvestState> {
   const goalRows = goals.error ? [] : (goals.data ?? [])
   const scanRows = scanItems.error ? [] : (scanItems.data ?? [])
   const memoryRows = memories.error ? [] : (memories.data ?? [])
+  /* 0223 — same code-before-schema tolerance: no curve or ledger until
+     the migration lands, never a failed state load. */
+  const bookSnapRows = bookSnaps.error ? [] : (bookSnaps.data ?? [])
+  const cashEvtRows = cashEvts.error ? [] : (cashEvts.data ?? [])
 
   /* News follows the same universe as market-sync: held ∪ watched symbols,
      plus general-market items (symbol ''). Server-side filter so general
@@ -172,6 +189,8 @@ export async function loadInvestState(): Promise<InvestState> {
     goals: goalRows.map(toGoal),
     scanItems: scanRows.map(toScanItem),
     memories: memoryRows.map(toMemory),
+    bookSnapshots: bookSnapRows.map(toBookSnapshot),
+    cashEvents: cashEvtRows.map(toCashEvent),
   }
 }
 
@@ -270,6 +289,7 @@ export async function createPosition(input: {
   quantity: number
   avgCost: number
   currency?: string
+  targetWeightPct?: number | null
 }): Promise<void> {
   if (!Number.isFinite(input.quantity) || input.quantity <= 0) {
     throw new Error('Position quantity must be greater than zero')
@@ -298,6 +318,11 @@ export async function createPosition(input: {
       quantity: input.quantity,
       avg_cost: input.avgCost,
       currency: input.currency ?? 'CAD',
+      /* 0223 — only written when the column exists; absent is untargeted,
+         the same as null. */
+      ...(input.targetWeightPct !== undefined
+        ? { target_weight_pct: input.targetWeightPct }
+        : {}),
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'account_id,asset_class,symbol' },
@@ -330,10 +355,120 @@ export async function updatePosition(
   if (error) throw error
 }
 
+/** Set or clear the rebalance anchor (0223). Null = untargeted; the
+    rebalance card measures drift against the set value. */
+export async function setPositionTargetWeight(
+  id: string,
+  pct: number | null,
+): Promise<void> {
+  if (pct !== null && (!Number.isFinite(pct) || pct < 0 || pct > 100)) {
+    throw new Error('Target weight must be between 0 and 100')
+  }
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_positions')
+    .update({ target_weight_pct: pct, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
 export async function deletePosition(id: string): Promise<void> {
   const { client, userId } = await requireUserId()
   const { error } = await client.from('invest_positions').delete().eq('id', id).eq('user_id', userId)
   if (error) throw error
+}
+
+/* ── Cash ledger (0223) ──────────────────────────────────────────────────
+   A recorded event also moves the account's cash_balance — the two writes
+   compensate each other: a failed balance update deletes the event it
+   trailed, a failed delete restores the balance it reversed. The ledger
+   stays consistent with the account either way. */
+
+const CASH_EVENT_KINDS: readonly CashEventKind[] = ['deposit', 'withdrawal', 'dividend']
+
+export async function recordCashEvent(input: {
+  accountId: string
+  kind: CashEventKind
+  amount: number
+  currency?: string
+  occurredAt?: string
+  note?: string
+}): Promise<void> {
+  if (!CASH_EVENT_KINDS.includes(input.kind)) throw new Error('Unknown cash event kind')
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    throw new Error('Amount must be greater than zero')
+  }
+  const { client, userId } = await requireUserId()
+  const { data: account } = await client
+    .from('invest_accounts')
+    .select('id, cash_balance')
+    .eq('id', input.accountId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!account) throw new Error('Account not found')
+  const delta = input.kind === 'withdrawal' ? -input.amount : input.amount
+  const balance = Number(account.cash_balance) + delta
+  if (balance < 0) throw new Error('Withdrawal exceeds the account’s cash balance')
+  const { data: inserted, error } = await client
+    .from('invest_cash_events')
+    .insert({
+      user_id: userId,
+      account_id: input.accountId,
+      kind: input.kind,
+      amount: input.amount,
+      currency: input.currency ?? 'CAD',
+      occurred_at: input.occurredAt ?? new Date().toISOString().slice(0, 10),
+      note: input.note ?? '',
+    })
+    .select('id')
+    .single()
+  if (error) throw error
+  const { error: balErr } = await client
+    .from('invest_accounts')
+    .update({ cash_balance: balance, updated_at: new Date().toISOString() })
+    .eq('id', input.accountId)
+    .eq('user_id', userId)
+  if (balErr) {
+    /* Compensate — an event that couldn't move cash must not stay in the
+       ledger, or the book reads the money twice (row + nothing moved). */
+    await client.from('invest_cash_events').delete().eq('id', inserted.id).eq('user_id', userId)
+    throw balErr
+  }
+}
+
+export async function deleteCashEvent(ev: InvestCashEvent): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { data: account } = await client
+    .from('invest_accounts')
+    .select('id, cash_balance')
+    .eq('id', ev.accountId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!account) throw new Error('Account not found')
+  /* Reverse the event's effect on cash first — if the delete then fails,
+     restore the balance so the row and the balance agree again. */
+  const reverse = ev.kind === 'withdrawal' ? ev.amount : -ev.amount
+  const restored = Number(account.cash_balance) + reverse
+  const { error: balErr } = await client
+    .from('invest_accounts')
+    .update({ cash_balance: restored, updated_at: new Date().toISOString() })
+    .eq('id', ev.accountId)
+    .eq('user_id', userId)
+  if (balErr) throw balErr
+  const { error } = await client
+    .from('invest_cash_events')
+    .delete()
+    .eq('id', ev.id)
+    .eq('user_id', userId)
+  if (error) {
+    await client
+      .from('invest_accounts')
+      .update({ cash_balance: Number(account.cash_balance), updated_at: new Date().toISOString() })
+      .eq('id', ev.accountId)
+      .eq('user_id', userId)
+    throw error
+  }
 }
 
 export async function upsertSnapshot(input: {
@@ -1170,6 +1305,36 @@ function toPosition(row: any): InvestPosition {
     currency: row.currency,
     lastPrice: row.last_price === null ? null : Number(row.last_price),
     lastPriceAt: row.last_price_at,
+    /* 0223 — absent column reads untargeted, never zero (0% would mean
+       "should hold nothing", the opposite of unconfigured). */
+    targetWeightPct:
+      row.target_weight_pct == null ? null : Number(row.target_weight_pct),
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toBookSnapshot(row: any): InvestBookSnapshot {
+  return {
+    id: row.id,
+    asOf: row.as_of,
+    bookValue: Number(row.book_value),
+    cash: Number(row.cash),
+    invested: Number(row.invested),
+    currency: row.currency,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toCashEvent(row: any): InvestCashEvent {
+  return {
+    id: row.id,
+    accountId: row.account_id,
+    kind: row.kind,
+    amount: Number(row.amount),
+    currency: row.currency,
+    occurredAt: row.occurred_at,
+    note: row.note ?? '',
+    createdAt: row.created_at,
   }
 }
 
