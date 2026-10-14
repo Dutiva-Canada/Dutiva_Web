@@ -159,6 +159,9 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   /* [FR self-authored] */
   invest_suggest_collapse: { en: 'Show fewer', fr: 'Réduire la liste' },
+  /* Foreign-kind row action — a verb, not just the destination page name.
+     [FR self-authored] */
+  invest_suggest_open: { en: 'Open {page}', fr: 'Ouvrir {page}' },
   invest_suggest_editor_label: {
     en: 'Tally suggests for this strategy',
     fr: 'Suggestions de Tally pour cette stratégie',
@@ -891,7 +894,6 @@ export const investStrategyBuilderMessages = defineMessages({
     fr: 'Tally retient {n} faits à votre sujet.',
   },
   invest_prof_open: { en: 'Open profile', fr: 'Ouvrir le profil' },
-  invest_prof_review_on: { en: 'On {page}', fr: 'Sur {page}' },
 
   invest_seo_title_profile: { en: 'Profile — Dutiva Invest', fr: 'Profil — Dutiva Invest' },
   invest_seo_desc_profile: {

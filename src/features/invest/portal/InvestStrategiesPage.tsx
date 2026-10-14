@@ -631,8 +631,9 @@ export function InvestStrategiesPage() {
                 } else if (FOREIGN_SUGGESTION_PAGE[s.kind]) {
                   const dest = FOREIGN_SUGGESTION_PAGE[s.kind]
                   if (dest) {
-                    meta = fill(x(IM.invest_prof_review_on), { page: x(dest.page) })
-                    actionLabel = x(dest.page)
+                    /* The button names the destination as an action —
+                       a separate 'On Theses' hint line adds nothing. */
+                    actionLabel = fill(x(IM.invest_suggest_open), { page: x(dest.page) })
                     act = () => navigate(dest.to)
                   }
                 } else {
@@ -804,7 +805,7 @@ export function InvestStrategiesPage() {
             <p className="sb-caption">{x(IM.invest_sb_empty_hint)}</p>
           )}
 
-          <section className="sb-tpl" aria-label={x(IM.invest_tpl_gallery_title)}>
+          <section className="sb-tpl">
             <h2 className="sb-flabel">{x(IM.invest_tpl_gallery_title)}</h2>
             <p className="sb-caption" style={{ marginTop: 0 }}>
               {x(IM.invest_tpl_gallery_sub)}
