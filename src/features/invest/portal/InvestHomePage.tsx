@@ -12,7 +12,7 @@ import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
 import { readDisplayCurrency } from './investPrefs'
-import { tallyNoticed } from './strategyUi'
+import { fmtNum, fmtPct, tallyNoticed } from './strategyUi'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -194,7 +194,7 @@ export function InvestHomePage() {
       .map((pair) => {
         const [f, t] = pair.split('→') as [string, string]
         const r = convertFx(1, f, t, fx)
-        return r === null ? pair : `${pair} ${r.toFixed(4)}`
+        return r === null ? pair : `${pair} ${fmtNum(lang, r, 4)}`
       })
       .join(' · ')
     return {
@@ -210,7 +210,7 @@ export function InvestHomePage() {
       posByCur,
       missedCurs,
     }
-  }, [state.positions, state.accounts, state.snapshots, fx, homeCur])
+  }, [state.positions, state.accounts, state.snapshots, fx, homeCur, lang])
   /* 'Open' means still actionable — new or acknowledged. Dismissed is
      closed and drops out of both the count and the latest list. */
   const openSignals = state.signals.filter((s) => s.status !== 'dismissed').length
@@ -463,7 +463,7 @@ export function InvestHomePage() {
                                   .replace('{amt}', fmtFor(c).format(a)),
                               )
                               .join(' + ')
-                          : `${fmt.format(value)} · ${Math.round(pct)}%`}
+                          : `${fmt.format(value)} · ${fmtPct(lang, pct, { max: 0 })}`}
                       </span>
                     </div>
                     {/* Bars compare shares of one book — without a

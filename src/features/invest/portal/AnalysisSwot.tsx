@@ -31,8 +31,10 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
   const { showToast } = useToasts()
 
   const [picked, setPicked] = useState<string | null>(null)
-  const [draft, setDraft] = useState<ThesisSwot | null>(null)
-  const [dirty, setDirty] = useState(false)
+  /* Unsaved edits are kept per thesis — switching the pick pill mid-edit
+     must not silently discard a quadrant's work. */
+  const [drafts, setDrafts] = useState<Record<string, ThesisSwot>>({})
+  const [dirtyKeys, setDirtyKeys] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState<'save' | 'tally' | null>(null)
   const [tallyNote, setTallyNote] = useState(false)
   const [suggestionId, setSuggestionId] = useState<string | null>(null)
@@ -53,6 +55,9 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
     )
   }, [picked, theses])
 
+  const draft = picked && thesis ? (drafts[picked] ?? thesis.swot) : null
+  const dirty = picked ? (dirtyKeys[picked] ?? false) : false
+
   /* Held symbols without a thesis — they can't hold a SWOT (the quadrant
      lives on the thesis row), so they surface as the nudge. */
   const untracked = useMemo(() => {
@@ -68,18 +73,18 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
       .map((p) => p.symbol.toUpperCase())
   }, [theses, state.positions])
 
-  const pick = (key: string, t: InvestThesis) => {
+  const pick = (key: string) => {
     if (busy) return
     setPicked(key)
-    setDraft({ ...t.swot })
-    setDirty(false)
     setTallyNote(false)
     setSuggestionId(null)
   }
 
   const setQuadrant = (q: QuadrantKey, items: string[]) => {
-    setDraft((cur) => (cur ? { ...cur, [q]: items } : cur))
-    setDirty(true)
+    if (!picked || !thesis) return
+    const base = drafts[picked] ?? thesis.swot
+    setDrafts((cur) => ({ ...cur, [picked]: { ...base, [q]: items } }))
+    setDirtyKeys((cur) => ({ ...cur, [picked]: true }))
   }
 
   const addItem = (q: QuadrantKey) => {
@@ -101,8 +106,10 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
         intent: thesis.intent,
         lang,
       })
-      setDraft(res.draft)
-      setDirty(true)
+      if (picked) {
+        setDrafts((cur) => ({ ...cur, [picked]: res.draft }))
+        setDirtyKeys((cur) => ({ ...cur, [picked]: true }))
+      }
       setTallyNote(true)
       setSuggestionId((cur) => cur ?? res.suggestionId)
     } catch {
@@ -122,7 +129,14 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
         setSuggestionId(null)
       }
       showToast(IM.invest_swot_saved)
-      setDirty(false)
+      if (picked) {
+        setDrafts((cur) => {
+          const next = { ...cur }
+          delete next[picked]
+          return next
+        })
+        setDirtyKeys((cur) => ({ ...cur, [picked]: false }))
+      }
       setTallyNote(false)
       await refresh()
     } catch (e) {
@@ -149,7 +163,7 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
               key={key}
               type="button"
               aria-pressed={picked === key}
-              onClick={() => pick(key, t)}
+              onClick={() => pick(key)}
             >
               {t.symbol}
             </button>

@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { Lang } from '@/i18n/core'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -35,6 +36,7 @@ import type {
 } from '../data/types'
 import { THESIS_INTENTS } from '../data/types'
 import { newRuleDraft, newRulePersistId, toDrafts } from './ruleDrafts'
+import { fmtNum, fmtPct } from './strategyUi'
 import type { RuleDraft } from './ruleDrafts'
 import { RulesAccordion } from './RulesAccordion'
 import { InfoHint } from './InfoHint'
@@ -111,13 +113,13 @@ function evalValueLabel(
   metric: RuleMetric,
   value: number | null,
   ccy: string,
-  lang: string,
+  lang: Lang,
 ): string | null {
   if (value === null || !Number.isFinite(value)) return null
   if (metric === 'value_floor' || metric === 'cash_above') {
-    return `${Math.round(value).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
+    return `${fmtNum(lang, Math.round(value))} ${ccy}`
   }
-  return `${value > 0 ? '+' : ''}${Math.round(value * 10) / 10}%`
+  return `${value > 0 ? '+' : ''}${fmtPct(lang, value, { max: 1 })}`
 }
 
 function seedToDrafts(rules: unknown): RuleDraft[] {
@@ -149,7 +151,7 @@ function seedToDrafts(rules: unknown): RuleDraft[] {
 }
 
 export function InvestThesesPage() {
-  const { x, lang } = useI18n()
+  const { x, lang, L } = useI18n()
   const { state, loading, refresh } = useInvestData()
   const { showToast } = useToasts()
 
@@ -159,6 +161,15 @@ export function InvestThesesPage() {
   const [composer, setComposer] = useState<ThesisDraftState>(emptyComposer)
   const [busy, setBusy] = useState<'save' | 'delete' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into a delete. Same cadence as RulesAccordion. */
+  useEffect(() => {
+    if (confirmDelete === null) return
+    const t = window.setTimeout(() => setConfirmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmDelete])
+
   const [pending, setPending] = useState<AgentSuggestion[]>([])
   const [pendingBusy, setPendingBusy] = useState<string | null>(null)
 
@@ -274,7 +285,7 @@ export function InvestThesesPage() {
           quantity: pos.quantity,
           orderType: 'market',
           mode: readOrderMode(),
-          note: `Thesis exit — ${symbol}`,
+          note: L(`Thesis exit — ${symbol}`, `Sortie de thèse — ${symbol}`),
         })
         void resolveSuggestion(s.id, 'accepted', 'drafted').catch(() => {})
         setPending((cur) => cur.filter((r) => r.id !== s.id))
@@ -290,7 +301,7 @@ export function InvestThesesPage() {
         setPendingBusy(null)
       }
     },
-    [state.positions, showToast, refresh, x],
+    [state.positions, showToast, refresh, x, L],
   )
 
   const runTallyDraft = useCallback(async () => {
@@ -510,11 +521,7 @@ export function InvestThesesPage() {
                           type="button"
                           className="sb-btn sb-btn-secondary sb-btn-sm"
                           disabled={pendingBusy !== null}
-                          onClick={() => {
-                            setPendingBusy(s.id)
-                            acceptSuggestion(s)
-                            setPendingBusy(null)
-                          }}
+                          onClick={() => acceptSuggestion(s)}
                         >
                           {x(IM.invest_thesis_suggest_accept)}
                         </button>

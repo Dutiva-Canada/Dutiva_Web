@@ -10,6 +10,8 @@ import {
   actionChip,
   channelHelper,
   fmtCad,
+  fmtNum,
+  fmtPct,
   formatDuration,
   pl,
   qtyPreview,
@@ -51,6 +53,32 @@ describe('pl', () => {
     expect(pl('fr', 0, one, many)).toBe('0 signal')
     expect(pl('fr', 1, one, many)).toBe('1 signal')
     expect(pl('fr', 2, one, many)).toBe('2 signaux')
+  })
+})
+
+describe('fmtNum / fmtPct', () => {
+  /* fr-CA separates % and thousands with U+00A0 — a non-breaking space is
+     required French typography, not a test fudge. */
+  const NB = '\u00a0'
+
+  it('formats percents locale-aware — FR gets a no-break space, ASCII minus becomes typographic', () => {
+    expect(fmtPct('en', 20.74, 1)).toBe('20.7%')
+    expect(fmtPct('fr', 20.74, 1)).toBe(`20,7${NB}%`)
+    expect(fmtPct('en', -8.7, 1)).toBe('−8.7%')
+    expect(fmtPct('fr', -8.7, 1)).toBe(`−8,7${NB}%`)
+  })
+
+  it('fixed digits pad; { max } trims whole-number zeroes', () => {
+    expect(fmtPct('en', 20, 1)).toBe('20.0%')
+    expect(fmtPct('en', 20, { max: 1 })).toBe('20%')
+    expect(fmtPct('en', 20.7, { max: 1 })).toBe('20.7%')
+    expect(fmtPct('fr', 20, { max: 1 })).toBe(`20${NB}%`)
+  })
+
+  it('fmtNum localizes separators without a currency', () => {
+    expect(fmtNum('en', 1500.5, { max: 4 })).toBe('1,500.5')
+    expect(fmtNum('fr', 1500.5, { max: 4 })).toBe(`1${NB}500,5`)
+    expect(fmtNum('fr', 1.3856, 4)).toBe('1,3856')
   })
 })
 

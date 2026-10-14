@@ -10,8 +10,9 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sunrise, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import { readPref, writePref } from '@/lib/prefs'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import { pl } from './strategyUi'
+import { fmtPct, pl } from './strategyUi'
 import type {
   InvestGoal,
   InvestOrder,
@@ -41,14 +42,13 @@ export function MorningBrief(props: {
 }) {
   const { positions, watchSymbols, snapshots, signals, theses, goals, orders } = props
   const { lang, x } = useI18n()
+  /* readPref/writePref, not raw localStorage — private mode mustn't
+     throw the whole Overview for a dismissal flag. */
   const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(DISMISS_KEY) === todayKey(),
+    () => readPref(DISMISS_KEY, '') === todayKey(),
   )
 
-  const pctFmt = (n: number) =>
-    `${n > 0 ? '+' : ''}${n.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      maximumFractionDigits: 1,
-    })}%`
+  const pctFmt = (n: number) => `${n > 0 ? '+' : ''}${fmtPct(lang, n, { max: 1 })}`
 
   const lines = (() => {
     const out: string[] = []
@@ -115,7 +115,7 @@ export function MorningBrief(props: {
   if (dismissed || lines.length === 0) return null
 
   const dismiss = () => {
-    localStorage.setItem(DISMISS_KEY, todayKey())
+    writePref(DISMISS_KEY, todayKey())
     setDismissed(true)
   }
 

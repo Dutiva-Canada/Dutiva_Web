@@ -34,6 +34,7 @@ import {
 import { useInvestHead } from './useInvestHead'
 import { PROFILE_SELECTS, PROFILE_TAGS } from './profileDims'
 import { ProfileMemories } from './ProfileMemories'
+import { fmtPct } from './strategyUi'
 import { MEMORY_KINDS, type MemoryKind } from '../data/types'
 import './strategies.css'
 
@@ -225,7 +226,7 @@ export function InvestProfilePage() {
     if (total >= 3) {
       lines.push(
         fill(x(IM.invest_obs_accept_rate), {
-          rate: `${Math.round((accepted / total) * 100)}%`,
+          rate: fmtPct(lang, (accepted / total) * 100, 0),
           accepted: String(accepted),
           total: String(total),
         }),
@@ -278,7 +279,7 @@ export function InvestProfilePage() {
       )
     }
     return lines
-  }, [resolved, state.signals, state.memories, x])
+  }, [resolved, state.signals, state.memories, x, lang])
 
   /* Same gate as every sibling tab — the provider mounts children on
      EMPTY_INVEST_STATE, so without it the page flashes "No memories yet"

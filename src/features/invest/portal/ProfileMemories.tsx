@@ -6,7 +6,7 @@
  * handles that accept). "Ask Tally to review" runs the review-memories
  * action; whatever it files lands in the same pending strip.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Brain, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
@@ -38,6 +38,14 @@ export function ProfileMemories({ onFiled }: { onFiled: () => void }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState<'save' | 'review' | `del:${string}` | null>(null)
   const [confirmDel, setConfirmDel] = useState<string | null>(null)
+
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into a delete. Same cadence as RulesAccordion. */
+  useEffect(() => {
+    if (confirmDel === null) return
+    const t = window.setTimeout(() => setConfirmDel(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmDel])
 
   /* Held ∪ watched symbols for the scope pick — a memory can name any
      name the book tracks, matching the review pass's symbol validation.

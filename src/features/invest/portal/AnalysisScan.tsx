@@ -8,7 +8,7 @@
  * each item files its own agent_suggestions row, returned here as staged
  * cards the user accepts or dismisses one by one).
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CircleAlert, Loader2, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
@@ -78,6 +78,15 @@ export function AnalysisScan() {
   const [tallyBusy, setTallyBusy] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into a delete. Same cadence as RulesAccordion. */
+  useEffect(() => {
+    if (confirmDelete === null) return
+    const t = window.setTimeout(() => setConfirmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmDelete])
 
   /* Symbols an item can point at — held ∪ watched ∪ thesised. */
   const symbolOptions = useMemo(() => {
@@ -199,7 +208,7 @@ export function AnalysisScan() {
   )
 
   return (
-    <section className="sb-section" aria-label={x(IM.invest_analysis_scan)}>
+    <section ref={sectionRef} className="sb-section" aria-label={x(IM.invest_analysis_scan)}>
       <div className="sb-section-head">
         <div>
           <h2>{x(IM.invest_analysis_scan)}</h2>
@@ -469,7 +478,11 @@ export function AnalysisScan() {
                           symbols: item.symbols,
                         })
                         setOpen(true)
-                        window.scrollTo({ top: 0 })
+                        /* The form opens at this section's top — page top
+                           may sit above it on a long Analysis page. */
+                        requestAnimationFrame(() =>
+                          sectionRef.current?.scrollIntoView({ block: 'start' }),
+                        )
                       }}
                     >
                       {x(IM.invest_goal_edit)}

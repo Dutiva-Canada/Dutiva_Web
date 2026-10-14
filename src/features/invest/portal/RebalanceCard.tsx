@@ -12,6 +12,7 @@ import { createOrder, setPositionTargetWeight } from '../data/api'
 import type { FxTable } from '../data/fx'
 import { convertFx } from '../data/fx'
 import { readOrderMode } from './investPrefs'
+import { fmtPct } from './strategyUi'
 import type { InvestPosition, MarketSnapshot } from '../data/types'
 
 interface Row {
@@ -48,7 +49,7 @@ export function RebalanceCard({
   busy: boolean
   run: (fn: () => Promise<void>) => Promise<void>
 }) {
-  const { x, lang } = useI18n()
+  const { x, lang, L } = useI18n()
   const [editId, setEditId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
 
@@ -67,7 +68,9 @@ export function RebalanceCard({
       vals.set(p.id, { bookValue, bookPx })
       if (bookValue !== null) invested += bookValue
     }
-    const total = invested + cashTotal
+    /* Same denominator rule as the donut beside it — an overdrawn cash
+       line doesn't count toward the pie the weights share. */
+    const total = invested + (cashTotal > 0 ? cashTotal : 0)
     return { total, vals }
   }, [positions, snapshots, bookCcy, cashTotal, fx])
 
@@ -84,26 +87,29 @@ export function RebalanceCard({
               : null
           return { p, bookValue: v?.bookValue ?? null, bookPx: v?.bookPx ?? null, weight, drift }
         })
-        /* Targeted rows first by |drift|, then the untargeted — the card
-           reads as a to-check list, not a table re-sort. */
+        /* Targeted rows first by |drift|; untargeted rows and ties fall
+           to weight desc so the table still scans largest-to-smallest
+           instead of insertion order. */
         .sort((a, b) => {
           const da = a.drift === null ? -1 : Math.abs(a.drift)
           const db = b.drift === null ? -1 : Math.abs(b.drift)
-          return db - da
+          return db - da || (b.weight ?? 0) - (a.weight ?? 0)
         }),
     [positions, book],
   )
 
   const targeted = rows.filter((r) => r.p.targetWeightPct !== null)
-  const pctFmt = (n: number) =>
-    `${Math.abs(n).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })}%`
+  /* Cells render the sign manually (+'/'−' chips) — fmtPct gets abs. */
+  const pctFmt = (n: number) => fmtPct(lang, Math.abs(n), 1)
 
   const saveTarget = (p: InvestPosition) => {
     const n: number | null = draft.trim() === '' ? null : Number(draft)
-    if (draft.trim() !== '' && (n === null || !Number.isFinite(n) || n < 0 || n > 100)) return
+    /* Invalid input on blur = cancel — returning early would leave the
+       cell in edit mode with no focus and no way out but re-clicking. */
+    if (draft.trim() !== '' && (n === null || !Number.isFinite(n) || n < 0 || n > 100)) {
+      setEditId(null)
+      return
+    }
     setEditId(null)
     if (n === p.targetWeightPct) return
     void run(() => setPositionTargetWeight(p.id, n))
@@ -128,7 +134,10 @@ export function RebalanceCard({
         quantity: qty,
         orderType: 'market',
         mode: readOrderMode(),
-        note: `Rebalance — ${r.p.symbol} ${pctFmt(driftAbs)} ${side === 'sell' ? 'over' : 'under'} target`,
+        note: L(
+          `Rebalance — ${r.p.symbol} ${pctFmt(driftAbs)} ${side === 'sell' ? 'over' : 'under'} target`,
+          `Rééquilibrage — ${r.p.symbol} ${pctFmt(driftAbs)} ${side === 'sell' ? 'au-dessus de' : 'sous'} la cible`,
+        ),
       })
     })
   }
@@ -137,14 +146,14 @@ export function RebalanceCard({
 
   return (
     <section className="sb-card sb-card-pad">
-      <h2 style={{ margin: 0 }}>
+      <h2 className="sb-h2" style={{ margin: 0 }}>
         <Scale size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_rebal_title)}
       </h2>
       <p className="sb-helper" style={{ margin: '4px 0 14px' }}>
         {x(IM.invest_rebal_note).replace('{ccy}', bookCcy)}
       </p>
       <div className="sb-table-wrap">
-        <table className="sb-table">
+        <table className="sb-table sb-table-tight">
           <thead>
             <tr>
               <th>{x(IM.invest_field_symbol)}</th>

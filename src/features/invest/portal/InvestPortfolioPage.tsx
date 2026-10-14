@@ -31,7 +31,7 @@ import {
 } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
-import { pl } from './strategyUi'
+import { fmtNum, fmtPct, pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
@@ -334,7 +334,7 @@ export function InvestPortfolioPage() {
         t.value += r.value
         if (r.converted) {
           const rate = convertFx(1, r.pxCur, cur, fx)
-          if (rate !== null) pairs.set(`${r.pxCur}→${cur}`, rate.toFixed(4))
+          if (rate !== null) pairs.set(`${r.pxCur}→${cur}`, fmtNum(lang, rate, 4))
         }
       }
       byCur.set(cur, t)
@@ -351,7 +351,7 @@ export function InvestPortfolioPage() {
       noFx,
       pairList: [...pairs.entries()].map(([pair, rate]) => `${pair} ${rate}`).join(' · '),
     }
-  }, [visibleRows, fx])
+  }, [visibleRows, fx, lang])
 
   const toggleSort = (key: PosSortKey) =>
     setSort((s) => ({
@@ -723,10 +723,12 @@ export function InvestPortfolioPage() {
                           {converted && <span className="dim">≈ </span>}
                           {pnl >= 0 ? '+' : ''}
                           {fmtFor(p.currency).format(pnl)}{' '}
-                          <span className="dim">
-                            ({pnlPct !== null && pnlPct >= 0 ? '+' : ''}
-                            {pnlPct?.toFixed(1)}%)
-                          </span>
+                          {pnlPct !== null && (
+                            <span className="dim">
+                              ({pnlPct >= 0 ? '+' : ''}
+                              {fmtPct(lang, pnlPct, 1)})
+                            </span>
+                          )}
                         </>
                       )}
                     </td>
@@ -759,7 +761,19 @@ export function InvestPortfolioPage() {
                         <DividendShortcut
                           busy={busy}
                           buttonLabel={`${x(IM.invest_dividend_record)} ${p.symbol}`}
-                          onSave={(perShare) => run(() => recordDividend(p, perShare))}
+                          onSave={(perShare) =>
+                            run(() =>
+                              recordDividend(
+                                p,
+                                perShare,
+                                undefined,
+                                x(IM.invest_dividend_note)
+                                  .replace('{sym}', p.symbol)
+                                  .replace('{ps}', fmtNum(lang, perShare, { max: 4 }))
+                                  .replace('{qty}', fmtNum(lang, p.quantity, { max: 4 })),
+                              ),
+                            )
+                          }
                         />
                         <SplitShortcut
                           busy={busy}
@@ -803,10 +817,12 @@ export function InvestPortfolioPage() {
                       >
                         {g.pnl >= 0 ? '+' : ''}
                         {fmtFor(g.currency).format(g.pnl)}{' '}
-                        <span className="dim">
-                          ({g.pnlPct !== null && g.pnlPct >= 0 ? '+' : ''}
-                          {g.pnlPct?.toFixed(1)}%)
-                        </span>
+                        {g.pnlPct !== null && (
+                          <span className="dim">
+                            ({g.pnlPct >= 0 ? '+' : ''}
+                            {fmtPct(lang, g.pnlPct, 1)})
+                          </span>
+                        )}
                       </div>
                     ))}
                   </td>
@@ -1215,7 +1231,7 @@ function AccountForm({
           id="inv-acc-name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Paper book"
+          placeholder={x(IM.invest_account_name_ph)}
           className={fieldClass}
           required
         />
@@ -1397,6 +1413,7 @@ function AccountTile({
         <InfoHint
           label={x(IM.invest_hint_aria)}
           text={x(IM[kindHelp[account.kind]])}
+          align="end"
         />{' '}
         · {balance}
       </p>
@@ -2017,8 +2034,15 @@ function PriceEditor({
         step="any"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setOpen(false)
+            setPrice('')
+          }
+        }}
         className="sb-input sb-input-sm"
         aria-label={x(IM.invest_field_last_price)}
+        autoFocus
       />
       <button
         type="button"
@@ -2032,6 +2056,17 @@ function PriceEditor({
         className="sb-btn sb-btn-primary sb-btn-sm"
       >
         {x(IM.invest_save)}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false)
+          setPrice('')
+        }}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={x(IM.invest_cancel)}
+      >
+        <X size={14} aria-hidden="true" />
       </button>
     </span>
   )
@@ -2073,9 +2108,16 @@ function DividendShortcut({
         step="any"
         value={perShare}
         onChange={(e) => setPerShare(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setOpen(false)
+            setPerShare('')
+          }
+        }}
         placeholder={x(IM.invest_dividend_per_share)}
         className="sb-input sb-input-sm"
         aria-label={x(IM.invest_dividend_per_share)}
+        autoFocus
       />
       <button
         type="button"
@@ -2089,6 +2131,17 @@ function DividendShortcut({
         className="sb-btn sb-btn-primary sb-btn-sm"
       >
         {x(IM.invest_save)}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false)
+          setPerShare('')
+        }}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={x(IM.invest_cancel)}
+      >
+        <X size={14} aria-hidden="true" />
       </button>
     </span>
   )
@@ -2130,9 +2183,16 @@ function SplitShortcut({
         step="any"
         value={ratio}
         onChange={(e) => setRatio(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setOpen(false)
+            setRatio('')
+          }
+        }}
         placeholder={x(IM.invest_split_ratio_hint)}
         className="sb-input sb-input-sm"
         aria-label={x(IM.invest_split_ratio)}
+        autoFocus
       />
       <button
         type="button"
@@ -2146,6 +2206,17 @@ function SplitShortcut({
         className="sb-btn sb-btn-primary sb-btn-sm"
       >
         {x(IM.invest_save)}
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false)
+          setRatio('')
+        }}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={x(IM.invest_cancel)}
+      >
+        <X size={14} aria-hidden="true" />
       </button>
     </span>
   )

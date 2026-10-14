@@ -221,7 +221,7 @@ export function CashLedger({
                   type="button"
                   disabled={busy}
                   className="sb-linklike sb-ledger-del"
-                  aria-label={`${x(IM.invest_rule_remove)} ${x(IM[KIND_KEY[ev.kind]])} ${ev.occurredAt}`}
+                  aria-label={`${x(IM.invest_rule_remove)} ${x(IM[KIND_KEY[ev.kind]])} ${fmtDay(ev.occurredAt)}`}
                   onClick={() => remove(ev)}
                 >
                   {confirmId === ev.id ? (

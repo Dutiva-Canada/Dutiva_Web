@@ -51,6 +51,14 @@
 .sb-card-pad {
   padding: 18px 16px;
 }
+/* Card heading carrying a glyph and/or an InfoHint — flex puts them on
+   the text line; inline they'd sit on the baseline a couple px low. */
+.sb-h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .sb-form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -130,8 +138,12 @@
   font-weight: 700;
   color: var(--sb-ink);
 }
-.sb-table .dim {
+/* .dim marks muted supporting text — used in lists, alerts and detail
+   rows too, so the color can't live only inside .sb-table. */
+.sb .dim {
   color: var(--sb-muted);
+}
+.sb-table .dim {
   font-size: 12.5px;
 }
 .sb-row-actions {
@@ -274,9 +286,14 @@
 }
 .sb-duo {
   display: grid;
-  grid-template-columns: 1fr;
+  /* Intrinsic two-column: `1fr 1fr` would floor each track at its
+     min-content, and the rebalance table's 640px min-width starves the
+     donut card's legend into one-character truncation. auto-fit collapses
+     to a single column below ~2×440+gap instead of squeezing. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
   gap: 16px;
   margin-top: 16px;
+  align-items: start;
 }
 .sb-bar-track {
   height: 7px;
@@ -354,11 +371,7 @@
     justify-content: flex-start;
   }
 }
-@media (min-width: 820px) {
-  .sb-duo {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+
 
 /* Notification pref row — checkbox + label/hint, sits under a card's list. */
 .sb-notify-row {
@@ -1363,6 +1376,12 @@
 }
 
 /* ── Rebalance (0223) ────────────────────────────────────────────────── */
+/* Four narrow columns don't need the generic 640px table floor — inside
+   .sb-duo that floor would pin the grid track and starve the sibling
+   card (overflow-x:auto still reports it as min-content). */
+.sb-table.sb-table-tight {
+  min-width: 400px;
+}
 .sb-rebal-input {
   width: 84px;
   padding: 4px 8px;
@@ -1386,8 +1405,18 @@
   flex-direction: column;
   gap: 7px;
   min-width: 0;
-  flex: 1;
+  /* A real basis so wrap kicks in under the donut before labels crush —
+     plain `flex: 1` (basis 0%) never triggers the wrap. Capped so the
+     share column hugs the labels instead of drifting to the card edge
+     when the card runs full-width. */
+  flex: 1 1 150px;
+  max-width: 340px;
   font-size: 13.5px;
+}
+/* Share column matches the table's muted 12.5px density. */
+.sb-donut-legend .dim {
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
 }
 .sb-donut-legend li {
   display: flex;
@@ -1512,7 +1541,7 @@
 }
 .sb-stress-note svg {
   display: inline;
-  color: var(--sb-warn, var(--sb-muted));
+  color: var(--sb-accent);
   flex-shrink: 0;
 }
 
@@ -1618,10 +1647,15 @@
   left: -8px;
   z-index: 30;
   width: 240px;
+  /* Never wider than the viewport minus a gutter — a trigger near the
+     screen edge must not grow a horizontal scrollbar. */
+  max-width: calc(100vw - 32px);
   padding: 10px 12px;
   border: 1px solid var(--sb-line);
-  border-radius: var(--sb-radius-sm, 8px);
-  background: var(--sb-surface, #fff);
+  border-radius: 8px;
+  /* --sb-surface was never a token — the #fff fallback went pure white in
+     dark theme. --sb-input is the palette's raised/inset tone. */
+  background: var(--sb-input);
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.10);
   font-size: 12.5px;
   font-weight: 400;
@@ -1629,6 +1663,12 @@
   color: var(--sb-body);
   text-transform: none;
   letter-spacing: 0;
+}
+/* Triggers that can sit near a card's right edge (account tiles) open
+   leftward instead of bleeding past the card. */
+.sb-hint--end .sb-hint-pop {
+  left: auto;
+  right: -8px;
 }
 .sb-legend {
   margin: 12px 0 0;
@@ -1644,8 +1684,10 @@
 /* Order detail rows — fills list, record-fill and edit forms (0224) */
 .sb-ord-detail > td {
   padding: 0 14px 12px;
-  background: var(--sb-surface-2, rgba(255, 255, 255, 0.02));
-  border-bottom: 1px solid var(--sb-border);
+  /* var(--sb-surface-2)/--sb-border don't exist — --sb-input + --sb-line
+     are the palette's inset/hairline pair (same as .sb-note). */
+  background: var(--sb-input);
+  border-bottom: 1px solid var(--sb-line);
 }
 
 .sb-ord-fill {
@@ -1669,6 +1711,21 @@
   font-size: 0.85rem;
 }
 
+/* Inline checkbox row — the light counterpart of .sb-check-row's card
+   treatment, for consent toggles inside forms. */
+.sb-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.sb-check input {
+  margin: 2px 0 0;
+  accent-color: var(--sb-accent);
+}
+
 /* Recurring contributions list (0224) */
 .sb-recur-list {
   list-style: none;
@@ -1685,8 +1742,10 @@
   gap: 10px;
   flex-wrap: wrap;
   padding: 8px 10px;
-  border: 1px solid var(--sb-border);
-  border-radius: var(--sb-radius, 10px);
+  border: 1px solid var(--sb-line);
+  /* 12px matches the other inset rows (.sb-note, .sb-watch-alert);
+     --sb-radius (16px) reads bubbly on a list row. */
+  border-radius: 12px;
 }
 
 /* Curve controls — scope segment stacks above the range segment on

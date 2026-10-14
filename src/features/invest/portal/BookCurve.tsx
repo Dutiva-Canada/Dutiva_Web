@@ -22,6 +22,7 @@ import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
+import { fmtPct } from './strategyUi'
 import type { InvestBookSnapshot, InvestCashEvent } from '../data/types'
 
 type Range = '1m' | '3m' | '1y' | 'all'
@@ -143,11 +144,12 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
     return { chg, hasFlows, maxDD: maxDD < 0 ? maxDD : null }
   }, [points, scopedEvents, ccy, fx])
 
-  const pctFmt = (n: number) =>
-    `${n > 0 ? '+' : '−'}${Math.abs(n).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    })}%`
+  /* Round to the displayed precision BEFORE picking a sign/color — a
+     0.04% move must read "0.0%" in neutral, not "+0.0%" in green. */
+  const pctFmt = (n: number) => {
+    const r = Math.round(n * 10) / 10
+    return `${r > 0 ? '+' : ''}${fmtPct(lang, r, 1)}`
+  }
 
   return (
     <section className="sb-card sb-card-pad" aria-labelledby="sb-curve-h">
@@ -214,7 +216,16 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
             {stats.chg !== null && (
               <span className="sb-curve-stat">
                 <span className="sb-curve-k">{x(IM.invest_curve_change)}</span>
-                <strong style={{ color: stats.chg < 0 ? 'var(--sb-danger)' : 'var(--sb-ok)' }}>
+                <strong
+                  style={{
+                    color:
+                      Math.abs(Math.round(stats.chg * 10) / 10) === 0
+                        ? 'var(--sb-body)'
+                        : stats.chg < 0
+                          ? 'var(--sb-danger)'
+                          : 'var(--sb-ok)',
+                  }}
+                >
                   {pctFmt(stats.chg)}
                 </strong>
                 {stats.hasFlows && (
@@ -229,6 +240,23 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
               </span>
             )}
           </div>
+          {/* The chart is aria-hidden — this line is its text
+              equivalent: the stats give change + drawdown, this gives
+              the series endpoints. */}
+          <p className="sr-only">
+            {fill(x(IM.invest_curve_alt), {
+              vfrom: fmt.format(points[0]!.book),
+              from: new Date(`${points[0]!.asOf}T12:00:00`).toLocaleDateString(
+                lang === 'fr' ? 'fr-CA' : 'en-CA',
+                { dateStyle: 'medium' },
+              ),
+              vto: fmt.format(points[points.length - 1]!.book),
+              to: new Date(`${points[points.length - 1]!.asOf}T12:00:00`).toLocaleDateString(
+                lang === 'fr' ? 'fr-CA' : 'en-CA',
+                { dateStyle: 'medium' },
+              ),
+            })}
+          </p>
           <div style={{ height: 220, marginTop: 12 }} aria-hidden="true">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={points} margin={{ top: 6, right: 4, bottom: 0, left: 4 }}>

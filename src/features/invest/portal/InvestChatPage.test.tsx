@@ -417,7 +417,10 @@ describe('InvestChatPage', () => {
     renderPage()
     await screen.findByText('hi')
 
+    /* Two-tap arm — first click arms, second confirms (same pattern as
+       every other destructive control in the portal). */
     fireEvent.click(screen.getByRole('button', { name: 'Clear conversation' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     await waitFor(() => expect(clearInvestChat).toHaveBeenCalled())
     await waitFor(() => expect(screen.queryByText('hi')).not.toBeInTheDocument())
   })

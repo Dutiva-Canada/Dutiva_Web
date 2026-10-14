@@ -35,7 +35,7 @@ export function RecurringCard({
   run: (fn: () => Promise<void>) => Promise<void>
   fmtFor: (cur: string) => Intl.NumberFormat
 }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const [accountId, setAccountId] = useState('')
   const [amount, setAmount] = useState('')
   const [cadence, setCadence] = useState<RecurringCadence>('monthly')
@@ -94,7 +94,10 @@ export function RecurringCard({
                   {' '}
                   ·{' '}
                   {fill(x(IM.invest_recur_next), {
-                    date: r.nextRunOn,
+                    date: new Date(`${r.nextRunOn}T12:00:00`).toLocaleDateString(
+                      lang === 'fr' ? 'fr-CA' : 'en-CA',
+                      { dateStyle: 'medium' },
+                    ),
                   })}
                 </span>
               </span>
@@ -153,8 +156,9 @@ export function RecurringCard({
       {active.length > 0 && (
         <form onSubmit={submit} className="sb-form-grid" style={{ marginTop: 12 }}>
           <div className="sb-field">
-            <label className="sb-flabel">{x(IM.invest_accounts_title)}</label>
+            <label className="sb-flabel" htmlFor="inv-recur-acct">{x(IM.invest_accounts_title)}</label>
             <select
+              id="inv-recur-acct"
               value={target}
               onChange={(e) => setAccountId(e.target.value)}
               className="sb-input"
@@ -167,8 +171,9 @@ export function RecurringCard({
             </select>
           </div>
           <div className="sb-field">
-            <label className="sb-flabel">{x(IM.invest_recur_amount)}</label>
+            <label className="sb-flabel" htmlFor="inv-recur-amt">{x(IM.invest_recur_amount)}</label>
             <input
+              id="inv-recur-amt"
               type="number"
               min="0"
               step="any"
@@ -179,8 +184,9 @@ export function RecurringCard({
             />
           </div>
           <div className="sb-field">
-            <label className="sb-flabel">{x(IM.invest_recur_cadence)}</label>
+            <label className="sb-flabel" htmlFor="inv-recur-cad">{x(IM.invest_recur_cadence)}</label>
             <select
+              id="inv-recur-cad"
               value={cadence}
               onChange={(e) => setCadence(e.target.value as RecurringCadence)}
               className="sb-input"
@@ -190,8 +196,9 @@ export function RecurringCard({
             </select>
           </div>
           <div className="sb-field">
-            <label className="sb-flabel">{x(IM.invest_recur_next_date)}</label>
+            <label className="sb-flabel" htmlFor="inv-recur-date">{x(IM.invest_recur_next_date)}</label>
             <input
+              id="inv-recur-date"
               type="date"
               value={nextRunOn}
               onChange={(e) => setNextRunOn(e.target.value)}

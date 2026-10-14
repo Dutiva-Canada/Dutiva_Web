@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, Loader2, Plus } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { Lang } from '@/i18n/core'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -36,6 +37,7 @@ import type {
 } from '../data/types'
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
+import { fmtNum, fmtPct } from './strategyUi'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
@@ -95,20 +97,18 @@ const emptyGoal = (): GoalDraftState => ({
 
 /** Current value for a metric formatted for the card — % metrics render
     percents, book_value renders book currency, counts render bare. */
-function goalCurrentLabel(g: InvestGoal, ccy: string, lang: string): string | null {
+function goalCurrentLabel(g: InvestGoal, ccy: string, lang: Lang): string | null {
   const cur = g.evalDetail?.current
   if (cur === null || cur === undefined || !Number.isFinite(cur)) return null
-  if (g.metric === 'book_value')
-    return `${Math.round(cur).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
-  if (g.metric === 'position_count') return `${Math.round(cur)}`
-  return `${Math.round(cur * 10) / 10}%`
+  if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(cur))} ${ccy}`
+  if (g.metric === 'position_count') return fmtNum(lang, Math.round(cur))
+  return fmtPct(lang, cur, { max: 1 })
 }
 
-function goalTargetLabel(g: InvestGoal, ccy: string, lang: string): string {
-  if (g.metric === 'book_value')
-    return `${Math.round(g.target).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
-  if (g.metric === 'position_count') return `${Math.round(g.target)}`
-  return `${Math.round(g.target * 10) / 10}%`
+function goalTargetLabel(g: InvestGoal, ccy: string, lang: Lang): string {
+  if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(g.target))} ${ccy}`
+  if (g.metric === 'position_count') return fmtNum(lang, Math.round(g.target))
+  return fmtPct(lang, g.target, { max: 1 })
 }
 
 export function InvestAnalysisPage() {
@@ -124,6 +124,14 @@ export function InvestAnalysisPage() {
   const [goal, setGoal] = useState<GoalDraftState>(emptyGoal)
   const [busy, setBusy] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
+
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into a delete. Same cadence as RulesAccordion. */
+  useEffect(() => {
+    if (confirmDelete === null) return
+    const t = window.setTimeout(() => setConfirmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmDelete])
 
   const bookCurrency = useMemo(
     () =>
@@ -540,18 +548,22 @@ export function InvestAnalysisPage() {
                       <div
                         className="sb-goalbar"
                         role="progressbar"
-                        aria-valuenow={pct}
+                        aria-valuenow={Math.round(Math.min(100, Math.max(0, pct)))}
                         aria-valuemin={0}
                         aria-valuemax={100}
                       >
-                        <span className="sb-goalbar-fill" style={{ width: `${pct}%` }} />
+                        <span
+                          className="sb-goalbar-fill"
+                          /* over-100 progress must not bleed past the track */
+                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                        />
                       </div>
                     )}
                     {line && <p className="sb-goal-line">{line}</p>}
                     <footer className="sb-thesis-foot">
                       <span className="sb-thesis-when">
                         {g.deadline
-                          ? `${x(IM.invest_goal_deadline)} ${g.deadline}`
+                          ? `${x(IM.invest_goal_deadline)} ${new Date(`${g.deadline}T12:00:00`).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { dateStyle: 'medium' })}`
                           : x(IM.invest_goal_deadline_none)}
                         {when ? ` · ${fill(x(IM.invest_goal_evaluated), { when })}` : ''}
                       </span>

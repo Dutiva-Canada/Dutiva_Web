@@ -613,7 +613,10 @@ export async function runUser(
         amount: Number(rc.amount),
         currency: rc.currency,
         occurred_at: today,
-        note: rc.note ? `Recurring — ${rc.note}` : 'Recurring contribution',
+        /* No locale source server-side — the row's kind already renders
+           "Deposit" localized; the note carries only the user's own words
+           so no English leaks into a French ledger. */
+        note: rc.note || undefined,
       })
       if (evErr) throw evErr
       const { error: cashErr } = await adminClient
