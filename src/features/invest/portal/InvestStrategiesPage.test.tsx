@@ -111,6 +111,24 @@ describe('InvestStrategiesPage — foreign suggestion kinds', () => {
     await waitFor(() => expect(screen.getByText(marker)).toBeInTheDocument())
   })
 
+  it('orders actionable rows above foreign nav links', async () => {
+    loadPendingSuggestions.mockResolvedValue([
+      pendingRow('thesis'),
+      pendingRow('scan', 'sug-scan'),
+      pendingRow('rule_add', 'sug-ra'),
+    ])
+    mount()
+    await waitFor(() =>
+      expect(screen.getByText('rule_add suggestion title')).toBeInTheDocument(),
+    )
+    const rows = document.querySelectorAll('.sb-notify-row')
+    /* The rule the user can apply here comes first; the thesis/scan rows
+       are just signposts to other pages. */
+    expect(rows[0]).toHaveTextContent('rule_add suggestion title')
+    expect(rows[1]).toHaveTextContent('thesis suggestion title')
+    expect(rows[2]).toHaveTextContent('scan suggestion title')
+  })
+
   it('caps the strip at four rows and expands on demand', async () => {
     const user = userEvent.setup()
     loadPendingSuggestions.mockResolvedValue(

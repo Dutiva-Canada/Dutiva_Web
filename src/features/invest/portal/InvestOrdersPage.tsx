@@ -29,6 +29,7 @@ import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fmtDay, fmtNum } from './strategyUi'
+import { suggestionIcon } from './suggestionIcons'
 import { fill as fillSlots } from '@/lib/format'
 import {
   loadPendingSuggestions,
@@ -231,6 +232,7 @@ export function InvestOrdersPage() {
             {x(IM.invest_suggest_hint)}
           </p>
           {pending.map((s) => {
+            const KindIcon = suggestionIcon(s.kind)
             const p = (s.payload ?? {}) as Record<string, unknown>
             const title =
               lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
@@ -253,6 +255,7 @@ export function InvestOrdersPage() {
                 className="sb-notify-row"
                 style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
               >
+                <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <strong>{title}</strong>
                   {detail && <span className="sb-notify-hint">{detail}</span>}

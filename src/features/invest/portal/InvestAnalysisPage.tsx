@@ -38,6 +38,7 @@ import type {
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
 import { fmtDay, fmtNum, fmtPct } from './strategyUi'
+import { suggestionIcon } from './suggestionIcons'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
@@ -321,6 +322,7 @@ export function InvestAnalysisPage() {
               {x(IM.invest_analysis_pending)}
             </p>
             {pending.map((s) => {
+              const KindIcon = suggestionIcon(s.kind)
               const p = (s.payload ?? {}) as Record<string, unknown>
               const title =
                 lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
@@ -337,6 +339,7 @@ export function InvestAnalysisPage() {
                   className="sb-notify-row"
                   style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}
                 >
+                  <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <strong>{title}</strong>
                     {detail && <span className="sb-notify-hint">{detail}</span>}

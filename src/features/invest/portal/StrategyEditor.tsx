@@ -33,6 +33,7 @@ import {
   scanSummaryLine,
   warningText,
 } from './strategyUi'
+import { suggestionIcon } from './suggestionIcons'
 import type { StrategyDraft } from './strategyDraft'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 
@@ -405,6 +406,7 @@ export function StrategyEditor({
             {x(IM.invest_suggest_editor_label)}
           </p>
           {suggestions.map((s) => {
+            const KindIcon = suggestionIcon(s.kind)
             const p = (s.payload ?? {}) as Record<string, unknown>
             const title =
               lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
@@ -420,6 +422,7 @@ export function StrategyEditor({
                 className="sb-notify-row"
                 style={{ alignItems: 'flex-start', marginBottom: 8, cursor: 'default' }}
               >
+                <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <strong>{title}</strong>
                   {detail && <span className="sb-notify-hint">{detail}</span>}
