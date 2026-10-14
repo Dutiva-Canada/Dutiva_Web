@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -215,7 +215,9 @@ describe('PrPortalLayout', () => {
     // jsdom can't evaluate the desktop nav's min-width media query).
     await screen.findByText('home')
     expect(screen.getAllByText('Campaigns').length).toBeGreaterThan(0)
-    expect(loadPrState).toHaveBeenCalled()
+    /* The provider's load fires in a deferred effect the same commit —
+       waitFor it rather than racing the flush. */
+    await waitFor(() => expect(loadPrState).toHaveBeenCalled())
   })
 })
 
