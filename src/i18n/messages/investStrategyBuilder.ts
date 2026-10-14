@@ -152,6 +152,13 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'The strategy this points at no longer exists.',
     fr: 'La stratégie visée n’existe plus.',
   },
+  /* [FR self-authored] */
+  invest_suggest_show_all: {
+    en: 'Show all {n} suggestions',
+    fr: 'Afficher les {n} suggestions',
+  },
+  /* [FR self-authored] */
+  invest_suggest_collapse: { en: 'Show fewer', fr: 'Réduire la liste' },
   invest_suggest_editor_label: {
     en: 'Tally suggests for this strategy',
     fr: 'Suggestions de Tally pour cette stratégie',

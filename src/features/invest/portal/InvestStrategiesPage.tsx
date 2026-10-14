@@ -51,8 +51,9 @@ type View = { kind: 'list' } | { kind: 'editor' } | { kind: 'wizard' }
 
 /* Suggestion kinds filed for surfaces other than this page — a thesis or
    goal row has no strategy_id, so the strategy-targeted path would read
-   every one of them as stale. They get a "review on …" CTA that resolves
-   'opened' and routes to their own page instead. */
+   every one of them as stale. They get a "review on …" CTA that routes to
+   their own page — resolving 'opened' here would evict the row before
+   that page's strip can serve it, so navigation leaves it pending. */
 const FOREIGN_SUGGESTION_PAGE: Record<string, { to: string; page: (typeof IM)[keyof typeof IM] }> = {
   thesis: { to: '/invest/theses', page: IM.invest_tab_theses },
   exit_proposal: { to: '/invest/theses', page: IM.invest_tab_theses },
@@ -88,6 +89,9 @@ export function InvestStrategiesPage() {
   /* Pending 'strategy' rows the AI drafted — a wizard abandoned mid-edit
      leaves the draft waiting here instead of vanishing. */
   const [pending, setPending] = useState<AgentSuggestion[]>([])
+  /* Long strips bury the strategies they're advising on — cap the visible
+     rows and let the user expand. */
+  const [showAllPending, setShowAllPending] = useState(false)
   const [pendingBusy, setPendingBusy] = useState<string | null>(null)
   /* Suggestions applied into the open draft — staged, not resolved: the
      row resolves when the draft saves and re-shows if it discards, so a
@@ -193,8 +197,18 @@ export function InvestStrategiesPage() {
           const [rule] = normalizeRules([p.rule])
           if (!rule) throw new Error('Suggestion payload unreadable')
           if (s.kind === 'rule_add') {
+            /* A suggestion may carry a cadence upgrade its rule needs
+               (day-move rules can't fire on a monthly run) — the detail
+               copy already disclosed it, apply it with the rule. */
+            const nextCadence =
+              p.cadence === 'daily' || p.cadence === 'weekly' || p.cadence === 'monthly'
+                ? p.cadence
+                : null
             await saveStrategy({
               ...strategy,
+              ...(nextCadence && nextCadence !== strategy.cadence
+                ? { cadence: nextCadence }
+                : {}),
               rules: [...strategy.rules, { ...rule, id: newRulePersistId() }],
             })
             await resolveSuggestion(s.id, 'accepted', 'rule_added')
@@ -565,7 +579,7 @@ export function InvestStrategiesPage() {
               <p className="sb-caption" style={{ marginTop: 0 }}>
                 {x(IM.invest_suggest_hint)}
               </p>
-              {pending.map((s) => {
+              {(showAllPending ? pending : pending.slice(0, 4)).map((s) => {
                 const p = (s.payload ?? {}) as Record<string, unknown>
                 const title =
                   lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
@@ -604,11 +618,7 @@ export function InvestStrategiesPage() {
                   if (dest) {
                     meta = fill(x(IM.invest_prof_review_on), { page: x(dest.page) })
                     actionLabel = x(dest.page)
-                    act = () => {
-                      void resolveSuggestion(s.id, 'accepted', 'opened').catch(() => {})
-                      setPending((cur) => cur.filter((r) => r.id !== s.id))
-                      navigate(dest.to)
-                    }
+                    act = () => navigate(dest.to)
                   }
                 } else {
                   const targetId = typeof p.strategy_id === 'string' ? p.strategy_id : ''
@@ -680,6 +690,17 @@ export function InvestStrategiesPage() {
                   </div>
                 )
               })}
+              {pending.length > 4 && (
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  onClick={() => setShowAllPending((v) => !v)}
+                >
+                  {showAllPending
+                    ? x(IM.invest_suggest_collapse)
+                    : fill(x(IM.invest_suggest_show_all), { n: pending.length })}
+                </button>
+              )}
             </div>
           )}
 

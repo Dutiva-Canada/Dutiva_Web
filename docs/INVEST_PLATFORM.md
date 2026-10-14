@@ -152,7 +152,10 @@ no insights, never a failed run.
 Five kinds: `strategy` (a seeded, disabled draft for a book with no
 enabled strategy — the same payload shape the invest-ai drafter returns,
 so the existing accept path consumes it), `rule_add` (a gap worth a rule —
-concentration, big gains, cash drag, an unwatched mover), `scope_add`
+concentration, big gains, cash drag, an unwatched mover; when the rule's
+own metric needs a faster cadence than the target's, `payload.cadence`
+carries the upgrade and the detail discloses it — accepting applies both),
+`scope_add`
 (held symbols no enabled strategy covers), `rule_tune` (a rule whose
 signals keep getting dismissed → loosened thresholds, or a proposal whose
 drafts keep expiring → demote to a signal), and `thesis` (a held symbol

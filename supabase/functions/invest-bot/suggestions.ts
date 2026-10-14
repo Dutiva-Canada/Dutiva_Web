@@ -555,19 +555,31 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
         title: 'Fell 5% today',
         severity: 'alert',
       }
+      /* A day-move rule on a weekly/monthly strategy can never catch a
+         mover — the accept path applies payload.cadence, so the copy must
+         disclose the switch instead of just wishing for daily. */
+      const slower = target.cadence !== 'daily'
+      const moverName = target.name ?? 'strategy'
+      const detailEn = slower
+        ? `Adds one rule to “${moverName}” and switches it to daily — a ${target.cadence} run can't catch day moves.`
+        : `Adds one rule to “${moverName}”.`
+      const detailFr = slower
+        ? `Ajoute une règle à « ${target.name ?? 'stratégie'} » et la passe en quotidien — un balayage ${target.cadence === 'weekly' ? 'hebdomadaire' : 'mensuel'} ne peut capter les variations du jour.`
+        : `Ajoute une règle à « ${target.name ?? 'stratégie'} ».`
       out.push({
         kind: 'rule_add',
         dedupeKey: `rule_add:${target.id}:day_change_pct:lt:-5`,
         title_en: `${mover.p.symbol.toUpperCase()} moved ${mover.d!.toFixed(1)}% today — a daily watcher would catch the next one`,
-        title_fr: `${mover.p.symbol.toUpperCase()} a bougé de ${mover.d!.toFixed(1)} % aujourd’hui — une veille quotidienne capterait la prochaine`,
-        detail_en: `Adds one rule to “${target.name ?? 'strategy'}” (daily cadence suits this rule).`,
-        detail_fr: `Ajoute une règle à « ${target.name ?? 'stratégie'} » (cadence quotidienne conseillée).`,
+        title_fr: `${mover.p.symbol.toUpperCase()} a bougé de ${mover.d!.toFixed(1).replace('.', ',')} % aujourd’hui — une veille quotidienne capterait la prochaine`,
+        detail_en: detailEn,
+        detail_fr: detailFr,
         payload: {
-          title_fr: `${mover.p.symbol.toUpperCase()} a bougé de ${mover.d!.toFixed(1)} % aujourd’hui — une veille quotidienne capterait la prochaine`,
-          detail_en: `Adds one rule to “${target.name ?? 'strategy'}” (daily cadence suits this rule).`,
-          detail_fr: `Ajoute une règle à « ${target.name ?? 'stratégie'} » (cadence quotidienne conseillée).`,
+          title_fr: `${mover.p.symbol.toUpperCase()} a bougé de ${mover.d!.toFixed(1).replace('.', ',')} % aujourd’hui — une veille quotidienne capterait la prochaine`,
+          detail_en: detailEn,
+          detail_fr: detailFr,
           strategy_id: target.id,
           strategy_name: target.name ?? '',
+          cadence: slower ? 'daily' : undefined,
           rule: wireRule(rule),
         },
         score: 40,
