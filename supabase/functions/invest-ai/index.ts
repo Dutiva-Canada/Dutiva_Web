@@ -398,6 +398,9 @@ const handler = async (req: Request) => {
         },
       },
       dedupeKey: `thesis:${assetClass}:${symbol}`,
+      /* A real draft outranks the sweep's scaffold row under the same key —
+         the scaffold resolves 'superseded' and the drafted seed lands. */
+      dedupeMode: 'supersede',
     })
     return json({ draft: thesisDraft, suggestionId: filed?.id ?? null })
   }

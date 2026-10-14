@@ -203,6 +203,15 @@ export function InvestThesesPage() {
     return out
   }, [state.positions, state.watchlist, thesised])
 
+  const reloadPending = useCallback(async () => {
+    try {
+      const rows = await loadPendingSuggestions('invest')
+      setPending(rows.filter((r) => r.kind === 'thesis' || r.kind === 'exit_proposal'))
+    } catch {
+      /* strip stays as-is */
+    }
+  }, [])
+
   useEffect(() => {
     loadPendingSuggestions('invest')
       .then((rows) =>
@@ -210,6 +219,50 @@ export function InvestThesesPage() {
       )
       .catch(() => {})
   }, [])
+
+  /* "Draft with Tally" on a scaffold row — the brief is built from the
+     position's own facts, no story typing needed. The server files the
+     draft under the same dedupe key (supersede), so a reload swaps the
+     scaffold card for one carrying the drafted claim + conditions. */
+  const draftRow = useCallback(
+    async (s: AgentSuggestion) => {
+      const p = (s.payload ?? {}) as Record<string, unknown>
+      const assetClass =
+        typeof p.asset_class === 'string' ? (p.asset_class as AssetClass) : 'equity'
+      const symbol = typeof p.symbol === 'string' ? p.symbol.toUpperCase() : ''
+      if (!symbol || pendingBusy !== null) return
+      const pos = state.positions.find(
+        (r) => r.assetClass === assetClass && r.symbol.toUpperCase() === symbol,
+      )
+      const snap = state.snapshots.find(
+        (n) => n.assetClass === assetClass && n.symbol.toUpperCase() === symbol,
+      )
+      const name = (typeof p.name === 'string' && p.name) || pos?.name || ''
+      const pnl =
+        pos && snap?.price != null && pos.avgCost > 0
+          ? ((snap.price - pos.avgCost) / pos.avgCost) * 100
+          : null
+      const description = pos
+        ? L(
+            `Holding ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} at average cost ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, last ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'up' : 'down'} ${fmtNum(lang, Math.abs(pnl), 1)}% on cost` : ''}. No written story yet — infer a reasonable holder claim and its watch conditions.`,
+            `Position de ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} au coût moyen de ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, dernier cours ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'en hausse' : 'en baisse'} de ${fmtNum(lang, Math.abs(pnl), 1)} % sur le coût` : ''}. Aucune histoire écrite — inférer une thèse de détenteur raisonnable et ses conditions de surveillance.`,
+          )
+        : L(
+            `${symbol}${name ? ` (${name})` : ''} held in the book; no written story — infer a reasonable holder claim and its watch conditions.`,
+            `${symbol}${name ? ` (${name})` : ''} en position; aucune histoire écrite — inférer une thèse raisonnable et ses conditions de surveillance.`,
+          )
+      setPendingBusy(s.id)
+      try {
+        await draftThesis({ assetClass, symbol, name, description, lang })
+        await reloadPending()
+      } catch {
+        showToast(IM.invest_thesis_tally_failed)
+      } finally {
+        setPendingBusy(null)
+      }
+    },
+    [lang, L, pendingBusy, reloadPending, showToast, state.positions, state.snapshots],
+  )
 
   const openComposer = useCallback((seed?: Partial<ThesisDraftState>) => {
     setComposer({ ...emptyComposer(), ...seed })
@@ -316,36 +369,33 @@ export function InvestThesesPage() {
         description: c.tallyDescription,
         lang,
       })
-      setComposer((cur) => {
-        /* Every draft call files its own queue row server-side — when the
-           composer already tracks one (a strip accept, or an earlier draft),
-           the newcomer is a duplicate; resolve it superseded or it sits
-           pending forever. */
-        if (res.suggestionId && cur.suggestionId && res.suggestionId !== cur.suggestionId) {
-          void resolveSuggestion(res.suggestionId, 'dismissed', 'superseded').catch(() => {})
-        }
-        return {
-          ...cur,
-          /* Snapshot before replacing — `cur` carries anything typed while
-             the draft was in flight, so the restore is lossless either way. */
-          prevDraft: {
-            thesis: cur.thesis,
-            intent: cur.intent,
-            breakDrafts: cur.breakDrafts,
-            driftDrafts: cur.driftDrafts,
-            suggestionId: cur.suggestionId,
-          },
-          thesis: res.draft.thesis,
-          intent: res.draft.intent,
-          breakDrafts: toDrafts(res.draft.breakRules),
-          driftDrafts: toDrafts(res.draft.driftRules),
-          /* The model already filed a queue row — adopt it as the pending
-             suggestion so the save resolves it (no orphan card). */
-          suggestionId: cur.suggestionId ?? res.suggestionId,
-          tallyBusy: false,
-          tallyNote: true,
-        }
-      })
+      /* The queue files drafts with dedupeMode 'supersede' — when the
+         composer tracked an older row (a strip accept), the server already
+         dismissed it and res.suggestionId is the fresh row carrying this
+         exact draft. Drop the superseded card locally and adopt the new id
+         so the save resolves it. */
+      if (c.suggestionId && res.suggestionId && res.suggestionId !== c.suggestionId) {
+        setPending((cur) => cur.filter((r) => r.id !== c.suggestionId))
+      }
+      setComposer((cur) => ({
+        ...cur,
+        /* Snapshot before replacing — `cur` carries anything typed while
+           the draft was in flight, so the restore is lossless either way. */
+        prevDraft: {
+          thesis: cur.thesis,
+          intent: cur.intent,
+          breakDrafts: cur.breakDrafts,
+          driftDrafts: cur.driftDrafts,
+          suggestionId: cur.suggestionId,
+        },
+        thesis: res.draft.thesis,
+        intent: res.draft.intent,
+        breakDrafts: toDrafts(res.draft.breakRules),
+        driftDrafts: toDrafts(res.draft.driftRules),
+        suggestionId: res.suggestionId ?? cur.suggestionId,
+        tallyBusy: false,
+        tallyNote: true,
+      }))
     } catch {
       setComposer((cur) => ({ ...cur, tallyBusy: false }))
       showToast(IM.invest_thesis_tally_failed)
@@ -474,8 +524,24 @@ export function InvestThesesPage() {
               </p>
               {pending.map((s) => {
                 const p = (s.payload ?? {}) as Record<string, unknown>
-                const title =
-                  lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+                const seed = (p.seed ?? {}) as Record<string, unknown>
+                const sym = typeof p.symbol === 'string' ? p.symbol.toUpperCase() : ''
+                /* A 'thesis' row whose seed already carries a claim is a
+                   Tally draft (queued via draft-thesis supersede) — show it
+                   instead of the scaffold's generic hint. */
+                const drafted =
+                  s.kind === 'thesis' &&
+                  typeof seed.thesis === 'string' &&
+                  seed.thesis.trim() !== ''
+                    ? seed.thesis.trim()
+                    : ''
+                const condB = Array.isArray(seed.break_rules) ? seed.break_rules.length : 0
+                const condD = Array.isArray(seed.drift_rules) ? seed.drift_rules.length : 0
+                const title = drafted
+                  ? fill(x(IM.invest_thesis_draft_title), { sym })
+                  : lang === 'fr' && typeof p.title_fr === 'string'
+                    ? p.title_fr
+                    : s.title
                 const detail =
                   (lang === 'fr' && typeof p.detail_fr === 'string'
                     ? p.detail_fr
@@ -504,7 +570,16 @@ export function InvestThesesPage() {
                   >
                     <span style={{ flex: 1, minWidth: 0 }}>
                       <strong>{title}</strong>
-                      {detail && <span className="sb-notify-hint">{detail}</span>}
+                      {drafted ? (
+                        <>
+                          <span className="sb-notify-hint">{drafted}</span>
+                          <span className="sb-notify-hint">
+                            {fill(x(IM.invest_thesis_draft_conds), { b: condB, d: condD })}
+                          </span>
+                        </>
+                      ) : (
+                        detail && <span className="sb-notify-hint">{detail}</span>
+                      )}
                       {stale && (
                         <span className="sb-notify-hint">
                           {x(
@@ -516,6 +591,21 @@ export function InvestThesesPage() {
                       )}
                     </span>
                     <span className="sb-row-actions" style={{ flexShrink: 0 }}>
+                      {!stale && s.kind === 'thesis' && !drafted && (
+                        <button
+                          type="button"
+                          className="sb-btn sb-btn-secondary sb-btn-sm"
+                          disabled={pendingBusy !== null}
+                          onClick={() => void draftRow(s)}
+                        >
+                          {pendingBusy === s.id ? (
+                            <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Sparkles size={13} aria-hidden="true" />
+                          )}
+                          {x(IM.invest_thesis_draft_row)}
+                        </button>
+                      )}
                       {!stale && s.kind === 'thesis' && (
                         <button
                           type="button"

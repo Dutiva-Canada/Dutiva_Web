@@ -318,4 +318,62 @@ describe('InvestThesesPage — suggestions', () => {
     await waitFor(() => expect(saveThesis).toHaveBeenCalled())
     expect(resolveSuggestion).toHaveBeenCalledWith('sug-t1', 'accepted', 'added')
   })
+
+  it('Draft with Tally drafts from position facts and reloads the row', async () => {
+    const user = userEvent.setup()
+    /* After the draft call the queue holds the supersede-mode replacement —
+       same dedupe key, seed now carrying the claim. */
+    const draftedRow = {
+      ...pendingThesis,
+      id: 'sug-d1',
+      title: 'SHOP thesis',
+      payload: {
+        asset_class: 'equity',
+        symbol: 'SHOP',
+        name: 'Shopify',
+        description: 'Holding 10 SHOP …',
+        seed: {
+          thesis: 'Merchant solutions keep compounding as Shop Pay wins share.',
+          intent: 'growth',
+          break_rules: pendingThesis.payload.seed.break_rules,
+          drift_rules: pendingThesis.payload.seed.drift_rules,
+        },
+      },
+    }
+    loadPendingSuggestions
+      .mockResolvedValueOnce([pendingThesis])
+      .mockResolvedValue([draftedRow])
+    draftThesis.mockResolvedValue({
+      suggestionId: 'sug-d1',
+      draft: {
+        thesis: 'Merchant solutions keep compounding as Shop Pay wins share.',
+        intent: 'growth',
+        breakRules: [],
+        driftRules: [],
+      },
+    })
+    mount()
+    await waitFor(() =>
+      expect(screen.getByText(/has no thesis/)).toBeInTheDocument(),
+    )
+    await user.click(screen.getByRole('button', { name: /Draft with Tally/i }))
+    /* The brief is auto-built from the position — symbol + cost + qty. */
+    await waitFor(() => expect(draftThesis).toHaveBeenCalled())
+    const call = draftThesis.mock.calls[0]![0] as { symbol: string; description: string }
+    expect(call.symbol).toBe('SHOP')
+    expect(call.description).toMatch(/10 SHOP.*average cost 100/)
+    /* The row reloads as a draft — claim + condition counts. */
+    await waitFor(() =>
+      expect(screen.getByText(/Tally’s draft/)).toBeInTheDocument(),
+    )
+    expect(
+      screen.getByText(/Merchant solutions keep compounding/),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/1 break · 1 drift/)).toBeInTheDocument()
+    /* Start tracking opens the composer seeded with the drafted claim. */
+    await user.click(screen.getByRole('button', { name: /Start tracking/i }))
+    expect(screen.getByLabelText('The thesis')).toHaveValue(
+      'Merchant solutions keep compounding as Shop Pay wins share.',
+    )
+  })
 })

@@ -640,6 +640,15 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   invest_thesis_tally_failed: { en: 'Tally couldn’t draft that — try rephrasing.', fr: 'Tally n’a pas pu la rédiger — essayez autrement.' },
   invest_thesis_suggest_accept: { en: 'Start tracking', fr: 'Commencer le suivi' },
+  /* [FR self-authored] */
+  invest_thesis_draft_row: { en: 'Draft with Tally', fr: 'Rédiger avec Tally' },
+  /* [FR self-authored] */
+  invest_thesis_draft_title: { en: '{sym} — Tally’s draft', fr: '{sym} — brouillon de Tally' },
+  /* [FR self-authored] */
+  invest_thesis_draft_conds: {
+    en: '{b} break · {d} drift conditions drafted — review before saving.',
+    fr: '{b} cassure · {d} dérive rédigées — à revoir avant d’enregistrer.',
+  },
   invest_thesis_suggest_stale: { en: 'A thesis already covers this symbol — dismiss to clear.', fr: 'Une thèse couvre déjà ce symbole — écartez pour nettoyer.' },
   invest_seo_title_theses: { en: 'Theses — Dutiva Invest', fr: 'Thèses — Dutiva Invest' },
   invest_seo_desc_theses: {

@@ -363,6 +363,38 @@ describe('planSuggestions', () => {
     expect(seed.intent).toBe('core')
   })
 
+  it('names the holding facts in the scaffold detail — rows differ per asset', () => {
+    const out = planSuggestions(
+      ctx({
+        strategies: [strat({ scope_symbols: ['ACME', 'TELL'] })],
+        positions: [
+          { ...pos('ACME', 5), currency: 'CAD' },
+          { ...pos('TELL', 40, 2), currency: 'USD' },
+        ],
+        snapshots: [snap('ACME'), snap('TELL')],
+        theses: [],
+      }),
+    )
+    const acme = out.find((c) => c.dedupeKey === 'thesis:equity:ACME')
+    const tell = out.find((c) => c.dedupeKey === 'thesis:equity:TELL')
+    expect(acme?.detail_en).toMatch(/hold 5 ACME at an average cost of 100 CAD/)
+    expect(acme?.detail_fr).toMatch(/détenez 5 ACME au coût moyen de 100 CAD/)
+    expect(tell?.detail_en).toMatch(/hold 40 TELL at an average cost of 2 USD/)
+    /* A currency-less row still gets the generic detail — no dangling
+       "at  " artifacts. */
+    const out2 = planSuggestions(
+      ctx({
+        strategies: [strat()],
+        positions: [pos('ACME', 5)],
+        snapshots: [snap('ACME')],
+        theses: [],
+      }),
+    )
+    expect(out2.find((c) => c.kind === 'thesis')?.detail_en).toMatch(
+      /^A thesis names the story/,
+    )
+  })
+
   it('skips a symbol that already carries a thesis', () => {
     const out = planSuggestions(
       ctx({
