@@ -72,7 +72,7 @@ const CADENCE_MS: Record<StrategyCadence, number> = {
 
 export function InvestStrategiesPage() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
   const { showToast } = useToasts()
   const navigate = useNavigate()
 
@@ -493,6 +493,17 @@ export function InvestStrategiesPage() {
     () => Object.fromEntries(state.strategies.map((s) => [s.id, s.name])),
     [state.strategies],
   )
+
+  /* Same gate as every sibling tab — the provider mounts children on
+     EMPTY_INVEST_STATE, so without it the page flashes the empty-board
+     hint during the first load. */
+  if (loading) {
+    return (
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
+      </div>
+    )
+  }
 
   return (
     <div className="sb sb-col">
