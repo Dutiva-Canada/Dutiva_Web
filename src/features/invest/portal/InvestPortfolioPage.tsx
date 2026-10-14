@@ -23,13 +23,16 @@ import {
   recordDividend,
   recordSplit,
   removeWatchSymbol,
+  saveRecurring,
   saveStrategy,
   syncPrices,
   updateAccount,
   updatePosition,
   upsertSnapshot,
 } from '@/features/invest/data/api'
+import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
+import { suggestionIcon } from './suggestionIcons'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
@@ -115,6 +118,10 @@ export function InvestPortfolioPage() {
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
+  /* Tally's pending rows that live on this page — today just the
+     'recurring' kind (a deposit pattern worth a schedule). */
+  const [pending, setPending] = useState<AgentSuggestion[]>([])
+  const [pendingBusy, setPendingBusy] = useState<string | null>(null)
   const [sort, setSort] = useState<{ key: PosSortKey; dir: 1 | -1 }>({ key: 'symbol', dir: 1 })
   /* ?symbol=ARM deep-links (signal ticker pills) — scope the table and
      its totals to the named symbol until the chip clears it. */
@@ -174,6 +181,47 @@ export function InvestPortfolioPage() {
       live = false
     }
   }, [])
+
+  const loadPending = () => {
+    loadPendingSuggestions('invest')
+      .then((rows) => setPending(rows.filter((r) => r.kind === 'recurring')))
+      .catch(() => {})
+  }
+  useEffect(loadPending, [])
+
+  /* The suggestion already carries the detected amount + cadence — the
+     accept schedules it starting today (same default the form ships). */
+  const acceptPending = async (s: AgentSuggestion) => {
+    if (pendingBusy) return
+    setPendingBusy(s.id)
+    const p = (s.payload ?? {}) as Record<string, unknown>
+    const accountId = typeof p.account_id === 'string' ? p.account_id : ''
+    const amount = Number(p.amount)
+    const cadence = p.cadence === 'weekly' || p.cadence === 'monthly' ? p.cadence : null
+    try {
+      const account = state.accounts.find((a) => a.id === accountId)
+      if (!account || !Number.isFinite(amount) || amount <= 0 || !cadence) return
+      await saveRecurring({
+        accountId,
+        amount,
+        cadence,
+        currency: account.baseCurrency,
+        nextRunOn: new Date().toISOString().slice(0, 10),
+      })
+      void resolveSuggestion(s.id, 'accepted', 'added').catch(() => {})
+      setPending((cur) => cur.filter((r) => r.id !== s.id))
+      await refresh()
+    } catch {
+      loadPending()
+    } finally {
+      setPendingBusy(null)
+    }
+  }
+
+  const dismissPending = (s: AgentSuggestion) => {
+    setPending((cur) => cur.filter((r) => r.id !== s.id))
+    void resolveSuggestion(s.id, 'dismissed', 'dismissed').catch(() => {})
+  }
 
   /* Book currency = the first active account's base — the same rule the
      engine uses. All cash converted into it for the shared-weight math. */
@@ -407,6 +455,54 @@ export function InvestPortfolioPage() {
         <p role="status" className="sb-helper">
           {syncNote}
         </p>
+      )}
+
+      {pending.length > 0 && (
+        <div className="sb-mini-list" style={{ marginTop: 18 }}>
+          <p className="sb-caption" style={{ marginTop: 0 }}>
+            {x(IM.invest_suggest_hint)}
+          </p>
+          {pending.map((s) => {
+            const KindIcon = suggestionIcon(s.kind)
+            const p = (s.payload ?? {}) as Record<string, unknown>
+            const title =
+              lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
+            const detail =
+              (lang === 'fr' && typeof p.detail_fr === 'string'
+                ? p.detail_fr
+                : typeof p.detail_en === 'string'
+                  ? p.detail_en
+                  : null) ?? null
+            return (
+              <div key={s.id} className="sb-notify-row" style={{ alignItems: 'flex-start', marginBottom: 10, cursor: 'default' }}>
+                <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{title}</strong>
+                  {detail && <span className="sb-notify-hint">{detail}</span>}
+                </span>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-sm sb-btn-primary"
+                  disabled={pendingBusy !== null}
+                  onClick={() => void acceptPending(s)}
+                >
+                  {pendingBusy === s.id && (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  )}
+                  {x(IM.invest_suggest_schedule)}
+                </button>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-sm sb-btn-secondary"
+                  disabled={pendingBusy !== null}
+                  onClick={() => dismissPending(s)}
+                >
+                  {x(IM.invest_dismiss)}
+                </button>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       <section className={cardClass} style={{ marginTop: 18 }}>
@@ -762,8 +858,8 @@ export function InvestPortfolioPage() {
                           busy={busy}
                           buttonLabel={`${x(IM.invest_dividend_record)} ${p.symbol}`}
                           onSave={(perShare) =>
-                            run(() =>
-                              recordDividend(
+                            run(async () => {
+                              await recordDividend(
                                 p,
                                 perShare,
                                 undefined,
@@ -771,14 +867,41 @@ export function InvestPortfolioPage() {
                                   .replace('{sym}', p.symbol)
                                   .replace('{ps}', fmtNum(lang, perShare, { max: 4 }))
                                   .replace('{qty}', fmtNum(lang, p.quantity, { max: 4 })),
-                              ),
-                            )
+                              )
+                              sendInvestReaction(
+                                {
+                                  type: 'cash_recorded',
+                                  kind: 'dividend',
+                                  amount: perShare * p.quantity,
+                                  currency: p.currency,
+                                },
+                                lang,
+                                setTallyLine,
+                              )
+                                .then((r) => {
+                                  if (r.reply) setTallyLine(r.reply)
+                                })
+                                .catch(() => {})
+                            })
                           }
                         />
                         <SplitShortcut
                           busy={busy}
                           buttonLabel={`${x(IM.invest_split_record)} ${p.symbol}`}
-                          onSave={(ratio) => run(() => recordSplit(p, ratio))}
+                          onSave={(ratio) =>
+                            run(async () => {
+                              await recordSplit(p, ratio)
+                              sendInvestReaction(
+                                { type: 'split_recorded', symbol: p.symbol, ratio },
+                                lang,
+                                setTallyLine,
+                              )
+                                .then((r) => {
+                                  if (r.reply) setTallyLine(r.reply)
+                                })
+                                .catch(() => {})
+                            })
+                          }
                         />
                         <RemovePosition
                           busy={busy}
@@ -890,6 +1013,13 @@ export function InvestPortfolioPage() {
           busy={busy}
           run={run}
           fmtFor={fmtFor}
+          onRecorded={(ev) =>
+            void sendInvestReaction({ type: 'cash_recorded', ...ev }, lang, setTallyLine)
+              .then((r) => {
+                if (r.reply) setTallyLine(r.reply)
+              })
+              .catch(() => {})
+          }
         />
       </div>
 
@@ -900,6 +1030,13 @@ export function InvestPortfolioPage() {
           busy={busy}
           run={run}
           fmtFor={fmtFor}
+          onRecorded={(r) =>
+            void sendInvestReaction({ type: 'recurring_created', ...r }, lang, setTallyLine)
+              .then((res) => {
+                if (res.reply) setTallyLine(res.reply)
+              })
+              .catch(() => {})
+          }
         />
       </div>
 

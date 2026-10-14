@@ -3,10 +3,13 @@ import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   buildDraftPrompt,
+  buildThesisDraftPrompt,
   draftSystemPrompt,
   parseDraft,
+  parseThesisDraft,
   resolveInvestRef,
   sanitizeGoal,
+  THESIS_SYSTEM_PROMPT,
   type InvestChatAction,
 } from './handlers.ts'
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
@@ -29,11 +32,32 @@ export interface ExecutedAction {
   restore?: { symbol: string; name: string; asset_class: string }
   /** The status update_signal replaced — undo puts it back. */
   prevStatus?: string
+  /** The position numbers record_split rewrote — undo restores them. */
+  prevPosition?: { quantity: number; avg_cost: number }
   /** Set once chat_undo reverses the write — the client hides the chip. */
   undone?: boolean
 }
 
 type Provider = Parameters<typeof postChatCompletion>[0]
+
+/** Resolve the held row a dividend or split lands on — the symbol narrows
+    to held positions, an account name scopes further. Ambiguous or absent
+    → null so the caller reports ok:false instead of touching the wrong row. */
+function resolveHeldPosition(
+  positions: NonNullable<ChatActionDeps['positions']>,
+  symbol: string,
+  accountName: string | undefined,
+  accounts: { id: string; name: string }[],
+): NonNullable<ChatActionDeps['positions']>[number] | null {
+  const sym = symbol.trim().toUpperCase()
+  let candidates = positions.filter((p) => p.symbol.toUpperCase() === sym)
+  if (accountName) {
+    const hit = resolveInvestRef(accountName, accounts)
+    if (!hit?.id) return null
+    candidates = candidates.filter((p) => p.account_id === hit.id)
+  }
+  return candidates.length === 1 ? candidates[0] : null
+}
 
 /* A just-added symbol has no market row yet — pull one quote now so the
    position and the next chat turn see a real price instead of an empty
@@ -85,9 +109,21 @@ async function priceFreshSymbol(
 }
 
 export interface ChatActionDeps {
-  accounts: { id: string; name: string; kind: string }[]
+  accounts: { id: string; name: string; kind: string; base_currency?: string; cash_balance?: number }[]
   watchlist: { id: string; symbol: string; asset_class: string; name: string }[]
   signals: { id: string; title: string; status: string }[]
+  /** Held rows — dividend/split bookkeeping and thesis drafts resolve
+      symbols against them. */
+  positions?: {
+    id: string
+    account_id: string
+    asset_class: string
+    symbol: string
+    name: string
+    quantity: number
+    avg_cost: number
+    currency: string
+  }[]
   route: { model_name: string; config?: Record<string, unknown> | null }
   provider: Provider
   apiKey: string | null
@@ -314,6 +350,255 @@ export async function executeChatAction(
       })
       return { type: action.type, detail: shipped.name, ok: true, refId: filed?.id ?? undefined }
     }
+    case 'draft_thesis': {
+      /* Same pipeline the Theses page's "Draft with Tally" runs — the
+         brief is built from the position's facts when the person holds it.
+         The draft files to the review queue; nothing persists until they
+         save it there. */
+      const pos = deps.positions?.find(
+        (p) => p.symbol.toUpperCase() === action.symbol.toUpperCase(),
+      )
+      const description = pos
+        ? `I hold ${pos.quantity} ${pos.symbol} at an average cost of ${pos.avg_cost} ${pos.currency || 'CAD'}.`
+        : `${action.name ?? action.symbol} — a holding I'm tracking.`
+      const personal = await loadPersonalContext(adminClient, userId)
+      let upstream: Response
+      try {
+        upstream = await postChatCompletion(
+          deps.provider,
+          deps.apiKey,
+          {
+            model: deps.route.model_name,
+            messages: [
+              { role: 'system', content: THESIS_SYSTEM_PROMPT },
+              {
+                role: 'user',
+                content: buildThesisDraftPrompt(
+                  {
+                    symbol: action.symbol,
+                    name: action.name ?? pos?.name ?? '',
+                    description,
+                  },
+                  deps.lang,
+                  personal.memories,
+                  personal.mandate,
+                ),
+              },
+            ],
+            max_tokens: deps.route.config?.max_tokens ?? 900,
+            temperature: 0.3,
+          },
+          UPSTREAM_TIMEOUT_MS,
+        )
+      } catch {
+        return { type: action.type, detail: action.symbol, ok: false }
+      }
+      if (!upstream.ok) return { type: action.type, detail: action.symbol, ok: false }
+      const completion = await upstream.json()
+      const content = completion?.choices?.[0]?.message?.content
+      const draft = typeof content === 'string' ? parseThesisDraft(content) : null
+      if (!draft) return { type: action.type, detail: action.symbol, ok: false }
+      const filed = await fileSuggestion(adminClient, {
+        userId,
+        surface: 'invest',
+        kind: 'thesis',
+        title: `${action.symbol} thesis`,
+        payload: {
+          asset_class: pos?.asset_class ?? 'equity',
+          symbol: action.symbol,
+          name: action.name ?? pos?.name ?? '',
+          description,
+          seed: {
+            thesis: draft.thesis,
+            intent: draft.intent,
+            break_rules: draft.break_rules,
+            drift_rules: draft.drift_rules,
+          },
+        },
+        /* The same dedupe key the scaffold and the page's draft use — a
+           chat draft supersedes whatever sat there. */
+        dedupeKey: `thesis:${pos?.asset_class ?? 'equity'}:${action.symbol}`,
+        dedupeMode: 'supersede',
+      })
+      return {
+        type: action.type,
+        detail: `${action.symbol} — draft filed for review`,
+        ok: true,
+        refId: filed?.id ?? undefined,
+      }
+    }
+    case 'set_goal': {
+      const { data, error } = await adminClient
+        .from('invest_goals')
+        .insert({
+          user_id: userId,
+          title: action.title.slice(0, 120),
+          detail: '',
+          metric: action.metric,
+          op: action.op,
+          target: action.target,
+          deadline: action.deadline ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      return { type: action.type, detail: action.title, ok: !error, refId: data?.id }
+    }
+    case 'record_cash': {
+      const accounts = deps.accounts
+      let accountId: string | null = null
+      if (action.account) {
+        const hit = resolveInvestRef(action.account, accounts)
+        if (!hit?.id) return { type: action.type, detail: action.kind, ok: false }
+        accountId = hit.id
+      } else if (accounts.length === 1) {
+        accountId = accounts[0]!.id
+      } else {
+        return { type: action.type, detail: `${action.kind} — account unclear`, ok: false }
+      }
+      const account = accounts.find((a) => a.id === accountId)
+      const delta = action.kind === 'withdrawal' ? -action.amount : action.amount
+      const balance = Number(account?.cash_balance ?? 0) + delta
+      /* Same guard the ledger form enforces — a withdrawal can't overdraw. */
+      if (balance < 0) {
+        return { type: action.type, detail: `${action.kind} — exceeds cash balance`, ok: false }
+      }
+      const { data: ev, error } = await adminClient
+        .from('invest_cash_events')
+        .insert({
+          user_id: userId,
+          account_id: accountId,
+          kind: action.kind,
+          amount: action.amount,
+          currency: action.currency ?? account?.base_currency ?? 'CAD',
+          occurred_at: new Date().toISOString().slice(0, 10),
+          note: action.note ?? '',
+        })
+        .select('id')
+        .single()
+      if (error) return { type: action.type, detail: action.kind, ok: false }
+      /* The compensating pair the client api uses — an event without its
+         balance move reads the money twice. */
+      const { error: balErr } = await adminClient
+        .from('invest_accounts')
+        .update({ cash_balance: balance, updated_at: new Date().toISOString() })
+        .eq('id', accountId)
+        .eq('user_id', userId)
+      if (balErr) {
+        await adminClient
+          .from('invest_cash_events')
+          .delete()
+          .eq('id', ev.id)
+          .eq('user_id', userId)
+        return { type: action.type, detail: action.kind, ok: false }
+      }
+      return {
+        type: action.type,
+        detail: `${action.kind} ${action.amount}`,
+        ok: true,
+        refId: ev?.id,
+      }
+    }
+    case 'set_recurring': {
+      const accounts = deps.accounts
+      let accountId: string | null = null
+      if (action.account) {
+        const hit = resolveInvestRef(action.account, accounts)
+        if (!hit?.id) return { type: action.type, detail: 'recurring', ok: false }
+        accountId = hit.id
+      } else if (accounts.length === 1) {
+        accountId = accounts[0]!.id
+      } else {
+        return { type: action.type, detail: 'recurring — account unclear', ok: false }
+      }
+      const account = accounts.find((a) => a.id === accountId)
+      const { data, error } = await adminClient
+        .from('invest_recurring_contributions')
+        .insert({
+          user_id: userId,
+          account_id: accountId,
+          amount: action.amount,
+          currency: action.currency ?? account?.base_currency ?? 'CAD',
+          cadence: action.cadence,
+          next_run_on: action.nextRunOn ?? new Date().toISOString().slice(0, 10),
+          note: action.note ?? '',
+          enabled: true,
+          updated_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+      return {
+        type: action.type,
+        detail: `${action.amount} ${action.cadence}`,
+        ok: !error,
+        refId: data?.id,
+      }
+    }
+    case 'record_dividend': {
+      const pos = resolveHeldPosition(deps.positions ?? [], action.symbol, action.account, deps.accounts)
+      if (!pos) return { type: action.type, detail: action.symbol, ok: false }
+      const amount = Math.round(action.perShare * pos.quantity * 100) / 100
+      const { data: account } = await adminClient
+        .from('invest_accounts')
+        .select('cash_balance')
+        .eq('id', pos.account_id)
+        .eq('user_id', userId)
+        .maybeSingle()
+      const balance = Number(account?.cash_balance ?? 0) + amount
+      const { data: ev, error } = await adminClient
+        .from('invest_cash_events')
+        .insert({
+          user_id: userId,
+          account_id: pos.account_id,
+          kind: 'dividend',
+          amount,
+          currency: pos.currency || 'CAD',
+          occurred_at: new Date().toISOString().slice(0, 10),
+          note: `${pos.symbol} — ${action.perShare} × ${pos.quantity}`,
+        })
+        .select('id')
+        .single()
+      if (error) return { type: action.type, detail: action.symbol, ok: false }
+      const { error: balErr } = await adminClient
+        .from('invest_accounts')
+        .update({ cash_balance: balance, updated_at: new Date().toISOString() })
+        .eq('id', pos.account_id)
+        .eq('user_id', userId)
+      if (balErr) {
+        await adminClient
+          .from('invest_cash_events')
+          .delete()
+          .eq('id', ev.id)
+          .eq('user_id', userId)
+        return { type: action.type, detail: action.symbol, ok: false }
+      }
+      return {
+        type: action.type,
+        detail: `${action.symbol} dividend ${amount}`,
+        ok: true,
+        refId: ev?.id,
+      }
+    }
+    case 'record_split': {
+      const pos = resolveHeldPosition(deps.positions ?? [], action.symbol, action.account, deps.accounts)
+      if (!pos) return { type: action.type, detail: action.symbol, ok: false }
+      const { error } = await adminClient
+        .from('invest_positions')
+        .update({
+          quantity: pos.quantity * action.ratio,
+          avg_cost: pos.avg_cost / action.ratio,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', pos.id)
+        .eq('user_id', userId)
+      return {
+        type: action.type,
+        detail: `${action.symbol} ${action.ratio}:1`,
+        ok: !error,
+        refId: pos.id,
+        prevPosition: { quantity: pos.quantity, avg_cost: pos.avg_cost },
+      }
+    }
   }
 }
 
@@ -391,10 +676,83 @@ export async function undoChatAction(
         .eq('user_id', userId)
       return !error
     }
-    case 'draft_strategy': {
+    case 'draft_strategy':
+    case 'draft_thesis': {
       const { error } = await adminClient
         .from('agent_suggestions')
         .delete()
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+      return !error
+    }
+    case 'set_goal': {
+      const { error } = await adminClient
+        .from('invest_goals')
+        .delete()
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+      return !error
+    }
+    case 'set_recurring': {
+      const { error } = await adminClient
+        .from('invest_recurring_contributions')
+        .delete()
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+      return !error
+    }
+    case 'record_cash':
+    case 'record_dividend': {
+      /* Reverse the balance move first, then the event — mirrors the
+         ledger's own delete path so row and balance can't disagree. */
+      const { data: ev } = await adminClient
+        .from('invest_cash_events')
+        .select('account_id, kind, amount')
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (!ev) return false
+      const { data: account } = await adminClient
+        .from('invest_accounts')
+        .select('cash_balance')
+        .eq('id', ev.account_id as string)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (!account) return false
+      const reverse = ev.kind === 'withdrawal' ? Number(ev.amount) : -Number(ev.amount)
+      const restored = Number(account.cash_balance) + reverse
+      const { error: balErr } = await adminClient
+        .from('invest_accounts')
+        .update({ cash_balance: restored, updated_at: new Date().toISOString() })
+        .eq('id', ev.account_id as string)
+        .eq('user_id', userId)
+      if (balErr) return false
+      const { error } = await adminClient
+        .from('invest_cash_events')
+        .delete()
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+      if (error) {
+        await adminClient
+          .from('invest_accounts')
+          .update({
+            cash_balance: Number(account.cash_balance),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', ev.account_id as string)
+          .eq('user_id', userId)
+      }
+      return !error
+    }
+    case 'record_split': {
+      if (!action.prevPosition) return false
+      const { error } = await adminClient
+        .from('invest_positions')
+        .update({
+          quantity: action.prevPosition.quantity,
+          avg_cost: action.prevPosition.avg_cost,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', action.refId as string)
         .eq('user_id', userId)
       return !error

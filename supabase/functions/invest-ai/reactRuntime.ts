@@ -49,6 +49,48 @@ export function parseInvestReactEvent(raw: unknown): InvestReactEvent | null {
       kind: typeof ev.kind === 'string' ? ev.kind.slice(0, 20) : undefined,
     }
   }
+  if (ev.type === 'cash_recorded') {
+    const kind =
+      ev.kind === 'deposit' || ev.kind === 'withdrawal' || ev.kind === 'dividend'
+        ? ev.kind
+        : null
+    const amount = Number(ev.amount)
+    if (!kind || !Number.isFinite(amount) || amount <= 0) return null
+    return {
+      type: 'cash_recorded',
+      kind,
+      amount,
+      currency: typeof ev.currency === 'string' ? ev.currency.trim().slice(0, 8).toUpperCase() : undefined,
+    }
+  }
+  if (ev.type === 'recurring_created') {
+    const amount = Number(ev.amount)
+    const cadence = ev.cadence === 'weekly' || ev.cadence === 'monthly' ? ev.cadence : null
+    if (!Number.isFinite(amount) || amount <= 0 || !cadence) return null
+    return { type: 'recurring_created', amount, cadence }
+  }
+  if (ev.type === 'scenario_run') {
+    const name = typeof ev.name === 'string' ? ev.name.trim().slice(0, 60) : ''
+    if (!name) return null
+    const deltaPct = Number(ev.deltaPct)
+    return {
+      type: 'scenario_run',
+      name,
+      deltaPct: Number.isFinite(deltaPct) ? deltaPct : undefined,
+    }
+  }
+  if (ev.type === 'split_recorded') {
+    const symbol = typeof ev.symbol === 'string' ? ev.symbol.trim().slice(0, 12) : ''
+    const ratio = Number(ev.ratio)
+    if (!symbol || !Number.isFinite(ratio) || ratio <= 0) return null
+    return { type: 'split_recorded', symbol, ratio }
+  }
+  if (ev.type === 'fill_recorded') {
+    const symbol = typeof ev.symbol === 'string' ? ev.symbol.trim().slice(0, 12) : ''
+    const quantity = Number(ev.quantity)
+    if (!symbol || !Number.isFinite(quantity) || quantity <= 0) return null
+    return { type: 'fill_recorded', symbol, quantity }
+  }
   return null
 }
 

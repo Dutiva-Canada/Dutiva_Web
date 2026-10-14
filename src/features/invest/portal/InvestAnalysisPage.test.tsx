@@ -22,6 +22,7 @@ const saveScanItem = vi.fn().mockResolvedValue(undefined)
 const deleteScanItem = vi.fn().mockResolvedValue(undefined)
 const markScanItemReviewed = vi.fn().mockResolvedValue(undefined)
 const saveSwot = vi.fn().mockResolvedValue(undefined)
+const saveStressScenario = vi.fn().mockResolvedValue(undefined)
 const draftSwot = vi.fn()
 const draftScan = vi.fn().mockResolvedValue([])
 const loadPendingSuggestions = vi.fn().mockResolvedValue([])
@@ -37,6 +38,7 @@ vi.mock('../data/api', async (importOriginal) => {
     deleteScanItem: (...a: unknown[]) => deleteScanItem(...a),
     markScanItemReviewed: (...a: unknown[]) => markScanItemReviewed(...a),
     saveSwot: (...a: unknown[]) => saveSwot(...a),
+    saveStressScenario: (...a: unknown[]) => saveStressScenario(...a),
     draftSwot: (...a: unknown[]) => draftSwot(...a),
     draftScan: (...a: unknown[]) => draftScan(...a),
   }
@@ -300,5 +302,57 @@ describe('InvestAnalysisPage — pending suggestions', () => {
       expect(resolveSuggestion).toHaveBeenCalledWith('sug-g1', 'dismissed', 'dismissed'),
     )
     expect(saveGoal).not.toHaveBeenCalled()
+  })
+
+  it('saves Tally’s named scenario on accept — and skips a name twin', async () => {
+    const user = userEvent.setup()
+    const pendingScenario = {
+      ...pendingGoal,
+      id: 'sug-st1',
+      kind: 'stress_scenario',
+      title: 'Stress-test what matters — SHOP is 80% of your book',
+      payload: {
+        detail_en: 'Saves "SHOP -25%" to your scenario list.',
+        name: 'SHOP -25%',
+        shocks: [{ match: 'SHOP', pct: -25 }],
+      },
+      dedupe_key: 'stress:SHOP:-25',
+    }
+    loadPendingSuggestions.mockResolvedValue([pendingScenario])
+    const { refresh } = mount()
+    await waitFor(() =>
+      expect(screen.getByText(/Stress-test what matters/)).toBeInTheDocument(),
+    )
+    await user.click(screen.getByRole('button', { name: /Save it/i }))
+    await waitFor(() => expect(saveStressScenario).toHaveBeenCalled())
+    expect(saveStressScenario.mock.calls[0]![0]).toEqual({
+      name: 'SHOP -25%',
+      shocks: [{ match: 'SHOP', pct: -25 }],
+    })
+    expect(resolveSuggestion).toHaveBeenCalledWith('sug-st1', 'accepted', 'added')
+    expect(refresh).toHaveBeenCalled()
+
+    /* A scenario with the same normalized name already saved → the accept
+       resolves the row without a second write. */
+    vi.clearAllMocks()
+    loadPendingSuggestions.mockResolvedValue([pendingScenario])
+    mount({
+      stressScenarios: [
+        {
+          id: 'sc1',
+          name: 'shop -25%',
+          shocks: [],
+          createdAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+    })
+    await waitFor(() =>
+      expect(screen.getAllByText(/Stress-test what matters/).length).toBeGreaterThan(0),
+    )
+    await user.click(screen.getAllByRole('button', { name: /Save it/i })[0]!)
+    await waitFor(() =>
+      expect(resolveSuggestion).toHaveBeenCalledWith('sug-st1', 'accepted', 'added'),
+    )
+    expect(saveStressScenario).not.toHaveBeenCalled()
   })
 })

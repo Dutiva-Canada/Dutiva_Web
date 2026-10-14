@@ -128,6 +128,9 @@ export const investStrategyBuilderMessages = defineMessages({
     fr: 'Tally a passé le carnet en revue — chaque suggestion attend votre décision.',
   },
   invest_suggest_apply: { en: 'Apply', fr: 'Appliquer' },
+  /* Accept on the 'recurring' suggestion — writes the schedule row.
+     [FR self-authored] */
+  invest_suggest_schedule: { en: 'Schedule it', fr: 'La programmer' },
   invest_suggest_apply_rule: { en: 'Add rule', fr: 'Ajouter la règle' },
   invest_suggest_apply_scope: { en: 'Add symbols', fr: 'Ajouter les symboles' },
   invest_suggest_applied: {
@@ -777,6 +780,9 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   invest_swot_go_thesis: { en: 'Open theses', fr: 'Ouvrir les thèses' },
   invest_swot_suggest_apply: { en: 'Apply', fr: 'Appliquer' },
+  /* Accept on a stress_scenario row — writes the named scenario to the
+     saved list. [FR self-authored] */
+  invest_stress_suggest_save: { en: 'Save it', fr: 'L’enregistrer' },
   invest_signal_kind_goal: { en: 'Goal', fr: 'Objectif' },
   invest_signal_kind_scan: { en: 'Watch', fr: 'Veille' },
   invest_seo_title_analysis: { en: 'Analysis — Dutiva Invest', fr: 'Analyse — Dutiva Invest' },

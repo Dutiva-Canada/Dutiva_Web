@@ -23,6 +23,12 @@ export interface InvestChatAction {
     | 'update_signal'
     | 'draft_strategy'
     | 'add_position'
+    | 'draft_thesis'
+    | 'set_goal'
+    | 'record_cash'
+    | 'set_recurring'
+    | 'record_dividend'
+    | 'record_split'
   /** Human-facing subject — the symbol, signal title, strategy name. */
   detail: string
   ok: boolean
@@ -216,6 +222,11 @@ export type InvestReactEvent =
   | { type: 'signal_updated'; status: 'acknowledged' | 'dismissed'; symbol?: string }
   | { type: 'position_logged'; symbol: string; quantity: number }
   | { type: 'account_added'; name: string; kind?: string }
+  | { type: 'cash_recorded'; kind: 'deposit' | 'withdrawal' | 'dividend'; amount: number; currency?: string }
+  | { type: 'recurring_created'; amount: number; cadence: 'weekly' | 'monthly' }
+  | { type: 'scenario_run'; name: string; deltaPct?: number }
+  | { type: 'split_recorded'; symbol: string; ratio: number }
+  | { type: 'fill_recorded'; symbol: string; quantity: number }
 
 /* Reactions fire a model call per qualifying action — someone watching
    three symbols shouldn't produce three calls. A floor between calls keeps

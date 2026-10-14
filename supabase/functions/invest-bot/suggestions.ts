@@ -70,6 +70,12 @@ export interface SuggestionContext {
       only earns a slot once there's actually something said. */
   memoryCount?: number
   chatTurns?: number
+  /** Recent cash ledger rows — the recurring-pattern detector reads them.
+      Loaded lazily in fileBookSuggestions after the refile gate. */
+  cashEvents?: { account_id: string; kind: string; amount: number; occurred_at: string }[]
+  /** Enabled contribution schedules — an account that already has one
+      never gets a nudge to start one. */
+  recurring?: { account_id: string }[]
   /** Outcome history the learning rules read — see loadOutcomes. */
   outcomes: OutcomeHistory
   /** Internal-staff tier: order-proposal artifacts only file here. */
@@ -103,6 +109,8 @@ export interface SuggestionCandidate {
     | 'thesis'
     | 'goal'
     | 'profile'
+    | 'stress_scenario'
+    | 'recurring'
   dedupeKey: string
   /** English title — the row's `title` column (schema default). */
   title_en: string
@@ -141,6 +149,13 @@ const TRIM_PCT = 35 /* advice tier: the level a trim proposal is suggested */
 const BIG_GAIN_PCT = 40
 const CASH_DRAG_PCT = 15
 const MOVER_PCT = 4
+/** The proposed stress shock — a quarter off the heaviest holding. */
+const STRESS_PCT = -25
+/** Recurring-pattern detection — deposits inside this window that repeat
+    at a steady cadence earn a schedule suggestion. */
+const RECURRING_LOOKBACK_MS = 150 * 86_400_000
+const RECURRING_MIN_HITS = 3
+const RECURRING_AMOUNT_TOL = 0.15
 
 /* ── Pure planner ─────────────────────────────────────────────────────────── */
 
@@ -272,6 +287,28 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
   const bookEmpty = ctx.positions.length === 0 && ctx.cashTotal <= 0
   const out: SuggestionCandidate[] = []
 
+  /* Learned suppression + ranking — every exit funnels through here so a
+     dismissed shape stays dismissed however the pass returns (the empty-
+     book and no-strategy returns used to skip it, which let a dismissed
+     recurring/stress row refile every sweep on those books). */
+  const finish = (list: SuggestionCandidate[]): SuggestionCandidate[] => {
+    const cooled = list.filter((c) => {
+      const dismissedAt = ctx.outcomes.dismissedKeys.get(c.dedupeKey)
+      if (dismissedAt !== undefined && now - dismissedAt < DISMISS_COOLDOWN_MS) return false
+      const ks = ctx.outcomes.kindStats.get(c.kind)
+      if (
+        ks &&
+        ks.accepted + ks.dismissed >= KIND_DISMISS_MIN &&
+        ks.dismissed / (ks.accepted + ks.dismissed) >= KIND_DISMISS_RATE &&
+        now - ks.lastResolved < DISMISS_COOLDOWN_MS
+      ) {
+        return false
+      }
+      return true
+    })
+    return cooled.sort((a, b) => b.score - a.score).slice(0, MAX_FILINGS)
+  }
+
   /* ── profile — the "get to know you" nudges ─────────────────────────────
      The book tells Tally what the holder holds; these tell her who they
      are. There is nothing to apply — the accept is a link to the profile
@@ -345,11 +382,103 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
     })
   }
 
-  if (bookEmpty) return out
+  if (bookEmpty) return finish(out)
 
   const enabled = ctx.strategies.filter((s) => s.enabled)
   const stats = positionStats(ctx)
   const heldSymbols = [...new Set(ctx.positions.map((p) => p.symbol.toUpperCase()))]
+
+  /* ── recurring — deposits that already follow a schedule ───────────────
+     Three or more same-ish deposits at a steady spacing is a contribution
+     plan done by hand — the schedule card can book it instead. Accounts
+     with an enabled schedule never get asked. Strategy-independent (sits
+     above the no-strategy early return): the accept writes a schedule row,
+     not a rule, so even an unwatched cash-only book can earn the nudge. */
+  const scheduledAccounts = new Set((ctx.recurring ?? []).map((r) => r.account_id))
+  const depositsByAccount = new Map<string, { amount: number; at: number }[]>()
+  for (const e of ctx.cashEvents ?? []) {
+    if (e.kind !== 'deposit' || scheduledAccounts.has(e.account_id)) continue
+    const at = Date.parse(`${e.occurred_at.slice(0, 10)}T12:00:00`)
+    if (!Number.isFinite(at) || now - at > RECURRING_LOOKBACK_MS || at > now) continue
+    const list = depositsByAccount.get(e.account_id) ?? []
+    list.push({ amount: Number(e.amount), at })
+    depositsByAccount.set(e.account_id, list)
+  }
+  for (const [accountId, events] of depositsByAccount) {
+    if (events.length < RECURRING_MIN_HITS) continue
+    events.sort((a, b) => a.at - b.at)
+    const amounts = events.map((e) => e.amount).sort((a, b) => a - b)
+    const median = amounts[Math.floor(amounts.length / 2)]!
+    if (median <= 0) continue
+    if (events.some((e) => Math.abs(e.amount - median) / median > RECURRING_AMOUNT_TOL)) continue
+    const gaps = events.slice(1).map((e, i) => (e.at - events[i]!.at) / 86_400_000)
+    const cadence =
+      gaps.every((g) => g >= 5 && g <= 10)
+        ? 'weekly'
+        : gaps.every((g) => g >= 20 && g <= 40)
+          ? 'monthly'
+          : null
+    if (!cadence) continue
+    const amount = Math.round(median * 100) / 100
+    const every = cadence === 'weekly' ? { en: 'week', fr: 'semaine' } : { en: 'month', fr: 'mois' }
+    const detailEn = `You've deposited about ${amount} every ${every.en} for the last ${events.length} — the schedule card can book the next ones itself.`
+    const detailFr = `Vous avez déposé environ ${amount} par ${every.fr} lors des ${events.length} dernières fois — la carte de calendrier peut comptabiliser les prochains.`
+    out.push({
+      kind: 'recurring',
+      dedupeKey: `recurring:${accountId}:${cadence}:${amount}`,
+      title_en: `Your deposits already follow a ${cadence} rhythm`,
+      title_fr: `Vos dépôts suivent déjà un rythme ${cadence === 'weekly' ? 'hebdomadaire' : 'mensuel'}`,
+      detail_en: detailEn,
+      detail_fr: detailFr,
+      payload: {
+        title_fr: `Vos dépôts suivent déjà un rythme ${cadence === 'weekly' ? 'hebdomadaire' : 'mensuel'}`,
+        detail_en: detailEn,
+        detail_fr: detailFr,
+        account_id: accountId,
+        amount,
+        cadence,
+      },
+      score: 30,
+    })
+    break /* one schedule nudge per pass — the account list is small */
+  }
+
+  /* ── stress_scenario — the shock this book is actually exposed to ───────
+     The Stress panel replays whatever the person names; the scenario worth
+     naming is a quarter off the holding that dominates the book. A one-
+     position book qualifies most of all — it IS the exposure. Accept
+     writes a saved-scenario row — the panel picks it up from the list, so
+     nothing replays until the person chooses it. Sits above the no-
+     strategy gate too: the scenario lands on Analysis, not on a strategy. */
+  const valued = ctx.positions
+    .map((p) => ({ p, w: stats.get(`${p.asset_class}:${p.symbol}`)?.weightPct ?? 0 }))
+    .filter((x) => x.w > 0)
+    .sort((a, b) => b.w - a.w)
+  const dominant = valued[0]
+  if (dominant && dominant.w >= CONCENTRATION_PCT) {
+    const sym = dominant.p.symbol.toUpperCase()
+    const w = dominant.w.toFixed(0)
+    const name = `${sym} ${STRESS_PCT}%`
+    const pct = Math.abs(STRESS_PCT)
+    const detailEn = `Saves "${name}" to your scenario list — ${pct}% off your biggest position (${w}% of book), ready to run on Analysis.`
+    const detailFr = `Enregistre « ${name} » dans vos scénarios — une baisse de ${pct} % sur votre plus grande position (${w} % du carnet), prêt à exécuter dans Analyse.`
+    out.push({
+      kind: 'stress_scenario',
+      dedupeKey: `stress:${sym}:${STRESS_PCT}`,
+      title_en: `Stress-test what matters — ${sym} is ${w}% of your book`,
+      title_fr: `Simuler ce qui compte — ${sym} représente ${w} % du carnet`,
+      detail_en: detailEn,
+      detail_fr: detailFr,
+      payload: {
+        title_fr: `Simuler ce qui compte — ${sym} représente ${w} % du carnet`,
+        detail_en: detailEn,
+        detail_fr: detailFr,
+        name,
+        shocks: [{ match: sym, pct: STRESS_PCT }],
+      },
+      score: 35,
+    })
+  }
 
   /* ── strategy — a book with nothing watching it ─────────────────────────
      The seeded draft is deliberately boring: one watcher and one drift
@@ -411,8 +540,9 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
       score: 90,
     })
     /* No enabled strategy means rule_add/scope_add have nowhere to land —
-       the draft above is the whole answer. */
-    return out
+       the draft above is the whole answer for the strategy surface; the
+       portfolio kinds filed above still stand. */
+    return finish(out)
   }
 
   /* ── rule_add — coverage gaps on the live book ────────────────────────── */
@@ -861,22 +991,7 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
     }
   }
 
-  /* ── Learned suppression + ranking ────────────────────────────────────── */
-  const cooled = out.filter((c) => {
-    const dismissedAt = ctx.outcomes.dismissedKeys.get(c.dedupeKey)
-    if (dismissedAt !== undefined && now - dismissedAt < DISMISS_COOLDOWN_MS) return false
-    const ks = ctx.outcomes.kindStats.get(c.kind)
-    if (
-      ks &&
-      ks.accepted + ks.dismissed >= KIND_DISMISS_MIN &&
-      ks.dismissed / (ks.accepted + ks.dismissed) >= KIND_DISMISS_RATE &&
-      now - ks.lastResolved < DISMISS_COOLDOWN_MS
-    ) {
-      return false
-    }
-    return true
-  })
-  return cooled.sort((a, b) => b.score - a.score).slice(0, MAX_FILINGS)
+  return finish(out)
 }
 
 /** Positions' marks in book currency — the cash-share denominator. */
@@ -1038,7 +1153,7 @@ export async function fileBookSuggestions(
      here (after the refile gate) for the same reason outcomes are: a
      skipped pass pays nothing. Callers that already hold them pass them
      in — undefined means load, null/0 means genuinely unset. */
-  const [profile, memoryCount, chatTurns] = await Promise.all([
+  const [profile, memoryCount, chatTurns, cashEvents, recurring] = await Promise.all([
     ctx.profile === undefined
       ? adminClient
           .from('invest_user_profile')
@@ -1071,6 +1186,38 @@ export async function fileBookSuggestions(
           .eq('role', 'user')
           .then(({ count }) => count ?? 0)
       : Promise.resolve(ctx.chatTurns),
+    /* The recurring detector's inputs — an older schema missing either
+       table quietly degrades to "no pattern found", never a failed pass. */
+    ctx.cashEvents === undefined
+      ? adminClient
+          .from('invest_cash_events')
+          .select('account_id, kind, amount, occurred_at')
+          .eq('user_id', userId)
+          .gte(
+            'occurred_at',
+            new Date(now - RECURRING_LOOKBACK_MS).toISOString().slice(0, 10),
+          )
+          .then(({ data, error }) =>
+            error
+              ? []
+              : ((data ?? []) as {
+                  account_id: string
+                  kind: string
+                  amount: number
+                  occurred_at: string
+                }[]),
+          )
+      : Promise.resolve(ctx.cashEvents),
+    ctx.recurring === undefined
+      ? adminClient
+          .from('invest_recurring_contributions')
+          .select('account_id')
+          .eq('user_id', userId)
+          .eq('enabled', true)
+          .then(({ data, error }) =>
+            error ? [] : ((data ?? []) as { account_id: string }[]),
+          )
+      : Promise.resolve(ctx.recurring),
   ])
 
   const candidates = planSuggestions({
@@ -1080,6 +1227,8 @@ export async function fileBookSuggestions(
     profile,
     memoryCount,
     chatTurns,
+    cashEvents,
+    recurring,
   })
   let filed = 0
   for (const c of candidates) {

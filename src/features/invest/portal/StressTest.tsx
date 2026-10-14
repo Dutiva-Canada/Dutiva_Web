@@ -6,6 +6,8 @@ import { convertFx, loadFxRates, type FxTable } from '../data/fx'
 import { runStress, type Shock, type StressResult } from '../data/stressTest'
 import { fmtPct } from './strategyUi'
 import { deleteStressScenario, saveStressScenario } from '../data/api'
+import { sendInvestReaction } from '../data/chatApi'
+import { TallyNote } from './TallyNote'
 import type {
   InvestAccount,
   InvestGoal,
@@ -57,6 +59,8 @@ export function StressTest(props: {
   const [saveName, setSaveName] = useState('')
   const [saveBusy, setSaveBusy] = useState(false)
   const [selSaved, setSelSaved] = useState('')
+  /* Tally's line after a run — what the shock did to the standing claims. */
+  const [tallyLine, setTallyLine] = useState<string | null>(null)
 
   useEffect(() => {
     let live = true
@@ -152,22 +156,34 @@ export function StressTest(props: {
     }
   }
 
-  const run = (shocks: Shock[]) => {
+  const run = (shocks: Shock[], name?: string) => {
     setLastShocks(shocks)
-    setResult(
-      runStress({
-        snapshots,
-        positions,
-        strategies,
-        theses,
-        goals,
-        watchSymbols,
-        cashTotal,
-        bookCcy,
-        fx,
-        shocks,
-      }),
-    )
+    const res = runStress({
+      snapshots,
+      positions,
+      strategies,
+      theses,
+      goals,
+      watchSymbols,
+      cashTotal,
+      bookCcy,
+      fx,
+      shocks,
+    })
+    setResult(res)
+    /* Tally notices what the person just ran — best-effort, throttled
+       like every other reaction. */
+    if (name) {
+      void sendInvestReaction(
+        { type: 'scenario_run', name, deltaPct: res.bookDeltaPct ?? undefined },
+        lang,
+        setTallyLine,
+      )
+        .then((r) => {
+          if (r.reply) setTallyLine(r.reply)
+        })
+        .catch(() => {})
+    }
   }
 
   const pickPreset = (id: PresetId) => {
@@ -177,13 +193,16 @@ export function StressTest(props: {
     setSelSaved('')
     if (id === 'custom') return /* waits for the explicit run */
     const shocks = presetShocks(id)
-    if (shocks) run(shocks)
+    if (shocks) {
+      const key = PRESETS.find((p) => p.id === id)?.key
+      run(shocks, key ? x(IM[key]) : undefined)
+    }
   }
 
   const runCustom = () => {
     const pct = Number(customPct)
     if (!customSymbol || !Number.isFinite(pct) || pct === 0) return
-    run([{ match: customSymbol, pct }])
+    run([{ match: customSymbol, pct }], `${customSymbol.toUpperCase()} ${pct}%`)
   }
 
   /* The custom picker offers every symbol we can shock — snapshot symbols
@@ -225,6 +244,7 @@ export function StressTest(props: {
         <Activity size={14} aria-hidden /> {x(IM.invest_stress_title)}
       </h2>
       <p className="dim">{x(IM.invest_stress_sub)}</p>
+      {tallyLine && <TallyNote line={tallyLine} />}
 
       <div className="sb-seg sb-stress-scenarios" role="group" aria-label={x(IM.invest_stress_title)}>
         {PRESETS.map((p) => (
@@ -252,7 +272,7 @@ export function StressTest(props: {
               setPreset('custom')
               /* Saved rows persist plain shock objects — the evaluator
                  reads the same fields either way. */
-              run(s.shocks as Shock[])
+              run(s.shocks as Shock[], s.name)
             }}
           >
             <option value="" disabled>
