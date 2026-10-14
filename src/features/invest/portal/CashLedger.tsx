@@ -5,7 +5,7 @@
  * figure so money moved doesn't read as performance.
  */
 import { useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowDownToLine, ArrowUpFromLine, Coins, Loader2, Plus, Trash2 } from 'lucide-react'
+import { ArrowDownToLine, ArrowUpFromLine, Coins, Loader2, Plus, Trash2, Wallet } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { deleteCashEvent, recordCashEvent } from '../data/api'
@@ -96,7 +96,9 @@ export function CashLedger({
 
   return (
     <section className="sb-card sb-card-pad">
-      <h2 style={{ margin: 0 }}>{x(IM.invest_ledger_title)}</h2>
+      <h2 className="sb-h2" style={{ margin: 0 }}>
+        <Wallet size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_ledger_title)}
+      </h2>
       <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_ledger_note)}</p>
 
       {accounts.length > 0 && (
