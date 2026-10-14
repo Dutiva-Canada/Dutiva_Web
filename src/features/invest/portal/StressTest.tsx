@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, loadFxRates, type FxTable } from '../data/fx'
 import { runStress, type Shock, type StressResult } from '../data/stressTest'
+import { fmtPct } from './strategyUi'
 import { deleteStressScenario, saveStressScenario } from '../data/api'
 import type {
   InvestAccount,
@@ -92,10 +93,12 @@ export function StressTest(props: {
       }),
     [lang, bookCcy],
   )
-  const pctFmt = (n: number) =>
-    `${n > 0 ? '+' : ''}${n.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      maximumFractionDigits: 1,
-    })}%`
+  /* Round to display precision before signing — a −0.04% move must read
+     "0%" in neutral, not "-0%" behind a red pill. */
+  const pctFmt = (n: number) => {
+    const r = Math.round(n * 10) / 10
+    return `${r > 0 ? '+' : ''}${fmtPct(lang, r, { max: 1 })}`
+  }
   /* Metric-aware value format — counts aren't percents. */
   const metricFmt = (metric: string, n: number) =>
     metric === 'book_value'
@@ -169,6 +172,9 @@ export function StressTest(props: {
 
   const pickPreset = (id: PresetId) => {
     setPreset(id)
+    /* Clear the saved-scenario pick — otherwise re-selecting the same row
+       after a preset wouldn't fire the select's onChange. */
+    setSelSaved('')
     if (id === 'custom') return /* waits for the explicit run */
     const shocks = presetShocks(id)
     if (shocks) run(shocks)
@@ -208,7 +214,7 @@ export function StressTest(props: {
         <h2 className="sb-flabel">
           <Activity size={14} aria-hidden /> {x(IM.invest_stress_title)}
         </h2>
-        <p className="sb-muted">{x(IM.invest_stress_empty)}</p>
+        <p className="dim">{x(IM.invest_stress_empty)}</p>
       </section>
     )
   }
@@ -218,14 +224,13 @@ export function StressTest(props: {
       <h2 className="sb-flabel">
         <Activity size={14} aria-hidden /> {x(IM.invest_stress_title)}
       </h2>
-      <p className="sb-muted">{x(IM.invest_stress_sub)}</p>
+      <p className="dim">{x(IM.invest_stress_sub)}</p>
 
       <div className="sb-seg sb-stress-scenarios" role="group" aria-label={x(IM.invest_stress_title)}>
         {PRESETS.map((p) => (
           <button
             key={p.id}
             type="button"
-            className="sb-seg-btn"
             aria-pressed={preset === p.id}
             onClick={() => pickPreset(p.id)}
           >
@@ -286,6 +291,7 @@ export function StressTest(props: {
           <input
             className="sb-input"
             value={saveName}
+            maxLength={60}
             onChange={(e) => setSaveName(e.target.value)}
             placeholder={x(IM.invest_stress_save_name)}
             aria-label={x(IM.invest_stress_save_name)}
@@ -351,13 +357,17 @@ export function StressTest(props: {
       {result && (
         <div className="sb-stress-results">
           <div className="sb-stress-book">
-            <span className="sb-muted">{x(IM.invest_stress_book)}</span>
+            <span className="dim">{x(IM.invest_stress_book)}</span>
             <strong>
               {result.bookValue !== null ? money.format(result.bookValue) : '—'}
             </strong>
             {result.bookDeltaPct !== null && (
               <span
-                className={`sb-pill ${result.bookDeltaPct >= 0 ? 'sb-pill-ok' : 'sb-pill-danger'}`}
+                className={`sb-pill ${
+                  Math.round(result.bookDeltaPct * 10) / 10 >= 0
+                    ? 'sb-pill-ok'
+                    : 'sb-pill-fail'
+                }`}
               >
                 {pctFmt(result.bookDeltaPct)}
               </span>
@@ -371,7 +381,7 @@ export function StressTest(props: {
             </p>
           )}
 
-          {quiet && <p className="sb-muted">{x(IM.invest_stress_none)}</p>}
+          {quiet && <p className="dim">{x(IM.invest_stress_none)}</p>}
 
           {result.strategies.length > 0 && (
             <div className="sb-stress-group">
@@ -405,7 +415,7 @@ export function StressTest(props: {
                       {x(IM[STATUS_KEY[t.stressed]])}
                     </span>
                     {t.firedTitles.length > 0 && (
-                      <span className="sb-muted"> · {t.firedTitles.join(', ')}</span>
+                      <span className="dim"> · {t.firedTitles.join(', ')}</span>
                     )}
                   </li>
                 ))}
@@ -421,18 +431,18 @@ export function StressTest(props: {
                   <li key={i}>
                     {g.title}
                     {' · '}
-                    <span className="sb-muted">
+                    <span className="dim">
                       {g.current === null ? '—' : metricFmt(g.metric, g.current)}
                       {' '}
                       {g.op === 'gte' ? '≥' : '≤'} {metricFmt(g.metric, g.target)}
                     </span>
                     {' · '}
                     {g.met === null ? (
-                      <span className="sb-muted">{x(IM.invest_stress_goal_unknown)}</span>
+                      <span className="dim">{x(IM.invest_stress_goal_unknown)}</span>
                     ) : g.met ? (
                       <span className="sb-pill sb-pill-ok">{x(IM.invest_stress_goal_holds)}</span>
                     ) : (
-                      <span className="sb-pill sb-pill-danger">
+                      <span className="sb-pill sb-pill-fail">
                         {x(IM.invest_stress_goal_slips)}
                       </span>
                     )}

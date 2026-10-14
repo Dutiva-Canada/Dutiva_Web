@@ -143,6 +143,9 @@ export function InvestChatPage() {
   const [searching, setSearching] = useState(false)
   const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
+  /* Clear wipes the thread — two-tap like every other destructive control
+     in the portal; auto-disarms so an armed button never lingers. */
+  const [clearArmed, setClearArmed] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   /* Follow-up chips from the latest reply — ephemeral, cleared on send. */
@@ -451,8 +454,19 @@ export function InvestChatPage() {
     }
   }
 
+  useEffect(() => {
+    if (!clearArmed) return
+    const t = window.setTimeout(() => setClearArmed(false), 3000)
+    return () => window.clearTimeout(t)
+  }, [clearArmed])
+
   const clear = async () => {
     if (clearing) return
+    if (!clearArmed) {
+      setClearArmed(true)
+      return
+    }
+    setClearArmed(false)
     setClearing(true)
     try {
       await clearInvestChat(threadId)
@@ -569,7 +583,7 @@ export function InvestChatPage() {
               disabled={clearing}
             >
               <Trash2 size={13} aria-hidden="true" />
-              {x(IM.invest_chat_clear)}
+              {x(clearArmed ? IM.invest_sb_tap_confirm : IM.invest_chat_clear)}
             </button>
           )}
         </div>

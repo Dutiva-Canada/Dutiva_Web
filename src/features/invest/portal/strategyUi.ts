@@ -28,9 +28,24 @@ import type {
 
 const localeOf = (lang: Lang): string => (lang === 'fr' ? 'fr-CA' : 'en-CA')
 
-/** Locale-aware number — 1000 → "1,000" / "1 000". */
-export function fmtNum(lang: Lang, n: number): string {
-  return Number(n).toLocaleString(localeOf(lang))
+/** Locale-aware number — 1000 → "1,000" / "1 000". `digits` pins the
+    fraction width (20.66 → "20.7" / "20,7"); a {min,max} object allows
+    trailing-zero trim ("20%" but "20.7%"). */
+export function fmtNum(
+  lang: Lang,
+  n: number,
+  digits?: number | { min?: number; max?: number },
+): string {
+  const opts =
+    digits === undefined
+      ? undefined
+      : typeof digits === 'number'
+        ? { minimumFractionDigits: digits, maximumFractionDigits: digits }
+        : {
+            minimumFractionDigits: digits.min ?? 0,
+            maximumFractionDigits: digits.max ?? 3,
+          }
+  return Number(n).toLocaleString(localeOf(lang), opts)
 }
 
 /** Pluralized count — "1 rule" / "3 rules" / "1 règle" / "0 signal". */
@@ -60,8 +75,12 @@ export function isCurrencyMetric(metric: RuleMetric): boolean {
 
 /** Percent threshold with its unit on the value — "−8%" / "−8 %"
     (typographic minus; FR keeps the thin space before %). */
-export function fmtPct(lang: Lang, n: number): string {
-  const s = fmtNum(lang, n).replace('-', '−')
+export function fmtPct(
+  lang: Lang,
+  n: number,
+  digits?: number | { min?: number; max?: number },
+): string {
+  const s = fmtNum(lang, n, digits).replace('-', '−')
   return lang === 'fr' ? `${s} %` : `${s}%`
 }
 

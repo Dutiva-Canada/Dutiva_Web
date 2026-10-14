@@ -139,6 +139,12 @@ const investCoreMessages = defineMessages({
     fr: '{n} ébauche(s) d’ordre en attente dans Ordres',
   },
   invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
+  /* [FR self-authored] Bell-icon a11y suffix — "{n} pending" announces the
+     badge count the sr-hidden dot can't. Matches invest_notif_attention. */
+  invest_notif_badge: {
+    en: '{n} pending',
+    fr: '{n} à traiter',
+  },
   invest_delivery_title: { en: 'Delivery per strategy', fr: 'Envoi par stratégie' },
   invest_delivery_note: {
     en: 'Where each strategy sends what it finds. Change destinations on the Agent tab.',
@@ -319,6 +325,8 @@ const investCoreMessages = defineMessages({
   invest_add_account: { en: 'Add account', fr: 'Ajouter un compte' },
   invest_add_position: { en: 'Add position', fr: 'Ajouter une position' },
   invest_account_name: { en: 'Account name', fr: 'Nom du compte' },
+  /* [FR self-authored] */
+  invest_account_name_ph: { en: 'Paper book', fr: 'Livre simulé' },
   invest_account_kind: { en: 'Account type', fr: 'Type de compte' },
   invest_kind_paper: { en: 'Paper', fr: 'Simulé' },
   invest_kind_live: { en: 'Live', fr: 'Réel' },
@@ -679,6 +687,11 @@ const investCoreMessages = defineMessages({
   invest_curve_invested: { en: 'Invested', fr: 'Investi' },
   /* [FR self-authored] */
   invest_curve_cash: { en: 'Cash', fr: 'Liquidités' },
+  /* [FR self-authored] */
+  invest_curve_alt: {
+    en: 'Book value marks: {vfrom} on {from}, {vto} on {to}.',
+    fr: 'Valeur du portefeuille : {vfrom} le {from}, {vto} le {to}.',
+  },
   /* [FR self-authored] */
   invest_rule_metric_price: { en: 'Price', fr: 'Cours' },
 
@@ -1065,6 +1078,8 @@ const investCoreMessages = defineMessages({
      [FR self-authored] */
   invest_dividend_record: { en: 'Record dividend', fr: 'Enregistrer un dividende' },
   invest_dividend_per_share: { en: 'Per share', fr: 'Par action' },
+  /* [FR self-authored] */
+  invest_dividend_note: { en: 'Dividend — {sym} {ps} × {qty}', fr: 'Dividende — {sym} {ps} × {qty}' },
   invest_split_record: { en: 'Record split', fr: 'Enregistrer une division' },
   invest_split_ratio: { en: 'Split ratio', fr: 'Ratio de division' },
   invest_split_ratio_hint: { en: '2 = two-for-one', fr: '2 = deux pour une' },

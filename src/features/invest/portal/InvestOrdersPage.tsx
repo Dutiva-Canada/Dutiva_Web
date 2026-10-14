@@ -28,6 +28,7 @@ import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
+import { fmtNum } from './strategyUi'
 import { fill as fillSlots } from '@/lib/format'
 import {
   loadPendingSuggestions,
@@ -385,7 +386,7 @@ export function InvestOrdersPage() {
                 {closedTrades.map((t) => (
                   <tr key={t.id}>
                     <td><span className="strong">{t.symbol}</span></td>
-                    <td className="num">{t.quantity}</td>
+                    <td className="num">{fmtNum(lang, t.quantity, { max: 4 })}</td>
                     <td className="num">{t.fmt.format(t.avgCost)}</td>
                     <td className="num">{t.fmt.format(t.price)}</td>
                     <td
@@ -394,7 +395,12 @@ export function InvestOrdersPage() {
                     >
                       {t.realized >= 0 ? '+' : '−'}{t.fmt.format(Math.abs(t.realized))}
                     </td>
-                    <td className="dim">{t.date}</td>
+                    <td className="dim">
+                      {new Date(`${t.date}T12:00:00`).toLocaleDateString(
+                        lang === 'fr' ? 'fr-CA' : 'en-CA',
+                        { dateStyle: 'medium' },
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -455,7 +461,7 @@ function OrderRow({
   onEdit: (input: { quantity: number; limitPrice: number | null; note?: string }) => Promise<unknown>
   onCancel: () => Promise<unknown>
 }) {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const [open, setOpen] = useState<'fill' | 'edit' | 'fills' | null>(null)
   const [fillQty, setFillQty] = useState('')
   const [fillPrice, setFillPrice] = useState('')
@@ -514,10 +520,13 @@ function OrderRow({
         </td>
         <td>{x(o.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)}</td>
         <td className="num">
-          {o.quantity}
+          {fmtNum(lang, o.quantity, { max: 4 })}
           {filledQty > 0 && remaining > 0 && (
             <p className="dim" style={{ margin: '2px 0 0' }}>
-              {fillSlots(x(IM.invest_fills_progress), { filled: filledQty, total: o.quantity })}
+              {fillSlots(x(IM.invest_fills_progress), {
+                filled: fmtNum(lang, filledQty, { max: 4 }),
+                total: fmtNum(lang, o.quantity, { max: 4 }),
+              })}
             </p>
           )}
         </td>
@@ -595,10 +604,17 @@ function OrderRow({
             <ul className="sb-fill-list">
               {fills.map((f) => (
                 <li key={f.id}>
-                  <span className="strong">{f.quantity}</span>
+                  <span className="strong">{fmtNum(lang, f.quantity, { max: 4 })}</span>
                   {' @ '}
                   {fmt.format(f.price)}
-                  <span className="dim"> · {f.filledAt.slice(0, 10)}</span>
+                  <span className="dim">
+                    {' '}
+                    ·{' '}
+                    {new Date(`${f.filledAt.slice(0, 10)}T12:00:00`).toLocaleDateString(
+                      lang === 'fr' ? 'fr-CA' : 'en-CA',
+                      { dateStyle: 'medium' },
+                    )}
+                  </span>
                   {f.note && <span className="dim"> · {f.note}</span>}
                 </li>
               ))}
@@ -612,8 +628,9 @@ function OrderRow({
           <td colSpan={cols}>
             <div className="sb-ord-fill">
               <div className="sb-field">
-                <label className={labelClass}>{x(IM.invest_field_quantity)}</label>
+                <label className={labelClass} htmlFor={`fill-qty-${o.id}`}>{x(IM.invest_field_quantity)}</label>
                 <input
+                  id={`fill-qty-${o.id}`}
                   type="number"
                   min="0"
                   max={remaining}
@@ -625,8 +642,9 @@ function OrderRow({
                 />
               </div>
               <div className="sb-field">
-                <label className={labelClass}>{x(IM.invest_order_fill_price)}</label>
+                <label className={labelClass} htmlFor={`fill-price-${o.id}`}>{x(IM.invest_order_fill_price)}</label>
                 <input
+                  id={`fill-price-${o.id}`}
                   type="number"
                   min="0"
                   step="any"
@@ -639,8 +657,9 @@ function OrderRow({
                 />
               </div>
               <div className="sb-field">
-                <label className={labelClass}>{x(IM.invest_fill_date)}</label>
+                <label className={labelClass} htmlFor={`fill-date-${o.id}`}>{x(IM.invest_fill_date)}</label>
                 <input
+                  id={`fill-date-${o.id}`}
                   type="date"
                   value={fillAt}
                   onChange={(e) => setFillAt(e.target.value)}
@@ -667,8 +686,9 @@ function OrderRow({
           <td colSpan={cols}>
             <div className="sb-ord-fill">
               <div className="sb-field">
-                <label className={labelClass}>{x(IM.invest_field_quantity)}</label>
+                <label className={labelClass} htmlFor={`edit-qty-${o.id}`}>{x(IM.invest_field_quantity)}</label>
                 <input
+                  id={`edit-qty-${o.id}`}
                   type="number"
                   min="0"
                   step="any"
@@ -678,8 +698,9 @@ function OrderRow({
                 />
               </div>
               <div className="sb-field">
-                <label className={labelClass}>{x(IM.invest_order_limit_price)}</label>
+                <label className={labelClass} htmlFor={`edit-limit-${o.id}`}>{x(IM.invest_order_limit_price)}</label>
                 <input
+                  id={`edit-limit-${o.id}`}
                   type="number"
                   min="0"
                   step="any"
@@ -689,8 +710,9 @@ function OrderRow({
                 />
               </div>
               <div className="sb-field" style={{ flex: 1, minWidth: 160 }}>
-                <label className={labelClass}>{x(IM.invest_fill_note)}</label>
+                <label className={labelClass} htmlFor={`edit-note-${o.id}`}>{x(IM.invest_fill_note)}</label>
                 <input
+                  id={`edit-note-${o.id}`}
                   value={editNote}
                   onChange={(e) => setEditNote(e.target.value)}
                   className="sb-input sb-input-sm"
@@ -813,8 +835,9 @@ function ImportFills({
       <p className="sb-helper">{x(IM.invest_import_help)}</p>
       <div className="sb-form-grid">
         <div className="sb-field">
-          <label className={labelClass}>{x(IM.invest_accounts_title)}</label>
+          <label className={labelClass} htmlFor="inv-import-acct">{x(IM.invest_accounts_title)}</label>
           <select
+            id="inv-import-acct"
             value={effectiveAccountId}
             onChange={(e) => setAccountId(e.target.value)}
             className={fieldClass}
@@ -825,8 +848,9 @@ function ImportFills({
           </select>
         </div>
         <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
-          <label className={labelClass}>{x(IM.invest_import_rows)}</label>
+          <label className={labelClass} htmlFor="inv-import-rows">{x(IM.invest_import_rows)}</label>
           <textarea
+            id="inv-import-rows"
             value={text}
             onChange={(e) => setText(e.target.value)}
             className={fieldClass}

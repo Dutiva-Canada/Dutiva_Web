@@ -694,11 +694,13 @@ export async function recordSplit(
 }
 
 /** Record a dividend paid on a position — lands in the cash ledger and
-    moves the account balance via recordCashEvent's compensating pair. */
+    moves the account balance via recordCashEvent's compensating pair.
+    The caller owns the note's language — this layer has no i18n. */
 export async function recordDividend(
   position: InvestPosition,
   perShare: number,
   occurredAt?: string,
+  note?: string,
 ): Promise<void> {
   if (!Number.isFinite(perShare) || perShare <= 0) {
     throw new Error('Dividend per share must be greater than zero')
@@ -709,7 +711,7 @@ export async function recordDividend(
     amount: perShare * position.quantity,
     currency: position.currency,
     occurredAt,
-    note: `${position.symbol} dividend — ${perShare} × ${position.quantity}`,
+    note: note ?? `${position.symbol} — ${perShare} × ${position.quantity}`,
   })
 }
 

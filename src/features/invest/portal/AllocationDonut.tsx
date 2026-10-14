@@ -11,6 +11,7 @@ import { PieChart as PieIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
+import { fmtNum, fmtPct } from './strategyUi'
 import type { InvestPosition, MarketSnapshot } from '../data/types'
 
 interface Slice {
@@ -27,6 +28,13 @@ const MAX_SLICES = 6
     themes, unlike a fixed hue ramp. */
 const FILL = (i: number) =>
   `color-mix(in srgb, var(--sb-accent) ${92 - i * 11}%, var(--sb-card))`
+/* Aggregate slices need tones distinct from each other — --sb-line and
+   --sb-card-deep are near-identical creams (and near-identical navies in
+   dark), so cash gets a muted mix instead. */
+const OTHER_FILL = 'var(--sb-line)'
+const CASH_FILL = 'color-mix(in srgb, var(--sb-muted) 45%, var(--sb-card))'
+const fillFor = (s: Slice, i: number) =>
+  s.tone === 'cash' ? CASH_FILL : s.tone === 'other' ? OTHER_FILL : FILL(i)
 
 export function AllocationDonut({
   positions,
@@ -51,6 +59,9 @@ export function AllocationDonut({
       }),
     [lang, bookCcy],
   )
+  /* Shares are locale-formatted (20,7 % in FR — thin space included) —
+     the same fmtPct the rebalance/goal cells use. */
+  const pct = (n: number) => fmtPct(lang, n, 1)
 
   const { slices, total, skipped } = useMemo(() => {
     const raw: Slice[] = []
@@ -75,20 +86,23 @@ export function AllocationDonut({
     const top = raw.slice(0, MAX_SLICES)
     const rest = raw.slice(MAX_SLICES)
     const restSum = rest.reduce((s, r) => s + r.value, 0)
+    const total = invested + (cashTotal > 0 ? cashTotal : 0)
     const slices = [...top]
-    if (restSum > 0) {
+    /* Aggregate rows below ~0.05% render as "0.0%" legend noise with an
+       invisible wedge — only draw them when the share is meaningful. */
+    if (restSum / total >= 0.0005) {
       slices.push({ key: '__other', label: x(IM.invest_alloc_other), value: restSum, tone: 'other' })
     }
-    if (cashTotal > 0) {
+    if (cashTotal / total >= 0.0005) {
       slices.push({ key: '__cash', label: x(IM.invest_ov_cash), value: cashTotal, tone: 'cash' })
     }
-    return { slices, total: invested + (cashTotal > 0 ? cashTotal : 0), skipped }
+    return { slices, total, skipped }
   }, [positions, snapshots, cashTotal, bookCcy, fx, x])
 
   if (slices.length === 0 || total <= 0) {
     return (
       <section className="sb-card sb-card-pad">
-        <h2 style={{ margin: 0 }}>
+        <h2 className="sb-h2" style={{ margin: 0 }}>
           <PieIcon size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_alloc_title)}
         </h2>
         <p className="sb-empty" style={{ marginBottom: 0 }}>
@@ -103,13 +117,15 @@ export function AllocationDonut({
 
   return (
     <section className="sb-card sb-card-pad">
-      <h2 style={{ margin: 0 }}>
+      <h2 className="sb-h2" style={{ margin: 0 }}>
         <PieIcon size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_alloc_title)}
       </h2>
       <p className="sb-helper" style={{ margin: '4px 0 0' }}>
         {x(IM.invest_alloc_top)
           .replace('{symbol}', top.label)
-          .replace('{pct}', String(Math.round(topPct)))}
+          /* The message carries its own % ({pct}% / {pct} %) — fill the
+             slot with the bare one-decimal number. */
+          .replace('{pct}', fmtNum(lang, topPct, 1))}
         {skipped > 0 ? ` ${x(IM.invest_alloc_skipped)}` : ''}
       </p>
       <div className="sb-donut-wrap">
@@ -126,16 +142,7 @@ export function AllocationDonut({
                 strokeWidth={0}
               >
                 {slices.map((s, i) => (
-                  <Cell
-                    key={s.key}
-                    fill={
-                      s.tone === 'cash'
-                        ? 'var(--sb-card-deep)'
-                        : s.tone === 'other'
-                          ? 'var(--sb-line)'
-                          : FILL(i)
-                    }
-                  />
+                  <Cell key={s.key} fill={fillFor(s, i)} />
                 ))}
               </Pie>
               <Tooltip
@@ -146,7 +153,7 @@ export function AllocationDonut({
                     <div className="sb-curve-tip">
                       <strong>{s.label}</strong>
                       <div style={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {fmt.format(s.value)} · {((s.value / total) * 100).toFixed(1)}%
+                        {fmt.format(s.value)} · {pct((s.value / total) * 100)}
                       </div>
                     </div>
                   )
@@ -158,21 +165,9 @@ export function AllocationDonut({
         <ul className="sb-donut-legend">
           {slices.map((s, i) => (
             <li key={s.key}>
-              <span
-                className="sb-donut-dot"
-                style={{
-                  background:
-                    s.tone === 'cash'
-                      ? 'var(--sb-card-deep)'
-                      : s.tone === 'other'
-                        ? 'var(--sb-line)'
-                        : FILL(i),
-                }}
-              />
-              <span className="sb-donut-label">{s.label}</span>
-              <span className="dim" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                {((s.value / total) * 100).toFixed(1)}%
-              </span>
+              <span className="sb-donut-dot" style={{ background: fillFor(s, i) }} />
+              <span className="sb-donut-label" title={s.label}>{s.label}</span>
+              <span className="dim">{pct((s.value / total) * 100)}</span>
             </li>
           ))}
         </ul>

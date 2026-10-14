@@ -12,6 +12,7 @@ import { InvestDataProvider } from '@/features/invest/data/InvestDataProvider'
 import { InvestDataContext } from '@/features/invest/data/InvestDataContext'
 import { hasInvestAccess } from '@/features/invest/data/api'
 import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
+import { fill } from '@/lib/format'
 import { InvestAuthPanel } from './InvestAuthPanel'
 import { InvestFooter } from './InvestFooter'
 import { readBadgeScope, readHomeTab } from './investPrefs'
@@ -118,6 +119,17 @@ export function InvestPortalLayout() {
      a session redirects to the preferred tab — sessionStorage keeps it
      once-per-session so navigating to the Overview deliberately afterwards
      stays put. */
+  /* Escape closes the mobile menu — keyboard users expect the same
+     dismiss as pointer users get from the toggle. */
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [mobileMenuOpen])
+
   useEffect(() => {
     if (access !== 'yes' || location.pathname !== '/invest') return
     try {
@@ -236,6 +248,7 @@ export function InvestPortalLayout() {
               >
                 <Bell size={14} strokeWidth={2} aria-hidden="true" />
                 <PendingBadge />
+                <PendingLabel />
               </NavLink>
               <NavLink
                 to="/invest/settings"
@@ -371,6 +384,21 @@ function PendingBadge() {
       {pending > 99 ? '99+' : pending}
     </span>
   )
+}
+
+/* The dot is aria-hidden — this sr-only twin carries the count to screen
+   readers as part of the bell link's accessible name. */
+function PendingLabel() {
+  const ctx = useContext(InvestDataContext)
+  const { x } = useI18n()
+  const signals = ctx ? ctx.state.signals.filter((s) => s.status === 'new').length : 0
+  const drafts =
+    ctx && readBadgeScope() === 'all'
+      ? ctx.state.orders.filter((o) => o.status === 'draft').length
+      : 0
+  const pending = signals + drafts
+  if (pending === 0) return null
+  return <span className="sr-only"> {fill(x(IM.invest_notif_badge), { n: pending })}</span>
 }
 
 function AccessRequired() {
