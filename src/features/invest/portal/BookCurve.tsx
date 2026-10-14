@@ -22,7 +22,7 @@ import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
-import { fmtPct } from './strategyUi'
+import { fmtDay, fmtPct } from './strategyUi'
 import type { InvestBookSnapshot, InvestCashEvent } from '../data/types'
 
 type Range = '1m' | '3m' | '1y' | 'all'
@@ -162,10 +162,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
             {x(IM.invest_curve_note)}
             {points.length > 0 &&
               ` · ${fill(x(IM.invest_curve_since), {
-                date: new Date(`${points[0]!.asOf}T12:00:00`).toLocaleDateString(
-                  lang === 'fr' ? 'fr-CA' : 'en-CA',
-                  { dateStyle: 'medium' },
-                ),
+                date: fmtDay(lang, points[0]!.asOf),
               })}`}
           </p>
         </div>
@@ -246,15 +243,9 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
           <p className="sr-only">
             {fill(x(IM.invest_curve_alt), {
               vfrom: fmt.format(points[0]!.book),
-              from: new Date(`${points[0]!.asOf}T12:00:00`).toLocaleDateString(
-                lang === 'fr' ? 'fr-CA' : 'en-CA',
-                { dateStyle: 'medium' },
-              ),
+              from: fmtDay(lang, points[0]!.asOf),
               vto: fmt.format(points[points.length - 1]!.book),
-              to: new Date(`${points[points.length - 1]!.asOf}T12:00:00`).toLocaleDateString(
-                lang === 'fr' ? 'fr-CA' : 'en-CA',
-                { dateStyle: 'medium' },
-              ),
+              to: fmtDay(lang, points[points.length - 1]!.asOf),
             })}
           </p>
           <div style={{ height: 220, marginTop: 12 }} aria-hidden="true">

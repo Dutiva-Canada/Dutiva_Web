@@ -11,6 +11,7 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { deleteRecurring, saveRecurring } from '../data/api'
 import { InfoHint } from './InfoHint'
+import { fmtDay } from './strategyUi'
 import type {
   InvestAccount,
   RecurringCadence,
@@ -102,10 +103,7 @@ export function RecurringCard({
                   {' '}
                   ·{' '}
                   {fill(x(IM.invest_recur_next), {
-                    date: new Date(`${r.nextRunOn}T12:00:00`).toLocaleDateString(
-                      lang === 'fr' ? 'fr-CA' : 'en-CA',
-                      { dateStyle: 'medium' },
-                    ),
+                    date: fmtDay(lang, r.nextRunOn),
                   })}
                 </span>
               </span>

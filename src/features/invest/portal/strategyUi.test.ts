@@ -10,6 +10,7 @@ import {
   actionChip,
   channelHelper,
   fmtCad,
+  fmtDay,
   fmtNum,
   fmtPct,
   formatDuration,
@@ -20,6 +21,7 @@ import {
   scopeSymbols,
   storedRuleTitle,
   strategyMeta,
+  tallyNoticed,
   trackedUniverse,
 } from './strategyUi'
 
@@ -242,5 +244,45 @@ describe('strategyMeta / runLine', () => {
     expect(line).not.toContain('scanned')
     expect(line).not.toContain('· —')
     expect(line).toContain('1 signal')
+  })
+})
+
+describe('fmtDay', () => {
+  it('renders a YYYY-MM-DD as a localized medium date — never raw ISO', () => {
+    expect(fmtDay('en', '2026-10-13')).toBe('Oct 13, 2026')
+    expect(fmtDay('fr', '2026-10-13')).toMatch(/13.*oct.*2026/i)
+  })
+
+  it('passes a malformed value through unchanged rather than printing Invalid Date', () => {
+    expect(fmtDay('en', 'not-a-date')).toBe('not-a-date')
+    expect(fmtDay('en', '')).toBe('')
+  })
+})
+
+describe('tallyNoticed', () => {
+  const base = { watchlist: [], orders: [], signals: [] }
+
+  it('reports its kind so callers can dedupe the same fact elsewhere', () => {
+    const r = tallyNoticed(
+      { ...base, orders: [{ status: 'queued' }, { status: 'draft' }] },
+      'en',
+    )
+    expect(r?.kind).toBe('orders')
+    expect(r?.text).toContain('2 orders')
+  })
+
+  it('falls through to signals, then the watchlist, then nothing', () => {
+    expect(
+      tallyNoticed({ ...base, signals: [{ status: 'new' }] }, 'en')?.kind,
+    ).toBe('signals')
+    expect(tallyNoticed({ ...base, watchlist: [{}] }, 'en')?.kind).toBe('watch')
+    expect(tallyNoticed(base, 'en')).toBeNull()
+    expect(tallyNoticed(undefined, 'en')).toBeNull()
+  })
+
+  it('dismissed signals do not count', () => {
+    expect(
+      tallyNoticed({ ...base, signals: [{ status: 'dismissed' }] }, 'en'),
+    ).toBeNull()
   })
 })

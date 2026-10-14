@@ -12,7 +12,7 @@ import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
 import { readDisplayCurrency } from './investPrefs'
-import { fmtNum, fmtPct, tallyNoticed } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct, tallyNoticed } from './strategyUi'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -330,7 +330,7 @@ export function InvestHomePage() {
         <div className="sb-note sb-note-accent" style={{ marginBottom: 16, alignItems: 'center' }}>
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
-            <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed}{' '}
+            <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed.text}{' '}
             <Link to="/invest/chat" style={{ color: 'inherit', fontWeight: 600 }}>
               {x(IM.invest_home_tally_open)}
             </Link>
@@ -352,6 +352,7 @@ export function InvestHomePage() {
           theses={state.theses}
           goals={state.goals}
           orders={state.orders}
+          ordersCovered={noticed?.kind === 'orders'}
         />
       </div>
 
@@ -407,7 +408,7 @@ export function InvestHomePage() {
         <p className="sb-helper" style={{ margin: '6px 0 0' }}>
           {x(IM.invest_fx_note)
             .replace('{pairs}', book.pairList)
-            .replace('{date}', fx.date)}
+            .replace('{date}', fmtDay(lang, fx.date))}
         </p>
       )}
       {book.missed > 0 && (

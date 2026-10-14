@@ -48,6 +48,16 @@ export function fmtNum(
   return Number(n).toLocaleString(localeOf(lang), opts)
 }
 
+/** YYYY-MM-DD → localized medium date ("Oct 14, 2026" / "14 oct. 2026").
+    Noon-parsed so a UTC-midnight read can't roll the day back; a malformed
+    input returns as-is rather than printing "Invalid Date". */
+export function fmtDay(lang: Lang, iso: string): string {
+  const d = new Date(`${iso}T12:00:00`)
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString(localeOf(lang), { dateStyle: 'medium' })
+}
+
 /** Pluralized count — "1 rule" / "3 rules" / "1 règle" / "0 signal". */
 export function pl(lang: Lang, n: number, one: Bi, many: Bi): string {
   const word = pick(lang === 'fr' ? (n <= 1 ? one : many) : n === 1 ? one : many, lang)
@@ -453,7 +463,8 @@ export function tallyGreeting(
 /** The Overview strip — Tally's presence outside the chat tab. One thing
     she noticed, picked deterministically from local state (no call): queued
     orders waiting on the user, else open signals, else the watchlist size.
-    Null means nothing worth noticing; the strip stays hidden. */
+    `kind` lets the brief drop the same fact rather than say it twice on
+    one screen. Null means nothing worth noticing; the strip stays hidden. */
 export function tallyNoticed(
   state: {
     watchlist: unknown[]
@@ -461,21 +472,30 @@ export function tallyNoticed(
     signals: { status: string }[]
   } | undefined,
   lang: Lang,
-): string | null {
+): { kind: 'orders' | 'signals' | 'watch'; text: string } | null {
   if (!state) return null
   const queued = state.orders.filter((o) => o.status === 'queued' || o.status === 'draft').length
   if (queued >= 1) {
-    return pick(IM.invest_home_tally_orders, lang).replace('{count}', String(queued))
+    return {
+      kind: 'orders',
+      text: pick(IM.invest_home_tally_orders, lang).replace('{count}', String(queued)),
+    }
   }
   const open = state.signals.filter((s) => s.status === 'new').length
   if (open >= 1) {
-    return pick(IM.invest_home_tally_signals, lang).replace('{count}', String(open))
+    return {
+      kind: 'signals',
+      text: pick(IM.invest_home_tally_signals, lang).replace('{count}', String(open)),
+    }
   }
   if (state.watchlist.length >= 1) {
-    return pick(IM.invest_home_tally_watch, lang).replace(
-      '{count}',
-      String(state.watchlist.length),
-    )
+    return {
+      kind: 'watch',
+      text: pick(IM.invest_home_tally_watch, lang).replace(
+        '{count}',
+        String(state.watchlist.length),
+      ),
+    }
   }
   return null
 }

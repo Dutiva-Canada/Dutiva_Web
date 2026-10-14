@@ -8,7 +8,7 @@
  */
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sunrise, X } from 'lucide-react'
+import { Sun, Sunrise, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { readPref, writePref } from '@/lib/prefs'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -39,8 +39,11 @@ export function MorningBrief(props: {
   theses: InvestThesis[]
   goals: InvestGoal[]
   orders: InvestOrder[]
+  /* The Tally-noticed banner already reports queued orders — the brief
+     drops that line rather than state the same fact twice. */
+  ordersCovered?: boolean
 }) {
-  const { positions, watchSymbols, snapshots, signals, theses, goals, orders } = props
+  const { positions, watchSymbols, snapshots, signals, theses, goals, orders, ordersCovered } = props
   const { lang, x } = useI18n()
   /* readPref/writePref, not raw localStorage — private mode mustn't
      throw the whole Overview for a dismissal flag. */
@@ -104,8 +107,10 @@ export function MorningBrief(props: {
       out.push(pl(lang, offPace, IM.invest_brief_goal_one, IM.invest_brief_goal_many))
     }
 
-    const queued = orders.filter((o) => o.status === 'queued').length
-    if (queued > 0) {
+    /* "Waiting on you" = queued + drafts — same scope the noticed banner
+       counts, so the two never disagree about the number. */
+    const queued = orders.filter((o) => o.status === 'queued' || o.status === 'draft').length
+    if (queued > 0 && !ordersCovered) {
       out.push(pl(lang, queued, IM.invest_brief_order_one, IM.invest_brief_order_many))
     }
 
@@ -119,11 +124,18 @@ export function MorningBrief(props: {
     setDismissed(true)
   }
 
+  /* The card stays up all day once dismissed-tomorrow logic passes — a
+     "This morning" title reads stale in the afternoon, so it goes
+     time-of-day neutral after noon. */
+  const morning = new Date().getHours() < 12
+  const title = morning ? IM.invest_brief_title : IM.invest_brief_title_day
+  const TitleIcon = morning ? Sunrise : Sun
+
   return (
-    <section className="sb-card sb-brief" aria-label={x(IM.invest_brief_title)}>
+    <section className="sb-card sb-brief" aria-label={x(title)}>
       <div className="sb-brief-head">
         <h2 className="sb-flabel" style={{ margin: 0 }}>
-          <Sunrise size={14} aria-hidden /> {x(IM.invest_brief_title)}
+          <TitleIcon size={14} aria-hidden /> {x(title)}
         </h2>
         <button
           type="button"
