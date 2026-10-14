@@ -634,21 +634,29 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
         severity: 'alert',
       },
     ]
+    /* Per-holding facts in the detail so scaffold rows aren't identical —
+       the drafted row (draft-thesis, same dedupe key) supersedes this. */
+    const cur = (p.currency ?? '').toUpperCase()
+    const basis =
+      p.avg_cost > 0 && cur
+        ? {
+            en: `You hold ${p.quantity} ${sym} at an average cost of ${p.avg_cost} ${cur}. `,
+            fr: `Vous détenez ${p.quantity} ${sym} au coût moyen de ${p.avg_cost} ${cur}. `,
+          }
+        : { en: '', fr: '' }
+    const detailEn = `${basis.en}A thesis names the story and the conditions that break it — Tally watches them every sweep.`
+    const detailFr = `${basis.fr}Une thèse nomme l’histoire et les conditions qui l’invalident — Tally les surveille à chaque balayage.`
     out.push({
       kind: 'thesis',
       dedupeKey: `thesis:${p.asset_class}:${sym}`,
       title_en: `${sym} has no thesis — track what would change your mind`,
       title_fr: `${sym} n’a pas de thèse — suivre ce qui vous ferait changer d’avis`,
-      detail_en:
-        'A thesis names the story and the conditions that break it — Tally watches them every sweep.',
-      detail_fr:
-        'Une thèse nomme l’histoire et les conditions qui l’invalident — Tally les surveille à chaque balayage.',
+      detail_en: detailEn,
+      detail_fr: detailFr,
       payload: {
         title_fr: `${sym} n’a pas de thèse — suivre ce qui vous ferait changer d’avis`,
-        detail_en:
-          'A thesis names the story and the conditions that break it — Tally watches them every sweep.',
-        detail_fr:
-          'Une thèse nomme l’histoire et les conditions qui l’invalident — Tally les surveille à chaque balayage.',
+        detail_en: detailEn,
+        detail_fr: detailFr,
         asset_class: p.asset_class,
         symbol: sym,
         name: p.name ?? '',

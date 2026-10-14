@@ -156,10 +156,12 @@ concentration, big gains, cash drag, an unwatched mover), `scope_add`
 (held symbols no enabled strategy covers), `rule_tune` (a rule whose
 signals keep getting dismissed → loosened thresholds, or a proposal whose
 drafts keep expiring → demote to a signal), and `thesis` (a held symbol
-with no claim yet → a seeded tracker whose drift/break conditions come
-pre-filled; the story line stays blank for the user), and `goal` (a
-measurable starter — concentration cap, thesis coverage, idle-cash
-ceiling — for a book whose gaps the metrics already expose). Learning is
+with no claim yet → a seeded tracker whose detail names the holding's
+qty/cost-basis and whose drift/break conditions come pre-filled; the
+story line stays blank — 'Draft with Tally' on the card runs
+`draft-thesis` against an auto-built brief of the position's facts, and
+the filed draft **supersedes** the scaffold under the same dedupe key),
+and `goal` (a Learning is
 the resolution trail itself: dismissed dedupe keys stay suppressed for 30
 days, a kind the user dismisses ~always cools down entirely, and the pass
 regenerates at most every ~20h (a manual scan bypasses). Order-proposal
