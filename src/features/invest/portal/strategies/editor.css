@@ -70,6 +70,12 @@
   margin-bottom: 8px;
   font-size: 16px;
 }
+/* Tailwind's preflight makes svg block-level — inside a block label an
+   icon would stack on its own line instead of sitting beside the text. */
+.sb-flabel svg {
+  display: inline;
+  vertical-align: -0.125em;
+}
 .sb-input {
   width: 100%;
   min-height: 48px;

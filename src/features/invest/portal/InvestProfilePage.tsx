@@ -83,7 +83,7 @@ const SUGGESTION_KIND_LABEL: Record<string, Bi> = {
 export function InvestProfilePage() {
   const { x, lang } = useI18n()
   const { session } = useAuth()
-  const { state, refresh } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
   const { showToast } = useToasts()
   useInvestHead(IM.invest_seo_title_profile, IM.invest_seo_desc_profile)
 
@@ -106,12 +106,19 @@ export function InvestProfilePage() {
       .select('risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions, mandate')
       .eq('user_id', session.user.id)
       .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return
-        const row = (data as ProfileRow | null) ?? EMPTY_ROW
-        setProfile(row)
-        setMandate(row.mandate ?? '')
-      })
+      .then(
+        ({ data }) => {
+          if (cancelled) return
+          const row = (data as ProfileRow | null) ?? EMPTY_ROW
+          setProfile(row)
+          setMandate(row.mandate ?? '')
+        },
+        /* A failed read degrades to the empty row — dims read "Not set" and
+           the mandate editor still works, rather than spinning forever. */
+        () => {
+          if (!cancelled) setProfile(EMPTY_ROW)
+        },
+      )
     return () => {
       cancelled = true
     }
@@ -273,6 +280,17 @@ export function InvestProfilePage() {
     return lines
   }, [resolved, state.signals, state.memories, x])
 
+  /* Same gate as every sibling tab — the provider mounts children on
+     EMPTY_INVEST_STATE, so without it the page flashes "No memories yet"
+     and the accept twin-check would run against an empty shelf. */
+  if (loading) {
+    return (
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
+      </div>
+    )
+  }
+
   return (
     <div className="sb sb-col">
       <div className="sb-list">
@@ -351,6 +369,11 @@ export function InvestProfilePage() {
           </div>
           <div className="sb-card">
             <div className="sb-card-pad">
+              {profile === null ? (
+                <div className="flex items-center justify-center py-[28px]">
+                  <Loader2 size={20} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
+                </div>
+              ) : (
               <div className="sb-prof-dims">
                 {PROFILE_SELECTS.map((sel) => {
                   const field = PROFILE_FIELD[sel.key]
@@ -385,6 +408,7 @@ export function InvestProfilePage() {
                   )
                 })}
               </div>
+              )}
             </div>
           </div>
 
@@ -402,6 +426,7 @@ export function InvestProfilePage() {
                 value={mandate}
                 maxLength={800}
                 rows={3}
+                disabled={profile === null}
                 onChange={(e) => {
                   setMandate(e.target.value)
                   setMandateSave('idle')
@@ -413,7 +438,13 @@ export function InvestProfilePage() {
                 <button
                   type="button"
                   className="sb-btn sb-btn-primary sb-btn-sm"
-                  disabled={mandateSave === 'saving' || mandate === (profile?.mandate ?? '')}
+                  /* The write trims — compare normalized so a trailing
+                     space doesn't leave a live Save button after it lands. */
+                  disabled={
+                    profile === null ||
+                    mandateSave === 'saving' ||
+                    mandate.trim() === (profile?.mandate ?? '')
+                  }
                   onClick={() => void saveMandate()}
                 >
                   {mandateSave === 'saving' ? (
