@@ -248,7 +248,7 @@ export function InvestPortalLayout() {
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
+                className="flex cursor-pointer items-center gap-[6px] whitespace-nowrap rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden="true" />
                 {x(IM.invest_sign_out)}

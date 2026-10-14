@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { LangProvider } from '@/i18n/LangProvider'
@@ -149,10 +149,12 @@ describe('HealthPortalLayout', () => {
     const { HealthPortalLayout } = await import('./HealthPortalLayout')
     renderPortal(<HealthPortalLayout />)
 
-    // The nav tabs render as soon as the grant resolves.
+    // The nav tabs render as soon as the grant resolves. The provider's
+    // load fires in a deferred effect the same commit — waitFor it rather
+    // than racing the flush.
     await screen.findByText('home', {}, { timeout: 3000 })
     expect(screen.getByText('Check-in')).toBeTruthy()
-    expect(loadHealthState).toHaveBeenCalled()
+    await waitFor(() => expect(loadHealthState).toHaveBeenCalled())
   })
 })
 

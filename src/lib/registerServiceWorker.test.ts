@@ -77,6 +77,35 @@ describe('reloadOnWorkerTakeover', () => {
     expect(reload).not.toHaveBeenCalled()
   })
 
+  it('does not reload inside the portals either — same unsaved-draft rule', () => {
+    for (const pathname of [
+      '/invest/chat',
+      '/health',
+      '/pr/mentions',
+      '/careers/portal',
+      '/fr/carrieres/jobs/p1/apply',
+      '/sign/abc123',
+    ]) {
+      const container = fakeContainer({})
+      const reload = vi.fn()
+
+      reloadOnWorkerTakeover(asContainer(container), { pathname, reload })
+      container.fire()
+
+      expect(reload, pathname).not.toHaveBeenCalled()
+    }
+  })
+
+  it('still reloads marketing pages that merely share a prefix (/pricing)', () => {
+    const container = fakeContainer({})
+    const reload = vi.fn()
+
+    reloadOnWorkerTakeover(asContainer(container), { pathname: '/pricing', reload })
+    container.fire()
+
+    expect(reload).toHaveBeenCalledTimes(1)
+  })
+
   it('reloads at most once across repeated controllerchange events', () => {
     const container = fakeContainer({})
     const reload = vi.fn()

@@ -80,16 +80,18 @@ const emptyGoal = (): GoalDraftState => ({
 
 /** Current value for a metric formatted for the card — % metrics render
     percents, book_value renders book currency, counts render bare. */
-function goalCurrentLabel(g: InvestGoal, ccy: string): string | null {
+function goalCurrentLabel(g: InvestGoal, ccy: string, lang: string): string | null {
   const cur = g.evalDetail?.current
   if (cur === null || cur === undefined || !Number.isFinite(cur)) return null
-  if (g.metric === 'book_value') return `${Math.round(cur).toLocaleString('en-CA')} ${ccy}`
+  if (g.metric === 'book_value')
+    return `${Math.round(cur).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
   if (g.metric === 'position_count') return `${Math.round(cur)}`
   return `${Math.round(cur * 10) / 10}%`
 }
 
-function goalTargetLabel(g: InvestGoal, ccy: string): string {
-  if (g.metric === 'book_value') return `${Math.round(g.target).toLocaleString('en-CA')} ${ccy}`
+function goalTargetLabel(g: InvestGoal, ccy: string, lang: string): string {
+  if (g.metric === 'book_value')
+    return `${Math.round(g.target).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA')} ${ccy}`
   if (g.metric === 'position_count') return `${Math.round(g.target)}`
   return `${Math.round(g.target * 10) / 10}%`
 }
@@ -144,13 +146,20 @@ export function InvestAnalysisPage() {
         if (s.kind === 'goal') {
           const seed = (p.seed ?? {}) as Record<string, unknown>
           const title = typeof seed.title === 'string' ? seed.title : s.title
+          const target = Number(seed.target)
+          /* `Number('abc') || 0` would silently file a zero-target goal —
+             a malformed seed stays pending and reports instead. */
+          if (!Number.isFinite(target) || target < 0) {
+            showToast(IM.invest_form_error)
+            return
+          }
           if (!state.goals.some((g) => twin(g.title, title))) {
             await saveGoal({
               title,
               detail: typeof seed.detail === 'string' ? seed.detail : '',
               metric: (typeof seed.metric === 'string' ? seed.metric : 'book_value') as GoalMetric,
               op: seed.op === 'lte' ? 'lte' : 'gte',
-              target: Number(seed.target) || 0,
+              target,
               deadline: typeof seed.deadline === 'string' ? seed.deadline : null,
             })
           }
@@ -201,8 +210,12 @@ export function InvestAnalysisPage() {
     [pendingBusy, state.theses, state.goals, state.scanItems, refresh, showToast, x, loadPending],
   )
 
+  const goalTargetNum = Number(goal.target)
+  const goalValid =
+    !!goal.title.trim() && Number.isFinite(goalTargetNum) && goalTargetNum >= 0
+
   const saveGoalDraft = useCallback(async () => {
-    if (busy || !goal.title.trim() || !goal.target.trim()) return
+    if (busy || !goalValid) return
     setBusy('goal')
     try {
       await saveGoal({
@@ -211,7 +224,7 @@ export function InvestAnalysisPage() {
         detail: goal.detail,
         metric: goal.metric,
         op: goal.op,
-        target: Number(goal.target) || 0,
+        target: goalTargetNum,
         deadline: goal.deadline || null,
       })
       showToast(IM.invest_goal_saved)
@@ -225,7 +238,7 @@ export function InvestAnalysisPage() {
     } finally {
       setBusy(null)
     }
-  }, [busy, goal, refresh, showToast, x])
+  }, [busy, goal, goalValid, goalTargetNum, refresh, showToast, x])
 
   const removeGoal = useCallback(
     async (g: InvestGoal) => {
@@ -235,12 +248,16 @@ export function InvestAnalysisPage() {
         await deleteGoal(g.id)
         showToast(IM.invest_goal_deleted)
         await refresh()
+      } catch (e) {
+        showToast(
+          fill(x(IM.invest_goal_failed), { error: e instanceof Error ? e.message : String(e) }),
+        )
       } finally {
         setBusy(null)
         setConfirmDelete(null)
       }
     },
-    [busy, refresh, showToast],
+    [busy, refresh, showToast, x],
   )
 
   return (
@@ -416,7 +433,7 @@ export function InvestAnalysisPage() {
                   <button
                     type="button"
                     className="sb-btn sb-btn-primary sb-btn-sm"
-                    disabled={!goal.title.trim() || !goal.target.trim() || busy !== null}
+                    disabled={!goalValid || busy !== null}
                     onClick={() => void saveGoalDraft()}
                   >
                     {busy === 'goal' ? (
@@ -443,8 +460,8 @@ export function InvestAnalysisPage() {
           ) : (
             <div className="sb-goal-grid">
               {state.goals.map((g) => {
-                const current = goalCurrentLabel(g, bookCurrency)
-                const target = goalTargetLabel(g, bookCurrency)
+                const current = goalCurrentLabel(g, bookCurrency, lang)
+                const target = goalTargetLabel(g, bookCurrency, lang)
                 const line = lang === 'fr' ? g.evalDetail?.line_fr : g.evalDetail?.line_en
                 const pct = g.evalDetail?.progress_pct
                 const when = g.lastEvaluatedAt ? relTimeLabel(g.lastEvaluatedAt, x) : null

@@ -196,9 +196,12 @@ export async function addWatchSymbol(input: {
 }
 
 export async function removeWatchSymbol(id: string): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client.from('invest_watchlist').delete().eq('id', id)
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_watchlist')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
@@ -229,6 +232,9 @@ export async function updateAccount(
   id: string,
   input: { name?: string; kind?: InvestAccount['kind']; baseCurrency?: string; cashBalance?: number },
 ): Promise<void> {
+  if (input.cashBalance !== undefined && !Number.isFinite(input.cashBalance)) {
+    throw new Error('Cash balance must be a finite number')
+  }
   const { client, userId } = await requireUserId()
   const { error } = await client
     .from('invest_accounts')
@@ -265,7 +271,23 @@ export async function createPosition(input: {
   avgCost: number
   currency?: string
 }): Promise<void> {
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0) {
+    throw new Error('Position quantity must be greater than zero')
+  }
+  if (!Number.isFinite(input.avgCost) || input.avgCost <= 0) {
+    throw new Error('Average cost must be greater than zero')
+  }
   const { client, userId } = await requireUserId()
+  /* The upsert conflicts on account_id — verify the book is the caller's
+     first, or a foreign account_id could collide with another user's
+     position row on the conflict path. */
+  const { data: account } = await client
+    .from('invest_accounts')
+    .select('id')
+    .eq('id', input.accountId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (!account) throw new Error('Account not found')
   const { error } = await client.from('invest_positions').upsert(
     {
       user_id: userId,
@@ -287,6 +309,12 @@ export async function updatePosition(
   id: string,
   input: { name: string; quantity: number; avgCost: number; currency?: string },
 ): Promise<void> {
+  if (!Number.isFinite(input.quantity) || input.quantity < 0) {
+    throw new Error('Position quantity must be zero or more')
+  }
+  if (!Number.isFinite(input.avgCost) || input.avgCost <= 0) {
+    throw new Error('Average cost must be greater than zero')
+  }
   const { client, userId } = await requireUserId()
   const { error } = await client
     .from('invest_positions')
@@ -337,9 +365,12 @@ export async function upsertSnapshot(input: {
 /* ── Signals / orders ────────────────────────────────────────────────────── */
 
 export async function setSignalStatus(id: string, status: SignalStatus): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client.from('invest_signals').update({ status }).eq('id', id)
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_signals')
+    .update({ status })
+    .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
@@ -510,14 +541,22 @@ export async function saveStrategy(
   /* Inserts select id back so the caller can open the editor on the new
      row without a round-trip guess. */
   let res = strategy.id
-    ? await client.from('invest_strategies').update(payloadWithMode).eq('id', strategy.id)
+    ? await client
+        .from('invest_strategies')
+        .update(payloadWithMode)
+        .eq('id', strategy.id)
+        .eq('user_id', userId)
     : await client.from('invest_strategies').insert(payloadWithMode).select('id').single()
   if (res.error && /multi_match/.test(res.error.message)) {
     /* Migration 0190 not applied yet — save everything else rather than
        failing; the mode defaults to 'each' server-side until the column
        lands. Mirrors loadStrategies' column fallback in invest-bot. */
     res = strategy.id
-      ? await client.from('invest_strategies').update(payload).eq('id', strategy.id)
+      ? await client
+          .from('invest_strategies')
+          .update(payload)
+          .eq('id', strategy.id)
+          .eq('user_id', userId)
       : await client.from('invest_strategies').insert(payload).select('id').single()
   }
   if (res.error) throw res.error
@@ -525,19 +564,22 @@ export async function saveStrategy(
 }
 
 export async function setStrategyEnabled(id: string, enabled: boolean): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
+  const { client, userId } = await requireUserId()
   const { error } = await client
     .from('invest_strategies')
     .update({ enabled, updated_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
 export async function deleteStrategy(id: string): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client.from('invest_strategies').delete().eq('id', id)
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_strategies')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
@@ -713,6 +755,7 @@ export async function saveThesis(
     id?: string
   },
 ): Promise<void> {
+  if (!thesis.thesis.trim()) throw new Error('A thesis needs a claim')
   const { client, userId } = await requireUserId()
   const payload = {
     user_id: userId,
@@ -829,6 +872,9 @@ export async function saveGoal(goal: {
   target: number
   deadline: string | null
 }): Promise<void> {
+  if (!Number.isFinite(goal.target)) {
+    throw new Error('Goal target must be a finite number')
+  }
   const { client, userId } = await requireUserId()
   const payload = {
     user_id: userId,
@@ -871,6 +917,7 @@ export async function saveScanItem(item: {
   note: string
   symbols: string[]
 }): Promise<void> {
+  if (!item.title.trim()) throw new Error('A scan item needs a title')
   const { client, userId } = await requireUserId()
   const payload = {
     user_id: userId,
@@ -1058,9 +1105,12 @@ export async function saveMemory(input: {
 }
 
 export async function deleteMemory(id: string): Promise<void> {
-  const client = supabase
-  if (!client) throw new Error('Supabase is not configured')
-  const { error } = await client.from('invest_memories').delete().eq('id', id)
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_memories')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
