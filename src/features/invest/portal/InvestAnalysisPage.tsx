@@ -37,7 +37,7 @@ import type {
 } from '../data/types'
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { fmtNum, fmtPct } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct } from './strategyUi'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
@@ -563,7 +563,7 @@ export function InvestAnalysisPage() {
                     <footer className="sb-thesis-foot">
                       <span className="sb-thesis-when">
                         {g.deadline
-                          ? `${x(IM.invest_goal_deadline)} ${new Date(`${g.deadline}T12:00:00`).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { dateStyle: 'medium' })}`
+                          ? `${x(IM.invest_goal_deadline)} ${fmtDay(lang, g.deadline)}`
                           : x(IM.invest_goal_deadline_none)}
                         {when ? ` · ${fill(x(IM.invest_goal_evaluated), { when })}` : ''}
                       </span>

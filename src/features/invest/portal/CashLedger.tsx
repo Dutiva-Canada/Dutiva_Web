@@ -9,6 +9,7 @@ import { ArrowDownToLine, ArrowUpFromLine, Coins, Loader2, Plus, Trash2, Wallet 
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { deleteCashEvent, recordCashEvent } from '../data/api'
+import { fmtDay } from './strategyUi'
 import type { CashEventKind, InvestAccount, InvestCashEvent } from '../data/types'
 
 const KIND_ICON: Record<CashEventKind, typeof ArrowDownToLine> = {
@@ -86,13 +87,6 @@ export function CashLedger({
     /* Deleting reverses the cash it moved — the confirm copy says so. */
     void run(() => deleteCashEvent(ev))
   }
-
-  const fmtDay = (iso: string) =>
-    new Date(`${iso}T12:00:00`).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
 
   return (
     <section className="sb-card sb-card-pad">
@@ -214,7 +208,7 @@ export function CashLedger({
                   {signed >= 0 ? '+' : '−'}
                   {fmtFor(ev.currency).format(Math.abs(signed))}
                 </span>
-                <span className="dim">{fmtDay(ev.occurredAt)}</span>
+                <span className="dim">{fmtDay(lang, ev.occurredAt)}</span>
                 {accounts.length > 1 && (
                   <span className="dim">{accountName.get(ev.accountId) ?? '—'}</span>
                 )}
@@ -223,7 +217,7 @@ export function CashLedger({
                   type="button"
                   disabled={busy}
                   className="sb-linklike sb-ledger-del"
-                  aria-label={`${x(IM.invest_rule_remove)} ${x(IM[KIND_KEY[ev.kind]])} ${fmtDay(ev.occurredAt)}`}
+                  aria-label={`${x(IM.invest_rule_remove)} ${x(IM[KIND_KEY[ev.kind]])} ${fmtDay(lang, ev.occurredAt)}`}
                   onClick={() => remove(ev)}
                 >
                   {confirmId === ev.id ? (

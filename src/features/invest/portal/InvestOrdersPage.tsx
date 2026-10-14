@@ -28,7 +28,7 @@ import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
-import { fmtNum } from './strategyUi'
+import { fmtDay, fmtNum } from './strategyUi'
 import { fill as fillSlots } from '@/lib/format'
 import {
   loadPendingSuggestions,
@@ -396,10 +396,7 @@ export function InvestOrdersPage() {
                       {t.realized >= 0 ? '+' : '−'}{t.fmt.format(Math.abs(t.realized))}
                     </td>
                     <td className="dim">
-                      {new Date(`${t.date}T12:00:00`).toLocaleDateString(
-                        lang === 'fr' ? 'fr-CA' : 'en-CA',
-                        { dateStyle: 'medium' },
-                      )}
+                      {fmtDay(lang, t.date)}
                     </td>
                   </tr>
                 ))}
@@ -610,10 +607,7 @@ function OrderRow({
                   <span className="dim">
                     {' '}
                     ·{' '}
-                    {new Date(`${f.filledAt.slice(0, 10)}T12:00:00`).toLocaleDateString(
-                      lang === 'fr' ? 'fr-CA' : 'en-CA',
-                      { dateStyle: 'medium' },
-                    )}
+                    {fmtDay(lang, f.filledAt.slice(0, 10))}
                   </span>
                   {f.note && <span className="dim"> · {f.note}</span>}
                 </li>

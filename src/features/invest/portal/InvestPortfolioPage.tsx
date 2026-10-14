@@ -31,7 +31,7 @@ import {
 } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
-import { fmtNum, fmtPct, pl } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
@@ -106,7 +106,7 @@ export function InvestPortfolioPage() {
       new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 4 }),
     [lang],
   )
-  const fmtDay = useMemo(
+  const fmtDayShort = useMemo(
     () =>
       new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }),
     [lang],
@@ -692,7 +692,7 @@ export function InvestPortfolioPage() {
                           {fmtFor(p.currency).format(px)}
                           {stale && pxAt !== null && (
                             <span className="dim" style={{ marginLeft: 4, fontSize: 11 }}>
-                              · {x(IM.invest_price_asof)} {fmtDay.format(Date.parse(pxAt))}
+                              · {x(IM.invest_price_asof)} {fmtDayShort.format(Date.parse(pxAt))}
                             </span>
                           )}
                         </>
@@ -844,7 +844,7 @@ export function InvestPortfolioPage() {
               <p className="sb-helper" style={{ margin: '4px 0 0' }}>
                 {x(IM.invest_fx_note)
                   .replace('{pairs}', totals.pairList)
-                  .replace('{date}', fx.date)}
+                  .replace('{date}', fmtDay(lang, fx.date))}
               </p>
             )}
             {pricesAsOf && (
