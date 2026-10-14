@@ -103,7 +103,9 @@ const SENSITIVE_TABLES = [
   // financial position — the highest-value leak on the platform.
   'invest_access',
   'invest_accounts',
+  'invest_book_snapshots',
   'invest_bot_runs',
+  'invest_cash_events',
   'invest_goals',
   'invest_market_news',
   'invest_market_snapshots',
@@ -144,12 +146,7 @@ const SENSITIVE_TABLES = [
    a pending skip so the gap stays visible. MOVE each name into
    SENSITIVE_TABLES once its migration is confirmed applied (see
    check:migrations output when SUPABASE_ACCESS_TOKEN is valid). */
-const PENDING_SENSITIVE_TABLES = [
-  // 0223 invest_track_record: book-value history and cash movements are as
-  // sensitive as the positions they summarize.
-  'invest_book_snapshots',
-  'invest_cash_events',
-]
+const PENDING_SENSITIVE_TABLES = []
 
 /**
  * Employer-internal columns on hr_job_postings that must stay ungranted to

@@ -10065,6 +10065,50 @@ export type Database = {
           },
         ]
       }
+      invest_cash_events: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          kind: string
+          note: string
+          occurred_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: string
+          note?: string
+          occurred_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: string
+          note?: string
+          occurred_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invest_cash_events_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "invest_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invest_chat_messages: {
         Row: {
           action: Json | null
@@ -10135,50 +10179,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      invest_cash_events: {
-        Row: {
-          account_id: string
-          amount: number
-          created_at: string
-          currency: string
-          id: string
-          kind: string
-          note: string
-          occurred_at: string
-          user_id: string
-        }
-        Insert: {
-          account_id: string
-          amount: number
-          created_at?: string
-          currency?: string
-          id?: string
-          kind: string
-          note?: string
-          occurred_at?: string
-          user_id: string
-        }
-        Update: {
-          account_id?: string
-          amount?: number
-          created_at?: string
-          currency?: string
-          id?: string
-          kind?: string
-          note?: string
-          occurred_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "invest_cash_events_account_id_fkey"
-            columns: ["account_id"]
-            isOneToOne: false
-            referencedRelation: "invest_accounts"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       invest_goals: {
         Row: {
