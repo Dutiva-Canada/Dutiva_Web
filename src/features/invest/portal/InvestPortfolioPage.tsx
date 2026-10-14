@@ -1,7 +1,7 @@
 import './strategies.css'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowDown, ArrowUp, Bell, DollarSign, Download, Loader2, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bell, Coins, DollarSign, Download, Loader2, Pencil, Plus, RefreshCw, Split, Trash2, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import {
@@ -20,6 +20,8 @@ import {
   createPosition,
   deleteAccount,
   deletePosition,
+  recordDividend,
+  recordSplit,
   removeWatchSymbol,
   saveStrategy,
   syncPrices,
@@ -31,8 +33,10 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
+import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
 import { RebalanceCard } from './RebalanceCard'
+import { RecurringCard } from './RecurringCard'
 import { downloadCsv } from './csv'
 import { useInvestHead } from './useInvestHead'
 
@@ -462,6 +466,9 @@ export function InvestPortfolioPage() {
             })}
           </ul>
         )}
+        {state.accounts.length > 0 && (
+          <p className="sb-legend">{x(IM.invest_legend_account_kinds)}</p>
+        )}
       </section>
 
       <section className={cardClass} style={{ marginTop: 16 }}>
@@ -749,6 +756,16 @@ export function InvestPortfolioPage() {
                             )
                           }
                         />
+                        <DividendShortcut
+                          busy={busy}
+                          buttonLabel={`${x(IM.invest_dividend_record)} ${p.symbol}`}
+                          onSave={(perShare) => run(() => recordDividend(p, perShare))}
+                        />
+                        <SplitShortcut
+                          busy={busy}
+                          buttonLabel={`${x(IM.invest_split_record)} ${p.symbol}`}
+                          onSave={(ratio) => run(() => recordSplit(p, ratio))}
+                        />
                         <RemovePosition
                           busy={busy}
                           ariaLabel={`${x(IM.invest_rule_remove)} ${p.symbol}`}
@@ -854,6 +871,16 @@ export function InvestPortfolioPage() {
         <CashLedger
           accounts={state.accounts}
           events={state.cashEvents}
+          busy={busy}
+          run={run}
+          fmtFor={fmtFor}
+        />
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <RecurringCard
+          accounts={state.accounts}
+          items={state.recurring}
           busy={busy}
           run={run}
           fmtFor={fmtFor}
@@ -1366,7 +1393,12 @@ function AccountTile({
     <li className="sb-tile">
       <p className="t-name" style={{ margin: 0 }}>{account.name}</p>
       <p className="t-sub" style={{ margin: '3px 0 0' }}>
-        {x(IM[kindLabel[account.kind]])} · {balance}
+        {x(IM[kindLabel[account.kind]])}
+        <InfoHint
+          label={x(IM.invest_hint_aria)}
+          text={x(IM[kindHelp[account.kind]])}
+        />{' '}
+        · {balance}
       </p>
       <span className="sb-row-actions" style={{ marginTop: 8 }}>
         <button
@@ -1995,6 +2027,120 @@ function PriceEditor({
           void onSave(Number(price)).then(() => {
             setOpen(false)
             setPrice('')
+          })
+        }
+        className="sb-btn sb-btn-primary sb-btn-sm"
+      >
+        {x(IM.invest_save)}
+      </button>
+    </span>
+  )
+}
+
+/** Dividend shortcut — per-share amount × held quantity lands in the cash
+    ledger and moves the account balance. */
+function DividendShortcut({
+  busy,
+  buttonLabel,
+  onSave,
+}: {
+  busy: boolean
+  buttonLabel: string
+  onSave: (perShare: number) => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [open, setOpen] = useState(false)
+  const [perShare, setPerShare] = useState('')
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={buttonLabel}
+        title={x(IM.invest_dividend_record)}
+      >
+        <Coins size={15} aria-hidden="true" />
+      </button>
+    )
+  }
+  return (
+    <span className="sb-row-actions">
+      <input
+        type="number"
+        min="0"
+        step="any"
+        value={perShare}
+        onChange={(e) => setPerShare(e.target.value)}
+        placeholder={x(IM.invest_dividend_per_share)}
+        className="sb-input sb-input-sm"
+        aria-label={x(IM.invest_dividend_per_share)}
+      />
+      <button
+        type="button"
+        disabled={busy || !(Number(perShare) > 0)}
+        onClick={() =>
+          void onSave(Number(perShare)).then(() => {
+            setOpen(false)
+            setPerShare('')
+          })
+        }
+        className="sb-btn sb-btn-primary sb-btn-sm"
+      >
+        {x(IM.invest_save)}
+      </button>
+    </span>
+  )
+}
+
+/** Split shortcut — ratio 2 means 2-for-1: quantity doubles, avg cost
+    halves. The label states the direction so nobody splits backwards. */
+function SplitShortcut({
+  busy,
+  buttonLabel,
+  onSave,
+}: {
+  busy: boolean
+  buttonLabel: string
+  onSave: (ratio: number) => Promise<void>
+}) {
+  const { x } = useI18n()
+  const [open, setOpen] = useState(false)
+  const [ratio, setRatio] = useState('')
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="sb-btn sb-btn-secondary sb-btn-sm"
+        aria-label={buttonLabel}
+        title={x(IM.invest_split_record)}
+      >
+        <Split size={15} aria-hidden="true" />
+      </button>
+    )
+  }
+  return (
+    <span className="sb-row-actions">
+      <input
+        type="number"
+        min="0"
+        step="any"
+        value={ratio}
+        onChange={(e) => setRatio(e.target.value)}
+        placeholder={x(IM.invest_split_ratio_hint)}
+        className="sb-input sb-input-sm"
+        aria-label={x(IM.invest_split_ratio)}
+      />
+      <button
+        type="button"
+        disabled={busy || !(Number(ratio) > 0)}
+        onClick={() =>
+          void onSave(Number(ratio)).then(() => {
+            setOpen(false)
+            setRatio('')
           })
         }
         className="sb-btn sb-btn-primary sb-btn-sm"

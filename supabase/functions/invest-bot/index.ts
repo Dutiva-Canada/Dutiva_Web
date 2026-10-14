@@ -13,7 +13,8 @@ import {
 } from './botShared.ts'
 import { runUser } from './runs.ts'
 import { testScan } from './testScan.ts'
-import { executeOrder } from './orders.ts'
+import { executeOrder, importFill } from './orders.ts'
+import { ASSET_CLASSES, type AssetClass } from './handlers.ts'
 
 /**
  * Invest-bot edge function — evaluates each user's enabled strategies
@@ -110,6 +111,34 @@ const handler = async (req: Request) => {
     return testScan(adminClient, userId, body)
   }
 
+  if (actionCheck.value === 'import-fill') {
+    /* Historical fill recording — external books backfill trades that
+       already happened elsewhere. apply_book=false keeps it pure history
+       when the position was bulk-imported already. */
+    const assetClass = typeof body['asset_class'] === 'string' ? body['asset_class'] : 'equity'
+    if (!ASSET_CLASSES.includes(assetClass as (typeof ASSET_CLASSES)[number])) {
+      return json({ error: 'asset_class must be a known class' }, 400)
+    }
+    const symbol = typeof body['symbol'] === 'string' ? body['symbol'].trim().toUpperCase() : ''
+    if (!/^[A-Z0-9.^-]{1,12}$/.test(symbol)) {
+      return json({ error: 'symbol must be a ticker' }, 400)
+    }
+    const side = body['side'] === 'sell' ? 'sell' : body['side'] === 'buy' ? 'buy' : null
+    if (!side) return json({ error: 'side must be buy or sell' }, 400)
+    return importFill(adminClient, userId, {
+      account_id: typeof body['account_id'] === 'string' ? body['account_id'] : '',
+      asset_class: assetClass as AssetClass,
+      symbol,
+      name: typeof body['name'] === 'string' ? body['name'] : undefined,
+      side,
+      quantity: Number(body['quantity']),
+      price: Number(body['price']),
+      filled_at: typeof body['filled_at'] === 'string' ? body['filled_at'] : '',
+      note: typeof body['note'] === 'string' ? body['note'].slice(0, 300) : undefined,
+      apply_book: body['apply_book'] !== false,
+    })
+  }
+
   /* execute-order */
   const orderId = typeof body['order_id'] === 'string' ? body['order_id'] : ''
   if (!/^[0-9a-f-]{36}$/i.test(orderId)) {
@@ -119,7 +148,12 @@ const handler = async (req: Request) => {
     typeof body['fill_price'] === 'number' && body['fill_price'] > 0
       ? (body['fill_price'] as number)
       : null
-  return executeOrder(adminClient, userId, orderId, fill)
+  const fillQty =
+    typeof body['fill_quantity'] === 'number' && body['fill_quantity'] > 0
+      ? (body['fill_quantity'] as number)
+      : null
+  const fillStamp = typeof body['filled_at'] === 'string' ? body['filled_at'] : null
+  return executeOrder(adminClient, userId, orderId, fill, fillQty, fillStamp)
 }
 
 Deno.serve(async (req) => withCors(req, await handler(req), CORS))

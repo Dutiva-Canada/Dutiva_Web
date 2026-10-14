@@ -9,6 +9,7 @@ import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { setSignalStatus } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
+import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 
 const kindLabel: Record<SignalKind, keyof typeof IM> = {
@@ -172,7 +173,13 @@ export function InvestSignalsPage() {
   return (
     <div className="sb sb-page">
       <div className="sb-head-row">
-        <h1>{x(IM.invest_signals_title)}</h1>
+        <h1>
+          {x(IM.invest_signals_title)}
+          <InfoHint
+            label={x(IM.invest_hint_signal_kinds_aria)}
+            text={x(IM.invest_hint_signal_kinds)}
+          />
+        </h1>
       </div>
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>

@@ -586,6 +586,17 @@ export function InvestChatPage() {
         <summary>{x(IM.invest_chat_sees)}</summary>
         <p>{x(IM.invest_chat_sees_list)}</p>
       </details>
+      {/* The review-loop contract in four lines — the least obvious mental
+          model in the portal, explained where the person meets Tally. */}
+      <details className="sbchat-sees">
+        <summary>{x(IM.invest_tally_how_title)}</summary>
+        <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
+          <li>{x(IM.invest_tally_how_1)}</li>
+          <li>{x(IM.invest_tally_how_2)}</li>
+          <li>{x(IM.invest_tally_how_3)}</li>
+          <li>{x(IM.invest_tally_how_4)}</li>
+        </ul>
+      </details>
 
       <section className="sb-card sb-card-pad sbchat" style={{ marginTop: 14 }}>
         <div className="sbchat-log-wrap">

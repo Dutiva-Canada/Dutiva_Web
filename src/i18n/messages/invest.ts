@@ -922,6 +922,180 @@ const investCoreMessages = defineMessages({
     en: 'Couldn’t queue the sell — {error}',
     fr: 'Impossible de mettre la vente en file — {error}',
   },
+
+  /* Vocabulary glosses (0224) — terms explained where they're read, not
+     just where they're chosen. One hint per concept cluster; the legend
+     spells out all three account kinds at once since they only differ in
+     meaning, not mechanics. */
+  invest_hint_aria: { en: 'What does this mean?', fr: 'Qu’est-ce que ça veut dire ?' },
+  /* [FR self-authored] */
+  invest_legend_account_kinds: {
+    en: 'Paper — simulated practice, nothing real at stake. Live — your real book: Dutiva never places a trade, you confirm each fill yourself. External — a manual mirror of an account you hold elsewhere; nothing syncs.',
+    fr: 'Simulé — pratique sans argent réel. Réel — votre vrai portefeuille : Dutiva ne place jamais d’ordre, vous confirmez chaque exécution vous-même. Externe — copie manuelle d’un compte détenu ailleurs ; rien ne se synchronise.',
+  },
+  /* [FR self-authored] */
+  invest_hint_order_mode_aria: { en: 'Paper vs live orders', fr: 'Ordres simulés ou réels' },
+  /* [FR self-authored] */
+  invest_hint_order_mode: {
+    en: 'Paper fills at the current price right away — practice. Live records a trade you placed at your broker: you enter the fill price you actually got.',
+    fr: 'Simulé s’exécute au cours affiché — pratique. Réel consigne une opération placée chez votre courtier : vous entrez le prix d’exécution obtenu.',
+  },
+  /* [FR self-authored] */
+  invest_hint_signal_kinds_aria: { en: 'Signal types', fr: 'Types de signaux' },
+  /* [FR self-authored] */
+  invest_hint_signal_kinds: {
+    en: 'Screen — a scan result. Insight — worth knowing, no urgency. Alert — a line you set got crossed. Thesis, Goal and Scan signals come from your theses, goals and watch board.',
+    fr: 'Filtrage — résultat d’analyse. Analyse — à savoir, sans urgence. Alerte — une ligne que vous avez fixée a été franchie. Les signaux Thèse, Objectif et Veille viennent de vos thèses, objectifs et liste de veille.',
+  },
+  /* [FR self-authored] */
+  invest_hint_thesis_status_aria: { en: 'Thesis statuses', fr: 'États des thèses' },
+  /* [FR self-authored] */
+  invest_hint_thesis_status: {
+    en: 'Healthy — every watch condition holds. Drifting — a condition tripped; worth a look. Broken — the case failed; the sweep proposes an exit order.',
+    fr: 'Saine — toutes les conditions tiennent. En dérive — une condition a été franchie ; à revoir. Brisée — la thèse a échoué ; l’analyse propose un ordre de sortie.',
+  },
+  /* [FR self-authored] */
+  invest_hint_goal_status_aria: { en: 'Goal statuses', fr: 'États des objectifs' },
+  /* [FR self-authored] */
+  invest_hint_goal_status: {
+    en: 'On track or behind — how the last sweep measured it. Achieved when met; missed once the deadline passes unmet.',
+    fr: 'En bonne voie ou en retard — selon la dernière analyse. Atteint une fois rempli ; manqué si l’échéance passe sans qu’il le soit.',
+  },
+  /* Goal metrics — one line each, shown under the "Measured on" select so
+     the choice is informed. [FR self-authored] */
+  invest_goal_gloss_book_value: {
+    en: 'The whole book — cash plus positions, in the book’s currency.',
+    fr: 'Tout le portefeuille — encaisse et positions, dans la devise du compte.',
+  },
+  invest_goal_gloss_cash_pct: {
+    en: 'Cash as a share of the whole book.',
+    fr: 'L’encaisse en part du portefeuille.',
+  },
+  invest_goal_gloss_max_weight_pct: {
+    en: 'The biggest position’s share of the book — a concentration check.',
+    fr: 'La part de la plus grosse position — une mesure de concentration.',
+  },
+  invest_goal_gloss_unrealized_gain_pct: {
+    en: 'Average gain across positions versus what you paid. Negative targets are allowed — a loss floor.',
+    fr: 'Gain moyen des positions par rapport au coût. Les cibles négatives sont permises — un plancher de perte.',
+  },
+  invest_goal_gloss_thesis_coverage: {
+    en: 'Share of positions with a written thesis.',
+    fr: 'Part des positions qui ont une thèse écrite.',
+  },
+  invest_goal_gloss_position_count: {
+    en: 'How many positions the book holds.',
+    fr: 'Le nombre de positions dans le portefeuille.',
+  },
+  /* [FR self-authored] */
+  invest_order_mode_label: { en: 'Paper or live', fr: 'Simulé ou réel' },
+  invest_hint_order_status_aria: { en: 'Order statuses', fr: 'États des ordres' },
+  /* [FR self-authored] */
+  invest_hint_order_status: {
+    en: 'Queued orders wait for you — nothing fills on its own. Executed is settled; cancelled and expired are done.',
+    fr: 'Les ordres en file attendent votre décision — rien ne s’exécute seul. Exécuté veut dire réglé ; annulé et expiré sont clos.',
+  },
+  /* "How Tally works" — the review-loop contract in four lines, as a
+     collapsible note atop Chat. [FR self-authored] */
+  invest_tally_how_title: { en: 'How Tally works', fr: 'Comment Tally fonctionne' },
+  invest_tally_how_1: {
+    en: 'On each sweep Tally reads your book — prices, strategies, theses, goals.',
+    fr: 'À chaque analyse, Tally lit votre portefeuille — cours, stratégies, thèses, objectifs.',
+  },
+  invest_tally_how_2: {
+    en: 'Crossed a line you set? It lands in the review strip — never acted on silently.',
+    fr: 'Une ligne franchie ? Ça arrive dans la file de revue — jamais d’action silencieuse.',
+  },
+  invest_tally_how_3: {
+    en: 'Accepting a suggestion writes it for real — a rule tuned, a draft order queued.',
+    fr: 'Accepter une suggestion l’écrit pour de bon — règle ajustée, ordre mis en file.',
+  },
+  invest_tally_how_4: {
+    en: 'Orders stay queued until you execute them. Live orders ask the fill price you actually got.',
+    fr: 'Les ordres restent en file jusqu’à votre exécution. Les ordres réels demandent le prix obtenu.',
+  },
+
+  /* 0224 — fill recording, closed trades, external backfill.
+     [FR self-authored] */
+  invest_fills_progress: {
+    en: '{filled} of {total} filled',
+    fr: '{filled} sur {total} exécutés',
+  },
+  invest_fills_count: { en: '{count} fills', fr: '{count} exécutions' },
+  invest_fill_price_mark_hint: { en: 'blank = current mark', fr: 'vide = cours actuel' },
+  invest_fill_date: { en: 'Fill date (optional)', fr: 'Date d’exécution (optionnel)' },
+  invest_fill_partial: { en: 'Record partial fill', fr: 'Exécution partielle' },
+  invest_fill_record: { en: 'Record fill', fr: 'Enregistrer l’exécution' },
+  invest_fill_note: { en: 'Note', fr: 'Note' },
+  invest_closed_title: { en: 'Closed trades', fr: 'Transactions closes' },
+  invest_closed_avg_cost: { en: 'Avg cost', fr: 'Coût moyen' },
+  invest_closed_sold_at: { en: 'Sold at', fr: 'Vendu à' },
+  invest_closed_realized: { en: 'Realized', fr: 'Réalisé' },
+  invest_closed_date: { en: 'Date', fr: 'Date' },
+  invest_closed_total: { en: 'Realized ({ccy})', fr: 'Réalisé ({ccy})' },
+  invest_hint_closed_aria: { en: 'About closed trades', fr: 'À propos des transactions closes' },
+  invest_hint_closed: {
+    en: 'Each sell fill is scored against what the shares cost when it landed — that gap is your realized gain or loss. Unrealized moves on open positions stay on the Overview.',
+    fr: 'Chaque vente exécutée se compare au coût des titres au moment de l’exécution — l’écart est votre gain ou perte réalisé. Les variations sur positions ouvertes restent dans l’aperçu.',
+  },
+  invest_import_open: { en: 'Import fills', fr: 'Importer des exécutions' },
+  invest_import_title: { en: 'Import fill history', fr: 'Importer un historique' },
+  invest_import_help: {
+    en: 'One fill per line: symbol, buy or sell, quantity, price, date (YYYY-MM-DD). Lines import oldest-first so average cost lands right.',
+    fr: 'Une exécution par ligne : symbole, buy ou sell, quantité, prix, date (AAAA-MM-JJ). Les lignes s’importent de la plus ancienne à la plus récente pour un coût moyen exact.',
+  },
+  invest_import_rows: { en: 'Fills', fr: 'Exécutions' },
+  invest_import_placeholder: {
+    en: 'SHOP, buy, 10, 82.50, 2024-03-14',
+    fr: 'SHOP, buy, 10, 82,50, 2024-03-14',
+  },
+  invest_import_apply_book: {
+    en: 'Update positions and cash — off records history only, for books already mirrored by hand',
+    fr: 'Mettre à jour positions et liquidités — désactivé, l’historique seul s’enregistre, pour les livres déjà saisis à la main',
+  },
+  invest_import_run: { en: 'Import', fr: 'Importer' },
+  invest_import_bad_line: { en: 'Line {line}: skipped — needs symbol, buy|sell, qty, price, date', fr: 'Ligne {line} : ignorée — symbole, buy|sell, quantité, prix et date requis' },
+  invest_hint_import_aria: { en: 'About importing fills', fr: 'À propos de l’import' },
+  invest_hint_import: {
+    en: 'For an account you mirror from elsewhere: paste the fills that built it and the book reconstructs itself. Nothing syncs — this is history you type in once.',
+    fr: 'Pour un compte que vous reflétez d’ailleurs : collez les exécutions qui l’ont bâti et le livre se reconstruit. Rien ne se synchronise — c’est un historique saisi une fois.',
+  },
+
+  /* Position shortcuts + recurring contributions + curve scope (0224).
+     [FR self-authored] */
+  invest_dividend_record: { en: 'Record dividend', fr: 'Enregistrer un dividende' },
+  invest_dividend_per_share: { en: 'Per share', fr: 'Par action' },
+  invest_split_record: { en: 'Record split', fr: 'Enregistrer une division' },
+  invest_split_ratio: { en: 'Split ratio', fr: 'Ratio de division' },
+  invest_split_ratio_hint: { en: '2 = two-for-one', fr: '2 = deux pour une' },
+  invest_recur_title: { en: 'Recurring contributions', fr: 'Versements périodiques' },
+  invest_recur_sub: {
+    en: 'A deposit the sweep writes automatically when its date lands — the curve still backs it out of performance.',
+    fr: 'Un dépôt que l’analyse inscrit automatiquement à la date prévue — la courbe l’exclut toujours du rendement.',
+  },
+  invest_recur_amount: { en: 'Amount', fr: 'Montant' },
+  invest_recur_cadence: { en: 'Every', fr: 'Fréquence' },
+  invest_recur_weekly: { en: 'week', fr: 'semaine' },
+  invest_recur_monthly: { en: 'month', fr: 'mois' },
+  invest_recur_next_date: { en: 'First deposit on', fr: 'Premier versement le' },
+  invest_recur_next: { en: 'next {date}', fr: 'prochain {date}' },
+  invest_recur_add: { en: 'Schedule', fr: 'Programmer' },
+  invest_recur_pause: { en: 'Pause', fr: 'Suspendre' },
+  invest_recur_resume: { en: 'Resume', fr: 'Reprendre' },
+  invest_recur_paused: { en: 'Paused', fr: 'Suspendu' },
+  invest_hint_recur_aria: { en: 'About recurring contributions', fr: 'À propos des versements' },
+  invest_hint_recur: {
+    en: 'When a due date lands, the sweep records a real deposit on the account and bumps the next date — weekly or monthly. Pausing stops new deposits; past ones stay in the ledger.',
+    fr: 'À la date prévue, l’analyse inscrit un vrai dépôt sur le compte et reporte l’échéance — hebdomadaire ou mensuelle. Suspendre arrête les prochains versements ; ceux passés restent au registre.',
+  },
+  invest_curve_scope_all: { en: 'Whole book', fr: 'Tout le livre' },
+  invest_curve_scope_aria: { en: 'Curve scope', fr: 'Portée de la courbe' },
+  /* Saved stress scenarios (0224). [FR self-authored] */
+  invest_stress_saved_label: { en: 'Saved scenarios…', fr: 'Scénarios enregistrés…' },
+  invest_stress_delete_saved: { en: 'Delete saved scenario', fr: 'Supprimer le scénario' },
+  invest_stress_save_name: { en: 'Name this scenario', fr: 'Nommer ce scénario' },
+  invest_stress_save: { en: 'Save scenario', fr: 'Enregistrer' },
+
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

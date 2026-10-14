@@ -85,6 +85,9 @@ const STATE: InvestState = {
   memories: [],
   bookSnapshots: [],
   cashEvents: [],
+  fills: [],
+  stressScenarios: [],
+  recurring: [],
 }
 
 function goal(over: Partial<InvestGoal> = {}): InvestGoal {

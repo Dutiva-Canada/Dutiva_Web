@@ -6,7 +6,9 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import {
   ASSET_CLASSES,
   type AssetClass,
+  type InvestAccount,
   type InvestOrder,
+  type OrderFill,
   type OrderMode,
   type OrderSide,
   type OrderStatus,
@@ -14,9 +16,16 @@ import {
 } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { readOrderMode } from './investPrefs'
-import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
+import {
+  createOrder,
+  executeOrder,
+  importFill,
+  setOrderStatus,
+  updateQueuedOrder,
+} from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
+import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
@@ -79,6 +88,56 @@ export function InvestOrdersPage() {
     () => new Map(state.accounts.map((a) => [a.id, a.name])),
     [state.accounts],
   )
+  const orderById = useMemo(
+    () => new Map(state.orders.map((o) => [o.id, o])),
+    [state.orders],
+  )
+  /* Fills arrive newest-first from the loader; per-order lists flip to
+     oldest-first so a partial order reads as it happened. */
+  const fillsByOrder = useMemo(() => {
+    const m = new Map<string, OrderFill[]>()
+    for (const f of state.fills) {
+      const arr = m.get(f.orderId) ?? []
+      arr.push(f)
+      m.set(f.orderId, arr)
+    }
+    for (const arr of m.values()) arr.reverse()
+    return m
+  }, [state.fills])
+  /* Realized P&L — sell fills carry the position's avg cost at the moment
+     they landed; backfilled rows (avg_cost_at_fill null) are history, not
+     computable gains. Currency groups keep USD sales out of a CAD total. */
+  const { closedTrades, realizedByCcy } = useMemo(() => {
+    const trades: {
+      id: string
+      symbol: string
+      quantity: number
+      avgCost: number
+      price: number
+      realized: number
+      date: string
+      fmt: Intl.NumberFormat
+    }[] = []
+    const totals: Record<string, number> = {}
+    for (const f of state.fills) {
+      const o = orderById.get(f.orderId)
+      if (!o || o.side !== 'sell' || f.avgCostAtFill === null) continue
+      const ccy = currencyFor(o)
+      const realized = (f.price - f.avgCostAtFill) * f.quantity
+      totals[ccy] = (totals[ccy] ?? 0) + realized
+      trades.push({
+        id: f.id,
+        symbol: o.symbol,
+        quantity: f.quantity,
+        avgCost: f.avgCostAtFill,
+        price: f.price,
+        realized,
+        date: f.filledAt.slice(0, 10),
+        fmt: fmtFor(ccy),
+      })
+    }
+    return { closedTrades: trades, realizedByCcy: totals }
+  }, [state.fills, orderById, currencyFor, fmtFor])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
@@ -146,7 +205,13 @@ export function InvestOrdersPage() {
   return (
     <div className="sb sb-page">
       <div className="sb-head-row">
-        <h1>{x(IM.invest_orders_title)}</h1>
+        <h1>
+          {x(IM.invest_orders_title)}
+          <InfoHint
+            label={x(IM.invest_hint_order_status_aria)}
+            text={x(IM.invest_hint_order_status)}
+          />
+        </h1>
       </div>
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
@@ -274,6 +339,7 @@ export function InvestOrdersPage() {
                   <OrderRow
                     key={o.id}
                     order={o}
+                    fills={fillsByOrder.get(o.id) ?? []}
                     busy={busy}
                     fmt={fmtFor(currencyFor(o))}
                     account={
@@ -281,7 +347,10 @@ export function InvestOrdersPage() {
                         ? (accountName.get(o.accountId) ?? null)
                         : null
                     }
-                    onExecute={(fill) => run(() => executeOrder(o.id, fill))}
+                    onExecute={(fill, qty, at) =>
+                      run(() => executeOrder(o.id, fill, qty, at))
+                    }
+                    onEdit={(input) => run(() => updateQueuedOrder(o.id, input))}
                     onCancel={() => run(() => setOrderStatus(o.id, 'cancelled'))}
                   />
                 ))}
@@ -290,100 +359,515 @@ export function InvestOrdersPage() {
           </div>
         )}
       </section>
+
+      {closedTrades.length > 0 && (
+        <section className={cardClass} style={{ marginTop: 16 }}>
+          <h2 className="sb-h2">
+            {x(IM.invest_closed_title)}
+            <InfoHint
+              label={x(IM.invest_hint_closed_aria)}
+              text={x(IM.invest_hint_closed)}
+            />
+          </h2>
+          <div className="sb-table-wrap">
+            <table className="sb-table">
+              <thead>
+                <tr>
+                  <th>{x(IM.invest_field_symbol)}</th>
+                  <th className="num">{x(IM.invest_field_quantity)}</th>
+                  <th className="num">{x(IM.invest_closed_avg_cost)}</th>
+                  <th className="num">{x(IM.invest_closed_sold_at)}</th>
+                  <th className="num">{x(IM.invest_closed_realized)}</th>
+                  <th>{x(IM.invest_closed_date)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {closedTrades.map((t) => (
+                  <tr key={t.id}>
+                    <td><span className="strong">{t.symbol}</span></td>
+                    <td className="num">{t.quantity}</td>
+                    <td className="num">{t.fmt.format(t.avgCost)}</td>
+                    <td className="num">{t.fmt.format(t.price)}</td>
+                    <td
+                      className="num"
+                      style={{ color: t.realized >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
+                    >
+                      {t.realized >= 0 ? '+' : '−'}{t.fmt.format(Math.abs(t.realized))}
+                    </td>
+                    <td className="dim">{t.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                {Object.entries(realizedByCcy).map(([ccy, total]) => (
+                  <tr key={ccy}>
+                    <td colSpan={4} className="dim">
+                      {fillSlots(x(IM.invest_closed_total), { ccy })}
+                    </td>
+                    <td
+                      className="num strong"
+                      style={{ color: total >= 0 ? 'var(--sb-ok)' : 'var(--sb-danger)' }}
+                    >
+                      {total >= 0 ? '+' : '−'}{fmtFor(ccy).format(Math.abs(total))}
+                    </td>
+                    <td />
+                  </tr>
+                ))}
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {state.accounts.length > 0 && (
+        <ImportFills
+          accounts={state.accounts}
+          busy={busy}
+          onImport={(rows) =>
+            run(async () => {
+              for (const r of rows) await importFill(r)
+            })
+          }
+        />
+      )}
     </div>
   )
 }
 
 function OrderRow({
   order: o,
+  fills,
   busy,
   fmt,
   account,
   onExecute,
+  onEdit,
   onCancel,
 }: {
   order: InvestOrder
+  /** Fills that already landed against this order, oldest first. */
+  fills: OrderFill[]
   busy: boolean
   fmt: Intl.NumberFormat
   /** Account label — shown only when the book has more than one. */
   account: string | null
-  onExecute: (fillPrice?: number) => Promise<unknown>
+  onExecute: (fillPrice?: number, qty?: number, at?: string) => Promise<unknown>
+  onEdit: (input: { quantity: number; limitPrice: number | null; note?: string }) => Promise<unknown>
   onCancel: () => Promise<unknown>
 }) {
   const { x } = useI18n()
-  const [fill, setFill] = useState('')
+  const [open, setOpen] = useState<'fill' | 'edit' | 'fills' | null>(null)
+  const [fillQty, setFillQty] = useState('')
+  const [fillPrice, setFillPrice] = useState('')
+  const [fillAt, setFillAt] = useState('')
+  const [editQty, setEditQty] = useState(String(o.quantity))
+  const [editLimit, setEditLimit] = useState(o.limitPrice !== null ? String(o.limitPrice) : '')
+  const [editNote, setEditNote] = useState(o.note ?? '')
   const actionable = o.status === 'queued' || o.status === 'draft'
-  const fillNum = Number(fill)
+
+  const filledQty = fills.reduce((s, f) => s + f.quantity, 0)
+  const remaining = o.quantity - filledQty
+  const qtyNum = Number(fillQty)
+  const priceNum = Number(fillPrice)
+  /* Paper: a blank price fills at the current mark. Live: required. */
+  const priceOk = o.mode === 'live' ? priceNum > 0 : fillPrice === '' || priceNum > 0
+  const fillValid = (fillQty === '' || (qtyNum > 0 && qtyNum <= remaining)) && priceOk
+
+  const submitFill = () => {
+    void onExecute(
+      fillPrice === '' ? undefined : priceNum,
+      fillQty === '' ? undefined : qtyNum,
+      fillAt === '' ? undefined : fillAt,
+    ).then(() => {
+      setFillQty('')
+      setFillPrice('')
+      setFillAt('')
+      setOpen(null)
+    })
+  }
+
+  const submitEdit = () => {
+    const q = Number(editQty)
+    if (!Number.isFinite(q) || q <= 0) return
+    const lim = editLimit === '' ? null : Number(editLimit)
+    void onEdit({ quantity: q, limitPrice: lim, note: editNote }).then(() =>
+      setOpen(null),
+    )
+  }
+
+  const toggle = (v: 'fill' | 'edit' | 'fills') => setOpen((cur) => (cur === v ? null : v))
+  const cols = 7
 
   return (
-    <tr>
-      <td>
-        <span className="strong">{o.symbol}</span>
-        {account && (
+    <>
+      <tr>
+        <td>
+          <span className="strong">{o.symbol}</span>
+          {account && (
+            <span className="dim" style={{ marginLeft: 6 }}>
+              {account}
+            </span>
+          )}
           <span className="dim" style={{ marginLeft: 6 }}>
-            {account}
+            {x(o.mode === 'paper' ? IM.invest_mode_paper : IM.invest_mode_live)}
           </span>
-        )}
-        <span className="dim" style={{ marginLeft: 6 }}>
-          {x(o.mode === 'paper' ? IM.invest_mode_paper : IM.invest_mode_live)}
-        </span>
-      </td>
-      <td>{x(o.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)}</td>
-      <td className="num">{o.quantity}</td>
-      <td>
-        {x(o.orderType === 'market' ? IM.invest_order_market : IM.invest_order_limit)}
-        {o.limitPrice !== null && ` · ${fmt.format(o.limitPrice)}`}
-      </td>
-      <td>
-        <StatusChip status={o.status} />
-        {(o.status === 'draft' || o.status === 'expired') && relTimeLabel(o.createdAt, x) && (
-          <p className="dim" style={{ margin: '2px 0 0' }}>
-            {fillSlots(x(IM.invest_order_proposed), { ago: relTimeLabel(o.createdAt, x) ?? '' })}
-          </p>
-        )}
-        {o.error && (
-          <p className="dim" style={{ margin: '2px 0 0', color: 'var(--sb-danger)', maxWidth: 180 }}>
-            {o.error}
-          </p>
-        )}
-      </td>
-      <td className="num">
-        {o.executedPrice !== null ? fmt.format(o.executedPrice) : '—'}
-      </td>
-      <td>
-        {actionable && (
+        </td>
+        <td>{x(o.side === 'buy' ? IM.invest_order_buy : IM.invest_order_sell)}</td>
+        <td className="num">
+          {o.quantity}
+          {filledQty > 0 && remaining > 0 && (
+            <p className="dim" style={{ margin: '2px 0 0' }}>
+              {fillSlots(x(IM.invest_fills_progress), { filled: filledQty, total: o.quantity })}
+            </p>
+          )}
+        </td>
+        <td>
+          {x(o.orderType === 'market' ? IM.invest_order_market : IM.invest_order_limit)}
+          {o.limitPrice !== null && ` · ${fmt.format(o.limitPrice)}`}
+        </td>
+        <td>
+          <StatusChip status={o.status} />
+          {(o.status === 'draft' || o.status === 'expired') && relTimeLabel(o.createdAt, x) && (
+            <p className="dim" style={{ margin: '2px 0 0' }}>
+              {fillSlots(x(IM.invest_order_proposed), { ago: relTimeLabel(o.createdAt, x) ?? '' })}
+            </p>
+          )}
+          {o.error && (
+            <p className="dim" style={{ margin: '2px 0 0', color: 'var(--sb-danger)', maxWidth: 180 }}>
+              {o.error}
+            </p>
+          )}
+        </td>
+        <td className="num">
+          {o.executedPrice !== null ? fmt.format(o.executedPrice) : '—'}
+        </td>
+        <td>
           <span className="sb-row-actions">
-            {o.mode === 'live' && (
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={fill}
-                onChange={(e) => setFill(e.target.value)}
-                placeholder={x(IM.invest_order_fill_price)}
-                className="sb-input sb-input-sm"
-              />
+            {fills.length > 0 && (
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                aria-expanded={open === 'fills'}
+                onClick={() => toggle('fills')}
+              >
+                {fillSlots(x(IM.invest_fills_count), { count: fills.length })}
+              </button>
             )}
-            <button
-              type="button"
-              disabled={busy || (o.mode === 'live' && !(fillNum > 0))}
-              onClick={() => void onExecute(o.mode === 'live' ? fillNum : undefined)}
-              className="sb-btn sb-btn-primary sb-btn-sm"
-            >
-              {x(IM.invest_mark_executed)}
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void onCancel()}
-              className="sb-btn sb-btn-secondary sb-btn-sm"
-            >
-              {x(IM.invest_cancel_order)}
-            </button>
+            {actionable && (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  className="sb-btn sb-btn-primary sb-btn-sm"
+                  aria-expanded={open === 'fill'}
+                  onClick={() => toggle('fill')}
+                >
+                  {x(IM.invest_mark_executed)}
+                </button>
+                {o.status === 'queued' && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="sb-btn sb-btn-secondary sb-btn-sm"
+                    aria-expanded={open === 'edit'}
+                    onClick={() => toggle('edit')}
+                  >
+                    {x(IM.invest_edit)}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void onCancel()}
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                >
+                  {x(IM.invest_cancel_order)}
+                </button>
+              </>
+            )}
           </span>
-        )}
-      </td>
-    </tr>
+        </td>
+      </tr>
+
+      {open === 'fills' && fills.length > 0 && (
+        <tr className="sb-ord-detail">
+          <td colSpan={cols}>
+            <ul className="sb-fill-list">
+              {fills.map((f) => (
+                <li key={f.id}>
+                  <span className="strong">{f.quantity}</span>
+                  {' @ '}
+                  {fmt.format(f.price)}
+                  <span className="dim"> · {f.filledAt.slice(0, 10)}</span>
+                  {f.note && <span className="dim"> · {f.note}</span>}
+                </li>
+              ))}
+            </ul>
+          </td>
+        </tr>
+      )}
+
+      {open === 'fill' && actionable && (
+        <tr className="sb-ord-detail">
+          <td colSpan={cols}>
+            <div className="sb-ord-fill">
+              <div className="sb-field">
+                <label className={labelClass}>{x(IM.invest_field_quantity)}</label>
+                <input
+                  type="number"
+                  min="0"
+                  max={remaining}
+                  step="any"
+                  value={fillQty}
+                  onChange={(e) => setFillQty(e.target.value)}
+                  placeholder={String(remaining)}
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <div className="sb-field">
+                <label className={labelClass}>{x(IM.invest_order_fill_price)}</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={fillPrice}
+                  onChange={(e) => setFillPrice(e.target.value)}
+                  placeholder={
+                    o.mode === 'paper' ? x(IM.invest_fill_price_mark_hint) : undefined
+                  }
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <div className="sb-field">
+                <label className={labelClass}>{x(IM.invest_fill_date)}</label>
+                <input
+                  type="date"
+                  value={fillAt}
+                  onChange={(e) => setFillAt(e.target.value)}
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={busy || !fillValid}
+                className="sb-btn sb-btn-primary sb-btn-sm"
+                onClick={submitFill}
+              >
+                {fillQty !== '' && qtyNum < remaining
+                  ? x(IM.invest_fill_partial)
+                  : x(IM.invest_fill_record)}
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {open === 'edit' && o.status === 'queued' && (
+        <tr className="sb-ord-detail">
+          <td colSpan={cols}>
+            <div className="sb-ord-fill">
+              <div className="sb-field">
+                <label className={labelClass}>{x(IM.invest_field_quantity)}</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={editQty}
+                  onChange={(e) => setEditQty(e.target.value)}
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <div className="sb-field">
+                <label className={labelClass}>{x(IM.invest_order_limit_price)}</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={editLimit}
+                  onChange={(e) => setEditLimit(e.target.value)}
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <div className="sb-field" style={{ flex: 1, minWidth: 160 }}>
+                <label className={labelClass}>{x(IM.invest_fill_note)}</label>
+                <input
+                  value={editNote}
+                  onChange={(e) => setEditNote(e.target.value)}
+                  className="sb-input sb-input-sm"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={busy || !(Number(editQty) > 0)}
+                className="sb-btn sb-btn-primary sb-btn-sm"
+                onClick={submitEdit}
+              >
+                {x(IM.invest_save)}
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  )
+}
+
+/** Pastes a block of external fills — `symbol, side, qty, price, date` per
+    line — and imports them oldest-first through the bot's fill path. */
+function ImportFills({
+  accounts,
+  busy,
+  onImport,
+}: {
+  accounts: InvestAccount[]
+  busy: boolean
+  onImport: (rows: {
+    accountId: string
+    assetClass: AssetClass
+    symbol: string
+    side: 'buy' | 'sell'
+    quantity: number
+    price: number
+    filledAt: string
+    applyBook: boolean
+  }[]) => Promise<unknown>
+}) {
+  const { x } = useI18n()
+  const [open, setOpen] = useState(false)
+  const [accountId, setAccountId] = useState(accounts[0]?.id ?? '')
+  const [text, setText] = useState('')
+  const [applyBook, setApplyBook] = useState(true)
+  const [parseErrors, setParseErrors] = useState<string[]>([])
+
+  const effectiveAccountId = accounts.some((a) => a.id === accountId)
+    ? accountId
+    : (accounts[0]?.id ?? '')
+
+  const parse = (): { rows: Parameters<typeof onImport>[0]; errors: string[] } => {
+    const rows: Parameters<typeof onImport>[0] = []
+    const errors: string[] = []
+    text.split('\n').forEach((line, i) => {
+      const t = line.trim()
+      if (!t || t.startsWith('#')) return
+      const parts = t.split(',').map((p) => p.trim())
+      const [symbol, side, qty, price, date] = parts
+      const bad = !symbol ||
+        (side !== 'buy' && side !== 'sell') ||
+        !(Number(qty) > 0) ||
+        !(Number(price) > 0) ||
+        !date ||
+        Number.isNaN(Date.parse(date))
+      if (bad) {
+        errors.push(fillSlots(x(IM.invest_import_bad_line), { line: i + 1 }))
+        return
+      }
+      rows.push({
+        accountId: effectiveAccountId,
+        assetClass: 'equity',
+        symbol: symbol.toUpperCase(),
+        side,
+        quantity: Number(qty),
+        price: Number(price),
+        filledAt: date,
+        applyBook,
+      })
+    })
+    return { rows, errors }
+  }
+
+  const submit = () => {
+    const { rows, errors } = parse()
+    setParseErrors(errors)
+    if (rows.length === 0) return
+    void onImport(rows).then((ok) => {
+      if (ok !== false) {
+        setText('')
+        setParseErrors([])
+      }
+    })
+  }
+
+  if (!open) {
+    return (
+      <p style={{ marginTop: 16 }}>
+        <button
+          type="button"
+          className="sb-btn sb-btn-secondary"
+          onClick={() => setOpen(true)}
+        >
+          {x(IM.invest_import_open)}
+        </button>
+      </p>
+    )
+  }
+
+  return (
+    <section className={cardClass} style={{ marginTop: 16 }}>
+      <h2 className="sb-h2">
+        {x(IM.invest_import_title)}
+        <InfoHint
+          label={x(IM.invest_hint_import_aria)}
+          text={x(IM.invest_hint_import)}
+        />
+      </h2>
+      <p className="sb-helper">{x(IM.invest_import_help)}</p>
+      <div className="sb-form-grid">
+        <div className="sb-field">
+          <label className={labelClass}>{x(IM.invest_accounts_title)}</label>
+          <select
+            value={effectiveAccountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            className={fieldClass}
+          >
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>{a.name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="sb-field" style={{ gridColumn: '1 / -1' }}>
+          <label className={labelClass}>{x(IM.invest_import_rows)}</label>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            className={fieldClass}
+            rows={5}
+            placeholder={x(IM.invest_import_placeholder)}
+          />
+        </div>
+        <label className="sb-check" style={{ gridColumn: '1 / -1' }}>
+          <input
+            type="checkbox"
+            checked={applyBook}
+            onChange={(e) => setApplyBook(e.target.checked)}
+          />
+          <span>{x(IM.invest_import_apply_book)}</span>
+        </label>
+      </div>
+      {parseErrors.length > 0 && (
+        <ul className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
+          {parseErrors.map((e) => (
+            <li key={e}>{e}</li>
+          ))}
+        </ul>
+      )}
+      <div className="sb-form-actions">
+        <button
+          type="button"
+          className={btnClass}
+          disabled={busy || !text.trim()}
+          onClick={submit}
+        >
+          {x(IM.invest_import_run)}
+        </button>
+        <button
+          type="button"
+          className="sb-btn sb-btn-secondary"
+          onClick={() => setOpen(false)}
+        >
+          {x(IM.invest_dismiss)}
+        </button>
+      </div>
+    </section>
   )
 }
 
@@ -573,7 +1057,11 @@ function OrderForm({
       )}
       <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-mode">
-          {x(IM.invest_account_kind)}
+          {x(IM.invest_order_mode_label)}
+          <InfoHint
+            label={x(IM.invest_hint_order_mode_aria)}
+            text={x(IM.invest_hint_order_mode)}
+          />
         </label>
         <select
           id="inv-ord-mode"

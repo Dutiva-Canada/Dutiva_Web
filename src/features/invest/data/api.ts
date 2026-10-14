@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import type { Json } from '@/lib/supabase/database.types'
 import { normalizeRules, validateRules } from './strategyRules'
 import { ASSET_CLASSES } from './types'
 import type {
@@ -23,8 +24,13 @@ import type {
   MarketSnapshot,
   MemoryKind,
   MultiMatch,
+  OrderFill,
   OrderStatus,
+  RecurringCadence,
+  RecurringContribution,
   RunWarning,
+  StressScenario,
+  StressShock,
   ScanDirection,
   ScanTheme,
   SignalRule,
@@ -59,6 +65,9 @@ export interface InvestState {
   memories: InvestMemory[]
   bookSnapshots: InvestBookSnapshot[]
   cashEvents: InvestCashEvent[]
+  fills: OrderFill[]
+  stressScenarios: StressScenario[]
+  recurring: RecurringContribution[]
 }
 
 type InvestRole = 'client' | 'admin'
@@ -91,7 +100,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts, fillsRes, scenariosRes, recurringRes] =
     await Promise.all([
       client.from('invest_accounts').select('*'),
       client.from('invest_positions').select('*'),
@@ -121,6 +130,18 @@ export async function loadInvestState(): Promise<InvestState> {
         .from('invest_cash_events')
         .select('*')
         .order('occurred_at', { ascending: false }),
+      client
+        .from('invest_order_fills')
+        .select('*')
+        .order('filled_at', { ascending: false }),
+      client
+        .from('invest_stress_scenarios')
+        .select('*')
+        .order('created_at', { ascending: false }),
+      client
+        .from('invest_recurring_contributions')
+        .select('*')
+        .order('created_at', { ascending: false }),
     ])
   for (const res of [
     accounts,
@@ -145,6 +166,10 @@ export async function loadInvestState(): Promise<InvestState> {
      the migration lands, never a failed state load. */
   const bookSnapRows = bookSnaps.error ? [] : (bookSnaps.data ?? [])
   const cashEvtRows = cashEvts.error ? [] : (cashEvts.data ?? [])
+  /* 0224 — fills, saved scenarios, recurring contributions. */
+  const fillRows = fillsRes.error ? [] : (fillsRes.data ?? [])
+  const scenarioRows = scenariosRes.error ? [] : (scenariosRes.data ?? [])
+  const recurringRows = recurringRes.error ? [] : (recurringRes.data ?? [])
 
   /* News follows the same universe as market-sync: held ∪ watched symbols,
      plus general-market items (symbol ''). Server-side filter so general
@@ -191,6 +216,9 @@ export async function loadInvestState(): Promise<InvestState> {
     memories: memoryRows.map(toMemory),
     bookSnapshots: bookSnapRows.map(toBookSnapshot),
     cashEvents: cashEvtRows.map(toCashEvent),
+    fills: fillRows.map(toOrderFill),
+    stressScenarios: scenarioRows.map(toStressScenario),
+    recurring: recurringRows.map(toRecurring),
   }
 }
 
@@ -569,12 +597,200 @@ export async function setOrderStatus(id: string, status: OrderStatus): Promise<v
 
 /** Ask the edge function to fill a queued order (snapshot price, or an
     explicit fill for live orders). */
-export async function executeOrder(orderId: string, fillPrice?: number): Promise<void> {
+export async function executeOrder(
+  orderId: string,
+  fillPrice?: number,
+  quantity?: number,
+  filledAt?: string,
+): Promise<void> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
   const { error } = await client.functions.invoke('invest-bot', {
-    body: { action: 'execute-order', order_id: orderId, fill_price: fillPrice ?? null },
+    body: {
+      action: 'execute-order',
+      order_id: orderId,
+      fill_price: fillPrice ?? null,
+      fill_quantity: quantity ?? null,
+      filled_at: filledAt ?? null,
+    },
   })
+  if (error) throw error
+}
+
+/** Edit a queued order's quantity, limit, or note — anything else needs
+    cancel + re-enter (fills and settled state are immutable by design). */
+export async function updateQueuedOrder(
+  id: string,
+  input: { quantity: number; limitPrice: number | null; note?: string },
+): Promise<void> {
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0) {
+    throw new Error('Quantity must be greater than zero')
+  }
+  const { client, userId } = await requireUserId()
+  const { data, error } = await client
+    .from('invest_orders')
+    .update({
+      quantity: input.quantity,
+      limit_price: input.limitPrice,
+      note: input.note ?? '',
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+    .eq('status', 'queued')
+    .select('id')
+  if (error) throw error
+  if (!data || data.length === 0) {
+    throw new Error('Only a queued order can be edited')
+  }
+}
+
+/* ── Fill backfill + splits + dividends (0224) ────────────────────────────
+   importFill writes an already-executed order + fill through the bot — the
+   same ownership and book-math path live fills use — so external books can
+   carry real history. `applyBook=false` records the trade without moving
+   the position/cash, for a book that already mirrors the net result. */
+
+export async function importFill(input: {
+  accountId: string
+  assetClass: AssetClass
+  symbol: string
+  name?: string
+  side: 'buy' | 'sell'
+  quantity: number
+  price: number
+  filledAt: string
+  note?: string
+  applyBook?: boolean
+}): Promise<void> {
+  await invokeBot({
+    action: 'import-fill',
+    account_id: input.accountId,
+    asset_class: input.assetClass,
+    symbol: input.symbol,
+    name: input.name,
+    side: input.side,
+    quantity: input.quantity,
+    price: input.price,
+    filled_at: input.filledAt,
+    note: input.note,
+    apply_book: input.applyBook,
+  })
+}
+
+/** Record a split on a position: ratio 2 means 2-for-1 — quantity doubles,
+    average cost halves. Pure bookkeeping, no order involved. */
+export async function recordSplit(
+  position: InvestPosition,
+  ratio: number,
+): Promise<void> {
+  if (!Number.isFinite(ratio) || ratio <= 0) throw new Error('Split ratio must be positive')
+  await updatePosition(position.id, {
+    name: position.name,
+    quantity: position.quantity * ratio,
+    avgCost: position.avgCost / ratio,
+    currency: position.currency,
+  })
+}
+
+/** Record a dividend paid on a position — lands in the cash ledger and
+    moves the account balance via recordCashEvent's compensating pair. */
+export async function recordDividend(
+  position: InvestPosition,
+  perShare: number,
+  occurredAt?: string,
+): Promise<void> {
+  if (!Number.isFinite(perShare) || perShare <= 0) {
+    throw new Error('Dividend per share must be greater than zero')
+  }
+  await recordCashEvent({
+    accountId: position.accountId,
+    kind: 'dividend',
+    amount: perShare * position.quantity,
+    currency: position.currency,
+    occurredAt,
+    note: `${position.symbol} dividend — ${perShare} × ${position.quantity}`,
+  })
+}
+
+/* ── Saved stress scenarios + recurring contributions (0224) ────────────── */
+
+export async function saveStressScenario(input: {
+  name: string
+  shocks: StressShock[]
+  id?: string
+}): Promise<void> {
+  if (!input.name.trim()) throw new Error('Name the scenario')
+  if (input.shocks.length === 0) throw new Error('A scenario needs at least one shock')
+  const { client, userId } = await requireUserId()
+  const row = {
+    user_id: userId,
+    name: input.name.trim(),
+    shocks: input.shocks as unknown as Json,
+    updated_at: new Date().toISOString(),
+  }
+  const { error } = input.id
+    ? await client
+        .from('invest_stress_scenarios')
+        .update(row)
+        .eq('id', input.id)
+        .eq('user_id', userId)
+    : await client.from('invest_stress_scenarios').insert(row)
+  if (error) throw error
+}
+
+export async function deleteStressScenario(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_stress_scenarios')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
+export async function saveRecurring(input: {
+  accountId: string
+  amount: number
+  currency: string
+  cadence: RecurringCadence
+  nextRunOn: string
+  note?: string
+  enabled?: boolean
+  id?: string
+}): Promise<void> {
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    throw new Error('Amount must be greater than zero')
+  }
+  const { client, userId } = await requireUserId()
+  const row = {
+    user_id: userId,
+    account_id: input.accountId,
+    amount: input.amount,
+    currency: input.currency,
+    cadence: input.cadence,
+    next_run_on: input.nextRunOn,
+    note: input.note ?? '',
+    enabled: input.enabled ?? true,
+    updated_at: new Date().toISOString(),
+  }
+  const { error } = input.id
+    ? await client
+        .from('invest_recurring_contributions')
+        .update(row)
+        .eq('id', input.id)
+        .eq('user_id', userId)
+    : await client.from('invest_recurring_contributions').insert(row)
+  if (error) throw error
+}
+
+export async function deleteRecurring(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_recurring_contributions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
   if (error) throw error
 }
 
@@ -1317,10 +1533,50 @@ function toBookSnapshot(row: any): InvestBookSnapshot {
   return {
     id: row.id,
     asOf: row.as_of,
+    accountId: row.account_id ?? null,
     bookValue: Number(row.book_value),
     cash: Number(row.cash),
     invested: Number(row.invested),
     currency: row.currency,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toOrderFill(row: any): OrderFill {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    quantity: Number(row.quantity),
+    price: Number(row.price),
+    filledAt: row.filled_at,
+    avgCostAtFill: row.avg_cost_at_fill === null ? null : Number(row.avg_cost_at_fill),
+    note: row.note ?? '',
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toRecurring(row: any): RecurringContribution {
+  return {
+    id: row.id,
+    accountId: row.account_id,
+    amount: Number(row.amount),
+    currency: row.currency,
+    cadence: row.cadence,
+    nextRunOn: row.next_run_on,
+    enabled: row.enabled,
+    note: row.note ?? '',
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toStressScenario(row: any): StressScenario {
+  return {
+    id: row.id,
+    name: row.name,
+    /* jsonb — the panel validates shape on use; a malformed row degrades
+       to an empty shock list rather than crashing the load. */
+    shocks: Array.isArray(row.shocks) ? row.shocks : [],
+    createdAt: row.created_at,
   }
 }
 

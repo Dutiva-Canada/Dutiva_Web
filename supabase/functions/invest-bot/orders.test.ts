@@ -10,7 +10,7 @@ vi.mock('./botShared.ts', () => ({
     }),
 }))
 
-import { executeOrder } from './orders'
+import { executeOrder, importFill } from './orders'
 import type { SupabaseClient } from './botShared'
 
 /* ── executeOrder — the only fill path. A table-backed fake exercises the
@@ -34,7 +34,7 @@ function fakeDb(
   const from = (table: string) => {
     const live = tables[table] ?? (tables[table] = [])
     const read = opts.frozen?.[table] ?? live
-    let op: 'select' | 'update' | 'insert' = 'select'
+    let op: 'select' | 'update' | 'insert' | 'delete' = 'select'
     let payload: Row | null = null
     const filters: [string, unknown[]][] = []
     const match = (r: Row) =>
@@ -53,6 +53,14 @@ function fakeDb(
         live.push(row)
         return { data: { ...row }, error: null }
       }
+      if (op === 'delete') {
+        const kept = live.filter((r) => !match(r))
+        const gone = live.length - kept.length
+        tables[table] = kept
+        /* `live` was the array we spliced out from under — swap the seed
+           reference too so `tables` reads the post-delete rows. */
+        return { data: new Array(gone), error: null }
+      }
       return { data: read.filter(match).map((r) => ({ ...r })), error: null }
     }
     const q: Record<string, unknown> = {
@@ -62,7 +70,16 @@ function fakeDb(
       is: (col: string, v: unknown) => (filters.push([col, [v]]), q),
       update: (p: Row) => ((op = 'update'), (payload = p), q),
       insert: (p: Row) => ((op = 'insert'), (payload = p), q),
+      delete: () => ((op = 'delete'), q),
       maybeSingle: () => {
+        const res = run()
+        const arr = res.data
+        return Promise.resolve({
+          data: Array.isArray(arr) ? (arr[0] ?? null) : arr,
+          error: res.error,
+        })
+      },
+      single: () => {
         const res = run()
         const arr = res.data
         return Promise.resolve({
@@ -208,5 +225,120 @@ describe('executeOrder', () => {
     expect(order['status']).toBe('queued')
     expect(order['executed_price']).toBeNull()
     expect(order['error']).toMatch(/failed/)
+  })
+
+  /* ── 0224: partial fills, VWAP settlement, fill rows ─────────────────── */
+
+  it('records a partial fill — order stays queued, position moves by the filled qty', async () => {
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await executeOrder(client, 'u-1', 'ord-1', 110, 2)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ status: 'partial', filled: 2, remaining: 3 })
+    /* Only the fill landed — the claim doesn't fire while quantity remains. */
+    expect(tables['invest_orders']![0]!['status']).toBe('queued')
+    expect(tables['invest_positions']![0]!['quantity']).toBe(3)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1220)
+    const fill = tables['invest_order_fills']![0]!
+    expect(fill).toMatchObject({
+      order_id: 'ord-1',
+      quantity: 2,
+      price: 110,
+      avg_cost_at_fill: 100,
+    })
+  })
+
+  it('completing fill settles at the fills VWAP, not the last price', async () => {
+    const seed = baseSeed()
+    seed['invest_order_fills'] = [
+      { order_id: 'ord-1', user_id: 'u-1', quantity: 2, price: 100, filled_at: 'x' },
+    ]
+    /* The prior 2-of-5 sell already moved the book — a consistent seed
+       holds 3 left, not the original 5. */
+    seed['invest_positions'] = [{ ...POSITION, quantity: 3 }]
+    const { client, tables } = fakeDb(seed)
+    /* 2 of 5 already landed at 100 — this fill takes the remaining 3. */
+    const res = await executeOrder(client, 'u-1', 'ord-1', 140, 3)
+    expect(res.status).toBe(200)
+    /* VWAP = (2·100 + 3·140) / 5 = 124 — the single-price claim would
+       have booked 140. */
+    expect(tables['invest_orders']![0]!['executed_price']).toBeCloseTo(124)
+    expect(tables['invest_positions']![0]!['quantity']).toBe(0)
+    /* Cash: prior 2×100 already settled in the seeded balance's implied
+       history; this call adds 3×140. */
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1420)
+  })
+
+  it('a fill bigger than the remaining rejects instead of over-filling', async () => {
+    const seed = baseSeed()
+    seed['invest_order_fills'] = [
+      { order_id: 'ord-1', user_id: 'u-1', quantity: 2, price: 100, filled_at: 'x' },
+    ]
+    const { client, tables } = fakeDb(seed)
+    const res = await executeOrder(client, 'u-1', 'ord-1', 120, 4)
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({ code: 'bad_fill_qty' })
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+  })
+
+  it('a sell carrying an explicit back-dated stamp lands with it', async () => {
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await executeOrder(client, 'u-1', 'ord-1', 115, 5, '2025-06-01')
+    expect(res.status).toBe(200)
+    const fill = tables['invest_order_fills']!.find((f) => f['order_id'] === 'ord-1')!
+    expect(fill['filled_at']).toBe(new Date('2025-06-01').toISOString())
+  })
+})
+
+describe('importFill', () => {
+  const FILL = {
+    account_id: 'acc-1',
+    asset_class: 'equity' as const,
+    symbol: 'ARM',
+    side: 'buy' as const,
+    quantity: 4,
+    price: 90,
+    filled_at: '2025-01-15',
+  }
+
+  it('lands an executed order + fill and moves the book', async () => {
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await importFill(client, 'u-1', FILL)
+    expect(res.status).toBe(200)
+    const pos = tables['invest_positions']![0]!
+    /* Seeded 5@100 + imported 4@90 → 9 @ 95.56. */
+    expect(pos['quantity']).toBe(9)
+    expect(pos['avg_cost']).toBeCloseTo(95.56, 2)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(640)
+    const order = tables['invest_orders']!.find((o) => o['status'] === 'executed')!
+    expect(order).toMatchObject({ mode: 'live', executed_price: 90 })
+    const fill = tables['invest_order_fills']![0]!
+    expect(fill['avg_cost_at_fill']).toBe(100)
+    expect(fill['note']).toBe('imported')
+  })
+
+  it('apply_book=false records history without touching the book', async () => {
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await importFill(client, 'u-1', { ...FILL, apply_book: false })
+    expect(res.status).toBe(200)
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+    /* avg_cost_at_fill stays null — nothing was applied to compare it to. */
+    expect(tables['invest_order_fills']![0]!['avg_cost_at_fill']).toBeNull()
+  })
+
+  it('refuses a foreign account — service role still honors ownership', async () => {
+    const seed = baseSeed()
+    seed['invest_accounts'] = [{ id: 'acc-1', user_id: 'u-2', cash_balance: 1000 }]
+    const { client, tables } = fakeDb(seed)
+    const res = await importFill(client, 'u-1', FILL)
+    expect(res.status).toBe(404)
+    expect(tables['invest_orders']).toHaveLength(1)
+  })
+
+  it('refuses a sell bigger than the imported book holds', async () => {
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await importFill(client, 'u-1', { ...FILL, side: 'sell', quantity: 9 })
+    expect(res.status).toBe(409)
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
   })
 })

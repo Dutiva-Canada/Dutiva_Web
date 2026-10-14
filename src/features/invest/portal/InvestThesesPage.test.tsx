@@ -74,6 +74,9 @@ const STATE: InvestState = {
   memories: [],
   bookSnapshots: [],
   cashEvents: [],
+  fills: [],
+  stressScenarios: [],
+  recurring: [],
 }
 
 function thesis(over: Partial<InvestThesis> = {}): InvestThesis {

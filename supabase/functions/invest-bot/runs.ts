@@ -107,7 +107,7 @@ export async function runUser(
       .eq('user_id', userId),
     adminClient
       .from('invest_accounts')
-      .select('cash_balance, base_currency')
+      .select('id, cash_balance, base_currency')
       .eq('user_id', userId)
       .eq('status', 'active'),
     adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
@@ -177,7 +177,11 @@ export async function runUser(
      portal uses for its blended headline. FX rates convert every position
      and cash leg into it; without rates, foreign-currency rows stay out of
      the totals rather than blend currencies at face value. */
-  const accounts = (accountsRes.data ?? []) as { cash_balance: number; base_currency: string | null }[]
+  const accounts = (accountsRes.data ?? []) as {
+    id: string
+    cash_balance: number
+    base_currency: string | null
+  }[]
   const bookCurrency = (accounts[0]?.base_currency ?? 'CAD').toUpperCase()
   const fx = await fetchFxTable()
   let cashSkipped = false
@@ -509,31 +513,136 @@ export async function runUser(
   let thesisEvals: ThesisEval[] = []
   const thesisCtx = thesisBookContext(positions, snapshots, cashTotal, fx, bookCurrency)
 
-  /* Book snapshot — the track record's substrate. One upserted row per
-     sweep-day keeps the series clean when a run is re-fired manually; the
-     Overview curve reads it. Never fatal — a missing 0223 table or a
-     transient write failure must not fail the run. */
+  /* Book snapshots — the track record's substrate. One book-wide row
+     (account_id null) plus one row per account in that account's own
+     currency, refreshed per sweep-day. PostgREST can't infer the partial
+     unique indexes from a bare onConflict list, so each write is update-
+     then-insert rather than upsert. Never fatal — a missing table or a
+     transient failure must not fail the run. */
   try {
-    const { error: snapError } = await adminClient.from('invest_book_snapshots').upsert(
+    const today = new Date().toISOString().slice(0, 10)
+    const rows: {
+      account_id: string | null
+      book_value: number
+      cash: number
+      invested: number
+      currency: string
+    }[] = [
       {
-        user_id: userId,
-        as_of: new Date().toISOString().slice(0, 10),
+        account_id: null,
         book_value: thesisCtx.bookValue,
         cash: thesisCtx.cashTotal,
         invested: thesisCtx.bookValue - thesisCtx.cashTotal,
-        currency: thesisCtx.bookCurrency,
+        currency: bookCurrency,
       },
-      { onConflict: 'user_id,as_of' },
-    )
-    /* PostgREST answers errors in-band — a missing 0223 table surfaces
-       here, not as a throw. */
-    if (snapError) throw snapError
+    ]
+    for (const acc of accounts) {
+      const cur = (acc.base_currency ?? bookCurrency).toUpperCase()
+      const invested = positions
+        .filter((p) => p.account_id === acc.id)
+        .reduce((sum, p) => {
+          const snap = snapshots.find(
+            (s) => s.asset_class === p.asset_class && s.symbol === p.symbol,
+          )
+          if (!snap) return sum
+          return sum + (convertFx(p.quantity * snap.price, snap.currency, cur, fx) ?? 0)
+        }, 0)
+      const cash = Number(acc.cash_balance)
+      rows.push({
+        account_id: acc.id,
+        book_value: cash + invested,
+        cash,
+        invested,
+        currency: cur,
+      })
+    }
+    for (const row of rows) {
+      let upd = adminClient
+        .from('invest_book_snapshots')
+        .update({
+          book_value: row.book_value,
+          cash: row.cash,
+          invested: row.invested,
+          currency: row.currency,
+        })
+        .eq('user_id', userId)
+        .eq('as_of', today)
+      upd = row.account_id === null ? upd.is('account_id', null) : upd.eq('account_id', row.account_id)
+      const { data: updated } = await upd.select('id')
+      if (!updated || updated.length === 0) {
+        const { error: insErr } = await adminClient.from('invest_book_snapshots').insert({
+          user_id: userId,
+          as_of: today,
+          account_id: row.account_id,
+          book_value: row.book_value,
+          cash: row.cash,
+          invested: row.invested,
+          currency: row.currency,
+        })
+        if (insErr) throw insErr
+      }
+    }
   } catch (error) {
     plan.warnings.push(
       `book snapshot failed: ${(error as Error).message.slice(0, 120)}`,
     )
     plan.warningDetails.push({ code: 'snapshot_failed', params: {} })
     console.error('invest-bot: book snapshot failed', error)
+  }
+
+  /* Recurring contributions — a due row writes a deposit cash event, moves
+     the account's cash, and advances next_run_on one period. Single-advance
+     per run keeps re-fired sweeps from double-posting; a multi-week lapse
+     catches up one period per sweep. Never fatal. */
+  try {
+    const today = new Date().toISOString().slice(0, 10)
+    const { data: dueRows } = await adminClient
+      .from('invest_recurring_contributions')
+      .select('id, account_id, amount, currency, cadence, next_run_on, note')
+      .eq('user_id', userId)
+      .eq('enabled', true)
+      .lte('next_run_on', today)
+    for (const rc of dueRows ?? []) {
+      const account = accounts.find((a) => a.id === rc.account_id)
+      if (!account) continue /* archived account — the row just waits */
+      const stamp = new Date().toISOString()
+      const { error: evErr } = await adminClient.from('invest_cash_events').insert({
+        user_id: userId,
+        account_id: rc.account_id,
+        kind: 'deposit',
+        amount: Number(rc.amount),
+        currency: rc.currency,
+        occurred_at: today,
+        note: rc.note ? `Recurring — ${rc.note}` : 'Recurring contribution',
+      })
+      if (evErr) throw evErr
+      const { error: cashErr } = await adminClient
+        .from('invest_accounts')
+        .update({
+          cash_balance: Number(account.cash_balance) + Number(rc.amount),
+          updated_at: stamp,
+        })
+        .eq('id', rc.account_id)
+        .eq('user_id', userId)
+      if (cashErr) throw cashErr
+      /* Keep the next due row's math honest — numeric columns can come
+         back as strings, so reassign through Number(), not +=. */
+      account.cash_balance = Number(account.cash_balance) + Number(rc.amount)
+      const next = new Date(`${rc.next_run_on}T00:00:00Z`)
+      if (rc.cadence === 'weekly') next.setUTCDate(next.getUTCDate() + 7)
+      else next.setUTCMonth(next.getUTCMonth() + 1)
+      await adminClient
+        .from('invest_recurring_contributions')
+        .update({ next_run_on: next.toISOString().slice(0, 10), updated_at: stamp })
+        .eq('id', rc.id)
+        .eq('user_id', userId)
+    }
+  } catch (error) {
+    plan.warnings.push(
+      `recurring contributions failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    plan.warningDetails.push({ code: 'recurring_failed', params: {} })
+    console.error('invest-bot: recurring contributions failed', error)
   }
 
   if (theses.length > 0) {

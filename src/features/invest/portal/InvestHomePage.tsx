@@ -424,7 +424,12 @@ export function InvestHomePage() {
 
       <div style={{ marginBottom: 16 }}>
         <Suspense fallback={null}>
-          <BookCurve snapshots={state.bookSnapshots} cashEvents={state.cashEvents} fx={fx} />
+          <BookCurve
+            snapshots={state.bookSnapshots}
+            cashEvents={state.cashEvents}
+            accounts={state.accounts}
+            fx={fx}
+          />
         </Suspense>
       </div>
 
