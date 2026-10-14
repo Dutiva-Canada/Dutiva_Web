@@ -1,6 +1,6 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Bell, Contrast, Globe, Loader2, LogOut, Menu, Moon, Settings, Sun, X } from 'lucide-react'
+import { Bell, ChevronDown, Contrast, Globe, Loader2, LogOut, Menu, Moon, Settings, Sun, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi, Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -94,8 +94,10 @@ function LoadErrorNote() {
   )
 }
 
+const NAV_ITEM_BASE =
+  'shrink-0 whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold'
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `shrink-0 whitespace-nowrap rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
+  `${NAV_ITEM_BASE} transition-[background,color] duration-150 ${
     isActive
       ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
       : 'text-text-muted hover:text-text-2'
@@ -114,6 +116,106 @@ export function InvestPortalLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+
+  /* Desktop tab strip: measure intrinsic widths from an invisible row and
+     give the bar only as many tabs as fit — the rest collapse into a More
+     menu. Wrapping strands a lone tab on a second row; scrolling draws a
+     scrollbar and hides tabs with no affordance. */
+  const navWrapRef = useRef<HTMLDivElement>(null)
+  const measureRef = useRef<HTMLDivElement>(null)
+  const moreWrapRef = useRef<HTMLDivElement>(null)
+  const moreBtnRef = useRef<HTMLButtonElement>(null)
+  const [availW, setAvailW] = useState(0)
+  const [meas, setMeas] = useState<{ tabs: number[]; more: number } | null>(null)
+  const [moreOpen, setMoreOpen] = useState(false)
+
+  useLayoutEffect(() => {
+    const el = measureRef.current
+    if (!el) return
+    const read = () =>
+      setMeas({
+        tabs: Array.from(el.querySelectorAll<HTMLElement>('[data-nav-item]')).map(
+          (n) => n.offsetWidth,
+        ),
+        more: el.querySelector<HTMLElement>('[data-nav-more]')?.offsetWidth ?? 0,
+      })
+    read()
+    let alive = true
+    void document.fonts?.ready.then(() => {
+      if (alive) read()
+    })
+    return () => {
+      alive = false
+    }
+  }, [lang])
+
+  useEffect(() => {
+    const el = navWrapRef.current
+    if (!el) return
+    const read = () => setAvailW(el.clientWidth)
+    read()
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', read)
+      return () => window.removeEventListener('resize', read)
+    }
+    const ro = new ResizeObserver(read)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  /* Close the More menu on outside click / Escape / navigation. */
+  useEffect(() => {
+    if (!moreOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (!moreWrapRef.current?.contains(e.target as Node)) setMoreOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMoreOpen(false)
+        moreBtnRef.current?.focus()
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
+  useEffect(() => {
+    setMoreOpen(false)
+  }, [location.pathname])
+
+  const NAV_GAP = 3
+  const { visibleNav, overflowNav } = useMemo(() => {
+    let count: number = NAV.length
+    if (meas && availW > 0) {
+      const total =
+        meas.tabs.reduce((a, b) => a + b, 0) + NAV_GAP * (NAV.length - 1)
+      if (total > availW) {
+        const budget = availW - meas.more - NAV_GAP
+        let used = 0
+        count = 0
+        for (const w of meas.tabs) {
+          if (used + w > budget) break
+          used += w + NAV_GAP
+          count++
+        }
+        count = Math.max(count, 1)
+      }
+    }
+    const visible = NAV.slice(0, count)
+    /* Keep the active tab on the bar — trade the last fitting slot for it
+       so the current section is never buried in More. */
+    const active = NAV.find((item) =>
+      item.end
+        ? location.pathname === item.to
+        : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`),
+    )
+    if (active && !visible.includes(active)) visible[visible.length - 1] = active
+    return { visibleNav: visible, overflowNav: NAV.filter((i) => !visible.includes(i)) }
+  }, [meas, availW, location.pathname])
 
   /* Start-page preference: the FIRST landing on the bare /invest index in
      a session redirects to the preferred tab — sessionStorage keeps it
@@ -215,10 +317,29 @@ export function InvestPortalLayout() {
               >
                 {x(IM.invest_portal_title)}
               </NavLink>
-              {/* nowrap + overflow-x-auto, never wrap — a wrapped row at
-                  ~820–1100px strands one lone tab on its own line. */}
-              <nav className="hidden min-w-0 flex-nowrap items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              {/* Hidden measurement row — offsetWidth survives
+                  visibility:hidden, so real tab widths drive the
+                  visible/overflow split above. */}
+              <div
+                ref={measureRef}
+                aria-hidden="true"
+                className="invisible absolute flex flex-nowrap items-center gap-[3px] pointer-events-none"
+              >
                 {NAV.map((item) => (
+                  <span key={item.to} data-nav-item className={NAV_ITEM_BASE}>
+                    {x(item.label)}
+                  </span>
+                ))}
+                <span data-nav-more className={`${NAV_ITEM_BASE} inline-flex items-center gap-[4px]`}>
+                  {x(IM.invest_tab_more)}
+                  <ChevronDown size={13} aria-hidden="true" />
+                </span>
+              </div>
+              <nav
+                ref={navWrapRef}
+                className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-hidden rounded-[10px] bg-inset p-[3px] min-[820px]:flex"
+              >
+                {visibleNav.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
@@ -229,6 +350,48 @@ export function InvestPortalLayout() {
                     {x(item.label)}
                   </NavLink>
                 ))}
+                {overflowNav.length > 0 && (
+                  <div ref={moreWrapRef} className="relative shrink-0">
+                    <button
+                      ref={moreBtnRef}
+                      type="button"
+                      onClick={() => setMoreOpen((o) => !o)}
+                      aria-haspopup="menu"
+                      aria-expanded={moreOpen}
+                      className={`${NAV_ITEM_BASE} flex cursor-pointer items-center gap-[4px] text-text-muted hover:text-text-2`}
+                    >
+                      {x(IM.invest_tab_more)}
+                      <ChevronDown size={13} aria-hidden="true" />
+                    </button>
+                    {moreOpen && (
+                      <div
+                        role="menu"
+                        aria-label={x(IM.invest_tab_more)}
+                        className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[170px] rounded-[10px] border border-border bg-surface p-[4px] shadow-[0_12px_32px_-12px_rgba(13,27,42,0.30)]"
+                      >
+                        {overflowNav.map((item) => (
+                          <NavLink
+                            key={item.to}
+                            to={item.to}
+                            end={item.end}
+                            role="menuitem"
+                            onClick={() => setMoreOpen(false)}
+                            className={({ isActive }) =>
+                              `flex items-center whitespace-nowrap rounded-[7px] px-[10px] py-[8px] text-[13px] font-semibold no-underline ${
+                                isActive
+                                  ? 'bg-inset text-text'
+                                  : 'text-text-muted hover:bg-inset/60 hover:text-text-2'
+                              }`
+                            }
+                            {...viewIntentProps(portalNavKey(item.to))}
+                          >
+                            {x(item.label)}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </nav>
             </div>
             <div className="hidden items-center gap-[8px] min-[820px]:flex">

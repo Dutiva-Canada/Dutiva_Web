@@ -29,6 +29,7 @@ const investCoreMessages = defineMessages({
   invest_tab_strategies: { en: 'Agent', fr: 'Agent' },
   invest_tab_notifications: { en: 'Notifications', fr: 'Notifications' },
   invest_tab_settings: { en: 'Settings', fr: 'Paramètres' },
+  invest_tab_more: { en: 'More', fr: 'Plus' },
 
   /* Per-route document head (auth-gated → noindex; titles are what the
      browser tab and shared links actually show). */
