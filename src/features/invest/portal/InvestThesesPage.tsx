@@ -37,6 +37,7 @@ import { THESIS_INTENTS } from '../data/types'
 import { newRuleDraft, newRulePersistId, toDrafts } from './ruleDrafts'
 import type { RuleDraft } from './ruleDrafts'
 import { RulesAccordion } from './RulesAccordion'
+import { InfoHint } from './InfoHint'
 import { validateRules } from '../data/strategyRules'
 import { ruleProblemText } from './strategyUi'
 import { relTimeLabel } from './relTime'
@@ -436,7 +437,13 @@ export function InvestThesesPage() {
     <div className="sb sb-col">
       {view.kind === 'list' && (
         <div className="sb-list">
-          <h1>{x(IM.invest_theses_title)}</h1>
+          <h1>
+            {x(IM.invest_theses_title)}
+            <InfoHint
+              label={x(IM.invest_hint_thesis_status_aria)}
+              text={x(IM.invest_hint_thesis_status)}
+            />
+          </h1>
           <p className="sub">{x(IM.invest_theses_sub)}</p>
           <div className="sb-list-actions">
             <button

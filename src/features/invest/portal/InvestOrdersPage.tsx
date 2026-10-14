@@ -17,6 +17,7 @@ import { readOrderMode } from './investPrefs'
 import { createOrder, executeOrder, setOrderStatus } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
+import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { relTimeLabel } from './relTime'
 import { fill as fillSlots } from '@/lib/format'
@@ -146,7 +147,13 @@ export function InvestOrdersPage() {
   return (
     <div className="sb sb-page">
       <div className="sb-head-row">
-        <h1>{x(IM.invest_orders_title)}</h1>
+        <h1>
+          {x(IM.invest_orders_title)}
+          <InfoHint
+            label={x(IM.invest_hint_order_status_aria)}
+            text={x(IM.invest_hint_order_status)}
+          />
+        </h1>
       </div>
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
@@ -573,7 +580,11 @@ function OrderForm({
       )}
       <div className="sb-field">
         <label className={labelClass} htmlFor="inv-ord-mode">
-          {x(IM.invest_account_kind)}
+          {x(IM.invest_order_mode_label)}
+          <InfoHint
+            label={x(IM.invest_hint_order_mode_aria)}
+            text={x(IM.invest_hint_order_mode)}
+          />
         </label>
         <select
           id="inv-ord-mode"

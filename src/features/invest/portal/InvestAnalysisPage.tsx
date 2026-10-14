@@ -37,6 +37,7 @@ import type {
 import { GOAL_METRICS } from '../data/types'
 import { relTimeLabel } from './relTime'
 import { StressTest } from './StressTest'
+import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
 import { AnalysisScan } from './AnalysisScan'
 import { AnalysisSwot } from './AnalysisSwot'
@@ -61,6 +62,16 @@ const GOAL_METRIC_LABEL: Record<GoalMetric, keyof typeof IM> = {
   unrealized_gain_pct: 'invest_goal_metric_unrealized_gain_pct',
   thesis_coverage: 'invest_goal_metric_thesis_coverage',
   position_count: 'invest_goal_metric_position_count',
+}
+/* One line under the "Measured on" select explaining the chosen metric —
+   the label alone ("max weight %") doesn't teach what it measures. */
+const GOAL_METRIC_GLOSS: Record<GoalMetric, keyof typeof IM> = {
+  book_value: 'invest_goal_gloss_book_value',
+  cash_pct: 'invest_goal_gloss_cash_pct',
+  max_weight_pct: 'invest_goal_gloss_max_weight_pct',
+  unrealized_gain_pct: 'invest_goal_gloss_unrealized_gain_pct',
+  thesis_coverage: 'invest_goal_gloss_thesis_coverage',
+  position_count: 'invest_goal_gloss_position_count',
 }
 
 interface GoalDraftState {
@@ -354,7 +365,13 @@ export function InvestAnalysisPage() {
         <section className="sb-section" aria-label={x(IM.invest_analysis_goals)}>
           <div className="sb-section-head">
             <div>
-              <h2>{x(IM.invest_analysis_goals)}</h2>
+              <h2>
+                {x(IM.invest_analysis_goals)}
+                <InfoHint
+                  label={x(IM.invest_hint_goal_status_aria)}
+                  text={x(IM.invest_hint_goal_status)}
+                />
+              </h2>
               <p className="sub">{x(IM.invest_analysis_goals_sub)}</p>
             </div>
             <button
@@ -407,6 +424,7 @@ export function InvestAnalysisPage() {
                       className="sb-input"
                       id="an-goal-metric"
                       value={goal.metric}
+                      aria-describedby="an-goal-metric-gloss"
                       onChange={(e) =>
                         setGoal((cur) => ({ ...cur, metric: e.target.value as GoalMetric }))
                       }
@@ -417,6 +435,9 @@ export function InvestAnalysisPage() {
                         </option>
                       ))}
                     </select>
+                    <p id="an-goal-metric-gloss" className="sb-helper" style={{ margin: '6px 0 0' }}>
+                      {x(IM[GOAL_METRIC_GLOSS[goal.metric]])}
+                    </p>
                   </div>
                   <div className="sb-field">
                     <label className="sb-flabel" htmlFor="an-goal-op">

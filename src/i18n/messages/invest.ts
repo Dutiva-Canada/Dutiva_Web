@@ -922,6 +922,99 @@ const investCoreMessages = defineMessages({
     en: 'Couldn’t queue the sell — {error}',
     fr: 'Impossible de mettre la vente en file — {error}',
   },
+
+  /* Vocabulary glosses (0224) — terms explained where they're read, not
+     just where they're chosen. One hint per concept cluster; the legend
+     spells out all three account kinds at once since they only differ in
+     meaning, not mechanics. */
+  invest_hint_aria: { en: 'What does this mean?', fr: 'Qu’est-ce que ça veut dire ?' },
+  /* [FR self-authored] */
+  invest_legend_account_kinds: {
+    en: 'Paper — simulated practice, nothing real at stake. Live — your real book: Dutiva never places a trade, you confirm each fill yourself. External — a manual mirror of an account you hold elsewhere; nothing syncs.',
+    fr: 'Simulé — pratique sans argent réel. Réel — votre vrai portefeuille : Dutiva ne place jamais d’ordre, vous confirmez chaque exécution vous-même. Externe — copie manuelle d’un compte détenu ailleurs ; rien ne se synchronise.',
+  },
+  /* [FR self-authored] */
+  invest_hint_order_mode_aria: { en: 'Paper vs live orders', fr: 'Ordres simulés ou réels' },
+  /* [FR self-authored] */
+  invest_hint_order_mode: {
+    en: 'Paper fills at the current price right away — practice. Live records a trade you placed at your broker: you enter the fill price you actually got.',
+    fr: 'Simulé s’exécute au cours affiché — pratique. Réel consigne une opération placée chez votre courtier : vous entrez le prix d’exécution obtenu.',
+  },
+  /* [FR self-authored] */
+  invest_hint_signal_kinds_aria: { en: 'Signal types', fr: 'Types de signaux' },
+  /* [FR self-authored] */
+  invest_hint_signal_kinds: {
+    en: 'Screen — a scan result. Insight — worth knowing, no urgency. Alert — a line you set got crossed. Thesis, Goal and Scan signals come from your theses, goals and watch board.',
+    fr: 'Filtrage — résultat d’analyse. Analyse — à savoir, sans urgence. Alerte — une ligne que vous avez fixée a été franchie. Les signaux Thèse, Objectif et Veille viennent de vos thèses, objectifs et liste de veille.',
+  },
+  /* [FR self-authored] */
+  invest_hint_thesis_status_aria: { en: 'Thesis statuses', fr: 'États des thèses' },
+  /* [FR self-authored] */
+  invest_hint_thesis_status: {
+    en: 'Healthy — every watch condition holds. Drifting — a condition tripped; worth a look. Broken — the case failed; the sweep proposes an exit order.',
+    fr: 'Saine — toutes les conditions tiennent. En dérive — une condition a été franchie ; à revoir. Brisée — la thèse a échoué ; l’analyse propose un ordre de sortie.',
+  },
+  /* [FR self-authored] */
+  invest_hint_goal_status_aria: { en: 'Goal statuses', fr: 'États des objectifs' },
+  /* [FR self-authored] */
+  invest_hint_goal_status: {
+    en: 'On track or behind — how the last sweep measured it. Achieved when met; missed once the deadline passes unmet.',
+    fr: 'En bonne voie ou en retard — selon la dernière analyse. Atteint une fois rempli ; manqué si l’échéance passe sans qu’il le soit.',
+  },
+  /* Goal metrics — one line each, shown under the "Measured on" select so
+     the choice is informed. [FR self-authored] */
+  invest_goal_gloss_book_value: {
+    en: 'The whole book — cash plus positions, in the book’s currency.',
+    fr: 'Tout le portefeuille — encaisse et positions, dans la devise du compte.',
+  },
+  invest_goal_gloss_cash_pct: {
+    en: 'Cash as a share of the whole book.',
+    fr: 'L’encaisse en part du portefeuille.',
+  },
+  invest_goal_gloss_max_weight_pct: {
+    en: 'The biggest position’s share of the book — a concentration check.',
+    fr: 'La part de la plus grosse position — une mesure de concentration.',
+  },
+  invest_goal_gloss_unrealized_gain_pct: {
+    en: 'Average gain across positions versus what you paid. Negative targets are allowed — a loss floor.',
+    fr: 'Gain moyen des positions par rapport au coût. Les cibles négatives sont permises — un plancher de perte.',
+  },
+  invest_goal_gloss_thesis_coverage: {
+    en: 'Share of positions with a written thesis.',
+    fr: 'Part des positions qui ont une thèse écrite.',
+  },
+  invest_goal_gloss_position_count: {
+    en: 'How many positions the book holds.',
+    fr: 'Le nombre de positions dans le portefeuille.',
+  },
+  /* [FR self-authored] */
+  invest_order_mode_label: { en: 'Paper or live', fr: 'Simulé ou réel' },
+  invest_hint_order_status_aria: { en: 'Order statuses', fr: 'États des ordres' },
+  /* [FR self-authored] */
+  invest_hint_order_status: {
+    en: 'Queued orders wait for you — nothing fills on its own. Executed is settled; cancelled and expired are done.',
+    fr: 'Les ordres en file attendent votre décision — rien ne s’exécute seul. Exécuté veut dire réglé ; annulé et expiré sont clos.',
+  },
+  /* "How Tally works" — the review-loop contract in four lines, as a
+     collapsible note atop Chat. [FR self-authored] */
+  invest_tally_how_title: { en: 'How Tally works', fr: 'Comment Tally fonctionne' },
+  invest_tally_how_1: {
+    en: 'On each sweep Tally reads your book — prices, strategies, theses, goals.',
+    fr: 'À chaque analyse, Tally lit votre portefeuille — cours, stratégies, thèses, objectifs.',
+  },
+  invest_tally_how_2: {
+    en: 'Crossed a line you set? It lands in the review strip — never acted on silently.',
+    fr: 'Une ligne franchie ? Ça arrive dans la file de revue — jamais d’action silencieuse.',
+  },
+  invest_tally_how_3: {
+    en: 'Accepting a suggestion writes it for real — a rule tuned, a draft order queued.',
+    fr: 'Accepter une suggestion l’écrit pour de bon — règle ajustée, ordre mis en file.',
+  },
+  invest_tally_how_4: {
+    en: 'Orders stay queued until you execute them. Live orders ask the fill price you actually got.',
+    fr: 'Les ordres restent en file jusqu’à votre exécution. Les ordres réels demandent le prix obtenu.',
+  },
+
   invest_rule_operator: { en: 'Condition', fr: 'Condition' },
   invest_rule_lt: { en: 'below', fr: 'sous' },
   invest_rule_gt: { en: 'above', fr: 'au-dessus de' },

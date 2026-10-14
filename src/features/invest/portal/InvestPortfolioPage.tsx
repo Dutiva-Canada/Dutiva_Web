@@ -31,6 +31,7 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { pl } from './strategyUi'
 import { TallyNote } from './TallyNote'
+import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
 import { RebalanceCard } from './RebalanceCard'
 import { downloadCsv } from './csv'
@@ -461,6 +462,9 @@ export function InvestPortfolioPage() {
               )
             })}
           </ul>
+        )}
+        {state.accounts.length > 0 && (
+          <p className="sb-legend">{x(IM.invest_legend_account_kinds)}</p>
         )}
       </section>
 
@@ -1366,7 +1370,12 @@ function AccountTile({
     <li className="sb-tile">
       <p className="t-name" style={{ margin: 0 }}>{account.name}</p>
       <p className="t-sub" style={{ margin: '3px 0 0' }}>
-        {x(IM[kindLabel[account.kind]])} · {balance}
+        {x(IM[kindLabel[account.kind]])}
+        <InfoHint
+          label={x(IM.invest_hint_aria)}
+          text={x(IM[kindHelp[account.kind]])}
+        />{' '}
+        · {balance}
       </p>
       <span className="sb-row-actions" style={{ marginTop: 8 }}>
         <button

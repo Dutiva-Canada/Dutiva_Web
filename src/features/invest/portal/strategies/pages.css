@@ -1582,3 +1582,61 @@
   font-weight: 600;
   text-decoration: none;
 }
+
+/* ── InfoHint (0224) — term glosses beside labels and chips. ─────────── */
+.sb-hint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -2px;
+  margin-left: 5px;
+}
+.sb-hint-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.sb-hint-btn:hover,
+.sb-hint-btn[aria-expanded='true'] {
+  color: var(--sb-accent);
+}
+.sb-hint-btn:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 1px;
+}
+.sb-hint-pop {
+  position: absolute;
+  top: 22px;
+  left: -8px;
+  z-index: 30;
+  width: 240px;
+  padding: 10px 12px;
+  border: 1px solid var(--sb-line);
+  border-radius: var(--sb-radius-sm, 8px);
+  background: var(--sb-surface, #fff);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.10);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--sb-body);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sb-legend {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--sb-muted);
+  line-height: 1.5;
+}
+.sb-legend strong {
+  color: var(--sb-body);
+  font-weight: 600;
+}
