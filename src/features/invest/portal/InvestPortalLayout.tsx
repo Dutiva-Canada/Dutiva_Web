@@ -129,6 +129,9 @@ export function InvestPortalLayout() {
   const lastW = useRef(0)
   const [navCount, setNavCount] = useState<number>(NAV.length)
   const [moreOpen, setMoreOpen] = useState(false)
+  /* The menu is position:fixed anchored to the button rect — the nav's
+     overflow-hidden clip would otherwise hide it entirely. */
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
 
   useLayoutEffect(() => {
     const el = navWrapRef.current
@@ -155,6 +158,8 @@ export function InvestPortalLayout() {
         setNavCount((c) => Math.max(1, c - 1))
       }
       lastW.current = w
+      /* A resize moves every tab — the anchored menu would float detached. */
+      setMoreOpen(false)
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -182,7 +187,7 @@ export function InvestPortalLayout() {
 
   useEffect(() => {
     setMoreOpen(false)
-  }, [location.pathname])
+  }, [location.pathname, navCount])
 
   const { visibleNav, overflowNav } = useMemo(() => {
     const visible = NAV.slice(0, navCount)
@@ -317,7 +322,15 @@ export function InvestPortalLayout() {
                     <button
                       ref={moreBtnRef}
                       type="button"
-                      onClick={() => setMoreOpen((o) => !o)}
+                      onClick={() => {
+                        if (!moreOpen) {
+                          const r = moreBtnRef.current?.getBoundingClientRect()
+                          if (r) {
+                            setMenuPos({ top: r.bottom + 6, right: window.innerWidth - r.right })
+                          }
+                        }
+                        setMoreOpen((o) => !o)
+                      }}
                       aria-haspopup="menu"
                       aria-expanded={moreOpen}
                       className={`${NAV_ITEM_BASE} flex cursor-pointer items-center gap-[4px] text-text-muted hover:text-text-2`}
@@ -325,11 +338,12 @@ export function InvestPortalLayout() {
                       {x(IM.invest_tab_more)}
                       <ChevronDown size={13} aria-hidden="true" />
                     </button>
-                    {moreOpen && (
+                    {moreOpen && menuPos && (
                       <div
                         role="menu"
                         aria-label={x(IM.invest_tab_more)}
-                        className="absolute right-0 top-[calc(100%+6px)] z-20 min-w-[170px] rounded-[10px] border border-border bg-surface p-[4px] shadow-[0_12px_32px_-12px_rgba(13,27,42,0.30)]"
+                        style={{ top: menuPos.top, right: menuPos.right }}
+                        className="fixed z-20 min-w-[170px] rounded-[10px] border border-border bg-surface p-[4px] shadow-[0_12px_32px_-12px_rgba(13,27,42,0.30)]"
                       >
                         {overflowNav.map((item) => (
                           <NavLink
