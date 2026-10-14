@@ -117,48 +117,45 @@ export function InvestPortalLayout() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  /* Desktop tab strip: measure intrinsic widths from an invisible row and
-     give the bar only as many tabs as fit — the rest collapse into a More
-     menu. Wrapping strands a lone tab on a second row; scrolling draws a
-     scrollbar and hides tabs with no affordance. */
-  const navWrapRef = useRef<HTMLDivElement>(null)
-  const measureRef = useRef<HTMLDivElement>(null)
+  /* Desktop tab strip: iterative fit — render `navCount` tabs (+ More when
+     any overflow), then check scrollWidth against the strip's real width
+     and drop one tab per layout pass until it fits. The browser reports
+     truth; pre-measuring offsetWidths gets corrupted by font timing and
+     padding. Widening resets to all tabs and the loop re-shrinks, and the
+     whole thing settles synchronously before paint. */
+  const navWrapRef = useRef<HTMLElement>(null)
   const moreWrapRef = useRef<HTMLDivElement>(null)
   const moreBtnRef = useRef<HTMLButtonElement>(null)
-  const [availW, setAvailW] = useState(0)
-  const [meas, setMeas] = useState<{ tabs: number[]; more: number } | null>(null)
+  const lastW = useRef(0)
+  const [navCount, setNavCount] = useState<number>(NAV.length)
   const [moreOpen, setMoreOpen] = useState(false)
 
   useLayoutEffect(() => {
-    const el = measureRef.current
+    const el = navWrapRef.current
     if (!el) return
-    const read = () =>
-      setMeas({
-        tabs: Array.from(el.querySelectorAll<HTMLElement>('[data-nav-item]')).map(
-          (n) => n.offsetWidth,
-        ),
-        more: el.querySelector<HTMLElement>('[data-nav-more]')?.offsetWidth ?? 0,
-      })
-    read()
-    let alive = true
-    void document.fonts?.ready.then(() => {
-      if (alive) read()
-    })
-    return () => {
-      alive = false
+    if (el.scrollWidth > el.clientWidth + 1 && navCount > 1) {
+      setNavCount(navCount - 1)
     }
+  }, [navCount, lang])
+
+  useLayoutEffect(() => {
+    setNavCount(NAV.length)
   }, [lang])
 
   useEffect(() => {
     const el = navWrapRef.current
     if (!el) return
-    const read = () => setAvailW(el.clientWidth)
-    read()
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', read)
-      return () => window.removeEventListener('resize', read)
-    }
-    const ro = new ResizeObserver(read)
+    lastW.current = el.clientWidth
+    if (typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth
+      if (w > lastW.current + 1) {
+        setNavCount(NAV.length)
+      } else if (el.scrollWidth > el.clientWidth + 1) {
+        setNavCount((c) => Math.max(1, c - 1))
+      }
+      lastW.current = w
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -187,25 +184,8 @@ export function InvestPortalLayout() {
     setMoreOpen(false)
   }, [location.pathname])
 
-  const NAV_GAP = 3
   const { visibleNav, overflowNav } = useMemo(() => {
-    let count: number = NAV.length
-    if (meas && availW > 0) {
-      const total =
-        meas.tabs.reduce((a, b) => a + b, 0) + NAV_GAP * (NAV.length - 1)
-      if (total > availW) {
-        const budget = availW - meas.more - NAV_GAP
-        let used = 0
-        count = 0
-        for (const w of meas.tabs) {
-          if (used + w > budget) break
-          used += w + NAV_GAP
-          count++
-        }
-        count = Math.max(count, 1)
-      }
-    }
-    const visible = NAV.slice(0, count)
+    const visible = NAV.slice(0, navCount)
     /* Keep the active tab on the bar — trade the last fitting slot for it
        so the current section is never buried in More. */
     const active = NAV.find((item) =>
@@ -215,7 +195,7 @@ export function InvestPortalLayout() {
     )
     if (active && !visible.includes(active)) visible[visible.length - 1] = active
     return { visibleNav: visible, overflowNav: NAV.filter((i) => !visible.includes(i)) }
-  }, [meas, availW, location.pathname])
+  }, [navCount, location.pathname])
 
   /* Start-page preference: the FIRST landing on the bare /invest index in
      a session redirects to the preferred tab — sessionStorage keeps it
@@ -317,24 +297,6 @@ export function InvestPortalLayout() {
               >
                 {x(IM.invest_portal_title)}
               </NavLink>
-              {/* Hidden measurement row — offsetWidth survives
-                  visibility:hidden, so real tab widths drive the
-                  visible/overflow split above. */}
-              <div
-                ref={measureRef}
-                aria-hidden="true"
-                className="invisible absolute flex flex-nowrap items-center gap-[3px] pointer-events-none"
-              >
-                {NAV.map((item) => (
-                  <span key={item.to} data-nav-item className={NAV_ITEM_BASE}>
-                    {x(item.label)}
-                  </span>
-                ))}
-                <span data-nav-more className={`${NAV_ITEM_BASE} inline-flex items-center gap-[4px]`}>
-                  {x(IM.invest_tab_more)}
-                  <ChevronDown size={13} aria-hidden="true" />
-                </span>
-              </div>
               <nav
                 ref={navWrapRef}
                 className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-hidden rounded-[10px] bg-inset p-[3px] min-[820px]:flex"
