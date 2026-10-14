@@ -409,7 +409,10 @@ describe('planSuggestions', () => {
     /* The promise "a daily watcher would catch it" is only honest if the
        accept actually moves the strategy to daily — the payload carries it. */
     expect(s!.payload['cadence']).toBe('daily')
-    expect(s!.detail_en).toMatch(/switches it to daily/)
+    expect(s!.detail_en).toMatch(/switches it to a daily run/)
+    /* The meta line already names the strategy — the detail must not
+       repeat it a second time. */
+    expect(s!.detail_en).not.toMatch(/Watcher/)
     expect(s!.detail_fr).toMatch(/passe en quotidien/)
     /* On a daily strategy the rule just lands — no cadence field. */
     const out2 = planSuggestions(

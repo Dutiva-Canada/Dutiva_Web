@@ -559,12 +559,14 @@ export function planSuggestions(ctx: SuggestionContext): SuggestionCandidate[] {
          mover — the accept path applies payload.cadence, so the copy must
          disclose the switch instead of just wishing for daily. */
       const slower = target.cadence !== 'daily'
+      /* The row's meta already names the strategy — the detail adds only
+         the cadence disclosure, not a second name echo. */
       const moverName = target.name ?? 'strategy'
       const detailEn = slower
-        ? `Adds one rule to “${moverName}” and switches it to daily — a ${target.cadence} run can't catch day moves.`
+        ? `Accepting switches it to a daily run — a ${target.cadence} scan can't catch day moves.`
         : `Adds one rule to “${moverName}”.`
       const detailFr = slower
-        ? `Ajoute une règle à « ${target.name ?? 'stratégie'} » et la passe en quotidien — un balayage ${target.cadence === 'weekly' ? 'hebdomadaire' : 'mensuel'} ne peut capter les variations du jour.`
+        ? `L’acceptation la passe en quotidien — un balayage ${target.cadence === 'weekly' ? 'hebdomadaire' : 'mensuel'} ne peut capter les variations du jour.`
         : `Ajoute une règle à « ${target.name ?? 'stratégie'} ».`
       out.push({
         kind: 'rule_add',
