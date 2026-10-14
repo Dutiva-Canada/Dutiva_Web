@@ -98,7 +98,7 @@ function goalTargetLabel(g: InvestGoal, ccy: string, lang: string): string {
 
 export function InvestAnalysisPage() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
   const { showToast } = useToasts()
 
   useInvestHead(IM.invest_seo_title_analysis, IM.invest_seo_desc_analysis)
@@ -146,10 +146,17 @@ export function InvestAnalysisPage() {
         if (s.kind === 'goal') {
           const seed = (p.seed ?? {}) as Record<string, unknown>
           const title = typeof seed.title === 'string' ? seed.title : s.title
+          const metric = (
+            typeof seed.metric === 'string' ? seed.metric : 'book_value'
+          ) as GoalMetric
           const target = Number(seed.target)
           /* `Number('abc') || 0` would silently file a zero-target goal —
-             a malformed seed stays pending and reports instead. */
-          if (!Number.isFinite(target) || target < 0) {
+             a malformed seed stays pending and reports instead. Negative
+             is legal only for the signed gain metric (a loss floor). */
+          if (
+            !Number.isFinite(target) ||
+            (metric !== 'unrealized_gain_pct' && target < 0)
+          ) {
             showToast(IM.invest_form_error)
             return
           }
@@ -157,7 +164,7 @@ export function InvestAnalysisPage() {
             await saveGoal({
               title,
               detail: typeof seed.detail === 'string' ? seed.detail : '',
-              metric: (typeof seed.metric === 'string' ? seed.metric : 'book_value') as GoalMetric,
+              metric,
               op: seed.op === 'lte' ? 'lte' : 'gte',
               target,
               deadline: typeof seed.deadline === 'string' ? seed.deadline : null,
@@ -211,8 +218,16 @@ export function InvestAnalysisPage() {
   )
 
   const goalTargetNum = Number(goal.target)
+  /* Only unrealized_gain_pct can take a negative target ("at most −20%" is
+     a loss floor, not nonsense) — every other metric is unsigned. */
   const goalValid =
-    !!goal.title.trim() && Number.isFinite(goalTargetNum) && goalTargetNum >= 0
+    !!goal.title.trim() &&
+    Number.isFinite(goalTargetNum) &&
+    (goal.metric === 'unrealized_gain_pct' || goalTargetNum >= 0)
+
+  /* Deadlines can't be picked in the past — local today, not UTC (after
+     ~8pm ET toISOString rolls to tomorrow). */
+  const today = new Date().toLocaleDateString('en-CA')
 
   const saveGoalDraft = useCallback(async () => {
     if (busy || !goalValid) return
@@ -259,6 +274,17 @@ export function InvestAnalysisPage() {
     },
     [busy, refresh, showToast, x],
   )
+
+  /* Same gate as every sibling tab — the provider mounts children on
+     EMPTY_INVEST_STATE, so without it the page flashes "No goals yet"
+     and "Nothing on the watch board" during the first load. */
+  if (loading) {
+    return (
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
+      </div>
+    )
+  }
 
   return (
     <div className="sb sb-col">
@@ -424,6 +450,7 @@ export function InvestAnalysisPage() {
                       className="sb-input"
                       id="an-goal-deadline"
                       type="date"
+                      min={today}
                       value={goal.deadline}
                       onChange={(e) => setGoal((cur) => ({ ...cur, deadline: e.target.value }))}
                     />

@@ -148,7 +148,7 @@ function seedToDrafts(rules: unknown): RuleDraft[] {
 
 export function InvestThesesPage() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useInvestData()
+  const { state, loading, refresh } = useInvestData()
   const { showToast } = useToasts()
 
   useInvestHead(IM.invest_seo_title_theses, IM.invest_seo_desc_theses)
@@ -376,6 +376,17 @@ export function InvestThesesPage() {
     },
     [busy, refresh, showToast, x],
   )
+
+  /* Same gate as every sibling tab — without it the list flashes "No
+     theses yet" and the composer would show the empty-universe hint
+     while the positions/watchlist are still landing. */
+  if (loading) {
+    return (
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
+      </div>
+    )
+  }
 
   return (
     <div className="sb sb-col">

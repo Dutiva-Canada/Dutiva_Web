@@ -872,8 +872,16 @@ export async function saveGoal(goal: {
   target: number
   deadline: string | null
 }): Promise<void> {
-  if (!Number.isFinite(goal.target)) {
-    throw new Error('Goal target must be a finite number')
+  if (!goal.title.trim()) {
+    throw new Error('Goal title must not be empty')
+  }
+  /* Negative is legal only for the signed gain metric — a loss floor.
+     The column carries no sign CHECK, so the guard lives here. */
+  if (
+    !Number.isFinite(goal.target) ||
+    (goal.metric !== 'unrealized_gain_pct' && goal.target < 0)
+  ) {
+    throw new Error('Goal target must be finite, and nonnegative for this metric')
   }
   const { client, userId } = await requireUserId()
   const payload = {
