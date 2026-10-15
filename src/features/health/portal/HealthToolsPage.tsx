@@ -1,11 +1,15 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, RotateCcw } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { addJournalEntry } from '@/features/health/data/api'
+import { healthModalities } from '@/features/health/data/healthModalities'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
+import { useAuth } from '@/features/app/auth/authContext'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHealthHead } from './useHealthHead'
 
@@ -249,11 +253,98 @@ function GratitudeCard() {
   )
 }
 
+/* The chat composer's sessionStorage draft key for the default thread —
+   the same key HealthChatPage's usePortalChatDraft reads on mount. Seeding
+   it before navigation lands the request already typed in the box. */
+const HEALTH_CHAT_DRAFT_KEY = 'dutiva:health-chat:main'
+
+/**
+ * The modality library — what Mira knows, split honestly: approaches she
+ * can guide step-by-step (internal accounts — the server gates the same
+ * range on @dutiva.ca) and clinician-led ones she explains but never
+ * conducts (EMDR, hypnotherapy). "Ask Mira" seeds the composer with a
+ * tell-me-about-it prompt and is safe for every tier; "Practice with Mira"
+ * only renders where the server will actually guide.
+ */
+function PracticesSection() {
+  const { x, lang } = useI18n()
+  const { session } = useAuth()
+  const navigate = useNavigate()
+  const isInternal = isInternalDutivaAccount(session?.user?.email)
+
+  const seedChat = (text: string) => {
+    try {
+      sessionStorage.setItem(HEALTH_CHAT_DRAFT_KEY, text)
+    } catch {
+      /* storage blocked — the chat opens empty; the question is still
+         readable on the card */
+    }
+    void navigate('/health/chat')
+  }
+
+  return (
+    <section className="sb-card sb-card-pad">
+      <h2 style={{ marginTop: 0 }}>{x(HM.health_tools_practice_title)}</h2>
+      <p className="sb-body-text" style={{ marginTop: 0 }}>
+        {x(HM.health_tools_practice_sub)}
+      </p>
+      <div className="hb-rows">
+        {healthModalities.map((m) => (
+          <div key={m.id} className="hb-row">
+            <div className="hb-row-main">
+              <span className="hb-row-title">
+                {m.name[lang]}
+                {!m.guided && (
+                  <span className="sb-pill" style={{ marginLeft: 8 }}>
+                    {x(HM.health_tool_practice_clinician)}
+                  </span>
+                )}
+              </span>
+              <p className="hb-row-body">{m.what[lang]}</p>
+              <p className="hb-row-body">
+                <span className="hb-row-meta">
+                  {x(m.guided ? HM.health_tool_practice_guided : HM.health_tool_practice_explains)}
+                  {': '}
+                </span>
+                {m.mira[lang]}
+              </p>
+              {m.note && <p className="hb-row-meta">{m.note[lang]}</p>}
+            </div>
+            <div className="hb-row-side">
+              {m.guided && isInternal && m.practiceAsk && (
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-sm sb-btn-primary"
+                  onClick={() => seedChat(m.practiceAsk?.[lang] ?? '')}
+                >
+                  {x(HM.health_tool_practice_go)}
+                </button>
+              )}
+              <button
+                type="button"
+                className="sb-btn sb-btn-sm sb-btn-secondary"
+                onClick={() => seedChat(m.ask[lang])}
+              >
+                {x(HM.health_tool_practice_ask)}
+              </button>
+              {m.guided && !isInternal && (
+                <span className="hb-row-meta">{x(HM.health_tool_practice_int)}</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /**
  * Tools — three self-guided pauses that run entirely client-side. None of
  * them need an AI call, and only the gratitude note persists (as an ordinary
  * journal entry). Non-clinical by design: structure for a pause, nothing
- * claiming to treat or measure anything.
+ * claiming to treat or measure anything. The Practices section lists the
+ * approaches Mira can bring to chat — the exercises stay with her there,
+ * where the conversation actually happens.
  */
 export function HealthToolsPage() {
   const { x } = useI18n()
@@ -270,6 +361,7 @@ export function HealthToolsPage() {
         <BreathingCard />
         <GroundingCard />
         <GratitudeCard />
+        <PracticesSection />
       </div>
 
       <div className="sb-note" style={{ marginTop: 18 }}>

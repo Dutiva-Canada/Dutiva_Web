@@ -371,6 +371,21 @@ export const healthMessages = defineMessages({
   health_tool_grat_save: { en: 'Save to journal', fr: 'Enregistrer au journal' },
   health_tool_grat_saved: { en: 'Saved to your journal.', fr: 'Enregistrée dans votre journal.' },
   health_tool_grat_entry: { en: 'Gratitude', fr: 'Gratitude' },
+  /* [FR self-authored] — the modality library header and actions. */
+  health_tools_practice_title: { en: 'Practices with Mira', fr: 'Pratiques avec Mira' },
+  health_tools_practice_sub: {
+    en: 'The approaches she knows — exercises she can guide in chat, and the clinician-led ones she can only explain.',
+    fr: 'Les approches qu’elle connaît — des exercices qu’elle peut guider dans la discussion, et celles, réservées aux cliniciens, qu’elle peut seulement expliquer.',
+  },
+  health_tool_practice_guided: { en: 'Exercises she can guide', fr: 'Exercices qu’elle peut guider' },
+  health_tool_practice_explains: { en: 'Where she stands', fr: 'Où elle se place' },
+  health_tool_practice_go: { en: 'Practice with Mira', fr: 'Pratiquer avec Mira' },
+  health_tool_practice_ask: { en: 'Ask Mira', fr: 'Demander à Mira' },
+  health_tool_practice_clinician: { en: 'Clinician-led', fr: 'Sous guidance clinique' },
+  health_tool_practice_int: {
+    en: 'Guided practice is on internal staff accounts.',
+    fr: 'La pratique guidée est réservée aux comptes internes.',
+  },
   health_tools_note: {
     en: 'These exercises are pauses, not treatment. If you’re struggling, the Resources page lists real people to reach.',
     fr: 'Ces exercices sont des pauses, pas un traitement. Si vous avez du mal, la page Ressources liste de vraies personnes à joindre.',
