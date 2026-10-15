@@ -39,6 +39,23 @@ export function HealthDataProvider({ children }: { children: ReactNode }) {
     })
   }, [refresh])
 
+  /* Writes in another tab don't reach this one until something calls
+     refresh — revalidate when the tab comes back, throttled so a rapid
+     alt-tab doesn't stampede the queries. A failed load just leaves the
+     stale-data note the layout already shows. */
+  const lastRevalidate = useRef(0)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      const now = Date.now()
+      if (now - lastRevalidate.current < 30_000) return
+      lastRevalidate.current = now
+      void refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refresh])
+
   const value: HealthDataContextValue = { state, loading, error, refresh }
   return <HealthDataContext.Provider value={value}>{children}</HealthDataContext.Provider>
 }

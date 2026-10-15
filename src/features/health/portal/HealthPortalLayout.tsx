@@ -13,6 +13,7 @@ import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { HealthAuthPanel } from './HealthAuthPanel'
 import { HealthFooter } from './HealthFooter'
 import { HealthLoading } from './HealthLoading'
+import { CrisisNote } from './CrisisNote'
 
 const NAV = [
   { to: '/health', end: true, label: HM.health_tab_overview },
@@ -119,7 +120,7 @@ export function HealthPortalLayout() {
           <div className="flex w-full max-w-[460px] flex-col gap-[16px]">
             <HealthAuthPanel />
             <p className="m-0 rounded-[12px] border border-gold-border bg-gold-bg px-[14px] py-[10px] text-[12.5px] leading-[1.5] text-text-2">
-              {x(HM.health_crisis_note)}
+              <CrisisNote />
             </p>
           </div>
         </main>
@@ -288,7 +289,7 @@ function AccessRequired() {
         {x(HM.health_access_contact)}
       </a>
       <p className="m-0 mt-[14px] rounded-[10px] border border-gold-border bg-gold-bg px-[12px] py-[8px] text-[12px] leading-[1.5] text-text-2">
-        {x(HM.health_crisis_note)}
+        <CrisisNote />
       </p>
     </div>
   )

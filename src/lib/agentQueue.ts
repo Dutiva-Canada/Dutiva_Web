@@ -77,3 +77,15 @@ export async function resolveSuggestion(
     .eq('id', id)
   if (error) throw error
 }
+
+/** Send a resolved row back to pending — the undo for a mis-dismiss or a
+    premature accept. Clears the resolution stamp so the audit trail reads
+    "still open", not "resolved twice". */
+export async function reopenSuggestion(id: string): Promise<void> {
+  const sb = requireSupabase()
+  const { error } = await sb
+    .from('agent_suggestions')
+    .update({ status: 'pending', resolved_at: null, resolved_action: null })
+    .eq('id', id)
+  if (error) throw error
+}

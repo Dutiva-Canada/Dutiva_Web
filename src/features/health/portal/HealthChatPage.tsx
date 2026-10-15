@@ -213,7 +213,24 @@ export function HealthChatPage() {
           const fresh = rows.filter(
             (r) => !seen.has(r.id) && !localOnly.has(`${r.role} ${r.content}`),
           )
-          return fresh.length ? [...prev, ...fresh] : prev
+          /* The response is the server's whole tail — a persisted turn
+             inside that window that's missing was deleted elsewhere (or
+             the thread was cleared when the window came back empty), and
+             the old append-only merge left the ghost on screen forever.
+             Optimistic local rows sit outside the server's view; keep
+             them. */
+          const windowStart = rows[0]?.createdAt
+          const windowIds = new Set(rows.map((r) => r.id))
+          const kept = prev.filter(
+            (t) =>
+              !UUID_RE.test(t.id) ||
+              (windowStart !== undefined &&
+                (t.createdAt < windowStart || windowIds.has(t.id))),
+          )
+          if (fresh.length === 0 && kept.length === prev.length) return prev
+          return [...kept, ...fresh].sort((a, b) =>
+            a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0,
+          )
         })
         /* Reading this thread now — its tail stamp is the seen marker, so
            the switcher never dots the conversation you're sitting in. */
@@ -491,12 +508,32 @@ export function HealthChatPage() {
   }
 
   /* Whole-transcript copy — data portability without a download file.
-     Header lines carry the day chip wording the reader already sees. */
+     Header lines carry the day chip wording the reader already sees.
+     When the loaded page is only the tail, page backwards first so the
+     pasted transcript isn't silently missing older turns. */
   const exportChat = async () => {
     const rows = turns ?? []
     if (!rows.length) return
+    let all = rows
+    if (hasMore) {
+      try {
+        const earlier: HealthChatTurn[] = []
+        let cursor: string | undefined = rows[0]?.createdAt
+        for (let i = 0; cursor && i < 25; i++) {
+          const page = await loadHealthChatHistory(HISTORY_PAGE, cursor, threadId)
+          if (page.length === 0) break
+          earlier.unshift(...page)
+          const next = page.at(0)?.createdAt
+          if (page.length < HISTORY_PAGE || next === cursor) break
+          cursor = next
+        }
+        all = [...earlier, ...rows]
+      } catch {
+        /* Fall back to what's loaded — a partial transcript beats none. */
+      }
+    }
     const who = (t: HealthChatTurn) => (t.role === 'user' ? youLabel : 'Mira')
-    const text = rows
+    const text = all
       .map(
         (t) =>
           `${who(t)} · ${formatTurnDay(t.createdAt, lang, dayLabels)} ${formatTurnTime(t.createdAt, lang)}\n${t.content}`,

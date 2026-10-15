@@ -8,10 +8,13 @@ import type { AgentSuggestion } from '@/lib/agentQueue'
 vi.mock('@/lib/agentQueue', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/agentQueue')>()),
   loadPendingSuggestions: vi.fn(),
+  loadResolvedSuggestions: vi.fn(),
+  reopenSuggestion: vi.fn(),
   resolveSuggestion: vi.fn(),
 }))
 
-const { loadPendingSuggestions, resolveSuggestion } = await import('@/lib/agentQueue')
+const { loadPendingSuggestions, loadResolvedSuggestions, reopenSuggestion, resolveSuggestion } =
+  await import('@/lib/agentQueue')
 
 function row(over: Partial<AgentSuggestion> = {}): AgentSuggestion {
   return {
@@ -43,11 +46,30 @@ const MESSAGES = {
 
 const showToast = vi.fn()
 
-function renderQueue(kinds: Record<string, KindRenderer> = {}) {
+const RESOLVED = {
+  title: { en: 'Recently resolved', fr: 'Récemment tranchées' },
+  putback: { en: 'Put back', fr: 'Remettre' },
+  putbackNamed: { en: 'Put “{title}” back', fr: 'Remettre « {title} »' },
+  restored: { en: 'Back on the list.', fr: 'De retour.' },
+  statusWord: {
+    accepted: { en: 'accepted', fr: 'acceptée' },
+    dismissed: { en: 'dismissed', fr: 'écartée' },
+  },
+}
+
+function renderQueue(
+  kinds: Record<string, KindRenderer> = {},
+  withResolved = false,
+) {
   return render(
     <LangProvider>
       <ToastsContext value={{ toasts: [], showToast, dismissToast: vi.fn() }}>
-        <AgentReviewQueue surface="pr" kinds={kinds} messages={MESSAGES} />
+        <AgentReviewQueue
+          surface="pr"
+          kinds={kinds}
+          messages={MESSAGES}
+          {...(withResolved ? { resolved: RESOLVED } : {})}
+        />
       </ToastsContext>
     </LangProvider>,
   )
@@ -106,5 +128,47 @@ describe('AgentReviewQueue', () => {
 
     expect(await screen.findByText('Failed to load')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Retry/i })).toBeInTheDocument()
+  })
+
+  it('the resolved rail undoes a verdict — Put back returns the row to pending', async () => {
+    const resolved = row({
+      status: 'dismissed',
+      resolved_at: new Date().toISOString(),
+      resolved_action: 'dismissed',
+    })
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([])
+    vi.mocked(loadResolvedSuggestions).mockResolvedValue([resolved])
+    vi.mocked(reopenSuggestion).mockResolvedValue()
+    renderQueue({}, true)
+
+    /* The rail lists the verdict even while the pending list is empty. */
+    expect(await screen.findByText('Pitch — Alex Tremblay')).toBeInTheDocument()
+    expect(screen.getByText('Recently resolved')).toBeInTheDocument()
+    expect(screen.getByText(/dismissed/)).toBeInTheDocument()
+
+    /* Put back — the refetch brings the row home to pending. */
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([row()])
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Put “Pitch — Alex Tremblay” back' }),
+    )
+    await vi.waitFor(() => expect(reopenSuggestion).toHaveBeenCalledWith('s1'))
+    await vi.waitFor(() => expect(showToast).toHaveBeenCalledWith(RESOLVED.restored))
+  })
+
+  it('a resolved row echoes into the rail without a refetch', async () => {
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([row()])
+    vi.mocked(loadResolvedSuggestions).mockResolvedValue([])
+    vi.mocked(resolveSuggestion).mockResolvedValue()
+    renderQueue({}, true)
+
+    fireEvent.click(await screen.findByRole('button', { name: /Dismiss — Pitch/ }))
+    await vi.waitFor(() =>
+      expect(resolveSuggestion).toHaveBeenCalledWith('s1', 'dismissed', 'dismissed'),
+    )
+    /* The pending row is gone; the rail shows the verdict right away. */
+    expect(await screen.findByText('Recently resolved')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: 'Put “Pitch — Alex Tremblay” back' }),
+    ).toBeInTheDocument()
   })
 })

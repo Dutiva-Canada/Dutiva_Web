@@ -347,10 +347,10 @@ describe('home — What Mira remembers', () => {
     vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
     renderWith(<HealthHomePage />, 'en', remembered)
 
-    const remove = await screen.findAllByRole('button', { name: 'Remove' })
+    const remove = await screen.findAllByRole('button', { name: /Remove / })
     fireEvent.click(remove[0]!)
     expect(deleteHealthMemory).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
+    fireEvent.click(screen.getByRole('button', { name: /Click again/ }))
     await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
   })
 
@@ -359,7 +359,7 @@ describe('home — What Mira remembers', () => {
     vi.mocked(updateHealthMemory).mockResolvedValue(undefined)
     renderWith(<HealthHomePage />, 'en', remembered)
 
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Edit' }))[0]!)
+    fireEvent.click((await screen.findAllByRole('button', { name: /Edit / }))[0]!)
     const input = screen.getByLabelText('Edit memory')
     fireEvent.change(input, { target: { value: 'Prefers early calls' } })
     fireEvent.keyDown(input, { key: 'Enter' })

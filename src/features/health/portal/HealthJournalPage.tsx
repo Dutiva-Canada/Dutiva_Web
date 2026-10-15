@@ -45,6 +45,9 @@ function EntryEditor({
   const [armCancel, setArmCancel] = useState(false)
 
   const dirty = body !== (initial?.body ?? '') || title !== (initial?.title ?? '')
+  /* The requirement hint's id must be unique per editor — two rows open at
+     once would otherwise both describe their button by the same node. */
+  const reqId = entryId ? `hb-jb-req-${entryId}` : 'hb-jb-req'
 
   const save = async () => {
     const trimmed = body.trim()
@@ -133,13 +136,13 @@ function EntryEditor({
           type="submit"
           className="sb-btn sb-btn-primary"
           disabled={!body.trim() || saving}
-          aria-describedby={!body.trim() ? 'hb-jb-req' : undefined}
+          aria-describedby={!body.trim() ? reqId : undefined}
         >
           {saving && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
           {x(HM.health_journal_save)}
         </button>
         {!body.trim() && (
-          <p className="sb-helper" id="hb-jb-req" style={{ margin: 0 }}>
+          <p className="sb-helper" id={reqId} style={{ margin: 0 }}>
             {x(HM.health_journal_body_required)}
           </p>
         )}
@@ -405,7 +408,9 @@ export function HealthJournalPage() {
           <button
             type="button"
             className="sb-btn sb-btn-secondary"
-            disabled={prompting}
+            /* A draft is open — a fresh prompt would swap the seed line
+               under half-written prose. */
+            disabled={prompting || composing}
             onClick={() => void suggestPrompt()}
           >
             {prompting ? (
@@ -428,6 +433,11 @@ export function HealthJournalPage() {
         </div>
       </div>
       <p className="sb-sub">{x(HM.health_journal_sub)}</p>
+      {composing && (
+        <p className="sb-helper" style={{ margin: '-6px 0 0' }}>
+          {x(HM.health_journal_prompt_busy)}
+        </p>
+      )}
 
       {composing && (
         <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>

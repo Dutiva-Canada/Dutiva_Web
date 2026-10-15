@@ -39,9 +39,19 @@ function CheckInEditor({
   const [energy, setEnergy] = useState<number | null>(entry.energy)
   const [note, setNote] = useState(entry.note)
   const [saving, setSaving] = useState(false)
+  const [armCancel, setArmCancel] = useState(false)
+
+  const dirty =
+    mood !== entry.mood || energy !== entry.energy || note !== entry.note
 
   const save = async () => {
     if (mood == null || saving) return
+    /* A save that changes nothing gets no write — and no false "Updated"
+       toast or Mira reaction for a row that didn't move. */
+    if (!dirty) {
+      onDone()
+      return
+    }
     setSaving(true)
     try {
       await updateCheckIn(entry.id, { mood, energy, note })
@@ -96,11 +106,20 @@ function CheckInEditor({
         </button>
         <button
           type="button"
-          className="sb-btn sb-btn-secondary"
+          className={`sb-btn ${armCancel ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
           disabled={saving}
-          onClick={onDone}
+          /* A cancel that would silently drop edits arms once first —
+             same guard the journal editor carries. */
+          onClick={() => {
+            if (dirty && !armCancel) {
+              setArmCancel(true)
+              return
+            }
+            onDone()
+          }}
+          onBlur={() => setArmCancel(false)}
         >
-          {x(HM.health_checkin_cancel)}
+          {armCancel ? x(HM.health_journal_cancel_confirm) : x(HM.health_checkin_cancel)}
         </button>
       </div>
     </div>

@@ -30,6 +30,26 @@ export const healthMessages = defineMessages({
     fr: 'En crise ou si vous pensez au suicide ? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
   },
 
+  /* The standing crisis line — CrisisNote renders these as one sentence
+     whose verbs are the links: Call → tel:988, text → sms:988, 911 →
+     tel:911. The number itself stays unlinked text so both actions share
+     it. health_crisis_note above is the same sentence as one string for
+     contexts that need it plain. */
+  health_cn_q: {
+    en: 'In crisis or thinking about suicide?',
+    fr: 'En crise ou si vous pensez au suicide ?',
+  },
+  health_cn_call: { en: 'Call', fr: 'Appelez' },
+  health_cn_or: { en: 'or', fr: 'ou' },
+  health_cn_text: { en: 'text', fr: 'textez' },
+  health_cn_988: { en: '9-8-8 (Canada, 24/7) — or', fr: 'le 9-8-8 (Canada, 24/7) — ou le' },
+  health_cn_911: { en: '911', fr: '911' },
+  health_cn_end: {
+    en: 'if you’re in immediate danger.',
+    fr: 'en cas de danger immédiat.',
+  },
+  health_cn_more: { en: 'All support options', fr: 'Toutes les options' },
+
   /* Tabs */
   health_tab_overview: { en: 'Overview', fr: 'Aperçu' },
   health_tab_checkin: { en: 'Check-in', fr: 'Point du jour' },
@@ -56,6 +76,12 @@ export const healthMessages = defineMessages({
   health_signin_error: {
     en: 'Something went wrong. Check the code and try again.',
     fr: 'Une erreur s’est produite. Vérifiez le code et réessayez.',
+  },
+  /* The send step fails before a code exists — different words than the
+     verify step's "check the code". */
+  health_signin_send_error: {
+    en: 'Couldn’t send the code — check the address and try again.',
+    fr: 'Impossible d’envoyer le code — vérifiez l’adresse et réessayez.',
   },
   health_access_title: { en: 'Access required', fr: 'Accès requis' },
   health_access_body: {
@@ -165,6 +191,11 @@ export const healthMessages = defineMessages({
   },
   health_checkin_edit_named: { en: 'Edit check-in from {when}', fr: 'Modifier le point du {when}' },
   health_checkin_delete_named: { en: 'Delete check-in from {when}', fr: 'Supprimer le point du {when}' },
+  /* Two-step cancel on a dirty edit — same guard the journal editor has. */
+  health_checkin_cancel_confirm: {
+    en: 'Discard changes?',
+    fr: 'Ignorer les modifications ?',
+  },
   /* History renders the newest 30; the rest unfold on demand so a mature
      account doesn't mount hundreds of rows. [FR self-authored] */
   health_checkin_show_all: { en: 'Show all {count} check-ins', fr: 'Afficher les {count} points' },
@@ -244,6 +275,13 @@ export const healthMessages = defineMessages({
   health_journal_edit_named: { en: 'Edit “{title}”', fr: 'Modifier « {title} »' },
   health_journal_delete_named: { en: 'Delete “{title}”', fr: 'Supprimer « {title} »' },
 
+  /* "Suggest a prompt" is disabled while a draft is open — the prompt is
+     seed text, and swapping it under half-written prose surprises. */
+  health_journal_prompt_busy: {
+    en: 'Finish or clear this draft to get a fresh prompt.',
+    fr: 'Terminez ou effacez ce brouillon pour obtenir une nouvelle invite.',
+  },
+
   /* Insights — observations, not assessments */
   health_insights_title: { en: 'Insights', fr: 'Tendances' },
   health_insights_sub: {
@@ -304,13 +342,13 @@ export const healthMessages = defineMessages({
   health_res_talk_title: { en: 'Talk to someone', fr: 'Parler à quelqu’un' },
   health_res_khp_name: { en: 'Kids Help Phone (up to age 29)', fr: 'Jeunesse, J’écoute (29 ans et moins)' },
   health_res_khp_body: {
-    en: 'Call 1-800-668-6868 or text CONNECT to 686868. Free, 24/7.',
-    fr: 'Appelez le 1-800-668-6868 ou textez PARLER au 686868. Gratuit, 24/7.',
+    en: 'Call 1-800-668-6868, text CONNECT to 686868, or chat at kidshelpphone.ca. Free, 24/7.',
+    fr: 'Appelez le 1-800-668-6868, textez PARLER au 686868 ou clavardez sur jeunessejecoute.ca. Gratuit, 24/7.',
   },
   health_res_hope_name: { en: 'Hope for Wellness Helpline', fr: 'Ligne d’écoute d’espoir pour le mieux-être' },
   health_res_hope_body: {
-    en: 'Support for Indigenous peoples across Canada. Call 1-855-242-3310, 24/7.',
-    fr: 'Soutien pour les peuples autochtones partout au Canada. Appelez le 1-855-242-3310, 24/7.',
+    en: 'Support for Indigenous peoples across Canada. Call 1-855-242-3310 or chat at hopeforwellness.ca, 24/7.',
+    fr: 'Soutien pour les peuples autochtones partout au Canada. Appelez le 1-855-242-3310 ou clavardez sur hopeforwellness.ca, 24/7.',
   },
   health_res_qc_name: { en: 'Suicide.ca (Quebec)', fr: 'Suicide.ca (Québec)' },
   health_res_qc_body: {
@@ -460,6 +498,30 @@ export const healthMessages = defineMessages({
   },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
+  /* Recently-resolved rail + the shared-entries consent ledger — what Mira
+     can currently read, with revoke right on the row. [FR self-authored] */
+  health_review_resolved_title: { en: 'Recently resolved', fr: 'Récemment tranchées' },
+  health_review_resolved_accepted: { en: 'accepted', fr: 'acceptée' },
+  health_review_resolved_dismissed: { en: 'dismissed', fr: 'écartée' },
+  health_review_resolved_putback: { en: 'Put back', fr: 'Remettre en attente' },
+  health_review_resolved_putback_named: {
+    en: 'Put “{title}” back on the list',
+    fr: 'Remettre « {title} » dans la liste',
+  },
+  health_review_resolved_restored: { en: 'Back on the list.', fr: 'De retour dans la liste.' },
+  /* Accepting before the provider's first load lands would dedupe against
+     an empty list — ask for a moment instead. */
+  health_review_wait_load: {
+    en: 'Still loading your data — try again in a moment.',
+    fr: 'Vos données chargent encore — réessayez dans un instant.',
+  },
+  health_review_shared_title: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
+  health_review_shared_sub: {
+    en: 'Journal entries Mira can read until you stop sharing — the same toggle the journal page offers.',
+    fr: 'Les entrées de journal que Mira peut lire tant que vous ne retirez pas le partage — le même réglage que dans le journal.',
+  },
+  health_review_shared_empty: { en: 'Nothing shared right now.', fr: 'Rien de partagé pour l’instant.' },
+  health_review_shared_revoked: { en: 'Stopped sharing.', fr: 'Partage retiré.' },
   /* [FR self-authored] — memory suggestions Mira proposed in chat. */
   health_review_accept_memory: { en: 'Remember it', fr: 'S’en souvenir' },
   health_review_kind_memory: { en: 'Memory', fr: 'Souvenir' },
@@ -490,6 +552,14 @@ export const healthMessages = defineMessages({
     fr: 'Mira s’en sert dans vos discussions — la liste reste entre vous.',
   },
   health_mem_edit: { en: 'Edit', fr: 'Modifier' },
+  /* Named controls — every memory row's buttons name their row's snippet,
+     same convention as the check-in/journal rows. */
+  health_mem_edit_named: { en: 'Edit “{text}”', fr: 'Modifier « {text} »' },
+  health_mem_delete_named: { en: 'Remove “{text}”', fr: 'Retirer « {text} »' },
+  health_mem_delete_named_confirm: {
+    en: 'Remove “{text}”? Click again',
+    fr: 'Retirer « {text} » ? Cliquez à nouveau',
+  },
   /* Accessible name for the inline edit field — the visible button says
      "Edit", but a field needs a noun. */
   health_mem_edit_label: { en: 'Edit memory', fr: 'Modifier la mémoire' },

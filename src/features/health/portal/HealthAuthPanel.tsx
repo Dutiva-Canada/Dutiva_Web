@@ -35,7 +35,9 @@ export function HealthAuthPanel() {
     setCode('')
     void signInWithEmail(targetEmail, { next: '/health' }).then((nextError) => {
       setSending(false)
-      if (nextError) setError(x(HM.health_signin_error))
+      /* The send step has no code yet — its failure can't say "check the
+         code and try again". */
+      if (nextError) setError(x(HM.health_signin_send_error))
       else setSentTo(targetEmail)
     })
   }

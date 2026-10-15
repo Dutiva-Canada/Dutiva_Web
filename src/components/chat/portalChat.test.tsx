@@ -118,6 +118,52 @@ describe('ThreadSwitcher', () => {
     expect(screen.getByRole('menuitemradio', { name: /Morning check/ })).toBeInTheDocument()
   })
 
+  it('rename Escape cancels — the unmount blur must not commit it', () => {
+    const { onRename } = renderSwitcher({
+      onRename: vi.fn(),
+      opsLabels: { rename: 'Rename', delete: 'Delete', confirmDelete: 'Sure?', name: 'Name' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Main/ }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Rename' }).at(0)!)
+    const input = screen.getByRole('textbox', { name: 'Name' })
+    fireEvent.change(input, { target: { value: 'Should not save' } })
+    fireEvent.keyDown(input, { key: 'Escape' })
+    expect(onRename).not.toHaveBeenCalled()
+    expect(screen.getByRole('menuitemradio', { name: /Morning check/ })).toBeInTheDocument()
+  })
+
+  it('rename Enter commits exactly once — the unmount blur must not double it', () => {
+    const { onRename } = renderSwitcher({
+      onRename: vi.fn(),
+      opsLabels: { rename: 'Rename', delete: 'Delete', confirmDelete: 'Sure?', name: 'Name' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Main/ }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Rename' }).at(0)!)
+    const input = screen.getByRole('textbox', { name: 'Name' })
+    fireEvent.change(input, { target: { value: 'Evening notes' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onRename).toHaveBeenCalledTimes(1)
+    expect(onRename).toHaveBeenCalledWith('t1', 'Evening notes')
+  })
+
+  it('focus lands on the active item and arrows cycle the menu', () => {
+    renderSwitcher({ activeId: 't1', activeName: 'Morning check' })
+    fireEvent.click(screen.getByRole('button', { name: /Morning check/ }))
+    expect(screen.getByRole('menuitemradio', { name: 'Morning check' })).toHaveFocus()
+
+    const menu = screen.getByRole('menu')
+    fireEvent.keyDown(menu, { key: 'ArrowDown' })
+    expect(screen.getByRole('menuitemradio', { name: 'Untitled' })).toHaveFocus()
+    fireEvent.keyDown(menu, { key: 'ArrowDown' })
+    expect(screen.getByRole('menuitem', { name: 'New conversation' })).toHaveFocus()
+    /* Past the last item wraps to the first. */
+    fireEvent.keyDown(menu, { key: 'ArrowDown' })
+    expect(screen.getByRole('menuitemradio', { name: 'Main' })).toHaveFocus()
+    /* And ArrowUp from the first wraps back to the last. */
+    fireEvent.keyDown(menu, { key: 'ArrowUp' })
+    expect(screen.getByRole('menuitem', { name: 'New conversation' })).toHaveFocus()
+  })
+
   it('delete is a two-step arm-then-confirm', () => {
     const { onDelete } = renderSwitcher({
       onDelete: vi.fn(),

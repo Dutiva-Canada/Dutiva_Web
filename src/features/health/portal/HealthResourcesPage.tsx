@@ -26,6 +26,12 @@ function ResLinks({ links }: { links: ResLink[] }) {
     <p className="hb-res-links">
       {links.map((l) => {
         const external = l.href.startsWith('http')
+        /* The icon names the channel — a text line isn't a phone call. */
+        const Icon = external
+          ? ExternalLink
+          : l.href.startsWith('sms:')
+            ? MessageCircle
+            : Phone
         return (
           <a
             key={l.href + l.label}
@@ -33,11 +39,7 @@ function ResLinks({ links }: { links: ResLink[] }) {
             className="hb-res-link"
             {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}
           >
-            {external ? (
-              <ExternalLink size={12} aria-hidden="true" />
-            ) : (
-              <Phone size={12} aria-hidden="true" />
-            )}
+            <Icon size={12} aria-hidden="true" />
             {l.label}
           </a>
         )
@@ -81,7 +83,7 @@ function ResourceItem({
  * retyping.
  */
 export function HealthResourcesPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   useHealthHead(HM.health_res_title, HM.health_res_sub)
 
   const call = (num: string) => `${x(HM.health_res_call)} ${num}`
@@ -137,13 +139,30 @@ export function HealthResourcesPage() {
             links={[
               { href: 'tel:1-800-668-6868', label: call('1-800-668-6868') },
               { href: 'sms:686868', label: text('686868') },
+              /* Live chat is the contact method the under-29 audience
+                 actually uses — it gets a link, not just a mention. */
+              {
+                href:
+                  lang === 'fr'
+                    ? 'https://jeunessejecoute.ca'
+                    : 'https://kidshelpphone.ca/live-chat',
+                label: `${x(HM.health_res_chat_online)} — ${
+                  lang === 'fr' ? 'jeunessejecoute.ca' : 'kidshelpphone.ca'
+                }`,
+              },
             ]}
           />
           <ResourceItem
             icon={<Leaf size={17} strokeWidth={1.9} />}
             name={x(HM.health_res_hope_name)}
             body={x(HM.health_res_hope_body)}
-            links={[{ href: 'tel:1-855-242-3310', label: call('1-855-242-3310') }]}
+            links={[
+              { href: 'tel:1-855-242-3310', label: call('1-855-242-3310') },
+              {
+                href: 'https://www.hopeforwellness.ca',
+                label: `${x(HM.health_res_chat_online)} — hopeforwellness.ca`,
+              },
+            ]}
           />
           <ResourceItem
             icon={<MessageCircle size={17} strokeWidth={1.9} />}

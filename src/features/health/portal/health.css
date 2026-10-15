@@ -272,6 +272,17 @@ a.sb-stat-link:focus-visible {
   font-weight: 600;
 }
 
+/* CrisisNote — the tel:/sms: verbs inside the standing crisis line. It
+   renders inside a few different surfaces (composer note, distress pin,
+   the gold boxes on the walls), so the links inherit the surface color
+   and only carry underline + weight as their affordance. */
+.hb-cn a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Resource cards. */
 .hb-res {
   display: flex;

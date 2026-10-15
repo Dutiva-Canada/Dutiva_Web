@@ -37,7 +37,7 @@ import {
 } from '@/features/health/data/healthStats'
 import {
   ENERGY_LABELS,
-  fmtDateTime,
+  fmtRelativeDateTime,
   fmtToday,
   miraNoticed,
   MOOD_LABELS,
@@ -176,9 +176,13 @@ function MemoriesCard() {
       {memories.length === 0 ? (
         <div className="sb-empty">{x(HM.health_mem_empty)}</div>
       ) : (
-        <div className="hb-rows">
-          {memories.map((m) => (
-            <div key={m.id} className="hb-row">
+        <div className="hb-rows" role="list">
+          {memories.map((m) => {
+            /* Named controls carry a short snippet — "Edit / Remove" on
+               every row tells a screen-reader nothing about which memory. */
+            const snippet = m.text.length > 40 ? `${m.text.slice(0, 40)}…` : m.text
+            return (
+            <div key={m.id} className="hb-row" role="listitem">
               {editingId === m.id ? (
                 <div className="hb-row-main">
                   <input
@@ -219,7 +223,7 @@ function MemoriesCard() {
                     <p className="hb-row-body">{m.text}</p>
                     <span className="hb-row-meta">
                       {m.source === 'mira' ? `${x(HM.health_mem_from_mira)} · ` : ''}
-                      {fmtDateTime(m.createdAt, lang)}
+                      {fmtRelativeDateTime(m.createdAt, lang)}
                     </span>
                   </div>
                   <div className="hb-row-side" style={{ flexDirection: 'row', gap: 6 }}>
@@ -227,6 +231,7 @@ function MemoriesCard() {
                       type="button"
                       className="sb-btn sb-btn-secondary sb-btn-sm"
                       style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+                      aria-label={x(HM.health_mem_edit_named).replace('{text}', snippet)}
                       onClick={() => startEdit(m.id, m.text)}
                     >
                       <Pencil size={12} aria-hidden="true" />
@@ -236,6 +241,11 @@ function MemoriesCard() {
                       type="button"
                       className={`sb-btn sb-btn-sm ${armDelete === m.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
                       style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+                      aria-label={x(
+                        armDelete === m.id
+                          ? HM.health_mem_delete_named_confirm
+                          : HM.health_mem_delete_named,
+                      ).replace('{text}', snippet)}
                       onClick={() => void remove(m.id)}
                       onBlur={() => setArmDelete(null)}
                     >
@@ -247,7 +257,8 @@ function MemoriesCard() {
                 </>
               )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>
@@ -344,7 +355,9 @@ function TodayHabits() {
   const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
-  const [busyId, setBusyId] = useState<string | null>(null)
+  /* Per-habit busy — a save in flight on "Walk" must not deaden taps on
+     "Read"; a single global lock silently ate the second tap. */
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set())
   const [miraLine, setMiraLine] = useState<string | null>(null)
 
   const habits = state?.habits ?? []
@@ -353,8 +366,8 @@ function TodayHabits() {
   if (habits.length === 0) return null
 
   const toggle = async (habitId: string, done: boolean) => {
-    if (busyId) return
-    setBusyId(habitId)
+    if (busyIds.has(habitId)) return
+    setBusyIds((prev) => new Set(prev).add(habitId))
     try {
       await setHabitDone(habitId, today, done)
       await refresh()
@@ -371,7 +384,11 @@ function TodayHabits() {
     } catch {
       showToast(HM.health_save_failed)
     } finally {
-      setBusyId(null)
+      setBusyIds((prev) => {
+        const next = new Set(prev)
+        next.delete(habitId)
+        return next
+      })
     }
   }
 
@@ -400,7 +417,7 @@ function TodayHabits() {
                   type="button"
                   className={`sb-btn sb-btn-sm ${doneToday ? 'sb-btn-primary' : 'sb-btn-secondary'}`}
                   style={{ minHeight: 34, padding: '5px 12px', fontSize: 12.5 }}
-                  disabled={busyId === h.id}
+                  disabled={busyIds.has(h.id)}
                   aria-pressed={doneToday}
                   onClick={() => void toggle(h.id, !doneToday)}
                 >
@@ -483,7 +500,7 @@ export function HealthHomePage() {
       <p className="hb-row-meta" style={{ marginTop: 6 }}>
         {fmtToday(lang)}
         {!today && latestCheckIn
-          ? ` · ${x(HM.health_ov_last_checkin).replace('{date}', fmtDateTime(latestCheckIn.createdAt, lang))}`
+          ? ` · ${x(HM.health_ov_last_checkin).replace('{date}', fmtRelativeDateTime(latestCheckIn.createdAt, lang))}`
           : ''}
       </p>
 
@@ -495,7 +512,7 @@ export function HealthHomePage() {
           <p className="hb-crisis-title">{x(HM.health_ov_crisis_title)}</p>
           <p className="hb-crisis-body">
             {x(HM.health_ov_crisis_body)}{' '}
-            <Link to="/health/resources">{x(HM.health_ov_crisis_link)}</Link>
+            <Link to="/health/resources#crisis">{x(HM.health_ov_crisis_link)}</Link>
           </p>
         </div>
       </div>
@@ -648,7 +665,7 @@ export function HealthHomePage() {
                       {c.note.trim()}
                     </span>
                   ) : null}
-                  <span className="hb-row-meta">{fmtDateTime(c.createdAt, lang)}</span>
+                  <span className="hb-row-meta">{fmtRelativeDateTime(c.createdAt, lang)}</span>
                 </li>
               ))}
             </ul>
@@ -694,7 +711,7 @@ export function HealthHomePage() {
               >
                 {latest.body}
               </p>
-              <span className="hb-row-meta">{fmtDateTime(latest.createdAt, lang)}</span>
+              <span className="hb-row-meta">{fmtRelativeDateTime(latest.createdAt, lang)}</span>
             </div>
           )}
         </section>

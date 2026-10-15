@@ -244,17 +244,23 @@ export function HealthHabitsPage() {
 
   const saveRename = async (h: { id: string; name: string }) => {
     const trimmed = renameValue.trim()
-    setRenamingId(null)
-    if (!trimmed || trimmed === h.name) return
+    if (!trimmed || trimmed === h.name) {
+      setRenamingId(null)
+      return
+    }
     if (nameTaken(trimmed)) {
+      /* Stay open — the draft survives so the person can adjust instead
+         of retyping; closing first silently dropped it. */
       showToast(HM.health_habit_exists)
       return
     }
     try {
       await updateHabit(h.id, trimmed)
+      setRenamingId(null)
       showToast(HM.health_habit_renamed)
       await refresh()
     } catch {
+      /* Same — a failed save keeps the draft, not a silent revert. */
       showToast(HM.health_save_failed)
     }
   }
@@ -315,9 +321,12 @@ export function HealthHabitsPage() {
             {x(HM.health_ai_note)}
           </p>
         )}
+        {suggestions.length > 0 && (
+        <div role="list">
         {suggestions.map((s) => (
           <div
             key={s.suggestionId ?? s.name}
+            role="listitem"
             className="sb-notify-row"
             style={{ marginTop: 12, alignItems: 'flex-start', cursor: 'default' }}
           >
@@ -354,6 +363,8 @@ export function HealthHabitsPage() {
             </span>
           </div>
         ))}
+        </div>
+        )}
       </section>
 
       <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>

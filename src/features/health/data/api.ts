@@ -49,11 +49,13 @@ export async function hasHealthAccess(): Promise<boolean> {
    the account ages. A check-in streak longer than CHECKIN_CAP days would
    under-report at the cap's edge; journal gets a pager instead since
    bodies are heavy and the archive is browsed. Totals come from head
-   counts so capped lists never show a wrong number. */
+   counts so capped lists never show a wrong number. Habit logs share one
+   pool across habits — 3,000 covers ~8 years of one habit or ~2 years of
+   ten before the oldest marks start clipping a streak's math. */
 const CHECKIN_CAP = 400
 const JOURNAL_CAP = 100
 const HABIT_CAP = 200
-const HABIT_LOG_CAP = 1500
+const HABIT_LOG_CAP = 3000
 const MEMORY_CAP = 300
 export const JOURNAL_PAGE = 50
 
@@ -241,7 +243,7 @@ export async function addJournalEntry(input: {
     .insert({
       user_id: userId,
       title: (input.title ?? '').trim(),
-      body: input.body,
+      body: input.body.trim(),
       created_at: now,
       updated_at: now,
     })
@@ -260,7 +262,7 @@ export async function updateJournalEntry(
     .from('health_journal_entries')
     .update({
       ...(patch.title !== undefined ? { title: patch.title.trim() } : {}),
-      ...(patch.body !== undefined ? { body: patch.body } : {}),
+      ...(patch.body !== undefined ? { body: patch.body.trim() } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -687,13 +689,20 @@ export async function sendHealthReaction(
   }
   lastReactionAt = Date.now()
   const body = { kind: 'react', event, lang, today: todayDayKey() }
-  const raw = (onDelta
-    ? await invokeHealthAiStream(body, onDelta)
-    : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reaction from health-ai')
+  try {
+    const raw = (onDelta
+      ? await invokeHealthAiStream(body, onDelta)
+      : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
+    if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+      throw new Error('Empty reaction from health-ai')
+    }
+    return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+  } catch (err) {
+    /* A failed call must not keep the slot it stamped — that would silence
+       the next legitimate nudge for 90 seconds on top of losing this one. */
+    lastReactionAt = 0
+    throw err
   }
-  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
 /** Share ONE journal entry with Mira — explicit per-entry consent; the
