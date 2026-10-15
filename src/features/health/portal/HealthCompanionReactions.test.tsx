@@ -11,11 +11,13 @@ import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   addCheckIn,
+  addHabit,
   sendHealthReaction,
   shareEntryWithMira,
   unshareEntryFromMira,
 } from '@/features/health/data/api'
 import { HealthCheckInPage } from './HealthCheckInPage'
+import { HealthHabitsPage } from './HealthHabitsPage'
 import { HealthHomePage } from './HealthHomePage'
 import { HealthJournalPage } from './HealthJournalPage'
 
@@ -31,6 +33,21 @@ vi.mock('@/features/health/data/api', () => ({
   healthAiPrompt: vi.fn(),
   shareEntryWithMira: vi.fn(),
   unshareEntryFromMira: vi.fn(),
+  addHabit: vi.fn(),
+  deleteHabit: vi.fn(),
+  setHabitDone: vi.fn(),
+  healthAiHabit: vi.fn(),
+}))
+
+/* Suggestion queue + notify pref hit Supabase directly — stub the lib
+   seams so the Habits mount stays hermetic. */
+vi.mock('@/lib/agentQueue', () => ({
+  loadPendingSuggestions: vi.fn(async () => []),
+  resolveSuggestion: vi.fn(async () => undefined),
+}))
+vi.mock('@/lib/notifications/notifyPrefs', () => ({
+  loadNotifyPref: vi.fn(async () => false),
+  setNotifyPref: vi.fn(async () => undefined),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -176,6 +193,40 @@ describe('journal → share with Mira', () => {
 
     const btn = await screen.findByRole('button', { name: 'Laisser Mira le lire' })
     expect(btn).toHaveAttribute('title', 'Elle lit seulement cette entrée — sa réponse arrive ici et dans votre discussion.')
+  })
+})
+
+describe('habits → Mira reacts to a new habit', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('adding a habit sends habit_added and shows her line', async () => {
+    vi.mocked(addHabit).mockResolvedValue({
+      id: 'h9',
+      name: 'Stretch',
+      createdAt: new Date().toISOString(),
+    })
+    vi.mocked(sendHealthReaction).mockImplementation(async (_e, _l, onDelta) => {
+      onDelta?.('Something small to keep.')
+      return { reply: 'Something small to keep.', assistantId: null }
+    })
+    renderWith(<HealthHabitsPage />)
+
+    fireEvent.change(screen.getByPlaceholderText(/ten-minute walk/), {
+      target: { value: 'Stretch' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Add habit' }))
+
+    await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Stretch'))
+    await waitFor(() =>
+      expect(sendHealthReaction).toHaveBeenCalledWith(
+        { type: 'habit_added', habit: 'Stretch' },
+        'en',
+        expect.any(Function),
+      ),
+    )
+    expect(await screen.findByText(/Something small to keep/)).toBeInTheDocument()
   })
 })
 

@@ -325,6 +325,15 @@ describe('reaction prompts', () => {
     expect(p).toContain('streak now 3 days')
   })
 
+  it('habit_added names the new habit without a streak clause', () => {
+    const p = reactPrompt({ type: 'habit_added', habit: 'Stretch' }, null, [], TODAY, 'en')
+    expect(p).toContain('started tracking a new habit')
+    expect(p).toContain('"Stretch"')
+    /* A fresh habit has no streak — she shouldn't reach for one. */
+    expect(p).not.toContain('streak now')
+    expect(p).not.toContain('done today')
+  })
+
   it('habit_marked flags a round-mark streak as a milestone — and stays quiet otherwise', () => {
     const mark = reactPrompt({ type: 'habit_marked', habit: 'Walk' }, 7, [], TODAY, 'en')
     expect(mark).toContain('a round mark')

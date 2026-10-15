@@ -487,6 +487,7 @@ export function resolveHabitRef(
 export type ReactEvent =
   | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
+  | { type: 'habit_added'; habit: string }
 
 /** One or two sentences reacting to something the person just did. `habitStreak`
     is the streak the server already computed — the client only names the habit. */
@@ -503,8 +504,10 @@ export function reactPrompt(
       ? `saved a check-in — mood ${event.mood}/5` +
         (event.energy != null ? `, energy ${event.energy}/5` : '') +
         (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
-      : `marked the habit "${oneLine(event.habit, 120)}" done today` +
-        (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+      : event.type === 'habit_added'
+        ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
+        : `marked the habit "${oneLine(event.habit, 120)}" done today` +
+          (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
   /* A streak lands differently at a round mark — a week, two weeks, a month,
      a round ten. Tell her once, so she can name the milestone plainly rather
      than recite a number every day. */

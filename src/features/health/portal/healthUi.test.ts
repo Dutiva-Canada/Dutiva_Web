@@ -91,6 +91,96 @@ describe('miraNoticed — the Overview strip', () => {
     expect(miraNoticed(undefined, 'en')).toBeNull()
   })
 
+  it('names a run that broke yesterday — ahead of a live streak', () => {
+    const state: HealthState = {
+      ...EMPTY,
+      habits: [
+        { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
+        { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
+      ],
+      habitLogs: [
+        /* Walk: live, 3 days running (today, yesterday, the day before). */
+        ...[0, 1, 2].map((ago, i) => ({
+          id: `w${i}`,
+          habitId: 'h1',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+        /* Stretch: done two days ago and the four before it — missed
+           yesterday and today. A 5-day run that just ended. */
+        ...[2, 3, 4, 5, 6].map((ago, i) => ({
+          id: `s${i}`,
+          habitId: 'h2',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).toBe('“Stretch” paused after a 5-day streak.')
+    expect(miraNoticed(state, 'fr', NOW)).toBe(
+      '« Stretch » a fait une pause après 5 jours de suite.',
+    )
+  })
+
+  it('ignores a break that isn’t fresh — short runs, stale misses, restarts', () => {
+    const mk = (h2DaysAgo: number[]): HealthState => ({
+      ...EMPTY,
+      habits: [
+        { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
+        { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
+      ],
+      habitLogs: [
+        ...[0, 1].map((ago, i) => ({
+          id: `w${i}`,
+          habitId: 'h1',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+        ...h2DaysAgo.map((ago, i) => ({
+          id: `s${i}`,
+          habitId: 'h2',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+      ],
+    })
+    /* Two-day dabble — too short to elegize; the live streak still leads. */
+    expect(miraNoticed(mk([2, 3]), 'en', NOW)).toBe('“Walk” — 2 days running.')
+    /* Broke days ago — stale news, stays silent about it. */
+    expect(miraNoticed(mk([4, 5, 6, 7]), 'en', NOW)).toBe('“Walk” — 2 days running.')
+    /* Missed yesterday but logged today — a restart, not a pause; Walk
+       leads at 2 days over Stretch's fresh 1. */
+    expect(miraNoticed(mk([0, 2, 3, 4]), 'en', NOW)).toBe('“Walk” — 2 days running.')
+  })
+
+  it('carries a pause into the greeting before any streak', () => {
+    const state: HealthState = {
+      ...EMPTY,
+      habits: [
+        { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
+        { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
+      ],
+      habitLogs: [
+        ...[0, 1, 2].map((ago, i) => ({
+          id: `w${i}`,
+          habitId: 'h1',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+        ...[2, 3, 4].map((ago, i) => ({
+          id: `s${i}`,
+          habitId: 'h2',
+          day: localDay(ago),
+          createdAt: NOW.toISOString(),
+        })),
+      ],
+    }
+    expect(companionGreeting(state, 'en', NOW)).toContain(
+      '“Stretch” paused after a 3-day streak',
+    )
+    expect(companionGreeting(state, 'fr', NOW)).toContain('a fait une pause après 3 jours')
+  })
+
   it('speaks French', () => {
     const state: HealthState = {
       ...EMPTY,
