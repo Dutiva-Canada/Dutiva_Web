@@ -415,6 +415,16 @@ export const healthMessages = defineMessages({
     en: 'Free, anonymous chat with trained volunteer listeners, day or night — for when you need to talk but it isn’t a crisis. Dedicated listeners for teens 13–17.',
     fr: 'Clavardage gratuit et anonyme avec des écoutants bénévoles formés, jour et nuit — quand vous avez besoin de parler sans être en crise. Des écoutants sont dédiés aux 13 à 17 ans.',
   },
+  /* Listed because users will find it anyway — labeled paid so the
+     commercial option reads differently from the free ones. */
+  health_res_bh_name: {
+    en: 'BetterHelp — online therapy (paid)',
+    fr: 'BetterHelp — thérapie en ligne (payant)',
+  },
+  health_res_bh_body: {
+    en: 'Video, phone, or messaging sessions with a matched therapist — a paid subscription service.',
+    fr: 'Des séances par vidéo, téléphone ou messagerie avec un thérapeute jumelé — un service payant par abonnement.',
+  },
   health_res_community_title: { en: 'Community supports', fr: 'Soutiens communautaires' },
   health_res_211_name: {
     en: '211 — community services navigator',
@@ -444,6 +454,11 @@ export const healthMessages = defineMessages({
   health_res_credit_body: {
     en: 'Non-profit agencies that help with debt — free first sessions, repayment plans, and alternatives to consolidation loans.',
     fr: 'Des organismes sans but lucratif qui aident à gérer les dettes — premières séances gratuites, plans de remboursement et solutions de rechange aux prêts de consolidation.',
+  },
+  health_res_learn_name: { en: 'Learn at Home — Ontario', fr: 'Apprentissage à la maison — Ontario' },
+  health_res_learn_body: {
+    en: 'The province’s hub of free K–12 learning resources for kids — curriculum, activities, and supports for parents.',
+    fr: 'Le carrefour provincial de ressources d’apprentissage gratuites pour les enfants de la maternelle à la 12e année — curriculum, activités et soutiens pour les parents.',
   },
 
   /* Habits — gentle routine tracking, nothing diagnostic */

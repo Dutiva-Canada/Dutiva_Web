@@ -6,6 +6,8 @@ import {
   Compass,
   Ear,
   ExternalLink,
+  Globe,
+  GraduationCap,
   HandCoins,
   HandHeart,
   HeartHandshake,
@@ -239,6 +241,15 @@ export function HealthResourcesPage() {
             body={x(HM.health_res_7cups_body)}
             links={[{ href: 'https://www.7cups.com', label: visit('7cups.com') }]}
           />
+          {/* Paid option goes last — the free and low-cost routes should
+              be found first, but leaving the biggest name out entirely
+              just sends people to search engines instead. */}
+          <ResourceItem
+            icon={<Globe size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_bh_name)}
+            body={x(HM.health_res_bh_body)}
+            links={[{ href: 'https://www.betterhelp.com', label: visit('betterhelp.com') }]}
+          />
         </div>
       </section>
 
@@ -303,6 +314,14 @@ export function HealthResourcesPage() {
                 label: visit('creditcounsellingcanada.ca'),
               },
             ]}
+          />
+          {/* Provincial scope is named in the title — education is a
+              provincial file and this hub is Ontario's. */}
+          <ResourceItem
+            icon={<GraduationCap size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_learn_name)}
+            body={x(HM.health_res_learn_body)}
+            links={[{ href: 'https://www.ontario.ca/page/learn-at-home', label: visit('ontario.ca') }]}
           />
         </div>
       </section>
