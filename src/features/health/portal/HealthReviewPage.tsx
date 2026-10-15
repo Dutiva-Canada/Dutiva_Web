@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useI18n } from '@/i18n/context'
@@ -9,9 +9,11 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   addHabit,
   addHealthMemory,
+  listSharedJournalEntries,
   sendHealthReaction,
   unshareEntryFromMira,
 } from '@/features/health/data/api'
+import type { HealthJournalEntry } from '@/features/health/data/types'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { fmtRelativeDateTime } from './healthUi'
@@ -40,20 +42,33 @@ interface MemoryPayload {
    the row itself; this list is the one place the whole set is visible. */
 function SharedEntries() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useHealthData()
+  const { refresh } = useHealthData()
   const { showToast } = useToasts()
+  const [shared, setShared] = useState<HealthJournalEntry[] | undefined>(undefined)
+  const [loadFailed, setLoadFailed] = useState(false)
   const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(new Set())
-  /* state.entries is row-capped like the journal page — an entry shared
-     long ago and paged out still shows its toggle there. */
-  const shared = (state?.entries ?? []).filter((e) => e.sharedAt !== null)
-  if (state === undefined) return null
+
+  const load = useCallback(async () => {
+    try {
+      setShared(await listSharedJournalEntries())
+      setLoadFailed(false)
+    } catch {
+      setLoadFailed(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   const revoke = async (id: string) => {
     if (busyIds.has(id)) return
     setBusyIds((cur) => new Set(cur).add(id))
     try {
       await unshareEntryFromMira(id)
-      await refresh()
+      /* Both truths: the ledger refetches, and refresh keeps the journal
+         row's own share stamp honest if it's inside the capped window. */
+      await Promise.all([load(), refresh()])
       showToast(HM.health_review_shared_revoked)
     } catch {
       showToast(HM.health_journal_unshare_failed)
@@ -72,7 +87,20 @@ function SharedEntries() {
         <h2 className="m-0 text-[16px]">{x(HM.health_review_shared_title)}</h2>
       </div>
       <p className="sb-body-text" style={{ marginTop: 0 }}>{x(HM.health_review_shared_sub)}</p>
-      {shared.length === 0 ? (
+      {loadFailed ? (
+        <div className="sb-empty" role="alert">
+          {x(HM.health_review_shared_load_failed)}{' '}
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            onClick={() => void load()}
+          >
+            {x(HM.health_retry)}
+          </button>
+        </div>
+      ) : shared === undefined ? (
+        <div className="sb-empty">{x(HM.health_loading)}</div>
+      ) : shared.length === 0 ? (
         <div className="sb-empty">{x(HM.health_review_shared_empty)}</div>
       ) : (
         <div className="hb-rows" role="list">

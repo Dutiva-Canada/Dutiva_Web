@@ -151,6 +151,24 @@ export async function listJournalEntriesBefore(
   return (data ?? []).map(journalFromRow)
 }
 
+/* The consent ledger reads its own query — filtering the state.entries
+   window (newest JOURNAL_CAP) would hide shares that paged out while Mira
+   can still read them. Bounded all the same: the shared set is small in
+   practice, but "all my shares" should never page. */
+export async function listSharedJournalEntries(
+  limit = 200,
+): Promise<HealthJournalEntry[]> {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('health_journal_entries')
+    .select('*')
+    .not('shared_at', 'is', null)
+    .order('shared_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []).map(journalFromRow)
+}
+
 export async function addCheckIn(input: {
   mood: number
   energy?: number | null

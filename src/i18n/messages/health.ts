@@ -670,6 +670,12 @@ export const healthMessages = defineMessages({
     fr: 'Les entrées de journal que Mira peut lire tant que vous ne retirez pas le partage — le même réglage que dans le journal.',
   },
   health_review_shared_empty: { en: 'Nothing shared right now.', fr: 'Rien de partagé pour l’instant.' },
+  /* The consent ledger's own query failed — naming the object ("what Mira
+     can read") keeps the stakes visible, not an abstract "list". */
+  health_review_shared_load_failed: {
+    en: 'Couldn’t load what Mira can read — retry.',
+    fr: 'Impossible de charger ce que Mira peut lire — réessayez.',
+  },
   health_review_shared_revoked: { en: 'Stopped sharing.', fr: 'Partage retiré.' },
   /* [FR self-authored] — memory suggestions Mira proposed in chat. */
   health_review_accept_memory: { en: 'Remember it', fr: 'S’en souvenir' },

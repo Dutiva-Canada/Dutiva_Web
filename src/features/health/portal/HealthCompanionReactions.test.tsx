@@ -39,6 +39,7 @@ vi.mock('@/features/health/data/api', () => ({
   healthAiPrompt: vi.fn(),
   shareEntryWithMira: vi.fn(),
   unshareEntryFromMira: vi.fn(),
+  listSharedJournalEntries: vi.fn().mockResolvedValue([]),
   journalImagesAvailable: vi.fn().mockResolvedValue(false),
   signJournalImage: vi.fn(),
   removeJournalImage: vi.fn(),
