@@ -52,8 +52,10 @@ export function hasCheckInToday(checkIns: HealthCheckIn[], now: Date = new Date(
   return checkIns.some((c) => dayKey(c.createdAt) === todayKey(now))
 }
 
-/** Average mood over check-ins in the last `days` calendar days (null when
-    the window is empty). */
+/** Average mood over the last `days` calendar days — per DAY, not per
+    check-in, so a day logged three times doesn't outweigh a day logged
+    once (matches how the Insights chart aggregates). Null when the window
+    is empty. */
 export function avgMood(
   checkIns: HealthCheckIn[],
   days: number,
@@ -79,16 +81,21 @@ function avgField(
   /* Calendar days, not a rolling N×24h window — the label says "(7 days)"
      and the number shouldn't drift as the clock moves inside a day. */
   const windowDays = new Set(recentDayKeys(days, now))
-  let sum = 0
-  let n = 0
+  const perDay = new Map<string, { sum: number; n: number }>()
   for (const c of checkIns) {
     const v = field(c)
     if (v == null) continue
-    if (!windowDays.has(dayKey(c.createdAt))) continue
-    sum += v
-    n += 1
+    const key = dayKey(c.createdAt)
+    if (!windowDays.has(key)) continue
+    const slot = perDay.get(key) ?? { sum: 0, n: 0 }
+    slot.sum += v
+    slot.n += 1
+    perDay.set(key, slot)
   }
-  return n === 0 ? null : sum / n
+  if (perDay.size === 0) return null
+  let sum = 0
+  for (const { sum: s, n } of perDay.values()) sum += s / n
+  return sum / perDay.size
 }
 
 export interface DayMood {

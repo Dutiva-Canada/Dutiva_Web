@@ -32,6 +32,9 @@ export async function loadPendingSuggestions(
     .eq('surface', surface)
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
+    /* An inbox is shallow by design — 200 pending rows is already a
+       neglected queue; bound it rather than stream an unbounded list. */
+    .limit(200)
   if (error) throw error
   return (data ?? []) as AgentSuggestion[]
 }

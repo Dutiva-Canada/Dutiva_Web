@@ -1,0 +1,147 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter, useLocation } from 'react-router-dom'
+import { LangContext } from '@/i18n/context'
+import type { LangContextValue } from '@/i18n/context'
+import type { Lang } from '@/i18n/core'
+import { HealthDataContext } from '@/features/health/data/HealthDataContext'
+import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
+import type { HealthCheckIn, HealthJournalEntry, HealthState } from '@/features/health/data/types'
+import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
+import { HealthInsightsPage as Insights } from './HealthInsightsPage'
+
+vi.mock('@/features/health/data/api', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/features/health/data/api')>()),
+  healthAiRecap: vi.fn(),
+}))
+
+const { healthAiRecap } = await import('@/features/health/data/api')
+
+function langValue(lang: Lang): LangContextValue {
+  return {
+    lang,
+    setLang: vi.fn(),
+    catalogue: {},
+    t: ((key: string) => key) as LangContextValue['t'],
+    L: (en: string, fr: string) => (lang === 'fr' ? fr : en),
+    x: (m: { en: string; fr: string }) => (lang === 'fr' ? m.fr : m.en),
+  }
+}
+
+function ci(id: string, mood: number, daysAgo = 0): HealthCheckIn {
+  const d = new Date()
+  d.setDate(d.getDate() - daysAgo)
+  return { id, mood, energy: null, note: '', createdAt: d.toISOString() }
+}
+
+function je(id: string): HealthJournalEntry {
+  const now = new Date().toISOString()
+  return { id, title: '', body: 'b', sharedAt: null, createdAt: now, updatedAt: now }
+}
+
+function stateWith(over: Partial<HealthState> = {}): HealthState {
+  return {
+    checkIns: [],
+    entries: [],
+    habits: [],
+    memories: [],
+    habitLogs: [],
+    lastLoadedAt: new Date().toISOString(),
+    ...over,
+  }
+}
+
+/* Reports the live query string — ?recap=1 must be consumed after firing. */
+function LocationProbe() {
+  return <div data-testid="loc">{useLocation().search}</div>
+}
+
+function renderInsights(state: HealthState | undefined, url = '/health/insights', loading = false) {
+  const health: HealthDataContextValue = {
+    state,
+    loading,
+    error: undefined,
+    refresh: vi.fn().mockResolvedValue(undefined),
+  }
+  render(
+    <LangContext value={langValue('en')}>
+      <HealthDataContext value={health}>
+        <ToastsProvider>
+          <MemoryRouter initialEntries={[url]}>
+            <Insights />
+            <LocationProbe />
+            <ToastHost />
+          </MemoryRouter>
+        </ToastsProvider>
+      </HealthDataContext>
+    </LangContext>,
+  )
+}
+
+describe('HealthInsightsPage', () => {
+  afterEach(() => vi.clearAllMocks())
+
+  it('shows the error state with retry on a failed first load', async () => {
+    renderInsights(undefined)
+    expect(await screen.findByText(/Couldn’t load your data/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Try again/i })).toBeInTheDocument()
+  })
+
+  it('labels the chart with a data summary, not a repeated heading', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4), ci('c2', 2, 1)] }))
+    const chart = screen.getByRole('img', { name: /days logged/ })
+    expect(chart.getAttribute('aria-label')).toMatch(/2 of 14 days logged · average mood 3/)
+  })
+
+  it('shows a single logged day once — not as both best and toughest', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }))
+    expect(screen.getByText(/Best day this week/)).toBeInTheDocument()
+    expect(screen.queryByText(/Toughest day this week/)).not.toBeInTheDocument()
+  })
+
+  it('fires ?recap=1 once and consumes the param', async () => {
+    vi.mocked(healthAiRecap).mockResolvedValue('A steady week.')
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/health/insights?recap=1')
+    expect(await screen.findByText('A steady week.')).toBeInTheDocument()
+    expect(healthAiRecap).toHaveBeenCalledTimes(1)
+    await vi.waitFor(() =>
+      expect(screen.getByTestId('loc')).not.toHaveTextContent('recap'),
+    )
+    /* Dismissable — the card doesn't sit forever. */
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    expect(screen.queryByText('A steady week.')).not.toBeInTheDocument()
+  })
+
+  it('lets journal-only users reach the recap', () => {
+    renderInsights(stateWith({ entries: [je('e1')] }))
+    expect(screen.getByRole('button', { name: /Summarize my week/ })).toBeInTheDocument()
+  })
+
+  it('links the check-in and journal stat cards to their surfaces', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }))
+    const links = screen.getAllByRole('link')
+    const hrefs = links.map((l) => l.getAttribute('href'))
+    expect(hrefs.filter((h) => h === '/health/check-in').length).toBeGreaterThanOrEqual(2)
+    expect(hrefs).toContain('/health/journal')
+  })
+
+  it('flags a streak whose today is still pending', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4, 1), ci('c2', 3, 2)] }))
+    expect(screen.getByText(/Today pending/)).toBeInTheDocument()
+    /* And logs today → the qualifier drops. */
+  })
+
+  it('leads the empty state to the check-in', () => {
+    renderInsights(stateWith())
+    const cta = screen.getByRole('link', { name: /Check in now/ })
+    expect(cta).toHaveAttribute('href', '/health/check-in')
+  })
+
+  it('drops the pending qualifier once today is logged', () => {
+    renderInsights(
+      stateWith({ checkIns: [ci('c0', 4), ci('c1', 4, 1), ci('c2', 3, 2)] }),
+    )
+    expect(screen.queryByText(/Today pending/)).not.toBeInTheDocument()
+  })
+})

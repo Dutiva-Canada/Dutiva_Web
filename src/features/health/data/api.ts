@@ -128,17 +128,22 @@ export async function loadHealthState(): Promise<HealthState> {
 }
 
 /** Older journal pages — the state fetch keeps the newest JOURNAL_CAP rows;
-    the journal's "load earlier" walks back from the oldest shown. */
+    the journal's "load earlier" walks back from the oldest shown. The id
+    tiebreaker keeps same-timestamp rows (a fast double-save, a bulk import)
+    from slipping between pages. */
 export async function listJournalEntriesBefore(
-  beforeIso: string,
+  before: { createdAt: string; id: string },
   limit: number = JOURNAL_PAGE,
 ): Promise<HealthJournalEntry[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from('health_journal_entries')
     .select('*')
-    .lt('created_at', beforeIso)
+    .or(
+      `created_at.lt.${before.createdAt},and(created_at.eq.${before.createdAt},id.lt.${before.id})`,
+    )
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(limit)
   if (error) throw error
   return (data ?? []).map(journalFromRow)
@@ -286,6 +291,16 @@ export async function deleteHabit(id: string): Promise<void> {
   const client = requireSupabase()
   /* The log rows cascade on habit_id, so this removes its history too. */
   const { error } = await client.from('health_habits').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Rename a habit — keeps the log history, unlike delete-and-recreate. */
+export async function updateHabit(id: string, name: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_habits')
+    .update({ name: name.trim() })
+    .eq('id', id)
   if (error) throw error
 }
 
@@ -642,6 +657,7 @@ export type HealthReactEvent =
   | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
+  | { type: 'memory_added'; text: string }
 
 /* Reactions fire a model call per qualifying action — someone checking off
    three habits shouldn't produce three calls. A floor between calls keeps

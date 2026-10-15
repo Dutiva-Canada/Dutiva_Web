@@ -48,6 +48,20 @@ function ReviewBadge() {
   return <span className="hb-badge">{pending}</span>
 }
 
+/* A refresh failure leaves last-good data on screen — the note says so
+   instead of silently serving a stale snapshot. Only renders when there IS
+   loaded data; a first-load failure is each page's HealthDataError. */
+function StaleDataNote() {
+  const { x } = useI18n()
+  const { state, error } = useHealthData()
+  if (!state || !error) return null
+  return (
+    <p className="sb-note" role="alert" style={{ marginBottom: 12 }}>
+      {x(HM.health_refresh_stale)}
+    </p>
+  )
+}
+
 export function HealthPortalLayout() {
   const { x, L, lang, setLang } = useI18n()
   const { status, signOut, session } = useAuth()
@@ -244,7 +258,10 @@ export function HealthPortalLayout() {
           ) : access === 'no' ? (
             <AccessRequired />
           ) : (
-            <Outlet />
+            <>
+              <StaleDataNote />
+              <Outlet />
+            </>
           )}
         </main>
         <HealthFooter />

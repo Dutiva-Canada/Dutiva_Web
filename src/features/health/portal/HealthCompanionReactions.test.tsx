@@ -172,15 +172,20 @@ describe('journal → share with Mira', () => {
     })
     renderWith(<HealthJournalPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Let Mira read this' }))
+    /* Share buttons carry the entry's title in their accessible name —
+       "Let Mira read "Sunday"" — so the match is a prefix. */
+    fireEvent.click(screen.getByRole('button', { name: /Let Mira read/ }))
     await waitFor(() =>
       expect(shareEntryWithMira).toHaveBeenCalledWith('j1', 'en', expect.any(Function)),
     )
     expect(await screen.findByText(/Quiet can carry a lot/)).toBeInTheDocument()
     /* The share persisted (shared_at) — the row now reads as shared and
-       offers revocation instead of the share button. */
-    expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
-    expect(await screen.findByText('Shared with Mira')).toBeInTheDocument()
+       offers revocation instead of the share button. The revoke button is
+       the signal ("Shared with Mira" text also matches the list filter). */
+    expect(screen.queryByRole('button', { name: /Let Mira read/ })).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: /Stop sharing/ }),
+    ).toBeInTheDocument()
   })
 
   it('revokes a shared entry — shared_at clears and the share button returns', async () => {
@@ -191,8 +196,8 @@ describe('journal → share with Mira', () => {
     }
     const { refresh } = renderWith(<HealthJournalPage />, 'en', sharedState)
 
-    expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Stop sharing' }))
+    expect(screen.queryByRole('button', { name: /Let Mira read/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Stop sharing/ }))
     await waitFor(() => expect(unshareEntryFromMira).toHaveBeenCalledWith('j1'))
     await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
@@ -200,7 +205,7 @@ describe('journal → share with Mira', () => {
   it('says she reads only this entry, in French too', async () => {
     renderWith(<HealthJournalPage />, 'fr')
 
-    const btn = await screen.findByRole('button', { name: 'Laisser Mira le lire' })
+    const btn = await screen.findByRole('button', { name: /Laisser Mira lire/ })
     expect(btn).toHaveAttribute('title', 'Elle lit seulement cette entrée — sa réponse arrive ici et dans votre discussion.')
   })
 })
@@ -265,7 +270,8 @@ describe('check-in → edit sends checkin_edited', () => {
     })
     renderWith(<HealthCheckInPage />, 'en', withOne)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    /* Row controls name their row — "Edit check-in from Today, 10:52 a.m." */
+    fireEvent.click(screen.getByRole('button', { name: /Edit check-in/ }))
     /* The entry form's scale renders before the editor's — the last
        'Great' radio on the page is the one inside the row editor. */
     const great = screen.getAllByRole('radio', { name: 'Great' }).at(-1)!
@@ -287,10 +293,10 @@ describe('check-in → edit sends checkin_edited', () => {
 
   it('cancel closes the editor without a write', async () => {
     renderWith(<HealthCheckInPage />, 'en', withOne)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit check-in/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(updateCheckIn).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Edit check-in/ })).toBeInTheDocument()
   })
 })
 
@@ -407,7 +413,9 @@ describe('review — accepting a proposed memory writes it', () => {
     vi.mocked(resolveSuggestion).mockResolvedValue(undefined)
     renderWith(<HealthReviewPage />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Remember it' }))
+    /* The accept button's accessible name carries the row title —
+       "Remember it — Walks help me think". */
+    fireEvent.click(await screen.findByRole('button', { name: /Remember it/ }))
     await waitFor(() =>
       expect(addHealthMemory).toHaveBeenCalledWith('Walks help me think', 'mira'),
     )

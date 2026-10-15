@@ -1,15 +1,25 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useState } from 'react'
-import { Check, Loader2, Sparkles, Trash2 } from 'lucide-react'
+import { Check, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
-import { addHabit, deleteHabit, healthAiHabit, sendHealthReaction, setHabitDone, type HabitSuggestion } from '@/features/health/data/api'
+import {
+  addHabit,
+  deleteHabit,
+  healthAiHabit,
+  sendHealthReaction,
+  setHabitDone,
+  updateHabit,
+  type HabitSuggestion,
+} from '@/features/health/data/api'
 import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { fmtDay } from './healthUi'
+import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
@@ -27,21 +37,36 @@ export function HealthHabitsPage() {
 
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
-  const [busyId, setBusyId] = useState<string | null>(null)
+  /* Per-row busy keys ("habitId" or "habitId:YYYY-MM-DD" for day dots) — a
+     write in flight on one habit never deadens the other rows' buttons. */
+  const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(new Set())
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
   const [notifySaving, setNotifySaving] = useState(false)
   const [suggestions, setSuggestions] = useState<HabitSuggestion[]>([])
   const [suggestBusy, setSuggestBusy] = useState(false)
+  const [acceptBusy, setAcceptBusy] = useState<string | null>(null)
   const [miraLine, setMiraLine] = useState<string | null>(null)
+
+  const setBusy = (key: string, on: boolean) =>
+    setBusyIds((cur) => {
+      const next = new Set(cur)
+      if (on) next.add(key)
+      else next.delete(key)
+      return next
+    })
 
   /* Evening streak nudge — one email a day at most, only while a live
      streak is unchecked. Absent pref row defaults to on. */
   useEffect(() => {
     let cancelled = false
+    /* A failed pref load leaves notifyOn null — the row hides rather than
+       display an optimistic "on" that was never persisted. */
     loadNotifyPref('health')
       .then((v) => { if (!cancelled) setNotifyOn(v) })
-      .catch(() => { if (!cancelled) setNotifyOn(true) })
+      .catch(() => {})
     return () => { cancelled = true }
   }, [])
 
@@ -63,26 +88,37 @@ export function HealthHabitsPage() {
   const logs = state?.habitLogs ?? []
   const today = todayDayKey()
   const week = recentDayKeys(7)
-  const weekDays = week.map((d) => d.slice(8)) // DD for the dot labels
+  const month = recentDayKeys(30)
+  const nameTaken = (n: string) =>
+    habits.some((h) => h.name.trim().toLowerCase() === n.trim().toLowerCase())
 
   const submit = async () => {
     const trimmed = name.trim()
     if (!trimmed || saving) return
+    if (nameTaken(trimmed)) {
+      showToast(HM.health_habit_exists)
+      return
+    }
     setSaving(true)
     try {
       await addHabit(trimmed)
-      await refresh()
       setName('')
       showToast(HM.health_habit_added)
+      await refresh()
       /* Best-effort: Mira notes the new habit — same as she does a done-day. */
       void sendHealthReaction({ type: 'habit_added', habit: trimmed }, lang, setMiraLine)
+        .catch(() => {})
+    } catch {
+      showToast(HM.health_save_failed)
     } finally {
       setSaving(false)
     }
   }
 
-  /* Pending habit rows from the review queue survive refresh — same rows
-     the /health/review page lists. */
+  /* Pending habit rows from the review queue — same rows /health/review
+     lists. Reloaded when pendingReview changes so resolving a row there
+     (or here) clears the ghost on this page too. */
+  const pendingReview = state?.pendingReview
   useEffect(() => {
     loadPendingSuggestions('health')
       .then((rows) =>
@@ -97,7 +133,7 @@ export function HealthHabitsPage() {
         ),
       )
       .catch(() => {})
-  }, [])
+  }, [pendingReview])
 
   /* Habit suggestion — the model sees habit names + streak aggregates only
      and answers "name | reason". Nothing is added until the user taps
@@ -107,15 +143,21 @@ export function HealthHabitsPage() {
     setSuggestBusy(true)
     try {
       const out = await healthAiHabit(lang)
-      setSuggestions((cur) =>
-        cur.some(
+      const lower = out.name.trim().toLowerCase()
+      if (lower === '' || nameTaken(out.name)) {
+        /* Already tracked — surface it instead of showing a dead row. */
+        showToast(HM.health_ai_habit_dupe)
+      } else if (
+        suggestions.some(
           (c) =>
             (c.suggestionId && c.suggestionId === out.suggestionId) ||
-            c.name.toLowerCase() === out.name.toLowerCase(),
+            c.name.trim().toLowerCase() === lower,
         )
-          ? cur
-          : [...cur, out],
-      )
+      ) {
+        showToast(HM.health_ai_habit_same)
+      } else {
+        setSuggestions((cur) => [...cur, out])
+      }
     } catch {
       showToast(HM.health_ai_habit_failed)
     } finally {
@@ -124,19 +166,30 @@ export function HealthHabitsPage() {
   }
 
   const acceptSuggestion = async (s: HabitSuggestion) => {
-    if (saving) return
-    setSaving(true)
+    const key = s.suggestionId ?? s.name
+    if (acceptBusy === key) return
+    setAcceptBusy(key)
     try {
-      await addHabit(s.name)
+      const dupe = nameTaken(s.name)
+      if (!dupe) await addHabit(s.name)
       if (s.suggestionId) {
-        await resolveSuggestion(s.suggestionId, 'accepted', 'added').catch(() => {})
+        /* 'already_tracked' keeps the resolve honest when the row named a
+           habit that already exists — resolve can fail harmlessly (the
+           action stays idempotent so a retry can't double-add). */
+        await resolveSuggestion(s.suggestionId, 'accepted', dupe ? 'already_tracked' : 'added')
+          .catch(() => {})
       }
       setSuggestions((cur) => cur.filter((c) => c !== s))
+      showToast(dupe ? HM.health_habit_exists : HM.health_habit_added)
       await refresh()
-      showToast(HM.health_habit_added)
-      void sendHealthReaction({ type: 'habit_added', habit: s.name }, lang, setMiraLine)
+      if (!dupe) {
+        void sendHealthReaction({ type: 'habit_added', habit: s.name }, lang, setMiraLine)
+          .catch(() => {})
+      }
+    } catch {
+      showToast(HM.health_save_failed)
     } finally {
-      setSaving(false)
+      setAcceptBusy(null)
     }
   }
 
@@ -147,15 +200,19 @@ export function HealthHabitsPage() {
     setSuggestions((cur) => cur.filter((c) => c !== s))
   }
 
-  const toggle = async (habitId: string, done: boolean) => {
-    if (busyId) return
-    setBusyId(habitId)
+  /* Marks a day done or clears it — today via the row button, any of the
+     last seven via the dot. Backfilling yesterday is the honest "did it,
+     forgot to tick" path. */
+  const toggle = async (habitId: string, day: string, done: boolean) => {
+    const key = `${habitId}:${day}`
+    if (busyIds.has(key)) return
+    setBusy(key, true)
     try {
-      await setHabitDone(habitId, today, done)
+      await setHabitDone(habitId, day, done)
       await refresh()
-      /* She reacts to the kept promise, not the unchecking — best-effort,
-         the line also lands in the chat thread. */
-      if (done) {
+      /* She reacts to the kept promise, not the unchecking — and only to
+         today's mark; silent backfill shouldn't summon a reply. */
+      if (done && day === today) {
         const name = habits.find((h) => h.id === habitId)?.name ?? ''
         /* Throttled reactions resolve reply:null — leave any earlier line up. */
         void sendHealthReaction({ type: 'habit_marked', habit: name }, lang, setMiraLine)
@@ -164,8 +221,10 @@ export function HealthHabitsPage() {
           })
           .catch(() => {})
       }
+    } catch {
+      showToast(HM.health_save_failed)
     } finally {
-      setBusyId(null)
+      setBusy(key, false)
     }
   }
 
@@ -175,11 +234,33 @@ export function HealthHabitsPage() {
       return
     }
     setArmDelete(null)
-    await deleteHabit(id)
-    await refresh()
+    try {
+      await deleteHabit(id)
+      await refresh()
+    } catch {
+      showToast(HM.health_delete_failed)
+    }
   }
 
-  if (loading || !state) return <HealthLoading />
+  const saveRename = async (h: { id: string; name: string }) => {
+    const trimmed = renameValue.trim()
+    setRenamingId(null)
+    if (!trimmed || trimmed === h.name) return
+    if (nameTaken(trimmed)) {
+      showToast(HM.health_habit_exists)
+      return
+    }
+    try {
+      await updateHabit(h.id, trimmed)
+      showToast(HM.health_habit_renamed)
+      await refresh()
+    } catch {
+      showToast(HM.health_save_failed)
+    }
+  }
+
+  if (loading) return <HealthLoading />
+  if (!state) return <HealthDataError />
 
   return (
     <div className="sb hb sb-page">
@@ -229,6 +310,11 @@ export function HealthHabitsPage() {
             {x(suggestBusy ? HM.health_ai_habit_loading : HM.health_ai_habit_btn)}
           </button>
         </div>
+        {suggestions.length > 0 && (
+          <p className="sb-notify-hint" style={{ margin: '12px 0 0' }}>
+            {x(HM.health_ai_note)}
+          </p>
+        )}
         {suggestions.map((s) => (
           <div
             key={s.suggestionId ?? s.name}
@@ -240,7 +326,6 @@ export function HealthHabitsPage() {
               {s.why && (
                 <span className="sb-notify-hint">{s.why}</span>
               )}
-              <span className="sb-notify-hint">{x(HM.health_ai_note)}</span>
               {s.suggestionId === null ? (
                 <span className="sb-notify-hint">{x(HM.health_ai_not_filed)}</span>
               ) : null}
@@ -249,14 +334,19 @@ export function HealthHabitsPage() {
               <button
                 type="button"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
-                disabled={saving}
+                disabled={acceptBusy === (s.suggestionId ?? s.name)}
+                aria-label={`${x(HM.health_ai_habit_add)} — ${s.name}`}
                 onClick={() => void acceptSuggestion(s)}
               >
+                {acceptBusy === (s.suggestionId ?? s.name) ? (
+                  <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                ) : null}
                 {x(HM.health_ai_habit_add)}
               </button>
               <button
                 type="button"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
+                aria-label={`${x(HM.health_ai_habit_dismiss)} — ${s.name}`}
                 onClick={() => void dismissSuggestion(s)}
               >
                 {x(HM.health_ai_habit_dismiss)}
@@ -270,15 +360,52 @@ export function HealthHabitsPage() {
         {habits.length === 0 ? (
           <div className="sb-empty">{x(HM.health_habits_empty)}</div>
         ) : (
-          <div className="hb-rows">
+          <div className="hb-rows" role="list">
             {habits.map((h) => {
               const doneDays = habitDoneDays(logs, h.id)
               const streak = habitStreak(logs, h.id)
               const doneToday = doneDays.has(today)
+              const weekDone = week.filter((d) => doneDays.has(d)).length
+              /* The dots show a week; this quiet count is the longer view —
+                 "12 of the last 30 days" without a month of UI. */
+              const monthDone = month.filter((d) => doneDays.has(d)).length
               return (
-                <div key={h.id} className="hb-row">
+                <div key={h.id} className="hb-row" role="listitem">
                   <div className="hb-row-main">
-                    <span className="hb-row-title">{h.name}</span>
+                    {renamingId === h.id ? (
+                      <span className="flex items-center gap-[8px]">
+                        <input
+                          className="sb-input"
+                          style={{ maxWidth: 260 }}
+                          value={renameValue}
+                          autoFocus
+                          maxLength={120}
+                          aria-label={x(HM.health_habit_rename)}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') void saveRename(h)
+                            if (e.key === 'Escape') setRenamingId(null)
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="sb-btn sb-btn-sm sb-btn-primary"
+                          disabled={!renameValue.trim()}
+                          onClick={() => void saveRename(h)}
+                        >
+                          {x(HM.health_checkin_save)}
+                        </button>
+                        <button
+                          type="button"
+                          className="sb-btn sb-btn-sm sb-btn-secondary"
+                          onClick={() => setRenamingId(null)}
+                        >
+                          {x(HM.health_cancel)}
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="hb-row-title">{h.name}</span>
+                    )}
                     <div className="flex flex-wrap items-center gap-[8px]">
                       {streak > 0 && (
                         <span className="sb-pill sb-pill-ok">
@@ -289,41 +416,79 @@ export function HealthHabitsPage() {
                           ).replace('{count}', String(streak))}
                         </span>
                       )}
-                      <span className="flex items-center gap-[4px]" role="img" aria-label={x(HM.health_habit_week)}>
-                        {week.map((d, i) => (
-                          <span
-                            key={d}
-                            title={d}
-                            className={`hb-dot${doneDays.has(d) ? ' is-on' : ''}`}
-                          >
-                            <span className="sr-only">{weekDays[i]}</span>
-                          </span>
-                        ))}
+                      {streak > 0 && !doneToday && (
+                        <span className="hb-row-meta">{x(HM.health_ov_streak_pending)}</span>
+                      )}
+                      {/* Tappable backfill — each dot toggles its day, so a
+                          forgotten tick yesterday stays fixable. */}
+                      <span
+                        className="flex items-center gap-[4px]"
+                        role="group"
+                        aria-label={x(HM.health_habit_week_summary).replace(
+                          '{done}',
+                          String(weekDone),
+                        )}
+                      >
+                        {week.map((d) => {
+                          const done = doneDays.has(d)
+                          const dayLabel = fmtDay(d, lang)
+                          return (
+                            <button
+                              key={d}
+                              type="button"
+                              title={dayLabel}
+                              className={`hb-dot${done ? ' is-on' : ''}${d === today ? ' is-today' : ''}`}
+                              aria-label={x(
+                                done ? HM.health_habit_dot_done : HM.health_habit_dot_open,
+                              ).replace('{day}', dayLabel)}
+                              aria-pressed={done}
+                              disabled={busyIds.has(`${h.id}:${d}`)}
+                              onClick={() => void toggle(h.id, d, !done)}
+                            >
+                              <span className="sr-only">{dayLabel}</span>
+                            </button>
+                          )
+                        })}
                       </span>
                     </div>
+                    <span className="hb-row-meta">
+                      {x(HM.health_habit_month_summary).replace('{done}', String(monthDone))}
+                    </span>
                   </div>
-                  <div className="hb-row-side">
+                  <div className="hb-row-side hb-row-actions">
                     <button
                       type="button"
                       className={`sb-btn sb-btn-sm ${doneToday ? 'sb-btn-primary' : 'sb-btn-secondary'}`}
-                      style={{ minHeight: 34, padding: '5px 12px', fontSize: 12.5 }}
-                      disabled={busyId === h.id}
+                      disabled={busyIds.has(`${h.id}:${today}`)}
+                      aria-label={`${x(doneToday ? HM.health_habit_done : HM.health_habit_mark)} — ${h.name}`}
                       aria-pressed={doneToday}
-                      onClick={() => void toggle(h.id, !doneToday)}
+                      onClick={() => void toggle(h.id, today, !doneToday)}
                     >
                       {doneToday && <Check size={13} aria-hidden="true" />}
                       {doneToday ? x(HM.health_habit_done) : x(HM.health_habit_mark)}
                     </button>
                     <button
                       type="button"
+                      className="sb-btn sb-btn-sm sb-btn-secondary"
+                      aria-label={`${x(HM.health_habit_rename)} — ${h.name}`}
+                      onClick={() => {
+                        setRenamingId(h.id)
+                        setRenameValue(h.name)
+                      }}
+                    >
+                      <Pencil size={13} aria-hidden="true" />
+                      {x(HM.health_habit_rename)}
+                    </button>
+                    <button
+                      type="button"
                       className={`sb-btn sb-btn-sm ${armDelete === h.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
-                      style={{ minHeight: 34, padding: '5px 12px', fontSize: 12.5 }}
+                      aria-label={`${x(HM.health_habit_delete)} — ${h.name}`}
                       onClick={() => void remove(h.id)}
                       onBlur={() => setArmDelete(null)}
                     >
                       <Trash2 size={13} aria-hidden="true" />
                       {armDelete === h.id
-                        ? x(HM.health_habit_delete_confirm)
+                        ? x(HM.health_habit_delete_named).replace('{name}', h.name)
                         : x(HM.health_habit_delete)}
                     </button>
                   </div>
@@ -346,7 +511,7 @@ export function HealthHabitsPage() {
             </span>
           </label>
         )}
-        {miraLine && <MiraNote line={miraLine} />}
+        {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
       </section>
 
       <p className="sb-note" style={{ marginTop: 18 }}>

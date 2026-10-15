@@ -17,7 +17,8 @@ import {
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { HealthJournalEntry } from '@/features/health/data/types'
-import { fmtDateTime } from './healthUi'
+import { fmtRelativeDateTime } from './healthUi'
+import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
@@ -25,10 +26,14 @@ import { useHealthHead } from './useHealthHead'
 function EntryEditor({
   initial,
   entryId,
+  shared,
   onDone,
 }: {
   initial?: { title: string; body: string }
   entryId?: string
+  /* Editing a shared entry changes what Mira reads — stated inline so the
+     consent stays honest at the moment the shared text changes. */
+  shared?: boolean
   onDone: () => void
 }) {
   const { x } = useI18n()
@@ -37,13 +42,25 @@ function EntryEditor({
   const [title, setTitle] = useState(initial?.title ?? '')
   const [body, setBody] = useState(initial?.body ?? '')
   const [saving, setSaving] = useState(false)
+  const [armCancel, setArmCancel] = useState(false)
+
+  const dirty = body !== (initial?.body ?? '') || title !== (initial?.title ?? '')
 
   const save = async () => {
-    if (!body.trim() || saving) return
+    const trimmed = body.trim()
+    if (!trimmed || saving) return
+    /* A save that changes nothing gets no write — and no false "Edited"
+       stamp on the row. */
+    if (entryId && trimmed === (initial?.body ?? '').trim() && title.trim() === initial?.title.trim()) {
+      onDone()
+      return
+    }
     setSaving(true)
     try {
-      if (entryId) await updateJournalEntry(entryId, { title, body })
-      else await addJournalEntry({ title, body })
+      if (entryId) await updateJournalEntry(entryId, { title, body: trimmed })
+      else await addJournalEntry({ title, body: trimmed })
+      /* refresh() never rejects — its failures surface as the layout's
+         stale-data note, so awaiting it here can't false-report a save. */
       await refresh()
       showToast(HM.health_journal_saved)
       onDone()
@@ -54,8 +71,25 @@ function EntryEditor({
     }
   }
 
+  /* A cancel that would silently drop written words arms once first —
+     losing a paragraph to a stray click is the worst failure a journal
+     can have. */
+  const cancel = () => {
+    if (dirty && body.trim() && !armCancel) {
+      setArmCancel(true)
+      return
+    }
+    onDone()
+  }
+
   return (
-    <div className="flex flex-col gap-[14px]">
+    <form
+      className="flex flex-col gap-[14px]"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void save()
+      }}
+    >
       <div className="sb-field">
         <label className="sb-flabel" htmlFor={entryId ? `hb-jt-${entryId}` : 'hb-jt'}>
           {x(HM.health_journal_entry_title)}
@@ -65,6 +99,7 @@ function EntryEditor({
           className="sb-input"
           style={{ width: '100%', minHeight: 44, fontSize: 15 }}
           value={title}
+          autoFocus={!entryId}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={x(HM.health_journal_title_ph)}
           maxLength={200}
@@ -78,47 +113,70 @@ function EntryEditor({
           id={entryId ? `hb-jb-${entryId}` : 'hb-jb'}
           className="hb-textarea"
           value={body}
+          autoFocus={!!entryId}
           onChange={(e) => setBody(e.target.value)}
           placeholder={x(HM.health_journal_body_ph)}
         />
       </div>
+      {shared && <p className="sb-helper">{x(HM.health_journal_shared_edit_hint)}</p>}
       <div className="sb-form-actions" style={{ gap: 10 }}>
-        {onDone && (
-          <button type="button" className="sb-btn sb-btn-secondary" onClick={onDone}>
-            {x(HM.health_journal_cancel)}
-          </button>
-        )}
         <button
           type="button"
+          className={`sb-btn ${armCancel ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+          disabled={saving}
+          onClick={cancel}
+          onBlur={() => setArmCancel(false)}
+        >
+          {armCancel ? x(HM.health_journal_cancel_confirm) : x(HM.health_journal_cancel)}
+        </button>
+        <button
+          type="submit"
           className="sb-btn sb-btn-primary"
           disabled={!body.trim() || saving}
-          title={!body.trim() ? x(HM.health_journal_body_required) : undefined}
-          onClick={() => void save()}
+          aria-describedby={!body.trim() ? 'hb-jb-req' : undefined}
         >
           {saving && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
           {x(HM.health_journal_save)}
         </button>
+        {!body.trim() && (
+          <p className="sb-helper" id="hb-jb-req" style={{ margin: 0 }}>
+            {x(HM.health_journal_body_required)}
+          </p>
+        )}
       </div>
-    </div>
+    </form>
   )
 }
 
-function EntryRow({ entry }: { entry: HealthJournalEntry }) {
+function EntryRow({ entry, onDeleted }: { entry: HealthJournalEntry; onDeleted: (id: string) => void }) {
   const { x, lang } = useI18n()
   const { refresh } = useHealthData()
   const { showToast } = useToasts()
   const [editing, setEditing] = useState(false)
   const [armDelete, setArmDelete] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [miraLine, setMiraLine] = useState<string | null>(null)
+
+  const title = entry.title.trim() || x(HM.health_journal_untitled)
+  /* Long bodies clamp to a few lines — the list stays a list, not a wall. */
+  const clampable = entry.body.length > 240 || entry.body.split('\n').length > 4
 
   const remove = async () => {
     if (!armDelete) {
       setArmDelete(true)
       return
     }
-    await deleteJournalEntry(entry.id)
-    await refresh()
+    setArmDelete(false)
+    try {
+      await deleteJournalEntry(entry.id)
+      /* Purge the parent's `earlier` pages too — a deleted row that only
+         lived past the first page otherwise stays rendered as a ghost. */
+      onDeleted(entry.id)
+      await refresh()
+    } catch {
+      showToast(HM.health_delete_failed)
+    }
   }
 
   /* Explicit per-entry consent — the press stamps shared_at on the row
@@ -156,10 +214,11 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
 
   if (editing) {
     return (
-      <div className="hb-row" style={{ display: 'block' }}>
+      <div className="hb-row" role="listitem" style={{ display: 'block' }}>
         <EntryEditor
           initial={{ title: entry.title, body: entry.body }}
           entryId={entry.id}
+          shared={entry.sharedAt !== null}
           onDone={() => setEditing(false)}
         />
       </div>
@@ -167,18 +226,29 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
   }
 
   return (
-    <div>
+    <div role="listitem">
       <div className="hb-row">
         <div className="hb-row-main">
-          <p className="hb-row-title">{entry.title.trim() || x(HM.health_journal_untitled)}</p>
-          <p className="hb-row-body">{entry.body}</p>
+          <h3 className="hb-row-title">{title}</h3>
+          <p className={`hb-row-body${clampable && !expanded ? ' is-clamped' : ''}`}>
+            {entry.body}
+          </p>
+          {clampable && (
+            <button
+              type="button"
+              className="hb-row-expand"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {x(expanded ? HM.health_journal_collapse : HM.health_journal_expand)}
+            </button>
+          )}
           <span className="hb-row-meta">
-            {fmtDateTime(entry.createdAt, lang)}
+            {fmtRelativeDateTime(entry.createdAt, lang)}
             {entry.updatedAt !== entry.createdAt &&
-              ` · ${x(HM.health_journal_edited).replace('{date}', fmtDateTime(entry.updatedAt, lang))}`}
+              ` · ${x(HM.health_journal_edited).replace('{date}', fmtRelativeDateTime(entry.updatedAt, lang))}`}
           </span>
         </div>
-        <div className="hb-row-side" style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+        <div className="hb-row-side hb-row-actions">
           {entry.sharedAt !== null || miraLine !== null ? (
             /* Consent is recorded on the row — the state survives reloads
                and the same button now revokes it. */
@@ -189,8 +259,8 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
               <button
                 type="button"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
-                style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
                 disabled={sharing}
+                aria-label={x(HM.health_journal_unshare_named).replace('{title}', title)}
                 title={x(HM.health_journal_unshare_hint)}
                 onClick={() => void unshare()}
               >
@@ -204,8 +274,8 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
             <button
               type="button"
               className="sb-btn sb-btn-secondary sb-btn-sm"
-              style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
               disabled={sharing}
+              aria-label={x(HM.health_journal_share_named).replace('{title}', title)}
               title={x(HM.health_journal_share_mira_hint)}
               onClick={() => void share()}
             >
@@ -220,7 +290,7 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
           <button
             type="button"
             className="sb-btn sb-btn-secondary sb-btn-sm"
-            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+            aria-label={x(HM.health_journal_edit_named).replace('{title}', title)}
             onClick={() => setEditing(true)}
           >
             <Pencil size={12} aria-hidden="true" />
@@ -229,7 +299,7 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
           <button
             type="button"
             className={`sb-btn sb-btn-sm ${armDelete ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
-            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+            aria-label={x(HM.health_journal_delete_named).replace('{title}', title)}
             onClick={() => void remove()}
             onBlur={() => setArmDelete(false)}
           >
@@ -237,7 +307,7 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
           </button>
         </div>
       </div>
-      {miraLine && <MiraNote line={miraLine} />}
+      {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
     </div>
   )
 }
@@ -253,6 +323,11 @@ export function HealthJournalPage() {
   const [prompting, setPrompting] = useState(false)
   const [earlier, setEarlier] = useState<HealthJournalEntry[]>([])
   const [loadingMore, setLoadingMore] = useState(false)
+  const [query, setQuery] = useState('')
+  const [sharedOnly, setSharedOnly] = useState(false)
+  /* Deletions are removed locally — a stale refresh can't leave a ghost
+     row, whether the entry sat in the fresh page or the paged archive. */
+  const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(new Set())
 
   /* /health/journal?new=1 — the Overview's "New journal entry" CTA lands
      here with the editor already open. Consume the param once so a later
@@ -264,6 +339,13 @@ export function HealthJournalPage() {
     next.delete('new')
     setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams])
+
+  const closeComposer = () => {
+    setComposing(false)
+    /* A suggested prompt belongs to the draft session it opened — it
+       shouldn't hover over the next empty editor. */
+    setPrompt(null)
+  }
 
   /* Model-built writing idea — Mira reads the numbers and the user's own
      recent words. Lands as a note above the editor; the user still writes. */
@@ -285,23 +367,35 @@ export function HealthJournalPage() {
      dedupe by id in case a save re-orders the window. */
   const fresh = state?.entries ?? []
   const freshIds = new Set(fresh.map((e) => e.id))
-  const entries = [...fresh, ...earlier.filter((e) => !freshIds.has(e.id))]
+  const entries = [...fresh, ...earlier.filter((e) => !freshIds.has(e.id))].filter(
+    (e) => !deletedIds.has(e.id),
+  )
   const entriesTotal = state?.entriesTotal ?? entries.length
   const hasMore = entries.length < entriesTotal
+
+  const q = query.trim().toLowerCase()
+  const visible = entries.filter(
+    (e) =>
+      (!sharedOnly || e.sharedAt !== null) &&
+      (!q || `${e.title} ${e.body}`.toLowerCase().includes(q)),
+  )
 
   const loadMore = async () => {
     const oldest = entries[entries.length - 1]
     if (!oldest || loadingMore) return
     setLoadingMore(true)
     try {
-      const rows = await listJournalEntriesBefore(oldest.createdAt)
+      const rows = await listJournalEntriesBefore({ createdAt: oldest.createdAt, id: oldest.id })
       setEarlier((cur) => [...cur, ...rows])
+    } catch {
+      showToast(HM.health_journal_load_failed)
     } finally {
       setLoadingMore(false)
     }
   }
 
-  if (loading || !state) return <HealthLoading />
+  if (loading) return <HealthLoading />
+  if (!state) return <HealthDataError />
 
   return (
     <div className="sb hb sb-page">
@@ -347,22 +441,69 @@ export function HealthJournalPage() {
               </span>
             </div>
           )}
-          <EntryEditor onDone={() => setComposing(false)} />
+          <EntryEditor onDone={closeComposer} />
         </section>
       )}
 
       <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>
         {entries.length === 0 ? (
-          <div className="sb-empty">{x(HM.health_journal_empty)}</div>
+          <div className="sb-empty">
+            {x(HM.health_journal_empty)}
+            <div style={{ marginTop: 10 }}>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                onClick={() => setComposing(true)}
+              >
+                <Plus size={13} aria-hidden="true" />
+                {x(HM.health_journal_empty_cta)}
+              </button>
+            </div>
+          </div>
         ) : (
           <>
-            <div className="hb-rows">
-              {entries.map((e) => (
-                <EntryRow key={e.id} entry={e} />
-              ))}
+            <div className="flex flex-wrap items-center gap-[10px]" style={{ marginBottom: 4 }}>
+              <div className="sb-field" style={{ marginBottom: 0, flex: '1 1 200px' }}>
+                <label className="sr-only" htmlFor="hb-j-search">
+                  {x(HM.health_journal_search)}
+                </label>
+                <input
+                  id="hb-j-search"
+                  className="sb-input"
+                  style={{ minHeight: 38 }}
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={x(HM.health_journal_search)}
+                />
+              </div>
+              <button
+                type="button"
+                className={`sb-btn sb-btn-sm ${sharedOnly ? 'sb-btn-primary' : 'sb-btn-secondary'}`}
+                aria-pressed={sharedOnly}
+                onClick={() => setSharedOnly((v) => !v)}
+              >
+                <Sparkles size={12} aria-hidden="true" />
+                {x(HM.health_journal_filter_shared)}
+              </button>
             </div>
+            {visible.length === 0 ? (
+              <div className="sb-empty">{x(HM.health_journal_no_results)}</div>
+            ) : (
+              <div className="hb-rows" role="list">
+                {visible.map((e) => (
+                  <EntryRow
+                    key={e.id}
+                    entry={e}
+                    onDeleted={(id) =>
+                      setDeletedIds((cur) => new Set(cur).add(id))
+                    }
+                  />
+                ))}
+              </div>
+            )}
             {hasMore && (
-              <div style={{ textAlign: 'center', marginTop: 14 }}>
+              <div className="hb-pager">
                 <button
                   type="button"
                   className="sb-btn sb-btn-secondary sb-btn-sm"

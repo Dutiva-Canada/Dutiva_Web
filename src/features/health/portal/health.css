@@ -213,14 +213,23 @@ a.sb-stat-link:focus-visible {
   background: var(--sb-accent);
   min-height: 4px;
 }
+/* Empty days must not masquerade as low days — a dashed outline reads
+   "nothing logged" where a solid sliver would read "rough day". */
 .hb-bar-fill[data-empty] {
-  background: var(--sb-line);
-  min-height: 4px;
+  background: transparent;
+  border: 1px dashed var(--sb-line);
+  min-height: 5px;
 }
 .hb-bar-day {
   font-size: 10px;
   color: var(--sb-muted);
   font-variant-numeric: tabular-nums;
+}
+/* Month-boundary labels on the axis ("Oct 1" instead of bare "1") — marks
+   the rollover so 29 30 1 2 doesn't read as a glitch. */
+.hb-bar-day.is-month {
+  color: var(--sb-body);
+  font-weight: 600;
 }
 
 /* Crisis banner — rendered on Overview and the top of Resources. Uses the
@@ -319,8 +328,128 @@ a.sb-stat-link:focus-visible {
 .hb-res-item a:hover {
   text-decoration: underline;
 }
+/* Immediate danger gets the urgent border the 988 banner carries. */
+.hb-res-item.is-urgent {
+  border: 1.5px solid var(--sb-danger);
+}
+/* Tappable contact chips under each service — tel:/sms:/web. */
+.hb-res-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+.hb-res-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 11px;
+  border: 1px solid var(--sb-accent);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sb-accent-ink);
+  background: var(--sb-accent-soft);
+  text-decoration: none;
+}
+.hb-res-link:hover {
+  text-decoration: none;
+  border-color: var(--sb-accent-ink);
+}
+.hb-res-link:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+/* Same chips on the crisis banner itself. */
+.hb-crisis .hb-res-link {
+  border-color: var(--sb-danger);
+  color: var(--sb-danger);
+  background: transparent;
+}
+/* Non-crisis off-ramp at the foot of Resources. */
+.hb-res-mira {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--sb-muted);
+}
+.hb-res-mira a {
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+}
 
-/* Habit 7-day dots — a filled accent dot per done day, plain ring otherwise. */
+/* Journal bodies clamp to a few lines in the list — the toggle expands. */
+.hb-row-body.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hb-row-expand {
+  align-self: flex-start;
+  border: 0;
+  padding: 0;
+  margin: 2px 0 0;
+  background: transparent;
+  color: var(--sb-accent-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hb-row-expand:hover {
+  text-decoration: underline;
+}
+.hb-row-expand:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+
+/* Centered "load more / show all" row under paged lists. */
+.hb-pager {
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* Row action buttons — the shared treatment retired the per-row inline
+   styles (minHeight/padding/fontSize) that drifted across pages. */
+.hb-row-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.hb-row-actions .sb-btn-sm {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+
+/* Dismiss button on Mira notes and the recap card. */
+.hb-note-close {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.hb-note-close:hover {
+  color: var(--sb-ink);
+  background: var(--sb-card);
+}
+.hb-note-close:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 1px;
+}
+
+/* Habit 7-day dots — a filled accent dot per done day, plain ring otherwise.
+   They're real buttons: tapping backfills that day within the week. */
 .hb-dot {
   width: 10px;
   height: 10px;
@@ -328,10 +457,24 @@ a.sb-stat-link:focus-visible {
   border: 1.5px solid var(--sb-line);
   background: transparent;
   display: inline-block;
+  padding: 0;
+  cursor: pointer;
 }
 .hb-dot.is-on {
   border-color: var(--sb-accent);
   background: var(--sb-accent);
+}
+/* Today's cell carries a ring so "the last dot" is findable at a glance. */
+.hb-dot.is-today {
+  box-shadow: 0 0 0 2.5px var(--sb-card), 0 0 0 4px var(--sb-accent);
+}
+.hb-dot:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.hb-dot:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
 }
 
 /* Box-breathing circle — scales up on inhale, holds, scales down on exhale.
@@ -550,7 +693,8 @@ a.sb-stat-link:focus-visible {
     font-size: 16px;
   }
   .hb-scale-label {
-    font-size: 9.5px;
+    /* 9.5px was effectively unreadable — 11px stays the floor. */
+    font-size: 11px;
   }
   /* Practices rows — stack the side buttons under the text on small screens. */
   .hb-mod-rows .hb-row {

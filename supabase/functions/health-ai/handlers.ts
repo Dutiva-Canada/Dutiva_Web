@@ -547,6 +547,7 @@ export type ReactEvent =
   | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
+  | { type: 'memory_added'; text: string }
 
 /** Validate a client-sent reaction event. Pure — kept in handlers so vitest
     reaches it (runtime.ts carries npm: imports). */
@@ -571,6 +572,10 @@ export function parseReactEvent(raw: unknown): ReactEvent | null {
     if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
     return { type: ev.type, habit: ev.habit.trim().slice(0, 120) }
   }
+  if (ev.type === 'memory_added') {
+    if (typeof ev.text !== 'string' || ev.text.trim() === '') return null
+    return { type: ev.type, text: ev.text.trim().slice(0, 500) }
+  }
   return null
 }
 
@@ -590,10 +595,12 @@ export function reactPrompt(
       ? `${event.type === 'checkin_edited' ? 'revised a check-in — it now reads' : 'saved a check-in'} — mood ${event.mood}/5` +
         (event.energy != null ? `, energy ${event.energy}/5` : '') +
         (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
-      : event.type === 'habit_added'
-        ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
-        : `marked the habit "${oneLine(event.habit, 120)}" done today` +
-          (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+      : event.type === 'memory_added'
+        ? `just asked you to remember — "${oneLine(event.text, 200)}"`
+        : event.type === 'habit_added'
+          ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
+          : `marked the habit "${oneLine(event.habit, 120)}" done today` +
+            (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
   /* A streak lands differently at a round mark — a week, two weeks, a month,
      a round ten. Tell her once, so she can name the milestone plainly rather
      than recite a number every day. */

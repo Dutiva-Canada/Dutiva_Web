@@ -43,6 +43,7 @@ import {
   MOOD_LABELS,
   moodLabel,
 } from './healthUi'
+import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { HealthScalePicker } from './HealthScalePicker'
 import { MiraNote } from './MiraNote'
@@ -282,6 +283,8 @@ function QuickCheckIn() {
           if (r.reply !== null) setMiraLine(r.reply)
         })
         .catch(() => {})
+    } catch {
+      showToast(HM.health_checkin_failed)
     } finally {
       setSaving(false)
     }
@@ -328,7 +331,7 @@ function QuickCheckIn() {
             {x(HM.health_checkin_submit)}
           </button>
         </div>
-        {miraLine && <MiraNote line={miraLine} />}
+        {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
       </div>
     </section>
   )
@@ -340,6 +343,7 @@ function QuickCheckIn() {
 function TodayHabits() {
   const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
+  const { showToast } = useToasts()
   const [busyId, setBusyId] = useState<string | null>(null)
   const [miraLine, setMiraLine] = useState<string | null>(null)
 
@@ -364,6 +368,8 @@ function TodayHabits() {
           })
           .catch(() => {})
       }
+    } catch {
+      showToast(HM.health_save_failed)
     } finally {
       setBusyId(null)
     }
@@ -406,28 +412,24 @@ function TodayHabits() {
           )
         })}
       </div>
-      {miraLine && <MiraNote line={miraLine} />}
+      {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
     </section>
   )
 }
 
 export function HealthHomePage() {
   const { x, lang } = useI18n()
-  const { state, loading, error, refresh } = useHealthData()
+  const { state, loading } = useHealthData()
   useHealthHead(HM.health_seo_title, HM.health_subtitle)
 
-  if (loading || !state) {
+  if (loading) {
     return <HealthLoading />
   }
-  if (error) {
-    return (
-      <div className="sb hb sb-page">
-        <p role="alert" className="sb-note">{x(HM.health_load_error)}</p>
-        <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
-          {x(HM.health_retry)}
-        </button>
-      </div>
-    )
+  /* First-load failure → retry card. A refresh failure while data is on
+     screen surfaces as the layout's stale-data note — the page keeps
+     working off the last good snapshot. */
+  if (!state) {
+    return <HealthDataError />
   }
 
   const mood7 = avgMood(state.checkIns, 7)
@@ -458,7 +460,7 @@ export function HealthHomePage() {
         : x(HM.health_ov_streak_days).replace('{count}', String(streak))
 
   const moodValue =
-    mood7 == null ? x(HM.health_ov_none) : `${mood7.toFixed(1)} ${moodLabel(mood7, lang)}`
+    mood7 == null ? x(HM.health_ov_none) : `${+mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`
   const habitsValue =
     habitsToday.total === 0
       ? x(HM.health_ov_habits_none)
@@ -547,7 +549,7 @@ export function HealthHomePage() {
         >
           <div className="k">{x(HM.health_ov_mood_7d)}</div>
           <div className="v">
-            {mood7 == null ? '—' : `${mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`}
+            {mood7 == null ? '—' : `${+mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`}
           </div>
           <div className="hb-spark" aria-hidden="true">
             {moodWeek.map((d) => (

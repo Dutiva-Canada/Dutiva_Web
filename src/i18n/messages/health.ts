@@ -152,6 +152,22 @@ export const healthMessages = defineMessages({
     en: 'Nothing yet — your check-ins will appear here.',
     fr: 'Rien pour l’instant — vos points apparaîtront ici.',
   },
+  /* [FR self-authored] — inline hints + named controls on the check-in page. */
+  health_checkin_failed: {
+    en: 'Couldn’t save the check-in — try again.',
+    fr: 'Enregistrement du point impossible — réessayez.',
+  },
+  health_checkin_need_mood: { en: 'Pick a mood first — it’s the one required piece.', fr: 'Choisissez d’abord une humeur — c’est le seul champ requis.' },
+  health_checkin_clear_hint: { en: 'Pick it again to clear it.', fr: 'Sélectionnez-la à nouveau pour l’effacer.' },
+  health_checkin_logged_today: {
+    en: 'Already logged today — your check-ins are below.',
+    fr: 'Déjà pointé aujourd’hui — vos points sont en bas.',
+  },
+  health_checkin_edit_named: { en: 'Edit check-in from {when}', fr: 'Modifier le point du {when}' },
+  health_checkin_delete_named: { en: 'Delete check-in from {when}', fr: 'Supprimer le point du {when}' },
+  /* History renders the newest 30; the rest unfold on demand so a mature
+     account doesn't mount hundreds of rows. [FR self-authored] */
+  health_checkin_show_all: { en: 'Show all {count} check-ins', fr: 'Afficher les {count} points' },
   health_mood_1: { en: 'Rough', fr: 'Difficile' },
   health_mood_2: { en: 'Low', fr: 'Bas' },
   health_mood_3: { en: 'Okay', fr: 'Correct' },
@@ -200,6 +216,33 @@ export const healthMessages = defineMessages({
   health_journal_untitled: { en: 'Untitled', fr: 'Sans titre' },
   health_journal_edited: { en: 'Edited {date}', fr: 'Modifiée le {date}' },
   health_journal_body_required: { en: 'Write a few words first.', fr: 'Écrivez d’abord quelques mots.' },
+  /* [FR self-authored] — archive affordances, search, and the shared-entry
+     filter on the journal list. */
+  health_journal_load_failed: {
+    en: 'Couldn’t load earlier entries — try again.',
+    fr: 'Chargement des entrées précédentes impossible — réessayez.',
+  },
+  health_journal_expand: { en: 'Read more', fr: 'Lire la suite' },
+  health_journal_collapse: { en: 'Show less', fr: 'Réduire' },
+  health_journal_search: { en: 'Search entries', fr: 'Rechercher dans les entrées' },
+  health_journal_no_results: {
+    en: 'No loaded entries match — load earlier entries to search further back.',
+    fr: 'Aucune entrée chargée ne correspond — chargez les entrées précédentes pour remonter plus loin.',
+  },
+  health_journal_filter_shared: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
+  health_journal_shared_edit_hint: {
+    en: 'Shared — Mira reads the latest saved version.',
+    fr: 'Partagée — Mira lit la dernière version enregistrée.',
+  },
+  /* Two-step cancel — a dirty editor asks before dropping the draft. */
+  health_journal_cancel_confirm: {
+    en: 'Discard what you wrote?',
+    fr: 'Jeter ce que vous avez écrit ?',
+  },
+  health_journal_share_named: { en: 'Let Mira read “{title}”', fr: 'Laisser Mira lire « {title} »' },
+  health_journal_unshare_named: { en: 'Stop sharing “{title}” with Mira', fr: 'Retirer le partage de « {title} » avec Mira' },
+  health_journal_edit_named: { en: 'Edit “{title}”', fr: 'Modifier « {title} »' },
+  health_journal_delete_named: { en: 'Delete “{title}”', fr: 'Supprimer « {title} »' },
 
   /* Insights — observations, not assessments */
   health_insights_title: { en: 'Insights', fr: 'Tendances' },
@@ -208,11 +251,28 @@ export const healthMessages = defineMessages({
     fr: 'Des tendances tirées de vos propres points du jour — des observations, pas une évaluation.',
   },
   health_ins_mood_14d: { en: 'Mood over the last 14 days', fr: 'Humeur des 14 derniers jours' },
-  health_ins_avg_mood: { en: 'Average mood', fr: 'Humeur moyenne' },
-  health_ins_avg_energy: { en: 'Average energy', fr: 'Énergie moyenne' },
+  /* The averages and the chart now share per-day semantics — label carries
+     the window so the three windows on the page stay legible. */
+  health_ins_avg_mood: { en: 'Average mood (30 days)', fr: 'Humeur moyenne (30 jours)' },
+  health_ins_avg_energy: { en: 'Average energy (30 days)', fr: 'Énergie moyenne (30 jours)' },
   health_ins_total: { en: 'Check-ins', fr: 'Points du jour' },
-  health_ins_streak: { en: 'Current streak', fr: 'Jours de suite' },
+  /* Same metric as Overview's "Check-in streak" — one name, one concept. */
+  health_ins_streak: { en: 'Check-in streak', fr: 'Jours de suite' },
   health_ins_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
+  /* Spoken summary carried on the chart's role="img" label — the bars
+     themselves are decoration; this is what AT hears. [FR self-authored] */
+  health_ins_chart_summary: {
+    en: '{logged} of {total} days logged · average mood {avg}',
+    fr: '{logged} jours pointés sur {total} · humeur moyenne {avg}',
+  },
+  health_ins_chart_summary_none: {
+    en: '{logged} of {total} days logged',
+    fr: '{logged} jours pointés sur {total}',
+  },
+  health_ins_checkin_cta: { en: 'Check in now', fr: 'Pointer maintenant' },
+  /* Tooltip on an empty chart day — distinguishes "nothing logged" from a
+     genuinely low day. [FR self-authored] */
+  health_ins_day_none: { en: '{day} — no check-in', fr: '{day} — aucun point' },
   health_ins_note: {
     en: 'These are simple counts and averages of what you recorded — they describe your inputs, not your health. If a trend concerns you, bring it to a qualified professional.',
     fr: 'Ce sont de simples décomptes et moyennes de ce que vous avez noté — ils décrivent vos saisies, pas votre santé. Si une tendance vous préoccupe, parlez-en à un professionnel qualifié.',
@@ -271,6 +331,16 @@ export const healthMessages = defineMessages({
     en: 'Dutiva Health isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
     fr: 'Dutiva Santé n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
   },
+  /* Link-chip labels — the contact methods are tappable, not just printed.
+     [FR self-authored] */
+  health_res_call: { en: 'Call', fr: 'Appeler le' },
+  health_res_text: { en: 'Text', fr: 'Texter le' },
+  health_res_chat_online: { en: 'Chat online', fr: 'Clavarder' },
+  health_res_mira_line: {
+    en: 'Not urgent? Mira can think it through with you.',
+    fr: 'Pas urgent ? Mira peut en parler avec vous.',
+  },
+  health_res_mira_link: { en: 'Open chat', fr: 'Ouvrir la conversation' },
 
   /* Habits — gentle routine tracking, nothing diagnostic */
   health_habits_title: { en: 'Habits', fr: 'Habitudes' },
@@ -288,7 +358,35 @@ export const healthMessages = defineMessages({
   health_habit_streak_many: { en: '{count}-day streak', fr: '{count} jours de suite' },
   health_habit_week: { en: 'Last 7 days', fr: '7 derniers jours' },
   health_habit_delete: { en: 'Delete', fr: 'Supprimer' },
+  /* The confirm names the habit AND warns the log history goes with it —
+     delete cascades habit_logs. [FR self-authored] */
   health_habit_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_habit_delete_named: {
+    en: 'Delete “{name}” and its history?',
+    fr: 'Supprimer « {name} » et son historique ?',
+  },
+  health_habit_rename: { en: 'Rename', fr: 'Renommer' },
+  health_habit_renamed: { en: 'Habit renamed.', fr: 'Habitude renommée.' },
+  health_habit_exists: {
+    en: 'You’re already tracking a habit with that name.',
+    fr: 'Une habitude porte déjà ce nom.',
+  },
+  /* Spoken summary + per-dot labels for the 7-day strip — the dots are
+     toggleable buttons for backfilling, so each carries its day and state.
+     [FR self-authored] */
+  health_habit_week_summary: { en: '{done} of the last 7 days', fr: '{done} des 7 derniers jours' },
+  health_habit_month_summary: { en: '{done} of the last 30 days', fr: '{done} des 30 derniers jours' },
+  health_habit_dot_done: { en: '{day} — done', fr: '{day} — fait' },
+  health_habit_dot_open: { en: '{day} — not done', fr: '{day} — non fait' },
+  /* Suggest-a-habit outcomes that aren't new rows. [FR self-authored] */
+  health_ai_habit_dupe: {
+    en: 'You’re already tracking that — ask again for a different idea.',
+    fr: 'Vous la suivez déjà — demandez une autre idée.',
+  },
+  health_ai_habit_same: {
+    en: 'Same idea again — add it or dismiss it first.',
+    fr: 'Même idée — ajoutez-la ou ignorez-la d’abord.',
+  },
   health_habits_empty: {
     en: 'No habits yet. Pick one small thing you’d like to do most days — a walk, a stretch, a screen-free meal.',
     fr: 'Aucune habitude pour l’instant. Choisissez une petite chose à faire la plupart des jours — une marche, un étirement, un repas sans écran.',
@@ -347,7 +445,9 @@ export const healthMessages = defineMessages({
     en: 'Nothing waiting — agent suggestions land here when there’s something worth a look.',
     fr: 'Rien en attente — les suggestions des agents arrivent ici quand quelque chose mérite un regard.',
   },
-  health_review_filed_by: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
+  /* On Health only Mira files suggestions — name her, not "an agent". */
+  health_review_filed_by: { en: 'Mira suggested this', fr: 'Suggestion de Mira' },
+  health_review_dismissed: { en: 'Dismissed.', fr: 'Ignorée.' },
   health_review_load_failed: {
     en: 'The review list didn’t load — retry.',
     fr: 'La liste n’a pas chargé — réessayez.',
@@ -531,6 +631,26 @@ export const healthMessages = defineMessages({
     fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
   },
   health_retry: { en: 'Try again', fr: 'Réessayer' },
+  /* Shown inline when a refresh fails but loaded data is still on screen —
+     the page keeps working off the last good snapshot. [FR self-authored] */
+  health_refresh_stale: {
+    en: 'Couldn’t refresh — showing the last saved data.',
+    fr: 'Actualisation impossible — les dernières données enregistrées s’affichent.',
+  },
+  health_save_failed: {
+    en: 'Couldn’t save — try again.',
+    fr: 'Enregistrement impossible — réessayez.',
+  },
+  health_delete_failed: {
+    en: 'Couldn’t delete — it’s still here.',
+    fr: 'Suppression impossible — l’élément est toujours là.',
+  },
+  health_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  health_cancel: { en: 'Cancel', fr: 'Annuler' },
+  /* Compact relative day labels used in history timestamps.
+     [FR self-authored] */
+  health_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  health_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
   health_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
   health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
 

@@ -3,6 +3,7 @@ import './health.css'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useI18n } from '@/i18n/context'
 import { AgentReviewQueue, type KindRenderer } from '@/features/agent/AgentReviewQueue'
+import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { addHabit, addHealthMemory, sendHealthReaction } from '@/features/health/data/api'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -28,6 +29,7 @@ interface MemoryPayload {
 
 export function HealthReviewPage() {
   const { x, lang } = useI18n()
+  const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_review, HM.health_review_sub)
 
@@ -41,6 +43,15 @@ export function HealthReviewPage() {
           run: async (s: AgentSuggestion) => {
             const name = (s.payload as HabitPayload | null)?.name?.trim()
             if (!name) return
+            /* Idempotent — a resolve that failed after the write leaves the
+               row pending; the retry must not add a second copy. */
+            const dupe = (state?.habits ?? []).some(
+              (h) => h.name.trim().toLowerCase() === name.toLowerCase(),
+            )
+            if (dupe) {
+              showToast(HM.health_habit_exists)
+              return
+            }
             await addHabit(name)
             showToast(HM.health_habit_added)
             /* No MiraNote on this surface — the reply still lands in the
@@ -59,8 +70,16 @@ export function HealthReviewPage() {
           run: async (s: AgentSuggestion) => {
             const text = (s.payload as MemoryPayload | null)?.text?.trim()
             if (!text) return
+            /* Same idempotency — a retried resolve can't write the memory
+               twice. */
+            const dupe = (state?.memories ?? []).some(
+              (m) => m.text.trim().toLowerCase() === text.toLowerCase(),
+            )
+            if (dupe) return
             await addHealthMemory(text, 'mira')
             showToast(HM.health_mem_added)
+            /* Parity with habit accepts — Mira notes it in the thread. */
+            void sendHealthReaction({ type: 'memory_added', text }, lang, () => {})
           },
         },
       ],
@@ -77,6 +96,9 @@ export function HealthReviewPage() {
       <AgentReviewQueue
         surface="health"
         kinds={kinds}
+        /* Resolving rows shrinks pendingReview — refresh so the nav badge
+           drops at once instead of waiting for another page's load. */
+        onChanged={() => void refresh()}
         messages={{
           empty: HM.health_review_empty,
           dismiss: HM.health_ai_habit_dismiss,
@@ -84,6 +106,7 @@ export function HealthReviewPage() {
           loadFailed: HM.health_review_load_failed,
           filedBy: HM.health_review_filed_by,
           actionFailed: HM.health_review_action_failed,
+          dismissed: HM.health_review_dismissed,
           kindLabel: { habit: HM.health_review_kind_habit, memory: HM.health_review_kind_memory },
         }}
       />

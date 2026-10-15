@@ -71,6 +71,24 @@ export function fmtDay(dayKey: string, lang: Lang): string {
   return dateFmt(lang, { month: 'short', day: 'numeric' }).format(new Date(y, m - 1, d))
 }
 
+/** "Today, 3:30 p.m." / "Yesterday, …" / "Oct 4, …" — history timestamps
+    lead with the relative day so recent rows scan faster. */
+export function fmtRelativeDateTime(iso: string, lang: Lang, now: Date = new Date()): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+  const entryDay = new Date(d)
+  entryDay.setHours(0, 0, 0, 0)
+  const diff = Math.round((today.getTime() - entryDay.getTime()) / DAY_MS)
+  if (diff === 0 || diff === 1) {
+    const label = pick(diff === 0 ? HM.health_day_today : HM.health_day_yesterday, lang)
+    const time = dateFmt(lang, { hour: 'numeric', minute: '2-digit' }).format(d)
+    return `${label}, ${time}`
+  }
+  return fmtDateTime(iso, lang, now)
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
 
