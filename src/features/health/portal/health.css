@@ -1104,6 +1104,26 @@ a > .hb-jthumb:hover {
   border-color: var(--sb-danger);
   filter: brightness(1.06);
 }
+/* Recording — the mic button is also the send control, so it borrows the
+   danger-family ring with a slow pulse while audio rolls. */
+.hbcall-btn.is-rec {
+  border-color: var(--sb-danger);
+  color: var(--sb-danger);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hbcall-btn.is-rec {
+    animation: hbcall-rec 1.6s ease-in-out infinite;
+  }
+}
+@keyframes hbcall-rec {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sb-danger) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
 .hbcall-note {
   margin: 20px 0 0;
   font-size: 12px;

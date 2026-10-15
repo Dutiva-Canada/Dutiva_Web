@@ -2,10 +2,20 @@ import { useEffect } from 'react'
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from 'lucide-react'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { CrisisNote } from './CrisisNote'
-import type { VoiceCallBlockKind, VoiceCallStatus } from './useHealthVoiceCall'
+import type {
+  VoiceCallBlockKind,
+  VoiceCallEngine,
+  VoiceCallStatus,
+} from './useHealthVoiceCall'
 
-const STATUS_KEY: Record<Exclude<VoiceCallStatus, 'idle' | 'blocked'>, { en: string; fr: string }> = {
+const STATUS_KEY: Record<
+  Exclude<VoiceCallStatus, 'idle' | 'blocked'>,
+  { en: string; fr: string }
+> = {
+  ready: HM.health_chat_call_ready,
   listening: HM.health_chat_call_listening,
+  recording: HM.health_chat_call_recording,
+  transcribing: HM.health_chat_call_transcribing,
   thinking: HM.health_chat_call_thinking,
   speaking: HM.health_chat_call_speaking,
   muted: HM.health_chat_call_muted,
@@ -24,10 +34,14 @@ const BLOCK_KEY: Record<VoiceCallBlockKind, { en: string; fr: string }> = {
  * The conversation underneath stays the same object — voice is an
  * input/output modality, so the log behind the overlay keeps every turn.
  * Escape hangs up; the standing crisis line stays reachable in the footer.
+ * Two transcription engines can carry the call — browser Web Speech or
+ * server-side transcription — and the provenance note names which is
+ * carrying the audio.
  */
 export function HealthVoiceCall({
   status,
   blockKind,
+  engine,
   liveText,
   lastText,
   micOff,
@@ -39,6 +53,7 @@ export function HealthVoiceCall({
 }: {
   status: VoiceCallStatus
   blockKind: VoiceCallBlockKind
+  engine: VoiceCallEngine | null
   liveText: string
   lastText: string
   micOff: boolean
@@ -74,11 +89,12 @@ export function HealthVoiceCall({
         <div className="hbcall-controls">
           <button
             type="button"
-            className="hbcall-btn"
+            className={status === 'recording' ? 'hbcall-btn is-rec' : 'hbcall-btn'}
             onClick={onMic}
-            /* Thinking keeps it inert (the send is on the wire); blocked
-               keeps it live — it's the retry the copy promises. */
-            disabled={status === 'thinking'}
+            /* Thinking/transcribing keeps it inert (the request is on the
+               wire); blocked keeps it live — it's the retry the copy
+               promises. */
+            disabled={status === 'thinking' || status === 'transcribing'}
             aria-pressed={!micOff}
             title={x(micOff ? HM.health_chat_call_mic_on : HM.health_chat_call_mic_off)}
           >
@@ -106,9 +122,13 @@ export function HealthVoiceCall({
             <PhoneOff size={20} aria-hidden="true" />
           </button>
         </div>
-        {/* Honest provenance — the browser's speech services carry the
-            audio; the conversation itself saves like typed chat. */}
-        <p className="hbcall-note">{x(HM.health_chat_call_note)}</p>
+        {/* Honest provenance — who carries the audio differs by engine:
+            the browser's speech services, or the configured transcription
+            provider. Either way the conversation itself saves like typed
+            chat. */}
+        <p className="hbcall-note">
+          {x(engine === 'server' ? HM.health_chat_call_note_server : HM.health_chat_call_note)}
+        </p>
         <p className="hbcall-crisis">
           <CrisisNote />
         </p>

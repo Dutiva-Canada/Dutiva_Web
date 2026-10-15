@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { resetHealthReactionThrottle, sendHealthReaction } from './api'
+import { supabase } from '@/lib/supabaseClient'
+import {
+  healthVoiceTranscribeAvailable,
+  resetHealthReactionThrottle,
+  resetHealthVoiceProbe,
+  sendHealthReaction,
+  transcribeHealthAudio,
+} from './api'
 
 /* The transport is mocked — the throttle semantics under test are which
    calls REACH it, not what it does. A truthy client so requireSupabase
@@ -58,5 +65,68 @@ describe('sendHealthReaction throttle', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+/* The voice-transcribe seam: the probe caches like the journal-image one,
+   and the upload is a raw multipart POST (functions.invoke is JSON-only).
+   The shared client mock is a bare truthy object — per-test fields give it
+   just the surface each helper touches. */
+describe('health voice transcription helpers', () => {
+  beforeEach(() => {
+    resetHealthVoiceProbe()
+    const client = supabase as unknown as Record<string, unknown>
+    client.functions = { invoke: vi.fn() }
+    client.auth = {
+      getSession: vi.fn(async () => ({
+        data: { session: { access_token: 'tok' } },
+      })),
+    }
+  })
+
+  it('probe answers true only when the function answers ok — and caches it', async () => {
+    const invoke = vi.mocked(
+      (supabase as unknown as { functions: { invoke: ReturnType<typeof vi.fn> } }).functions
+        .invoke,
+    )
+    invoke.mockResolvedValue({ data: { ok: true }, error: null })
+    await expect(healthVoiceTranscribeAvailable()).resolves.toBe(true)
+    expect(invoke).toHaveBeenCalledWith('health-transcribe', { body: { ping: true } })
+    await expect(healthVoiceTranscribeAvailable()).resolves.toBe(true)
+    /* Second call rides the cache — one probe per session. */
+    expect(invoke).toHaveBeenCalledTimes(1)
+  })
+
+  it('probe caches a negative too — an undeployed function is asked once', async () => {
+    const invoke = vi.mocked(
+      (supabase as unknown as { functions: { invoke: ReturnType<typeof vi.fn> } }).functions
+        .invoke,
+    )
+    invoke.mockResolvedValue({ data: null, error: { message: 'not found' } })
+    await expect(healthVoiceTranscribeAvailable()).resolves.toBe(false)
+    await expect(healthVoiceTranscribeAvailable()).resolves.toBe(false)
+    expect(invoke).toHaveBeenCalledTimes(1)
+  })
+
+  it('posts the clip as multipart under the caller token and trims the text', async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ text: '  hello  ' })))
+    vi.stubGlobal('fetch', fetchMock)
+    const blob = new Blob(['pcm'], { type: 'audio/webm' })
+    await expect(transcribeHealthAudio(blob, 'fr')).resolves.toBe('hello')
+    const [url, init] = fetchMock.mock.calls.at(-1) as unknown as [string, RequestInit]
+    expect(String(url)).toContain('/functions/v1/health-transcribe')
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer tok')
+    const form = init.body as FormData
+    expect(form.get('lang')).toBe('fr')
+    expect(form.get('file')).toBeInstanceOf(Blob)
+    vi.unstubAllGlobals()
+  })
+
+  it('rejects on a non-OK transcription response', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 502 })))
+    await expect(
+      transcribeHealthAudio(new Blob(['pcm']), 'en'),
+    ).rejects.toThrow('health-transcribe 502')
+    vi.unstubAllGlobals()
   })
 })

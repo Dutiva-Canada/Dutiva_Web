@@ -333,6 +333,67 @@ export async function removeJournalImage(path: string): Promise<void> {
   if (error) throw error
 }
 
+/* ---------- voice-call transcription ---------- 
+
+   The fallback path for browsers whose Web Speech recognition is missing
+   or unbacked (Firefox has no SpeechRecognition; Brave ships the
+   constructor but no service): MediaRecorder captures the audio and the
+   `health-transcribe` edge function forwards it to the configured
+   provider's /audio/transcriptions endpoint. The text then enters the
+   chat pipeline like typed input. Same contract as the journal-image
+   probe — until the function AND its `health_transcribe` route row exist,
+   `healthVoiceTranscribeAvailable()` answers false and the call
+   affordance never appears. */
+
+const HEALTH_VOICE_FN = 'health-transcribe'
+let voiceTranscribeCapable: boolean | null = null
+
+/** One-shot probe — POST {ping:true} answers ok only when the function is
+    deployed AND a health_transcribe model route resolves. */
+export async function healthVoiceTranscribeAvailable(): Promise<boolean> {
+  if (voiceTranscribeCapable !== null) return voiceTranscribeCapable
+  try {
+    const client = requireSupabase()
+    const { data, error } = await client.functions.invoke(HEALTH_VOICE_FN, {
+      body: { ping: true },
+    })
+    voiceTranscribeCapable = !error && (data as { ok?: boolean } | null)?.ok === true
+  } catch {
+    voiceTranscribeCapable = false
+  }
+  return voiceTranscribeCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetHealthVoiceProbe() {
+  voiceTranscribeCapable = null
+}
+
+/** One recorded utterance → its transcript text. Raw fetch rather than
+    functions.invoke so the audio rides multipart, not JSON. */
+export async function transcribeHealthAudio(blob: Blob, lang: 'en' | 'fr'): Promise<string> {
+  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
+  const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
+  const client = requireSupabase()
+  const {
+    data: { session },
+  } = await client.auth.getSession()
+  const form = new FormData()
+  form.append('file', blob)
+  form.append('lang', lang)
+  const res = await fetch(`${base}/functions/v1/${HEALTH_VOICE_FN}`, {
+    method: 'POST',
+    headers: {
+      apikey: anon,
+      Authorization: `Bearer ${session?.access_token ?? anon}`,
+    },
+    body: form,
+  })
+  if (!res.ok) throw new Error(`${HEALTH_VOICE_FN} ${res.status}`)
+  const data = (await res.json()) as { text?: string }
+  return (data.text ?? '').trim()
+}
+
 export async function deleteJournalEntry(id: string): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.from('health_journal_entries').delete().eq('id', id)

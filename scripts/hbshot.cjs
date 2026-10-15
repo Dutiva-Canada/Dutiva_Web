@@ -28,6 +28,10 @@ jobs.push({ p: 'home', theme: 'light', lang: 'en', w: 390, h: 844 })
 jobs.push({ p: 'check-in', theme: 'light', lang: 'en', w: 390, h: 844 })
 jobs.push({ p: 'home', theme: 'light', lang: 'en', w: 1280, h: 900, empty: true })
 jobs.push({ p: 'journal', theme: 'light', lang: 'en', w: 1280, h: 900, empty: true })
+/* Voice-call overlay — speech engine (listening) and the server engine's
+   tap-to-talk recording state, whose provenance note differs. */
+jobs.push({ p: 'chat', theme: 'light', lang: 'en', w: 1280, h: 900, call: '1' })
+jobs.push({ p: 'chat', theme: 'dark', lang: 'fr', w: 1280, h: 900, call: 'server' })
 
 ;(async () => {
   fs.mkdirSync(OUT, { recursive: true })
@@ -37,12 +41,12 @@ jobs.push({ p: 'journal', theme: 'light', lang: 'en', w: 1280, h: 900, empty: tr
   const errors = []
   page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)))
   for (const j of jobs) {
-    const url = `${BASE}?p=${j.p}&theme=${j.theme}&lang=${j.lang}${j.empty ? '&empty=1' : ''}`
+    const url = `${BASE}?p=${j.p}&theme=${j.theme}&lang=${j.lang}${j.empty ? '&empty=1' : ''}${j.call ? `&call=${j.call}` : ''}`
     try {
       await page.setViewportSize({ width: j.w, height: j.h })
       await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 })
       await page.waitForTimeout(900)
-      const name = `${j.p}-${j.theme}-${j.lang}-${j.w}${j.empty ? '-empty' : ''}.png`
+      const name = `${j.p}-${j.theme}-${j.lang}-${j.w}${j.empty ? '-empty' : ''}${j.call ? `-call-${j.call}` : ''}.png`
       await page.screenshot({ path: path.join(OUT, name), fullPage: true })
       console.log('shot', name)
     } catch (e) {

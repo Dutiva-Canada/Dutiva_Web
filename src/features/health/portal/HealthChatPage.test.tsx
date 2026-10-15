@@ -10,16 +10,19 @@ import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
 import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
 import {
   clearHealthChat,
   deleteHealthChatThread,
   deleteHealthChatTurn,
+  healthVoiceTranscribeAvailable,
   listHealthChatThreads,
   loadHealthChatHistory,
   rateHealthChatTurn,
   regenerateHealthChat,
   renameHealthChatThread,
   sendHealthChat,
+  transcribeHealthAudio,
   undoHealthChatAction,
 } from '@/features/health/data/api'
 import { HealthChatPage } from './HealthChatPage'
@@ -39,6 +42,10 @@ vi.mock('@/features/health/data/api', () => ({
   clearHealthChat: vi.fn(),
   rateHealthChatTurn: vi.fn(),
   undoHealthChatAction: vi.fn(),
+  /* Server-transcription seam — the probe defaults to false so speech-API
+     tests stay on the browser engine; server-engine tests opt in. */
+  healthVoiceTranscribeAvailable: vi.fn(async () => false),
+  transcribeHealthAudio: vi.fn(),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -78,6 +85,7 @@ function renderPage(lang: Lang = 'en', state?: HealthState, auth: Partial<AuthCo
             <MemoryRouter initialEntries={['/health/chat']}>
               <HealthChatPage />
             </MemoryRouter>
+            <ToastHost />
           </ToastsProvider>
         </HealthDataContext>
       </AuthContext.Provider>
@@ -889,6 +897,143 @@ describe('HealthChatPage', () => {
       expect(screen.queryByText(/Microphone blocked/)).not.toBeInTheDocument()
     } finally {
       vi.unstubAllGlobals()
+    }
+  })
+
+  /* Server-engine stubs — Brave-shaped browsers keep MediaRecorder even
+     though their recognition constructor can't start. getUserMedia yields
+     a one-track stream; the fake recorder emits its clip on stop(). */
+  function stubServerEngine() {
+    Object.defineProperty(window.navigator, 'brave', { value: {}, configurable: true })
+    Object.defineProperty(window.navigator, 'mediaDevices', {
+      value: { getUserMedia: vi.fn(async () => ({ getTracks: () => [{ stop: vi.fn() }] })) },
+      configurable: true,
+    })
+    class FakeMediaRecorder {
+      static instances: FakeMediaRecorder[] = []
+      mimeType = 'audio/webm'
+      ondataavailable: ((e: { data: Blob }) => void) | null = null
+      onstop: (() => void) | null = null
+      constructor(public stream: unknown) {
+        FakeMediaRecorder.instances.push(this)
+      }
+      start() {}
+      stop() {
+        this.ondataavailable?.({ data: new Blob(['pcm'], { type: 'audio/webm' }) })
+        this.onstop?.()
+      }
+    }
+    const speak = vi.fn((u: { onend?: (() => void) | null }) => u.onend?.())
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    vi.stubGlobal('speechSynthesis', { speak, cancel: vi.fn(), getVoices: () => [] })
+    vi.stubGlobal(
+      'SpeechSynthesisUtterance',
+      class {
+        text: string
+        lang = ''
+        voice: unknown = null
+        onend: (() => void) | null = null
+        onerror: (() => void) | null = null
+        constructor(t: string) {
+          this.text = t
+        }
+      },
+    )
+    return { FakeMediaRecorder, speak }
+  }
+
+  it('runs a tap-to-talk turn on the server engine where recognition can’t start', async () => {
+    const { speak } = stubServerEngine()
+    vi.mocked(healthVoiceTranscribeAvailable).mockResolvedValue(true)
+    vi.mocked(transcribeHealthAudio).mockResolvedValue('hello by voice')
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(sendHealthChat).mockResolvedValue({
+      reply: 'Glad you called.',
+      action: null,
+      userId: 'u9',
+      assistantId: 'a9',
+      suggests: [],
+      reasoning: null,
+      context: null,
+    })
+    try {
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      /* The probe is async — the button lands once it answers yes. */
+      const callBtn = await screen.findByRole('button', { name: 'Voice call' })
+
+      fireEvent.click(callBtn)
+      /* The server engine rests on ready — no continuous listening. */
+      expect(await screen.findByText('Tap the mic and talk')).toBeInTheDocument()
+
+      /* Tap records, tap again hands the clip to transcription. */
+      fireEvent.click(screen.getByTitle('Turn microphone off'))
+      expect(await screen.findByText('Recording — tap the mic to send')).toBeInTheDocument()
+      fireEvent.click(screen.getByTitle('Turn microphone off'))
+
+      await waitFor(() => expect(transcribeHealthAudio).toHaveBeenCalled())
+      await waitFor(() =>
+        expect(sendHealthChat).toHaveBeenCalledWith(
+          'hello by voice',
+          'en',
+          expect.any(Function),
+          expect.anything(),
+        ),
+      )
+      await waitFor(() => expect(speak).toHaveBeenCalled())
+      expect(speak.mock.calls.at(0)![0]).toMatchObject({ text: 'Glad you called.' })
+      /* Reply done — back to the resting state for the next tap. */
+      expect(await screen.findByText('Tap the mic and talk')).toBeInTheDocument()
+
+      const bubbles = document.querySelectorAll('.sbchat-bubble.user')
+      expect([...bubbles].some((b) => b.textContent?.includes('hello by voice'))).toBe(true)
+      expect(screen.getByText('Glad you called.')).toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+      delete (window.navigator as { brave?: unknown }).brave
+    }
+  })
+
+  it('keeps the call button hidden where the transcription route isn’t deployed', async () => {
+    stubServerEngine()
+    vi.mocked(healthVoiceTranscribeAvailable).mockResolvedValue(false)
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    try {
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      /* MediaRecorder exists but the edge function/route answered no —
+         a dead-end button must not render. */
+      await waitFor(() =>
+        expect(screen.queryByRole('button', { name: 'Voice call' })).not.toBeInTheDocument(),
+      )
+    } finally {
+      vi.unstubAllGlobals()
+      delete (window.navigator as { brave?: unknown }).brave
+    }
+  })
+
+  it('surfaces a transcription failure and keeps the call alive for a retry', async () => {
+    stubServerEngine()
+    vi.mocked(healthVoiceTranscribeAvailable).mockResolvedValue(true)
+    vi.mocked(transcribeHealthAudio).mockRejectedValue(new Error('upstream 502'))
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    try {
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      fireEvent.click(await screen.findByRole('button', { name: 'Voice call' }))
+      expect(await screen.findByText('Tap the mic and talk')).toBeInTheDocument()
+      fireEvent.click(screen.getByTitle('Turn microphone off'))
+      expect(await screen.findByText('Recording — tap the mic to send')).toBeInTheDocument()
+      fireEvent.click(screen.getByTitle('Turn microphone off'))
+
+      /* The clip failed to transcribe — a toast names it and the call
+         parks on ready rather than dying. */
+      expect(await screen.findByText(/Couldn’t transcribe that/)).toBeInTheDocument()
+      expect(await screen.findByText('Tap the mic and talk')).toBeInTheDocument()
+      expect(sendHealthChat).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+      delete (window.navigator as { brave?: unknown }).brave
     }
   })
 })

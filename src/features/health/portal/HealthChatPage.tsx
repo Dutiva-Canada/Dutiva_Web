@@ -11,12 +11,14 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   clearHealthChat,
   deleteHealthChatThread,
+  healthVoiceTranscribeAvailable,
   listHealthChatThreads,
   loadHealthChatHistory,
   newHealthChatThread,
   regenerateHealthChat,
   renameHealthChatThread,
   sendHealthChat,
+  transcribeHealthAudio,
   type HealthChatAction,
   type HealthChatContext,
   type HealthChatThread,
@@ -490,11 +492,21 @@ export function HealthChatPage() {
     inputRef.current?.focus()
   }
 
-  /* Voice-call mode — the browser transcribes, the reply flows through
-     sendText like typed chat (same consent, persistence and distress
-     detection), and speechSynthesis reads it back. `capable` is false
-     where the Web Speech APIs are missing, so the phone button hides. */
-  const voice = useHealthVoiceCall({ lang, sendMessage: sendText })
+  /* Voice-call mode — either the browser transcribes (Web Speech) or
+     MediaRecorder audio goes through health-transcribe, and the reply
+     flows through sendText like typed chat either way (same consent,
+     persistence and distress detection); speechSynthesis reads it back.
+     `capable` is false where neither engine can run, so the phone button
+     hides. */
+  const voice = useHealthVoiceCall({
+    lang,
+    sendMessage: sendText,
+    transcribe: {
+      available: healthVoiceTranscribeAvailable,
+      send: transcribeHealthAudio,
+    },
+    onError: () => showToast(HM.health_chat_call_transcribe_failed),
+  })
 
   /* Switcher ops — rename keeps an empty string meaningful (resets to
      untitled, so the next message names it again); delete returns the
@@ -827,6 +839,7 @@ export function HealthChatPage() {
         <HealthVoiceCall
           status={voice.status}
           blockKind={voice.blockKind}
+          engine={voice.engine}
           liveText={voice.liveText}
           lastText={voice.lastText}
           micOff={voice.micOff}

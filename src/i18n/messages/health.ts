@@ -1218,7 +1218,27 @@ export const healthMessages = defineMessages({
      reads it. The conversation still saves like typed chat.
      [FR self-authored] */
   health_chat_call: { en: 'Voice call', fr: 'Appel vocal' },
+  /* 'ready' is the server engine's resting state — no continuous
+     listening exists there, so each turn starts with a tap.
+     [FR self-authored] */
+  health_chat_call_ready: { en: 'Tap the mic and talk', fr: 'Touchez le micro et parlez' },
   health_chat_call_listening: { en: 'Listening…', fr: 'À l’écoute…' },
+  /* [FR self-authored] */
+  health_chat_call_recording: {
+    en: 'Recording — tap the mic to send',
+    fr: 'Enregistrement — touchez le micro pour envoyer',
+  },
+  /* [FR self-authored] */
+  health_chat_call_transcribing: {
+    en: 'Writing that down…',
+    fr: 'Mise en texte…',
+  },
+  /* Server-engine transcription failure — the clip didn't become text;
+     the call stays up and the next tap records again. [FR self-authored] */
+  health_chat_call_transcribe_failed: {
+    en: 'Couldn’t transcribe that — tap the mic and try again.',
+    fr: 'Transcription impossible — touchez le micro pour réessayer.',
+  },
   health_chat_call_thinking: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
   health_chat_call_speaking: { en: 'Mira is speaking…', fr: 'Mira parle…' },
   health_chat_call_muted: {
@@ -1248,6 +1268,13 @@ export const healthMessages = defineMessages({
   health_chat_call_note: {
     en: 'Mira hears and speaks through your browser’s speech services — the conversation saves like typed chat.',
     fr: 'Mira entend et parle par les services vocaux de votre navigateur — la discussion se sauvegarde comme à l’écrit.',
+  },
+  /* Server-engine provenance — the recording is uploaded to the
+     configured transcription service; Mira only ever receives the text.
+     [FR self-authored] */
+  health_chat_call_note_server: {
+    en: 'Your voice becomes text through a speech service — Mira never receives the recording itself. The conversation saves like typed chat.',
+    fr: 'Votre voix devient du texte par un service de transcription — Mira ne reçoit jamais l’enregistrement lui-même. La discussion se sauvegarde comme à l’écrit.',
   },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
