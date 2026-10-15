@@ -120,7 +120,7 @@ Chat turns may return an `action` the function executes against the **caller's o
 
 | Assistant | Whitelisted actions |
 | --------- | ------------------- |
-| **Mira** (`health-ai/runtime.ts`) | `mark_habit_done`, `unmark_habit_done`, `add_habit`, `add_checkin`, `add_journal_entry` |
+| **Mira** (`health-ai/runtime.ts`) | `mark_habit_done`, `unmark_habit_done`, `add_habit`, `add_checkin`, `add_journal_entry`, `propose_memory` (files a review suggestion — never writes a memory directly) |
 | **Paige** (`pr-ai/runtime.ts`) | `add_campaign`, `update_campaign_status`, `add_content_item`, `add_media_contact`, `add_mention`, `add_keyword`, `add_geo_prompt` |
 | **Tally** (`invest-ai/chatActions.ts`) | `add_watch_symbol`, `remove_watch_symbol`, `create_order`, `update_signal`, `add_position`, `draft_strategy` |
 
@@ -130,7 +130,7 @@ Sources: [supabase/functions/health-ai/runtime.ts:310-340](), [supabase/function
 
 ### Reactions
 
-`react` events let the assistant speak outside the chat box: Mira reacts when the person saves a check-in, finishes a habit, or starts tracking a new one, Paige when a mention is logged or a draft saved, Tally when a symbol is watched or an order queued. Reaction lines persist to the same `*_chat_messages` table and render in the chat thread. Client-side throttling (`resetHealthReactionThrottle` and peers) bounds how often reactions fire.
+`react` events let the assistant speak outside the chat box: Mira reacts when the person saves or revises a check-in (`checkin_saved`/`checkin_edited` — the revise line reads "it now reads …", never a fresh save), finishes a habit, or starts tracking a new one, Paige when a mention is logged or a draft saved, Tally when a symbol is watched or an order queued. Reaction lines persist to the same `*_chat_messages` table and render in the chat thread. Client-side throttling (`resetHealthReactionThrottle` and peers) bounds how often reactions fire.
 
 Sources: [src/features/health/data/api.ts:337-370](), [supabase/functions/pr-ai/index.ts:52-58](), [supabase/functions/invest-ai/index.ts:40-42]()
 
@@ -155,13 +155,17 @@ Mira is the wellness portal's companion: a warm, non-clinical presence over the 
 | `habit`       | `{ habit }`  | One habit suggestion             |
 | `entry_react` | `{ reply }`  | Respond to one shared entry      |
 
-**Privacy posture.** Mira reads only what the caller wrote — check-in notes and **bounded excerpts of journal entries the person explicitly shared** (`shared_at` is enforced again in `buildCompanionSignals` after the query, not just in the query filter). Unshared entries never reach the prompt. Every row belongs to the caller; nothing is shared across users.
+**Privacy posture.** Mira reads only what the caller wrote — check-in notes, habit names/logs, **bounded excerpts of journal entries the person explicitly shared** (`shared_at` is enforced again in `buildCompanionSignals` after the query, not just in the query filter), and the `health_memories` rows the person wrote or accepted. Unshared entries never reach the prompt. Every row belongs to the caller; nothing is shared across users.
 
 **Crisis handling.** If a message, check-in, or shared entry hints at crisis or self-harm, Mira is instructed to reply **only** with supportive words plus `"Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger."` — no check-in is logged, no entry written, no action executed.
 
 **Companion cron.** `health-habit-notify` runs daily (pg_cron 23:00 UTC, migration 0196): for each habit with a live streak not yet checked off, the owner gets one gentle email — non-clinical, no shame language.
 
 **Ambient notices.** Two deterministic, model-free lines carry her presence outside chat: the Overview strip (`miraNoticed`) and the empty-thread greeting (`companionGreeting`). Both lead with a habit run that just paused (a fresh break outranks a standing streak — a change is the thing worth noticing), then the best live streak. The strip then falls to today's check-in (quoting the note), the week's count, and a quiet-return line after 3+ silent days; the greeting falls to the week's count before the arrival question.
+
+**Pattern suggestions.** One deterministic rule rides the check-in events (`checkin_saved`/`checkin_edited`, in `runReact`): when the facts show a sustained low patch (5+ check-ins, average mood ≤ 2.4), a gentle habit proposal files to `agent_suggestions` with `source: 'rule'` — deduped while pending, cooled 30 days after any resolution, and skipped when the person already tracks a walk. She proposes; the review queue decides. Nothing is added silently and no unsolicited chat turn is written.
+
+**Memories.** `health_memories` (owner-only RLS, migration 0225+) holds durable facts the person confirmed — added by hand from the Overview's "What Mira remembers" card, or proposed by Mira via the `propose_memory` chat action and accepted on `/health/review`. Rows carry a `source` (`manual` | `mira`); the card labels a Mira-proposed one. Accepted memories inject into every prompt as a labeled block — durable context, never permission. `propose_memory` is the only chat action that never writes directly: the executor files a pending suggestion, and its undo dismisses that row while it's still pending.
 
 Sources: [supabase/functions/health-ai/index.ts:70-80](), [supabase/functions/health-ai/handlers.ts:99-115](), [supabase/functions/health-ai/handlers.ts:330-340](), [src/features/health/data/types.ts:22-45](), [supabase/functions/health-habit-notify/index.ts]()
 

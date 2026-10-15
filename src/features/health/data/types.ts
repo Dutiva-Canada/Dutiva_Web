@@ -4,6 +4,7 @@ type CheckInRow = Database['public']['Tables']['health_checkins']['Row']
 type JournalRow = Database['public']['Tables']['health_journal_entries']['Row']
 type HabitRow = Database['public']['Tables']['health_habits']['Row']
 type HabitLogRow = Database['public']['Tables']['health_habit_logs']['Row']
+type MemoryRow = Database['public']['Tables']['health_memories']['Row']
 
 export interface HealthCheckIn {
   id: string
@@ -43,11 +44,23 @@ export interface HealthHabitLog {
   createdAt: string
 }
 
+/** A durable fact the person asked Mira to hold — a preference, a standing
+    context, a boundary. Written two ways: by hand on the Home card
+    ('manual'), or proposed by Mira in chat and accepted on the review
+    queue ('mira'). Nothing lands here without a human hand. */
+export interface HealthMemory {
+  id: string
+  text: string
+  source: 'manual' | 'mira'
+  createdAt: string
+}
+
 export interface HealthState {
   checkIns: HealthCheckIn[]
   entries: HealthJournalEntry[]
   habits: HealthHabit[]
   habitLogs: HealthHabitLog[]
+  memories: HealthMemory[]
   lastLoadedAt: string
 }
 
@@ -85,6 +98,17 @@ export function habitLogFromRow(row: HabitLogRow): HealthHabitLog {
     id: row.id,
     habitId: row.habit_id,
     day: row.day,
+    createdAt: row.created_at,
+  }
+}
+
+export function memoryFromRow(row: MemoryRow): HealthMemory {
+  return {
+    id: row.id,
+    text: row.text,
+    /* The check constraint guarantees 'manual' | 'mira' — the generated
+       types don't reflect the enum, so narrow it here once. */
+    source: row.source === 'mira' ? 'mira' : 'manual',
     createdAt: row.created_at,
   }
 }

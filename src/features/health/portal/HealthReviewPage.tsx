@@ -3,7 +3,7 @@ import './health.css'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useI18n } from '@/i18n/context'
 import { AgentReviewQueue, type KindRenderer } from '@/features/agent/AgentReviewQueue'
-import { addHabit, sendHealthReaction } from '@/features/health/data/api'
+import { addHabit, addHealthMemory, sendHealthReaction } from '@/features/health/data/api'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHealthHead } from './useHealthHead'
@@ -18,6 +18,12 @@ import { useHealthHead } from './useHealthHead'
 interface HabitPayload {
   name?: string
   why?: string
+}
+
+/* Mira's proposed memories — she can offer "remember this" in chat, but a
+   memory only exists once the person accepts it here (source 'mira'). */
+interface MemoryPayload {
+  text?: string
 }
 
 export function HealthReviewPage() {
@@ -44,6 +50,21 @@ export function HealthReviewPage() {
         },
       ],
     },
+    memory: {
+      detail: () => null,
+      actions: [
+        {
+          label: HM.health_review_accept_memory,
+          action: 'remembered',
+          run: async (s: AgentSuggestion) => {
+            const text = (s.payload as MemoryPayload | null)?.text?.trim()
+            if (!text) return
+            await addHealthMemory(text, 'mira')
+            showToast(HM.health_mem_added)
+          },
+        },
+      ],
+    },
   }
 
   return (
@@ -63,7 +84,7 @@ export function HealthReviewPage() {
           loadFailed: HM.health_review_load_failed,
           filedBy: HM.health_review_filed_by,
           actionFailed: HM.health_review_action_failed,
-          kindLabel: { habit: HM.health_review_kind_habit },
+          kindLabel: { habit: HM.health_review_kind_habit, memory: HM.health_review_kind_memory },
         }}
       />
     </div>

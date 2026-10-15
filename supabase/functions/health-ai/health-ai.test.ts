@@ -19,6 +19,7 @@ import {
   HEALTH_REFLECT_FALLBACK_FR,
   parseChatReply,
   parseHabit,
+  parseReactEvent,
   reactPrompt,
   recapPrompt,
   reflectPrompt,
@@ -347,6 +348,32 @@ describe('reaction prompts', () => {
     expect(p).not.toContain('note:')
   })
 
+  it('checkin_edited reads as a revision, not a fresh save', () => {
+    const p = reactPrompt(
+      { type: 'checkin_edited', mood: 4, energy: null, note: 'felt better than I wrote' },
+      null,
+      [],
+      TODAY,
+      'en',
+    )
+    expect(p).toContain('revised a check-in')
+    expect(p).toContain('mood 4/5')
+    expect(p).not.toContain('saved a check-in')
+  })
+
+  it('accepted memories land as labeled durable context', () => {
+    const facts = buildHealthFacts([], HABITS, [], 14, NOW)
+    const p = chatPrompt(facts, [], [], TODAY, 'en', false, ['Walks help me think']).content
+    expect(p).toContain('Things they asked you to remember')
+    expect(p).toContain('- Walks help me think')
+  })
+
+  it('an empty memory list renders no block', () => {
+    const facts = buildHealthFacts([], HABITS, [], 14, NOW)
+    const p = chatPrompt(facts, [], [], TODAY, 'en').content
+    expect(p).not.toContain('Things they asked you to remember')
+  })
+
   it('entryReactPrompt quotes the shared entry and says it was chosen', () => {
     const p = entryReactPrompt('Sunday', 'a long entry body', [], TODAY, 'fr')
     expect(p).toContain('chose to share')
@@ -424,6 +451,50 @@ describe('parseChatReply', () => {
     expect(parseChatReply('plain text')).toBeNull()
     expect(parseChatReply('{"action":null}')).toBeNull()
     expect(parseChatReply(null)).toBeNull()
+  })
+  it('parses propose_memory — trimmed, three chars minimum, capped at 500', () => {
+    expect(
+      parseChatReply('{"reply":"Noted — review it when you like.","action":{"type":"propose_memory","text":" Walks help me think "}}'),
+    ).toEqual({
+      reply: 'Noted — review it when you like.',
+      action: { type: 'propose_memory', text: 'Walks help me think' },
+      suggests: [],
+    })
+    /* Too short to be a durable fact — dropped. */
+    expect(
+      parseChatReply('{"reply":"r","action":{"type":"propose_memory","text":"ok"}}'),
+    ).toBeNull()
+    /* The cap: 500 chars survives intact. */
+    const long = 'a'.repeat(600)
+    const out = parseChatReply(
+      `{"reply":"r","action":{"type":"propose_memory","text":"${long}"}}`,
+    )
+    expect(out?.action).toEqual({ type: 'propose_memory', text: 'a'.repeat(500) })
+  })
+  it('propose_memory is a registered chat action type', () => {
+    expect(CHAT_ACTION_TYPES.has('propose_memory')).toBe(true)
+  })
+})
+
+describe('parseReactEvent', () => {
+  it('accepts checkin_edited with the same bounds as checkin_saved', () => {
+    expect(
+      parseReactEvent({ type: 'checkin_edited', mood: 4, energy: 2, note: 'revised' }),
+    ).toEqual({ type: 'checkin_edited', mood: 4, energy: 2, note: 'revised' })
+    expect(parseReactEvent({ type: 'checkin_edited', mood: 0 })).toBeNull()
+    expect(parseReactEvent({ type: 'checkin_edited', mood: 3, energy: 6 })).toBeNull()
+    expect(parseReactEvent({ type: 'checkin_edited', mood: 3, energy: null })).toEqual({
+      type: 'checkin_edited',
+      mood: 3,
+      energy: null,
+      note: undefined,
+    })
+  })
+  it('rejects unknown event types and bad shapes', () => {
+    expect(parseReactEvent({ type: 'checkin_deleted' })).toBeNull()
+    expect(parseReactEvent({ type: 'habit_added', habit: '  ' })).toBeNull()
+    expect(parseReactEvent('checkin_saved')).toBeNull()
+    expect(parseReactEvent(null)).toBeNull()
   })
 })
 

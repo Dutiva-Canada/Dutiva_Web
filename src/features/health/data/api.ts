@@ -6,9 +6,11 @@ import {
   habitFromRow,
   habitLogFromRow,
   journalFromRow,
+  memoryFromRow,
   type HealthCheckIn,
   type HealthHabit,
   type HealthJournalEntry,
+  type HealthMemory,
   type HealthState,
 } from './types'
 
@@ -44,13 +46,14 @@ export async function hasHealthAccess(): Promise<boolean> {
 
 export async function loadHealthState(): Promise<HealthState> {
   const client = requireSupabase()
-  const [checkInsRes, entriesRes, habitsRes, habitLogsRes] = await Promise.all([
+  const [checkInsRes, entriesRes, habitsRes, habitLogsRes, memoriesRes] = await Promise.all([
     client.from('health_checkins').select('*').order('created_at', { ascending: false }),
     client.from('health_journal_entries').select('*').order('created_at', { ascending: false }),
     client.from('health_habits').select('*').order('created_at', { ascending: false }),
     client.from('health_habit_logs').select('*').order('day', { ascending: false }),
+    client.from('health_memories').select('*').order('created_at', { ascending: false }),
   ])
-  for (const res of [checkInsRes, entriesRes, habitsRes, habitLogsRes]) {
+  for (const res of [checkInsRes, entriesRes, habitsRes, habitLogsRes, memoriesRes]) {
     if (res.error) throw res.error
   }
   return {
@@ -58,6 +61,7 @@ export async function loadHealthState(): Promise<HealthState> {
     entries: (entriesRes.data ?? []).map(journalFromRow),
     habits: (habitsRes.data ?? []).map(habitFromRow),
     habitLogs: (habitLogsRes.data ?? []).map(habitLogFromRow),
+    memories: (memoriesRes.data ?? []).map(memoryFromRow),
     lastLoadedAt: new Date().toISOString(),
   }
 }
@@ -86,6 +90,49 @@ export async function addCheckIn(input: {
 export async function deleteCheckIn(id: string): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.from('health_checkins').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Revise a saved check-in — mood/energy/note overwrite; created_at keeps
+    the moment it was logged (an edit changes the record, not the day). */
+export async function updateCheckIn(
+  id: string,
+  patch: { mood: number; energy?: number | null; note?: string },
+): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_checkins')
+    .update({
+      mood: patch.mood,
+      energy: patch.energy ?? null,
+      ...(patch.note !== undefined ? { note: patch.note.trim() } : {}),
+    })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- memories — things the person asked Mira to hold ---------- */
+
+/** Add a memory by hand (source 'manual'). Mira's own proposals go through
+    the review queue and arrive with source 'mira'. */
+export async function addHealthMemory(
+  text: string,
+  source: 'manual' | 'mira' = 'manual',
+): Promise<HealthMemory> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const { data, error } = await client
+    .from('health_memories')
+    .insert({ user_id: userId, text: text.trim().slice(0, 500), source })
+    .select()
+    .single()
+  if (error) throw error
+  return memoryFromRow(data)
+}
+
+export async function deleteHealthMemory(id: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.from('health_memories').delete().eq('id', id)
   if (error) throw error
 }
 
@@ -268,7 +315,13 @@ export async function healthAiHabit(lang: 'en' | 'fr'): Promise<HabitSuggestion>
 /** A write the companion executed on the user's own rows during a turn —
     additive or undoable by design (see health-ai's action grammar). */
 export interface HealthChatAction {
-  type: 'mark_habit_done' | 'unmark_habit_done' | 'add_habit' | 'add_checkin' | 'add_journal_entry'
+  type:
+    | 'mark_habit_done'
+    | 'unmark_habit_done'
+    | 'add_habit'
+    | 'add_checkin'
+    | 'add_journal_entry'
+    | 'propose_memory'
   /** Human-facing subject — the habit name, entry title, "mood 3/5". */
   detail: string
   ok: boolean
@@ -436,6 +489,7 @@ export async function undoHealthChatAction(messageId: string): Promise<void> {
 
 export type HealthReactEvent =
   | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
+  | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
 

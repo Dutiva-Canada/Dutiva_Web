@@ -79,6 +79,8 @@ function actionLabel(
       return x(HM.health_chat_did_checkin).replace('{name}', slots.name)
     case 'add_journal_entry':
       return x(HM.health_chat_did_journal)
+    case 'propose_memory':
+      return x(HM.health_chat_did_memory).replace('{name}', slots.name)
     default:
       return ''
   }
@@ -95,6 +97,8 @@ function actionRoute(action: HealthChatAction): string | null {
       return '/health/check-in'
     case 'add_journal_entry':
       return '/health/journal'
+    case 'propose_memory':
+      return '/health/review'
     default:
       return null
   }

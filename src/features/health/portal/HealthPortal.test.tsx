@@ -85,6 +85,7 @@ const STATE: HealthState = {
     },
   ],
   habits: [],
+  memories: [],
   habitLogs: [],
   lastLoadedAt: new Date().toISOString(),
 }

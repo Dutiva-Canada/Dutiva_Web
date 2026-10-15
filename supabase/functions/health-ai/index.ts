@@ -13,6 +13,7 @@ import {
   HEALTH_REFLECT_FALLBACK_EN,
   HEALTH_REFLECT_FALLBACK_FR,
   parseHabit,
+  parseReactEvent,
   recapPrompt,
   reflectPrompt,
 } from './handlers.ts'
@@ -20,7 +21,6 @@ import {
   json,
   loadCompanionContext,
   modelRoute,
-  parseReactEvent,
   runChat,
   runChatUndo,
   runEntryReact,
@@ -330,10 +330,10 @@ const handler = async (req: Request) => {
 
   const prompt =
     kind === 'reflect'
-      ? reflectPrompt(ctx.facts, ctx.signals, lang, advice)
+      ? reflectPrompt(ctx.facts, ctx.signals, lang, advice, ctx.memories)
       : kind === 'recap'
-        ? recapPrompt(ctx.facts, ctx.signals, lang, advice)
-        : habitPrompt(ctx.facts, ctx.habitNames, ctx.signals, lang, advice)
+        ? recapPrompt(ctx.facts, ctx.signals, lang, advice, ctx.memories)
+        : habitPrompt(ctx.facts, ctx.habitNames, ctx.signals, lang, advice, ctx.memories)
 
   const generateOnce = async (
     msgs: { role: 'user' | 'assistant'; content: string }[],
