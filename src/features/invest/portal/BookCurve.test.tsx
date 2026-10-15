@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@testing-library/react'
 import { LangProvider } from '@/i18n/LangProvider'
 import { BookCurve } from './BookCurve'
@@ -34,6 +34,9 @@ function mount(snapshots: InvestBookSnapshot[]) {
   )
 }
 
+/* The chart-reads pref is real localStorage — keep tests isolated. */
+beforeEach(() => localStorage.clear())
+
 describe('BookCurve', () => {
   it('renders a near-flat change as neutral 0.0% — sign, color and digits agree', () => {
     /* +0.04% → must not render "+0.0%" in green. */
@@ -60,5 +63,22 @@ describe('BookCurve', () => {
   it('shows the empty state with fewer than two marks', () => {
     mount([snap('2026-01-01', 10_000)])
     expect(document.querySelector('.sb-empty')).not.toBeNull()
+  })
+
+  it('lets Tally read the window — direction plus the deepest dip', () => {
+    /* +10% end-to-end with a −8.3% peak-to-trough inside it. */
+    mount([
+      snap('2026-01-01', 10_000),
+      snap('2026-01-15', 12_000),
+      snap('2026-02-01', 11_000),
+    ])
+    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(
+      /up \+10\.0% over the window — the deepest dip was −8\.3%/,
+    )
+  })
+
+  it('keeps Tally silent when there is no curve to read', () => {
+    mount([snap('2026-01-01', 10_000)])
+    expect(document.querySelector('.sb-tally-read')).toBeNull()
   })
 })

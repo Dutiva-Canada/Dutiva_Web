@@ -537,7 +537,10 @@ export async function executeChatAction(
     case 'record_dividend': {
       const pos = resolveHeldPosition(deps.positions ?? [], action.symbol, action.account, deps.accounts)
       if (!pos) return { type: action.type, detail: action.symbol, ok: false }
-      const amount = Math.round(action.perShare * pos.quantity * 100) / 100
+      /* perShare × held quantity is the normal math; a stated flat total
+         books as-is. Either way the position must exist — checked above. */
+      const amount =
+        action.total ?? Math.round(action.perShare! * pos.quantity * 100) / 100
       const { data: account } = await adminClient
         .from('invest_accounts')
         .select('cash_balance')
@@ -554,7 +557,10 @@ export async function executeChatAction(
           amount,
           currency: pos.currency || 'CAD',
           occurred_at: new Date().toISOString().slice(0, 10),
-          note: `${pos.symbol} — ${action.perShare} × ${pos.quantity}`,
+          note:
+            action.perShare !== undefined
+              ? `${pos.symbol} — ${action.perShare} × ${pos.quantity}`
+              : `${pos.symbol} dividend`,
         })
         .select('id')
         .single()

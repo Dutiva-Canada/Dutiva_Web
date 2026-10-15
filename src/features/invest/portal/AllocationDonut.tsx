@@ -12,7 +12,8 @@ import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
 import { fmtNum, fmtPct } from './strategyUi'
-import type { InvestPosition, MarketSnapshot } from '../data/types'
+import { TallyRead } from './TallyRead'
+import type { InvestPosition, InvestThesis, MarketSnapshot } from '../data/types'
 
 interface Slice {
   key: string
@@ -36,15 +37,26 @@ const CASH_FILL = 'color-mix(in srgb, var(--sb-muted) 45%, var(--sb-card))'
 const fillFor = (s: Slice, i: number) =>
   s.tone === 'cash' ? CASH_FILL : s.tone === 'other' ? OTHER_FILL : FILL(i)
 
+/* Same labels the theses table stamps its rows with — the read quotes the
+   status verbatim so the card and the Theses page can't disagree. */
+const THESIS_READ_STATUS: Record<InvestThesis['status'], keyof typeof IM> = {
+  healthy: 'invest_thesis_status_healthy',
+  drifting: 'invest_thesis_status_drifting',
+  broken: 'invest_thesis_status_broken',
+}
+
 export function AllocationDonut({
   positions,
   snapshots,
+  theses,
   cashTotal,
   bookCcy,
   fx,
 }: {
   positions: InvestPosition[]
   snapshots: MarketSnapshot[]
+  /** For Tally's read — the biggest slice's coverage is what she names. */
+  theses: InvestThesis[]
   cashTotal: number
   bookCcy: string
   fx: FxTable | null
@@ -115,6 +127,35 @@ export function AllocationDonut({
   const top = slices.find((s) => s.tone === '') ?? slices[0]!
   const topPct = (top.value / total) * 100
 
+  /* Tally's read — one fact the numbers already say, phrased the way a
+     book clerk would: who leads, and whether that leader is covered.
+     Nothing evaluative (safe at every advice tier). */
+  const cashSlice = slices.find((s) => s.tone === 'cash')
+  const read = (() => {
+    if (top.tone !== '') {
+      /* No priced position leads — cash or "other" is the biggest slice. */
+      return cashSlice
+        ? x(IM.invest_read_donut_cash).replace('{pct}', fmtNum(lang, (cashSlice.value / total) * 100, 1))
+        : null
+    }
+    if (cashSlice && cashSlice.value > top.value) {
+      return x(IM.invest_read_donut_cash).replace('{pct}', fmtNum(lang, (cashSlice.value / total) * 100, 1))
+    }
+    const th = theses.find((t) => t.symbol === top.label)
+    if (th) {
+      return x(IM.invest_read_donut_status)
+        .replace('{symbol}', top.label)
+        .replace('{pct}', fmtNum(lang, topPct, 1))
+        .replace('{status}', x(IM[THESIS_READ_STATUS[th.status]]))
+    }
+    if (topPct >= 15) {
+      return x(IM.invest_read_donut_bare)
+        .replace('{symbol}', top.label)
+        .replace('{pct}', fmtNum(lang, topPct, 1))
+    }
+    return x(IM.invest_read_donut_even).replace('{pct}', fmtNum(lang, topPct, 1))
+  })()
+
   return (
     <section className="sb-card sb-card-pad">
       <h2 className="sb-h2" style={{ margin: 0 }}>
@@ -128,6 +169,7 @@ export function AllocationDonut({
           .replace('{pct}', fmtNum(lang, topPct, 1))}
         {skipped > 0 ? ` ${x(IM.invest_alloc_skipped)}` : ''}
       </p>
+      <TallyRead line={read} />
       <div className="sb-donut-wrap">
         <div style={{ width: 200, height: 200, flexShrink: 0 }} aria-hidden="true">
           <ResponsiveContainer width="100%" height="100%">

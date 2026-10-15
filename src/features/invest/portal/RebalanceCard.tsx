@@ -12,8 +12,9 @@ import { createOrder, setPositionTargetWeight } from '../data/api'
 import type { FxTable } from '../data/fx'
 import { convertFx } from '../data/fx'
 import { readOrderMode } from './investPrefs'
-import { fmtPct } from './strategyUi'
-import type { InvestPosition, MarketSnapshot } from '../data/types'
+import { fmtNum, fmtPct } from './strategyUi'
+import { TallyRead } from './TallyRead'
+import type { InvestPosition, InvestStrategy, MarketSnapshot } from '../data/types'
 
 interface Row {
   p: InvestPosition
@@ -32,6 +33,8 @@ export function RebalanceCard({
   positions,
   snapshots,
   accounts,
+  strategies,
+  watchSymbols,
   cashTotal,
   bookCcy,
   fx,
@@ -41,6 +44,12 @@ export function RebalanceCard({
   positions: InvestPosition[]
   snapshots: MarketSnapshot[]
   accounts: { id: string; name: string }[]
+  /** For Tally's read — an out-of-band drift that no enabled strategy
+      covers is the gap she names. */
+  strategies: InvestStrategy[]
+  /** Watchlist symbols — watchlist-scoped strategies only "watch" a
+      position that also sits on it. */
+  watchSymbols: string[]
   /** Accounts' cash converted to book currency — part of the pie the
       weights share. */
   cashTotal: number
@@ -102,6 +111,36 @@ export function RebalanceCard({
   /* Cells render the sign manually (+'/'−' chips) — fmtPct gets abs. */
   const pctFmt = (n: number) => fmtPct(lang, Math.abs(n), 1)
 
+  /* Tally's read — the widest out-of-band drift, plus whether any
+     enabled strategy's scope covers it. Same coverage definition as the
+     bot's scope_add detector: scope.symbols, or scope.watchlist when the
+     position is also watchlisted. */
+  const read = (() => {
+    if (targeted.length === 0) return null
+    const outside = targeted.filter((r) => r.drift !== null && Math.abs(r.drift) > DRIFT_BAND)
+    if (outside.length === 0) return x(IM.invest_read_rebal_fine)
+    const widest = outside[0]! /* rows sort targeted-first by |drift| desc */
+    const watched = strategies.some(
+      (s) =>
+        s.enabled &&
+        (s.scope.symbols.includes(widest.p.symbol) ||
+          (s.scope.watchlist && watchSymbols.includes(widest.p.symbol))),
+    )
+    return (
+      x(IM.invest_read_rebal_drift)
+        .replace('{symbol}', widest.p.symbol)
+        .replace('{drift}', fmtNum(lang, Math.abs(widest.drift!), 1))
+        .replace(
+          '{side}',
+          x(widest.drift! > 0 ? IM.invest_read_rebal_side_over : IM.invest_read_rebal_side_under),
+        ) +
+      (watched ? '' : ` ${x(IM.invest_read_rebal_unwatched)}`) +
+      (outside.length > 1
+        ? ` ${x(IM.invest_read_rebal_more).replace('{n}', String(outside.length - 1))}`
+        : '')
+    )
+  })()
+
   const saveTarget = (p: InvestPosition) => {
     const n: number | null = draft.trim() === '' ? null : Number(draft)
     /* Invalid input on blur = cancel — returning early would leave the
@@ -152,6 +191,7 @@ export function RebalanceCard({
       <p className="sb-helper" style={{ margin: '4px 0 14px' }}>
         {x(IM.invest_rebal_note).replace('{ccy}', bookCcy)}
       </p>
+      <TallyRead line={read} />
       <div className="sb-table-wrap">
         <table className="sb-table sb-table-tight">
           <thead>

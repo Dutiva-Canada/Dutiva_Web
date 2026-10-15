@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { LangProvider } from '@/i18n/LangProvider'
 import { AllocationDonut } from './AllocationDonut'
-import type { InvestPosition } from '../data/types'
+import type { InvestPosition, InvestThesis } from '../data/types'
 
 /* Recharts measures layout — jsdom has none, so the pie never draws, but
    the legend rows render regardless. */
@@ -31,12 +31,13 @@ function position(over: Partial<InvestPosition> = {}): InvestPosition {
   }
 }
 
-function mount(positions: InvestPosition[], cashTotal = 0) {
+function mount(positions: InvestPosition[], cashTotal = 0, theses: InvestThesis[] = []) {
   return render(
     <LangProvider>
       <AllocationDonut
         positions={positions}
         snapshots={[]}
+        theses={theses}
         cashTotal={cashTotal}
         bookCcy="CAD"
         fx={null}
@@ -44,6 +45,30 @@ function mount(positions: InvestPosition[], cashTotal = 0) {
     </LangProvider>,
   )
 }
+
+function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
+  return {
+    id: 't1',
+    assetClass: 'equity',
+    symbol: 'SHOP',
+    name: 'Shopify',
+    thesis: 'compound it',
+    intent: 'core',
+    breakRules: [],
+    driftRules: [],
+    swot: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
+    status: 'healthy',
+    evalDetail: null,
+    lastEvaluatedAt: null,
+    createdAt: '2026-01-01T00:00:00Z',
+    updatedAt: '2026-01-01T00:00:00Z',
+    ...over,
+  }
+}
+
+/* The chart-reads pref is real localStorage here — a mute in one test
+   must not bleed into the next. */
+beforeEach(() => localStorage.clear())
 
 describe('AllocationDonut', () => {
   it('omits the cash legend row when cash is zero — no 0.0% noise', () => {
@@ -81,5 +106,35 @@ describe('AllocationDonut', () => {
   it('shows the empty state when nothing is priced', () => {
     mount([position({ lastPrice: null })], 0)
     expect(screen.getByText(/positions|position/i)).toBeInTheDocument()
+  })
+
+  it('lets Tally name an uncovered leader — biggest slice, no thesis', () => {
+    mount([position()], 0)
+    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(
+      /SHOP leads at 100\.0% — the biggest slice carries no thesis/,
+    )
+  })
+
+  it('quotes the thesis status when the leader carries one', () => {
+    mount([position()], 0, [thesis({ status: 'drifting' })])
+    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(/Drifting/)
+  })
+
+  it('reads cash as the biggest slice when it outweighs every position', () => {
+    /* $1000 invested vs $1500 cash — cash is strictly the largest share. */
+    mount([position()], 1500)
+    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(
+      /biggest slice is cash — 60\.0%/,
+    )
+  })
+
+  it('the × mutes every read — the same pref Settings writes', () => {
+    mount([position()], 0)
+    expect(document.querySelector('.sb-tally-read')).not.toBeNull()
+    fireEvent.click(
+      screen.getByRole('button', { name: /Hide Tally’s reads on the charts/i }),
+    )
+    expect(document.querySelector('.sb-tally-read')).toBeNull()
+    expect(localStorage.getItem('dutiva.invest.chartReads')).toBe('off')
   })
 })

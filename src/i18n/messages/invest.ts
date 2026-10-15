@@ -1456,6 +1456,76 @@ const investCoreMessages = defineMessages({
     fr: '{count} symboles sous surveillance.',
   },
   invest_home_tally_open: { en: 'Chat with Tally', fr: 'Discuter avec Tally' },
+  /* Tally's reads — deterministic one-liners on the computed cards. She
+     names the number and the gap, never the verdict, so they're safe for
+     every advice tier. The × on a line and the Settings toggle write the
+     same pref. [FR self-authored] */
+  invest_reads_hide: {
+    en: 'Hide Tally’s reads on the charts',
+    fr: 'Masquer les lectures de Tally sur les graphiques',
+  },
+  invest_settings_reads: {
+    en: 'Tally’s chart reads',
+    fr: 'Lectures de Tally sur les graphiques',
+  },
+  invest_settings_reads_on: { en: 'On', fr: 'Activées' },
+  invest_settings_reads_off: { en: 'Off', fr: 'Désactivées' },
+  invest_read_donut_cash: {
+    en: 'the biggest slice is cash — {pct}% of the book.',
+    fr: 'la plus grande part est en liquidités — {pct} % du carnet.',
+  },
+  invest_read_donut_status: {
+    en: '{symbol} leads at {pct}% — the thesis on it reads “{status}”.',
+    fr: '{symbol} arrive en tête à {pct} % — sa thèse est « {status} ».',
+  },
+  invest_read_donut_bare: {
+    en: '{symbol} leads at {pct}% — the biggest slice carries no thesis.',
+    fr: '{symbol} arrive en tête à {pct} % — la plus grande part n’a pas de thèse.',
+  },
+  invest_read_donut_even: {
+    en: 'the largest position is {pct}% — the spread is even.',
+    fr: 'la plus grande position représente {pct} % — la répartition est équilibrée.',
+  },
+  invest_read_rebal_fine: {
+    en: 'every targeted position sits inside its band.',
+    fr: 'chaque position ciblée respecte sa bande.',
+  },
+  invest_read_rebal_drift: {
+    en: '{symbol} is {drift} pts {side} target — the widest drift on the card.',
+    fr: '{symbol} est à {drift} pts {side} sa cible — l’écart le plus large du panneau.',
+  },
+  invest_read_rebal_side_over: { en: 'over', fr: 'au-dessus de' },
+  invest_read_rebal_side_under: { en: 'under', fr: 'sous' },
+  invest_read_rebal_unwatched: {
+    en: 'No strategy watches it.',
+    fr: 'Aucune stratégie ne la surveille.',
+  },
+  invest_read_rebal_more: {
+    en: '{n} more sit outside the band.',
+    fr: '{n} autres sortent de leur bande.',
+  },
+  invest_read_curve_up: {
+    en: 'up {chg} over the window — the deepest dip was {dd}.',
+    fr: 'en hausse de {chg} sur la période — le creux le plus profond a été {dd}.',
+  },
+  invest_read_curve_up_nodip: {
+    en: 'up {chg} over the window — never below the start.',
+    fr: 'en hausse de {chg} sur la période — jamais sous le point de départ.',
+  },
+  invest_read_curve_down: {
+    en: 'down {chg} over the window — the deepest dip reached {dd}.',
+    fr: 'en baisse de {chg} sur la période — le creux le plus profond a atteint {dd}.',
+  },
+  /* Rare but real — deposits can mask a decline the curve never dips
+     through. The dip clause drops, the sign stays honest. */
+  invest_read_curve_down_nodip: {
+    en: 'down {chg} over the window — never below the start.',
+    fr: 'en baisse de {chg} sur la période — jamais sous le point de départ.',
+  },
+  invest_read_curve_flat: {
+    en: 'flat over the window — inside a tenth of a point either way.',
+    fr: 'stable sur la période — à moins d’un dixième de point dans les deux sens.',
+  },
   invest_seo_title_chat: { en: 'Tally — Dutiva Invest', fr: 'Tally — Dutiva Invest' },
   invest_seo_desc_chat: {
     en: 'Chat with Tally — the book’s watch clerk — about your own book data.',

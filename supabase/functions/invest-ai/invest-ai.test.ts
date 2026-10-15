@@ -286,7 +286,8 @@ describe('parseInvestChatReply', () => {
         }),
       )?.action,
     ).toMatchObject({ type: 'record_cash', kind: 'deposit', amount: 250, account: 'TFSA' })
-    /* dividends book through record_dividend, not the generic ledger kind */
+    /* a dividend-typed record_cash normalizes to record_dividend — the
+       held-position check still applies, but the symbol is mandatory. */
     expect(
       parseInvestChatReply(
         JSON.stringify({
@@ -294,7 +295,23 @@ describe('parseInvestChatReply', () => {
           action: { type: 'record_cash', kind: 'dividend', amount: 50 },
         }),
       ),
-    ).toBeNull()
+    ).toBeNull() /* no symbol → rejected outright */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'record_cash', kind: 'dividend', amount: 45, symbol: 'vfv' },
+        }),
+      )?.action,
+    ).toMatchObject({ type: 'record_dividend', symbol: 'VFV', total: 45 })
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({
+          reply: 'ok',
+          action: { type: 'record_cash', kind: 'dividend', symbol: 'VFV', perShare: 0.9 },
+        }),
+      )?.action,
+    ).toMatchObject({ type: 'record_dividend', symbol: 'VFV', perShare: 0.9 })
     expect(
       parseInvestChatReply(
         JSON.stringify({ reply: 'ok', action: { type: 'record_cash', kind: 'deposit', amount: -1 } }),
@@ -332,6 +349,12 @@ describe('parseInvestChatReply', () => {
         JSON.stringify({ reply: 'ok', action: { type: 'record_dividend', symbol: 'ry', perShare: 1.08 } }),
       )?.action,
     ).toMatchObject({ type: 'record_dividend', symbol: 'RY', perShare: 1.08 })
+    /* a stated flat payout books as `total` — same held-position guard */
+    expect(
+      parseInvestChatReply(
+        JSON.stringify({ reply: 'ok', action: { type: 'record_dividend', symbol: 'RY', total: 54 } }),
+      )?.action,
+    ).toMatchObject({ type: 'record_dividend', symbol: 'RY', total: 54 })
     expect(
       parseInvestChatReply(
         JSON.stringify({ reply: 'ok', action: { type: 'record_dividend', symbol: 'RY', perShare: 0 } }),

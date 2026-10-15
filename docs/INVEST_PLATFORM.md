@@ -283,9 +283,11 @@ chat never fills), `update_signal`, `draft_strategy`, `draft_thesis`
 (same draft-thesis pipeline the Theses page runs; the draft supersedes
 the scaffold under the shared dedupe key), `set_goal` (a measurable book
 goal the sweep scores), `record_cash` (deposit/withdrawal — event +
-balance move as a pair, overdrafts rejected), `set_recurring` (a
-scheduled contribution), `record_dividend` (perShare × held quantity
-into the ledger for a held position) and `record_split` (quantity ×
+balance move as a pair, overdrafts rejected; a `dividend` kind
+normalizes to `record_dividend` so the held-position check can never be
+bypassed), `set_recurring` (a
+scheduled contribution), `record_dividend` (perShare × held quantity, or
+a stated flat total, into the ledger for a held position) and `record_split` (quantity ×
 ratio, average cost ÷ ratio). Held-position actions resolve the symbol
 through `resolveHeldPosition` — ambiguous or unheld symbols fail
 `ok: false` rather than guessing. Every executed action persists on the
@@ -304,6 +306,16 @@ UI writes, parsed from a closed event vocabulary: `watch_added`,
 write's success path only — a throttled or failed reaction returns null
 and never disturbs the save. The reply also lands in the chat thread, so
 the ambient line and the permanent record stay the same observation.
+
+**Reads** — `TallyRead` (`TallyRead.tsx`) is the third tier of her voice:
+a deterministic one-liner inside the computed cards — the allocation
+donut names the biggest slice's thesis coverage, the rebalance card
+names the widest off-band drift and whether an enabled strategy covers
+it, the book curve names direction plus deepest dip. The card hands her
+the sentence from numbers it already computed — no model call, nothing
+evaluative, safe at every advice tier. The `dutiva.invest.chartReads`
+pref gates every mounted line at once (the × on a line and Settings →
+"Tally's chart reads" write the same key).
 
 ## What it deliberately is not
 

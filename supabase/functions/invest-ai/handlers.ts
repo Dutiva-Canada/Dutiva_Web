@@ -766,7 +766,17 @@ export type InvestChatAction =
       nextRunOn?: string
       note?: string
     }
-  | { type: 'record_dividend'; symbol: string; perShare: number; account?: string }
+  /* A dividend always books perShare × held quantity — or a flat `total`
+     when the person states the payout amount. Both require the held
+     position; record_cash can emit a dividend kind but the parser
+     normalizes it here, so cash can never dividend without a position. */
+  | {
+      type: 'record_dividend'
+      symbol: string
+      perShare?: number
+      total?: number
+      account?: string
+    }
   | { type: 'record_split'; symbol: string; ratio: number; account?: string }
 
 export interface InvestChatReply {
@@ -1089,9 +1099,9 @@ export function investChatPrompt(
       '  {"type":"add_position","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>","quantity":<number>,"avgCost":<number>,"currency":"<optional, default CAD>","account":"<account name if more than one>"}   — logs a holding the person says they already have; records, never advice',
       '  {"type":"draft_thesis","symbol":"<TICKER>"}   — drafts a thesis (claim + watch conditions) from the position\'s facts and files it for review on Theses; nothing is saved until the person accepts it there',
       '  {"type":"set_goal","title":"<short name>","metric":"<book_value|cash_pct|max_weight_pct|unrealized_gain_pct|thesis_coverage|position_count>","op":"<gte|lte>","target":<number>,"deadline":"<YYYY-MM-DD, optional>"}   — creates a measurable book goal the sweep scores',
-      '  {"type":"record_cash","kind":"<deposit|withdrawal>","amount":<number>,"account":"<account name if more than one>","currency":"<optional>","note":"<optional>"}   — records a cash movement and moves the account balance; a withdrawal that exceeds the balance fails',
+      '  {"type":"record_cash","kind":"<deposit|withdrawal|dividend>","amount":<number>,"symbol":"<required for dividend>","perShare":"<optional for dividend>","account":"<account name if more than one>","currency":"<optional>","note":"<optional>"}   — records a cash movement and moves the account balance; a withdrawal that exceeds the balance fails; a dividend needs the held position (perShare × quantity, or amount as the flat payout)',
       '  {"type":"set_recurring","amount":<number>,"cadence":"<weekly|monthly>","account":"<account name if more than one>","currency":"<optional>","nextRunOn":"<YYYY-MM-DD, optional>","note":"<optional>"}   — schedules a repeating contribution the sweep books',
-      '  {"type":"record_dividend","symbol":"<TICKER>","perShare":<number>,"account":"<optional>"}   — books a dividend of perShare × held quantity into the ledger for a position the person holds',
+      '  {"type":"record_dividend","symbol":"<TICKER>","perShare":<number>,"total":"<optional flat payout instead of perShare>","account":"<optional>"}   — books a dividend of perShare × held quantity (or the stated total) into the ledger for a position the person holds',
       '  {"type":"record_split","symbol":"<TICKER>","ratio":<number>,"account":"<optional>"}   — applies a ratio-for-1 split to the held position (quantity × ratio, average cost ÷ ratio); bookkeeping, not an order',
       'Only emit an action the person actually asked for. If an account, signal, or symbol is ambiguous, ask which they mean instead of guessing. An order is always a draft — say so.',
       lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.',
@@ -1311,9 +1321,30 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
         })
       }
       case 'record_cash': {
-        const kind = optEnum(action.kind, ['deposit', 'withdrawal'])
+        const kind = optEnum(action.kind, ['deposit', 'withdrawal', 'dividend'])
+        if (!kind) return null
+        if (kind === 'dividend') {
+          /* A chat-typed dividend normalizes to record_dividend — the
+             held-position check is mandatory, never bypassed by the
+             looser record_cash shape. perShare or a flat amount both
+             satisfy the payout figure. */
+          const symbol = optStr(action.symbol, 12)?.toUpperCase()
+          const perShare = Number(action.perShare)
+          const total = Number(action.total ?? action.amount)
+          if (!symbol || !SYMBOL_RE.test(symbol)) return null
+          const hasPer = Number.isFinite(perShare) && perShare > 0
+          const hasTotal = Number.isFinite(total) && total > 0
+          if (!hasPer && !hasTotal) return null
+          return finish({
+            type: 'record_dividend',
+            symbol,
+            perShare: hasPer ? perShare : undefined,
+            total: hasTotal ? total : undefined,
+            account: optStr(action.account, 80),
+          })
+        }
         const amount = Number(action.amount)
-        if (!kind || !Number.isFinite(amount) || amount <= 0) return null
+        if (!Number.isFinite(amount) || amount <= 0) return null
         return finish({
           type: 'record_cash',
           kind: kind as 'deposit' | 'withdrawal',
@@ -1342,12 +1373,16 @@ export function parseInvestChatReply(raw: string | null | undefined): InvestChat
       case 'record_dividend': {
         const symbol = optStr(action.symbol, 12)?.toUpperCase()
         const perShare = Number(action.perShare)
+        const total = Number(action.total)
         if (!symbol || !SYMBOL_RE.test(symbol)) return null
-        if (!Number.isFinite(perShare) || perShare <= 0) return null
+        const hasPer = Number.isFinite(perShare) && perShare > 0
+        const hasTotal = Number.isFinite(total) && total > 0
+        if (!hasPer && !hasTotal) return null
         return finish({
           type: 'record_dividend',
           symbol,
-          perShare,
+          perShare: hasPer ? perShare : undefined,
+          total: hasTotal ? total : undefined,
           account: optStr(action.account, 80),
         })
       }
