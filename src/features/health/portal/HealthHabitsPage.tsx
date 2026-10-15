@@ -73,6 +73,8 @@ export function HealthHabitsPage() {
       await refresh()
       setName('')
       showToast(HM.health_habit_added)
+      /* Best-effort: Mira notes the new habit — same as she does a done-day. */
+      void sendHealthReaction({ type: 'habit_added', habit: trimmed }, lang, setMiraLine)
     } finally {
       setSaving(false)
     }
@@ -131,6 +133,7 @@ export function HealthHabitsPage() {
       setSuggestions((cur) => cur.filter((c) => c !== s))
       await refresh()
       showToast(HM.health_habit_added)
+      void sendHealthReaction({ type: 'habit_added', habit: s.name }, lang, setMiraLine)
     } finally {
       setSaving(false)
     }

@@ -452,6 +452,13 @@ export const healthMessages = defineMessages({
     en: 'I noticed “{name}” is on a {days}-day streak — nicely kept.',
     fr: 'J’ai remarqué que « {name} » se maintient depuis {days} jours — bien tenu.',
   },
+  /* A run that ended yesterday — named as a pause, not a failure; the
+     greeting goes on to the arrival question, so no advice needed here.
+     [FR self-authored] */
+  health_chat_hi_broke: {
+    en: 'I noticed “{name}” paused after a {days}-day streak.',
+    fr: 'J’ai remarqué que « {name} » a fait une pause après {days} jours de suite.',
+  },
   health_chat_hi_checkins: {
     en: 'You’ve checked in {count} times this week already.',
     fr: 'Vous avez déjà pris le point {count} fois cette semaine.',
@@ -528,6 +535,11 @@ export const healthMessages = defineMessages({
   health_home_mira_streak: {
     en: '“{name}” — {days} days running.',
     fr: '« {name} » — {days} jours de suite.',
+  },
+  /* A run that ended yesterday — a pause, not a verdict. [FR self-authored] */
+  health_home_mira_broke: {
+    en: '“{name}” paused after a {days}-day streak.',
+    fr: '« {name} » a fait une pause après {days} jours de suite.',
   },
   health_home_mira_checkin: {
     en: 'You checked in today — feeling {mood}.',

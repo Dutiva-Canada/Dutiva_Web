@@ -1,7 +1,7 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
-import { habitStreak } from '../data/healthStats'
+import { brokeStreak, habitStreak } from '../data/healthStats'
 import type { HealthState } from '../data/types'
 
 /** Localized 1–5 labels for the mood and energy scales. */
@@ -67,10 +67,25 @@ export function fmtDay(dayKey: string, lang: Lang): string {
 const DAY_MS = 24 * 60 * 60 * 1000
 const WEEK_MS = 7 * DAY_MS
 
+/* A fresh break is a change; a live streak is a standing state — the change
+   is the thing worth noticing. The 3-day floor keeps a two-day dabble from
+   earning an elegy. */
+function pausedHabit(
+  state: HealthState,
+  now: Date,
+): { name: string; days: number } | null {
+  let longest: { name: string; days: number } | null = null
+  for (const h of state.habits) {
+    const run = brokeStreak(state.habitLogs, h.id, now)
+    if (run >= 3 && (!longest || run > longest.days)) longest = { name: h.name, days: run }
+  }
+  return longest
+}
+
 /** Mira's opening turn on an empty conversation — one breath: hello, at most
-    one thing she noticed (the best live habit streak, else this week's
-    check-in count), then a question. Deterministic and bilingual, so the
-    companion speaks first without a model call. */
+    one thing she noticed (a habit run that just paused, the best live
+    streak, else this week's check-in count), then a question.
+    Deterministic and bilingual, so she speaks first without a model call. */
 export function companionGreeting(
   state: HealthState | undefined,
   lang: Lang,
@@ -78,12 +93,19 @@ export function companionGreeting(
 ): string {
   const parts = [pick(HM.health_chat_hi, lang)]
   if (state) {
+    const paused = pausedHabit(state, now)
     let best: { name: string; streak: number } | null = null
     for (const h of state.habits) {
       const streak = habitStreak(state.habitLogs, h.id, now)
       if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
     }
-    if (best) {
+    if (paused) {
+      parts.push(
+        pick(HM.health_chat_hi_broke, lang)
+          .replace('{name}', paused.name)
+          .replace('{days}', String(paused.days)),
+      )
+    } else if (best) {
       parts.push(
         pick(HM.health_chat_hi_streak, lang)
           .replace('{name}', best.name)
@@ -103,15 +125,22 @@ export function companionGreeting(
 
 /** The Overview strip — Mira's quiet presence outside the chat tab. One
     thing she noticed, picked deterministically from local state (no call):
-    the best live habit streak, else a nod to today's check-in — quoting
-    the note when there is one — else this week's check-in count. Null
-    means nothing worth noticing; the strip stays hidden. */
+    a habit run that just paused, the best live streak, else a nod to
+    today's check-in — quoting the note when there is one — else this
+    week's check-in count. Null means nothing worth noticing; the strip
+    stays hidden. */
 export function miraNoticed(
   state: HealthState | undefined,
   lang: Lang,
   now: Date = new Date(),
 ): string | null {
   if (!state) return null
+  const paused = pausedHabit(state, now)
+  if (paused) {
+    return pick(HM.health_home_mira_broke, lang)
+      .replace('{name}', paused.name)
+      .replace('{days}', String(paused.days))
+  }
   let best: { name: string; streak: number } | null = null
   for (const h of state.habits) {
     const streak = habitStreak(state.habitLogs, h.id, now)

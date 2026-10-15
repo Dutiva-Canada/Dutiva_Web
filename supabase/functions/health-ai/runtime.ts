@@ -653,6 +653,10 @@ export function parseReactEvent(raw: unknown): ReactEvent | null {
     if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
     return { type: 'habit_marked', habit: ev.habit.trim().slice(0, 120) }
   }
+  if (ev.type === 'habit_added') {
+    if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
+    return { type: 'habit_added', habit: ev.habit.trim().slice(0, 120) }
+  }
   return null
 }
 

@@ -437,6 +437,7 @@ export async function undoHealthChatAction(messageId: string): Promise<void> {
 export type HealthReactEvent =
   | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
+  | { type: 'habit_added'; habit: string }
 
 /* Reactions fire a model call per qualifying action — someone checking off
    three habits shouldn't produce three calls. A floor between calls keeps

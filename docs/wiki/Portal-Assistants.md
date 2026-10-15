@@ -130,7 +130,7 @@ Sources: [supabase/functions/health-ai/runtime.ts:310-340](), [supabase/function
 
 ### Reactions
 
-`react` events let the assistant speak outside the chat box: Mira reacts when the person saves a check-in or finishes a habit, Paige when a mention is logged or a draft saved, Tally when a symbol is watched or an order queued. Reaction lines persist to the same `*_chat_messages` table and render in the chat thread. Client-side throttling (`resetHealthReactionThrottle` and peers) bounds how often reactions fire.
+`react` events let the assistant speak outside the chat box: Mira reacts when the person saves a check-in, finishes a habit, or starts tracking a new one, Paige when a mention is logged or a draft saved, Tally when a symbol is watched or an order queued. Reaction lines persist to the same `*_chat_messages` table and render in the chat thread. Client-side throttling (`resetHealthReactionThrottle` and peers) bounds how often reactions fire.
 
 Sources: [src/features/health/data/api.ts:337-370](), [supabase/functions/pr-ai/index.ts:52-58](), [supabase/functions/invest-ai/index.ts:40-42]()
 
@@ -160,6 +160,8 @@ Mira is the wellness portal's companion: a warm, non-clinical presence over the 
 **Crisis handling.** If a message, check-in, or shared entry hints at crisis or self-harm, Mira is instructed to reply **only** with supportive words plus `"Call or text 9-8-8 (Canada, 24/7) — or 911 if you are in immediate danger."` — no check-in is logged, no entry written, no action executed.
 
 **Companion cron.** `health-habit-notify` runs daily (pg_cron 23:00 UTC, migration 0196): for each habit with a live streak not yet checked off, the owner gets one gentle email — non-clinical, no shame language.
+
+**Ambient notices.** Two deterministic, model-free lines carry her presence outside chat: the Overview strip (`miraNoticed`) and the empty-thread greeting (`companionGreeting`). Both lead with a habit run that just paused (a fresh break outranks a standing streak — a change is the thing worth noticing), then the best live streak. The strip then falls to today's check-in (quoting the note), the week's count, and a quiet-return line after 3+ silent days; the greeting falls to the week's count before the arrival question.
 
 Sources: [supabase/functions/health-ai/index.ts:70-80](), [supabase/functions/health-ai/handlers.ts:99-115](), [supabase/functions/health-ai/handlers.ts:330-340](), [src/features/health/data/types.ts:22-45](), [supabase/functions/health-habit-notify/index.ts]()
 

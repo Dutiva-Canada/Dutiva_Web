@@ -3,7 +3,7 @@ import './health.css'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useI18n } from '@/i18n/context'
 import { AgentReviewQueue, type KindRenderer } from '@/features/agent/AgentReviewQueue'
-import { addHabit } from '@/features/health/data/api'
+import { addHabit, sendHealthReaction } from '@/features/health/data/api'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useHealthHead } from './useHealthHead'
@@ -21,7 +21,7 @@ interface HabitPayload {
 }
 
 export function HealthReviewPage() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_review, HM.health_review_sub)
 
@@ -37,6 +37,9 @@ export function HealthReviewPage() {
             if (!name) return
             await addHabit(name)
             showToast(HM.health_habit_added)
+            /* No MiraNote on this surface — the reply still lands in the
+               chat thread as a persisted turn. */
+            void sendHealthReaction({ type: 'habit_added', habit: name }, lang, () => {})
           },
         },
       ],

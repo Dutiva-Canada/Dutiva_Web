@@ -168,6 +168,35 @@ export function habitStreak(
   return streak
 }
 
+/** The length of a run that broke yesterday — the habit was done two days
+    ago (and the days before it), but not yesterday and not today. Returns
+    that run's length, or 0 when there's no fresh break. It fires once, the
+    morning after the first fully missed day; an older break is stale news
+    and a live-or-pending streak (done yesterday) isn't a break at all. */
+export function brokeStreak(
+  logs: HealthHabitLog[],
+  habitId: string,
+  now: Date = new Date(),
+): number {
+  const days = habitDoneDays(logs, habitId)
+  if (days.size === 0) return 0
+  /* Yesterday or today done → the streak is still live (or restarted
+     today), so nothing broke. A miss yesterday with a run ending two
+     days ago is the one fresh break. */
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (days.has(todayKey(now)) || days.has(todayKey(yesterday))) return 0
+  const cursor = new Date(now)
+  cursor.setDate(cursor.getDate() - 2)
+  if (!days.has(todayKey(cursor))) return 0
+  let run = 0
+  while (days.has(todayKey(cursor))) {
+    run += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return run
+}
+
 /** How many habits are done today — the Overview stat. */
 export function habitsDoneToday(
   logs: HealthHabitLog[],
