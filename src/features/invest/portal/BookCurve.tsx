@@ -41,6 +41,9 @@ interface Point {
   book: number
   invested: number
   cash: number
+  /** True when the stored mark's currency differed from the display ccy —
+      the tooltip flags it so the conversion stays auditable in place. */
+  converted: boolean
 }
 
 interface Props {
@@ -103,19 +106,31 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
   const points = useMemo<Point[]>(() => {
     const since =
       cutoff === null ? null : new Date(Date.now() - cutoff * 86_400_000).toISOString().slice(0, 10)
-    return scopedSnapshots
-      .filter((s) => since === null || s.asOf >= since)
-      .map((s) => ({
+    const out: Point[] = []
+    for (const s of scopedSnapshots) {
+      if (since !== null && s.asOf < since) continue
+      /* Marks are stored in the currency the sweep saw — which can differ
+         across days. Plotting them raw turns a currency switch into a
+         phantom crash; convert each into the display ccy, and drop a mark
+         that can't convert rather than draw a wrong point. */
+      const book = convertFx(s.bookValue, s.currency, ccy, fx)
+      const invested = convertFx(s.invested, s.currency, ccy, fx)
+      const cash = convertFx(s.cash, s.currency, ccy, fx)
+      if (book === null || invested === null || cash === null) continue
+      out.push({
         asOf: s.asOf,
         label: new Date(`${s.asOf}T12:00:00`).toLocaleDateString(
           lang === 'fr' ? 'fr-CA' : 'en-CA',
           { month: 'short', day: 'numeric', ...(cutoff !== null && cutoff > 100 ? { year: '2-digit' as const } : {}) },
         ),
-        book: s.bookValue,
-        invested: s.invested,
-        cash: s.cash,
-      }))
-  }, [scopedSnapshots, cutoff, lang])
+        book,
+        invested,
+        cash,
+        converted: s.currency !== ccy,
+      })
+    }
+    return out
+  }, [scopedSnapshots, cutoff, lang, ccy, fx])
 
   const stats = useMemo(() => {
     if (points.length < 2) return { chg: null as number | null, hasFlows: false, maxDD: null as number | null }
@@ -128,7 +143,10 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
     let hasFlows = false
     for (const e of scopedEvents) {
       if (e.kind === 'dividend') continue
-      if (e.occurredAt <= first.asOf || e.occurredAt > last.asOf) continue
+      /* occurredAt is a timestamptz, asOf a date — compare on the day or a
+         same-day flow slips inside the window and pollutes the change. */
+      const evDay = e.occurredAt.slice(0, 10)
+      if (evDay <= first.asOf || evDay > last.asOf) continue
       const v = convertFx(e.amount, e.currency, ccy, fx)
       if (v === null) continue
       netFlow += e.kind === 'withdrawal' ? -v : v
@@ -142,8 +160,24 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
       if (p.book > peak) peak = p.book
       if (peak > 0) maxDD = Math.min(maxDD, ((p.book - peak) / peak) * 100)
     }
-    return { chg, hasFlows, maxDD: maxDD < 0 ? maxDD : null }
+    /* On a monotone window (always true with two marks) the dip is the
+       change — same number rendered twice is noise, so it drops to null. */
+    const dipDupe =
+      chg !== null &&
+      Math.round(maxDD * 10) === Math.round(chg * 10)
+    return { chg, hasFlows, maxDD: maxDD < 0 && !dipDupe ? maxDD : null }
   }, [points, scopedEvents, ccy, fx])
+
+  /* Days the window actually spans — gates the range pills (a 1M pill on
+     one day of marks is dead chrome) and steers the read away from
+     "over the window" phrasing on day one. */
+  const spanDays =
+    points.length >= 2
+      ? (Date.parse(`${points[points.length - 1]!.asOf}T12:00:00`) -
+          Date.parse(`${points[0]!.asOf}T12:00:00`)) /
+        86_400_000
+      : 0
+  const visibleRanges = RANGES.filter((r) => r.days === null || spanDays >= r.days)
 
   /* Round to the displayed precision BEFORE picking a sign/color — a
      0.04% move must read "0.0%" in neutral, not "+0.0%" in green. */
@@ -157,6 +191,8 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
   const read = (() => {
     if (stats.chg === null) return null
     const r = Math.round(stats.chg * 10) / 10
+    /* One day of marks isn't a 'window' — name the span, not the period. */
+    if (spanDays <= 1) return fill(x(IM.invest_read_curve_first_day), { chg: pctFmt(r) })
     const dd = stats.maxDD === null ? null : pctFmt(stats.maxDD)
     if (Math.abs(r) === 0) return x(IM.invest_read_curve_flat)
     if (r > 0) {
@@ -209,9 +245,9 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
           {/* Range pills do nothing on an empty curve — dead chrome. The
               account scope stays: hiding it could strand a user on a
               scoped account that has no marks to switch back with. */}
-          {points.length >= 2 && (
+          {visibleRanges.length > 1 && (
             <div className="sb-seg" role="group" aria-label={x(IM.invest_curve_title)}>
-              {RANGES.map((r) => (
+              {visibleRanges.map((r) => (
                 <button
                   key={r.id}
                   type="button"
@@ -317,6 +353,11 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
                         {row(x(IM.invest_ov_total_value), p.book)}
                         {row(x(IM.invest_curve_invested), p.invested)}
                         {row(x(IM.invest_curve_cash), p.cash)}
+                        {p.converted && (
+                          <div style={{ marginTop: 4, fontSize: 11, color: 'var(--sb-muted)' }}>
+                            {fill(x(IM.invest_curve_fx_note), { ccy })}
+                          </div>
+                        )}
                       </div>
                     )
                   }}
