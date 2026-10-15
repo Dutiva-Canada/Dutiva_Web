@@ -285,8 +285,11 @@ function GroundingCard() {
               className={`hb-res-item hb-res-item--static ${i === step ? 'is-current' : ''}`}
               aria-current={i === step ? 'step' : undefined}
             >
+              {/* The badge echoes the count the row asks for (5 things, 4
+                  things…) — the ordinal "1 ↔ 5 things" juxtaposition read
+                  like two numbers disagreeing. Done steps keep the check. */}
               <span className="hb-res-icon hb-step-badge" aria-hidden="true">
-                {i < step ? <Check size={15} strokeWidth={3} /> : i + 1}
+                {i < step ? <Check size={15} strokeWidth={3} /> : GROUND_STEPS.length - i}
               </span>
               <span className={`hb-res-name ${i < step ? 'text-[color:var(--sb-muted)]' : ''}`}>
                 {x(label)}

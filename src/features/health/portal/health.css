@@ -469,12 +469,27 @@ a.sb-stat-link:focus-visible {
 .hb-res-item.is-current {
   border-color: var(--sb-accent);
 }
-/* Grounding step badge — smaller square than the resource icon it borrows. */
+/* Static rows (the grounding countdown) aren't fields — the shared input
+   background made five steps read as five empty text boxes. Transparent
+   reads as a checklist; the current step still gets its accent tint. */
+.hb-res-item--static {
+  background: transparent;
+}
+.hb-res-item--static.is-current {
+  background: var(--sb-accent-soft);
+}
+/* Grounding step badge — smaller square than the resource icon it borrows.
+   On the current step it fills accent so "where you are" survives a
+   glance, not just a 1px border. */
 .hb-step-badge {
   width: 30px;
   height: 30px;
   font-size: 13px;
   font-weight: 700;
+}
+.hb-res-item--static.is-current .hb-step-badge {
+  background: var(--sb-accent);
+  color: var(--sb-primary-text);
 }
 .hb-res-item a {
   color: var(--sb-accent-ink);
