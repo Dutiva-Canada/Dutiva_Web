@@ -16,12 +16,15 @@ import {
   updateJournalEntry,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useSessionDraft } from '@/components/chat/portalChatUtils'
+import { fillBi } from '@/lib/format'
 import type { HealthJournalEntry } from '@/features/health/data/types'
 import { fmtRelativeDateTime } from './healthUi'
 import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
+import { useUndoableDelete } from './useUndoableDelete'
 
 function EntryEditor({
   initial,
@@ -39,8 +42,18 @@ function EntryEditor({
   const { x } = useI18n()
   const { refresh } = useHealthData()
   const { showToast } = useToasts()
-  const [title, setTitle] = useState(initial?.title ?? '')
-  const [body, setBody] = useState(initial?.body ?? '')
+  /* Compose-mode drafts persist in sessionStorage — navigating away or a
+     reload mid-entry doesn't lose the writing. Edit mode passes a null key
+     (a saved row's edits stay transient; the arm-cancel guard covers slips)
+     and simply reads `initial` like before. */
+  const [title, setTitle] = useSessionDraft(
+    entryId ? null : 'dutiva:health:draft:journal-title',
+    initial?.title ?? '',
+  )
+  const [body, setBody] = useSessionDraft(
+    entryId ? null : 'dutiva:health:draft:journal-body',
+    initial?.body ?? '',
+  )
   const [saving, setSaving] = useState(false)
   const [armCancel, setArmCancel] = useState(false)
 
@@ -66,6 +79,9 @@ function EntryEditor({
          stale-data note, so awaiting it here can't false-report a save. */
       await refresh()
       showToast(HM.health_journal_saved)
+      /* Saved = the draft is consumed — leave no residue for the next open. */
+      setTitle('')
+      setBody('')
       onDone()
     } catch {
       showToast(HM.health_journal_save_failed)
@@ -82,6 +98,10 @@ function EntryEditor({
       setArmCancel(true)
       return
     }
+    /* A confirmed discard clears the stored draft too — "cancel" means let
+       go, so reopening the composer doesn't resurrect the abandoned text. */
+    setTitle('')
+    setBody('')
     onDone()
   }
 
@@ -151,12 +171,20 @@ function EntryEditor({
   )
 }
 
-function EntryRow({ entry, onDeleted }: { entry: HealthJournalEntry; onDeleted: (id: string) => void }) {
+function EntryRow({
+  entry,
+  onDeleted,
+  onRestored,
+}: {
+  entry: HealthJournalEntry
+  onDeleted: (id: string) => void
+  onRestored: (id: string) => void
+}) {
   const { x, lang } = useI18n()
   const { refresh } = useHealthData()
   const { showToast } = useToasts()
+  const { queueDelete } = useUndoableDelete()
   const [editing, setEditing] = useState(false)
-  const [armDelete, setArmDelete] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [miraLine, setMiraLine] = useState<string | null>(null)
@@ -165,22 +193,20 @@ function EntryRow({ entry, onDeleted }: { entry: HealthJournalEntry; onDeleted: 
   /* Long bodies clamp to a few lines — the list stays a list, not a wall. */
   const clampable = entry.body.length > 240 || entry.body.split('\n').length > 4
 
-  const remove = async () => {
-    if (!armDelete) {
-      setArmDelete(true)
-      return
-    }
-    setArmDelete(false)
-    try {
-      await deleteJournalEntry(entry.id)
-      /* Purge the parent's `earlier` pages too — a deleted row that only
-         lived past the first page otherwise stays rendered as a ghost. */
-      onDeleted(entry.id)
-      await refresh()
-    } catch {
-      showToast(HM.health_delete_failed)
-    }
-  }
+  /* One click hides the row; the real delete only fires when the undo
+     toast lapses. deletedIds hides it locally — including the copy parked
+     in the paged `earlier` list — and onUndo drops the id so it reappears
+     untouched. A refresh mid-window can't resurrect it: the id stays in
+     the filter until the commit lands. */
+  const remove = () =>
+    queueDelete({
+      key: `entry:${entry.id}`,
+      message: fillBi(HM.health_undo_deleted, { label: title }),
+      commit: () => deleteJournalEntry(entry.id),
+      onOptimistic: () => onDeleted(entry.id),
+      onUndo: () => onRestored(entry.id),
+      onCommitted: () => void refresh(),
+    })
 
   /* Explicit per-entry consent — the press stamps shared_at on the row
      (that's the record), only this entry's body reaches Mira, and the
@@ -301,12 +327,11 @@ function EntryRow({ entry, onDeleted }: { entry: HealthJournalEntry; onDeleted: 
           </button>
           <button
             type="button"
-            className={`sb-btn sb-btn-sm ${armDelete ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+            className="sb-btn sb-btn-secondary sb-btn-sm"
             aria-label={x(HM.health_journal_delete_named).replace('{title}', title)}
-            onClick={() => void remove()}
-            onBlur={() => setArmDelete(false)}
+            onClick={remove}
           >
-            {armDelete ? x(HM.health_journal_delete_confirm) : x(HM.health_journal_delete)}
+            {x(HM.health_journal_delete)}
           </button>
         </div>
       </div>
@@ -328,8 +353,10 @@ export function HealthJournalPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [query, setQuery] = useState('')
   const [sharedOnly, setSharedOnly] = useState(false)
-  /* Deletions are removed locally — a stale refresh can't leave a ghost
-     row, whether the entry sat in the fresh page or the paged archive. */
+  /* Rows hidden while their delete waits out the undo window (and after
+     it lands) — the filter covers both the fresh page and the paged
+     `earlier` archive, and a mid-window refresh can't resurrect a row
+     that's still on the server. */
   const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(new Set())
 
   /* /health/journal?new=1 — the Overview's "New journal entry" CTA lands
@@ -507,6 +534,13 @@ export function HealthJournalPage() {
                     entry={e}
                     onDeleted={(id) =>
                       setDeletedIds((cur) => new Set(cur).add(id))
+                    }
+                    onRestored={(id) =>
+                      setDeletedIds((cur) => {
+                        const next = new Set(cur)
+                        next.delete(id)
+                        return next
+                      })
                     }
                   />
                 ))}

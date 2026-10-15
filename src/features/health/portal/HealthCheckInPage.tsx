@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -8,6 +8,7 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { addCheckIn, deleteCheckIn, sendHealthReaction, updateCheckIn } from '@/features/health/data/api'
 import { hasCheckInToday } from '@/features/health/data/healthStats'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useSessionDraft } from '@/components/chat/portalChatUtils'
 import type { HealthCheckIn } from '@/features/health/data/types'
 import { ENERGY_LABELS, energyLabel, fmtRelativeDateTime, MOOD_LABELS, moodLabel } from './healthUi'
 import { HealthDataError } from './HealthDataError'
@@ -15,6 +16,7 @@ import { HealthLoading } from './HealthLoading'
 import { HealthScalePicker } from './HealthScalePicker'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
+import { useUndoableDelete } from './useUndoableDelete'
 
 /* History renders the newest rows first; beyond this cap the rest unfold
    on demand so a mature account doesn't mount hundreds of rows at once. */
@@ -134,12 +136,25 @@ export function HealthCheckInPage() {
 
   const [mood, setMood] = useState<number | null>(null)
   const [energy, setEnergy] = useState<number | null>(null)
-  const [note, setNote] = useState('')
+  /* The note persists in sessionStorage — leaving mid-sentence keeps it. */
+  const [note, setNote] = useSessionDraft('dutiva:health:draft:checkin-note')
   const [saving, setSaving] = useState(false)
-  const [armDelete, setArmDelete] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [miraLine, setMiraLine] = useState<string | null>(null)
   const [showAll, setShowAll] = useState(false)
+  /* Rows hidden while their delete waits out the undo window — the filter
+     also stops a mid-window refresh from resurrecting them. */
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(new Set())
+  const { queueDelete } = useUndoableDelete()
+  const headRef = useRef<HTMLHeadingElement>(null)
+
+  const hide = (id: string) => setHiddenIds((cur) => new Set(cur).add(id))
+  const unhide = (id: string) =>
+    setHiddenIds((cur) => {
+      const next = new Set(cur)
+      next.delete(id)
+      return next
+    })
 
   const submit = async () => {
     if (mood == null || saving) return
@@ -170,30 +185,34 @@ export function HealthCheckInPage() {
     }
   }
 
-  const remove = async (id: string) => {
-    if (armDelete !== id) {
-      setArmDelete(id)
-      return
-    }
-    setArmDelete(null)
-    try {
-      await deleteCheckIn(id)
-      await refresh()
-    } catch {
-      showToast(HM.health_delete_failed)
-    }
-  }
+  /* One click hides the row; the real delete fires when the undo toast
+     lapses. The focused row unmounts with the optimistic hide, so focus
+     lands on the page heading instead of dropping to <body>. */
+  const remove = (id: string) =>
+    queueDelete({
+      key: `checkin:${id}`,
+      message: HM.health_undo_deleted_checkin,
+      commit: () => deleteCheckIn(id),
+      onOptimistic: () => {
+        hide(id)
+        headRef.current?.focus()
+      },
+      onUndo: () => unhide(id),
+      onCommitted: () => void refresh(),
+    })
 
   if (loading) return <HealthLoading />
   if (!state) return <HealthDataError />
-  const checkIns = state.checkIns
+  const checkIns = state.checkIns.filter((c) => !hiddenIds.has(c.id))
   const loggedToday = hasCheckInToday(checkIns)
   const visibleCheckIns = showAll ? checkIns : checkIns.slice(0, CHECKIN_RENDER_CAP)
 
   return (
     <div className="sb hb sb-page">
       <div className="sb-head-row">
-        <h1>{x(HM.health_checkin_title)}</h1>
+        <h1 ref={headRef} tabIndex={-1}>
+          {x(HM.health_checkin_title)}
+        </h1>
       </div>
       <p className="sb-sub">{x(HM.health_checkin_sub)}</p>
 
@@ -321,14 +340,11 @@ export function HealthCheckInPage() {
                         </button>
                         <button
                           type="button"
-                          className={`sb-btn sb-btn-sm ${armDelete === c.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+                          className="sb-btn sb-btn-sm sb-btn-secondary"
                           aria-label={x(HM.health_checkin_delete_named).replace('{when}', when)}
-                          onClick={() => void remove(c.id)}
-                          onBlur={() => setArmDelete(null)}
+                          onClick={() => remove(c.id)}
                         >
-                          {armDelete === c.id
-                            ? x(HM.health_checkin_delete_confirm)
-                            : x(HM.health_checkin_delete)}
+                          {x(HM.health_checkin_delete)}
                         </button>
                       </div>
                     </>

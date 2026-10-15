@@ -67,7 +67,7 @@ function renderJournal(state: HealthState | undefined, url = '/health/journal') 
     error: undefined,
     refresh: vi.fn().mockResolvedValue(undefined),
   }
-  render(
+  return render(
     <LangContext value={langValue('en')}>
       <HealthDataContext value={health}>
         <ToastsProvider>
@@ -82,7 +82,13 @@ function renderJournal(state: HealthState | undefined, url = '/health/journal') 
 }
 
 describe('HealthJournalPage', () => {
-  afterEach(() => vi.clearAllMocks())
+  afterEach(() => {
+    vi.clearAllMocks()
+    /* Drafts persist in sessionStorage by design — reset it so one test's
+       abandoned words can't seed the next test's composer. */
+    sessionStorage.clear()
+    vi.useRealTimers()
+  })
 
   it('opens the composer for ?new=1 and consumes the param', async () => {
     renderJournal(stateWith(), '/health/journal?new=1')
@@ -133,27 +139,73 @@ describe('HealthJournalPage', () => {
     expect(api.unshareEntryFromMira).toHaveBeenCalledWith('e1')
   })
 
-  it('confirms deletes and purges the row locally', async () => {
+  it('hides on click, offers undo, and commits only when the toast lapses', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.mocked(api.deleteJournalEntry).mockResolvedValue()
     renderJournal(stateWith({ entries: [entry('e1', { title: 'Hi' }), entry('e2', { title: 'There' })] }))
 
     const del = await screen.findByRole('button', { name: /Delete “Hi”/ })
     fireEvent.click(del)
-    expect(del).toHaveTextContent(/Click again to confirm/)
-    fireEvent.click(del)
+    /* Hidden at once — including any copy in the paged `earlier` list —
+       while the delete sits behind the undo toast. */
     await vi.waitFor(() => expect(screen.queryByText('Hi')).not.toBeInTheDocument())
-    expect(api.deleteJournalEntry).toHaveBeenCalledWith('e1')
+    expect(api.deleteJournalEntry).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
     expect(screen.getByText('There')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(6400)
+    await vi.waitFor(() => expect(api.deleteJournalEntry).toHaveBeenCalledWith('e1'))
   })
 
-  it('reports a failed delete and keeps the row', async () => {
+  it('undo restores the row untouched — the delete never fires', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    renderJournal(stateWith({ entries: [entry('e1', { title: 'Hi' })] }))
+    fireEvent.click(await screen.findByRole('button', { name: /Delete “Hi”/ }))
+    expect(screen.queryByText('Hi')).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    expect(screen.getByText('Hi')).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(6400)
+    expect(api.deleteJournalEntry).not.toHaveBeenCalled()
+  })
+
+  it('a failed commit brings the row back and says so', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.mocked(api.deleteJournalEntry).mockRejectedValue(new Error('rls'))
     renderJournal(stateWith({ entries: [entry('e1', { title: 'Hi' })] }))
-    const del = await screen.findByRole('button', { name: /Delete “Hi”/ })
-    fireEvent.click(del)
-    fireEvent.click(del)
+    fireEvent.click(await screen.findByRole('button', { name: /Delete “Hi”/ }))
+    expect(screen.queryByText('Hi')).not.toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(6400)
     expect(await screen.findByText(/Couldn’t delete/)).toBeInTheDocument()
     expect(screen.getByText('Hi')).toBeInTheDocument()
+  })
+
+  it('keeps a compose draft across close-and-reopen, clears it on save', async () => {
+    vi.mocked(api.addJournalEntry).mockResolvedValue(entry('e1'))
+    const view = renderJournal(stateWith(), '/health/journal?new=1')
+    fireEvent.change(await screen.findByLabelText(/^Entry$/), {
+      target: { value: 'kept words' },
+    })
+    view.unmount()
+    renderJournal(stateWith(), '/health/journal?new=1')
+    /* Reopened composer restores the abandoned draft. */
+    expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('kept words')
+    fireEvent.change(screen.getByLabelText(/^Entry$/), { target: { value: 'final words' } })
+    fireEvent.click(screen.getByRole('button', { name: /Save entry/i }))
+    await screen.findByText(/Entry saved/)
+    view.unmount()
+    renderJournal(stateWith(), '/health/journal?new=1')
+    /* A saved entry leaves no draft residue. */
+    expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('')
+  })
+
+  it('a confirmed discard clears the stored draft', async () => {
+    const view = renderJournal(stateWith(), '/health/journal?new=1')
+    fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'let it go' } })
+    const cancel = screen.getByRole('button', { name: /Cancel/i })
+    fireEvent.click(cancel)
+    fireEvent.click(cancel)
+    view.unmount()
+    renderJournal(stateWith(), '/health/journal?new=1')
+    expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('')
   })
 
   it('filters rows by search text and by the shared-with-Mira filter', async () => {

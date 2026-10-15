@@ -168,7 +168,6 @@ export const healthMessages = defineMessages({
   health_checkin_saved: { en: 'Check-in saved.', fr: 'Point enregistré.' },
   health_checkin_history: { en: 'History', fr: 'Historique' },
   health_checkin_delete: { en: 'Delete', fr: 'Supprimer' },
-  health_checkin_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   /* [FR self-authored] — inline edit of a saved check-in. */
   health_checkin_edit: { en: 'Edit', fr: 'Modifier' },
   health_checkin_save: { en: 'Save changes', fr: 'Enregistrer' },
@@ -235,7 +234,6 @@ export const healthMessages = defineMessages({
   health_journal_edit: { en: 'Edit', fr: 'Modifier' },
   health_journal_cancel: { en: 'Cancel', fr: 'Annuler' },
   health_journal_delete: { en: 'Delete', fr: 'Supprimer' },
-  health_journal_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_journal_empty: {
     en: 'No entries yet. Writing a few lines is a good place to start.',
     fr: 'Aucune entrée pour l’instant. Écrire quelques lignes est un bon point de départ.',
@@ -396,13 +394,6 @@ export const healthMessages = defineMessages({
   health_habit_streak_many: { en: '{count}-day streak', fr: '{count} jours de suite' },
   health_habit_week: { en: 'Last 7 days', fr: '7 derniers jours' },
   health_habit_delete: { en: 'Delete', fr: 'Supprimer' },
-  /* The confirm names the habit AND warns the log history goes with it —
-     delete cascades habit_logs. [FR self-authored] */
-  health_habit_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
-  health_habit_delete_named: {
-    en: 'Delete “{name}” and its history?',
-    fr: 'Supprimer « {name} » et son historique ?',
-  },
   health_habit_rename: { en: 'Rename', fr: 'Renommer' },
   health_habit_renamed: { en: 'Habit renamed.', fr: 'Habitude renommée.' },
   health_habit_exists: {
@@ -542,7 +533,6 @@ export const healthMessages = defineMessages({
     fr: 'Rien pour l’instant — dites-le une fois et elle le garde.',
   },
   health_mem_delete: { en: 'Remove', fr: 'Retirer' },
-  health_mem_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_mem_from_mira: { en: 'proposed by Mira', fr: 'proposé par Mira' },
   health_mem_label: { en: 'New memory', fr: 'Nouvelle mémoire' },
   /* Scope note under the list — what she does with these, and who sees it.
@@ -556,22 +546,13 @@ export const healthMessages = defineMessages({
      same convention as the check-in/journal rows. */
   health_mem_edit_named: { en: 'Edit “{text}”', fr: 'Modifier « {text} »' },
   health_mem_delete_named: { en: 'Remove “{text}”', fr: 'Retirer « {text} »' },
-  health_mem_delete_named_confirm: {
-    en: 'Remove “{text}”? Click again',
-    fr: 'Retirer « {text} » ? Cliquez à nouveau',
-  },
   /* Accessible name for the inline edit field — the visible button says
      "Edit", but a field needs a noun. */
   health_mem_edit_label: { en: 'Edit memory', fr: 'Modifier la mémoire' },
   health_mem_updated: { en: 'Memory updated.', fr: 'Mémoire mise à jour.' },
-  health_mem_removed: { en: 'Mira dropped that.', fr: 'Mira l’a oublié.' },
   health_mem_save_failed: {
     en: 'That didn’t save — try again.',
     fr: 'Ça n’a pas enregistré — réessayez.',
-  },
-  health_mem_delete_failed: {
-    en: 'That didn’t remove — try again.',
-    fr: 'Ça n’a pas été retiré — réessayez.',
   },
   health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
   /* Queue write didn't land upstream — the suggestion works but won't
@@ -715,6 +696,16 @@ export const healthMessages = defineMessages({
     en: 'Couldn’t delete — it’s still here.',
     fr: 'Suppression impossible — l’élément est toujours là.',
   },
+  /* [FR self-authored] — undo toasts for the portal's row deletes. The row
+     hides at once and the real delete fires only when the toast lapses, so
+     the window's copy stays past-tense. */
+  health_undo_deleted: { en: 'Deleted “{label}”.', fr: '« {label} » supprimé.' },
+  health_undo_deleted_history: {
+    en: 'Deleted “{label}” and its history.',
+    fr: '« {label} » et son historique supprimés.',
+  },
+  health_undo_deleted_checkin: { en: 'Check-in deleted.', fr: 'Check-in supprimé.' },
+  health_undo_restored: { en: 'Restored.', fr: 'Restauré.' },
   health_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
   health_cancel: { en: 'Cancel', fr: 'Annuler' },
   /* Compact relative day labels used in history timestamps.

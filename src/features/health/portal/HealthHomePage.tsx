@@ -26,6 +26,9 @@ import {
   updateHealthMemory,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useSessionDraft } from '@/components/chat/portalChatUtils'
+import { fillBi } from '@/lib/format'
+import { useUndoableDelete } from './useUndoableDelete'
 import {
   avgMood,
   checkInStreak,
@@ -61,14 +64,16 @@ function MemoriesCard() {
   const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
-  const [text, setText] = useState('')
+  const { queueDelete } = useUndoableDelete()
+  const [text, setText] = useSessionDraft('dutiva:health:draft:memory-new')
   const [saving, setSaving] = useState(false)
-  const [armDelete, setArmDelete] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [editSaving, setEditSaving] = useState(false)
+  /* Rows hidden while their delete waits out the undo window. */
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(new Set())
   const newMemRef = useRef<HTMLInputElement>(null)
-  const memories = state?.memories ?? []
+  const memories = (state?.memories ?? []).filter((m) => !hiddenIds.has(m.id))
 
   const add = async () => {
     const t = text.trim()
@@ -86,23 +91,26 @@ function MemoriesCard() {
     }
   }
 
-  const remove = async (id: string) => {
-    if (armDelete !== id) {
-      setArmDelete(id)
-      return
-    }
-    setArmDelete(null)
-    try {
-      await deleteHealthMemory(id)
-      await refresh()
-      showToast(HM.health_mem_removed)
-      /* The focused row just unmounted — land keyboard users back on the
-         new-memory field instead of dropping them to <body>. */
-      newMemRef.current?.focus()
-    } catch {
-      showToast(HM.health_mem_delete_failed)
-    }
-  }
+  /* One click hides the row; the delete commits when the undo toast
+     lapses. The focused row unmounts with the optimistic hide, so focus
+     lands back on the new-memory field instead of <body>. */
+  const remove = (m: { id: string; label: string }) =>
+    queueDelete({
+      key: `memory:${m.id}`,
+      message: fillBi(HM.health_undo_deleted, { label: m.label }),
+      commit: () => deleteHealthMemory(m.id),
+      onOptimistic: () => {
+        setHiddenIds((cur) => new Set(cur).add(m.id))
+        newMemRef.current?.focus()
+      },
+      onUndo: () =>
+        setHiddenIds((cur) => {
+          const next = new Set(cur)
+          next.delete(m.id)
+          return next
+        }),
+      onCommitted: () => void refresh(),
+    })
 
   const startEdit = (id: string, current: string) => {
     setEditingId(id)
@@ -239,19 +247,12 @@ function MemoriesCard() {
                     </button>
                     <button
                       type="button"
-                      className={`sb-btn sb-btn-sm ${armDelete === m.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+                      className="sb-btn sb-btn-secondary sb-btn-sm"
                       style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
-                      aria-label={x(
-                        armDelete === m.id
-                          ? HM.health_mem_delete_named_confirm
-                          : HM.health_mem_delete_named,
-                      ).replace('{text}', snippet)}
-                      onClick={() => void remove(m.id)}
-                      onBlur={() => setArmDelete(null)}
+                      aria-label={x(HM.health_mem_delete_named).replace('{text}', snippet)}
+                      onClick={() => remove({ id: m.id, label: snippet })}
                     >
-                      {armDelete === m.id
-                        ? x(HM.health_mem_delete_confirm)
-                        : x(HM.health_mem_delete)}
+                      {x(HM.health_mem_delete)}
                     </button>
                   </div>
                 </>

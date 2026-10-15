@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Check, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -18,11 +18,14 @@ import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/featur
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useSessionDraft } from '@/components/chat/portalChatUtils'
+import { fillBi } from '@/lib/format'
 import { fmtDay } from './healthUi'
 import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
+import { useUndoableDelete } from './useUndoableDelete'
 
 /**
  * Habits — the user names small daily things and ticks them off. Deliberately
@@ -35,12 +38,19 @@ export function HealthHabitsPage() {
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_habits, HM.health_seo_desc_habits)
 
-  const [name, setName] = useState('')
+  /* The new-habit name survives leaving mid-word — same draft persistence
+     as the journal and check-in fields. */
+  const [name, setName] = useSessionDraft('dutiva:health:draft:habit-name')
   const [saving, setSaving] = useState(false)
   /* Per-row busy keys ("habitId" or "habitId:YYYY-MM-DD" for day dots) — a
      write in flight on one habit never deadens the other rows' buttons. */
   const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(new Set())
-  const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Rows hidden while their delete waits out the undo window. nameTaken
+     still reads the unfiltered list — re-adding "Walk" mid-window would
+     collide with the old row the moment it commits. */
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(new Set())
+  const { queueDelete } = useUndoableDelete()
+  const headRef = useRef<HTMLHeadingElement>(null)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
@@ -84,13 +94,13 @@ export function HealthHabitsPage() {
     }
   }
 
-  const habits = state?.habits ?? []
+  const habits = (state?.habits ?? []).filter((h) => !hiddenIds.has(h.id))
   const logs = state?.habitLogs ?? []
   const today = todayDayKey()
   const week = recentDayKeys(7)
   const month = recentDayKeys(30)
   const nameTaken = (n: string) =>
-    habits.some((h) => h.name.trim().toLowerCase() === n.trim().toLowerCase())
+    (state?.habits ?? []).some((h) => h.name.trim().toLowerCase() === n.trim().toLowerCase())
 
   const submit = async () => {
     const trimmed = name.trim()
@@ -228,19 +238,26 @@ export function HealthHabitsPage() {
     }
   }
 
-  const remove = async (id: string) => {
-    if (armDelete !== id) {
-      setArmDelete(id)
-      return
-    }
-    setArmDelete(null)
-    try {
-      await deleteHabit(id)
-      await refresh()
-    } catch {
-      showToast(HM.health_delete_failed)
-    }
-  }
+  /* One click hides the row; the cascade (habit + its logs) commits when
+     the undo toast lapses — the toast says so. Focus lands on the heading
+     because the row the click came from no longer exists. */
+  const remove = (h: { id: string; name: string }) =>
+    queueDelete({
+      key: `habit:${h.id}`,
+      message: fillBi(HM.health_undo_deleted_history, { label: h.name }),
+      commit: () => deleteHabit(h.id),
+      onOptimistic: () => {
+        setHiddenIds((cur) => new Set(cur).add(h.id))
+        headRef.current?.focus()
+      },
+      onUndo: () =>
+        setHiddenIds((cur) => {
+          const next = new Set(cur)
+          next.delete(h.id)
+          return next
+        }),
+      onCommitted: () => void refresh(),
+    })
 
   const saveRename = async (h: { id: string; name: string }) => {
     const trimmed = renameValue.trim()
@@ -271,7 +288,9 @@ export function HealthHabitsPage() {
   return (
     <div className="sb hb sb-page">
       <div className="sb-head-row">
-        <h1>{x(HM.health_habits_title)}</h1>
+        <h1 ref={headRef} tabIndex={-1}>
+          {x(HM.health_habits_title)}
+        </h1>
       </div>
       <p className="sb-sub">{x(HM.health_habits_sub)}</p>
 
@@ -492,15 +511,12 @@ export function HealthHabitsPage() {
                     </button>
                     <button
                       type="button"
-                      className={`sb-btn sb-btn-sm ${armDelete === h.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+                      className="sb-btn sb-btn-sm sb-btn-secondary"
                       aria-label={`${x(HM.health_habit_delete)} — ${h.name}`}
-                      onClick={() => void remove(h.id)}
-                      onBlur={() => setArmDelete(null)}
+                      onClick={() => remove(h)}
                     >
                       <Trash2 size={13} aria-hidden="true" />
-                      {armDelete === h.id
-                        ? x(HM.health_habit_delete_named).replace('{name}', h.name)
-                        : x(HM.health_habit_delete)}
+                      {x(HM.health_habit_delete)}
                     </button>
                   </div>
                 </div>

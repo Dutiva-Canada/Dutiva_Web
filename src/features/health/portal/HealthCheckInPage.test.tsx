@@ -54,7 +54,7 @@ function stateWith(over: Partial<HealthState> = {}): HealthState {
 
 function renderCheckIn(state: HealthState | undefined, loading = false, refresh = vi.fn().mockResolvedValue(undefined)) {
   const health: HealthDataContextValue = { state, loading, error: undefined, refresh }
-  render(
+  const view = render(
     <LangContext value={langValue('en')}>
       <HealthDataContext value={health}>
         <ToastsProvider>
@@ -66,11 +66,15 @@ function renderCheckIn(state: HealthState | undefined, loading = false, refresh 
       </HealthDataContext>
     </LangContext>,
   )
-  return { refresh }
+  return { refresh, unmount: () => view.unmount() }
 }
 
 describe('HealthCheckInPage', () => {
-  afterEach(() => vi.clearAllMocks())
+  afterEach(() => {
+    vi.clearAllMocks()
+    sessionStorage.clear()
+    vi.useRealTimers()
+  })
 
   it('shows the error state with retry when the first load produced nothing', async () => {
     const { refresh } = renderCheckIn(undefined)
@@ -120,27 +124,55 @@ describe('HealthCheckInPage', () => {
     expect(screen.getByRole('radio', { name: /Rough/ })).toHaveAttribute('aria-checked', 'true')
   })
 
-  it('arms delete first, then deletes on the confirming click', async () => {
+  it('hides the row behind an undo toast and commits when it lapses', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.mocked(deleteCheckIn).mockResolvedValue()
     renderCheckIn(stateWith({ checkIns: [ci('c1', 4)] }))
 
-    const del = await screen.findByRole('button', { name: /Delete check-in from/i })
-    fireEvent.click(del)
+    fireEvent.click(await screen.findByRole('button', { name: /Delete check-in from/i }))
+    expect(
+      screen.queryByRole('button', { name: /Delete check-in from/i }),
+    ).not.toBeInTheDocument()
     expect(deleteCheckIn).not.toHaveBeenCalled()
-    expect(del).toHaveTextContent(/Click again to confirm/i)
-    fireEvent.click(del)
-    expect(deleteCheckIn).toHaveBeenCalledWith('c1')
+    await vi.advanceTimersByTimeAsync(6400)
+    await vi.waitFor(() => expect(deleteCheckIn).toHaveBeenCalledWith('c1'))
   })
 
-  it('reports a failed delete and leaves the row', async () => {
+  it('undo keeps the row — the delete never fires', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    renderCheckIn(stateWith({ checkIns: [ci('c1', 4)] }))
+
+    fireEvent.click(await screen.findByRole('button', { name: /Delete check-in from/i }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+    expect(screen.getByRole('button', { name: /Delete check-in from/i })).toBeInTheDocument()
+    await vi.advanceTimersByTimeAsync(6400)
+    expect(deleteCheckIn).not.toHaveBeenCalled()
+  })
+
+  it('a failed commit brings the row back and says so', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
     vi.mocked(deleteCheckIn).mockRejectedValue(new Error('rls'))
     renderCheckIn(stateWith({ checkIns: [ci('c1', 4)] }))
 
-    const del = await screen.findByRole('button', { name: /Delete check-in from/i })
-    fireEvent.click(del)
     fireEvent.click(await screen.findByRole('button', { name: /Delete check-in from/i }))
+    await vi.advanceTimersByTimeAsync(6400)
     expect(await screen.findByText(/Couldn’t delete/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Delete check-in from/i })).toBeInTheDocument()
+  })
+
+  it('keeps the note draft across a remount and clears it on save', async () => {
+    vi.mocked(addCheckIn).mockResolvedValue({ id: 'n1' } as never)
+    vi.mocked(sendHealthReaction).mockResolvedValue({ reply: null } as never)
+    const view = renderCheckIn(stateWith())
+    fireEvent.change(await screen.findByLabelText(/on your mind/i), { target: { value: 'long day' } })
+    view.unmount() /* remounts below re-read the stored draft */
+
+    renderCheckIn(stateWith())
+    expect(await screen.findByLabelText(/on your mind/i)).toHaveValue('long day')
+    fireEvent.click(screen.getByRole('radio', { name: /Good/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Save check-in/i }))
+    await screen.findByText(/Check-in saved/)
+    expect(screen.getByLabelText(/on your mind/i)).toHaveValue('')
   })
 
   it('flags when today is already logged', () => {

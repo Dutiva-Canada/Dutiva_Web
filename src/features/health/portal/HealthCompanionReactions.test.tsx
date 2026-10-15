@@ -9,6 +9,7 @@ import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
 import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
 import {
   addCheckIn,
   addHabit,
@@ -94,7 +95,10 @@ function renderWith(ui: ReactElement, lang: Lang = 'en', state: HealthState = ST
     <LangContext value={langValue(lang)}>
       <HealthDataContext value={health}>
         <ToastsProvider>
-          <MemoryRouter>{ui}</MemoryRouter>
+          <MemoryRouter>
+            {ui}
+            <ToastHost />
+          </MemoryRouter>
         </ToastsProvider>
       </HealthDataContext>
     </LangContext>,
@@ -343,15 +347,38 @@ describe('home — What Mira remembers', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
 
-  it('remove is a two-step confirm', async () => {
-    vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
-    renderWith(<HealthHomePage />, 'en', remembered)
+  it('remove hides the row behind an undo toast — the delete commits when it lapses', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
+      renderWith(<HealthHomePage />, 'en', remembered)
 
-    const remove = await screen.findAllByRole('button', { name: /Remove / })
-    fireEvent.click(remove[0]!)
-    expect(deleteHealthMemory).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: /Click again/ }))
-    await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+      const remove = await screen.findAllByRole('button', { name: /Remove / })
+      fireEvent.click(remove[0]!)
+      expect(deleteHealthMemory).not.toHaveBeenCalled()
+      expect(screen.queryByText('Prefers mornings for anything hard')).not.toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('undo brings the memory back before the delete commits', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
+      renderWith(<HealthHomePage />, 'en', remembered)
+
+      const remove = await screen.findAllByRole('button', { name: /Remove / })
+      fireEvent.click(remove[0]!)
+      fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+      expect(screen.getByText('Prefers mornings for anything hard')).toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      expect(deleteHealthMemory).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('edits a memory inline — Enter saves, Escape cancels', async () => {

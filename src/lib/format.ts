@@ -1,9 +1,18 @@
+import type { Bi } from '@/i18n/core'
+
 /** Fill `{placeholder}` slots in a catalogue string. */
 export function fill(template: string, values: Record<string, string | number>): string {
   return Object.entries(values).reduce(
     (out, [key, value]) => out.replaceAll(`{${key}}`, String(value)),
     template,
   )
+}
+
+/** Fill `{placeholder}` slots in both halves of a `Bi` — toast messages are
+    stored as pairs (so a live language toggle re-localizes them), which
+    means interpolation must happen before the locale resolves, not after. */
+export function fillBi(msg: Bi, values: Record<string, string | number>): Bi {
+  return { en: fill(msg.en, values), fr: fill(msg.fr, values) }
 }
 
 /** Currency amount, whole units. */

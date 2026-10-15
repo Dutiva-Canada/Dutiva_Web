@@ -127,15 +127,37 @@ describe('HealthHabitsPage', () => {
     )
   })
 
-  it('names the habit and its history in the delete confirm', async () => {
-    vi.mocked(api.deleteHabit).mockResolvedValue()
-    renderHabits(stateWith({ habits: [habit('h1', 'Walk')] }))
+  it('hides the row behind an undo toast that names the cascade, then commits', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(api.deleteHabit).mockResolvedValue()
+      renderHabits(stateWith({ habits: [habit('h1', 'Walk')] }))
 
-    const del = await screen.findByRole('button', { name: /Delete — Walk/i })
-    fireEvent.click(del)
-    expect(del).toHaveTextContent(/Delete “Walk” and its history\?/)
-    fireEvent.click(del)
-    expect(api.deleteHabit).toHaveBeenCalledWith('h1')
+      fireEvent.click(await screen.findByRole('button', { name: /Delete — Walk/i }))
+      /* Gone at once — but the delete only fires when the toast lapses,
+         and the toast names the history it takes with it. */
+      expect(screen.queryByRole('button', { name: /Mark done — Walk/i })).not.toBeInTheDocument()
+      expect(api.deleteHabit).not.toHaveBeenCalled()
+      expect(await screen.findByText(/Deleted “Walk” and its history\./)).toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      await vi.waitFor(() => expect(api.deleteHabit).toHaveBeenCalledWith('h1'))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('undo restores the habit before the delete commits', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      renderHabits(stateWith({ habits: [habit('h1', 'Walk')] }))
+      fireEvent.click(await screen.findByRole('button', { name: /Delete — Walk/i }))
+      fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+      expect(screen.getByRole('button', { name: /Mark done — Walk/i })).toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      expect(api.deleteHabit).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('renames a habit in place — history survives', async () => {
