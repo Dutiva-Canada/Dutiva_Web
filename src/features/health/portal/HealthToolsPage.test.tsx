@@ -306,7 +306,11 @@ describe('HealthToolsPage — tabs', () => {
     const user = userEvent.setup()
     renderTools()
     const cues = await screen.findByRole('button', { name: /Chime/ })
+    /* Opt-in — nothing sounds or buzzes until the person asks for it. */
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+    await user.click(cues)
     expect(cues).toHaveAttribute('aria-pressed', 'true')
+    expect(localStorage.getItem('dutiva:health:breath-cues')).toBe('on')
     await user.click(cues)
     expect(cues).toHaveAttribute('aria-pressed', 'false')
     expect(localStorage.getItem('dutiva:health:breath-cues')).toBe('off')

@@ -59,7 +59,9 @@ function BreathingCard() {
   const [running, setRunning] = useState(false)
   const [beat, setBeat] = useState({ step: 0, secs: BREATH_MODES[0]!.steps[0]![1] })
   const [cycles, setCycles] = useState(0)
-  const [cues, setCues] = useState(() => localStorage.getItem(BREATH_CUES_KEY) !== 'off')
+  /* Opt-in, not opt-out — a pause tool shouldn't sound or buzz before the
+     person asks it to. 'on' is the stored value; anything else is off. */
+  const [cues, setCues] = useState(() => localStorage.getItem(BREATH_CUES_KEY) === 'on')
   const audioRef = useRef<AudioContext | null>(null)
 
   const toggleCues = () =>
@@ -74,19 +76,30 @@ function BreathingCard() {
 
   /* One 1s ticker drives the countdown; the step advances when it hits 0.
      The CSS circle reads the same per-step duration so motion and text stay
-     in step. No audio, no haptics — the pace is the whole point. */
+     in step. No audio, no haptics — the pace is the whole point. The
+     updater stays pure: the cycle tally lives in the wrap effect below —
+     StrictMode replays updaters in dev and would count every lap twice. */
   useEffect(() => {
     if (!running) return
     const t = setInterval(() => {
       setBeat((b) => {
         if (b.secs > 1) return { ...b, secs: b.secs - 1 }
         const next = (b.step + 1) % steps.length
-        if (next === 0) setCycles((c) => c + 1)
         return { step: next, secs: steps[next]?.[1] ?? 4 }
       })
     }, 1000)
     return () => clearInterval(t)
   }, [running, steps])
+
+  /* A lap completes when the step wraps from the last phase back to the
+     first — observed here, not inside the beat updater. */
+  const prevStepRef = useRef(0)
+  useEffect(() => {
+    if (running && prevStepRef.current === steps.length - 1 && beat.step === 0) {
+      setCycles((c) => c + 1)
+    }
+    prevStepRef.current = beat.step
+  }, [beat.step, running, steps.length])
 
   /* The cue fires on the phase change itself — the countdown ticking over
      is what an eyes-closed user needs marked. Inhale rises (660 Hz),
@@ -192,9 +205,14 @@ function BreathingCard() {
             role="img"
             aria-label={running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
           >
-            {running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
+            {/* The disc breathes; the label doesn't — shrinking text with
+                the circle made the resting readout ~10px tall. */}
+            <span className="hb-breath-disc" aria-hidden="true" />
+            <span className="hb-breath-label">
+              {running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
+            </span>
           </div>
-          <div className="flex items-center gap-[10px]">
+          <div className="flex flex-wrap items-center justify-center gap-[10px]">
             <button
               type="button"
               className={`sb-btn ${running ? 'sb-btn-secondary' : 'sb-btn-primary'}`}
@@ -264,7 +282,7 @@ function GroundingCard() {
           {GROUND_STEPS.map((label, i) => (
             <li
               key={i}
-              className={`hb-res-item ${i === step ? 'is-current' : ''}`}
+              className={`hb-res-item hb-res-item--static ${i === step ? 'is-current' : ''}`}
               aria-current={i === step ? 'step' : undefined}
             >
               <span className="hb-res-icon hb-step-badge" aria-hidden="true">

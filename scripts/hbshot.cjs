@@ -24,6 +24,9 @@ for (const p of ['home', 'check-in', 'journal', 'chat'])
   jobs.push({ p, theme: 'dark', lang: 'en', w: 1280, h: 900 })
 for (const p of ['home', 'check-in', 'resources', 'tools'])
   jobs.push({ p, theme: 'light', lang: 'fr', w: 1280, h: 900 })
+/* Dark+FR tools — long French nav labels and the breathing disc both
+   regressed here before (two-line nav pills, ~10px circle readout). */
+jobs.push({ p: 'tools', theme: 'dark', lang: 'fr', w: 1280, h: 900 })
 jobs.push({ p: 'home', theme: 'light', lang: 'en', w: 390, h: 844 })
 jobs.push({ p: 'check-in', theme: 'light', lang: 'en', w: 390, h: 844 })
 jobs.push({ p: 'home', theme: 'light', lang: 'en', w: 1280, h: 900, empty: true })

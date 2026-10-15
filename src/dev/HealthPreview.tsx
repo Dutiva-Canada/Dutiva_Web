@@ -25,6 +25,8 @@ import type {
 } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
+import { AuthContext } from '@/features/app/auth/authContext'
+import type { AuthContextValue } from '@/features/app/auth/authContext'
 import { ThemeCycleButton } from '@/features/invest/portal/InvestPortalLayout'
 import { HealthFooter } from '@/features/health/portal/HealthFooter'
 import { HealthHomePage } from '@/features/health/portal/HealthHomePage'
@@ -315,9 +317,27 @@ function Shell() {
   const callOverlay =
     page === 'chat' && (params.get('call') === '1' || params.get('call') === 'server')
   const callServer = params.get('call') === 'server'
+  /* Signed-out stub by default — ?internal=1 poses as a @dutiva.ca session
+     so tier-gated surfaces (e.g. "Practice with Mira") render. Pages that
+     call useAuth (tools/practices) crash without this context. */
+  const internal = params.get('internal') === '1'
+  const auth: AuthContextValue = useMemo(
+    () => ({
+      status: internal ? 'signed-in' : 'signed-out',
+      session: internal
+        ? ({ user: { id: 'preview', email: 'preview@dutiva.ca' } } as AuthContextValue['session'])
+        : null,
+      authorized: internal ? true : null,
+      signInWithEmail: async () => undefined,
+      verifyEmailCode: async () => undefined,
+      signOut: async () => {},
+      refreshAuthorization: async () => {},
+    }),
+    [internal],
+  )
 
   const navClass = (active: boolean) =>
-    `flex items-center justify-center rounded-[8px] px-[12px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
+    `flex items-center justify-center whitespace-nowrap rounded-[8px] px-[10px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
       active ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]' : 'text-text-muted hover:text-text-2'
     }`
 
@@ -326,11 +346,11 @@ function Shell() {
       <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
         <header className="sticky top-0 z-10 border-b border-border bg-surface">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
-            <div className="flex min-w-0 items-center gap-[24px]">
+            <div className="flex min-w-0 items-center gap-[16px]">
               <span className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy">
                 {x(HM.health_portal_title)}
               </span>
-              <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
                 {NAV.map((item) => (
                   <Link
                     key={item.p}
@@ -364,7 +384,9 @@ function Shell() {
           </div>
         </header>
         <main id="hb-main" className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
-          <Page callOverlay={callOverlay} callServer={callServer} />
+          <AuthContext value={auth}>
+            <Page callOverlay={callOverlay} callServer={callServer} />
+          </AuthContext>
         </main>
         <HealthFooter />
       </div>

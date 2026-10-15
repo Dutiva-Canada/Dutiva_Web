@@ -33,8 +33,11 @@ const NAV = [
   { to: '/health/resources', end: false, label: HM.health_tab_resources },
 ] as const
 
+/* whitespace-nowrap — French labels run longer ("Aperçu du jour", "À
+   valider") and must not wrap to two lines inside the pill nav; the
+   container already scrolls horizontally when it truly runs out of room. */
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center justify-center rounded-[8px] px-[12px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
+  `flex items-center justify-center whitespace-nowrap rounded-[8px] px-[10px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
     isActive
       ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
       : 'text-text-muted hover:text-text-2'
@@ -145,14 +148,14 @@ export function HealthPortalLayout() {
       </a>
       <header className="hb-topbar sticky top-0 z-10 border-b border-border">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
-            <div className="flex min-w-0 items-center gap-[24px]">
+            <div className="flex min-w-0 items-center gap-[16px]">
               <NavLink
                 to="/health"
                 className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
               >
                 {x(HM.health_portal_title)}
               </NavLink>
-              <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
                 {NAV.map((item) => (
                   <NavLink
                     key={item.to}

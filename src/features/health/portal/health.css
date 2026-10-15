@@ -436,7 +436,10 @@ a.sb-stat-link:focus-visible {
   background: var(--sb-input);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.hb-res-item:hover {
+/* The hover affordance belongs to rows that act — resource cards hold real
+   links. Static rows (the grounding countdown) opt out: nothing happens on
+   click, so nothing should promise it on hover. */
+.hb-res-item:not(.hb-res-item--static):hover {
   border-color: var(--sb-accent);
   box-shadow: var(--sb-shadow);
 }
@@ -689,35 +692,45 @@ a > .hb-jthumb:hover {
 /* Box-breathing circle — scales up on inhale, holds, scales down on exhale.
    The phase duration is set inline so the animation and the countdown are
    driven by the same constant in the component. */
+/* The disc inside breathes; the label stays full-size — scaling the text
+   with the circle shrank the resting readout to ~10px. */
 .hb-breath {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 148px;
   height: 148px;
-  border-radius: 50%;
-  background: var(--sb-accent-soft);
-  border: 2px solid var(--sb-accent);
   color: var(--sb-accent-ink);
   font-size: 14px;
   font-weight: 700;
+}
+.hb-breath-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--sb-accent-soft);
+  border: 2px solid var(--sb-accent);
   transition: transform var(--breath-ms, 4000ms) ease-in-out;
   transform: scale(0.72);
 }
-.hb-breath[data-phase='in'] {
+.hb-breath-label {
+  position: relative;
+}
+.hb-breath[data-phase='in'] .hb-breath-disc {
   transform: scale(1);
 }
-.hb-breath[data-phase='hold-in'] {
+.hb-breath[data-phase='hold-in'] .hb-breath-disc {
   transform: scale(1);
 }
-.hb-breath[data-phase='out'] {
+.hb-breath[data-phase='out'] .hb-breath-disc {
   transform: scale(0.72);
 }
-.hb-breath[data-phase='hold-out'] {
+.hb-breath[data-phase='hold-out'] .hb-breath-disc {
   transform: scale(0.72);
 }
 @media (prefers-reduced-motion: reduce) {
-  .hb-breath {
+  .hb-breath-disc {
     transition: none;
   }
 }
