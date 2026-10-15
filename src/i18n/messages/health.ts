@@ -258,6 +258,24 @@ export const healthMessages = defineMessages({
     en: 'No loaded entries match — load earlier entries to search further back.',
     fr: 'Aucune entrée chargée ne correspond — chargez les entrées précédentes pour remonter plus loin.',
   },
+  /* When the whole archive is already loaded, a search miss is a real
+     miss — no "load earlier" tail to offer. */
+  health_journal_no_match: {
+    en: 'No entries match that.',
+    fr: 'Aucune entrée ne correspond.',
+  },
+  /* Whole-journal clipboard copy — same portability shape as the chat
+     transcript. [FR self-authored] */
+  health_journal_copy_all: { en: 'Copy all', fr: 'Copier tout' },
+  health_journal_copy_hint: {
+    en: 'Copies every entry, oldest to newest, to the clipboard.',
+    fr: 'Copie toutes les entrées, de la plus ancienne à la plus récente.',
+  },
+  health_journal_copied: { en: 'Entries copied.', fr: 'Entrées copiées.' },
+  health_journal_copy_failed: {
+    en: 'Couldn’t copy — try again.',
+    fr: 'Copie impossible — réessayez.',
+  },
   health_journal_filter_shared: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
   health_journal_shared_edit_hint: {
     en: 'Shared — Mira reads the latest saved version.',

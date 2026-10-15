@@ -2,7 +2,7 @@ import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
+import { Copy, Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
@@ -19,7 +19,7 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useSessionDraft } from '@/components/chat/portalChatUtils'
 import { fillBi } from '@/lib/format'
 import type { HealthJournalEntry } from '@/features/health/data/types'
-import { fmtRelativeDateTime } from './healthUi'
+import { fmtDate, fmtRelativeDateTime } from './healthUi'
 import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
@@ -31,6 +31,7 @@ function EntryEditor({
   entryId,
   shared,
   onDone,
+  onSaved,
 }: {
   initial?: { title: string; body: string }
   entryId?: string
@@ -38,6 +39,9 @@ function EntryEditor({
      consent stays honest at the moment the shared text changes. */
   shared?: boolean
   onDone: () => void
+  /* Reports the written fields so an archived (paged `earlier`) row can
+     sync its local copy — refresh() only refetches the newest window. */
+  onSaved?: (patch: { title: string; body: string; updatedAt: string }) => void
 }) {
   const { x } = useI18n()
   const { refresh } = useHealthData()
@@ -73,8 +77,16 @@ function EntryEditor({
     }
     setSaving(true)
     try {
-      if (entryId) await updateJournalEntry(entryId, { title, body: trimmed })
-      else await addJournalEntry({ title, body: trimmed })
+      if (entryId) {
+        await updateJournalEntry(entryId, { title, body: trimmed })
+        onSaved?.({
+          title: title.trim(),
+          body: trimmed,
+          updatedAt: new Date().toISOString(),
+        })
+      } else {
+        await addJournalEntry({ title, body: trimmed })
+      }
       /* refresh() never rejects — its failures surface as the layout's
          stale-data note, so awaiting it here can't false-report a save. */
       await refresh()
@@ -175,10 +187,16 @@ function EntryRow({
   entry,
   onDeleted,
   onRestored,
+  onPatched,
 }: {
   entry: HealthJournalEntry
   onDeleted: (id: string) => void
   onRestored: (id: string) => void
+  /* Rows paged into `earlier` are local copies — refresh() never reaches
+     them, so every mutation reports back or the archive drifts stale
+     (an edit would keep showing old text; a share's consent pill would
+     vanish the moment its reply note is dismissed). */
+  onPatched: (id: string, patch: Partial<HealthJournalEntry>) => void
 }) {
   const { x, lang } = useI18n()
   const { refresh } = useHealthData()
@@ -218,6 +236,9 @@ function EntryRow({
     try {
       const out = await shareEntryWithMira(entry.id, lang, setMiraLine)
       setMiraLine(out.reply)
+      /* The edge function stamps shared_at — mirror it locally so the
+         consent state survives the note's dismissal on paged rows. */
+      onPatched(entry.id, { sharedAt: new Date().toISOString() })
       await refresh()
     } catch {
       showToast(HM.health_journal_share_failed)
@@ -233,6 +254,7 @@ function EntryRow({
     try {
       await unshareEntryFromMira(entry.id)
       setMiraLine(null)
+      onPatched(entry.id, { sharedAt: null })
       await refresh()
     } catch {
       showToast(HM.health_journal_unshare_failed)
@@ -249,6 +271,7 @@ function EntryRow({
           entryId={entry.id}
           shared={entry.sharedAt !== null}
           onDone={() => setEditing(false)}
+          onSaved={(patch) => onPatched(entry.id, patch)}
         />
       </div>
     )
@@ -259,13 +282,18 @@ function EntryRow({
       <div className="hb-row">
         <div className="hb-row-main">
           <h3 className="hb-row-title">{title}</h3>
-          <p className={`hb-row-body${clampable && !expanded ? ' is-clamped' : ''}`}>
+          <p
+            id={`hb-jbody-${entry.id}`}
+            className={`hb-row-body${clampable && !expanded ? ' is-clamped' : ''}`}
+          >
             {entry.body}
           </p>
           {clampable && (
             <button
               type="button"
               className="hb-row-expand"
+              aria-expanded={expanded}
+              aria-controls={`hb-jbody-${entry.id}`}
               onClick={() => setExpanded((v) => !v)}
             >
               {x(expanded ? HM.health_journal_collapse : HM.health_journal_expand)}
@@ -340,6 +368,14 @@ function EntryRow({
   )
 }
 
+/* Accent-folded match — "marche" should find "marché", "ete" find "été".
+   Lowercasing alone leaves French entries invisible to plain typing. */
+const fold = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+
 export function HealthJournalPage() {
   const { x, lang } = useI18n()
   const { state, loading } = useHealthData()
@@ -358,6 +394,7 @@ export function HealthJournalPage() {
      `earlier` archive, and a mid-window refresh can't resurrect a row
      that's still on the server. */
   const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(new Set())
+  const [exporting, setExporting] = useState(false)
 
   /* /health/journal?new=1 — the Overview's "New journal entry" CTA lands
      here with the editor already open. Consume the param once so a later
@@ -403,12 +440,53 @@ export function HealthJournalPage() {
   const entriesTotal = state?.entriesTotal ?? entries.length
   const hasMore = entries.length < entriesTotal
 
-  const q = query.trim().toLowerCase()
+  const q = fold(query.trim())
   const visible = entries.filter(
     (e) =>
       (!sharedOnly || e.sharedAt !== null) &&
-      (!q || `${e.title} ${e.body}`.toLowerCase().includes(q)),
+      (!q || fold(`${e.title} ${e.body}`).includes(q)),
   )
+
+  /* Whole-journal copy — data portability by clipboard, same shape as the
+     chat transcript. Pages the archive back first so the paste isn't
+     silently missing older entries; output runs oldest → newest. */
+  const copyAll = async () => {
+    if (exporting || entries.length === 0) return
+    setExporting(true)
+    try {
+      let all = entries
+      if (hasMore) {
+        const rest: HealthJournalEntry[] = []
+        let cursor: HealthJournalEntry | undefined = entries[entries.length - 1]
+        for (let i = 0; cursor && i < 25; i++) {
+          const page = await listJournalEntriesBefore({
+            createdAt: cursor.createdAt,
+            id: cursor.id,
+          })
+          /* Dedupe before appending — a repeated tail row means the
+             archive is exhausted, not that it should be copied twice. */
+          const next = page.at(-1)
+          if (!next || next.id === cursor.id) break
+          rest.push(...page.filter((e) => !deletedIds.has(e.id)))
+          cursor = next
+        }
+        all = [...entries, ...rest]
+      }
+      const text = [...all]
+        .reverse()
+        .map(
+          (e) =>
+            `${e.title.trim() || x(HM.health_journal_untitled)} — ${fmtDate(e.createdAt, lang)}\n\n${e.body}`,
+        )
+        .join('\n\n—\n\n')
+      await navigator.clipboard.writeText(text)
+      showToast(HM.health_journal_copied)
+    } catch {
+      showToast(HM.health_journal_copy_failed)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const loadMore = async () => {
     const oldest = entries[entries.length - 1]
@@ -523,9 +601,27 @@ export function HealthJournalPage() {
                 <Sparkles size={12} aria-hidden="true" />
                 {x(HM.health_journal_filter_shared)}
               </button>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                disabled={exporting}
+                title={x(HM.health_journal_copy_hint)}
+                onClick={() => void copyAll()}
+              >
+                {exporting ? (
+                  <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <Copy size={12} aria-hidden="true" />
+                )}
+                {x(HM.health_journal_copy_all)}
+              </button>
             </div>
             {visible.length === 0 ? (
-              <div className="sb-empty">{x(HM.health_journal_no_results)}</div>
+              /* Two honest empties — when the archive is still paged out,
+                 the match may simply live in unloaded rows. */
+              <div className="sb-empty">
+                {x(hasMore ? HM.health_journal_no_results : HM.health_journal_no_match)}
+              </div>
             ) : (
               <div className="hb-rows" role="list">
                 {visible.map((e) => (
@@ -541,6 +637,11 @@ export function HealthJournalPage() {
                         next.delete(id)
                         return next
                       })
+                    }
+                    onPatched={(id, patch) =>
+                      setEarlier((cur) =>
+                        cur.map((e) => (e.id === id ? { ...e, ...patch } : e)),
+                      )
                     }
                   />
                 ))}

@@ -238,4 +238,104 @@ describe('HealthJournalPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: /Load earlier entries/ }))
     expect(await screen.findByText(/Couldn’t load earlier entries/)).toBeInTheDocument()
   })
+
+  it('keeps an archived row truthful after an edit — the paged copy syncs', async () => {
+    vi.mocked(api.listJournalEntriesBefore).mockResolvedValue([
+      entry('old1', {
+        title: 'Old title',
+        body: 'Old body',
+        createdAt: '2020-01-01T00:00:00.000Z',
+        updatedAt: '2020-01-01T00:00:00.000Z',
+      }),
+    ])
+    vi.mocked(api.updateJournalEntry).mockResolvedValue()
+    renderJournal(stateWith({ entries: [entry('fresh')], entriesTotal: 2 }))
+    fireEvent.click(await screen.findByRole('button', { name: /Load earlier entries/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Edit “Old title”/ }))
+    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'New title' } })
+    fireEvent.change(screen.getByLabelText(/^Entry$/), { target: { value: 'New body' } })
+    fireEvent.click(screen.getByRole('button', { name: /Save entry/i }))
+    await screen.findByText(/Entry saved/)
+    /* Without the patch-back the row would still read "Old title". */
+    expect(screen.getByText('New title')).toBeInTheDocument()
+    expect(screen.getByText('New body')).toBeInTheDocument()
+  })
+
+  it('keeps the consent state on an archived row after the reply note is dismissed', async () => {
+    vi.mocked(api.listJournalEntriesBefore).mockResolvedValue([
+      entry('old1', { title: 'Old', createdAt: '2020-01-01T00:00:00.000Z' }),
+    ])
+    vi.mocked(api.shareEntryWithMira).mockResolvedValue({ reply: 'I hear you.' } as never)
+    renderJournal(stateWith({ entries: [entry('fresh')], entriesTotal: 2 }))
+    fireEvent.click(await screen.findByRole('button', { name: /Load earlier entries/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /Let Mira read “Old”/ }))
+    await screen.findByText(/I hear you\./)
+    fireEvent.click(screen.getByRole('button', { name: /Dismiss/i }))
+    /* The share was stamped server-side — the row must not fall back to
+       offering a consent that was already given. */
+    expect(await screen.findByRole('button', { name: /Stop sharing “Old”/ })).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /Let Mira read “Old”/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('announces expanded state on the read-more toggle', async () => {
+    renderJournal(stateWith({ entries: [entry('e1', { body: 'x'.repeat(300) })] }))
+    const btn = await screen.findByRole('button', { name: /Read more/ })
+    expect(btn).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(btn)
+    expect(btn).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('search ignores accents', async () => {
+    renderJournal(
+      stateWith({
+        entries: [
+          entry('e1', { title: 'Walk', body: 'marché longtemps' }),
+          entry('e2', { title: 'Work', body: 'busy day' }),
+        ],
+      }),
+    )
+    fireEvent.change(await screen.findByLabelText(/Search entries/), {
+      target: { value: 'marche' },
+    })
+    expect(screen.getByText('Walk')).toBeInTheDocument()
+    expect(screen.queryByText('Work')).not.toBeInTheDocument()
+  })
+
+  it('says a flat no-match when the whole archive is already loaded', async () => {
+    renderJournal(stateWith({ entries: [entry('e1', { title: 'Walk' })] }))
+    fireEvent.change(await screen.findByLabelText(/Search entries/), {
+      target: { value: 'zzz' },
+    })
+    expect(await screen.findByText(/No entries match that/)).toBeInTheDocument()
+    expect(screen.queryByText(/load earlier entries/i)).not.toBeInTheDocument()
+  })
+
+  it('copies the whole journal oldest-first, paging the archive back', async () => {
+    const write = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: write },
+      configurable: true,
+    })
+    vi.mocked(api.listJournalEntriesBefore).mockResolvedValue([
+      entry('old1', {
+        title: 'Old',
+        body: 'old words',
+        createdAt: '2020-01-01T00:00:00.000Z',
+      }),
+    ])
+    renderJournal(
+      stateWith({
+        entries: [entry('e1', { title: 'New', body: 'new words' })],
+        entriesTotal: 2,
+      }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: /Copy all/ }))
+    expect(await screen.findByText(/Entries copied/)).toBeInTheDocument()
+    const text = String(write.mock.calls[0]?.[0] ?? '')
+    expect(text).toContain('old words')
+    expect(text).toContain('new words')
+    expect(text.indexOf('old words')).toBeLessThan(text.indexOf('new words'))
+  })
 })
