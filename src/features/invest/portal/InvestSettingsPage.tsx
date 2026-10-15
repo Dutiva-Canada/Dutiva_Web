@@ -10,6 +10,7 @@ import {
   LogOut,
   Moon,
   RotateCcw,
+  Sparkles,
   Sun,
   Trash2,
 } from 'lucide-react'
@@ -31,6 +32,7 @@ import {
   readDisplayCurrency,
   readHomeTab,
   readOrderMode,
+  useChartReads,
   writeBadgeScope,
   writeDisplayCurrency,
   writeHomeTab,
@@ -210,6 +212,7 @@ export function InvestSettingsPage() {
   const [orderMode, setOrderMode] = useState<OrderMode>(readOrderMode)
   const [badgeScope, setBadgeScope] = useState<BadgeScope>(readBadgeScope)
   const [displayCur, setDisplayCur] = useState(readDisplayCurrency)
+  const [chartReads, setChartReads] = useChartReads()
 
   const run = async (key: 'signout' | 'global' | 'clear', fn: () => Promise<void>) => {
     setBusy(key)
@@ -415,6 +418,21 @@ export function InvestSettingsPage() {
             >
               <option value="all">{x(IM.invest_settings_badge_all)}</option>
               <option value="signals">{x(IM.invest_settings_badge_signals)}</option>
+            </select>
+          </div>
+          <div>
+            <p className={rowLabel}>
+              <Sparkles size={11} strokeWidth={2} className="mr-[4px] inline align-[-1px]" aria-hidden="true" />
+              {x(IM.invest_settings_reads)}
+            </p>
+            <select
+              className={`mt-[6px] ${selectClass}`}
+              value={chartReads ? 'on' : 'off'}
+              onChange={(e) => setChartReads(e.target.value === 'on')}
+              aria-label={x(IM.invest_settings_reads)}
+            >
+              <option value="on">{x(IM.invest_settings_reads_on)}</option>
+              <option value="off">{x(IM.invest_settings_reads_off)}</option>
             </select>
           </div>
         </div>

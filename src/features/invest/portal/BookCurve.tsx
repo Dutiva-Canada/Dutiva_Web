@@ -23,6 +23,7 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
 import { fmtDay, fmtPct } from './strategyUi'
+import { TallyRead } from './TallyRead'
 import type { InvestBookSnapshot, InvestCashEvent } from '../data/types'
 
 type Range = '1m' | '3m' | '1y' | 'all'
@@ -151,6 +152,23 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
     return `${r > 0 ? '+' : ''}${fmtPct(lang, r, 1)}`
   }
 
+  /* Tally's read — the same rounded-sign rule the stat chip uses, so the
+     sentence can never disagree with the number beside it. */
+  const read = (() => {
+    if (stats.chg === null) return null
+    const r = Math.round(stats.chg * 10) / 10
+    const dd = stats.maxDD === null ? null : pctFmt(stats.maxDD)
+    if (Math.abs(r) === 0) return x(IM.invest_read_curve_flat)
+    if (r > 0) {
+      return dd === null
+        ? fill(x(IM.invest_read_curve_up_nodip), { chg: pctFmt(r) })
+        : fill(x(IM.invest_read_curve_up), { chg: pctFmt(r), dd })
+    }
+    return dd === null
+      ? fill(x(IM.invest_read_curve_down_nodip), { chg: pctFmt(r) })
+      : fill(x(IM.invest_read_curve_down), { chg: pctFmt(r), dd })
+  })()
+
   return (
     <section className="sb-card sb-card-pad" aria-labelledby="sb-curve-h">
       <div className="sb-curve-head">
@@ -244,6 +262,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
               </span>
             )}
           </div>
+          <TallyRead line={read} />
           {/* The chart is aria-hidden — this line is its text
               equivalent: the stats give change + drawdown, this gives
               the series endpoints. */}

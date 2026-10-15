@@ -988,6 +988,7 @@ export function InvestPortfolioPage() {
             <AllocationDonut
               positions={state.positions}
               snapshots={state.snapshots}
+              theses={state.theses}
               cashTotal={cashTotalBook}
               bookCcy={bookCcy}
               fx={fx}
@@ -997,6 +998,8 @@ export function InvestPortfolioPage() {
             positions={state.positions}
             snapshots={state.snapshots}
             accounts={state.accounts}
+            strategies={state.strategies}
+            watchSymbols={state.watchlist.map((w) => w.symbol)}
             cashTotal={cashTotalBook}
             bookCcy={bookCcy}
             fx={fx}

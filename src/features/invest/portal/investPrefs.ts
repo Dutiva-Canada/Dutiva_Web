@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { readPref, writePref } from '@/lib/prefs'
 import type { OrderMode } from '@/features/invest/data/types'
 
@@ -57,4 +58,36 @@ export function readDisplayCurrency(): string {
 }
 export function writeDisplayCurrency(cur: string): void {
   writePref(DISPLAY_CUR_KEY, (DISPLAY_CURRENCIES as readonly string[]).includes(cur) ? cur : '')
+}
+
+const CHART_READS_KEY = 'dutiva.invest.chartReads'
+
+/* Tally's one-line reads on the computed cards (donut, rebalance, curve).
+   On by default — they're part of the surface now; a reader who finds
+   them noise turns them off once, from Settings or the line itself. */
+export function readChartReads(): boolean {
+  return readPref(CHART_READS_KEY, 'on') !== 'off'
+}
+export function writeChartReads(on: boolean): void {
+  writePref(CHART_READS_KEY, on ? 'on' : 'off')
+}
+
+/* Every mounted read must flip together — a raw useState(readChartReads)
+   per card would leave the other cards' lines up after one mutes. The
+   listeners keep every consumer on the same pref. */
+const chartReadListeners = new Set<() => void>()
+export function useChartReads(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(readChartReads)
+  useEffect(() => {
+    const sync = () => setOn(readChartReads())
+    chartReadListeners.add(sync)
+    return () => {
+      chartReadListeners.delete(sync)
+    }
+  }, [])
+  const set = (v: boolean) => {
+    writeChartReads(v)
+    chartReadListeners.forEach((f) => f())
+  }
+  return [on, set]
 }

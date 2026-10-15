@@ -48,6 +48,45 @@
 .sb-note-accent {
   border-left: 3px solid var(--sb-accent);
 }
+/* Tally's read — a caption-level line inside a computed card, lighter
+   than .sb-note's inset block: it summarizes what's on the card, it
+   isn't an event. */
+.sb-tally-read {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 10px;
+  color: var(--sb-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.sb-tally-read > svg {
+  color: var(--sb-accent);
+}
+.sb-tally-read strong {
+  color: var(--sb-body);
+  font-weight: 600;
+}
+.sb-tally-read-mute {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.sb-tally-read-mute:hover,
+.sb-tally-read-mute:focus-visible {
+  opacity: 1;
+  background: var(--sb-input);
+  color: var(--sb-body);
+}
 .sb-card-pad {
   padding: 18px 16px;
 }
