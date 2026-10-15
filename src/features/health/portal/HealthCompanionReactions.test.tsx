@@ -44,6 +44,7 @@ vi.mock('@/features/health/data/api', () => ({
   healthAiHabit: vi.fn(),
   addHealthMemory: vi.fn(),
   deleteHealthMemory: vi.fn(),
+  updateHealthMemory: vi.fn(),
 }))
 
 /* Suggestion queue + notify pref hit Supabase directly — stub the lib
@@ -326,7 +327,7 @@ describe('home — What Mira remembers', () => {
     const { refresh } = renderWith(<HealthHomePage />, 'en', remembered)
 
     expect(await screen.findByText('Prefers mornings for anything hard')).toBeInTheDocument()
-    expect(screen.getByText('proposed by Mira')).toBeInTheDocument()
+    expect(screen.getByText(/proposed by Mira/)).toBeInTheDocument()
 
     fireEvent.change(screen.getByPlaceholderText(/want Mira to remember/), {
       target: { value: 'Walks help me think' },
@@ -345,6 +346,32 @@ describe('home — What Mira remembers', () => {
     expect(deleteHealthMemory).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+  })
+
+  it('edits a memory inline — Enter saves, Escape cancels', async () => {
+    const { updateHealthMemory } = await import('@/features/health/data/api')
+    vi.mocked(updateHealthMemory).mockResolvedValue(undefined)
+    renderWith(<HealthHomePage />, 'en', remembered)
+
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Edit' }))[0]!)
+    const input = screen.getByLabelText('Edit')
+    fireEvent.change(input, { target: { value: 'Prefers early calls' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() =>
+      expect(updateHealthMemory).toHaveBeenCalledWith('m1', 'Prefers early calls'),
+    )
+  })
+
+  it('a failed save keeps the text instead of clearing it like a success', async () => {
+    vi.mocked(addHealthMemory).mockRejectedValue(new Error('rls'))
+    renderWith(<HealthHomePage />, 'en', remembered)
+
+    const input = screen.getByPlaceholderText(/want Mira to remember/)
+    fireEvent.change(input, { target: { value: 'Walks help me think' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Remember this' }))
+    await waitFor(() => expect(addHealthMemory).toHaveBeenCalled())
+    /* Success clears the field; failure leaves the draft in place. */
+    expect(input).toHaveValue('Walks help me think')
   })
 })
 

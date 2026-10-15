@@ -136,6 +136,16 @@ export async function deleteHealthMemory(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Revise a stored memory's text — source provenance stays as filed. */
+export async function updateHealthMemory(id: string, text: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_memories')
+    .update({ text: text.trim().slice(0, 500) })
+    .eq('id', id)
+  if (error) throw error
+}
+
 export async function addJournalEntry(input: {
   title?: string
   body: string
