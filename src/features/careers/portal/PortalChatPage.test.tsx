@@ -161,6 +161,12 @@ describe('PortalChatPage', () => {
     await screen.findByText('Old reply.')
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    expect(
+      await screen.findByRole('button', { name: 'Click again to confirm' }),
+    ).toBeInTheDocument()
+    expect(clearCandidateChat).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     await waitFor(() => expect(clearCandidateChat).toHaveBeenCalled())
     expect(await screen.findByText(/Hi — I’m Claire/)).toBeInTheDocument()
   })

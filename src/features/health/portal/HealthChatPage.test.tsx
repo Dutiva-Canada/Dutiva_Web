@@ -14,6 +14,7 @@ import {
   clearHealthChat,
   loadHealthChatHistory,
   rateHealthChatTurn,
+  regenerateHealthChat,
   sendHealthChat,
   undoHealthChatAction,
 } from '@/features/health/data/api'
@@ -104,9 +105,11 @@ describe('HealthChatPage', () => {
     renderPage('en', undefined, {
       session: { user: { id: 'u9', email: 'staff@dutiva.ca' } } as AuthContextValue['session'],
     })
-    expect(await screen.findByText(/Internal staff account/)).toBeInTheDocument()
+    /* The internal variant adds the plain-spoken clause but keeps the
+       software disclaimer — the most directive tier still needs it. */
+    expect(await screen.findByText(/on this internal account/)).toBeInTheDocument()
     expect(screen.getByText('Internal')).toBeInTheDocument()
-    expect(screen.queryByText(/not a person or a therapist/)).not.toBeInTheDocument()
+    expect(screen.getByText(/not a person or a therapist/)).toBeInTheDocument()
   })
 
   it('personalizes the greeting with a live habit streak', async () => {
@@ -302,7 +305,7 @@ describe('HealthChatPage', () => {
     expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
   })
 
-  it('clears the conversation via the function', async () => {
+  it('clears the conversation via the function after a two-tap confirm', async () => {
     vi.mocked(loadHealthChatHistory).mockResolvedValue([
       {
         id: 'u1',
@@ -317,10 +320,57 @@ describe('HealthChatPage', () => {
     renderPage()
     await screen.findByText('hi')
 
+    /* First tap only arms — nothing is destroyed on one stray click. */
     fireEvent.click(screen.getByRole('button', { name: 'Clear conversation' }))
+    expect(
+      await screen.findByRole('button', { name: 'Click again to confirm' }),
+    ).toBeInTheDocument()
+    expect(clearHealthChat).not.toHaveBeenCalled()
+    expect(screen.getByText('hi')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     await waitFor(() => expect(clearHealthChat).toHaveBeenCalled())
+    await waitFor(() => expect(screen.queryByText('hi')).not.toBeInTheDocument())
+  })
+
+  it('disables the clear button while a send is in flight', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: 'u1',
+        role: 'user',
+        content: 'hi',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    let resolveSend: ((v: Awaited<ReturnType<typeof sendHealthChat>>) => void) | undefined
+    vi.mocked(sendHealthChat).mockImplementation(
+      () => new Promise((resolve) => (resolveSend = resolve)),
+    )
+    renderPage()
+    await screen.findByText('hi')
+
+    fireEvent.change(screen.getByPlaceholderText(/Tell Mira/), {
+      target: { value: 'one more' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    /* Clearing mid-stream would resurrect the thread when the in-flight
+       send persists — the button is inert until the send resolves. */
     await waitFor(() =>
-      expect(screen.queryByText('hi')).not.toBeInTheDocument(),
+      expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeDisabled(),
+    )
+    resolveSend?.({
+      reply: 'Noted.',
+      action: null,
+      userId: 'u2',
+      assistantId: 'a2',
+      suggests: [],
+      reasoning: null,
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeEnabled(),
     )
   })
 
@@ -367,6 +417,61 @@ describe('HealthChatPage', () => {
     fireEvent.click(up)
     await waitFor(() => expect(rateHealthChatTurn).toHaveBeenCalledWith(assistantId, 0))
     expect(up).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('restores the previous pair when a regenerate call fails', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: '11111111-2222-3333-4444-555555555551',
+        role: 'user',
+        content: 'first try',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+      {
+        id: '11111111-2222-3333-4444-555555555552',
+        role: 'assistant',
+        content: 'First answer.',
+        action: null,
+        reasoning: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    vi.mocked(regenerateHealthChat).mockRejectedValue(new Error('upstream down'))
+    renderPage()
+    await screen.findByText('First answer.')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try another answer' }))
+
+    /* The optimistic re-ask removes the pair locally; on failure the page
+       reloads history so the preserved rows come back rather than leaving
+       a bare question with no answer. */
+    await waitFor(() => expect(screen.getByText('First answer.')).toBeInTheDocument())
+    expect(loadHealthChatHistory).toHaveBeenCalledTimes(2)
+  })
+
+  it('ignores Enter while an IME composition is open', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(sendHealthChat).mockResolvedValue({
+      reply: 'Noted.',
+      action: null,
+      userId: 'u2',
+      assistantId: 'a2',
+      suggests: [],
+      reasoning: null,
+    })
+    renderPage()
+    const input = await screen.findByPlaceholderText(/Tell Mira/)
+
+    fireEvent.change(input, { target: { value: 'konnichi' } })
+    /* Confirming a composed candidate fires Enter — it must not send. */
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(sendHealthChat).not.toHaveBeenCalled()
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(sendHealthChat).toHaveBeenCalled())
   })
 
   it('renders the French chrome under lang fr', async () => {

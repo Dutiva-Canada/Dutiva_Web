@@ -269,12 +269,14 @@ const handler = async (req: Request) => {
     return await runChat(adminClient, userId, message, lang, stream, advice, threadId)
   }
   if (body['kind'] === 'chat_regenerate') {
-    /* Re-ask the thread's last user turn — the stale assistant reply and
-       its user turn are deleted first, so the old answer stops anchoring
-       the context before the fresh call runs. If that reply wrote a row
-       (queued order, watchlist change, filed draft), reverse it too — a
-       regenerate is a do-over, and leaving the write behind would orphan
-       it from its undo handle while the fresh turn re-files a twin. */
+    /* Re-ask the thread's last user turn. The stale pair is only EXCLUDED
+       from the history window — the delete waits in afterPersist, after
+       the fresh pair lands, so a failed call loses no history. The stale
+       action's reversal still runs BEFORE the re-ask, though: the
+       replacement's executor must see the book without the side-effect
+       it's replacing (a retried "add SHOP" would otherwise find SHOP
+       already there). The row is stamped undone so a failed call can't
+       resurrect a dead Undo chip when the pair is restored. */
     let q = adminClient
       .from('invest_chat_messages')
       .select('id, role, content, action')
@@ -289,19 +291,28 @@ const handler = async (req: Request) => {
     if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
       return json({ error: 'Nothing to regenerate' }, 409)
     }
+    /* Best-effort — an already-executed order reports not_undoable and
+       stays put (it's the holder's now). */
     const staleAction = (latest.action ?? null) as ExecutedAction | null
     if (staleAction?.ok && staleAction.undone !== true && staleAction.refId) {
-      /* Best-effort — an already-executed order reports not_undoable and
-         stays put (it's the holder's now); the regenerate proceeds either
-         way. */
-      await undoChatAction(adminClient, userId, staleAction)
+      if (await undoChatAction(adminClient, userId, staleAction)) {
+        await adminClient
+          .from('invest_chat_messages')
+          .update({ action: { ...staleAction, undone: true } })
+          .eq('id', latest.id)
+          .eq('user_id', userId)
+      }
     }
-    await adminClient
-      .from('invest_chat_messages')
-      .delete()
-      .in('id', [latest.id, prev.id])
-      .eq('user_id', userId)
-    return await runChat(adminClient, userId, prev.content, lang, stream, advice, threadId)
+    return await runChat(adminClient, userId, prev.content, lang, stream, advice, threadId, {
+      excludeIds: [latest.id, prev.id],
+      afterPersist: async () => {
+        await adminClient
+          .from('invest_chat_messages')
+          .delete()
+          .in('id', [latest.id, prev.id])
+          .eq('user_id', userId)
+      },
+    })
   }
   if (body['kind'] === 'react') {
     const event = parseInvestReactEvent(body['event'])

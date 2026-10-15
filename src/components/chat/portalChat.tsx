@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowDown, Check, ChevronDown, Copy, MessageSquarePlus } from 'lucide-react'
+import { ArrowDown, Check, ChevronDown, Copy, MessagesSquare } from 'lucide-react'
 
 /* Shared components for the four standalone portal chats (Tally, Mira,
    Paige, Claire). Formatting helpers and scroll/textarea hooks live in
@@ -232,21 +232,46 @@ export function ThreadSwitcher({
   onNew: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLSpanElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
+  /* Outside press or Escape dismisses the menu; Escape returns focus to
+     the trigger since menu items hold it while it's open. */
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false)
+        triggerRef.current?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
   const pick = (id: string | null) => {
     setOpen(false)
     onOpen(id)
   }
   return (
-    <span style={{ position: 'relative', display: 'inline-flex' }}>
+    <span ref={rootRef} style={{ position: 'relative', display: 'inline-flex' }}>
       <button
         type="button"
+        ref={triggerRef}
         className={buttonClass}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
         disabled={disabled}
       >
-        <MessageSquarePlus size={13} aria-hidden="true" />
+        <MessagesSquare size={13} aria-hidden="true" />
         {activeName}
         <ChevronDown size={12} aria-hidden="true" />
       </button>

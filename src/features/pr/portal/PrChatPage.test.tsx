@@ -273,6 +273,12 @@ describe('PrChatPage', () => {
     await screen.findByText('hi')
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear conversation' }))
+    expect(
+      await screen.findByRole('button', { name: 'Click again to confirm' }),
+    ).toBeInTheDocument()
+    expect(clearPrChat).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
     await waitFor(() => expect(clearPrChat).toHaveBeenCalled())
     await waitFor(() => expect(screen.queryByText('hi')).not.toBeInTheDocument())
   })
