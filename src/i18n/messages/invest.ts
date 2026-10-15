@@ -694,6 +694,11 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_curve_cash: { en: 'Cash', fr: 'Liquidités' },
   /* [FR self-authored] */
+  invest_curve_fx_note: {
+    en: '≈ mark converted to {ccy}',
+    fr: '≈ relevé converti en {ccy}',
+  },
+  /* [FR self-authored] */
   invest_curve_alt: {
     en: 'Book value marks: {vfrom} on {from}, {vto} on {to}.',
     fr: 'Valeur du portefeuille : {vfrom} le {from}, {vto} le {to}.',
@@ -1525,6 +1530,11 @@ const investCoreMessages = defineMessages({
   invest_read_curve_flat: {
     en: 'flat over the window — inside a tenth of a point either way.',
     fr: 'stable sur la période — à moins d’un dixième de point dans les deux sens.',
+  },
+  /* A one-day span isn't a 'window' — say so rather than sounding a verdict. */
+  invest_read_curve_first_day: {
+    en: '{chg} across its first day on the books.',
+    fr: '{chg} pour son premier jour suivi.',
   },
   invest_seo_title_chat: { en: 'Tally — Dutiva Invest', fr: 'Tally — Dutiva Invest' },
   invest_seo_desc_chat: {
