@@ -6,8 +6,6 @@ import type { HealthCheckIn, HealthHabit, HealthHabitLog } from './types'
  * here is a clinical metric: counts, day-level averages, and a day streak.
  */
 
-const DAY_MS = 24 * 60 * 60 * 1000
-
 function dayKey(iso: string): string {
   const d = new Date(iso)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
@@ -78,13 +76,15 @@ function avgField(
   field: (c: HealthCheckIn) => number | null,
   now: Date,
 ): number | null {
-  const cutoff = now.getTime() - days * DAY_MS
+  /* Calendar days, not a rolling N×24h window — the label says "(7 days)"
+     and the number shouldn't drift as the clock moves inside a day. */
+  const windowDays = new Set(recentDayKeys(days, now))
   let sum = 0
   let n = 0
   for (const c of checkIns) {
     const v = field(c)
     if (v == null) continue
-    if (new Date(c.createdAt).getTime() < cutoff) continue
+    if (!windowDays.has(dayKey(c.createdAt))) continue
     sum += v
     n += 1
   }

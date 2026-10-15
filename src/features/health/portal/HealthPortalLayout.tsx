@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { Globe, Loader2, LogOut, Menu, X } from 'lucide-react'
+import { Globe, LogOut, Menu, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useAuth } from '@/features/app/auth/authContext'
+import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { HealthDataProvider } from '@/features/health/data/HealthDataProvider'
 import { hasHealthAccess } from '@/features/health/data/api'
 import { ThemeCycleButton } from '@/features/invest/portal/InvestPortalLayout'
 import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { HealthAuthPanel } from './HealthAuthPanel'
 import { HealthFooter } from './HealthFooter'
+import { HealthLoading } from './HealthLoading'
 
 const NAV = [
   { to: '/health', end: true, label: HM.health_tab_overview },
@@ -37,9 +39,18 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * grant — a signed-in user without a row sees a localized "access required"
  * card instead of the app. No demo mode; everything is real user data.
  */
+/* Pending-suggestion count on the Review tab — rides the already-loaded
+   HealthState, so zero extra queries. */
+function ReviewBadge() {
+  const { state } = useHealthData()
+  const pending = state?.pendingReview ?? 0
+  if (pending === 0) return null
+  return <span className="hb-badge">{pending}</span>
+}
+
 export function HealthPortalLayout() {
   const { x, L, lang, setLang } = useI18n()
-  const { status, signOut } = useAuth()
+  const { status, signOut, session } = useAuth()
   const [access, setAccess] = useState<'checking' | 'yes' | 'no'>('checking')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -108,6 +119,9 @@ export function HealthPortalLayout() {
      confirmed, so a user without access never fires health_* queries. */
   const shell = (
     <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+      <a href="#hb-main" className="hb-skip">
+        {x(HM.health_skip)}
+      </a>
       <header className="sticky top-0 z-10 border-b border-border bg-surface">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
             <div className="flex min-w-0 items-center gap-[24px]">
@@ -124,9 +138,11 @@ export function HealthPortalLayout() {
                     to={item.to}
                     end={item.end}
                     className={navLinkClass}
+                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
+                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
               </nav>
@@ -193,13 +209,22 @@ export function HealthPortalLayout() {
                     key={item.to}
                     to={item.to}
                     end={item.end}
-                    className={(p) => `${navLinkClass(p)} flex min-h-[44px] items-center`}
+                    className={(p) =>
+                      `${navLinkClass(p)} flex min-h-[44px] items-center justify-between`
+                    }
+                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
+                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
+                {session?.user?.email && (
+                  <p className="m-0 px-[12px] pb-[2px] pt-[8px] text-[12px] text-text-muted">
+                    {x(HM.health_signed_in_as).replace('{email}', session.user.email)}
+                  </p>
+                )}
                 <button
                   type="button"
                   onClick={() => void signOut()}
@@ -213,11 +238,9 @@ export function HealthPortalLayout() {
           )}
         </header>
 
-        <main className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
+        <main id="hb-main" className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
           {access === 'checking' ? (
-            <div className="flex items-center justify-center py-[80px]">
-              <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-            </div>
+            <HealthLoading />
           ) : access === 'no' ? (
             <AccessRequired />
           ) : (

@@ -86,6 +86,22 @@ export const healthModalities: HealthModality[] = [
     guided: true,
   },
   {
+    id: 'pmr',
+    name: bi('Progressive muscle relaxation (PMR)', 'Relaxation musculaire progressive (RMP)'),
+    what: bi(
+      'Tense a muscle group for a few seconds, then let go — the contrast teaches the body what relaxed feels like.',
+      'Contracter un groupe musculaire quelques secondes, puis relâcher — le contraste apprend au corps ce que relâché veut dire.',
+    ),
+    mira: bi(
+      'A guided pass through the muscle groups — hands, shoulders, face, legs — one release at a time.',
+      'Un passage guidé des groupes musculaires — mains, épaules, visage, jambes — un relâchement à la fois.',
+    ),
+    note: null,
+    ask: bi('Explain progressive muscle relaxation', 'Explique-moi la relaxation musculaire progressive'),
+    practiceAsk: bi('Guide me through a muscle relaxation round', 'Guide-moi dans une séance de relaxation musculaire'),
+    guided: true,
+  },
+  {
     id: 'act',
     name: bi('Acceptance and commitment therapy (ACT)', 'Thérapie d’acceptation et d’engagement (ACT)'),
     what: bi(
@@ -94,11 +110,27 @@ export const healthModalities: HealthModality[] = [
     ),
     mira: bi(
       'Defusion (“I’m having the thought that…”, leaves on a stream), the values compass, committed action.',
-      'La défusion (« j’ai la pensée que… », les feuilles sur la rivière), la boussole des valeurs, l’action engagée.',
+      'La défusion (« j’ai la pensée que… », les feuilles sur la rivière), la boussole des valeurs, l’action engagée.',
     ),
     note: null,
     ask: bi('Explain what ACT is', 'Explique-moi ce qu’est l’ACT'),
     practiceAsk: bi('Try a defusion exercise with me', 'Essaie un exercice de défusion avec moi'),
+    guided: true,
+  },
+  {
+    id: 'selfcompassion',
+    name: bi('Self-compassion practice', 'Pratique d’autocompassion'),
+    what: bi(
+      'Treating yourself the way you’d treat a friend having the same hard day — a skill, not a mood.',
+      'Se traiter comme on traiterait un ami qui vit la même journée difficile — une habileté, pas une humeur.',
+    ),
+    mira: bi(
+      'The self-compassion break, a compassionate letter to yourself, softening the inner critic’s tone.',
+      'La pause d’autocompassion, une lettre bienveillante envers soi-même, adoucir le ton du critique intérieur.',
+    ),
+    note: null,
+    ask: bi('Explain self-compassion practice', 'Explique-moi la pratique d’autocompassion'),
+    practiceAsk: bi('Walk me through a self-compassion break', 'Guide-moi dans une pause d’autocompassion'),
     guided: true,
   },
   {
@@ -137,6 +169,22 @@ export const healthModalities: HealthModality[] = [
     ),
     ask: bi('Explain what IPT is', 'Explique-moi ce qu’est la TIP'),
     practiceAsk: bi('Help me think through a hard relationship', 'Aide-moi à réfléchir à une relation difficile'),
+    guided: true,
+  },
+  {
+    id: 'writing',
+    name: bi('Expressive writing', 'Écriture expressive'),
+    what: bi(
+      'Timed, uncensored writing about what weighs on you — the page holds it so your head does less.',
+      'Une écriture minutée et sans filtre sur ce qui pèse — la page le porte pour que la tête porte moins.',
+    ),
+    mira: bi(
+      'A short timed write from a prompt, then a second pass on what the first pass surfaced.',
+      'Une écriture minutée à partir d’une invite, puis un second passage sur ce que la première a soulevé.',
+    ),
+    note: null,
+    ask: bi('Explain expressive writing', 'Explique-moi l’écriture expressive'),
+    practiceAsk: bi('Run a short expressive-writing prompt with me', 'Lance une courte écriture expressive avec moi'),
     guided: true,
   },
   {
@@ -207,6 +255,25 @@ export const healthModalities: HealthModality[] = [
     guided: true,
   },
   {
+    id: 'mi',
+    name: bi('Motivational interviewing (MI)', 'Entretien motivationnel (EM)'),
+    what: bi(
+      'A way of talking about change that hears both sides — the part that wants to and the part that doesn’t.',
+      'Une façon de parler du changement qui écoute les deux côtés — celui qui veut et celui qui ne veut pas.',
+    ),
+    mira: bi(
+      'Exploring ambivalence out loud, weighing the good and the hard of a change, naming your own reasons.',
+      'Explorer l’ambivalence à voix haute, peser le bon et le difficile d’un changement, nommer vos propres raisons.',
+    ),
+    note: bi(
+      'Mira runs the reflective version — the formal method belongs to counsellors.',
+      'Mira en guide la version réflexive — la méthode formelle appartient aux intervenants.',
+    ),
+    ask: bi('Explain motivational interviewing', 'Explique-moi l’entretien motivationnel'),
+    practiceAsk: bi('Help me think through a change I keep circling', 'Aide-moi à réfléchir à un changement que je tourne en rond'),
+    guided: true,
+  },
+  {
     id: 'meditation',
     name: bi('Meditation', 'Méditation'),
     what: bi(
@@ -242,6 +309,22 @@ export const healthModalities: HealthModality[] = [
     guided: true,
   },
   {
+    id: 'imagery',
+    name: bi('Guided imagery', 'Imagerie guidée'),
+    what: bi(
+      'Building a calm place in detail — sight, sound, texture — so the nervous system has somewhere to land.',
+      'Construire un lieu calme dans le détail — images, sons, textures — pour que le système nerveux ait où se poser.',
+    ),
+    mira: bi(
+      'Calm-place visualization, a slow walk through a scene, imagery to pair with a hard moment later.',
+      'Visualisation d’un lieu apaisant, traversée lente d’une scène, images à associer plus tard à un moment dur.',
+    ),
+    note: null,
+    ask: bi('Explain guided imagery', 'Explique-moi l’imagerie guidée'),
+    practiceAsk: bi('Walk me through a calm-place visualization', 'Guide-moi dans la visualisation d’un lieu apaisant'),
+    guided: true,
+  },
+  {
     id: 'emdr',
     name: bi('EMDR', 'EMDR'),
     what: bi(
@@ -253,8 +336,8 @@ export const healthModalities: HealthModality[] = [
       'Mira peut l’expliquer et offrir de l’ancrage ou des images apaisantes — le traitement lui-même demande un·e thérapeute formé·e.',
     ),
     note: bi(
-      'Clinician-led — working through memories this way without containment can hurt more than it helps.',
-      'Sous guidance clinique — travailler des souvenirs ainsi sans contenant peut faire plus de mal que de bien.',
+      'Working through memories this way without containment can hurt more than it helps.',
+      'Travailler des souvenirs ainsi sans contenant peut faire plus de mal que de bien.',
     ),
     ask: bi('Explain EMDR — what it is and how it works', 'Explique-moi l’EMDR — ce que c’est et comment ça marche'),
     practiceAsk: null,
@@ -272,8 +355,8 @@ export const healthModalities: HealthModality[] = [
       'Mira peut l’expliquer et guider une relaxation ou des images ordinaires — la transe et la suggestion relèvent d’un·e hypnothérapeute formé·e.',
     ),
     note: bi(
-      'Clinician-led — trance work belongs with someone trained and accountable for it.',
-      'Sous guidance clinique — le travail de transe appartient à une personne formée et responsable.',
+      'Trance work belongs with someone trained and accountable for it.',
+      'Le travail de transe appartient à une personne formée et responsable.',
     ),
     ask: bi('Explain hypnotherapy — what it is and when it helps', 'Explique-moi l’hypnothérapie — ce que c’est et quand ça aide'),
     practiceAsk: null,

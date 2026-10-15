@@ -9,49 +9,10 @@ import { addCheckIn, deleteCheckIn, sendHealthReaction, updateCheckIn } from '@/
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { HealthCheckIn } from '@/features/health/data/types'
 import { ENERGY_LABELS, fmtDateTime, MOOD_LABELS, moodLabel } from './healthUi'
+import { HealthLoading } from './HealthLoading'
+import { HealthScalePicker } from './HealthScalePicker'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
-
-function ScalePicker({
-  idPrefix,
-  legend,
-  labels,
-  value,
-  onPick,
-  clearable,
-}: {
-  idPrefix: string
-  legend: string
-  labels: Record<number, { en: string; fr: string }>
-  value: number | null
-  onPick: (v: number | null) => void
-  clearable?: boolean
-}) {
-  const { x } = useI18n()
-  return (
-    <fieldset className="sb-field">
-      <legend className="sb-flabel">{legend}</legend>
-      <div className="hb-scale" role="radiogroup">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <button
-            key={n}
-            id={`${idPrefix}-${n}`}
-            type="button"
-            role="radio"
-            aria-checked={value === n}
-            className={`hb-scale-btn${value === n ? ' is-on' : ''}`}
-            onClick={() => onPick(clearable && value === n ? null : n)}
-          >
-            <span className="hb-scale-num" aria-hidden="true">
-              {n}
-            </span>
-            <span className="hb-scale-label">{x(labels[n] ?? { en: '', fr: '' })}</span>
-          </button>
-        ))}
-      </div>
-    </fieldset>
-  )
-}
 
 /* Inline editor for a saved check-in — the same pickers the entry form
    uses, prefilled with the row's values. Saving refreshes and tells Mira
@@ -85,14 +46,14 @@ function CheckInEditor({
 
   return (
     <div className="flex flex-col gap-[14px]" style={{ width: '100%' }}>
-      <ScalePicker
+      <HealthScalePicker
         idPrefix={`hb-edit-mood-${entry.id}`}
         legend={x(HM.health_checkin_mood)}
         labels={MOOD_LABELS}
         value={mood}
         onPick={setMood}
       />
-      <ScalePicker
+      <HealthScalePicker
         idPrefix={`hb-edit-energy-${entry.id}`}
         legend={x(HM.health_checkin_energy)}
         labels={ENERGY_LABELS}
@@ -138,7 +99,7 @@ function CheckInEditor({
 
 export function HealthCheckInPage() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useHealthData()
+  const { state, loading, refresh } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_checkin_title, HM.health_checkin_sub)
 
@@ -185,7 +146,8 @@ export function HealthCheckInPage() {
     await refresh()
   }
 
-  const checkIns = state?.checkIns ?? []
+  if (loading || !state) return <HealthLoading />
+  const checkIns = state.checkIns
 
   return (
     <div className="sb hb sb-page">
@@ -196,14 +158,14 @@ export function HealthCheckInPage() {
 
       <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>
         <div className="flex flex-col gap-[18px]">
-          <ScalePicker
+          <HealthScalePicker
             idPrefix="hb-mood"
             legend={x(HM.health_checkin_mood)}
             labels={MOOD_LABELS}
             value={mood}
             onPick={setMood}
           />
-          <ScalePicker
+          <HealthScalePicker
             idPrefix="hb-energy"
             legend={x(HM.health_checkin_energy)}
             labels={ENERGY_LABELS}

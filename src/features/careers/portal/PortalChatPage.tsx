@@ -466,6 +466,10 @@ export function PortalChatPage() {
   const threadName = threadId
     ? (activeThread?.title ?? x(M.careers_chat_thread_untitled))
     : x(M.careers_chat_thread_default)
+  const dayLabels = {
+    today: x(M.careers_chat_day_today),
+    yesterday: x(M.careers_chat_day_yesterday),
+  }
 
   return (
     <div className="flex flex-col gap-[8px]">
@@ -582,7 +586,7 @@ export function PortalChatPage() {
                         role="separator"
                         className="my-[4px] self-center rounded-full border border-border bg-bg px-[10px] py-[2px] text-[10.5px] font-semibold text-text-muted"
                       >
-                        {formatTurnDay(t.createdAt, lang)}
+                        {formatTurnDay(t.createdAt, lang, dayLabels)}
                       </div>
                     )}
                     <div className={bubbleClass(t.role, t.failed)}>

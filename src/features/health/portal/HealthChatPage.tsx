@@ -1,19 +1,8 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Check,
-  CornerDownLeft,
-  Loader2,
-  RefreshCw,
-  RotateCcw,
-  Send,
-  Square,
-  ThumbsDown,
-  ThumbsUp,
-  Trash2,
-} from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useAuth } from '@/features/app/auth/authContext'
@@ -21,26 +10,20 @@ import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   clearHealthChat,
+  deleteHealthChatThread,
   listHealthChatThreads,
   loadHealthChatHistory,
   newHealthChatThread,
-  rateHealthChatTurn,
   regenerateHealthChat,
+  renameHealthChatThread,
   sendHealthChat,
-  undoHealthChatAction,
   type HealthChatAction,
+  type HealthChatContext,
   type HealthChatThread,
   type HealthChatTurn,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import {
-  ChipRow,
-  CopyTurnButton,
-  JumpToLatest,
-  ReasonChips,
-  ReasoningBlock,
-  ThreadSwitcher,
-} from '@/components/chat/portalChat'
+import { ChipRow, JumpToLatest } from '@/components/chat/portalChat'
 import {
   formatTurnDay,
   formatTurnTime,
@@ -50,70 +33,21 @@ import {
   useStickToBottom,
 } from '@/components/chat/portalChatUtils'
 import { companionGreeting } from './healthUi'
+import { DISTRESS_RE, isAbort } from './healthChatUi'
+import { HealthChatComposer, HealthChatPendingBubble } from './HealthChatComposer'
+import { HealthChatHeader } from './HealthChatHeader'
+import { HealthChatTurnRow } from './HealthChatTurnRow'
+import { useHealthChatTurnOps } from './useHealthChatTurnOps'
 import { useHealthHead } from './useHealthHead'
-
-/* Markdown + widget-fence rendering is a lazy chunk (react-markdown,
-   remark-gfm, the widget spec parser) — the bubble falls back to verbatim
-   text while it loads. */
-const ChatMarkdown = lazy(() =>
-  import('@/components/advisor/ChatMarkdown').then((m) => ({
-    default: m.ChatMarkdown,
-  })),
-)
-
-/** What the assistant did during a turn, as a confirmation chip. The label
-    keys mirror the action grammar in health-ai/handlers.ts. */
-function actionLabel(
-  action: HealthChatAction,
-  x: (m: { en: string; fr: string }) => string,
-): string {
-  const slots = { name: action.detail }
-  switch (action.type) {
-    case 'mark_habit_done':
-      return x(HM.health_chat_did_mark).replace('{name}', slots.name)
-    case 'unmark_habit_done':
-      return x(HM.health_chat_did_unmark).replace('{name}', slots.name)
-    case 'add_habit':
-      return x(HM.health_chat_did_habit).replace('{name}', slots.name)
-    case 'add_checkin':
-      return x(HM.health_chat_did_checkin).replace('{name}', slots.name)
-    case 'add_journal_entry':
-      return x(HM.health_chat_did_journal)
-    case 'propose_memory':
-      return x(HM.health_chat_did_memory).replace('{name}', slots.name)
-    default:
-      return ''
-  }
-}
-
-/** The portal page the action's write lands on — the chip's "View" link. */
-function actionRoute(action: HealthChatAction): string | null {
-  switch (action.type) {
-    case 'mark_habit_done':
-    case 'unmark_habit_done':
-    case 'add_habit':
-      return '/health/habits'
-    case 'add_checkin':
-      return '/health/check-in'
-    case 'add_journal_entry':
-      return '/health/journal'
-    case 'propose_memory':
-      return '/health/review'
-    default:
-      return null
-  }
-}
 
 const HISTORY_PAGE = 40
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-/* Show the running count only once the 1200-char cap is in sight. */
-const COUNT_FROM = 1000
-
-/** True when a failed send was the reader's own stop — an aborted stream
-    keeps its partial text instead of flagging the turn failed. */
-function isAbort(err: unknown): boolean {
-  return err instanceof DOMException && err.name === 'AbortError'
-}
+/* Re-show the starter chips when the conversation's been quiet a day —
+   a stale transcript offers nothing to tap. */
+const STALE_AFTER_MS = 24 * 3_600_000
+/* sessionStorage prefix for the last-opened stamp per conversation —
+   the switcher dots a thread whose latest write the reader hasn't seen. */
+const SEEN_PREFIX = 'dutiva:health-chat-seen:'
 
 /**
  * Mira — the portal's emotional companion. She keeps company over the user's
@@ -136,9 +70,11 @@ export function HealthChatPage() {
   /* The in-flight thinking trace — reasoning pieces land ahead of the
      reply, so the thinking panel fills while the bubble is still waiting. */
   const [streamedReasoning, setStreamedReasoning] = useState('')
-  const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
   const [clearArmed, setClearArmed] = useState(false)
+  /* History-load failure — surfaced inline with retry instead of showing
+     a greeting that claims a fresh start over turns that may exist. */
+  const [loadError, setLoadError] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   /* Follow-up chips from the latest reply — ephemeral, cleared on send. */
@@ -146,8 +82,26 @@ export function HealthChatPage() {
   /* Named conversations — null threadId is the default ("main") one. */
   const [threads, setThreads] = useState<HealthChatThread[] | null>(null)
   const [threadId, setThreadId] = useState<string | null>(null)
-  /* Turn id whose downvote is waiting on a reason chip pick. */
-  const [reasonFor, setReasonFor] = useState<string | null>(null)
+  /* Last-write stamp per conversation ('main' key for the default thread),
+     from chat_threads — drives the unseen-activity dots. */
+  const [chatActivity, setChatActivity] = useState<Record<string, string>>({})
+  /* The newest stamp the reader has actually opened, per conversation —
+     kept in sessionStorage so a revisit in the same tab doesn't re-dot
+     activity they already read. */
+  const [seenAt, setSeenAt] = useState<Record<string, string>>(() => {
+    const out: Record<string, string> = {}
+    try {
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const k = sessionStorage.key(i)
+        if (k?.startsWith(SEEN_PREFIX)) out[k.slice(SEEN_PREFIX.length)] = sessionStorage.getItem(k) ?? ''
+      }
+    } catch {
+      /* storage blocked — the dots just never show */
+    }
+    return out
+  })
+  /* Distress-flagged turns already dismissed this session. */
+  const [crisisDismissed, setCrisisDismissed] = useState<Set<string>>(new Set())
   /* The running send's abort handle — the Stop pill cancels the stream. */
   const abortRef = useRef<AbortController | null>(null)
   const [draft, setDraft] = usePortalChatDraft(`dutiva:health-chat:${threadId ?? 'main'}`)
@@ -164,29 +118,82 @@ export function HealthChatPage() {
 
   const isInternal = isInternalDutivaAccount(session?.user?.email)
 
+  /* Per-turn mutations — undo/delete/rate/reason + their armed and busy
+     flags. The hook owns them; the row reports through the handlers. */
+  const {
+    undoing,
+    delArmed,
+    deleting,
+    reasonFor,
+    setReasonFor,
+    undo,
+    removeTurn,
+    rate,
+    pickReason,
+  } = useHealthChatTurnOps(turns, setTurns)
+
+  /* The conversation the reader has seen through — activity newer than
+     this stamp dots the switcher. Persisted per thread in sessionStorage. */
+  const markSeen = (id: string | null, at?: string) => {
+    const key = id ?? 'main'
+    const stamp = at ?? new Date().toISOString()
+    setSeenAt((prev) => (prev[key] && prev[key] >= stamp ? prev : { ...prev, [key]: stamp }))
+    try {
+      const stored = sessionStorage.getItem(`${SEEN_PREFIX}${key}`)
+      if (!stored || stamp > stored) sessionStorage.setItem(`${SEEN_PREFIX}${key}`, stamp)
+    } catch {
+      /* storage blocked — dots just won't persist */
+    }
+  }
+
   /* History reloads whenever the thread changes — skeleton shows while the
-     scoped page loads. The thread list loads once. */
-  useEffect(() => {
+     scoped page loads. The thread list loads once. A failed fetch shows an
+     inline error with retry — never a greeting over turns that may exist. */
+  const loadHistory = async (id: string | null) => {
     setTurns(null)
     setSuggests([])
-    loadHealthChatHistory(HISTORY_PAGE, undefined, threadId)
-      .then((rows) => {
-        setTurns(rows)
-        /* A full page back means older turns probably exist. */
-        setHasMore(rows.length === HISTORY_PAGE)
-      })
-      .catch(() => setTurns([]))
+    setLoadError(false)
+    try {
+      const rows = await loadHealthChatHistory(HISTORY_PAGE, undefined, id)
+      setTurns(rows)
+      /* A full page back means older turns probably exist. */
+      setHasMore(rows.length === HISTORY_PAGE)
+      markSeen(id, rows[rows.length - 1]?.createdAt)
+    } catch {
+      setTurns([])
+      setLoadError(true)
+    }
+  }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- loadHistory is scoped to the thread param it receives
+  useEffect(() => {
+    void loadHistory(threadId)
   }, [threadId])
 
+  const refreshThreads = async () => {
+    try {
+      const { threads: rows, activity } = await listHealthChatThreads()
+      setThreads(rows)
+      setChatActivity(activity)
+    } catch {
+      /* Best-effort — the switcher simply shows what it had. */
+    }
+  }
+  // oxlint-disable-next-line react-hooks/exhaustive-deps -- one-shot load on mount
   useEffect(() => {
-    listHealthChatThreads()
-      .then(setThreads)
-      .catch(() => setThreads([]))
+    void refreshThreads()
+  }, [])
+
+  /* Composer focus on desktop — the page's one job is typing. Pointer-fine
+     only: on touch, autofocus yanks the keyboard open over the history. */
+  useEffect(() => {
+    if (window.matchMedia?.('(pointer: fine)').matches) inputRef.current?.focus()
   }, [])
 
   /* While the tab sits open, pick up turns another writer added — a
      reaction line from elsewhere in the portal lands in the default
-     conversation without a send. Append-only merge on row ids. */
+     conversation without a send. Append-only merge on row ids; the same
+     tick refreshes thread activity so a reaction in ANOTHER thread dots
+     the switcher instead of going unseen. */
   useEffect(() => {
     const poll = async () => {
       if (document.hidden || sending) return
@@ -195,15 +202,31 @@ export function HealthChatPage() {
         setTurns((prev) => {
           if (!prev) return prev
           const seen = new Set(prev.map((t) => t.id))
-          const fresh = rows.filter((r) => !seen.has(r.id))
+          /* A send stopped mid-stream keeps its local u-/a- ids while the
+             server persists the real pair — dedupe those on role+content,
+             not just the id they never got to adopt. */
+          const localOnly = new Set(
+            prev
+              .filter((t) => !UUID_RE.test(t.id))
+              .map((t) => `${t.role} ${t.content}`),
+          )
+          const fresh = rows.filter(
+            (r) => !seen.has(r.id) && !localOnly.has(`${r.role} ${r.content}`),
+          )
           return fresh.length ? [...prev, ...fresh] : prev
         })
+        /* Reading this thread now — its tail stamp is the seen marker, so
+           the switcher never dots the conversation you're sitting in. */
+        const newest = rows[rows.length - 1]
+        if (newest) markSeen(threadId, newest.createdAt)
       } catch {
         /* The poll is best-effort — a miss just means next tick. */
       }
+      void refreshThreads()
     }
     const t = setInterval(() => void poll(), 45_000)
     return () => clearInterval(t)
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- refreshThreads is stable enough for a poll
   }, [sending, threadId])
 
   /* Older page — the server takes the oldest loaded turn's created_at as the
@@ -234,6 +257,7 @@ export function HealthChatPage() {
       assistantId: string | null
       suggests: string[]
       reasoning: string | null
+      context: HealthChatContext | null
     },
     localUserId: string,
   ) => {
@@ -252,20 +276,21 @@ export function HealthChatPage() {
         action: result.action,
         reasoning: result.reasoning,
         feedback: null,
+        contextUsed: result.context,
         createdAt: new Date().toISOString(),
       },
     ])
     setSuggests(result.suggests)
     if (threadId) {
-      void listHealthChatThreads()
-        .then(setThreads)
-        .catch(() => {})
+      void refreshThreads()
     }
     return result.action?.ok ? refresh() : Promise.resolve()
   }
 
   const sendText = async (message: string) => {
-    if (!message || sending) return
+    /* turns===null means history is still loading — a send now would be
+       wiped when the fetch resolves and the optimistic turn is replaced. */
+    if (!message || sending || turns === null) return
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -282,48 +307,60 @@ export function HealthChatPage() {
       content: message,
       action: null,
       feedback: null,
+      /* Distress words pin the crisis line under this bubble — a quiet
+         in-log note, not a fake reply. */
+      distress: DISTRESS_RE.test(message) || undefined,
       createdAt: new Date().toISOString(),
     }
     stickToBottom()
+    markSeen(threadId)
     setTurns((prev) => [...(prev ?? []), userTurn])
-    /* The abort catch can't see streamedReasoning state that landed after
-       the send began — a local captures the cumulative trace. */
+    /* The abort catch can't see streamed state that landed after the send
+       began — locals capture the cumulative text + trace. */
+    let streamedSoFar = ''
     let reasoningSoFar = ''
     try {
       /* onDelta turns on SSE — the reply types into the pending bubble as
          it generates; the final payload stays authoritative. */
-      const result = await sendHealthChat(message, lang, setStreamed, {
-        threadId,
-        signal: ctrl.signal,
-        onReasoning: (t) => {
-          reasoningSoFar = t
-          setStreamedReasoning(t)
+      const result = await sendHealthChat(
+        message,
+        lang,
+        (t) => {
+          streamedSoFar = t
+          setStreamed(t)
         },
-      })
+        {
+          threadId,
+          signal: ctrl.signal,
+          onReasoning: (t) => {
+            reasoningSoFar = t
+            setStreamedReasoning(t)
+          },
+        },
+      )
       await adoptReply(result, userTurn.id)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
            server may still persist the full reply; reload reconciles). The
-           partial thinking trace rides the turn so it isn't lost. */
-        const partialReasoning = reasoningSoFar || null
-        setStreamed((partial) => {
-          if (partial) {
-            setTurns((prev) => [
-              ...(prev ?? []),
-              {
-                id: `a-${Date.now()}`,
-                role: 'assistant' as const,
-                content: partial,
-                action: null,
-                reasoning: partialReasoning,
-                feedback: null,
-                createdAt: new Date().toISOString(),
-              },
-            ])
-          }
-          return ''
-        })
+           partial thinking trace rides the turn so it isn't lost, and the
+           turn is flagged stopped so the partial text can't pass for a
+           finished answer. */
+        if (streamedSoFar) {
+          setTurns((prev) => [
+            ...(prev ?? []),
+            {
+              id: `a-${Date.now()}`,
+              role: 'assistant' as const,
+              content: streamedSoFar,
+              action: null,
+              reasoning: reasoningSoFar || null,
+              feedback: null,
+              stopped: true,
+              createdAt: new Date().toISOString(),
+            },
+          ])
+        }
       } else {
         showToast(HM.health_chat_error)
         /* Keep the turn in the log flagged failed — the text stays visible
@@ -342,7 +379,7 @@ export function HealthChatPage() {
 
   const send = () => {
     const message = draft.trim()
-    if (!message || sending) return
+    if (!message || sending || turns === null) return
     setDraft('')
     void sendText(message)
   }
@@ -353,6 +390,14 @@ export function HealthChatPage() {
     if (sending) return
     setTurns((prev) => (prev ?? []).filter((t) => t.id !== turn.id))
     void sendText(turn.content)
+  }
+
+  /* Edit a failed send instead of retrying it verbatim — the text goes
+     back to the composer and the failed bubble clears. */
+  const editFailed = (turn: HealthChatTurn) => {
+    setTurns((prev) => (prev ?? []).filter((t) => t.id !== turn.id))
+    setDraft(turn.content)
+    inputRef.current?.focus()
   }
 
   /* Try another answer — the server drops the last pair and re-asks, so
@@ -422,23 +467,46 @@ export function HealthChatPage() {
     inputRef.current?.focus()
   }
 
-  /* Undo on an action chip — the server reverses the write and marks the
-     action undone, so the chip doesn't offer it again after a reload. */
-  const undo = async (turnId: string) => {
-    if (undoing) return
-    setUndoing(turnId)
+  /* Switcher ops — rename keeps an empty string meaningful (resets to
+     untitled, so the next message names it again); delete returns the
+     reader to main if they were inside the removed thread. */
+  const renameThread = async (id: string, title: string) => {
     try {
-      await undoHealthChatAction(turnId)
-      setTurns((prev) =>
-        (prev ?? []).map((t) =>
-          t.id === turnId && t.action ? { ...t, action: { ...t.action, undone: true } } : t,
-        ),
+      await renameHealthChatThread(id, title)
+      setThreads((prev) =>
+        (prev ?? []).map((t) => (t.id === id ? { ...t, title: title || null } : t)),
       )
-      await refresh()
     } catch {
-      showToast(HM.health_chat_undo_failed)
-    } finally {
-      setUndoing(null)
+      showToast(HM.health_chat_error)
+    }
+  }
+  const removeThread = async (id: string) => {
+    try {
+      await deleteHealthChatThread(id)
+      setThreads((prev) => (prev ?? []).filter((t) => t.id !== id))
+      if (threadId === id) setThreadId(null)
+    } catch {
+      showToast(HM.health_chat_error)
+    }
+  }
+
+  /* Whole-transcript copy — data portability without a download file.
+     Header lines carry the day chip wording the reader already sees. */
+  const exportChat = async () => {
+    const rows = turns ?? []
+    if (!rows.length) return
+    const who = (t: HealthChatTurn) => (t.role === 'user' ? youLabel : 'Mira')
+    const text = rows
+      .map(
+        (t) =>
+          `${who(t)} · ${formatTurnDay(t.createdAt, lang, dayLabels)} ${formatTurnTime(t.createdAt, lang)}\n${t.content}`,
+      )
+      .join('\n\n')
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast(HM.health_chat_export_done)
+    } catch {
+      showToast(HM.health_chat_error)
     }
   }
 
@@ -461,49 +529,12 @@ export function HealthChatPage() {
       setTurns([])
       setHasMore(false)
       setSuggests([])
+      markSeen(threadId)
+      inputRef.current?.focus()
     } catch {
       showToast(HM.health_chat_error)
     } finally {
       setClearing(false)
-    }
-  }
-
-  /* Thumbs on an assistant turn — only real rows (uuid ids) can hold a
-     rating; optimistic, reverted if the write fails. A downvote opens the
-     one-tap reason chips. */
-  const rate = async (turnId: string, rating: 1 | -1) => {
-    const before = turns?.find((t) => t.id === turnId)?.feedback ?? null
-    const next = before === rating ? 0 : rating
-    setTurns((prev) =>
-      (prev ?? []).map((t) =>
-        t.id === turnId ? { ...t, feedback: next || null, feedbackReason: null } : t,
-      ),
-    )
-    setReasonFor(next === -1 ? turnId : null)
-    try {
-      await rateHealthChatTurn(turnId, next)
-    } catch {
-      setTurns((prev) =>
-        (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: before } : t)),
-      )
-      setReasonFor(null)
-    }
-  }
-
-  /* Reason chip under a downvote — stores the why with the rating. */
-  const pickReason = async (turnId: string, reason: string) => {
-    setReasonFor(null)
-    setTurns((prev) =>
-      (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedbackReason: reason } : t)),
-    )
-    try {
-      await rateHealthChatTurn(turnId, -1, reason)
-    } catch {
-      /* The rating itself already landed — a failed reason just leaves the
-         downvote unexplained. */
-      setTurns((prev) =>
-        (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedbackReason: null } : t)),
-      )
     }
   }
 
@@ -515,10 +546,19 @@ export function HealthChatPage() {
   }
   const startThread = async () => {
     if (sending) return
+    /* An untitled thread with no activity is empty — reuse it instead of
+       stacking another "Untitled conversation" the reader can't tell apart
+       or clean up. */
+    const empty = (threads ?? []).find((t) => t.title === null && !t.lastActivityAt)
+    if (empty) {
+      setThreadId(empty.id)
+      return
+    }
     try {
       const t = await newHealthChatThread()
       setThreads((prev) => [...(prev ?? []), t])
       setThreadId(t.id)
+      inputRef.current?.focus()
     } catch {
       showToast(HM.health_chat_error)
     }
@@ -540,60 +580,50 @@ export function HealthChatPage() {
   const threadName = threadId
     ? (activeThread?.title ?? x(HM.health_chat_thread_untitled))
     : x(HM.health_chat_thread_default)
+  const dayLabels = { today: x(HM.health_chat_day_today), yesterday: x(HM.health_chat_day_yesterday) }
+  const youLabel = lang === 'fr' ? 'Vous' : 'You'
+
+  /* Threads (and 'main') with activity newer than the reader's last-opened
+     stamp — dot on the switcher trigger and on the rows themselves. */
+  const otherActive = new Set<string>()
+  for (const [key, at] of Object.entries(chatActivity)) {
+    if (key === (threadId ?? 'main')) continue
+    if (at > (seenAt[key] ?? '')) otherActive.add(key)
+  }
+
+  /* Quiet a day? Offer the starters again under the tail — a stale
+     transcript otherwise gives nothing to tap. */
+  const lastTurnAt = turns?.length ? Date.parse(turns.at(-1)!.createdAt) : 0
+  const stale = turns !== null && turns.length > 0 && !sending && Date.now() - lastTurnAt > STALE_AFTER_MS
 
   return (
     <div className="sb hb sb-page">
-      <div className="sb-head-row">
-        <h1>{x(HM.health_chat_title)}</h1>
-        <div className="sbchat-head-actions">
-          <ThreadSwitcher
-            activeName={threadName}
-            threads={threads ?? []}
-            activeId={threadId}
-            disabled={sending}
-            labels={{
-              defaultThread: x(HM.health_chat_thread_default),
-              untitled: x(HM.health_chat_thread_untitled),
-              newThread: x(HM.health_chat_thread_new),
-            }}
-            buttonClass="sb-btn sb-btn-sm sb-btn-secondary"
-            listClass="sbchat-thread-list"
-            itemClass="sbchat-thread-item"
-            newItemClass="sbchat-thread-new"
-            onOpen={openThread}
-            onNew={() => void startThread()}
-          />
-          {turns !== null && turns.length > 0 && (
-            <button
-              type="button"
-              className="sb-btn sb-btn-sm sb-btn-secondary"
-              onClick={() => void clear()}
-              disabled={clearing || sending}
-            >
-              <Trash2 size={13} aria-hidden="true" />
-              {x(clearArmed ? HM.health_chat_clear_confirm : HM.health_chat_clear)}
-            </button>
-          )}
-        </div>
-      </div>
-      {/* Internal-staff tier — the edge function advises @dutiva.ca accounts
-          directly, so the not-a-therapist subtitle is joined by a badge that
-          makes the active register scannable. */}
-      <p className="sb-sub">
-        {x(isInternal ? HM.health_chat_sub_internal : HM.health_chat_sub)}
-        {isInternal && <span className="sbchat-tier">{x(HM.health_chat_internal_badge)}</span>}
-      </p>
-      {/* Data-source disclosure — she says what she reads. */}
-      <details className="sbchat-sees">
-        <summary>{x(HM.health_chat_sees)}</summary>
-        <p>{x(HM.health_chat_sees_list)}</p>
-      </details>
+      <HealthChatHeader
+        x={x}
+        isInternal={isInternal}
+        threadName={threadName}
+        threads={threads ?? []}
+        threadId={threadId}
+        sending={sending}
+        activity={otherActive}
+        hasTurns={turns !== null && turns.length > 0}
+        clearArmed={clearArmed}
+        clearing={clearing}
+        onOpen={openThread}
+        onNew={() => void startThread()}
+        onRename={(id, title) => void renameThread(id, title)}
+        onDelete={(id) => void removeThread(id)}
+        onExport={() => void exportChat()}
+        onClear={() => void clear()}
+      />
 
       <section className="sb-card sb-card-pad sbchat" style={{ marginTop: 14 }}>
         <div className="sbchat-log-wrap">
           <div
             className="sbchat-log"
             ref={logRef}
+            role="log"
+            aria-label={x(HM.health_chat_log_label)}
             aria-live="polite"
             aria-busy={turns === null || sending}
           >
@@ -615,7 +645,21 @@ export function HealthChatPage() {
               <>
                 <div className="sbchat-bubble assistant sbchat-ghost sbchat-g-a" aria-hidden="true" />
                 <div className="sbchat-bubble user sbchat-ghost sbchat-g-b" aria-hidden="true" />
+                <span className="sr-only">{x(HM.health_chat_loading)}</span>
               </>
+            ) : loadError ? (
+              /* The greeting can't claim a fresh start over turns that may
+                 exist — an honest error with a way back instead. */
+              <div className="sbchat-loaderr" role="alert">
+                <span>{x(HM.health_chat_load_failed)}</span>
+                <button
+                  type="button"
+                  className="sbchat-retry"
+                  onClick={() => void loadHistory(threadId)}
+                >
+                  {x(HM.health_chat_retry)}
+                </button>
+              </div>
             ) : turns.length === 0 ? (
               /* She speaks first — a greeting built locally from HealthState,
                  not a stored turn, so clearing history brings it back. The
@@ -623,200 +667,64 @@ export function HealthChatPage() {
                  typing. */
               <>
                 <div className="sbchat-bubble assistant">{companionGreeting(state, lang)}</div>
+                <p className="sbchat-starters-label">{x(HM.health_chat_starters_label)}</p>
                 <ChipRow
                   chips={starters}
                   className="sbchat-starters"
                   chipClass="sbchat-starter"
                   onPick={(s) => void sendText(s)}
                 />
+                <Link className="sbchat-recap" to="/health/insights?recap=1">
+                  {x(HM.health_chat_recap_link)}
+                </Link>
               </>
             ) : (
               turns.map((t, i) => {
                 const prev = i > 0 ? turns[i - 1] : undefined
-                const showDay = !prev || !sameTurnDay(prev.createdAt, t.createdAt)
-                const route = t.action?.ok ? actionRoute(t.action) : null
-                const isLastAssistant =
-                  t.role === 'assistant' && i === turns.length - 1 && UUID_RE.test(t.id)
                 return (
-                  <div key={t.id} style={{ display: 'contents' }}>
-                    {showDay && (
-                      <div className="sbchat-day" role="separator">
-                        <span>{formatTurnDay(t.createdAt, lang)}</span>
-                      </div>
-                    )}
-                    <div className={`sbchat-bubble ${t.role}`} data-failed={t.failed || undefined}>
-                      {t.role === 'assistant' && t.reasoning && (
-                        <ReasoningBlock
-                          text={t.reasoning}
-                          live={false}
-                          label={x(HM.health_chat_reasoning)}
-                          hint={x(HM.health_chat_reasoning_hint)}
-                          className="sbchat-sees sbchat-think"
-                          bodyClass="sbchat-think-body"
-                        >
-                          <Suspense fallback={t.reasoning}>
-                            <ChatMarkdown widgetSurface="health">{t.reasoning}</ChatMarkdown>
-                          </Suspense>
-                        </ReasoningBlock>
-                      )}
-                      {t.role === 'assistant' ? (
-                        <Suspense fallback={t.content}>
-                          <ChatMarkdown widgetSurface="health">{t.content}</ChatMarkdown>
-                        </Suspense>
-                      ) : (
-                        t.content
-                      )}
-                      {t.failed && (
-                        <span className="sbchat-bubble-meta">
-                          {x(HM.health_chat_error)}
-                          <button
-                            type="button"
-                            className="sbchat-retry"
-                            onClick={() => retry(t)}
-                          >
-                            <RotateCcw size={10} aria-hidden="true" /> {x(HM.health_chat_retry)}
-                          </button>
-                        </span>
-                      )}
-                      {t.action && (
-                        <span className="sbchat-chip" data-ok={t.action.ok ? 'true' : 'false'}>
-                          <Check size={11} aria-hidden="true" />
-                          {t.action.ok ? actionLabel(t.action, x) : x(HM.health_chat_action_failed)}
-                          {route && (
-                            <Link className="sbchat-chip-link" to={route}>
-                              {x(HM.health_chat_view)}
-                            </Link>
-                          )}
-                          {t.action.ok &&
-                            t.action.refId &&
-                            UUID_RE.test(t.id) &&
-                            (t.action.undone ? (
-                              <em className="sbchat-chip-undone">{x(HM.health_chat_undone)}</em>
-                            ) : (
-                              <button
-                                type="button"
-                                className="sbchat-chip-undo"
-                                disabled={undoing === t.id}
-                                onClick={() => void undo(t.id)}
-                              >
-                                {x(HM.health_chat_undo)}
-                              </button>
-                            ))}
-                        </span>
-                      )}
-                      {!t.failed && (
-                        <span className="sbchat-bubble-meta">
-                          <time>{formatTurnTime(t.createdAt, lang)}</time>
-                          {t.role === 'user' && (
-                            <button
-                              type="button"
-                              className="sbchat-rate-btn"
-                              aria-label={x(HM.health_chat_reuse)}
-                              title={x(HM.health_chat_reuse)}
-                              onClick={() => reuse(t)}
-                            >
-                              <CornerDownLeft size={12} aria-hidden="true" />
-                            </button>
-                          )}
-                          {t.role === 'assistant' && UUID_RE.test(t.id) && (
-                            <span className="sbchat-rate">
-                              <CopyTurnButton
-                                text={t.content}
-                                label={x(HM.health_chat_copy)}
-                                className="sbchat-rate-btn"
-                              />
-                              <button
-                                type="button"
-                                className="sbchat-rate-btn"
-                                aria-label={x(HM.health_chat_rate_up)}
-                                aria-pressed={t.feedback === 1}
-                                onClick={() => void rate(t.id, 1)}
-                              >
-                                <ThumbsUp size={12} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="sbchat-rate-btn"
-                                aria-label={x(HM.health_chat_rate_down)}
-                                aria-pressed={t.feedback === -1}
-                                onClick={() => void rate(t.id, -1)}
-                              >
-                                <ThumbsDown size={12} aria-hidden="true" />
-                              </button>
-                              {isLastAssistant && !sending && (
-                                <button
-                                  type="button"
-                                  className="sbchat-rate-btn"
-                                  aria-label={x(HM.health_chat_regenerate)}
-                                  title={x(HM.health_chat_regenerate)}
-                                  onClick={() => void regenerate()}
-                                >
-                                  <RefreshCw size={12} aria-hidden="true" />
-                                </button>
-                              )}
-                            </span>
-                          )}
-                        </span>
-                      )}
-                      {reasonFor === t.id && !t.feedbackReason && (
-                        <ReasonChips
-                          label={x(HM.health_chat_reason_label)}
-                          reasons={reasonChips}
-                          className="sbchat-reasons"
-                          chipClass="sbchat-reason"
-                          onPick={(r) => void pickReason(t.id, r)}
-                        />
-                      )}
-                    </div>
-                  </div>
+                  <HealthChatTurnRow
+                    key={t.id}
+                    t={t}
+                    showDay={!prev || !sameTurnDay(prev.createdAt, t.createdAt)}
+                    isLastAssistant={
+                      t.role === 'assistant' && i === turns.length - 1 && UUID_RE.test(t.id)
+                    }
+                    x={x}
+                    lang={lang}
+                    dayLabels={dayLabels}
+                    reasonChips={reasonChips}
+                    sending={sending}
+                    undoing={undoing}
+                    deleting={deleting}
+                    delArmed={delArmed}
+                    reasonFor={reasonFor}
+                    crisisDismissed={crisisDismissed.has(t.id)}
+                    onRetry={retry}
+                    onEditFailed={editFailed}
+                    onReuse={reuse}
+                    onRate={(id, rating) => void rate(id, rating)}
+                    onPickReason={(id, r) => void pickReason(id, r)}
+                    onDismissReasons={() => setReasonFor(null)}
+                    onRegenerate={() => void regenerate()}
+                    onUndo={(id) => void undo(id)}
+                    onRemoveTurn={(turn) => void removeTurn(turn)}
+                    onDismissCrisis={(id) =>
+                      setCrisisDismissed((prev) => new Set(prev).add(id))
+                    }
+                  />
                 )
               })
             )}
             {sending && (
-              <div className="sbchat-bubble assistant">
-                {streamedReasoning && (
-                  <ReasoningBlock
-                    text={streamedReasoning}
-                    live={sending}
-                    label={x(HM.health_chat_reasoning)}
-                    hint={x(HM.health_chat_reasoning_hint)}
-                    className="sbchat-sees sbchat-think"
-                    bodyClass="sbchat-think-body"
-                  >
-                    <Suspense fallback={streamedReasoning}>
-                      <ChatMarkdown widgetSurface="health" streaming>
-                        {streamedReasoning}
-                      </ChatMarkdown>
-                    </Suspense>
-                  </ReasoningBlock>
-                )}
-                {streamed ? (
-                  <Suspense fallback={streamed}>
-                    <ChatMarkdown widgetSurface="health" streaming>
-                      {streamed}
-                    </ChatMarkdown>
-                  </Suspense>
-                ) : streamedReasoning ? null : (
-                  <span className="sbchat-typing">
-                    <Loader2 size={12} className="animate-spin" aria-hidden="true" />
-                    {x(HM.health_chat_typing)}
-                  </span>
-                )}
-                <span className="sbchat-bubble-meta">
-                  <button
-                    type="button"
-                    className="sbchat-rate-btn sbchat-stop"
-                    aria-label={x(HM.health_chat_stop)}
-                    title={x(HM.health_chat_stop)}
-                    onClick={() => abortRef.current?.abort()}
-                  >
-                    <Square size={11} aria-hidden="true" />
-                    {x(HM.health_chat_stop)}
-                  </button>
-                </span>
-              </div>
+              <HealthChatPendingBubble
+                streamed={streamed}
+                streamedReasoning={streamedReasoning}
+                x={x}
+                onStop={() => abortRef.current?.abort()}
+              />
             )}
-            {/* Follow-up chips — the reply's own suggested next asks. */}
+            {/* Follow-up chips — the reply's own suggested next asks. On a
+                quiet-a-day transcript the starters resurface instead. */}
             {!sending && suggests.length > 0 && (
               <ChipRow
                 chips={suggests}
@@ -825,6 +733,18 @@ export function HealthChatPage() {
                 chipClass="sbchat-starter"
                 onPick={(s) => void sendText(s)}
               />
+            )}
+            {!sending && suggests.length === 0 && stale && (
+              <>
+                <p className="sbchat-starters-label">{x(HM.health_chat_starters_label)}</p>
+                <ChipRow
+                  chips={starters}
+                  label={x(HM.health_chat_starters_label)}
+                  className="sbchat-starters"
+                  chipClass="sbchat-starter"
+                  onPick={(s) => void sendText(s)}
+                />
+              </>
             )}
           </div>
           {farUp && (
@@ -838,40 +758,14 @@ export function HealthChatPage() {
           )}
         </div>
 
-        <div className="sbchat-compose">
-          <textarea
-            ref={inputRef}
-            className="sbchat-input"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              /* isComposing — an IME candidate confirmation Enter must not
-                 send the half-composed line. */
-              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault()
-                send()
-              }
-            }}
-            placeholder={x(HM.health_chat_placeholder)}
-            maxLength={1200}
-            rows={1}
-            aria-label={x(HM.health_chat_placeholder)}
-          />
-          <button
-            type="button"
-            className="sbchat-send"
-            onClick={send}
-            disabled={sending || !draft.trim()}
-            aria-label={x(HM.health_chat_send)}
-          >
-            <Send size={16} aria-hidden="true" />
-          </button>
-        </div>
-        <div className="sbchat-compose-meta">
-          <span>{x(HM.health_chat_enter_hint)}</span>
-          {draft.length > COUNT_FROM && <span>{draft.length}/1200</span>}
-        </div>
-        <p className="sbchat-note">{x(HM.health_crisis_note)}</p>
+        <HealthChatComposer
+          inputRef={inputRef}
+          draft={draft}
+          onDraft={setDraft}
+          onSend={send}
+          disabled={sending || turns === null || !draft.trim()}
+          x={x}
+        />
       </section>
     </div>
   )

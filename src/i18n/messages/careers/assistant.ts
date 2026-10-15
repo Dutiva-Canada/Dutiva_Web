@@ -88,6 +88,9 @@ export const careersAssistant = defineMessages({
   },
   careers_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
   careers_chat_rate_down: { en: 'Not helpful', fr: 'Pas utile' },
+  /* Day separators — relative when the turn is recent. [FR self-authored] */
+  careers_chat_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  careers_chat_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
   /* Empty-state starter chips — the third differs by tier.
      [FR self-authored] */
   careers_chat_starter_1: {

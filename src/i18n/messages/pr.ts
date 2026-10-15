@@ -700,6 +700,9 @@ export const prMessages = defineMessages({
   pr_chat_retry: { en: 'Retry', fr: 'Réessayer' },
   pr_chat_view: { en: 'View', fr: 'Voir' },
   pr_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  /* Day separators — relative when the turn is recent. [FR self-authored] */
+  pr_chat_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  pr_chat_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
   pr_chat_load_earlier: {
     en: 'Load earlier messages',
     fr: 'Charger les messages précédents',

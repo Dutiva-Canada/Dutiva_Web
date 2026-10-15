@@ -56,8 +56,22 @@ import {
  *                                             journal entry). Both turns persist
  *                                             to health_chat_messages.
  *   POST { kind:'chat_history', limit?, before?, threadId? } → { turns }
- *   POST { kind:'chat_threads' }         → { threads } — named conversations
+ *   POST { kind:'chat_threads' }         → { threads, activity }
+ *                                             — named conversations plus a
+ *                                             last-write stamp per thread
+ *                                             ('main' key for the default)
+ *                                             so the switcher can dot unseen
+ *                                             activity in other threads.
  *   POST { kind:'chat_thread_new' }      → { thread } — starts a named one
+ *   POST { kind:'chat_thread_rename', threadId, title } → { ok }
+ *   POST { kind:'chat_thread_delete', threadId } → { deleted: true }
+ *                                             — removes the thread AND its
+ *                                             messages.
+ *   POST { kind:'chat_turn_delete', messageId } → { deleted }
+ *                                             — removes one turn; a user
+ *                                             turn also takes the reply row
+ *                                             paired with it (persisted 1ms
+ *                                             later) so no answer dangles.
  *   POST { kind:'chat_regenerate', threadId? } → same payload as 'chat'
  *                                             — re-runs the thread's last
  *                                             user turn after deleting the
@@ -152,6 +166,9 @@ const handler = async (req: Request) => {
     kind !== 'chat_undo' &&
     kind !== 'chat_threads' &&
     kind !== 'chat_thread_new' &&
+    kind !== 'chat_thread_rename' &&
+    kind !== 'chat_thread_delete' &&
+    kind !== 'chat_turn_delete' &&
     kind !== 'chat_regenerate'
   ) {
     return json({ error: 'unknown kind' }, 400)
@@ -187,7 +204,21 @@ const handler = async (req: Request) => {
       .eq('user_id', portal.userId)
       .order('created_at', { ascending: true })
     if (error) return json({ error: error.message }, 500)
-    return json({ threads: data ?? [] })
+    /* Last-write stamp per conversation — a Mira reaction line lands in the
+       default thread no matter which one is open, so the switcher dots
+       threads the reader hasn't seen lately. 'main' is the default. */
+    const { data: recent } = await admin
+      .from('health_chat_messages')
+      .select('thread_id, created_at')
+      .eq('user_id', portal.userId)
+      .order('created_at', { ascending: false })
+      .limit(400)
+    const activity: Record<string, string> = {}
+    for (const row of (recent ?? []) as { thread_id: string | null; created_at: string }[]) {
+      const key = row.thread_id ?? 'main'
+      if (!activity[key] || row.created_at > activity[key]) activity[key] = row.created_at
+    }
+    return json({ threads: data ?? [], activity })
   }
   if (kind === 'chat_thread_new') {
     const { data, error } = await admin
@@ -197,6 +228,36 @@ const handler = async (req: Request) => {
       .single()
     if (error) return json({ error: error.message }, 500)
     return json({ thread: data })
+  }
+  /* threadId is already validated + ownership-checked above, so these two
+     kinds just do the write. An empty title resets to null — the thread
+     takes its name from the next first message. */
+  if (kind === 'chat_thread_rename') {
+    if (!threadId) return json({ error: 'threadId required' }, 400)
+    const title = typeof body.title === 'string' ? body.title.trim().slice(0, 80) : ''
+    const { error } = await admin
+      .from('health_chat_threads')
+      .update({ title: title || null })
+      .eq('id', threadId)
+      .eq('user_id', portal.userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ ok: true })
+  }
+  if (kind === 'chat_thread_delete') {
+    if (!threadId) return json({ error: 'threadId required' }, 400)
+    const { error: messagesError } = await admin
+      .from('health_chat_messages')
+      .delete()
+      .eq('user_id', portal.userId)
+      .eq('thread_id', threadId)
+    if (messagesError) return json({ error: messagesError.message }, 500)
+    const { error } = await admin
+      .from('health_chat_threads')
+      .delete()
+      .eq('id', threadId)
+      .eq('user_id', portal.userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ deleted: true })
   }
 
   /* The portal tracks habit "days" in the user's local timezone — the
@@ -269,6 +330,43 @@ const handler = async (req: Request) => {
     }
     return await runChatUndo(admin, portal.userId, messageId)
   }
+  if (kind === 'chat_turn_delete') {
+    /* One turn gone — the privacy escape that doesn't force wiping the
+       whole thread. A user turn also removes the reply persisted with it:
+       chat pairs are stamped exactly 1ms apart (persistChatTurns), while a
+       reaction line sits on its own timestamp and stays. */
+    const messageId = typeof body.messageId === 'string' ? body.messageId : ''
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(messageId)) {
+      return json({ error: 'messageId (uuid) required' }, 400)
+    }
+    const { data: row, error: readError } = await admin
+      .from('health_chat_messages')
+      .select('id, role, created_at')
+      .eq('id', messageId)
+      .eq('user_id', portal.userId)
+      .maybeSingle()
+    if (readError) return json({ error: readError.message }, 500)
+    if (!row) return json({ error: 'Turn not found' }, 404)
+    const ids = [row.id as string]
+    if (row.role === 'user') {
+      const pairAt = new Date(Date.parse(String(row.created_at)) + 1).toISOString()
+      const { data: reply } = await admin
+        .from('health_chat_messages')
+        .select('id')
+        .eq('user_id', portal.userId)
+        .eq('role', 'assistant')
+        .eq('created_at', pairAt)
+        .maybeSingle()
+      if (reply?.id) ids.push(reply.id as string)
+    }
+    const { error } = await admin
+      .from('health_chat_messages')
+      .delete()
+      .in('id', ids)
+      .eq('user_id', portal.userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ deleted: ids.length })
+  }
   /* stream:true answers Server-Sent Events instead of one JSON payload —
      see the module header for the event shapes. */
   const stream = body.stream === true
@@ -280,21 +378,41 @@ const handler = async (req: Request) => {
     return await runChat(admin, portal.userId, message, today, lang, stream, advice, threadId)
   }
   if (kind === 'chat_regenerate') {
-    /* Re-ask the thread's last user turn. The stale pair is only EXCLUDED
-       from the history window — the actual delete waits in afterPersist,
-       after the fresh pair lands, so a failed call loses nothing. */
+    /* Re-ask the thread's last user turn. Walk back the last page instead
+       of trusting the tail pair: a Mira reaction line is an assistant row
+       on its own timestamp, and a stopped send can leave a bare user turn
+       ahead of it. Chat pairs persist exactly 1ms apart, so a real
+       user→reply pair is identifiable by proximity — a reaction stays
+       untouched either way. The stale pair is only EXCLUDED from the
+       history window — the actual delete waits in afterPersist, after the
+       fresh pair lands, so a failed call loses nothing. */
     let q = admin
       .from('health_chat_messages')
-      .select('id, role, content')
+      .select('id, role, content, created_at')
       .eq('user_id', portal.userId)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
-    const { data: lastTwo, error } = await q
+    const { data: tail, error } = await q
       .order('created_at', { ascending: false })
-      .limit(2)
+      .limit(8)
     if (error) return json({ error: error.message }, 500)
-    const latest = lastTwo?.[0]
-    const prev = lastTwo?.[1]
-    if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
+    const rows = (tail ?? []).reverse()
+    let userIdx = -1
+    for (let i = rows.length - 1; i >= 0; i--) {
+      if (rows[i].role === 'user') {
+        userIdx = i
+        break
+      }
+    }
+    const prev = userIdx >= 0 ? rows[userIdx] : undefined
+    const latest = userIdx >= 0 ? rows[userIdx + 1] : undefined
+    /* >10s between a user turn and the next assistant row means that row
+       isn't the paired reply (pairs land 1ms apart). */
+    if (
+      !latest ||
+      !prev ||
+      latest.role !== 'assistant' ||
+      Date.parse(String(latest.created_at)) - Date.parse(String(prev.created_at)) > 10_000
+    ) {
       return json({ error: 'Nothing to regenerate' }, 409)
     }
     return await runChat(admin, portal.userId, prev.content, today, lang, stream, advice, threadId, {

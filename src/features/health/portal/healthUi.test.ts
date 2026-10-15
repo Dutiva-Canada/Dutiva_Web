@@ -121,7 +121,7 @@ describe('miraNoticed — the Overview strip', () => {
     }
     expect(miraNoticed(state, 'en', NOW)).toBe('“Stretch” paused after a 5-day streak.')
     expect(miraNoticed(state, 'fr', NOW)).toBe(
-      '« Stretch » a fait une pause après 5 jours de suite.',
+      '« Stretch » a fait une pause après 5 jours de suite.',
     )
   })
 

@@ -44,26 +44,104 @@ export async function hasHealthAccess(): Promise<boolean> {
   return !!data
 }
 
+/* Row caps — every stat the portal derives fits inside these windows
+   (14-day charts, streaks, today's ticks), so the fetch stays bounded as
+   the account ages. A check-in streak longer than CHECKIN_CAP days would
+   under-report at the cap's edge; journal gets a pager instead since
+   bodies are heavy and the archive is browsed. Totals come from head
+   counts so capped lists never show a wrong number. */
+const CHECKIN_CAP = 400
+const JOURNAL_CAP = 100
+const HABIT_CAP = 200
+const HABIT_LOG_CAP = 1500
+const MEMORY_CAP = 300
+export const JOURNAL_PAGE = 50
+
 export async function loadHealthState(): Promise<HealthState> {
   const client = requireSupabase()
-  const [checkInsRes, entriesRes, habitsRes, habitLogsRes, memoriesRes] = await Promise.all([
-    client.from('health_checkins').select('*').order('created_at', { ascending: false }),
-    client.from('health_journal_entries').select('*').order('created_at', { ascending: false }),
-    client.from('health_habits').select('*').order('created_at', { ascending: false }),
-    client.from('health_habit_logs').select('*').order('day', { ascending: false }),
-    client.from('health_memories').select('*').order('created_at', { ascending: false }),
+  const [
+    checkInsRes,
+    checkInsCountRes,
+    entriesRes,
+    entriesCountRes,
+    habitsRes,
+    habitLogsRes,
+    memoriesRes,
+    reviewRes,
+  ] = await Promise.all([
+    client
+      .from('health_checkins')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(CHECKIN_CAP),
+    client.from('health_checkins').select('id', { count: 'exact', head: true }),
+    client
+      .from('health_journal_entries')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(JOURNAL_CAP),
+    client.from('health_journal_entries').select('id', { count: 'exact', head: true }),
+    client
+      .from('health_habits')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(HABIT_CAP),
+    client
+      .from('health_habit_logs')
+      .select('*')
+      .order('day', { ascending: false })
+      .limit(HABIT_LOG_CAP),
+    client
+      .from('health_memories')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(MEMORY_CAP),
+    client
+      .from('agent_suggestions')
+      .select('id', { count: 'exact', head: true })
+      .eq('surface', 'health')
+      .eq('status', 'pending'),
   ])
-  for (const res of [checkInsRes, entriesRes, habitsRes, habitLogsRes, memoriesRes]) {
+  for (const res of [
+    checkInsRes,
+    checkInsCountRes,
+    entriesRes,
+    entriesCountRes,
+    habitsRes,
+    habitLogsRes,
+    memoriesRes,
+    reviewRes,
+  ]) {
     if (res.error) throw res.error
   }
   return {
     checkIns: (checkInsRes.data ?? []).map(checkInFromRow),
+    checkInsTotal: checkInsCountRes.count ?? undefined,
     entries: (entriesRes.data ?? []).map(journalFromRow),
+    entriesTotal: entriesCountRes.count ?? undefined,
     habits: (habitsRes.data ?? []).map(habitFromRow),
     habitLogs: (habitLogsRes.data ?? []).map(habitLogFromRow),
     memories: (memoriesRes.data ?? []).map(memoryFromRow),
+    pendingReview: reviewRes.count ?? undefined,
     lastLoadedAt: new Date().toISOString(),
   }
+}
+
+/** Older journal pages — the state fetch keeps the newest JOURNAL_CAP rows;
+    the journal's "load earlier" walks back from the oldest shown. */
+export async function listJournalEntriesBefore(
+  beforeIso: string,
+  limit: number = JOURNAL_PAGE,
+): Promise<HealthJournalEntry[]> {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('health_journal_entries')
+    .select('*')
+    .lt('created_at', beforeIso)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []).map(journalFromRow)
 }
 
 export async function addCheckIn(input: {
@@ -359,6 +437,24 @@ export interface HealthChatTurn {
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+  /** Client-only — the reader pressed Stop mid-stream; the partial reply
+      is kept but flagged so it can't pass for a complete answer. */
+  stopped?: boolean
+  /** Client-only — the sent message matched the distress screen; the page
+      pins the crisis line under the bubble until dismissed. */
+  distress?: boolean
+  /** What the reply could see, echoed back with it — the "drew on" line.
+      Only present on turns this session wrote; not persisted. */
+  contextUsed?: HealthChatContext | null
+}
+
+/** Row counts the reply was generated over — surfaced under fresh answers
+    as the "drew on" transparency line. Counts only, never content. */
+export interface HealthChatContext {
+  checkins: number
+  habits: number
+  memories: number
+  journals: number
 }
 
 /** A named conversation — the default thread (threadId null) always exists;
@@ -367,6 +463,9 @@ export interface HealthChatThread {
   id: string
   title: string | null
   createdAt: string
+  /** Newest message stamp in this thread — the switcher dots a thread whose
+      activity the reader hasn't opened yet. */
+  lastActivityAt?: string | null
 }
 
 /** Options every chat call shares — thread scope plus abort for the
@@ -399,6 +498,8 @@ export interface HealthChatSendResult {
   suggests: string[]
   /** The thinking trace behind the reply — null when none was emitted. */
   reasoning: string | null
+  /** What the reply could see — counts only, for the "drew on" line. */
+  context: HealthChatContext | null
 }
 
 function toHealthChatResult(raw: {
@@ -408,19 +509,29 @@ function toHealthChatResult(raw: {
   assistantId?: string | null
   suggests?: unknown
   reasoning?: unknown
+  context?: unknown
 }): HealthChatSendResult {
   if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
     throw new Error('Empty reply from health-ai')
   }
+  const c = raw.context as Partial<HealthChatContext> | null | undefined
   return {
     reply: raw.reply,
     action: raw.action ?? null,
     userId: raw.userId ?? null,
     assistantId: raw.assistantId ?? null,
     suggests: Array.isArray(raw.suggests)
-      ? raw.suggests.filter((s): s is string => typeof s === 'string').slice(0, 3)
+      ? [...new Set(raw.suggests.filter((s): s is string => typeof s === 'string'))].slice(0, 3)
       : [],
     reasoning: typeof raw.reasoning === 'string' && raw.reasoning ? raw.reasoning : null,
+    context: c && typeof c === 'object'
+      ? {
+          checkins: Number(c.checkins) || 0,
+          habits: Number(c.habits) || 0,
+          memories: Number(c.memories) || 0,
+          journals: Number(c.journals) || 0,
+        }
+      : null,
   }
 }
 
@@ -463,18 +574,30 @@ export async function regenerateHealthChat(
 }
 
 /** The user's named conversations — the default thread isn't listed; it's
-    always selectable as "main". */
-export async function listHealthChatThreads(): Promise<HealthChatThread[]> {
+    always selectable as "main". `activity` maps a thread id (or 'main')
+    to its newest message stamp — the switcher dots unseen activity. */
+export async function listHealthChatThreads(): Promise<{
+  threads: HealthChatThread[]
+  activity: Record<string, string>
+}> {
   const data = await invokeHealthAi({ kind: 'chat_threads' })
   const rows = (((data as { threads?: unknown } | null)?.threads ?? []) as Record<
     string,
     unknown
   >[])
-  return rows.map((r) => ({
-    id: String(r.id ?? ''),
-    title: typeof r.title === 'string' ? r.title : null,
-    createdAt: String(r.created_at ?? ''),
-  }))
+  const activity = ((data as { activity?: unknown } | null)?.activity ?? {}) as Record<
+    string,
+    string
+  >
+  return {
+    activity,
+    threads: rows.map((r) => ({
+      id: String(r.id ?? ''),
+      title: typeof r.title === 'string' ? r.title : null,
+      createdAt: String(r.created_at ?? ''),
+      lastActivityAt: typeof activity[String(r.id ?? '')] === 'string' ? activity[String(r.id)] : null,
+    })),
+  }
 }
 
 /** Start a named conversation — untitled until its first message lands. */
@@ -487,6 +610,23 @@ export async function newHealthChatThread(): Promise<HealthChatThread> {
     title: typeof t.title === 'string' ? t.title : null,
     createdAt: String(t.created_at ?? ''),
   }
+}
+
+/** Rename a named conversation — an empty title resets to untitled. */
+export async function renameHealthChatThread(threadId: string, title: string): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_thread_rename', threadId, title })
+}
+
+/** Delete a named conversation and its messages — the default thread can't
+    be deleted, only cleared. */
+export async function deleteHealthChatThread(threadId: string): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_thread_delete', threadId })
+}
+
+/** Delete one turn — the privacy escape short of clearing the thread. A
+    user turn also drops the reply row paired with it server-side. */
+export async function deleteHealthChatTurn(messageId: string): Promise<void> {
+  await invokeHealthAi({ kind: 'chat_turn_delete', messageId })
 }
 
 /** Reverses the write an assistant turn's action made — unmark the habit,

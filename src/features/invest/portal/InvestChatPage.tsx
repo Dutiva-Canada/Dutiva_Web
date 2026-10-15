@@ -583,6 +583,10 @@ export function InvestChatPage() {
   const threadName = threadId
     ? (activeThread?.title ?? x(IM.invest_chat_thread_untitled))
     : x(IM.invest_chat_thread_default)
+  const dayLabels = {
+    today: x(IM.invest_chat_day_today),
+    yesterday: x(IM.invest_chat_day_yesterday),
+  }
 
   return (
     <div className="sb sb-page">
@@ -695,7 +699,7 @@ export function InvestChatPage() {
                   <div key={t.id} style={{ display: 'contents' }}>
                     {showDay && (
                       <div className="sbchat-day" role="separator">
-                        <span>{formatTurnDay(t.createdAt, lang)}</span>
+                        <span>{formatTurnDay(t.createdAt, lang, dayLabels)}</span>
                       </div>
                     )}
                     <div className={`sbchat-bubble ${t.role}`} data-failed={t.failed || undefined}>

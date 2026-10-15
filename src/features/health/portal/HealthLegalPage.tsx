@@ -1,6 +1,6 @@
 import { Suspense, use } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Globe, Loader2, Mail } from 'lucide-react'
+import { ArrowLeft, Globe, Mail } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi, Lang } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -12,6 +12,7 @@ import {
 import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
 import { SUPPORT_CHANNELS, SUPPORT_HOURS } from '@/config/support'
 import { HealthFooter } from './HealthFooter'
+import { HealthLoading } from './HealthLoading'
 import { useHealthHead } from './useHealthHead'
 import { healthWellnessNotice } from './healthWellnessNotice'
 
@@ -99,13 +100,7 @@ export function HealthLegalPage() {
         {slug === 'wellness' ? (
           <PolicyArticle edition={healthWellnessNotice[lang]} />
         ) : (
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center py-[80px]">
-                <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-              </div>
-            }
-          >
+          <Suspense fallback={<HealthLoading />}>
             <DocArticle
               key={`${slug}:${lang}`}
               docSlug={slug as DocSlug}

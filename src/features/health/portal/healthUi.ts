@@ -38,16 +38,23 @@ export function energyLabel(value: number | null, lang: Lang): string {
 const dateFmt = (lang: Lang, opts: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', opts)
 
-/** "Oct 4, 3:30 p.m." — compact timestamp for check-in rows. */
-export function fmtDateTime(iso: string, lang: Lang): string {
+/** "Oct 4, 3:30 p.m." — compact timestamp for check-in rows. Adds the
+    year once the row isn't from this year, so old history stays legible. */
+export function fmtDateTime(iso: string, lang: Lang, now: Date = new Date()): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
   return dateFmt(lang, {
     month: 'short',
     day: 'numeric',
+    ...(d.getFullYear() !== now.getFullYear() ? { year: 'numeric' as const } : {}),
     hour: 'numeric',
     minute: '2-digit',
   }).format(d)
+}
+
+/** "Wednesday, October 15" — the orienting date line on Overview. */
+export function fmtToday(lang: Lang, now: Date = new Date()): string {
+  return dateFmt(lang, { weekday: 'long', month: 'long', day: 'numeric' }).format(now)
 }
 
 /** "Oct 4, 2026" — journal entry dates. */
@@ -170,7 +177,9 @@ export function miraNoticed(
     (c) => Date.parse(c.createdAt) >= now.getTime() - WEEK_MS,
   ).length
   if (weekCount >= 2) {
-    return pick(HM.health_chat_hi_checkins, lang).replace('{count}', String(weekCount))
+    /* The Overview strip's own wording — the greeting's "already" reads as
+       a hello, not an observation. */
+    return pick(HM.health_home_mira_week, lang).replace('{count}', String(weekCount))
   }
   /* Quiet-return: someone with a history who hasn't checked in for 3+ days.
      Never fires on a brand-new account — absence needs a relationship to
