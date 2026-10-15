@@ -2,7 +2,7 @@ import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Check, Loader2, RotateCcw } from 'lucide-react'
+import { Check, Loader2, RotateCcw, Volume2, VolumeX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { addJournalEntry, shareEntryWithMira } from '@/features/health/data/api'
@@ -46,12 +46,27 @@ const BREATH_MODES: readonly BreathMode[] = [
   },
 ]
 
+/* Phase cues — a soft WebAudio chime plus a short haptic pulse mark each
+   transition, so the exercise works with eyes closed. The AudioContext is
+   created inside the Start press (autoplay rules need the gesture); the
+   per-step effect only plays on a ready context. Persisted — one toggle
+   and the choice sticks. */
+const BREATH_CUES_KEY = 'dutiva:health:breath-cues'
+
 function BreathingCard() {
   const { x } = useI18n()
   const [modeId, setModeId] = useState<(typeof BREATH_MODES)[number]['id']>('box')
   const [running, setRunning] = useState(false)
   const [beat, setBeat] = useState({ step: 0, secs: BREATH_MODES[0]!.steps[0]![1] })
   const [cycles, setCycles] = useState(0)
+  const [cues, setCues] = useState(() => localStorage.getItem(BREATH_CUES_KEY) !== 'off')
+  const audioRef = useRef<AudioContext | null>(null)
+
+  const toggleCues = () =>
+    setCues((on) => {
+      localStorage.setItem(BREATH_CUES_KEY, on ? 'off' : 'on')
+      return !on
+    })
 
   const mode = BREATH_MODES.find((m) => m.id === modeId) ?? BREATH_MODES[0]!
   const steps = mode.steps
@@ -73,6 +88,35 @@ function BreathingCard() {
     return () => clearInterval(t)
   }, [running, steps])
 
+  /* The cue fires on the phase change itself — the countdown ticking over
+     is what an eyes-closed user needs marked. Inhale rises (660 Hz),
+     exhale settles (440 Hz), holds get a shorter, quieter blip. Audio and
+     haptics are a nicety wrapped in try/catch: neither may break the tool. */
+  useEffect(() => {
+    if (!running || !cues) return
+    const step = steps[beat.step]?.[0] ?? 'in'
+    try {
+      navigator.vibrate?.(step === 'in' ? 45 : step === 'out' ? 65 : 20)
+      const ctx = audioRef.current
+      if (ctx && ctx.state === 'running') {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.value = step === 'in' ? 660 : step === 'out' ? 440 : 520
+        const t = ctx.currentTime
+        const tail = step === 'hold-in' || step === 'hold-out' ? 0.35 : 0.8
+        gain.gain.setValueAtTime(0.0001, t)
+        gain.gain.exponentialRampToValueAtTime(step.startsWith('hold') ? 0.04 : 0.07, t + 0.03)
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + tail)
+        osc.connect(gain).connect(ctx.destination)
+        osc.start(t)
+        osc.stop(t + tail + 0.05)
+      }
+    } catch {
+      /* a silent tool still works — the circle and the count carry it */
+    }
+  }, [beat.step, running, cues, steps])
+
   /* Stop ends the session: the circle and count reset, but the cycle tally
      stays up — it's the record of what you just did. Starting again begins
      a fresh count. */
@@ -81,6 +125,19 @@ function BreathingCard() {
       setRunning(false)
       setBeat({ step: 0, secs: steps[0]?.[1] ?? 4 })
     } else {
+      /* AudioContext needs the press gesture to leave `suspended` — warm
+         it here so the first chime actually sounds. */
+      try {
+        const Ctor =
+          window.AudioContext ??
+          (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        if (Ctor) {
+          audioRef.current ??= new Ctor()
+          if (audioRef.current.state === 'suspended') void audioRef.current.resume()
+        }
+      } catch {
+        /* no audio stack — cues just stay silent */
+      }
       setCycles(0)
       setBeat({ step: 0, secs: steps[0]?.[1] ?? 4 })
       setRunning(true)
@@ -144,6 +201,20 @@ function BreathingCard() {
               onClick={toggle}
             >
               {x(running ? HM.health_tool_breath_stop : HM.health_tool_breath_start)}
+            </button>
+            <button
+              type="button"
+              className={`hb-pace ${cues ? 'is-on' : ''}`}
+              aria-pressed={cues}
+              title={x(HM.health_tool_breath_cues_hint)}
+              onClick={toggleCues}
+            >
+              {cues ? (
+                <Volume2 size={13} aria-hidden="true" />
+              ) : (
+                <VolumeX size={13} aria-hidden="true" />
+              )}
+              {x(HM.health_tool_breath_cues)}
             </button>
             {cycles > 0 && (
               <span className="sb-pill">

@@ -1,8 +1,8 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Copy, Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
+import { Copy, ImagePlus, Loader2, Pencil, Plus, Sparkles, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
@@ -10,10 +10,14 @@ import {
   addJournalEntry,
   deleteJournalEntry,
   healthAiPrompt,
+  journalImagesAvailable,
   listJournalEntriesBefore,
+  removeJournalImage,
   shareEntryWithMira,
+  signJournalImage,
   unshareEntryFromMira,
   updateJournalEntry,
+  uploadJournalImage,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useSessionDraft } from '@/components/chat/portalChatUtils'
@@ -30,6 +34,8 @@ function EntryEditor({
   initial,
   entryId,
   shared,
+  imagePath,
+  canPhoto,
   onDone,
   onSaved,
 }: {
@@ -38,10 +44,14 @@ function EntryEditor({
   /* Editing a shared entry changes what Mira reads — stated inline so the
      consent stays honest at the moment the shared text changes. */
   shared?: boolean
+  /** Existing attachment path (edit mode) — null/absent means none. */
+  imagePath?: string | null
+  /** Migration 0226 applied? Until then the attach UI simply isn't shown. */
+  canPhoto: boolean
   onDone: () => void
   /* Reports the written fields so an archived (paged `earlier`) row can
      sync its local copy — refresh() only refetches the newest window. */
-  onSaved?: (patch: { title: string; body: string; updatedAt: string }) => void
+  onSaved?: (patch: Partial<HealthJournalEntry>) => void
 }) {
   const { x } = useI18n()
   const { refresh } = useHealthData()
@@ -60,8 +70,59 @@ function EntryEditor({
   )
   const [saving, setSaving] = useState(false)
   const [armCancel, setArmCancel] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [photoCleared, setPhotoCleared] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [existingUrl, setExistingUrl] = useState<string | null>(null)
 
-  const dirty = body !== (initial?.body ?? '') || title !== (initial?.title ?? '')
+  /* The picked file previews via object URL — revoked on swap/unmount. */
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }, [previewUrl])
+
+  /* Edit mode shows the stored photo through a signed URL — the bucket is
+     private, so a plain path renders nothing. */
+  useEffect(() => {
+    if (!imagePath || photoCleared || photo) return
+    let live = true
+    signJournalImage(imagePath)
+      .then((u) => { if (live) setExistingUrl(u) })
+      .catch(() => {})
+    return () => { live = false }
+  }, [imagePath, photoCleared, photo])
+
+  const pickPhoto = (f: File | undefined) => {
+    if (!f) return
+    if (f.size > 5242880) {
+      showToast(HM.health_journal_photo_too_big)
+      return
+    }
+    if (!f.type.startsWith('image/')) {
+      showToast(HM.health_journal_photo_type)
+      return
+    }
+    setPreviewUrl((old) => {
+      if (old) URL.revokeObjectURL(old)
+      return URL.createObjectURL(f)
+    })
+    setPhoto(f)
+    setPhotoCleared(false)
+  }
+
+  const clearPhoto = () => {
+    setPhoto(null)
+    setPhotoCleared(true)
+    setPreviewUrl((old) => {
+      if (old) URL.revokeObjectURL(old)
+      return null
+    })
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const dirty =
+    body !== (initial?.body ?? '') ||
+    title !== (initial?.title ?? '') ||
+    photo !== null ||
+    photoCleared
   /* The requirement hint's id must be unique per editor — two rows open at
      once would otherwise both describe their button by the same node. */
   const reqId = entryId ? `hb-jb-req-${entryId}` : 'hb-jb-req'
@@ -70,27 +131,71 @@ function EntryEditor({
     const trimmed = body.trim()
     if (!trimmed || saving) return
     /* A save that changes nothing gets no write — and no false "Edited"
-       stamp on the row. */
-    if (entryId && trimmed === (initial?.body ?? '').trim() && title.trim() === initial?.title.trim()) {
+       stamp on the row. A photo pick/clear is a change on its own. */
+    if (
+      entryId &&
+      !photo &&
+      !photoCleared &&
+      trimmed === (initial?.body ?? '').trim() &&
+      title.trim() === initial?.title.trim()
+    ) {
       onDone()
       return
     }
     setSaving(true)
+    let photoFailed = false
     try {
       if (entryId) {
-        await updateJournalEntry(entryId, { title, body: trimmed })
+        /* Photo first, then the row — a failed upload leaves the old
+           attachment intact rather than a row pointing at nothing. */
+        let nextPath: string | null | undefined
+        if (photo) {
+          nextPath = await uploadJournalImage(entryId, photo)
+          if (imagePath) {
+            try {
+              await removeJournalImage(imagePath)
+            } catch {
+              /* an orphaned object is unreachable; the write still wins */
+            }
+          }
+        } else if (photoCleared && imagePath) {
+          nextPath = null
+          try {
+            await removeJournalImage(imagePath)
+          } catch {
+            /* same — orphan over blocking */
+          }
+        }
+        await updateJournalEntry(entryId, {
+          title,
+          body: trimmed,
+          ...(nextPath !== undefined ? { imagePath: nextPath } : {}),
+        })
         onSaved?.({
           title: title.trim(),
           body: trimmed,
           updatedAt: new Date().toISOString(),
+          ...(nextPath !== undefined ? { imagePath: nextPath } : {}),
         })
       } else {
-        await addJournalEntry({ title, body: trimmed })
+        const row = await addJournalEntry({ title, body: trimmed })
+        if (photo) {
+          /* The path needs the new row's id — insert, upload, link. A
+             failed photo keeps the entry; the toast says so plainly. */
+          try {
+            const p = await uploadJournalImage(row.id, photo)
+            await updateJournalEntry(row.id, { imagePath: p })
+          } catch {
+            photoFailed = true
+          }
+        }
       }
       /* refresh() never rejects — its failures surface as the layout's
          stale-data note, so awaiting it here can't false-report a save. */
       await refresh()
-      showToast(HM.health_journal_saved)
+      /* A photo failure and a save success are different news — report
+         the worse one, not both. */
+      showToast(photoFailed ? HM.health_journal_photo_failed : HM.health_journal_saved)
       /* Saved = the draft is consumed — leave no residue for the next open. */
       setTitle('')
       setBody('')
@@ -153,6 +258,47 @@ function EntryEditor({
           placeholder={x(HM.health_journal_body_ph)}
         />
       </div>
+      {canPhoto && (
+        <div className="sb-field" style={{ marginBottom: 0 }}>
+          <span className="sb-flabel">{x(HM.health_journal_photo_label)}</span>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
+            className="sr-only"
+            aria-label={x(HM.health_journal_photo_add)}
+            onChange={(e) => pickPhoto(e.target.files?.[0])}
+          />
+          {photo || (existingUrl && !photoCleared) ? (
+            <div className="hb-photo-edit">
+              <img
+                src={photo ? (previewUrl ?? undefined) : (existingUrl ?? undefined)}
+                alt={x(HM.health_journal_photo_alt).replace('{title}', title.trim() || x(HM.health_journal_untitled))}
+                className="hb-jthumb"
+              />
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                onClick={clearPhoto}
+              >
+                <X size={12} aria-hidden="true" />
+                {x(HM.health_journal_photo_remove)}
+              </button>
+            </div>
+          ) : (
+            <div>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                onClick={() => fileRef.current?.click()}
+              >
+                <ImagePlus size={13} aria-hidden="true" />
+                {x(HM.health_journal_photo_add)}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       {shared && <p className="sb-helper">{x(HM.health_journal_shared_edit_hint)}</p>}
       <div className="sb-form-actions" style={{ gap: 10 }}>
         <button
@@ -183,13 +329,46 @@ function EntryEditor({
   )
 }
 
+/** Signed-URL thumbnail for an entry's photo — the bucket is private, so
+    the path alone renders nothing; signing happens per mount and a failed
+    sign just hides the thumb. Click opens the full image in a new tab. */
+function JournalThumb({ path, alt }: { path: string; alt: string }) {
+  const { x } = useI18n()
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    let live = true
+    signJournalImage(path)
+      .then((u) => {
+        if (live) setSrc(u)
+      })
+      .catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [path])
+  if (!src) return null
+  return (
+    <a
+      href={src}
+      target="_blank"
+      rel="noreferrer"
+      title={x(HM.health_journal_photo_open)}
+    >
+      <img src={src} alt={alt} className="hb-jthumb" />
+    </a>
+  )
+}
+
 function EntryRow({
   entry,
+  canPhoto,
   onDeleted,
   onRestored,
   onPatched,
 }: {
   entry: HealthJournalEntry
+  /** Photo attach UI only exists once migration 0226's bucket does. */
+  canPhoto: boolean
   onDeleted: (id: string) => void
   onRestored: (id: string) => void
   /* Rows paged into `earlier` are local copies — refresh() never reaches
@@ -220,7 +399,18 @@ function EntryRow({
     queueDelete({
       key: `entry:${entry.id}`,
       message: fillBi(HM.health_undo_deleted, { label: title }),
-      commit: () => deleteJournalEntry(entry.id),
+      commit: async () => {
+        /* The file goes before the row — an orphaned object is
+           unreachable; a row pointing at nothing would render forever. */
+        if (entry.imagePath) {
+          try {
+            await removeJournalImage(entry.imagePath)
+          } catch {
+            /* unreachable is still gone */
+          }
+        }
+        await deleteJournalEntry(entry.id)
+      },
       onOptimistic: () => onDeleted(entry.id),
       onUndo: () => onRestored(entry.id),
       onCommitted: () => void refresh(),
@@ -270,6 +460,8 @@ function EntryRow({
           initial={{ title: entry.title, body: entry.body }}
           entryId={entry.id}
           shared={entry.sharedAt !== null}
+          imagePath={entry.imagePath}
+          canPhoto={canPhoto}
           onDone={() => setEditing(false)}
           onSaved={(patch) => onPatched(entry.id, patch)}
         />
@@ -288,6 +480,12 @@ function EntryRow({
           >
             {entry.body}
           </p>
+          {entry.imagePath && (
+            <JournalThumb
+              path={entry.imagePath}
+              alt={x(HM.health_journal_photo_alt).replace('{title}', title)}
+            />
+          )}
           {clampable && (
             <button
               type="button"
@@ -395,6 +593,19 @@ export function HealthJournalPage() {
      that's still on the server. */
   const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(new Set())
   const [exporting, setExporting] = useState(false)
+  /* Capability probe — the attach UI exists only once migration 0226's
+     bucket does. A repo-only merge shows no button rather than a broken
+     one. */
+  const [canPhoto, setCanPhoto] = useState(false)
+  useEffect(() => {
+    let live = true
+    void journalImagesAvailable().then((ok) => {
+      if (live) setCanPhoto(ok)
+    })
+    return () => {
+      live = false
+    }
+  }, [])
 
   /* /health/journal?new=1 — the Overview's "New journal entry" CTA lands
      here with the editor already open. Consume the param once so a later
@@ -476,7 +687,7 @@ export function HealthJournalPage() {
         .reverse()
         .map(
           (e) =>
-            `${e.title.trim() || x(HM.health_journal_untitled)} — ${fmtDate(e.createdAt, lang)}\n\n${e.body}`,
+            `${e.title.trim() || x(HM.health_journal_untitled)} — ${fmtDate(e.createdAt, lang)}\n\n${e.body}${e.imagePath ? `\n\n${x(HM.health_journal_photo_attached)}` : ''}`,
         )
         .join('\n\n—\n\n')
       await navigator.clipboard.writeText(text)
@@ -556,7 +767,7 @@ export function HealthJournalPage() {
               </span>
             </div>
           )}
-          <EntryEditor onDone={closeComposer} />
+          <EntryEditor canPhoto={canPhoto} onDone={closeComposer} />
         </section>
       )}
 
@@ -628,6 +839,7 @@ export function HealthJournalPage() {
                   <EntryRow
                     key={e.id}
                     entry={e}
+                    canPhoto={canPhoto}
                     onDeleted={(id) =>
                       setDeletedIds((cur) => new Set(cur).add(id))
                     }

@@ -23,6 +23,10 @@ export interface HealthJournalEntry {
   /** When the person pressed "Let Mira read this" — null means the entry
       stays private and its excerpt never reaches her context. */
   sharedAt: string | null
+  /** Storage path inside the private `health-journal-images` bucket —
+      never the image bytes. Absent on rows fetched before migration
+      0226's column existed. */
+  imagePath?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -86,6 +90,7 @@ export function journalFromRow(row: JournalRow): HealthJournalEntry {
     title: row.title,
     body: row.body,
     sharedAt: row.shared_at,
+    imagePath: row.image_path ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }

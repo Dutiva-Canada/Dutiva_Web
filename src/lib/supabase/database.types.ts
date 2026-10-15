@@ -7847,6 +7847,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          image_path: string | null
           shared_at: string | null
           title: string
           updated_at: string
@@ -7856,6 +7857,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          image_path?: string | null
           shared_at?: string | null
           title?: string
           updated_at?: string
@@ -7865,6 +7867,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          image_path?: string | null
           shared_at?: string | null
           title?: string
           updated_at?: string

@@ -301,6 +301,23 @@ describe('HealthToolsPage — tabs', () => {
     expect(await screen.findByRole('heading', { name: 'Box breathing' })).toBeInTheDocument()
   })
 
+  it('the chime toggle persists and survives jsdom having no audio stack', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
+    const user = userEvent.setup()
+    renderTools()
+    const cues = await screen.findByRole('button', { name: /Chime/ })
+    expect(cues).toHaveAttribute('aria-pressed', 'true')
+    await user.click(cues)
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+    expect(localStorage.getItem('dutiva:health:breath-cues')).toBe('off')
+    /* Start must work with no AudioContext and no vibrate — the tool is
+       visual first, cues are the nicety. Asserting "Stop" (not a phase
+       label) — the first phase may already have ticked past. */
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+    expect(await screen.findByRole('button', { name: 'Stop' })).toBeInTheDocument()
+    localStorage.removeItem('dutiva:health:breath-cues')
+  })
+
   it('switching back to exercises keeps the exercises cards', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
     const user = userEvent.setup()

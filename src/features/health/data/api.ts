@@ -255,7 +255,7 @@ export async function addJournalEntry(input: {
 
 export async function updateJournalEntry(
   id: string,
-  patch: { title?: string; body?: string },
+  patch: { title?: string; body?: string; imagePath?: string | null },
 ): Promise<void> {
   const client = requireSupabase()
   const { error } = await client
@@ -263,9 +263,73 @@ export async function updateJournalEntry(
     .update({
       ...(patch.title !== undefined ? { title: patch.title.trim() } : {}),
       ...(patch.body !== undefined ? { body: patch.body.trim() } : {}),
+      ...(patch.imagePath !== undefined ? { image_path: patch.imagePath } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
+  if (error) throw error
+}
+
+/* ---------- journal photo attachments ----------
+
+   One photo per entry, stored in the private `health-journal-images`
+   bucket at `<uid>/<entry>/<file>`; the row's `image_path` column is the
+   link. The bucket and its policies ship in migration 0226 — until it's
+   applied, `journalImagesAvailable()` answers false and the UI simply
+   doesn't offer photos (no dead button pointing at a missing bucket).
+   Nothing here ever reaches Mira: her context is text excerpts only. */
+
+const JOURNAL_IMAGE_BUCKET = 'health-journal-images'
+let journalImageCapable: boolean | null = null
+
+/** One-shot capability probe — a private bucket that doesn't exist yet
+    answers with an error, and that's cached for the session. */
+export async function journalImagesAvailable(): Promise<boolean> {
+  if (journalImageCapable !== null) return journalImageCapable
+  try {
+    const client = requireSupabase()
+    const userId = await requireUserId()
+    const { error } = await client.storage
+      .from(JOURNAL_IMAGE_BUCKET)
+      .list(userId, { limit: 1 })
+    journalImageCapable = !error
+  } catch {
+    journalImageCapable = false
+  }
+  return journalImageCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetJournalImagesProbe() {
+  journalImageCapable = null
+}
+
+const JOURNAL_IMAGE_MAX = 5242880 // keep in step with the bucket limit
+
+export async function uploadJournalImage(entryId: string, file: File): Promise<string> {
+  if (file.size > JOURNAL_IMAGE_MAX) throw new Error('journal image too large')
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const ext = file.name.includes('.') ? (file.name.split('.').pop() ?? 'jpg') : 'jpg'
+  const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext.toLowerCase()}`
+  const { error } = await client.storage.from(JOURNAL_IMAGE_BUCKET).upload(path, file)
+  if (error) throw error
+  return path
+}
+
+/** Six hours — long enough that a written session won't see a thumb die. */
+export async function signJournalImage(path: string): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.storage
+    .from(JOURNAL_IMAGE_BUCKET)
+    .createSignedUrl(path, 21600)
+  if (error || !data?.signedUrl) throw error ?? new Error('No signed URL')
+  return data.signedUrl
+}
+
+export async function removeJournalImage(path: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.storage.from(JOURNAL_IMAGE_BUCKET).remove([path])
   if (error) throw error
 }
 

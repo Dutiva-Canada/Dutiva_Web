@@ -20,6 +20,10 @@ vi.mock('@/features/health/data/api', async (importOriginal) => ({
   shareEntryWithMira: vi.fn(),
   unshareEntryFromMira: vi.fn(),
   healthAiPrompt: vi.fn(),
+  journalImagesAvailable: vi.fn().mockResolvedValue(false),
+  uploadJournalImage: vi.fn(),
+  signJournalImage: vi.fn(),
+  removeJournalImage: vi.fn(),
 }))
 
 const api = await import('@/features/health/data/api')
@@ -337,5 +341,99 @@ describe('HealthJournalPage', () => {
     expect(text).toContain('old words')
     expect(text).toContain('new words')
     expect(text.indexOf('old words')).toBeLessThan(text.indexOf('new words'))
+  })
+
+  it('hides the photo control until the storage bucket exists', async () => {
+    vi.mocked(api.journalImagesAvailable).mockResolvedValue(false)
+    renderJournal(stateWith(), '/health/journal?new=1')
+    await screen.findByLabelText(/^Entry$/)
+    await vi.waitFor(() => expect(api.journalImagesAvailable).toHaveBeenCalled())
+    expect(
+      screen.queryByRole('button', { name: /Add a photo/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('attaches a photo on save — insert, upload, then link', async () => {
+    vi.mocked(api.journalImagesAvailable).mockResolvedValue(true)
+    vi.mocked(api.addJournalEntry).mockResolvedValue(entry('e1'))
+    vi.mocked(api.uploadJournalImage).mockResolvedValue('u1/e1/f.jpg')
+    vi.mocked(api.updateJournalEntry).mockResolvedValue()
+    const create = vi.fn().mockReturnValue('blob:preview')
+    const revoke = vi.fn()
+    Object.defineProperty(URL, 'createObjectURL', { value: create, configurable: true })
+    Object.defineProperty(URL, 'revokeObjectURL', { value: revoke, configurable: true })
+
+    renderJournal(stateWith(), '/health/journal?new=1')
+    fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'photo day' } })
+    fireEvent.change(await screen.findByLabelText(/Add a photo/), {
+      target: { files: [new File(['x'], 'walk.jpg', { type: 'image/jpeg' })] },
+    })
+    expect(screen.getByAltText(/Photo attached/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Save entry/i }))
+    await screen.findByText(/Entry saved/)
+    expect(api.uploadJournalImage).toHaveBeenCalledWith('e1', expect.any(File))
+    expect(api.updateJournalEntry).toHaveBeenCalledWith('e1', { imagePath: 'u1/e1/f.jpg' })
+  })
+
+  it('reports a photo upload that fails while the entry itself saves', async () => {
+    vi.mocked(api.journalImagesAvailable).mockResolvedValue(true)
+    vi.mocked(api.addJournalEntry).mockResolvedValue(entry('e1'))
+    vi.mocked(api.uploadJournalImage).mockRejectedValue(new Error('bucket missing'))
+    Object.defineProperty(URL, 'createObjectURL', {
+      value: vi.fn().mockReturnValue('blob:preview'),
+      configurable: true,
+    })
+    renderJournal(stateWith(), '/health/journal?new=1')
+    fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'x' } })
+    fireEvent.change(await screen.findByLabelText(/Add a photo/), {
+      target: { files: [new File(['x'], 'p.jpg', { type: 'image/jpeg' })] },
+    })
+    fireEvent.click(screen.getByRole('button', { name: /Save entry/i }))
+    /* The honest toast — not a silent drop, not a false "saved" alone. */
+    expect(
+      await screen.findByText(/the photo didn’t upload/i),
+    ).toBeInTheDocument()
+  })
+
+  it('renders a stored photo as a signed thumbnail', async () => {
+    vi.mocked(api.signJournalImage).mockResolvedValue('https://cdn.example/signed.jpg')
+    renderJournal(
+      stateWith({
+        entries: [entry('e1', { title: 'Lake', imagePath: 'u1/e1/lake.jpg' })],
+      }),
+    )
+    const img = await screen.findByAltText(/Photo attached to “Lake”/)
+    expect(img).toHaveAttribute('src', 'https://cdn.example/signed.jpg')
+  })
+
+  it('marks photo entries in the copy-all transcript', async () => {
+    const write = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: write },
+      configurable: true,
+    })
+    renderJournal(
+      stateWith({
+        entries: [entry('e1', { title: 'New', body: 'new words', imagePath: 'u1/e1/x.jpg' })],
+      }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: /Copy all/ }))
+    expect(await screen.findByText(/Entries copied/)).toBeInTheDocument()
+    expect(String(write.mock.calls[0]?.[0] ?? '')).toContain('(photo attached)')
+  })
+
+  it('delete cleans up the stored photo before removing the row', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.mocked(api.removeJournalImage).mockResolvedValue()
+    vi.mocked(api.deleteJournalEntry).mockResolvedValue()
+    renderJournal(
+      stateWith({ entries: [entry('e1', { title: 'Hi', imagePath: 'u1/e1/x.jpg' })] }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: /Delete “Hi”/ }))
+    await vi.advanceTimersByTimeAsync(6400)
+    await vi.waitFor(() => {
+      expect(api.removeJournalImage).toHaveBeenCalledWith('u1/e1/x.jpg')
+      expect(api.deleteJournalEntry).toHaveBeenCalledWith('e1')
+    })
   })
 })

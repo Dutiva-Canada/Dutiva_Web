@@ -276,6 +276,30 @@ export const healthMessages = defineMessages({
     en: 'Couldn’t copy — try again.',
     fr: 'Copie impossible — réessayez.',
   },
+  /* Photo attachments — one optional image per entry, private bucket,
+     gated on migration 0226 actually existing. Never reaches Mira: her
+     context stays text-only. [FR self-authored] */
+  health_journal_photo_label: { en: 'Photo (optional)', fr: 'Photo (facultative)' },
+  health_journal_photo_add: { en: 'Add a photo', fr: 'Ajouter une photo' },
+  health_journal_photo_remove: { en: 'Remove photo', fr: 'Retirer la photo' },
+  health_journal_photo_open: { en: 'Open the photo full size', fr: 'Ouvrir la photo en grand' },
+  health_journal_photo_alt: {
+    en: 'Photo attached to “{title}”',
+    fr: 'Photo jointe à « {title} »',
+  },
+  health_journal_photo_failed: {
+    en: 'Entry saved, but the photo didn’t upload — edit the entry to try again.',
+    fr: 'Entrée enregistrée, mais la photo n’a pas été téléversée — modifiez l’entrée pour réessayer.',
+  },
+  health_journal_photo_too_big: {
+    en: 'That photo is over 5 MB — pick a smaller one.',
+    fr: 'Cette photo dépasse 5 Mo — choisissez-en une plus petite.',
+  },
+  health_journal_photo_type: {
+    en: 'That file isn’t a supported photo (JPEG, PNG, WebP, GIF, HEIC).',
+    fr: 'Ce fichier n’est pas une photo prise en charge (JPEG, PNG, WebP, GIF, HEIC).',
+  },
+  health_journal_photo_attached: { en: '(photo attached)', fr: '(photo jointe)' },
   health_journal_filter_shared: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
   health_journal_shared_edit_hint: {
     en: 'Shared — Mira reads the latest saved version.',
@@ -702,6 +726,13 @@ export const healthMessages = defineMessages({
   health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
   health_tool_breath_mode_label: { en: 'Pace', fr: 'Rythme' },
   health_tool_breath_mode_box: { en: 'Box', fr: 'Carrée' },
+  /* The eyes-closed affordance — a soft tone and a short pulse mark each
+     phase change so the screen can go unread. [FR self-authored] */
+  health_tool_breath_cues: { en: 'Chime', fr: 'Carillon' },
+  health_tool_breath_cues_hint: {
+    en: 'A soft tone — and a short pulse on phones — marks each phase change.',
+    fr: 'Une note douce — et une courte vibration sur mobile — marque chaque changement de phase.',
+  },
   health_tool_breath_nudge: {
     en: 'A few rounds in — a good place to pause, or keep going.',
     fr: 'Quelques cycles — un bon moment pour faire une pause, ou continuer.',

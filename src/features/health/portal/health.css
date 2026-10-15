@@ -543,6 +543,33 @@ a.sb-stat-link:focus-visible {
   margin-top: 14px;
 }
 
+/* Journal photo attachment — a small thumb in the list (opens full size
+   via signed URL) and the same frame in the editor's pick state. */
+.hb-jthumb {
+  display: block;
+  max-width: 160px;
+  max-height: 120px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--sb-line);
+  object-fit: cover;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+a > .hb-jthumb:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--hb-shadow-card);
+}
+.hb-photo-edit {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.hb-photo-edit .hb-jthumb {
+  margin-top: 0;
+}
+
 /* Consent state on a journal row — an ok-pill, not a button. */
 .hb-share-pill {
   display: inline-flex;
@@ -789,6 +816,9 @@ a.sb-stat-link:focus-visible {
 
 /* Breath pace chips — a quiet pill toggle over the breathing circle. */
 .hb-pace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: 999px;
   border: 1.5px solid var(--sb-line);
