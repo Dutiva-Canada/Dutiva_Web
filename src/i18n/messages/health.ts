@@ -329,6 +329,10 @@ export const healthMessages = defineMessages({
     fr: 'Des tendances tirées de vos propres points du jour — des observations, pas une évaluation.',
   },
   health_ins_mood_14d: { en: 'Mood over the last 14 days', fr: 'Humeur des 14 derniers jours' },
+  health_ins_energy_14d: {
+    en: 'Energy over the last 14 days',
+    fr: 'Énergie des 14 derniers jours',
+  },
   /* The averages and the chart now share per-day semantics — label carries
      the window so the three windows on the page stay legible. */
   health_ins_avg_mood: { en: 'Average mood (30 days)', fr: 'Humeur moyenne (30 jours)' },
@@ -347,6 +351,11 @@ export const healthMessages = defineMessages({
     en: '{logged} of {total} days logged',
     fr: '{logged} jours pointés sur {total}',
   },
+  /* [FR self-authored] */
+  health_ins_chart_summary_energy: {
+    en: '{logged} of {total} days logged · average energy {avg}',
+    fr: '{logged} jours pointés sur {total} · énergie moyenne {avg}',
+  },
   health_ins_checkin_cta: { en: 'Check in now', fr: 'Pointer maintenant' },
   /* Tooltip on an empty chart day — distinguishes "nothing logged" from a
      genuinely low day. [FR self-authored] */
@@ -358,6 +367,12 @@ export const healthMessages = defineMessages({
   health_ins_no_data: {
     en: 'Nothing to chart yet. A few check-ins will start to show a pattern.',
     fr: 'Rien à afficher pour l’instant. Quelques points du jour commenceront à dessiner une tendance.',
+  },
+  /* Check-ins exist but the 14-day window is empty — different from never
+     having checked in; the chart can restart, not start. [FR self-authored] */
+  health_ins_no_data_window: {
+    en: 'No check-ins in the last 14 days — your next one restarts the chart.',
+    fr: 'Aucun point du jour dans les 14 derniers jours — votre prochain point relance le graphique.',
   },
   health_ins_low_day: { en: 'Toughest day this week', fr: 'Journée la plus difficile cette semaine' },
   health_ins_best_day: { en: 'Best day this week', fr: 'Meilleure journée cette semaine' },

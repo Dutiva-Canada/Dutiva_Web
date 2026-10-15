@@ -214,14 +214,14 @@ describe('healthStats', () => {
   it('produces one slot per day, null where no check-in exists', () => {
     const days = dailyMoods([ci(4, 0)], 3)
     expect(days).toHaveLength(3)
-    expect(days[2]?.mood).toBe(4)
-    expect(days[0]?.mood).toBeNull()
+    expect(days[2]?.value).toBe(4)
+    expect(days[0]?.value).toBeNull()
   })
 
   it('finds best and toughest days', () => {
     const { best, toughest } = moodRange([ci(5, 0), ci(1, 1)], 7)
-    expect(best?.mood).toBe(5)
-    expect(toughest?.mood).toBe(1)
+    expect(best?.value).toBe(5)
+    expect(toughest?.value).toBe(1)
     expect(moodRange([], 7).best).toBeNull()
   })
 

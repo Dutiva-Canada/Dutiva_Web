@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Info, Loader2, Sparkles, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
+import type { Lang } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { healthAiRecap } from '@/features/health/data/api'
@@ -12,9 +13,11 @@ import {
   avgEnergy,
   avgMood,
   checkInStreak,
+  dailyEnergies,
   dailyMoods,
   hasCheckInToday,
   moodRange,
+  type DayMetric,
 } from '@/features/health/data/healthStats'
 import { energyLabel, fmtDay, moodLabel } from './healthUi'
 import { HealthDataError } from './HealthDataError'
@@ -22,6 +25,56 @@ import { HealthLoading } from './HealthLoading'
 import { useHealthHead } from './useHealthHead'
 
 const CHART_DAYS = 14
+
+/* One metric's 14-day strip — mood and energy share the markup, differing
+   in palette (data-mood / data-energy ramps), legend labels and the
+   tooltip wording. Bars stay decorative: the role="img" label carries the
+   count-and-average summary to AT. */
+function DayChart({
+  days,
+  kind,
+  lang,
+  legend,
+  chartLabel,
+  dayLabel,
+  emptyDayLabel,
+}: {
+  days: DayMetric[]
+  kind: 'mood' | 'energy'
+  lang: Lang
+  legend: string
+  chartLabel: string
+  dayLabel: (d: DayMetric) => string
+  emptyDayLabel: (d: DayMetric) => string
+}) {
+  return (
+    <>
+      <p className="sb-helper" style={{ margin: '0 0 8px' }}>
+        {legend}
+      </p>
+      <div className="hb-chart" role="img" aria-label={chartLabel}>
+        {days.map((d, i) => {
+          /* Bare day numbers read oddly across a month boundary —
+             the first bar and each month rollover get the full label. */
+          const monthEdge = i === 0 || d.day.endsWith('-01')
+          return (
+            <div key={d.day} className="hb-bar">
+              <div
+                className="hb-bar-fill"
+                {...(d.value == null ? { 'data-empty': true } : { [`data-${kind}`]: Math.round(d.value) })}
+                style={{ height: `${d.value == null ? 6 : 14 + ((d.value - 1) / 4) * 86}%` }}
+                title={d.value == null ? emptyDayLabel(d) : dayLabel(d)}
+              />
+              <span className={`hb-bar-day${monthEdge ? ' is-month' : ''}`}>
+                {monthEdge ? fmtDay(d.day, lang) : d.day.split('-')[2]}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
 
 export function HealthInsightsPage() {
   const { x, lang } = useI18n()
@@ -79,6 +132,7 @@ export function HealthInsightsPage() {
   const streak = checkInStreak(checkIns)
   const streakPending = streak > 0 && !hasCheckInToday(checkIns)
   const days = dailyMoods(checkIns, CHART_DAYS)
+  const energyDays = dailyEnergies(checkIns, CHART_DAYS)
   const { best, toughest } = moodRange(checkIns, 7)
   /* A single logged day is both best and toughest — show it once. */
   const sameDay = best != null && toughest != null && best.day === toughest.day
@@ -86,12 +140,14 @@ export function HealthInsightsPage() {
   const checkInTotal = state.checkInsTotal ?? checkIns.length
   const entryTotal = state.entriesTotal ?? state.entries.length
 
-  /* Spoken summary for the chart — the bars are decoration; AT gets the
-     data, not a repeated heading. */
-  const loggedDays = days.filter((d) => d.mood != null)
+  /* Spoken summary for each chart — the bars are decoration; AT gets the
+     data, not a repeated heading. The energy strip only renders when at
+     least one day recorded it — an all-empty energy chart is noise, not
+     a prompt (energy is optional on the check-in). */
+  const loggedDays = days.filter((d) => d.value != null)
   const chartAvg =
     loggedDays.length > 0
-      ? loggedDays.reduce((s, d) => s + (d.mood ?? 0), 0) / loggedDays.length
+      ? loggedDays.reduce((s, d) => s + (d.value ?? 0), 0) / loggedDays.length
       : null
   const chartLabel = (chartAvg != null
     ? x(HM.health_ins_chart_summary)
@@ -100,6 +156,18 @@ export function HealthInsightsPage() {
   )
     .replace('{logged}', String(loggedDays.length))
     .replace('{total}', String(CHART_DAYS))
+  const loggedEnergyDays = energyDays.filter((d) => d.value != null)
+  const energyChartAvg =
+    loggedEnergyDays.length > 0
+      ? loggedEnergyDays.reduce((s, d) => s + (d.value ?? 0), 0) / loggedEnergyDays.length
+      : null
+  const energyChartLabel =
+    energyChartAvg == null
+      ? ''
+      : x(HM.health_ins_chart_summary_energy)
+          .replace('{avg}', `${+energyChartAvg.toFixed(1)}`)
+          .replace('{logged}', String(loggedEnergyDays.length))
+          .replace('{total}', String(CHART_DAYS))
 
   const fmtAvg = (v: number) => `${+v.toFixed(1)}`
 
@@ -204,9 +272,16 @@ export function HealthInsightsPage() {
         <h2>{x(HM.health_ins_mood_14d)}</h2>
       </div>
       <section className="sb-card sb-card-pad">
-        {!hasData ? (
+        {/* The gate is the chart's own data, not "any data" — a journal-
+            only account (or one whose check-ins all predate the window)
+            used to render fourteen invisible empty slivers here. */}
+        {loggedDays.length === 0 ? (
           <div className="sb-empty">
-            {x(HM.health_ins_no_data)}
+            {x(
+              checkIns.length === 0
+                ? HM.health_ins_no_data
+                : HM.health_ins_no_data_window,
+            )}
             <div style={{ marginTop: 10 }}>
               <Link to="/health/check-in" className="sb-btn sb-btn-sm sb-btn-secondary">
                 {x(HM.health_ins_checkin_cta)}
@@ -215,35 +290,17 @@ export function HealthInsightsPage() {
           </div>
         ) : (
           <>
-            <p className="sb-helper" style={{ margin: '0 0 8px' }}>
-              1 = {moodLabel(1, lang)} · 5 = {moodLabel(5, lang)}
-            </p>
-            <div className="hb-chart" role="img" aria-label={chartLabel}>
-              {days.map((d, i) => {
-                /* Bare day numbers read oddly across a month boundary —
-                   the first bar and each month rollover get the full label. */
-                const monthEdge = i === 0 || d.day.endsWith('-01')
-                return (
-                  <div key={d.day} className="hb-bar">
-                    <div
-                      className="hb-bar-fill"
-                      {...(d.mood == null
-                        ? { 'data-empty': true }
-                        : { 'data-mood': d.mood })}
-                      style={{ height: `${d.mood == null ? 6 : 14 + ((d.mood - 1) / 4) * 86}%` }}
-                      title={
-                        d.mood == null
-                          ? x(HM.health_ins_day_none).replace('{day}', fmtDay(d.day, lang))
-                          : `${fmtDay(d.day, lang)}: ${moodLabel(d.mood, lang)}`
-                      }
-                    />
-                    <span className={`hb-bar-day${monthEdge ? ' is-month' : ''}`}>
-                      {monthEdge ? fmtDay(d.day, lang) : d.day.split('-')[2]}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
+            <DayChart
+              days={days}
+              kind="mood"
+              lang={lang}
+              legend={`1 = ${moodLabel(1, lang)} · 5 = ${moodLabel(5, lang)}`}
+              chartLabel={chartLabel}
+              dayLabel={(d) => `${fmtDay(d.day, lang)}: ${moodLabel(d.value, lang)}`}
+              emptyDayLabel={(d) =>
+                x(HM.health_ins_day_none).replace('{day}', fmtDay(d.day, lang))
+              }
+            />
             {(best || toughest) && (
               <div className="hb-rows" role="list" style={{ marginTop: 14 }}>
                 {best && (
@@ -252,8 +309,8 @@ export function HealthInsightsPage() {
                       <p className="hb-row-title">{x(HM.health_ins_best_day)}</p>
                       <span className="hb-row-meta">
                         {fmtDay(best.day, lang)}{' '}
-                        <span className="hb-mood-dot" data-mood={best.mood}>
-                          {moodLabel(best.mood, lang)}
+                        <span className="hb-mood-dot" data-mood={best.value}>
+                          {moodLabel(best.value, lang)}
                         </span>
                       </span>
                     </div>
@@ -265,8 +322,8 @@ export function HealthInsightsPage() {
                       <p className="hb-row-title">{x(HM.health_ins_low_day)}</p>
                       <span className="hb-row-meta">
                         {fmtDay(toughest.day, lang)}{' '}
-                        <span className="hb-mood-dot" data-mood={toughest.mood}>
-                          {moodLabel(toughest.mood, lang)}
+                        <span className="hb-mood-dot" data-mood={toughest.value}>
+                          {moodLabel(toughest.value, lang)}
                         </span>
                       </span>
                     </div>
@@ -277,6 +334,30 @@ export function HealthInsightsPage() {
           </>
         )}
       </section>
+
+      {/* Energy is optional per check-in — the section appears only once
+          a day actually recorded it, so nobody meets a second empty
+          chart. */}
+      {loggedEnergyDays.length > 0 && (
+        <>
+          <div className="sb-section-head">
+            <h2>{x(HM.health_ins_energy_14d)}</h2>
+          </div>
+          <section className="sb-card sb-card-pad">
+            <DayChart
+              days={energyDays}
+              kind="energy"
+              lang={lang}
+              legend={`1 = ${energyLabel(1, lang)} · 5 = ${energyLabel(5, lang)}`}
+              chartLabel={energyChartLabel}
+              dayLabel={(d) => `${fmtDay(d.day, lang)}: ${energyLabel(d.value, lang)}`}
+              emptyDayLabel={(d) =>
+                x(HM.health_ins_day_none).replace('{day}', fmtDay(d.day, lang))
+              }
+            />
+          </section>
+        </>
+      )}
 
       <div className="sb-note">
         <Info size={16} aria-hidden="true" />

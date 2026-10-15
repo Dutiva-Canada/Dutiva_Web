@@ -570,9 +570,12 @@ export function HealthHomePage() {
             {moodWeek.map((d) => (
               <span
                 key={d.day}
-                className={`hb-spark-bar${d.mood == null ? ' is-empty' : ''}`}
-                {...(d.mood != null ? { 'data-mood': d.mood } : {})}
-                style={{ height: d.mood == null ? '3px' : `${18 + ((d.mood - 1) / 4) * 82}%` }}
+                className={`hb-spark-bar${d.value == null ? ' is-empty' : ''}`}
+                /* Round to the nearest ramp step — a fractional average
+                   (two check-ins on one day) matches no data-mood rule and
+                   silently fell back to plain accent. */
+                {...(d.value != null ? { 'data-mood': Math.round(d.value) } : {})}
+                style={{ height: d.value == null ? '3px' : `${18 + ((d.value - 1) / 4) * 82}%` }}
               />
             ))}
           </div>

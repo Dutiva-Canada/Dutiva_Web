@@ -29,10 +29,10 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function ci(id: string, mood: number, daysAgo = 0): HealthCheckIn {
+function ci(id: string, mood: number, daysAgo = 0, energy: number | null = null): HealthCheckIn {
   const d = new Date()
   d.setDate(d.getDate() - daysAgo)
-  return { id, mood, energy: null, note: '', createdAt: d.toISOString() }
+  return { id, mood, energy, note: '', createdAt: d.toISOString() }
 }
 
 function je(id: string): HealthJournalEntry {
@@ -143,5 +143,35 @@ describe('HealthInsightsPage', () => {
       stateWith({ checkIns: [ci('c0', 4), ci('c1', 4, 1), ci('c2', 3, 2)] }),
     )
     expect(screen.queryByText(/Today pending/)).not.toBeInTheDocument()
+  })
+
+  it('shows the empty state — not a blank chart — on a journal-only account', () => {
+    /* The gate used to be "any data" — a journal entry let the chart
+       render fourteen invisible empty slivers. Now the gate is the
+       chart's own data. */
+    renderInsights(stateWith({ entries: [je('e1')] }))
+    expect(screen.getByText(/Nothing to chart yet/)).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /days logged/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Check in now/ })).toBeInTheDocument()
+  })
+
+  it('names the window, not "nothing yet", when check-ins all predate it', () => {
+    renderInsights(stateWith({ checkIns: [ci('old', 3, 40)] }))
+    expect(screen.getByText(/No check-ins in the last 14 days/)).toBeInTheDocument()
+    expect(screen.queryByText(/Nothing to chart yet/)).not.toBeInTheDocument()
+  })
+
+  it('charts energy beside mood only where it was recorded', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4, 0, 2), ci('c2', 3, 1, 5)] }))
+    expect(screen.getByText('Energy over the last 14 days')).toBeInTheDocument()
+    const charts = screen.getAllByRole('img')
+    expect(charts).toHaveLength(2)
+    expect(charts[1]!.getAttribute('aria-label')).toMatch(/average energy 3\.5/)
+  })
+
+  it('skips the energy chart entirely when nobody answered it', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }))
+    expect(screen.queryByText('Energy over the last 14 days')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('img')).toHaveLength(1)
   })
 })

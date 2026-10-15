@@ -105,35 +105,58 @@ function avgField(
   return sum / perDay.size
 }
 
-export interface DayMood {
+export interface DayMetric {
   /** YYYY-MM-DD, local time. */
   day: string
-  /** Average mood for that day, or null when no check-in exists. */
-  mood: number | null
+  /** The day's averaged metric (mood, energy), or null when nothing
+      recorded it — null is "no data", never a low score. */
+  value: number | null
 }
 
-/** One entry per calendar day for the last `days` days, oldest first — the
-    shape the Insights bar chart renders. */
-export function dailyMoods(
+/** One slot per calendar day for the last `days` days, oldest first — the
+    shape the Insights bar charts render. `pick` chooses the metric; days
+    where no check-in answered it stay null rather than reading as zero. */
+function dailyAverage(
   checkIns: HealthCheckIn[],
   days: number,
+  pick: (c: HealthCheckIn) => number | null,
   now: Date = new Date(),
-): DayMood[] {
+): DayMetric[] {
   const daysMap = byDay(checkIns)
-  const out: DayMood[] = []
+  const out: DayMetric[] = []
   const cursor = new Date(now)
   cursor.setDate(cursor.getDate() - (days - 1))
   for (let i = 0; i < days; i += 1) {
     const key = todayKey(cursor)
-    const list = daysMap.get(key)
-    const moods = (list ?? []).map((c) => c.mood)
+    const list = (daysMap.get(key) ?? [])
+      .map(pick)
+      .filter((v): v is number => v != null)
     out.push({
       day: key,
-      mood: moods.length ? moods.reduce((a, b) => a + b, 0) / moods.length : null,
+      value: list.length ? list.reduce((a, b) => a + b, 0) / list.length : null,
     })
     cursor.setDate(cursor.getDate() + 1)
   }
   return out
+}
+
+export function dailyMoods(
+  checkIns: HealthCheckIn[],
+  days: number,
+  now: Date = new Date(),
+): DayMetric[] {
+  return dailyAverage(checkIns, days, (c) => c.mood, now)
+}
+
+/* Energy is optional on a check-in — a day with a mood but no energy
+   answer stays null here too, so skipped energy never masquerades as a
+   drained day. */
+export function dailyEnergies(
+  checkIns: HealthCheckIn[],
+  days: number,
+  now: Date = new Date(),
+): DayMetric[] {
+  return dailyAverage(checkIns, days, (c) => c.energy, now)
 }
 
 /** Best/toughest recorded day inside the window — by daily average mood. */
@@ -141,13 +164,13 @@ export function moodRange(
   checkIns: HealthCheckIn[],
   days: number,
   now: Date = new Date(),
-): { best: DayMood | null; toughest: DayMood | null } {
-  const windowDays = dailyMoods(checkIns, days, now).filter((d) => d.mood != null)
-  let best: DayMood | null = null
-  let toughest: DayMood | null = null
+): { best: DayMetric | null; toughest: DayMetric | null } {
+  const windowDays = dailyMoods(checkIns, days, now).filter((d) => d.value != null)
+  let best: DayMetric | null = null
+  let toughest: DayMetric | null = null
   for (const d of windowDays) {
-    if (!best || (d.mood ?? 0) > (best.mood ?? 0)) best = d
-    if (!toughest || (d.mood ?? 0) < (toughest.mood ?? 0)) toughest = d
+    if (!best || (d.value ?? 0) > (best.value ?? 0)) best = d
+    if (!toughest || (d.value ?? 0) < (toughest.value ?? 0)) toughest = d
   }
   return { best, toughest }
 }

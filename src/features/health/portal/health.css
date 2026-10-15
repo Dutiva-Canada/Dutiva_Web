@@ -26,6 +26,14 @@
   --hb-mood-3: #94905f;
   --hb-mood-4: #6d9c72;
   --hb-mood-5: #3d7a5e;
+  /* Energy ramp — 1 (drained) → 5 (energized). Muted slate→steel so the
+     second chart reads as its own metric, never a second mood. Energy
+     isn't valenced — low reads quiet, not bad. */
+  --hb-energy-1: #a0a9b8;
+  --hb-energy-2: #8b99ad;
+  --hb-energy-3: #7689a3;
+  --hb-energy-4: #627999;
+  --hb-energy-5: #4d6990;
   --hb-crisis-bg: #fbf0e8;
 }
 
@@ -47,6 +55,11 @@
   --hb-mood-3: #aaa572;
   --hb-mood-4: #8cb98f;
   --hb-mood-5: #7fc4a2;
+  --hb-energy-1: #96a1b8;
+  --hb-energy-2: #8b99b5;
+  --hb-energy-3: #8091b2;
+  --hb-energy-4: #7589b0;
+  --hb-energy-5: #6a81b4;
   --hb-crisis-bg: #2c2028;
 }
 
@@ -57,6 +70,13 @@
 .sb.hb [data-mood='3'] { --hb-mood: var(--hb-mood-3); }
 .sb.hb [data-mood='4'] { --hb-mood: var(--hb-mood-4); }
 .sb.hb [data-mood='5'] { --hb-mood: var(--hb-mood-5); }
+/* Same pattern for the energy ramp — chart bars only (energy has no
+   chips/dots elsewhere yet). */
+.sb.hb [data-energy='1'] { --hb-energy: var(--hb-energy-1); }
+.sb.hb [data-energy='2'] { --hb-energy: var(--hb-energy-2); }
+.sb.hb [data-energy='3'] { --hb-energy: var(--hb-energy-3); }
+.sb.hb [data-energy='4'] { --hb-energy: var(--hb-energy-4); }
+.sb.hb [data-energy='5'] { --hb-energy: var(--hb-energy-5); }
 
 /* Buttons in the shared system have no hover response at all — the health
    palette adds a quiet lift so controls feel alive without animating the
@@ -324,6 +344,9 @@ a.sb-stat-link:focus-visible {
    still wins on days with no entry. */
 .hb-bar-fill[data-mood] {
   background: var(--hb-mood);
+}
+.hb-bar-fill[data-energy] {
+  background: var(--hb-energy);
 }
 /* Empty days must not masquerade as low days — a dashed outline reads
    "nothing logged" where a solid sliver would read "rough day". */
