@@ -246,6 +246,7 @@ function ChatPreview({ callOverlay = false }: { callOverlay?: boolean }) {
       {callOverlay && (
         <HealthVoiceCall
           status="listening"
+          blockKind="perm"
           liveText=""
           lastText="Can you add a habit for an evening wind-down?"
           micOff={false}

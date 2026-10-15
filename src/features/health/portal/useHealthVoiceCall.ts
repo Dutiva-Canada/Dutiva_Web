@@ -39,6 +39,11 @@ export type VoiceCallStatus =
   | 'speaking'
   | 'muted'
   | 'blocked'
+/* Why it blocked — 'perm' means the mic permission itself was refused
+   (retryable once the user re-allows it); 'service' means the browser's
+   recognition service is gone or unreachable (retry rarely helps, but
+   the copy must not blame a permission that was never the problem). */
+export type VoiceCallBlockKind = 'perm' | 'service'
 
 /**
  * A voice call with Mira, layered over the existing text conversation —
@@ -68,6 +73,7 @@ export function useHealthVoiceCall({
   const [lastText, setLastText] = useState('')
   const [micOff, setMicOff] = useState(false)
   const [voiceOff, setVoiceOff] = useState(false)
+  const [blockKind, setBlockKind] = useState<VoiceCallBlockKind>('perm')
 
   const activeRef = useRef(false)
   const micOffRef = useRef(false)
@@ -88,11 +94,16 @@ export function useHealthVoiceCall({
   }
 
   /* jsdom and Firefox lack the APIs — `capable` hides the affordance so the
-     feature is never advertised where it can't run. */
+     feature is never advertised where it can't run. Brave is the subtler
+     case: it exposes the SpeechRecognition constructor but ships no speech
+     service backend (Google's endpoints are stripped for privacy), so
+     start() fails every time. navigator.brave is Brave's own published
+     signal — a constructor that can never start isn't a capability. */
   const capable =
     typeof window !== 'undefined' &&
     recognitionCtor() !== undefined &&
-    'speechSynthesis' in window
+    'speechSynthesis' in window &&
+    !(navigator as { brave?: unknown }).brave
 
   const listen = () => {
     if (!activeRef.current || micOffRef.current || recRef.current) return
@@ -114,11 +125,21 @@ export function useHealthVoiceCall({
       setLiveText((interim || finalText).trim())
     }
     rec.onerror = (e) => {
-      if (e?.error === 'not-allowed' || e?.error === 'service-not-allowed') {
+      /* not-allowed is the mic permission itself — the user can fix it and
+         retry. Everything else (service-not-allowed, network, audio-capture)
+         is the browser's recognition service, not something a permission
+         toggle will repair. */
+      if (e?.error === 'not-allowed') {
         blockedRef.current = true
+        setBlockKind('perm')
+        mark('blocked')
+      } else if (e?.error && e.error !== 'no-speech' && e.error !== 'aborted') {
+        blockedRef.current = true
+        setBlockKind('service')
         mark('blocked')
       }
-      /* no-speech/network/aborted fall through to onend. */
+      /* no-speech and aborted fall through to onend — silence isn't a
+         failure, and our own abort() fires 'aborted' on some builds. */
     }
     rec.onend = () => {
       if (recRef.current === rec) recRef.current = null
@@ -139,11 +160,15 @@ export function useHealthVoiceCall({
     }
     recRef.current = rec
     try {
-      rec.start()
+      /* Mark before start(): an implementation may fire onerror/onend
+         synchronously inside start(), and a mark after the call would
+         overwrite a blocked state that already landed. */
       mark('listening')
+      rec.start()
     } catch {
       recRef.current = null
       blockedRef.current = true
+      setBlockKind('service')
       mark('blocked')
     }
   }
@@ -229,6 +254,14 @@ export function useHealthVoiceCall({
      stays out of the way (the overlay disables it). */
   const toggleMic = () => {
     if (!activeRef.current) return
+    /* In the blocked state the mic button is the retry — a refused
+       permission can be re-allowed, and a transient service miss may
+       recover. A genuine dead end just lands back on blocked. */
+    if (statusRef.current === 'blocked') {
+      blockedRef.current = false
+      listen()
+      return
+    }
     if (statusRef.current === 'speaking') {
       try {
         window.speechSynthesis.cancel()
@@ -294,6 +327,7 @@ export function useHealthVoiceCall({
     capable,
     active,
     status,
+    blockKind,
     liveText,
     lastText,
     micOff,

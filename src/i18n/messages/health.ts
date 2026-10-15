@@ -1225,9 +1225,18 @@ export const healthMessages = defineMessages({
     en: 'Mic off — tap to speak',
     fr: 'Micro coupé — touchez pour parler',
   },
+  /* 'perm' block — the mic permission was refused; the mic button doubles
+     as the retry. [FR self-authored] */
   health_chat_call_blocked: {
-    en: 'Microphone blocked — allow it in the browser to talk, or close this and keep typing.',
-    fr: 'Micro bloqué — autorisez-le dans le navigateur pour parler, ou fermez et continuez à écrire.',
+    en: 'Microphone blocked — allow it in the browser, then tap the mic to retry. Or close this and keep typing.',
+    fr: 'Micro bloqué — autorisez-le dans le navigateur, puis touchez le micro pour réessayer. Ou fermez et continuez à écrire.',
+  },
+  /* 'service' block — the browser's speech service itself is gone (Brave
+     ships the constructor without a backend, some builds disable it). Not
+     a permission the user can fix — say so. [FR self-authored] */
+  health_chat_call_unavailable: {
+    en: 'Voice isn’t working in this browser — typed chat still works below.',
+    fr: 'La voix ne fonctionne pas dans ce navigateur — le clavardage écrit fonctionne toujours plus bas.',
   },
   health_chat_call_end: { en: 'End call', fr: 'Raccrocher' },
   health_chat_call_mic_on: { en: 'Turn microphone on', fr: 'Rétablir le micro' },

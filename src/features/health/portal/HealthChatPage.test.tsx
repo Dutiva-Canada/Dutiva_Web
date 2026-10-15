@@ -824,4 +824,71 @@ describe('HealthChatPage', () => {
       vi.unstubAllGlobals()
     }
   })
+
+  it('hides the voice-call button in Brave — the constructor exists but no service backs it', async () => {
+    /* Brave ships navigator.brave and a SpeechRecognition stub whose
+       start() can never succeed (the speech service endpoints are
+       stripped). The gate must treat a constructor-that-can't-start as
+       not-capable rather than dead-ending every Brave visitor. */
+    Object.defineProperty(window.navigator, 'brave', { value: {}, configurable: true })
+    class FakeRec {
+      lang = ''
+      onresult = null
+      onerror = null
+      onend = null
+      start() {}
+      abort() {}
+    }
+    vi.stubGlobal('SpeechRecognition', FakeRec)
+    vi.stubGlobal('speechSynthesis', { speak: vi.fn(), cancel: vi.fn(), getVoices: () => [] })
+    try {
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      expect(screen.queryByRole('button', { name: 'Voice call' })).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+      delete (window.navigator as { brave?: unknown }).brave
+    }
+  })
+
+  it('names a dead speech service honestly instead of blaming the mic permission', async () => {
+    class FakeRec {
+      static last: FakeRec | null = null
+      lang = ''
+      interimResults = false
+      continuous = false
+      onresult = null
+      onerror: ((e: { error?: string }) => void) | null = null
+      onend: (() => void) | null = null
+      start() {
+        FakeRec.last = this
+        /* The failure Chrome-on-Brave-shape browsers emit — a service
+           error, not a permission refusal. */
+        this.onerror?.({ error: 'network' })
+        this.onend?.()
+      }
+      abort() {
+        this.onend?.()
+      }
+    }
+    vi.stubGlobal('SpeechRecognition', FakeRec)
+    vi.stubGlobal('speechSynthesis', { speak: vi.fn(), cancel: vi.fn(), getVoices: () => [] })
+    vi.stubGlobal('SpeechSynthesisUtterance', class {
+      constructor(public text: string) {}
+    })
+    try {
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      fireEvent.click(screen.getByRole('button', { name: 'Voice call' }))
+
+      expect(
+        await screen.findByText(/Voice isn’t working in this browser/),
+      ).toBeInTheDocument()
+      expect(screen.queryByText(/Microphone blocked/)).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
 })

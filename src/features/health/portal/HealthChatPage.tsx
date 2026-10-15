@@ -826,6 +826,7 @@ export function HealthChatPage() {
       {voice.active && (
         <HealthVoiceCall
           status={voice.status}
+          blockKind={voice.blockKind}
           liveText={voice.liveText}
           lastText={voice.lastText}
           micOff={voice.micOff}

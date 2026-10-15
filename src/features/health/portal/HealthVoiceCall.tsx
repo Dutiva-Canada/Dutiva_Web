@@ -2,14 +2,20 @@ import { useEffect } from 'react'
 import { Mic, MicOff, PhoneOff, Volume2, VolumeX } from 'lucide-react'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { CrisisNote } from './CrisisNote'
-import type { VoiceCallStatus } from './useHealthVoiceCall'
+import type { VoiceCallBlockKind, VoiceCallStatus } from './useHealthVoiceCall'
 
-const STATUS_KEY: Record<Exclude<VoiceCallStatus, 'idle'>, { en: string; fr: string }> = {
+const STATUS_KEY: Record<Exclude<VoiceCallStatus, 'idle' | 'blocked'>, { en: string; fr: string }> = {
   listening: HM.health_chat_call_listening,
   thinking: HM.health_chat_call_thinking,
   speaking: HM.health_chat_call_speaking,
   muted: HM.health_chat_call_muted,
-  blocked: HM.health_chat_call_blocked,
+}
+/* Blocked splits by cause — a refused mic permission names the fix and
+   invites retry; a dead recognition service must not blame a permission
+   that was never asked. */
+const BLOCK_KEY: Record<VoiceCallBlockKind, { en: string; fr: string }> = {
+  perm: HM.health_chat_call_blocked,
+  service: HM.health_chat_call_unavailable,
 }
 
 /**
@@ -21,6 +27,7 @@ const STATUS_KEY: Record<Exclude<VoiceCallStatus, 'idle'>, { en: string; fr: str
  */
 export function HealthVoiceCall({
   status,
+  blockKind,
   liveText,
   lastText,
   micOff,
@@ -31,6 +38,7 @@ export function HealthVoiceCall({
   onEnd,
 }: {
   status: VoiceCallStatus
+  blockKind: VoiceCallBlockKind
   liveText: string
   lastText: string
   micOff: boolean
@@ -48,7 +56,8 @@ export function HealthVoiceCall({
     return () => window.removeEventListener('keydown', onKey)
   }, [onEnd])
 
-  const statusText = status === 'idle' ? '' : x(STATUS_KEY[status])
+  const statusText =
+    status === 'idle' ? '' : status === 'blocked' ? x(BLOCK_KEY[blockKind]) : x(STATUS_KEY[status])
 
   return (
     <div className="hbcall" role="dialog" aria-modal="true" aria-label={x(HM.health_chat_call)}>
@@ -67,7 +76,9 @@ export function HealthVoiceCall({
             type="button"
             className="hbcall-btn"
             onClick={onMic}
-            disabled={status === 'thinking' || status === 'blocked'}
+            /* Thinking keeps it inert (the send is on the wire); blocked
+               keeps it live — it's the retry the copy promises. */
+            disabled={status === 'thinking'}
             aria-pressed={!micOff}
             title={x(micOff ? HM.health_chat_call_mic_on : HM.health_chat_call_mic_off)}
           >
