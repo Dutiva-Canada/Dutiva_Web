@@ -316,7 +316,7 @@ export function HealthCheckInPage() {
                         <div className="flex flex-wrap items-center gap-[10px]">
                           <span
                             className="hb-mood-dot"
-                            {...(c.mood <= 2 ? { 'data-low': true } : {})}
+                            data-mood={c.mood}
                           >
                             {x(HM.health_checkin_mood_short)}: {moodLabel(c.mood, lang)}
                           </span>

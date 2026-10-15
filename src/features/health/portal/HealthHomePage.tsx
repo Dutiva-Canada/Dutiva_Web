@@ -234,11 +234,10 @@ function MemoriesCard() {
                       {fmtRelativeDateTime(m.createdAt, lang)}
                     </span>
                   </div>
-                  <div className="hb-row-side" style={{ flexDirection: 'row', gap: 6 }}>
+                  <div className="hb-row-side hb-row-actions">
                     <button
                       type="button"
                       className="sb-btn sb-btn-secondary sb-btn-sm"
-                      style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
                       aria-label={x(HM.health_mem_edit_named).replace('{text}', snippet)}
                       onClick={() => startEdit(m.id, m.text)}
                     >
@@ -248,7 +247,6 @@ function MemoriesCard() {
                     <button
                       type="button"
                       className="sb-btn sb-btn-secondary sb-btn-sm"
-                      style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
                       aria-label={x(HM.health_mem_delete_named).replace('{text}', snippet)}
                       onClick={() => remove({ id: m.id, label: snippet })}
                     >
@@ -413,11 +411,10 @@ function TodayHabits() {
               <div className="hb-row-main">
                 <span className="hb-row-title">{h.name}</span>
               </div>
-              <div className="hb-row-side">
+              <div className="hb-row-side hb-row-actions">
                 <button
                   type="button"
                   className={`sb-btn sb-btn-sm ${doneToday ? 'sb-btn-primary' : 'sb-btn-secondary'}`}
-                  style={{ minHeight: 34, padding: '5px 12px', fontSize: 12.5 }}
                   disabled={busyIds.has(h.id)}
                   aria-pressed={doneToday}
                   onClick={() => void toggle(h.id, !doneToday)}
@@ -566,7 +563,7 @@ export function HealthHomePage() {
           aria-label={statAria(HM.health_ov_mood_7d, moodValue)}
         >
           <div className="k">{x(HM.health_ov_mood_7d)}</div>
-          <div className="v">
+          <div className="v" {...(mood7 != null ? { 'data-mood': Math.round(mood7) } : {})}>
             {mood7 == null ? '—' : `${+mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`}
           </div>
           <div className="hb-spark" aria-hidden="true">
@@ -574,6 +571,7 @@ export function HealthHomePage() {
               <span
                 key={d.day}
                 className={`hb-spark-bar${d.mood == null ? ' is-empty' : ''}`}
+                {...(d.mood != null ? { 'data-mood': d.mood } : {})}
                 style={{ height: d.mood == null ? '3px' : `${18 + ((d.mood - 1) / 4) * 82}%` }}
               />
             ))}
@@ -617,11 +615,7 @@ export function HealthHomePage() {
 
       {state.checkIns.length > 0 && (
         <p style={{ margin: '10px 2px 0', textAlign: 'right' }}>
-          <Link
-            to="/health/insights?recap=1"
-            className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
-            style={headerLinkStyle}
-          >
+          <Link to="/health/insights?recap=1" className="sb-btn sb-btn-secondary sb-btn-sm">
             <Sparkles size={13} aria-hidden="true" />
             {x(HM.health_ai_recap_btn)}
           </Link>
@@ -658,7 +652,7 @@ export function HealthHomePage() {
             <ul className="sb-mini-list">
               {state.checkIns.slice(0, 5).map((c) => (
                 <li key={c.id}>
-                  <span className="hb-mood-dot" {...(c.mood <= 2 ? { 'data-low': true } : {})}>
+                  <span className="hb-mood-dot" data-mood={c.mood}>
                     {moodLabel(c.mood, lang)}
                   </span>
                   {c.note.trim() ? (

@@ -54,3 +54,4 @@ eval-results/*
 
 # Captured design-prototype working copy (artifact, scripts, screenshots)
 .proto/
+hbshots-out/

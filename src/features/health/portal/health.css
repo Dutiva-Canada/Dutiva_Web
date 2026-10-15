@@ -14,8 +14,19 @@
   --sb-ok-soft: #dcece1;
   --sb-ink: #234036;
   --sb-ink-soft: #4c6a5c;
+  /* Card lifts a step lighter than the page so surfaces read as raised
+     panels instead of flat wells; the deeper shadow carries the height. */
+  --sb-card: #f9f4e6;
   --sb-card-deep: #e3e0cf;
-  --sb-shadow: 0 1px 2px rgba(35, 64, 54, 0.07), 0 4px 14px rgba(35, 64, 54, 0.07);
+  --sb-shadow: 0 1px 2px rgba(35, 64, 54, 0.05), 0 10px 26px rgba(35, 64, 54, 0.07);
+  /* Mood ramp — 1 (rough) → 5 (great). A graded warm→sage scale carries the
+     signal a single accent can't: low days read warm without alarming. */
+  --hb-mood-1: #b65442;
+  --hb-mood-2: #bf8a3f;
+  --hb-mood-3: #94905f;
+  --hb-mood-4: #6d9c72;
+  --hb-mood-5: #3d7a5e;
+  --hb-crisis-bg: #fbf0e8;
 }
 
 [data-theme='dark'] .sb.hb {
@@ -28,8 +39,74 @@
   --sb-ok-soft: #1e3026;
   --sb-ink: #e6ecdf;
   --sb-ink-soft: #b9c9bb;
+  --sb-card: #202a43;
   --sb-card-deep: #22312a;
-  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 30px rgba(0, 0, 0, 0.34);
+  --hb-mood-1: #d08a72;
+  --hb-mood-2: #d0a35f;
+  --hb-mood-3: #aaa572;
+  --hb-mood-4: #8cb98f;
+  --hb-mood-5: #7fc4a2;
+  --hb-crisis-bg: #2c2028;
+}
+
+/* The mood ramp resolves a data-mood="1..5" attribute into a local var —
+   chips, chart bars, and spark bars all read the same mapping. */
+.sb.hb [data-mood='1'] { --hb-mood: var(--hb-mood-1); }
+.sb.hb [data-mood='2'] { --hb-mood: var(--hb-mood-2); }
+.sb.hb [data-mood='3'] { --hb-mood: var(--hb-mood-3); }
+.sb.hb [data-mood='4'] { --hb-mood: var(--hb-mood-4); }
+.sb.hb [data-mood='5'] { --hb-mood: var(--hb-mood-5); }
+
+/* Buttons in the shared system have no hover response at all — the health
+   palette adds a quiet lift so controls feel alive without animating the
+   invest portal. */
+.sb.hb .sb-btn {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.sb.hb .sb-btn:not([disabled]):hover {
+  transform: translateY(-1px);
+}
+.sb.hb .sb-btn-primary:not([disabled]):hover {
+  background: var(--sb-accent-ink);
+  box-shadow: 0 4px 14px rgba(43, 95, 71, 0.3);
+}
+.sb.hb .sb-btn-secondary:not([disabled]):hover {
+  border-color: var(--sb-accent-ink);
+  background: var(--sb-accent-soft);
+}
+.sb.hb .sb-btn-danger:not([disabled]):hover {
+  background: color-mix(in srgb, var(--sb-danger) 10%, transparent);
+}
+/* Notes sit on the accent edge in this portal — Mira's nudges, the pending
+   review strip, and the wellness disclaimers then read as one family and
+   stay distinct from the crisis banner and plain cards. */
+.sb.hb .sb-note {
+  border-left: 3px solid var(--sb-accent);
+}
+/* Fields pick up the same soft ring the journal textarea uses. */
+.sb.hb .sb-input:focus {
+  outline: none;
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+/* Page entrance — a single gentle rise per top-level block so navigation
+   feels soft, not flashy. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  .sb.hb > * {
+    animation: hb-rise 0.28s ease both;
+  }
 }
 
 /* Mood / energy pickers — a row of five labelled buttons. */
@@ -50,10 +127,16 @@
   color: var(--sb-muted);
   cursor: pointer;
   font: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 .hb-scale-btn:hover {
   border-color: var(--sb-accent);
+  transform: translateY(-1px);
 }
 .hb-scale-btn:focus-visible {
   outline: 2px solid var(--sb-accent);
@@ -63,6 +146,7 @@
   border-color: var(--sb-accent);
   background: var(--sb-accent-soft);
   color: var(--sb-accent-ink);
+  box-shadow: 0 1px 4px rgba(43, 95, 71, 0.18);
 }
 .hb-scale-num {
   font-family: var(--font-serif);
@@ -101,8 +185,11 @@
 }
 .hb-row-title {
   margin: 0;
+  /* Serif titles give the journal/habits rows the same voice as the page
+     headings instead of reading as bare labels. */
+  font-family: var(--font-serif);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--sb-ink);
 }
 .hb-row-body {
@@ -124,13 +211,19 @@
   gap: 8px;
   flex-shrink: 0;
 }
+/* Mood chip — the dot and a soft tinted wash carry the mood ramp so a
+   history list scans by colour before the words are read. */
 .hb-mood-dot {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 12px;
   font-weight: 600;
-  color: var(--sb-accent-ink);
+  color: var(--sb-ink);
+  white-space: nowrap;
 }
 .hb-mood-dot::before {
   content: '';
@@ -139,11 +232,12 @@
   border-radius: 50%;
   background: var(--sb-accent);
 }
-.hb-mood-dot[data-low] {
-  color: var(--sb-danger);
+.hb-mood-dot[data-mood] {
+  background: color-mix(in srgb, var(--hb-mood) 13%, transparent);
+  border-color: color-mix(in srgb, var(--hb-mood) 32%, transparent);
 }
-.hb-mood-dot[data-low]::before {
-  background: var(--sb-danger);
+.hb-mood-dot[data-mood]::before {
+  background: var(--hb-mood);
 }
 
 /* Stat cards that route — the overview strip links each number to the
@@ -178,11 +272,23 @@ a.sb-stat-link .hb-spark {
   background: var(--sb-accent);
   min-height: 3px;
 }
+.hb-spark-bar[data-mood] {
+  background: var(--hb-mood);
+}
 .hb-spark-bar.is-empty {
   background: var(--sb-line);
 }
+/* The average-mood number itself rides the ramp. */
+.sb.hb .sb-stat .v[data-mood] {
+  color: var(--hb-mood);
+}
+a.sb-stat-link {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
 a.sb-stat-link:hover {
   border-color: var(--sb-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--sb-shadow);
 }
 a.sb-stat-link:focus-visible {
   outline: 2px solid var(--sb-accent);
@@ -213,6 +319,12 @@ a.sb-stat-link:focus-visible {
   background: var(--sb-accent);
   min-height: 4px;
 }
+/* Bars ride the mood ramp — rough days trend terracotta, good days sage.
+   Declared before [data-empty] so the dashed "nothing logged" outline
+   still wins on days with no entry. */
+.hb-bar-fill[data-mood] {
+  background: var(--hb-mood);
+}
 /* Empty days must not masquerade as low days — a dashed outline reads
    "nothing logged" where a solid sliver would read "rough day". */
 .hb-bar-fill[data-empty] {
@@ -241,7 +353,9 @@ a.sb-stat-link:focus-visible {
   align-items: flex-start;
   border: 1.5px solid var(--sb-danger);
   border-radius: var(--sb-radius);
-  background: var(--sb-card);
+  /* A faint warm tint separates "act now" from the card fill without
+     turning the banner into an alarm. */
+  background: var(--hb-crisis-bg, var(--sb-card));
   padding: 14px 16px;
 }
 .hb-crisis-icon {
@@ -297,6 +411,11 @@ a.sb-stat-link:focus-visible {
   border: 1px solid var(--sb-line);
   border-radius: 12px;
   background: var(--sb-input);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hb-res-item:hover {
+  border-color: var(--sb-accent);
+  box-shadow: var(--sb-shadow);
 }
 .hb-res-icon {
   flex-shrink: 0;
@@ -363,10 +482,13 @@ a.sb-stat-link:focus-visible {
   color: var(--sb-accent-ink);
   background: var(--sb-accent-soft);
   text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 .hb-res-link:hover {
   text-decoration: none;
   border-color: var(--sb-accent-ink);
+  transform: translateY(-1px);
+  box-shadow: var(--sb-shadow);
 }
 .hb-res-link:focus-visible {
   outline: 2px solid var(--sb-accent);
@@ -421,11 +543,27 @@ a.sb-stat-link:focus-visible {
   margin-top: 14px;
 }
 
+/* Consent state on a journal row — an ok-pill, not a button. */
+.hb-share-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sb-ok-soft);
+  color: var(--sb-ok);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Row action buttons — the shared treatment retired the per-row inline
    styles (minHeight/padding/fontSize) that drifted across pages. */
 .hb-row-actions {
   flex-direction: row;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 8px;
 }
 .hb-row-actions .sb-btn-sm {
@@ -470,6 +608,10 @@ a.sb-stat-link:focus-visible {
   display: inline-block;
   padding: 0;
   cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.hb-dot:not(:disabled):hover {
+  transform: scale(1.3);
 }
 .hb-dot.is-on {
   border-color: var(--sb-accent);
@@ -597,6 +739,10 @@ a.sb-stat-link:focus-visible {
   margin-top: 14px;
   border-bottom: 1px solid var(--sb-line);
   overflow-x: auto;
+  scrollbar-width: none;
+}
+.hb-tabs::-webkit-scrollbar {
+  display: none;
 }
 .hb-tab {
   padding: 9px 14px;
@@ -690,6 +836,127 @@ a.sb-stat-link:focus-visible {
   accent-color: var(--sb-accent);
   width: 16px;
   height: 16px;
+}
+
+/* ---------- shell chrome (layout-level, outside the .sb page roots) ---------- */
+/* These use the app-wide surface tokens, not the .sb palette, because they
+   render in HealthPortalLayout above/beside the page content. */
+
+/* Sticky portal header — translucent so scrolled content shows a soft blur
+   instead of a hard edge. */
+.hb-topbar {
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hb-mobile-menu {
+  box-shadow: 0 16px 28px -18px rgba(13, 27, 42, 0.4);
+}
+/* The stale-data note renders above the outlet — before this it used the
+   .sb-note class with no .sb scope, so its tokens resolved to nothing and
+   it drew a currentColor-bordered paragraph. */
+.hb-stale {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--gold-border, var(--border));
+  border-radius: 12px;
+  background: var(--gold-bg, var(--surface-2));
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ---------- loading skeleton ---------- */
+/* Replaces the lone spinner: the block echoes the page's shape (heading,
+   sub, stat strip, card) so first paint already has structure. Rendered
+   with app tokens because it also mounts on surfaces outside .sb.hb. */
+.hb-skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft, var(--border));
+  background: var(--surface);
+}
+.hb-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--text) 6%, transparent),
+    transparent
+  );
+  animation: hb-skel-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes hb-skel-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- chat polish (scoped so the other .sb chat surfaces don't move) ---------- */
+.sb.hb .sbchat-input:focus {
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+.sb.hb .sbchat-send {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.sb.hb .sbchat-send:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow: var(--sb-shadow);
+}
+/* The user's own bubble lifts off the log like a sent card. */
+.sb.hb .sbchat-bubble.user {
+  box-shadow: var(--sb-shadow);
+}
+/* A thin token-colored scrollbar keeps long threads tidy. */
+.sb.hb .sbchat-log {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-line) transparent;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar {
+  width: 8px;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar-thumb {
+  background: var(--sb-line);
+  border-radius: 4px;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Roomier empty states — the dashed box is the only thing on the card, so
+   it earns a bit more air. */
+.sb.hb .sb-empty {
+  padding: 28px 18px;
+}
+
+.hb-pace {
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.hb-quiet-link {
+  transition: color 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb.hb .sb-btn,
+  .sb.hb .sbchat-send,
+  a.sb-stat-link,
+  .hb-dot,
+  .hb-res-link,
+  .hb-res-item,
+  .hb-scale-btn,
+  .hb-pace,
+  .hb-quiet-link {
+    transition: none;
+  }
+  .hb-skel::after {
+    animation: none;
+  }
 }
 
 @media (max-width: 560px) {

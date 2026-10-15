@@ -14,6 +14,9 @@ import { HealthAuthPanel } from './HealthAuthPanel'
 import { HealthFooter } from './HealthFooter'
 import { HealthLoading } from './HealthLoading'
 import { CrisisNote } from './CrisisNote'
+/* The shell uses hb-* classes (skip link, badge, topbar, stale note) before
+   any page chunk loads — import the sheet here so they're never naked. */
+import './health.css'
 
 const NAV = [
   { to: '/health', end: true, label: HM.health_tab_overview },
@@ -57,7 +60,7 @@ function StaleDataNote() {
   const { state, error } = useHealthData()
   if (!state || !error) return null
   return (
-    <p className="sb-note" role="alert" style={{ marginBottom: 12 }}>
+    <p className="hb-stale" role="alert">
       {x(HM.health_refresh_stale)}
     </p>
   )
@@ -137,7 +140,7 @@ export function HealthPortalLayout() {
       <a href="#hb-main" className="hb-skip">
         {x(HM.health_skip)}
       </a>
-      <header className="sticky top-0 z-10 border-b border-border bg-surface">
+      <header className="hb-topbar sticky top-0 z-10 border-b border-border">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
             <div className="flex min-w-0 items-center gap-[24px]">
               <NavLink
@@ -216,7 +219,7 @@ export function HealthPortalLayout() {
           {mobileMenuOpen && (
             <nav
               id="health-portal-mobile-nav"
-              className="border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
+              className="hb-mobile-menu border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
             >
               <div className="flex flex-col gap-[4px]">
                 {NAV.map((item) => (

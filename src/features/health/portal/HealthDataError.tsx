@@ -12,13 +12,15 @@ export function HealthDataError() {
   const { refresh } = useHealthData()
   const [busy, setBusy] = useState(false)
   return (
-    <section className="sb-page">
+    /* The early return replaces the page's `.sb hb` root — without it here
+       the .sb-* tokens never resolve and the retry button renders naked. */
+    <section className="sb hb sb-page">
       <div className="sb-empty" role="alert">
         <CircleAlert size={20} aria-hidden="true" />
         <p>{x(HM.health_load_error)}</p>
         <button
           type="button"
-          className="sb-btn"
+          className="sb-btn sb-btn-secondary"
           disabled={busy}
           onClick={() => {
             setBusy(true)

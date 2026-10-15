@@ -227,7 +227,9 @@ export function HealthInsightsPage() {
                   <div key={d.day} className="hb-bar">
                     <div
                       className="hb-bar-fill"
-                      {...(d.mood == null ? { 'data-empty': true } : {})}
+                      {...(d.mood == null
+                        ? { 'data-empty': true }
+                        : { 'data-mood': d.mood })}
                       style={{ height: `${d.mood == null ? 6 : 14 + ((d.mood - 1) / 4) * 86}%` }}
                       title={
                         d.mood == null
@@ -249,7 +251,10 @@ export function HealthInsightsPage() {
                     <div className="hb-row-main">
                       <p className="hb-row-title">{x(HM.health_ins_best_day)}</p>
                       <span className="hb-row-meta">
-                        {fmtDay(best.day, lang)} — {moodLabel(best.mood, lang)}
+                        {fmtDay(best.day, lang)}{' '}
+                        <span className="hb-mood-dot" data-mood={best.mood}>
+                          {moodLabel(best.mood, lang)}
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -259,7 +264,10 @@ export function HealthInsightsPage() {
                     <div className="hb-row-main">
                       <p className="hb-row-title">{x(HM.health_ins_low_day)}</p>
                       <span className="hb-row-meta">
-                        {fmtDay(toughest.day, lang)} — {moodLabel(toughest.mood, lang)}
+                        {fmtDay(toughest.day, lang)}{' '}
+                        <span className="hb-mood-dot" data-mood={toughest.mood}>
+                          {moodLabel(toughest.mood, lang)}
+                        </span>
                       </span>
                     </div>
                   </div>

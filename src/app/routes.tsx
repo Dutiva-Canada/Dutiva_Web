@@ -94,6 +94,10 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
+/* Dev-only visual preview of the health portal on fixture data — never routed in prod builds. */
+const HealthPreview = import.meta.env.DEV
+  ? lazy(() => import('@/dev/HealthPreview').then((m) => ({ default: m.HealthPreview })))
+  : () => null
 /* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
 /* prettier-ignore */ const PrPortalSurface = lazy(() => import('./prSurface').then((m) => ({ default: m.PrPortalSurface })))
 /* prettier-ignore */ const PrHomePage = lazy(() => import('@/features/pr/portal/PrHomePage').then((m) => ({ default: m.PrHomePage })))
@@ -492,6 +496,18 @@ function routeTree(): RouteObject[] {
         },
       ],
     },
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: '/dev-health-preview',
+            element: (
+              <Suspense fallback={null}>
+                <HealthPreview />
+              </Suspense>
+            ),
+          },
+        ]
+      : []),
     { path: '*', element: <NotFoundRoute /> },
   ]
 }

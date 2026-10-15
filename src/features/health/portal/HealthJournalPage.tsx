@@ -282,7 +282,7 @@ function EntryRow({
             /* Consent is recorded on the row — the state survives reloads
                and the same button now revokes it. */
             <>
-              <span className="hb-row-meta" style={{ fontSize: 12.5 }}>
+              <span className="hb-share-pill">
                 {x(HM.health_journal_shared_mira)}
               </span>
               <button
