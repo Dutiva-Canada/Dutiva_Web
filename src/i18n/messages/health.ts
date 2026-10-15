@@ -81,6 +81,7 @@ export const healthMessages = defineMessages({
   health_ov_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
   health_ov_recent: { en: 'Recent check-ins', fr: 'Points récents' },
   health_ov_latest_entry: { en: 'Latest journal entry', fr: 'Dernière entrée de journal' },
+  health_ov_open_journal: { en: 'Open journal', fr: 'Ouvrir le journal' },
   health_ov_new_checkin: { en: 'New check-in', fr: 'Nouveau point' },
   health_ov_new_entry: { en: 'New journal entry', fr: 'Nouvelle entrée' },
   health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat ?' },
@@ -298,7 +299,7 @@ export const healthMessages = defineMessages({
   },
 
   /* For review — work agents filed for a human decision */
-  health_tab_review: { en: 'For review', fr: 'À valider' },
+  health_tab_review: { en: 'Review', fr: 'À valider' },
   health_review_title: { en: 'For review', fr: 'À valider' },
   health_review_sub: {
     en: 'Ideas the portal’s agents surfaced — each waits on your call, nothing is added on its own.',
@@ -343,6 +344,18 @@ export const healthMessages = defineMessages({
   health_mem_delete: { en: 'Remove', fr: 'Retirer' },
   health_mem_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_mem_from_mira: { en: 'proposed by Mira', fr: 'proposé par Mira' },
+  health_mem_label: { en: 'New memory', fr: 'Nouvelle mémoire' },
+  health_mem_edit: { en: 'Edit', fr: 'Modifier' },
+  health_mem_updated: { en: 'Memory updated.', fr: 'Mémoire mise à jour.' },
+  health_mem_removed: { en: 'Mira dropped that.', fr: 'Mira l’a oublié.' },
+  health_mem_save_failed: {
+    en: 'That didn’t save — try again.',
+    fr: 'Ça n’a pas enregistré — réessayez.',
+  },
+  health_mem_delete_failed: {
+    en: 'That didn’t remove — try again.',
+    fr: 'Ça n’a pas été retiré — réessayez.',
+  },
   health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
   /* Queue write didn't land upstream — the suggestion works but won't
      survive leaving the page. [FR self-authored] */
