@@ -90,6 +90,9 @@ export interface CompanionContext {
   /** Durable facts the person asked Mira to hold — health_memories rows,
       user-written or review-accepted. Context, never permission. */
   memories: string[]
+  /** Row counts behind the context — chat echoes them back so the reply's
+      "what she drew on" line can say plainly what was in scope. */
+  counts: { checkins: number; habits: number; journals: number; memories: number }
 }
 
 export async function loadCompanionContext(
@@ -151,6 +154,13 @@ export async function loadCompanionContext(
     habitNames: habitRows.map((h) => h.name),
     signals: buildCompanionSignals(noteRows, (journals ?? []) as JournalExcerptRow[]),
     memories: ((memories ?? []) as { text: string }[]).map((m) => m.text),
+    counts: {
+      checkins: noteRows.length,
+      habits: habitRows.length,
+      /* Bounded excerpts only — the query already filters to shared_at. */
+      journals: (journals ?? []).length,
+      memories: (memories ?? []).length,
+    },
   }
 }
 
@@ -438,6 +448,9 @@ export async function runChat(
           action: executed,
           suggests: parsed.suggests,
           reasoning: allReasoning || null,
+          /* What the reply could see — counts only, surfaced as the "drew
+             on" line under the answer. */
+          context: ctx.counts,
           ...ids,
         })
       } catch (e) {
@@ -475,6 +488,7 @@ export async function runChat(
     action: executed,
     suggests: parsed.suggests,
     reasoning: reasoning || null,
+    context: ctx.counts,
     ...ids,
   })
 }

@@ -27,7 +27,7 @@ export const healthMessages = defineMessages({
   },
   health_crisis_note: {
     en: 'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
-    fr: 'En crise ou si vous pensez au suicide ? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
+    fr: 'En crise ou si vous pensez au suicide ? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
   },
 
   /* Tabs */
@@ -73,18 +73,48 @@ export const healthMessages = defineMessages({
   },
   health_ov_today: { en: 'Today’s check-in', fr: 'Point d’aujourd’hui' },
   health_ov_today_done: { en: 'Done — you checked in today.', fr: 'Fait — vous avez pris le point aujourd’hui.' },
-  health_ov_today_none: { en: 'Not yet — take a minute for a quick check-in.', fr: 'Pas encore — prenez une minute pour faire le point.' },
+  /* The card links to the check-in page — the value names the action, the
+     "about a minute" pitch lives once in the empty state below. */
+  health_ov_today_none: { en: 'Not yet — start here.', fr: 'Pas encore — commencez ici.' },
   health_ov_mood_7d: { en: 'Average mood (7 days)', fr: 'Humeur moyenne (7 jours)' },
   health_ov_streak: { en: 'Check-in streak', fr: 'Jours de suite' },
   health_ov_streak_days: { en: '{count} days', fr: '{count} jours' },
   health_ov_streak_day: { en: '1 day', fr: '1 jour' },
+  /* The streak counts back from yesterday — today is still open. A quiet
+     qualifier, not a guilt trip. */
+  health_ov_streak_pending: { en: 'Today pending', fr: 'Aujourd’hui en attente' },
   health_ov_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
+  /* Stat-card no-data spoken value — '—' shows visually, this is what a
+     screen reader hears. */
+  health_ov_none: { en: 'No data yet', fr: 'Aucune donnée' },
+  health_ov_habits_none: { en: 'None set up', fr: 'Aucune habitude' },
+  health_ov_habits_frac: { en: '{done} of {total}', fr: '{done} sur {total}' },
+  health_ov_view_all: { en: 'View all', fr: 'Tout voir' },
+  health_ov_empty_cta: { en: 'Start a check-in', fr: 'Faire le point' },
   health_ov_recent: { en: 'Recent check-ins', fr: 'Points récents' },
   health_ov_latest_entry: { en: 'Latest journal entry', fr: 'Dernière entrée de journal' },
   health_ov_open_journal: { en: 'Open journal', fr: 'Ouvrir le journal' },
   health_ov_new_checkin: { en: 'New check-in', fr: 'Nouveau point' },
   health_ov_new_entry: { en: 'New journal entry', fr: 'Nouvelle entrée' },
-  health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat ?' },
+  /* First-run subtitle — nothing to summarize yet, so it points at the
+     first action instead of describing an empty summary. */
+  health_ov_sub_empty: {
+    en: 'Start with a one-minute check-in — the summary builds from there.',
+    fr: 'Commencez par un point d’une minute — le résumé se construit à partir de là.',
+  },
+  health_ov_last_checkin: { en: 'Last check-in: {date}', fr: 'Dernier point : {date}' },
+  /* Pending review queue — a strip, with the count carried by fill(). */
+  health_ov_review_one: { en: '1 suggestion is waiting for your call', fr: '1 suggestion attend votre décision' },
+  health_ov_review_many: {
+    en: '{count} suggestions are waiting for your call',
+    fr: '{count} suggestions attendent votre décision',
+  },
+  health_ov_review_link: { en: 'Review them', fr: 'Les valider' },
+  /* Inline check-in on the home page — two taps instead of a trip to the
+     check-in tab. Same fields, minus the note. */
+  health_ov_quick_title: { en: 'Quick check-in', fr: 'Point rapide' },
+  health_ov_quick_full: { en: 'Full check-in', fr: 'Point complet' },
+  health_ov_crisis_title: { en: 'Need support right now?', fr: 'Besoin de soutien immédiat ?' },
   health_ov_crisis_body: {
     en: 'Call or text 9-8-8 — Canada’s suicide crisis helpline, free and available 24/7. If you’re in immediate danger, call 911.',
     fr: 'Appelez ou textez le 9-8-8 — la ligne d’aide en cas de crise suicide au Canada, gratuite et ouverte 24/7. En cas de danger immédiat, appelez le 911.',
@@ -101,9 +131,9 @@ export const healthMessages = defineMessages({
     en: 'A minute to note how things actually are — mood, energy, and anything worth remembering.',
     fr: 'Une minute pour noter comment ça va vraiment — humeur, énergie et tout ce qui vaut la peine d’être retenu.',
   },
-  health_checkin_mood: { en: 'How are you feeling?', fr: 'Comment vous sentez-vous ?' },
+  health_checkin_mood: { en: 'How are you feeling?', fr: 'Comment vous sentez-vous ?' },
   health_checkin_energy: { en: 'Energy level', fr: 'Niveau d’énergie' },
-  health_checkin_note: { en: 'Anything on your mind? (optional)', fr: 'Quelque chose en tête ? (facultatif)' },
+  health_checkin_note: { en: 'Anything on your mind? (optional)', fr: 'Quelque chose en tête ? (facultatif)' },
   health_checkin_note_ph: {
     en: 'A sentence or two is plenty.',
     fr: 'Une phrase ou deux suffisent.',
@@ -151,6 +181,10 @@ export const healthMessages = defineMessages({
   },
   health_journal_save: { en: 'Save entry', fr: 'Enregistrer' },
   health_journal_saved: { en: 'Entry saved.', fr: 'Entrée enregistrée.' },
+  health_journal_save_failed: {
+    en: 'Couldn’t save — your entry is still here. Try again.',
+    fr: 'Enregistrement impossible — votre entrée est toujours là. Réessayez.',
+  },
   health_journal_edit: { en: 'Edit', fr: 'Modifier' },
   health_journal_cancel: { en: 'Cancel', fr: 'Annuler' },
   health_journal_delete: { en: 'Delete', fr: 'Supprimer' },
@@ -159,6 +193,10 @@ export const healthMessages = defineMessages({
     en: 'No entries yet. Writing a few lines is a good place to start.',
     fr: 'Aucune entrée pour l’instant. Écrire quelques lignes est un bon point de départ.',
   },
+  health_journal_empty_cta: { en: 'Write your first entry', fr: 'Écrire une première entrée' },
+  /* The archive is paged — newest JOURNAL_CAP ship with the state, this
+     walks back one page at a time. */
+  health_journal_load_more: { en: 'Load earlier entries', fr: 'Charger les entrées précédentes' },
   health_journal_untitled: { en: 'Untitled', fr: 'Sans titre' },
   health_journal_edited: { en: 'Edited {date}', fr: 'Modifiée le {date}' },
   health_journal_body_required: { en: 'Write a few words first.', fr: 'Écrivez d’abord quelques mots.' },
@@ -193,7 +231,7 @@ export const healthMessages = defineMessages({
     fr: 'De vrais endroits pour joindre des gens. Dutiva Santé est un outil de réflexion, pas un service de soutien — eux le sont.',
   },
   health_res_crisis_title: { en: 'If you’re in crisis right now', fr: 'Si vous êtes en crise en ce moment' },
-  health_res_988_name: { en: '9-8-8: Suicide Crisis Helpline', fr: '9-8-8 : Ligne d’aide en cas de crise suicide' },
+  health_res_988_name: { en: '9-8-8: Suicide Crisis Helpline', fr: '9-8-8 : Ligne d’aide en cas de crise suicide' },
   health_res_988_body: {
     en: 'Call or text 9-8-8. Free, confidential, bilingual, 24/7, anywhere in Canada.',
     fr: 'Appelez ou textez le 9-8-8. Gratuit, confidentiel, bilingue, 24/7, partout au Canada.',
@@ -318,7 +356,7 @@ export const healthMessages = defineMessages({
   /* A resolve call failed — the row stays pending. [FR self-authored] */
   health_review_action_failed: {
     en: 'That didn’t save — it’s still waiting here; try again.',
-    fr: 'Ça n’a pas enregistré — c’est toujours en attente ; réessayez.',
+    fr: 'Ça n’a pas enregistré — c’est toujours en attente ; réessayez.',
   },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
@@ -345,7 +383,16 @@ export const healthMessages = defineMessages({
   health_mem_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_mem_from_mira: { en: 'proposed by Mira', fr: 'proposé par Mira' },
   health_mem_label: { en: 'New memory', fr: 'Nouvelle mémoire' },
+  /* Scope note under the list — what she does with these, and who sees it.
+     Matches the journal's own "only you" hedge. */
+  health_mem_scope: {
+    en: 'Mira draws on these in your chats — the list itself stays between you two.',
+    fr: 'Mira s’en sert dans vos discussions — la liste reste entre vous.',
+  },
   health_mem_edit: { en: 'Edit', fr: 'Modifier' },
+  /* Accessible name for the inline edit field — the visible button says
+     "Edit", but a field needs a noun. */
+  health_mem_edit_label: { en: 'Edit memory', fr: 'Modifier la mémoire' },
   health_mem_updated: { en: 'Memory updated.', fr: 'Mémoire mise à jour.' },
   health_mem_removed: { en: 'Mira dropped that.', fr: 'Mira l’a oublié.' },
   health_mem_save_failed: {
@@ -366,9 +413,11 @@ export const healthMessages = defineMessages({
 
   /* Tools — self-guided pauses, not treatment */
   health_tools_title: { en: 'Tools', fr: 'Outils' },
+  health_tools_tabs_aria: { en: 'Tools sections', fr: 'Sections des outils' },
+  health_tools_tab_exercises: { en: 'Exercises', fr: 'Exercices' },
   health_tools_sub: {
     en: 'Small self-guided exercises for the moment you’re in — a pause with some structure, not treatment.',
-    fr: 'De petits exercices guidés pour le moment présent — une pause structurée, pas un traitement.',
+    fr: 'De petits exercices à faire soi-même pour le moment présent — une pause structurée, pas un traitement.',
   },
   health_tool_breath_title: { en: 'Box breathing', fr: 'Respiration carrée' },
   health_tool_breath_body: {
@@ -381,7 +430,17 @@ export const healthMessages = defineMessages({
   health_tool_breath_hold: { en: 'Hold', fr: 'Retenez' },
   health_tool_breath_out: { en: 'Breathe out', fr: 'Expirez' },
   health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
-  health_tool_ground_title: { en: 'Grounding: 5–4–3–2–1', fr: 'Ancrage : 5–4–3–2–1' },
+  health_tool_breath_mode_label: { en: 'Pace', fr: 'Rythme' },
+  health_tool_breath_mode_box: { en: 'Box', fr: 'Carrée' },
+  health_tool_breath_nudge: {
+    en: 'A few rounds in — a good place to pause, or keep going.',
+    fr: 'Quelques cycles — un bon moment pour faire une pause, ou continuer.',
+  },
+  health_tool_checkin_link: {
+    en: 'Log how you feel now',
+    fr: 'Notez comment vous vous sentez',
+  },
+  health_tool_ground_title: { en: 'Grounding: 5–4–3–2–1', fr: 'Ancrage : 5–4–3–2–1' },
   health_tool_ground_body: {
     en: 'Name things around you, counting down through the senses.',
     fr: 'Nommez ce qui vous entoure, en descendant les sens un à un.',
@@ -392,6 +451,7 @@ export const healthMessages = defineMessages({
   health_tool_ground_s2: { en: '2 things you can smell', fr: '2 odeurs que vous remarquez' },
   health_tool_ground_s1: { en: '1 thing you can taste', fr: '1 chose que vous goûtez' },
   health_tool_ground_next: { en: 'Next', fr: 'Suivant' },
+  health_tool_ground_back: { en: 'Back', fr: 'Retour' },
   health_tool_ground_restart: { en: 'Start over', fr: 'Recommencer' },
   health_tool_ground_done: {
     en: 'That’s the exercise — take one more breath before you go back.',
@@ -402,14 +462,32 @@ export const healthMessages = defineMessages({
     en: 'One small thing that went okay today — write it down.',
     fr: 'Une petite chose qui s’est bien passée aujourd’hui — notez-la.',
   },
-  health_tool_grat_p1: { en: 'What’s one thing that went a little better than expected today?', fr: 'Qu’est-ce qui s’est un peu mieux passé que prévu aujourd’hui ?' },
-  health_tool_grat_p2: { en: 'Who made your day a bit easier — and how?', fr: 'Qui a rendu votre journée un peu plus facile — et comment ?' },
-  health_tool_grat_p3: { en: 'What’s a small thing you have now that past-you wanted?', fr: 'Quelle petite chose avez-vous maintenant que vous souhaitiez avant ?' },
-  health_tool_grat_p4: { en: 'What did you enjoy eating, seeing, or hearing recently?', fr: 'Qu’avez-vous aimé manger, voir ou entendre récemment ?' },
+  health_tool_grat_p1: { en: 'What’s one thing that went a little better than expected today?', fr: 'Qu’est-ce qui s’est un peu mieux passé que prévu aujourd’hui ?' },
+  health_tool_grat_p2: { en: 'Who made your day a bit easier — and how?', fr: 'Qui a rendu votre journée un peu plus facile — et comment ?' },
+  health_tool_grat_p3: { en: 'What’s a small thing you have now that past-you wanted?', fr: 'Quelle petite chose avez-vous maintenant que vous souhaitiez avant ?' },
+  health_tool_grat_p4: { en: 'What did you enjoy eating, seeing, or hearing recently?', fr: 'Qu’avez-vous aimé manger, voir ou entendre récemment ?' },
   health_tool_grat_another: { en: 'Try another prompt', fr: 'Une autre idée' },
   health_tool_grat_ph: { en: 'A sentence or two is plenty.', fr: 'Une phrase ou deux suffit.' },
   health_tool_grat_save: { en: 'Save to journal', fr: 'Enregistrer au journal' },
   health_tool_grat_saved: { en: 'Saved to your journal.', fr: 'Enregistrée dans votre journal.' },
+  health_tool_grat_view: { en: 'View journal', fr: 'Voir le journal' },
+  health_tool_grat_failed: {
+    en: 'Couldn’t save — your note is still here. Try again.',
+    fr: 'Enregistrement impossible — votre note est toujours là. Réessayez.',
+  },
+  health_tool_grat_share: {
+    en: 'Let Mira read this note',
+    fr: 'Laisser Mira lire cette note',
+  },
+  health_tool_grat_share_failed: {
+    en: 'Saved — but sharing with Mira didn’t work.',
+    fr: 'Enregistrée — mais le partage avec Mira n’a pas fonctionné.',
+  },
+  health_tool_grat_count: { en: '{count} characters left', fr: '{count} caractères restants' },
+  health_tool_grat_p5: { en: 'What did you get through this week that you weren’t sure you would?', fr: 'Qu’avez-vous traversé cette semaine sans être sûr d’y arriver ?' },
+  health_tool_grat_p6: { en: 'What’s a sound, smell, or place that settles you a little?', fr: 'Quel son, quelle odeur ou quel endroit vous apaise un peu ?' },
+  health_tool_grat_p7: { en: 'What’s something your body did for you today?', fr: 'Qu’est-ce que votre corps a fait pour vous aujourd’hui ?' },
+  health_tool_grat_p8: { en: 'What are you looking forward to, even slightly?', fr: 'Qu’attendez-vous avec un peu d’impatience, même légèrement ?' },
   health_tool_grat_entry: { en: 'Gratitude', fr: 'Gratitude' },
   /* [FR self-authored] — the modality library header and actions. */
   health_tools_practice_title: { en: 'Practices with Mira', fr: 'Pratiques avec Mira' },
@@ -421,25 +499,40 @@ export const healthMessages = defineMessages({
   health_tool_practice_explains: { en: 'Where she stands', fr: 'Où elle se place' },
   health_tool_practice_go: { en: 'Practice with Mira', fr: 'Pratiquer avec Mira' },
   health_tool_practice_ask: { en: 'Ask Mira', fr: 'Demander à Mira' },
+  health_tool_practice_ask_label: { en: 'Ask Mira about {name}', fr: 'Demander à Mira : {name}' },
+  health_tool_practice_go_label: { en: 'Practice {name} with Mira', fr: 'Pratiquer {name} avec Mira' },
   health_tool_practice_clinician: { en: 'Clinician-led', fr: 'Sous guidance clinique' },
   health_tool_practice_int: {
-    en: 'Guided practice is on internal staff accounts.',
-    fr: 'La pratique guidée est réservée aux comptes internes.',
+    en: 'Guided practice is limited to Dutiva staff accounts — Ask Mira still works everywhere.',
+    fr: 'La pratique guidée est réservée aux comptes de l’équipe Dutiva — « Demander à Mira » fonctionne partout.',
+  },
+  health_tools_group_guided: { en: 'Mira can guide these', fr: 'Mira peut les guider' },
+  health_tools_group_clinician: {
+    en: 'Clinician-led — she explains, never conducts',
+    fr: 'Sous guidance clinique — elle explique, sans jamais les pratiquer',
   },
   health_tools_note: {
-    en: 'These exercises are pauses, not treatment. If you’re struggling, the Resources page lists real people to reach.',
-    fr: 'Ces exercices sont des pauses, pas un traitement. Si vous avez du mal, la page Ressources liste de vraies personnes à joindre.',
+    en: 'These exercises are pauses, not treatment.',
+    fr: 'Ces exercices sont des pauses, pas un traitement.',
+  },
+  health_tools_note_link: {
+    en: 'If you’re struggling, the Resources page lists real people to reach.',
+    fr: 'Si vous avez du mal, la page Ressources liste de vraies personnes à joindre.',
   },
 
   /* Layout chrome */
   health_loading: { en: 'Loading…', fr: 'Chargement…' },
+  health_skip: { en: 'Skip to content', fr: 'Aller au contenu' },
+  /* sr-only suffix on the Review tab when the queue has pending rows —
+     the visible badge is aria-hidden so this is the spoken count. */
+  health_nav_pending: { en: '{count} pending', fr: '{count} en attente' },
   health_load_error: {
     en: 'Couldn’t load your data. Check your connection and try again.',
     fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
   },
   health_retry: { en: 'Try again', fr: 'Réessayer' },
   health_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
-  health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
+  health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
 
   /* Footer + legal */
   health_footer_nav: { en: 'Dutiva Health links', fr: 'Liens Dutiva Santé' },
@@ -448,10 +541,10 @@ export const healthMessages = defineMessages({
   health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de bien-être' },
   health_footer_support: { en: 'Support', fr: 'Soutien' },
   health_legal_back: { en: 'Back to Health', fr: 'Retour à Santé' },
-  health_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
-  health_legal_effective: { en: 'Effective:', fr: 'En vigueur :' },
+  health_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
+  health_legal_effective: { en: 'Effective:', fr: 'En vigueur :' },
   health_legal_contact: { en: 'Contact', fr: 'Nous joindre' },
-  health_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
+  health_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
 
   /* SEO/head titles */
   health_seo_title: { en: 'Dutiva Health', fr: 'Dutiva Santé' },
@@ -496,7 +589,7 @@ export const healthMessages = defineMessages({
   health_chat_title: { en: 'Mira', fr: 'Mira' },
   health_chat_sub: {
     en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you: a check-in, a habit done, a journal entry. She’s software, not a person or a therapist.',
-    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute.',
+    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute.',
   },
   /* Her opening turn on an empty conversation — she speaks first, in one
      breath: a hello, at most one thing she noticed, and a question. Built
@@ -505,14 +598,14 @@ export const healthMessages = defineMessages({
   health_chat_hi: { en: 'Hi — I’m Mira.', fr: 'Bonjour — je suis Mira.' },
   health_chat_hi_streak: {
     en: 'I noticed “{name}” is on a {days}-day streak — nicely kept.',
-    fr: 'J’ai remarqué que « {name} » se maintient depuis {days} jours — bien tenu.',
+    fr: 'J’ai remarqué que « {name} » se maintient depuis {days} jours — bien tenu.',
   },
   /* A run that ended yesterday — named as a pause, not a failure; the
      greeting goes on to the arrival question, so no advice needed here.
      [FR self-authored] */
   health_chat_hi_broke: {
     en: 'I noticed “{name}” paused after a {days}-day streak.',
-    fr: 'J’ai remarqué que « {name} » a fait une pause après {days} jours de suite.',
+    fr: 'J’ai remarqué que « {name} » a fait une pause après {days} jours de suite.',
   },
   health_chat_hi_checkins: {
     en: 'You’ve checked in {count} times this week already.',
@@ -520,14 +613,16 @@ export const healthMessages = defineMessages({
   },
   health_chat_hi_ask: {
     en: 'How are you arriving today?',
-    fr: 'Comment vous sentez-vous en arrivant aujourd’hui ?',
+    fr: 'Comment vous sentez-vous en arrivant aujourd’hui ?',
   },
   health_chat_placeholder: {
     en: 'Tell Mira how it’s going, or what to jot down…',
     fr: 'Dites à Mira comment ça va, ou quoi noter…',
   },
   health_chat_send: { en: 'Send', fr: 'Envoyer' },
-  health_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  /* Scoped to the open thread — "this" so a named conversation's Clear
+     can't read as wiping them all. */
+  health_chat_clear: { en: 'Clear this conversation', fr: 'Effacer cette discussion' },
   /* Second tap of the two-step clear. [FR self-authored] */
   health_chat_clear_confirm: {
     en: 'Click again to confirm',
@@ -539,13 +634,13 @@ export const healthMessages = defineMessages({
   },
   /* Confirmation chips under a reply that did something. The {name} slot is
      the subject the action touched. [FR self-authored] */
-  health_chat_did_mark: { en: 'Marked “{name}” done today', fr: '« {name} » marqué pour aujourd’hui' },
-  health_chat_did_unmark: { en: 'Unmarked “{name}” for today', fr: '« {name} » retiré pour aujourd’hui' },
-  health_chat_did_habit: { en: 'Now tracking “{name}”', fr: '« {name} » ajouté au suivi' },
+  health_chat_did_mark: { en: 'Marked “{name}” done today', fr: '« {name} » marqué pour aujourd’hui' },
+  health_chat_did_unmark: { en: 'Unmarked “{name}” for today', fr: '« {name} » retiré pour aujourd’hui' },
+  health_chat_did_habit: { en: 'Now tracking “{name}”', fr: '« {name} » ajouté au suivi' },
   health_chat_did_checkin: { en: 'Check-in logged — {name}', fr: 'Point du jour noté — {name}' },
   health_chat_did_journal: { en: 'Journal entry saved', fr: 'Entrée de journal enregistrée' },
   /* [FR self-authored] — propose_memory files to the review queue. */
-  health_chat_did_memory: { en: 'Memory proposed — “{name}”', fr: 'Souvenir proposé — « {name} »' },
+  health_chat_did_memory: { en: 'Memory proposed — “{name}”', fr: 'Souvenir proposé — « {name} »' },
   health_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
@@ -591,12 +686,12 @@ export const healthMessages = defineMessages({
   health_home_mira_label: { en: 'Mira noticed', fr: 'Mira a remarqué' },
   health_home_mira_streak: {
     en: '“{name}” — {days} days running.',
-    fr: '« {name} » — {days} jours de suite.',
+    fr: '« {name} » — {days} jours de suite.',
   },
   /* A run that ended yesterday — a pause, not a verdict. [FR self-authored] */
   health_home_mira_broke: {
     en: '“{name}” paused after a {days}-day streak.',
-    fr: '« {name} » a fait une pause après {days} jours de suite.',
+    fr: '« {name} » a fait une pause après {days} jours de suite.',
   },
   health_home_mira_checkin: {
     en: 'You checked in today — feeling {mood}.',
@@ -604,7 +699,7 @@ export const healthMessages = defineMessages({
   },
   health_home_mira_note: {
     en: 'You wrote today: “{note}”',
-    fr: 'Vous avez écrit aujourd’hui : « {note} »',
+    fr: 'Vous avez écrit aujourd’hui : « {note} »',
   },
   /* Quiet-return notice — someone who has history but hasn't checked in for
      a few days. Warm, not guilt-trippy: the door's open, that's all. */
@@ -613,6 +708,12 @@ export const healthMessages = defineMessages({
     fr: 'Ça fait {days} jours depuis votre dernier point — la porte reste ouverte.',
   },
   health_home_mira_open: { en: 'Chat with Mira', fr: 'Discuter avec Mira' },
+  /* The strip's own week-count wording — the greeting's "already" fits a
+     hello, not an observation. */
+  health_home_mira_week: {
+    en: 'You’ve checked in {count} times this week.',
+    fr: 'Vous avez pris le point {count} fois cette semaine.',
+  },
   /* Thumbs rating under an assistant reply — stored on the turn.
      [FR self-authored] */
   health_chat_rate_up: { en: 'Helpful', fr: 'Utile' },
@@ -622,25 +723,25 @@ export const healthMessages = defineMessages({
      [FR self-authored] */
   health_chat_sub_internal: {
     en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you: a check-in, a habit done, a journal entry. She’s software, not a person or a therapist — but on this internal account she says plainly what she’d change.',
-    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute — mais sur ce compte interne, elle dit franchement ce qu’elle changerait.',
+    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute — mais sur ce compte interne, elle dit franchement ce qu’elle changerait.',
   },
   /* Empty-state starter chips — the third differs by tier.
      [FR self-authored] */
   health_chat_starter_1: {
     en: 'How has my week been?',
-    fr: 'Comment s’est passée ma semaine ?',
+    fr: 'Comment s’est passée ma semaine ?',
   },
   health_chat_starter_2: {
     en: 'What habits am I tracking?',
-    fr: 'Quelles habitudes est-ce que je suis en ce moment ?',
+    fr: 'Quelles habitudes est-ce que je suis en ce moment ?',
   },
   health_chat_starter_ext: {
     en: 'What’s a good wind-down routine?',
-    fr: 'C’est quoi une bonne routine du soir ?',
+    fr: 'C’est quoi une bonne routine du soir ?',
   },
   health_chat_starter_int: {
     en: 'What would you change about my routine?',
-    fr: 'Que changerais-tu à ma routine ?',
+    fr: 'Que changerais-tu à ma routine ?',
   },
   health_chat_internal_badge: { en: 'Internal', fr: 'Interne' },
   health_chat_retry: { en: 'Retry', fr: 'Réessayer' },
@@ -659,7 +760,7 @@ export const healthMessages = defineMessages({
   health_chat_typing: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
   /* The model's thinking trace — disclosure on an assistant turn.
      [FR self-authored] */
-  health_chat_reasoning: { en: 'Reasoning', fr: 'Raisonnement' },
+  health_chat_reasoning: { en: 'Mira’s notes', fr: 'Notes de Mira' },
   /* Tooltip on the reasoning disclosure — frames the trace as raw working
      so a mid-stream guess isn't read as a verified claim.
      [FR self-authored] */
@@ -680,7 +781,7 @@ export const healthMessages = defineMessages({
   },
   /* One-tap reasons under a thumbs-down — stored with the rating.
      [FR self-authored] */
-  health_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
+  health_chat_reason_label: { en: 'What was off?', fr: 'Qu’est-ce qui clochait ?' },
   health_chat_reason_wrong: { en: 'Not accurate', fr: 'Inexacte' },
   health_chat_reason_vague: { en: 'Too vague', fr: 'Trop vague' },
   health_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
@@ -693,6 +794,93 @@ export const healthMessages = defineMessages({
   /* Follow-up chips the model offers with a reply — tapping one sends it.
      [FR self-authored] */
   health_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },
+  /* Transcript + composer chrome. [FR self-authored] */
+  health_chat_log_label: { en: 'Conversation', fr: 'Discussion' },
+  /* The textarea's accessible name — the placeholder is a prompt, not a
+     field name. [FR self-authored] */
+  health_chat_input_label: { en: 'Message Mira', fr: 'Message à Mira' },
+  health_chat_loading: {
+    en: 'Loading the conversation…',
+    fr: 'Chargement de la discussion…',
+  },
+  /* History failed — the greeting can't claim a fresh start over turns
+     that may exist; an inline row with retry tells the truth instead. */
+  health_chat_load_failed: {
+    en: 'The conversation didn’t load.',
+    fr: 'La discussion n’a pas chargé.',
+  },
+  /* Kept after the Stop pill — a partial answer must not pass for a
+     finished one. */
+  health_chat_stopped: { en: 'Stopped early', fr: 'Interrompue' },
+  /* Day separators — relative when the turn is recent.
+     [FR self-authored] */
+  health_chat_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  health_chat_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
+  /* Per-turn delete — the privacy escape short of clearing the thread. A
+     user turn takes its paired reply with it. [FR self-authored] */
+  health_chat_turn_delete: { en: 'Delete this message', fr: 'Supprimer ce message' },
+  /* Armed second tap on a small icon button — fits where the icon sat. */
+  health_chat_sure: { en: 'Sure?', fr: 'Confirmer ?' },
+  /* Thread ops in the switcher — rename opens an inline input.
+     [FR self-authored] */
+  health_chat_thread_rename: { en: 'Rename', fr: 'Renommer' },
+  health_chat_thread_delete: { en: 'Delete', fr: 'Supprimer' },
+  health_chat_thread_name: {
+    en: 'Conversation name',
+    fr: 'Nom de la conversation',
+  },
+  /* The unseen-activity dot on the switcher and its rows.
+     [FR self-authored] */
+  health_chat_thread_activity: { en: 'New activity', fr: 'Nouvelle activité' },
+  /* "Drew on" — the per-reply transparency line listing the context kinds
+     the answer could see. Counts only, never content. [FR self-authored] */
+  health_chat_ctx_label: { en: 'Drew on', fr: 'S’est appuyée sur' },
+  health_chat_ctx_checkin_one: { en: '{count} check-in', fr: '{count} bilan' },
+  health_chat_ctx_checkin_many: { en: '{count} check-ins', fr: '{count} bilans' },
+  health_chat_ctx_habit_one: { en: '{count} habit', fr: '{count} habitude' },
+  health_chat_ctx_habit_many: { en: '{count} habits', fr: '{count} habitudes' },
+  health_chat_ctx_memory_one: {
+    en: '{count} saved memory',
+    fr: '{count} souvenir enregistré',
+  },
+  health_chat_ctx_memory_many: {
+    en: '{count} saved memories',
+    fr: '{count} souvenirs enregistrés',
+  },
+  health_chat_ctx_journal_one: {
+    en: '{count} shared journal entry',
+    fr: '{count} entrée de journal partagée',
+  },
+  health_chat_ctx_journal_many: {
+    en: '{count} shared journal entries',
+    fr: '{count} entrées de journal partagées',
+  },
+  /* Second paragraph in the "what she can see" disclosure — how replies
+     happen, not just what she reads. [FR self-authored] */
+  health_chat_how: {
+    en: 'She answers over the context above and can take the small writes that appear as chips — every one is undoable. Memory suggestions wait in your Review queue; nothing is kept without you.',
+    fr: 'Elle répond à partir du contexte ci-dessus et peut faire les petites écritures affichées en pastilles — chacune est annulable. Les souvenirs proposés attendent dans votre file de revue ; rien n’est gardé sans vous.',
+  },
+  /* Quiet label over the empty-state chips — and reused when starters
+     resurface over a conversation that's been quiet a day.
+     [FR self-authored] */
+  health_chat_starters_label: { en: 'Start with', fr: 'Pour commencer' },
+  /* Whole-transcript copy in the header — data portability by clipboard.
+     [FR self-authored] */
+  health_chat_export: { en: 'Copy conversation', fr: 'Copier la discussion' },
+  health_chat_export_done: {
+    en: 'Conversation copied.',
+    fr: 'Discussion copiée.',
+  },
+  /* Empty-state shortcut — a link, not a chip, so it doesn't read as a
+     prompt she answers. [FR self-authored] */
+  health_chat_recap_link: {
+    en: 'Or open your weekly recap',
+    fr: 'Ou ouvrez votre bilan de la semaine',
+  },
+  /* Exit on the downvote reason chips — a changed mind shouldn't have to
+     pick one. [FR self-authored] */
+  health_chat_reason_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',

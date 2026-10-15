@@ -12,9 +12,13 @@ import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearHealthChat,
+  deleteHealthChatThread,
+  deleteHealthChatTurn,
+  listHealthChatThreads,
   loadHealthChatHistory,
   rateHealthChatTurn,
   regenerateHealthChat,
+  renameHealthChatThread,
   sendHealthChat,
   undoHealthChatAction,
 } from '@/features/health/data/api'
@@ -26,8 +30,11 @@ import { HealthChatPage } from './HealthChatPage'
 vi.mock('@/features/health/data/api', () => ({
   sendHealthChat: vi.fn(),
   regenerateHealthChat: vi.fn(),
-  listHealthChatThreads: vi.fn(async () => []),
+  listHealthChatThreads: vi.fn(async () => ({ threads: [], activity: {} })),
   newHealthChatThread: vi.fn(),
+  renameHealthChatThread: vi.fn(async () => undefined),
+  deleteHealthChatThread: vi.fn(async () => undefined),
+  deleteHealthChatTurn: vi.fn(async () => undefined),
   loadHealthChatHistory: vi.fn(),
   clearHealthChat: vi.fn(),
   rateHealthChatTurn: vi.fn(),
@@ -148,6 +155,7 @@ describe('HealthChatPage', () => {
       assistantId: '11111111-2222-3333-4444-555555555555',
       suggests: [],
       reasoning: null,
+      context: null,
     })
     const { refresh } = renderPage()
     await screen.findByPlaceholderText(/Tell Mira/)
@@ -186,6 +194,7 @@ describe('HealthChatPage', () => {
         assistantId,
         suggests: [],
         reasoning: null,
+        context: null,
       })
       renderPage()
       await screen.findByPlaceholderText(/Tell Mira/)
@@ -253,7 +262,7 @@ describe('HealthChatPage', () => {
     /* The undo affordance only rides on persisted (uuid-id) assistant turns
        — 'a1' is not one, so no Undo button appears. */
     expect(screen.queryByRole('button', { name: 'Undo' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Clear this conversation' })).toBeInTheDocument()
   })
 
   it('offers undo on a persisted action and marks it undone', async () => {
@@ -322,7 +331,7 @@ describe('HealthChatPage', () => {
     await screen.findByText('hi')
 
     /* First tap only arms — nothing is destroyed on one stray click. */
-    fireEvent.click(screen.getByRole('button', { name: 'Clear conversation' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Clear this conversation' }))
     expect(
       await screen.findByRole('button', { name: 'Click again to confirm' }),
     ).toBeInTheDocument()
@@ -360,7 +369,7 @@ describe('HealthChatPage', () => {
     /* Clearing mid-stream would resurrect the thread when the in-flight
        send persists — the button is inert until the send resolves. */
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeDisabled(),
+      expect(screen.getByRole('button', { name: 'Clear this conversation' })).toBeDisabled(),
     )
     resolveSend?.({
       reply: 'Noted.',
@@ -369,9 +378,10 @@ describe('HealthChatPage', () => {
       assistantId: 'a2',
       suggests: [],
       reasoning: null,
+      context: null,
     })
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Clear conversation' })).toBeEnabled(),
+      expect(screen.getByRole('button', { name: 'Clear this conversation' })).toBeEnabled(),
     )
   })
 
@@ -462,6 +472,7 @@ describe('HealthChatPage', () => {
       assistantId: 'a2',
       suggests: [],
       reasoning: null,
+      context: null,
     })
     renderPage()
     const input = await screen.findByPlaceholderText(/Tell Mira/)
@@ -481,5 +492,228 @@ describe('HealthChatPage', () => {
 
     expect(await screen.findByText(/je suis Mira/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
+  })
+
+  it('shows an honest error with retry when the history load fails', async () => {
+    vi.mocked(loadHealthChatHistory)
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue([
+        {
+          id: 'u1',
+          role: 'user',
+          content: 'back again',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-05T12:00:00Z',
+        },
+      ])
+    renderPage()
+
+    /* No greeting claiming a fresh start — the load failure owns the log. */
+    expect(await screen.findByText('The conversation didn’t load.')).toBeInTheDocument()
+    expect(screen.queryByText(/I’m Mira/)).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByText('back again')).toBeInTheDocument()
+  })
+
+  it('cannot send while the history is still loading', async () => {
+    let resolveHistory: ((rows: Awaited<ReturnType<typeof loadHealthChatHistory>>) => void) | undefined
+    vi.mocked(loadHealthChatHistory).mockImplementation(
+      () => new Promise((resolve) => (resolveHistory = resolve)),
+    )
+    renderPage()
+    const input = await screen.findByPlaceholderText(/Tell Mira/)
+    fireEvent.change(input, { target: { value: 'early send' } })
+    /* Send stays inert — a send now would be wiped when history resolves. */
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(sendHealthChat).not.toHaveBeenCalled()
+
+    resolveHistory?.([])
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled())
+  })
+
+  it('marks a stop mid-stream instead of passing the partial off as done', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(sendHealthChat).mockImplementation(async (_m, _l, onDelta) => {
+      onDelta?.('I was saying')
+      throw new DOMException('stopped', 'AbortError')
+    })
+    renderPage()
+    const input = await screen.findByPlaceholderText(/Tell Mira/)
+    fireEvent.change(input, { target: { value: 'hi' } })
+    /* The composer mounts before history resolves — Send only ungates
+       once the log does. */
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() => expect(sendHealthChat).toHaveBeenCalled())
+    expect(await screen.findByText('I was saying')).toBeInTheDocument()
+    expect(screen.getByText('Stopped early')).toBeInTheDocument()
+  })
+
+  it('echoes what the reply drew on under the answer', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(sendHealthChat).mockResolvedValue({
+      reply: 'A steady week.',
+      action: null,
+      userId: 'u9',
+      assistantId: '11111111-2222-3333-4444-555555555555',
+      suggests: [],
+      reasoning: null,
+      context: { checkins: 4, habits: 0, memories: 1, journals: 0 },
+    })
+    renderPage()
+    const input = await screen.findByPlaceholderText(/Tell Mira/)
+    fireEvent.change(input, { target: { value: 'how was my week' } })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    expect(await screen.findByText('A steady week.')).toBeInTheDocument()
+    expect(screen.getByText('Drew on: 4 check-ins · 1 saved memory')).toBeInTheDocument()
+  })
+
+  it('deletes a user turn and its paired reply after the two-step confirm', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: '11111111-2222-3333-4444-555555555551',
+        role: 'user',
+        content: 'take this out',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+      {
+        /* Stamped exactly 1ms after the user row — the server pairs them
+           by that stamp, so one delete drops both. */
+        id: '11111111-2222-3333-4444-555555555552',
+        role: 'assistant',
+        content: 'Gone with it.',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00.001Z',
+      },
+    ])
+    renderPage()
+    await screen.findByText('take this out')
+
+    const del = screen.getAllByRole('button', { name: 'Delete this message' }).at(0)!
+    fireEvent.click(del)
+    expect(deleteHealthChatTurn).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Sure?' }))
+    await waitFor(() =>
+      expect(deleteHealthChatTurn).toHaveBeenCalledWith(
+        '11111111-2222-3333-4444-555555555551',
+      ),
+    )
+    await waitFor(() => {
+      expect(screen.queryByText('take this out')).not.toBeInTheDocument()
+      expect(screen.queryByText('Gone with it.')).not.toBeInTheDocument()
+    })
+  })
+
+  it('pins the crisis line under a distress message and lets it be dismissed', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(sendHealthChat).mockResolvedValue({
+      reply: 'I hear you.',
+      action: null,
+      userId: 'u9',
+      assistantId: 'a9',
+      suggests: [],
+      reasoning: null,
+      context: null,
+    })
+    renderPage()
+    const input = await screen.findByPlaceholderText(/Tell Mira/)
+    fireEvent.change(input, { target: { value: 'I want to die' } })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send' })).toBeEnabled())
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    /* The standing note is already under the composer — the pin adds a
+       second one beside the bubble that asked for it. */
+    await waitFor(() =>
+      expect(screen.getAllByText(/9-8-8/).length).toBeGreaterThan(1),
+    )
+    const note = document.querySelector('.sbchat-crisis-inline')
+    expect(note).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    expect(document.querySelector('.sbchat-crisis-inline')).not.toBeInTheDocument()
+  })
+
+  it('copies the whole transcript from the header', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+    })
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: 'u1',
+        role: 'user',
+        content: 'first line',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+      {
+        id: 'a1',
+        role: 'assistant',
+        content: 'answer line',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:01Z',
+      },
+    ])
+    renderPage()
+    await screen.findByText('first line')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy conversation' }))
+    await waitFor(() => expect(writeText).toHaveBeenCalled())
+    const text = writeText.mock.calls.at(0)![0] as string
+    expect(text).toContain('You ·')
+    expect(text).toContain('first line')
+    expect(text).toContain('Mira ·')
+    expect(text).toContain('answer line')
+  })
+
+  it('renames and deletes a named thread from the switcher', async () => {
+    vi.mocked(listHealthChatThreads).mockResolvedValue({
+      threads: [{ id: 't1', title: 'Sleep notes', createdAt: '2026-10-01T00:00:00Z' }],
+      activity: {},
+    })
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: /Main conversation/ }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    const input = screen.getByRole('textbox', { name: 'Conversation name' })
+    fireEvent.change(input, { target: { value: 'Mornings' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() =>
+      expect(renameHealthChatThread).toHaveBeenCalledWith('t1', 'Mornings'),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sure?' }))
+    await waitFor(() => expect(deleteHealthChatThread).toHaveBeenCalledWith('t1'))
+    expect(screen.queryByRole('menuitemradio', { name: 'Sleep notes' })).not.toBeInTheDocument()
+  })
+
+  it('resurfaces the starters on a conversation quiet for over a day', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([
+      {
+        id: 'u1',
+        role: 'user',
+        content: 'a while ago',
+        action: null,
+        feedback: null,
+        createdAt: '2026-01-01T12:00:00Z',
+      },
+    ])
+    renderPage()
+    await screen.findByText('a while ago')
+    expect(screen.getByText('Start with')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'How has my week been?' })).toBeInTheDocument()
   })
 })

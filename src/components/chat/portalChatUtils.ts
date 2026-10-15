@@ -50,11 +50,25 @@ export function formatTurnTime(iso: string, lang: Lang): string {
   return dateFmt(lang, { hour: 'numeric', minute: '2-digit' }).format(d)
 }
 
-/** "Oct 10, 2026" — the day-separator chip between turns. */
-export function formatTurnDay(iso: string, lang: Lang): string {
+/** Day-separator chip between turns — "Today"/"Yesterday" when the caller
+    passes those labels, otherwise a short date that only carries the year
+    once the conversation crosses one. */
+export function formatTurnDay(
+  iso: string,
+  lang: Lang,
+  labels?: { today: string; yesterday: string },
+): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ''
-  return dateFmt(lang, { month: 'short', day: 'numeric', year: 'numeric' }).format(d)
+  const now = new Date()
+  if (labels && sameTurnDay(iso, now.toISOString())) return labels.today
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  if (labels && sameTurnDay(iso, yesterday.toISOString())) return labels.yesterday
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' }
+  /* The year only earns space once it isn't this one. */
+  if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric'
+  return dateFmt(lang, opts).format(d)
 }
 
 /** True when two ISO stamps land on the same local calendar day. */

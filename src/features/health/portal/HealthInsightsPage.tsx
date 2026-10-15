@@ -1,6 +1,7 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Info, Loader2, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -15,6 +16,7 @@ import {
   moodRange,
 } from '@/features/health/data/healthStats'
 import { energyLabel, fmtDay, moodLabel } from './healthUi'
+import { HealthLoading } from './HealthLoading'
 import { useHealthHead } from './useHealthHead'
 
 const CHART_DAYS = 14
@@ -26,6 +28,8 @@ export function HealthInsightsPage() {
   useHealthHead(HM.health_insights_title, HM.health_insights_sub)
   const [recap, setRecap] = useState<string | null>(null)
   const [recapping, setRecapping] = useState(false)
+  const [searchParams] = useSearchParams()
+  const recapFired = useRef(false)
 
   /* The model narrates the same aggregates the page shows — nothing more
      leaves the portal. Regenerated on each click; never stored. */
@@ -41,12 +45,19 @@ export function HealthInsightsPage() {
     }
   }
 
+  /* /health/insights?recap=1 — the Overview's "Summarize my week" link is
+     the click; arriving fires the recap once, only when there's data to
+     narrate. */
+  const hasDataEarly = (state?.checkIns.length ?? 0) > 0
+  useEffect(() => {
+    if (recapFired.current || searchParams.get('recap') !== '1' || !hasDataEarly) return
+    recapFired.current = true
+    void summarize()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- summarize is stable enough: it only reads lang + its own state setters
+  }, [searchParams, hasDataEarly])
+
   if (loading || !state) {
-    return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-      </div>
-    )
+    return <HealthLoading />
   }
 
   const checkIns = state.checkIns
@@ -56,6 +67,8 @@ export function HealthInsightsPage() {
   const days = dailyMoods(checkIns, CHART_DAYS)
   const { best, toughest } = moodRange(checkIns, 7)
   const hasData = checkIns.length > 0
+  const checkInTotal = state.checkInsTotal ?? checkIns.length
+  const entryTotal = state.entriesTotal ?? state.entries.length
 
   return (
     <div className="sb hb sb-page">
@@ -102,7 +115,7 @@ export function HealthInsightsPage() {
         </div>
         <div className="sb-stat">
           <div className="k">{x(HM.health_ins_total)}</div>
-          <div className="v">{checkIns.length}</div>
+          <div className="v">{checkInTotal}</div>
         </div>
         <div className="sb-stat">
           <div className="k">{x(HM.health_ins_streak)}</div>
@@ -116,7 +129,7 @@ export function HealthInsightsPage() {
         </div>
         <div className="sb-stat">
           <div className="k">{x(HM.health_ins_entries)}</div>
-          <div className="v">{state.entries.length}</div>
+          <div className="v">{entryTotal}</div>
         </div>
       </div>
 

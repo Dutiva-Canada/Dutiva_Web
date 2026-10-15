@@ -1390,6 +1390,9 @@ const investCoreMessages = defineMessages({
   invest_chat_retry: { en: 'Retry', fr: 'Réessayer' },
   invest_chat_view: { en: 'View', fr: 'Voir' },
   invest_chat_copy: { en: 'Copy reply', fr: 'Copier la réponse' },
+  /* Day separators — relative when the turn is recent. [FR self-authored] */
+  invest_chat_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  invest_chat_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
   invest_chat_load_earlier: {
     en: 'Load earlier messages',
     fr: 'Charger les messages précédents',

@@ -1,6 +1,7 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Loader2, Pencil, Plus, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -9,6 +10,7 @@ import {
   addJournalEntry,
   deleteJournalEntry,
   healthAiPrompt,
+  listJournalEntriesBefore,
   shareEntryWithMira,
   unshareEntryFromMira,
   updateJournalEntry,
@@ -16,6 +18,7 @@ import {
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import type { HealthJournalEntry } from '@/features/health/data/types'
 import { fmtDateTime } from './healthUi'
+import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
 
@@ -44,6 +47,8 @@ function EntryEditor({
       await refresh()
       showToast(HM.health_journal_saved)
       onDone()
+    } catch {
+      showToast(HM.health_journal_save_failed)
     } finally {
       setSaving(false)
     }
@@ -239,12 +244,26 @@ function EntryRow({ entry }: { entry: HealthJournalEntry }) {
 
 export function HealthJournalPage() {
   const { x, lang } = useI18n()
-  const { state } = useHealthData()
+  const { state, loading } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_journal_title, HM.health_journal_sub)
-  const [composing, setComposing] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [composing, setComposing] = useState(searchParams.get('new') === '1')
   const [prompt, setPrompt] = useState<string | null>(null)
   const [prompting, setPrompting] = useState(false)
+  const [earlier, setEarlier] = useState<HealthJournalEntry[]>([])
+  const [loadingMore, setLoadingMore] = useState(false)
+
+  /* /health/journal?new=1 — the Overview's "New journal entry" CTA lands
+     here with the editor already open. Consume the param once so a later
+     Cancel doesn't re-open it on the same visit. */
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return
+    setComposing(true)
+    const next = new URLSearchParams(searchParams)
+    next.delete('new')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
 
   /* Model-built writing idea — Mira reads the numbers and the user's own
      recent words. Lands as a note above the editor; the user still writes. */
@@ -261,7 +280,28 @@ export function HealthJournalPage() {
     }
   }
 
-  const entries = state?.entries ?? []
+  /* The state fetch keeps the newest JOURNAL_CAP entries — the archive
+     pages back from the oldest row shown. `earlier` survives a refresh;
+     dedupe by id in case a save re-orders the window. */
+  const fresh = state?.entries ?? []
+  const freshIds = new Set(fresh.map((e) => e.id))
+  const entries = [...fresh, ...earlier.filter((e) => !freshIds.has(e.id))]
+  const entriesTotal = state?.entriesTotal ?? entries.length
+  const hasMore = entries.length < entriesTotal
+
+  const loadMore = async () => {
+    const oldest = entries[entries.length - 1]
+    if (!oldest || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const rows = await listJournalEntriesBefore(oldest.createdAt)
+      setEarlier((cur) => [...cur, ...rows])
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
+  if (loading || !state) return <HealthLoading />
 
   return (
     <div className="sb hb sb-page">
@@ -315,11 +355,28 @@ export function HealthJournalPage() {
         {entries.length === 0 ? (
           <div className="sb-empty">{x(HM.health_journal_empty)}</div>
         ) : (
-          <div className="hb-rows">
-            {entries.map((e) => (
-              <EntryRow key={e.id} entry={e} />
-            ))}
-          </div>
+          <>
+            <div className="hb-rows">
+              {entries.map((e) => (
+                <EntryRow key={e.id} entry={e} />
+              ))}
+            </div>
+            {hasMore && (
+              <div style={{ textAlign: 'center', marginTop: 14 }}>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  disabled={loadingMore}
+                  onClick={() => void loadMore()}
+                >
+                  {loadingMore && (
+                    <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+                  )}
+                  {x(HM.health_journal_load_more)}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

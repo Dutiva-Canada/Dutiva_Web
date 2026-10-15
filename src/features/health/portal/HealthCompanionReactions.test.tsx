@@ -354,7 +354,7 @@ describe('home — What Mira remembers', () => {
     renderWith(<HealthHomePage />, 'en', remembered)
 
     fireEvent.click((await screen.findAllByRole('button', { name: 'Edit' }))[0]!)
-    const input = screen.getByLabelText('Edit')
+    const input = screen.getByLabelText('Edit memory')
     fireEvent.change(input, { target: { value: 'Prefers early calls' } })
     fireEvent.keyDown(input, { key: 'Enter' })
     await waitFor(() =>
@@ -458,7 +458,9 @@ describe('overview — Mira noticed strip', () => {
     }
     renderWith(<HealthHomePage />, 'en', empty)
 
-    await screen.findByText(/quiet summary/i)
+    /* Empty account renders the first-run subtitle, not the "quiet
+       summary" one — that's the render-settled marker. */
+    await screen.findByText(/one-minute check-in/i)
     expect(screen.queryByText(/Mira noticed/)).not.toBeInTheDocument()
   })
 })

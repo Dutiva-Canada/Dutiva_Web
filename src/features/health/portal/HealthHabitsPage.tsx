@@ -10,6 +10,7 @@ import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/featur
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { HealthLoading } from './HealthLoading'
 import { MiraNote } from './MiraNote'
 import { useHealthHead } from './useHealthHead'
 
@@ -20,7 +21,7 @@ import { useHealthHead } from './useHealthHead'
  */
 export function HealthHabitsPage() {
   const { x, lang } = useI18n()
-  const { state, refresh } = useHealthData()
+  const { state, loading, refresh } = useHealthData()
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_habits, HM.health_seo_desc_habits)
 
@@ -177,6 +178,8 @@ export function HealthHabitsPage() {
     await deleteHabit(id)
     await refresh()
   }
+
+  if (loading || !state) return <HealthLoading />
 
   return (
     <div className="sb hb sb-page">

@@ -561,6 +561,10 @@ export function PrChatPage() {
   const threadName = threadId
     ? (activeThread?.title ?? x(PM.pr_chat_thread_untitled))
     : x(PM.pr_chat_thread_default)
+  const dayLabels = {
+    today: x(PM.pr_chat_day_today),
+    yesterday: x(PM.pr_chat_day_yesterday),
+  }
 
   return (
     <div className="sb prx sb-page">
@@ -661,7 +665,7 @@ export function PrChatPage() {
                   <div key={t.id} style={{ display: 'contents' }}>
                     {showDay && (
                       <div className="sbchat-day" role="separator">
-                        <span>{formatTurnDay(t.createdAt, lang)}</span>
+                        <span>{formatTurnDay(t.createdAt, lang, dayLabels)}</span>
                       </div>
                     )}
                     <div className={`sbchat-bubble ${t.role}`} data-failed={t.failed || undefined}>

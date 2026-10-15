@@ -61,6 +61,12 @@ export interface HealthState {
   habits: HealthHabit[]
   habitLogs: HealthHabitLog[]
   memories: HealthMemory[]
+  /** True totals for the row-capped lists above — the stat strip shows
+      these, not array lengths. Undefined in hand-built test fixtures. */
+  checkInsTotal?: number
+  entriesTotal?: number
+  /** Pending agent_suggestions for this surface — the Review badge count. */
+  pendingReview?: number
   lastLoadedAt: string
 }
 
