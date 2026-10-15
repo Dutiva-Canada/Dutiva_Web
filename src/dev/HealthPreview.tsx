@@ -41,11 +41,11 @@ import '@/features/health/portal/health.css'
 
 const NAV = [
   { p: 'home', label: HM.health_tab_overview },
-  { p: 'chat', label: HM.health_tab_chat },
   { p: 'check-in', label: HM.health_tab_checkin },
   { p: 'habits', label: HM.health_tab_habits },
   { p: 'journal', label: HM.health_tab_journal },
   { p: 'tools', label: HM.health_tab_tools },
+  { p: 'chat', label: HM.health_tab_chat },
   { p: 'insights', label: HM.health_tab_insights },
   { p: 'review', label: HM.health_tab_review },
   { p: 'resources', label: HM.health_tab_resources },
