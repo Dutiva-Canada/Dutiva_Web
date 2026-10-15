@@ -716,4 +716,112 @@ describe('HealthChatPage', () => {
     expect(screen.getByText('Start with')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'How has my week been?' })).toBeInTheDocument()
   })
+
+  it('hides the voice-call button where the browser lacks the speech APIs', async () => {
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    renderPage()
+    await screen.findByPlaceholderText(/Tell Mira/)
+    /* jsdom ships neither SpeechRecognition nor speechSynthesis — the
+       gate must not advertise a call that can't start. */
+    expect(screen.queryByRole('button', { name: 'Voice call' })).not.toBeInTheDocument()
+  })
+
+  it('runs a spoken turn through the normal send pipe and speaks the reply', async () => {
+    /* Minimal Web Speech fakes — jsdom has neither half. The fake
+       recognition records instances so the test can drive an utterance. */
+    type Result = { isFinal: boolean; 0: { transcript: string } }
+    class FakeRecognition {
+      static instances: FakeRecognition[] = []
+      lang = ''
+      interimResults = false
+      continuous = true
+      onresult: ((e: { results: ArrayLike<Result> }) => void) | null = null
+      onerror: ((e: { error?: string }) => void) | null = null
+      onend: (() => void) | null = null
+      start() {
+        FakeRecognition.instances.push(this)
+      }
+      abort() {
+        this.onend?.()
+      }
+      /* One finished utterance — continuous=false means onend is the send
+         trigger, same as Chrome's behavior after a spoken pause. */
+      emit(transcript: string) {
+        this.onresult?.({ results: [{ isFinal: true, 0: { transcript } }] })
+        this.onend?.()
+      }
+    }
+    const speak = vi.fn((u: { onend?: (() => void) | null }) => u.onend?.())
+    vi.stubGlobal('SpeechRecognition', FakeRecognition)
+    vi.stubGlobal('speechSynthesis', {
+      speak,
+      cancel: vi.fn(),
+      getVoices: () => [],
+    })
+    vi.stubGlobal(
+      'SpeechSynthesisUtterance',
+      class {
+        text: string
+        lang = ''
+        voice: unknown = null
+        onend: (() => void) | null = null
+        onerror: (() => void) | null = null
+        constructor(t: string) {
+          this.text = t
+        }
+      },
+    )
+    try {
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+      vi.mocked(sendHealthChat).mockResolvedValue({
+        reply: 'Glad you called.',
+        action: null,
+        userId: 'u9',
+        assistantId: 'a9',
+        suggests: [],
+        reasoning: null,
+        context: null,
+      })
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+
+      fireEvent.click(screen.getByRole('button', { name: 'Voice call' }))
+      /* The overlay opens straight into listening — one fake instance
+         started. */
+      expect(await screen.findByText('Listening…')).toBeInTheDocument()
+      expect(FakeRecognition.instances).toHaveLength(1)
+      expect(FakeRecognition.instances[0]!.lang).toBe('en-CA')
+
+      /* Speak — the transcript flows through sendHealthChat like a typed
+         message, so consent, persistence and distress checks all ride
+         the same path. */
+      FakeRecognition.instances[0]!.emit('hello by voice')
+      await waitFor(() =>
+        expect(sendHealthChat).toHaveBeenCalledWith(
+          'hello by voice',
+          'en',
+          expect.any(Function),
+          expect.anything(),
+        ),
+      )
+
+      /* The reply is spoken, then the mic reopens for the next turn —
+         one more recognition instance. */
+      await waitFor(() => expect(speak).toHaveBeenCalled())
+      expect(speak.mock.calls.at(0)![0]).toMatchObject({ text: 'Glad you called.' })
+      await waitFor(() => expect(FakeRecognition.instances).toHaveLength(2))
+
+      /* The spoken turns landed in the visible transcript like typed
+         ones — the utterance also echoes in the overlay's last-said line,
+         so scope the assertion to the bubble. */
+      const bubbles = document.querySelectorAll('.sbchat-bubble.user')
+      expect([...bubbles].some((b) => b.textContent?.includes('hello by voice'))).toBe(true)
+      expect(screen.getByText('Glad you called.')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: 'End call' }))
+      expect(screen.queryByText('Listening…')).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
 })

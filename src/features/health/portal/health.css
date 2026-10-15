@@ -1021,3 +1021,97 @@ a > .hb-jthumb:hover {
     justify-content: flex-start;
   }
 }
+
+/* ---------- voice call overlay ---------- */
+/* A dim sheet over the chat page — the call card centers on it. The log
+   behind stays live because voice turns are ordinary turns. */
+.hbcall {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--sb-ink) 32%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.hbcall-card {
+  width: min(420px, 100%);
+  padding: 30px 26px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--sb-line);
+  background: var(--sb-card);
+  box-shadow: var(--sb-shadow);
+  text-align: center;
+}
+.hbcall-name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--sb-ink);
+}
+.hbcall-status {
+  margin: 6px 0 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--sb-muted);
+}
+.hbcall-live {
+  margin: 16px 0 20px;
+  min-height: 44px;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--sb-ink);
+}
+.hbcall-controls {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+.hbcall-btn {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sb-line);
+  background: var(--sb-card-deep);
+  color: var(--sb-ink);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.hbcall-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hbcall-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: var(--sb-accent);
+}
+/* aria-pressed=false means the mic/speaker is off — show it plainly. */
+.hbcall-btn[aria-pressed='false'] {
+  color: var(--sb-muted);
+  border-style: dashed;
+}
+.hbcall-end {
+  border-color: var(--sb-danger);
+  background: var(--sb-danger);
+  color: #fff;
+}
+.hbcall-end:not(:disabled):hover {
+  border-color: var(--sb-danger);
+  filter: brightness(1.06);
+}
+.hbcall-note {
+  margin: 20px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sb-muted);
+}
+.hbcall-crisis {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}

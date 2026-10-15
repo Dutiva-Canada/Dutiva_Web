@@ -37,7 +37,9 @@ import { DISTRESS_RE, isAbort } from './healthChatUi'
 import { HealthChatComposer, HealthChatPendingBubble } from './HealthChatComposer'
 import { HealthChatHeader } from './HealthChatHeader'
 import { HealthChatTurnRow } from './HealthChatTurnRow'
+import { HealthVoiceCall } from './HealthVoiceCall'
 import { useHealthChatTurnOps } from './useHealthChatTurnOps'
+import { useHealthVoiceCall } from './useHealthVoiceCall'
 import { useHealthHead } from './useHealthHead'
 
 const HISTORY_PAGE = 40
@@ -304,10 +306,12 @@ export function HealthChatPage() {
     return result.action?.ok ? refresh() : Promise.resolve()
   }
 
-  const sendText = async (message: string) => {
+  /* Returns the reply text (or null on failure/abort) so the voice-call
+     layer can speak it — typed callers ignore the return. */
+  const sendText = async (message: string): Promise<string | null> => {
     /* turns===null means history is still loading — a send now would be
        wiped when the fetch resolves and the optimistic turn is replaced. */
-    if (!message || sending || turns === null) return
+    if (!message || sending || turns === null) return null
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -356,6 +360,7 @@ export function HealthChatPage() {
         },
       )
       await adoptReply(result, userTurn.id)
+      return result.reply
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
@@ -386,6 +391,7 @@ export function HealthChatPage() {
           (prev ?? []).map((t) => (t.id === userTurn.id ? { ...t, failed: true } : t)),
         )
       }
+      return null
     } finally {
       abortRef.current = null
       setSending(false)
@@ -484,6 +490,12 @@ export function HealthChatPage() {
     inputRef.current?.focus()
   }
 
+  /* Voice-call mode — the browser transcribes, the reply flows through
+     sendText like typed chat (same consent, persistence and distress
+     detection), and speechSynthesis reads it back. `capable` is false
+     where the Web Speech APIs are missing, so the phone button hides. */
+  const voice = useHealthVoiceCall({ lang, sendMessage: sendText })
+
   /* Switcher ops — rename keeps an empty string meaningful (resets to
      untitled, so the next message names it again); delete returns the
      reader to main if they were inside the removed thread. */
@@ -579,6 +591,9 @@ export function HealthChatPage() {
      (null) is always selectable as the main one. */
   const openThread = (id: string | null) => {
     if (sending || id === threadId) return
+    /* A call belongs to the conversation it was opened in — switching
+       threads hangs up instead of speaking replies into the other one. */
+    voice.end()
     setThreadId(id)
   }
   const startThread = async () => {
@@ -652,6 +667,9 @@ export function HealthChatPage() {
         onDelete={(id) => void removeThread(id)}
         onExport={() => void exportChat()}
         onClear={() => void clear()}
+        voiceCapable={voice.capable}
+        canCall={turns !== null}
+        onCall={voice.start}
       />
 
       <section className="sb-card sb-card-pad sbchat" style={{ marginTop: 14 }}>
@@ -804,6 +822,20 @@ export function HealthChatPage() {
           x={x}
         />
       </section>
+
+      {voice.active && (
+        <HealthVoiceCall
+          status={voice.status}
+          liveText={voice.liveText}
+          lastText={voice.lastText}
+          micOff={voice.micOff}
+          voiceOff={voice.voiceOff}
+          x={x}
+          onMic={voice.toggleMic}
+          onVoice={voice.toggleVoice}
+          onEnd={voice.end}
+        />
+      )}
     </div>
   )
 }

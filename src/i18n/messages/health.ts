@@ -1212,6 +1212,34 @@ export const healthMessages = defineMessages({
   /* Exit on the downvote reason chips — a changed mind shouldn't have to
      pick one. [FR self-authored] */
   health_chat_reason_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  /* Voice-call mode — a phone button in the header opens an overlay where
+     the same conversation runs by voice: the browser transcribes the mic,
+     the reply flows through the normal send pipe, and a synthesized voice
+     reads it. The conversation still saves like typed chat.
+     [FR self-authored] */
+  health_chat_call: { en: 'Voice call', fr: 'Appel vocal' },
+  health_chat_call_listening: { en: 'Listening…', fr: 'À l’écoute…' },
+  health_chat_call_thinking: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
+  health_chat_call_speaking: { en: 'Mira is speaking…', fr: 'Mira parle…' },
+  health_chat_call_muted: {
+    en: 'Mic off — tap to speak',
+    fr: 'Micro coupé — touchez pour parler',
+  },
+  health_chat_call_blocked: {
+    en: 'Microphone blocked — allow it in the browser to talk, or close this and keep typing.',
+    fr: 'Micro bloqué — autorisez-le dans le navigateur pour parler, ou fermez et continuez à écrire.',
+  },
+  health_chat_call_end: { en: 'End call', fr: 'Raccrocher' },
+  health_chat_call_mic_on: { en: 'Turn microphone on', fr: 'Rétablir le micro' },
+  health_chat_call_mic_off: { en: 'Turn microphone off', fr: 'Couper le micro' },
+  health_chat_call_voice_on: { en: 'Unmute Mira’s voice', fr: 'Rétablir la voix de Mira' },
+  health_chat_call_voice_off: { en: 'Mute Mira’s voice', fr: 'Couper la voix de Mira' },
+  /* Provenance note inside the call overlay — names who carries the audio
+     without promising anything about retention. [FR self-authored] */
+  health_chat_call_note: {
+    en: 'Mira hears and speaks through your browser’s speech services — the conversation saves like typed chat.',
+    fr: 'Mira entend et parle par les services vocaux de votre navigateur — la discussion se sauvegarde comme à l’écrit.',
+  },
   health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',

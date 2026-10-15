@@ -37,6 +37,7 @@ import { HealthResourcesPage } from '@/features/health/portal/HealthResourcesPag
 import { HealthReviewPage } from '@/features/health/portal/HealthReviewPage'
 import { HealthChatComposer } from '@/features/health/portal/HealthChatComposer'
 import { HealthChatTurnRow } from '@/features/health/portal/HealthChatTurnRow'
+import { HealthVoiceCall } from '@/features/health/portal/HealthVoiceCall'
 import '@/features/health/portal/health.css'
 
 const NAV = [
@@ -146,7 +147,7 @@ function buildState(empty: boolean): HealthState {
   }
 }
 
-function ChatPreview() {
+function ChatPreview({ callOverlay = false }: { callOverlay?: boolean }) {
   const { x, lang } = useI18n()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [draft, setDraft] = useState('')
@@ -240,6 +241,21 @@ function ChatPreview() {
           x={x}
         />
       </section>
+      {/* ?call=1 renders the voice-call overlay over the transcript so the
+          call chrome can be screenshotted without a mic or speech APIs. */}
+      {callOverlay && (
+        <HealthVoiceCall
+          status="listening"
+          liveText=""
+          lastText="Can you add a habit for an evening wind-down?"
+          micOff={false}
+          voiceOff={false}
+          x={x}
+          onMic={() => {}}
+          onVoice={() => {}}
+          onEnd={() => {}}
+        />
+      )}
     </div>
   )
 }
@@ -248,7 +264,7 @@ function formatDayChanged(a: string, b: string) {
   return a.slice(0, 10) !== b.slice(0, 10)
 }
 
-const PAGES: Record<string, ComponentType> = {
+const PAGES: Record<string, ComponentType<{ callOverlay?: boolean }>> = {
   home: HealthHomePage,
   'check-in': HealthCheckInPage,
   habits: HealthHabitsPage,
@@ -285,6 +301,8 @@ function Shell() {
     refresh: () => Promise.resolve(),
   }
   const Page = PAGES[page] ?? HealthHomePage
+  /* ?call=1 layers the voice-call overlay onto the chat preview. */
+  const callOverlay = page === 'chat' && params.get('call') === '1'
 
   const navClass = (active: boolean) =>
     `flex items-center justify-center rounded-[8px] px-[12px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
@@ -334,7 +352,7 @@ function Shell() {
           </div>
         </header>
         <main id="hb-main" className="mx-auto w-full max-w-[1100px] flex-1 px-[20px] py-[32px]">
-          <Page />
+          <Page callOverlay={callOverlay} />
         </main>
         <HealthFooter />
       </div>
