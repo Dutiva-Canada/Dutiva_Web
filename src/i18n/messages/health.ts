@@ -378,6 +378,74 @@ export const healthMessages = defineMessages({
   },
   health_res_mira_link: { en: 'Open chat', fr: 'Ouvrir la conversation' },
 
+  /* Ongoing support + community resources — vetted external links only;
+     each is a real service that responds, never an endorsement of paid care.
+     [FR self-authored] */
+  health_res_visit: { en: 'Visit', fr: 'Visiter' },
+  health_res_pt_name: {
+    en: 'Psychology Today — therapist directory',
+    fr: 'Psychology Today — répertoire de thérapeutes',
+  },
+  health_res_pt_body: {
+    en: 'A widely used directory of therapists across Canada — filter by city, concern, approach, and language.',
+    fr: 'Un répertoire de thérapeutes bien établi au Canada — filtrez par ville, préoccupation, approche et langue.',
+  },
+  health_res_atn_name: { en: 'Affordable Therapy Network', fr: 'Affordable Therapy Network' },
+  health_res_atn_body: {
+    en: 'A Canadian directory of therapists offering low-cost and sliding-scale sessions, online and in person.',
+    fr: 'Un répertoire canadien de thérapeutes qui offrent des séances à faible coût ou à tarif ajusté au revenu, en ligne et en personne.',
+  },
+  health_res_op_name: { en: 'Open Path Collective', fr: 'Open Path Collective' },
+  health_res_op_body: {
+    en: 'A nonprofit connecting you with therapists at reduced rates for a one-time membership fee — it serves Canada.',
+    fr: 'Un organisme sans but lucratif qui vous relie à des thérapeutes à tarifs réduits moyennant des frais d’adhésion uniques — il dessert le Canada.',
+  },
+  health_res_cmha_name: { en: 'CMHA — local programs', fr: 'ACSM — programmes locaux' },
+  health_res_cmha_body: {
+    en: 'Community mental-health programs across Canada — peer support, courses, and local services. The branch finder on their site shows what’s near you.',
+    fr: 'Des programmes communautaires en santé mentale partout au Canada — soutien par les pairs, cours et services locaux. Le localisateur de filiales sur leur site indique ce qui existe près de chez vous.',
+  },
+  health_res_camh_name: { en: 'CAMH — mental-health guides', fr: 'CAMH — guides en santé mentale' },
+  health_res_camh_body: {
+    en: 'Free, plain-language explainers on conditions, treatment, and coping — including the Mental Health 101 series. In English and French.',
+    fr: 'Des explications gratuites en langage simple sur les troubles, les traitements et les moyens d’y faire face — dont la série Santé mentale 101. En français et en anglais.',
+  },
+  health_res_7cups_name: { en: '7 Cups — someone to talk to', fr: '7 Cups — quelqu’un à qui parler' },
+  health_res_7cups_body: {
+    en: 'Free, anonymous chat with trained volunteer listeners, day or night — for when you need to talk but it isn’t a crisis. Dedicated listeners for teens 13–17.',
+    fr: 'Clavardage gratuit et anonyme avec des écoutants bénévoles formés, jour et nuit — quand vous avez besoin de parler sans être en crise. Des écoutants sont dédiés aux 13 à 17 ans.',
+  },
+  health_res_community_title: { en: 'Community supports', fr: 'Soutiens communautaires' },
+  health_res_211_name: {
+    en: '211 — community services navigator',
+    fr: '211 — navigation des services communautaires',
+  },
+  health_res_211_body: {
+    en: 'One free number for the essentials — housing, food, money trouble, legal aid, senior and newcomer services. Confidential, 24/7, in over 150 languages.',
+    fr: 'Un numéro gratuit pour l’essentiel — logement, alimentation, difficultés financières, aide juridique, services aux aînés et aux nouveaux arrivants. Confidentiel, 24/7, dans plus de 150 langues.',
+  },
+  health_res_benefits_name: {
+    en: 'Benefits Finder — Government of Canada',
+    fr: 'Chercheur de prestations — Gouvernement du Canada',
+  },
+  health_res_benefits_body: {
+    en: 'Answer a few questions to see which federal benefits you may qualify for — disability, caregiving, job loss, housing, family.',
+    fr: 'Répondez à quelques questions pour voir quelles prestations fédérales pourraient s’appliquer — invalidité, proche aidance, perte d’emploi, logement, famille.',
+  },
+  health_res_food_name: {
+    en: 'Food Banks Canada — find a food bank',
+    fr: 'Banques alimentaires Canada — trouver une banque',
+  },
+  health_res_food_body: {
+    en: 'Search the national map for a food bank near you — if nothing comes up, 211 knows the smaller programs.',
+    fr: 'Cherchez une banque alimentaire près de chez vous sur la carte nationale — si rien n’apparaît, le 211 connaît les plus petits programmes.',
+  },
+  health_res_credit_name: { en: 'Credit Counselling Canada', fr: 'Conseil en crédit du Canada' },
+  health_res_credit_body: {
+    en: 'Non-profit agencies that help with debt — free first sessions, repayment plans, and alternatives to consolidation loans.',
+    fr: 'Des organismes sans but lucratif qui aident à gérer les dettes — premières séances gratuites, plans de remboursement et solutions de rechange aux prêts de consolidation.',
+  },
+
   /* Habits — gentle routine tracking, nothing diagnostic */
   health_habits_title: { en: 'Habits', fr: 'Habitudes' },
   health_habits_sub: {

@@ -2,15 +2,25 @@ import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { Link } from 'react-router-dom'
 import {
+  BookOpen,
+  Compass,
+  Ear,
   ExternalLink,
+  HandCoins,
+  HandHeart,
   HeartHandshake,
   HeartPulse,
   Info,
+  Landmark,
   Leaf,
   MessageCircle,
   Phone,
+  PiggyBank,
+  Search,
   Siren,
+  Soup,
   Stethoscope,
+  Users,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -88,6 +98,7 @@ export function HealthResourcesPage() {
 
   const call = (num: string) => `${x(HM.health_res_call)} ${num}`
   const text = (num: string) => `${x(HM.health_res_text)} ${num}`
+  const visit = (site: string) => `${x(HM.health_res_visit)} — ${site}`
 
   return (
     <div className="sb hb sb-page">
@@ -190,6 +201,109 @@ export function HealthResourcesPage() {
           <p className="hb-row-body" style={{ margin: 0 }}>
             {x(HM.health_res_prof_body)}
           </p>
+        </div>
+        <div className="hb-res" style={{ marginTop: 12 }}>
+          <ResourceItem
+            icon={<Search size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_pt_name)}
+            body={x(HM.health_res_pt_body)}
+            links={[{ href: 'https://www.psychologytoday.com/ca', label: visit('psychologytoday.com') }]}
+          />
+          <ResourceItem
+            icon={<HandCoins size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_atn_name)}
+            body={x(HM.health_res_atn_body)}
+            links={[{ href: 'https://affordabletherapynetwork.com', label: visit('affordabletherapynetwork.com') }]}
+          />
+          <ResourceItem
+            icon={<Users size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_op_name)}
+            body={x(HM.health_res_op_body)}
+            links={[{ href: 'https://openpathcollective.org', label: visit('openpathcollective.org') }]}
+          />
+          <ResourceItem
+            icon={<HandHeart size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_cmha_name)}
+            body={x(HM.health_res_cmha_body)}
+            links={[{ href: 'https://cmha.ca', label: visit('cmha.ca') }]}
+          />
+          <ResourceItem
+            icon={<BookOpen size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_camh_name)}
+            body={x(HM.health_res_camh_body)}
+            links={[{ href: 'https://www.camh.ca', label: visit('camh.ca') }]}
+          />
+          <ResourceItem
+            icon={<Ear size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_7cups_name)}
+            body={x(HM.health_res_7cups_body)}
+            links={[{ href: 'https://www.7cups.com', label: visit('7cups.com') }]}
+          />
+        </div>
+      </section>
+
+      {/* Community — not every hard week is a health problem. 211 is the
+          anchor: the national navigator for the services people usually
+          don't know exist until they need them. */}
+      <section aria-labelledby="hb-res-community-h">
+        <div className="sb-section-head">
+          <h2 id="hb-res-community-h">{x(HM.health_res_community_title)}</h2>
+        </div>
+        <div className="hb-res">
+          <ResourceItem
+            icon={<Compass size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_211_name)}
+            body={x(HM.health_res_211_body)}
+            links={[
+              { href: 'tel:211', label: call('2-1-1') },
+              {
+                href: lang === 'fr' ? 'https://211.ca/fr/' : 'https://211.ca',
+                label: visit('211.ca'),
+              },
+            ]}
+          />
+          <ResourceItem
+            icon={<Landmark size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_benefits_name)}
+            body={x(HM.health_res_benefits_body)}
+            links={[
+              {
+                href:
+                  lang === 'fr'
+                    ? 'https://www.canada.ca/fr/services/prestations/chercheur.html'
+                    : 'https://www.canada.ca/en/services/benefits/finder.html',
+                label: visit('canada.ca'),
+              },
+            ]}
+          />
+          <ResourceItem
+            icon={<Soup size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_food_name)}
+            body={x(HM.health_res_food_body)}
+            links={[
+              {
+                href:
+                  lang === 'fr'
+                    ? 'https://foodbankscanada.ca/fr/trouver-une-banque-alimentaire/'
+                    : 'https://foodbankscanada.ca/find-a-food-bank/',
+                label: visit('foodbankscanada.ca'),
+              },
+            ]}
+          />
+          <ResourceItem
+            icon={<PiggyBank size={17} strokeWidth={1.9} />}
+            name={x(HM.health_res_credit_name)}
+            body={x(HM.health_res_credit_body)}
+            links={[
+              {
+                href:
+                  lang === 'fr'
+                    ? 'https://creditcounsellingcanada.ca/fr/'
+                    : 'https://creditcounsellingcanada.ca',
+                label: visit('creditcounsellingcanada.ca'),
+              },
+            ]}
+          />
         </div>
       </section>
 
