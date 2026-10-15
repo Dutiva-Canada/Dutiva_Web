@@ -97,6 +97,7 @@ All three assistants implement the same `kind`-dispatched request contract, so t
 | `chat_clear`     | Clear the caller's conversation.                                                                     |
 | `chat_feedback`  | Thumbs up/down (`rating: 1 | -1 | 0`) on one assistant message.                                       |
 | `chat_undo`      | Reverse the action an assistant turn executed, while still reversible.                                |
+| `chat_regenerate` | Re-ask the thread's last user turn. The stale pair stays in the table — excluded from the model window — until the replacement persists, so a failed retry loses no history. On Invest the stale action's reversal runs before the re-ask so the replacement executes against clean state. |
 
 Two contract rules hold on every surface:
 

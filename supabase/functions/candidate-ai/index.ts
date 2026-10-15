@@ -399,6 +399,15 @@ async function runChat(
   stream: boolean,
   advice: boolean,
   threadId: string | null = null,
+  opts?: {
+    /** Message-row ids this reply supersedes — excluded from the history
+        window so a stale answer can't anchor a re-ask. */
+    excludeIds?: string[]
+    /** Cleanup that may only run once the fresh pair persists — a
+        regenerate's stale-pair delete lives here so a failed call loses
+        nothing. */
+    afterPersist?: () => Promise<void>
+  },
 ): Promise<Response> {
   const activeRoute = await activeModelRoute(adminClient)
   if (activeRoute instanceof Response) return activeRoute
@@ -412,6 +421,17 @@ async function runChat(
   histQuery = threadId === null
     ? histQuery.is('thread_id', null)
     : histQuery.eq('thread_id', threadId)
+  if (opts?.excludeIds?.length) {
+    histQuery = histQuery.not('id', 'in', `(${opts.excludeIds.join(',')})`)
+  }
+  const runAfterPersist = async () => {
+    if (!opts?.afterPersist) return
+    try {
+      await opts.afterPersist()
+    } catch (e) {
+      console.warn('afterPersist cleanup failed', e)
+    }
+  }
   const [ctx, { data: historyRows, error: histError }] = await Promise.all([
     loadChatContext(adminClient, userId),
     histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
@@ -616,6 +636,7 @@ async function runChat(
           reasoning,
           sources,
         )
+        await runAfterPersist()
         sse.send({
           type: 'done',
           reply: parsed.reply,
@@ -680,6 +701,7 @@ async function runChat(
     reasoning,
     sources,
   )
+  await runAfterPersist()
   return json({
     reply: parsed.reply,
     assistantId,
@@ -859,10 +881,9 @@ const handler = async (req: Request) => {
     )
   }
   if (kind === 'chat_regenerate') {
-    /* Re-ask the thread's last user turn — the stale assistant reply and
-       its user turn are deleted first, so the old answer stops anchoring
-       the context before the fresh call runs. A real model call, so the
-       daily rail claims the same way. */
+    /* Re-ask the thread's last user turn — the stale pair leaves the
+       history window but only deletes on success. A real model call, so
+       the daily rail claims the same way. */
     const regenRefusal = await claimDailyCall(
       authenticated.adminClient,
       authenticated.user.id,
@@ -883,11 +904,9 @@ const handler = async (req: Request) => {
     if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
       return json({ error: 'Nothing to regenerate' }, 409)
     }
-    await authenticated.adminClient
-      .from('candidate_chat_messages')
-      .delete()
-      .in('id', [latest.id, prev.id])
-      .eq('user_id', authenticated.user.id)
+    /* The stale pair is only EXCLUDED from the history window — the
+       actual delete waits in afterPersist, after the fresh pair lands,
+       so a failed call loses nothing. */
     return await runChat(
       authenticated.adminClient,
       authenticated.user.id,
@@ -896,6 +915,16 @@ const handler = async (req: Request) => {
       stream,
       internal,
       threadId,
+      {
+        excludeIds: [latest.id, prev.id],
+        afterPersist: async () => {
+          await authenticated.adminClient
+            .from('candidate_chat_messages')
+            .delete()
+            .in('id', [latest.id, prev.id])
+            .eq('user_id', authenticated.user.id)
+        },
+      },
     )
   }
 

@@ -3,8 +3,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Check,
+  CornerDownLeft,
   Loader2,
-  Pencil,
   RefreshCw,
   RotateCcw,
   Send,
@@ -437,7 +437,17 @@ export function InvestChatPage() {
       })
       await adoptReply(result, reuserId)
     } catch (err) {
-      if (!(isAbort(err) || ctrl.signal.aborted)) showToast(IM.invest_chat_error)
+      if (!(isAbort(err) || ctrl.signal.aborted)) {
+        showToast(IM.invest_chat_error)
+        /* The server never deleted the stale pair on failure — reload the
+           thread so it returns instead of leaving a bare re-asked line. */
+        loadInvestChatHistory(HISTORY_PAGE, undefined, threadId)
+          .then((rows) => {
+            setTurns(rows)
+            setHasMore(rows.length === HISTORY_PAGE)
+          })
+          .catch(() => {})
+      }
     } finally {
       abortRef.current = null
       setSending(false)
@@ -601,7 +611,7 @@ export function InvestChatPage() {
               type="button"
               className="sb-btn sb-btn-sm sb-btn-secondary"
               onClick={() => void clear()}
-              disabled={clearing}
+              disabled={clearing || sending}
             >
               <Trash2 size={13} aria-hidden="true" />
               {x(clearArmed ? IM.invest_sb_tap_confirm : IM.invest_chat_clear)}
@@ -769,7 +779,7 @@ export function InvestChatPage() {
                               title={x(IM.invest_chat_reuse)}
                               onClick={() => reuse(t)}
                             >
-                              <Pencil size={12} aria-hidden="true" />
+                              <CornerDownLeft size={12} aria-hidden="true" />
                             </button>
                           )}
                           {t.role === 'assistant' && UUID_RE.test(t.id) && (
@@ -906,7 +916,9 @@ export function InvestChatPage() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              /* isComposing — an IME candidate confirmation Enter must not
+                 send the half-composed line. */
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
                 send()
               }

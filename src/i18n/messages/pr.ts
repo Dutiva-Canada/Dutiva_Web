@@ -640,6 +640,11 @@ export const prMessages = defineMessages({
   },
   pr_chat_send: { en: 'Send', fr: 'Envoyer' },
   pr_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  /* Second tap of the two-step clear. [FR self-authored] */
+  pr_chat_clear_confirm: {
+    en: 'Click again to confirm',
+    fr: 'Cliquez à nouveau pour confirmer',
+  },
   pr_chat_error: {
     en: 'That didn’t go through — try again.',
     fr: 'Ça n’a pas fonctionné — réessayez.',

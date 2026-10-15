@@ -4,8 +4,8 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Check,
+  CornerDownLeft,
   Loader2,
-  Pencil,
   RefreshCw,
   RotateCcw,
   Send,
@@ -134,6 +134,7 @@ export function HealthChatPage() {
   const [streamedReasoning, setStreamedReasoning] = useState('')
   const [undoing, setUndoing] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
+  const [clearArmed, setClearArmed] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   /* Follow-up chips from the latest reply — ephemeral, cleared on send. */
@@ -391,7 +392,17 @@ export function HealthChatPage() {
       })
       await adoptReply(result, reuserId)
     } catch (err) {
-      if (!(isAbort(err) || ctrl.signal.aborted)) showToast(HM.health_chat_error)
+      if (!(isAbort(err) || ctrl.signal.aborted)) {
+        showToast(HM.health_chat_error)
+        /* The server never deleted the stale pair on failure — reload the
+           thread so it returns instead of leaving a bare re-asked line. */
+        loadHealthChatHistory(HISTORY_PAGE, undefined, threadId)
+          .then((rows) => {
+            setTurns(rows)
+            setHasMore(rows.length === HISTORY_PAGE)
+          })
+          .catch(() => {})
+      }
     } finally {
       abortRef.current = null
       setSending(false)
@@ -427,8 +438,19 @@ export function HealthChatPage() {
     }
   }
 
+  useEffect(() => {
+    if (!clearArmed) return
+    const t = window.setTimeout(() => setClearArmed(false), 3000)
+    return () => window.clearTimeout(t)
+  }, [clearArmed])
+
   const clear = async () => {
     if (clearing) return
+    if (!clearArmed) {
+      setClearArmed(true)
+      return
+    }
+    setClearArmed(false)
     setClearing(true)
     try {
       await clearHealthChat(threadId)
@@ -542,10 +564,10 @@ export function HealthChatPage() {
               type="button"
               className="sb-btn sb-btn-sm sb-btn-secondary"
               onClick={() => void clear()}
-              disabled={clearing}
+              disabled={clearing || sending}
             >
               <Trash2 size={13} aria-hidden="true" />
-              {x(HM.health_chat_clear)}
+              {x(clearArmed ? HM.health_chat_clear_confirm : HM.health_chat_clear)}
             </button>
           )}
         </div>
@@ -689,7 +711,7 @@ export function HealthChatPage() {
                               title={x(HM.health_chat_reuse)}
                               onClick={() => reuse(t)}
                             >
-                              <Pencil size={12} aria-hidden="true" />
+                              <CornerDownLeft size={12} aria-hidden="true" />
                             </button>
                           )}
                           {t.role === 'assistant' && UUID_RE.test(t.id) && (
@@ -819,7 +841,9 @@ export function HealthChatPage() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              /* isComposing — an IME candidate confirmation Enter must not
+                 send the half-composed line. */
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault()
                 send()
               }

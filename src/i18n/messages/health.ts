@@ -466,6 +466,11 @@ export const healthMessages = defineMessages({
   },
   health_chat_send: { en: 'Send', fr: 'Envoyer' },
   health_chat_clear: { en: 'Clear conversation', fr: 'Effacer la discussion' },
+  /* Second tap of the two-step clear. [FR self-authored] */
+  health_chat_clear_confirm: {
+    en: 'Click again to confirm',
+    fr: 'Cliquez à nouveau pour confirmer',
+  },
   health_chat_error: {
     en: 'That didn’t go through — try again.',
     fr: 'Ça n’a pas fonctionné — réessayez.',
@@ -547,8 +552,8 @@ export const healthMessages = defineMessages({
      is @dutiva.ca: the server lets Mira say plainly what she'd change.
      [FR self-authored] */
   health_chat_sub_internal: {
-    en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you. Internal staff account: she also says plainly what she’d change.',
-    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez. Compte interne : elle dit aussi franchement ce qu’elle changerait.',
+    en: 'Mira keeps you company here — she listens, remembers this conversation, and can jot things down for you: a check-in, a habit done, a journal entry. She’s software, not a person or a therapist — but on this internal account she says plainly what she’d change.',
+    fr: 'Mira vous tient compagnie ici — elle écoute, se souvient de cette discussion et peut noter ce que vous demandez : un point du jour, une habitude faite, une entrée de journal. C’est un logiciel, pas une personne ni une thérapeute — mais sur ce compte interne, elle dit franchement ce qu’elle changerait.',
   },
   /* Empty-state starter chips — the third differs by tier.
      [FR self-authored] */
@@ -558,7 +563,7 @@ export const healthMessages = defineMessages({
   },
   health_chat_starter_2: {
     en: 'What habits am I tracking?',
-    fr: 'Quelles habitudes je suis en ce moment ?',
+    fr: 'Quelles habitudes est-ce que je suis en ce moment ?',
   },
   health_chat_starter_ext: {
     en: 'What’s a good wind-down routine?',
@@ -602,7 +607,7 @@ export const healthMessages = defineMessages({
   health_chat_sees: { en: 'What Mira can see', fr: 'Ce que Mira voit' },
   health_chat_sees_list: {
     en: 'Your check-ins, habit names and streaks, and journal entries you’ve shared — and this conversation.',
-    fr: 'Vos bilans, le nom et la filière de vos habitudes, et les entrées de journal que vous avez partagées — et cette conversation.',
+    fr: 'Vos bilans, le nom et les séries de vos habitudes, et les entrées de journal que vous avez partagées — et cette conversation.',
   },
   /* One-tap reasons under a thumbs-down — stored with the rating.
      [FR self-authored] */

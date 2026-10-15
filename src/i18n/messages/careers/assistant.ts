@@ -73,6 +73,11 @@ export const careersAssistant = defineMessages({
   careers_chat_placeholder: { en: 'Ask about your search…', fr: 'Posez une question sur votre recherche…' },
   careers_chat_send: { en: 'Send', fr: 'Envoyer' },
   careers_chat_clear: { en: 'Clear', fr: 'Effacer' },
+  /* Second tap of the two-step clear. [FR self-authored] */
+  careers_chat_clear_confirm: {
+    en: 'Click again to confirm',
+    fr: 'Cliquez à nouveau pour confirmer',
+  },
   careers_chat_error: {
     en: 'Claire is unavailable right now — try again in a moment.',
     fr: 'Claire est indisponible pour le moment — réessayez dans un instant.',

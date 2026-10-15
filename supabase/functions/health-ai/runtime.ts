@@ -247,6 +247,15 @@ export async function runChat(
   stream: boolean,
   advice: boolean,
   threadId: string | null = null,
+  opts?: {
+    /** Message-row ids this reply supersedes — excluded from the history
+        window so a stale answer can't anchor a re-ask. */
+    excludeIds?: string[]
+    /** Cleanup that may only run once the fresh pair persists — a
+        regenerate's stale-pair delete lives here so a failed call loses
+        nothing. */
+    afterPersist?: () => Promise<void>
+  },
 ): Promise<Response> {
   const route = await modelRoute(admin)
   if ('error' in route) return route.error
@@ -261,6 +270,17 @@ export async function runChat(
   histQuery = threadId === null
     ? histQuery.is('thread_id', null)
     : histQuery.eq('thread_id', threadId)
+  if (opts?.excludeIds?.length) {
+    histQuery = histQuery.not('id', 'in', `(${opts.excludeIds.join(',')})`)
+  }
+  const runAfterPersist = async () => {
+    if (!opts?.afterPersist) return
+    try {
+      await opts.afterPersist()
+    } catch (e) {
+      console.warn('afterPersist cleanup failed', e)
+    }
+  }
   const [ctx, { data: historyRows, error: histError }] = await Promise.all([
     loadCompanionContext(admin, userId, today),
     histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
@@ -396,6 +416,7 @@ export async function runChat(
         const ids = await persistChatTurns(
           admin, userId, message, parsed.reply, executed, threadId, allReasoning,
         )
+        await runAfterPersist()
         sse.send({
           type: 'done',
           reply: parsed.reply,
@@ -432,6 +453,7 @@ export async function runChat(
   const ids = await persistChatTurns(
     admin, userId, message, parsed.reply, executed, threadId, reasoning,
   )
+  await runAfterPersist()
 
   return json({
     reply: parsed.reply,

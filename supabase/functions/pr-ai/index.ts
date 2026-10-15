@@ -290,9 +290,9 @@ const handler = async (req: Request) => {
     return await runChat(admin, portal.userId, message, lang, stream, advice, threadId)
   }
   if (body.kind === 'chat_regenerate') {
-    /* Re-ask the thread's last user turn — the stale assistant reply and
-       its user turn are deleted first, so the old answer stops anchoring
-       the context before the fresh call runs. */
+    /* Re-ask the thread's last user turn. The stale pair is only EXCLUDED
+       from the history window — the actual delete waits in afterPersist,
+       after the fresh pair lands, so a failed call loses nothing. */
     let q = admin
       .from('pr_chat_messages')
       .select('id, role, content')
@@ -307,12 +307,16 @@ const handler = async (req: Request) => {
     if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
       return json({ error: 'Nothing to regenerate' }, 409)
     }
-    await admin
-      .from('pr_chat_messages')
-      .delete()
-      .in('id', [latest.id, prev.id])
-      .eq('user_id', portal.userId)
-    return await runChat(admin, portal.userId, prev.content, lang, stream, advice, threadId)
+    return await runChat(admin, portal.userId, prev.content, lang, stream, advice, threadId, {
+      excludeIds: [latest.id, prev.id],
+      afterPersist: async () => {
+        await admin
+          .from('pr_chat_messages')
+          .delete()
+          .in('id', [latest.id, prev.id])
+          .eq('user_id', portal.userId)
+      },
+    })
   }
   if (body.kind === 'react') {
     const event = parsePrReactEvent(body.event)
