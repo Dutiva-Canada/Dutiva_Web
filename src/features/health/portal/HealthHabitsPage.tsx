@@ -14,7 +14,14 @@ import {
   updateHabit,
   type HabitSuggestion,
 } from '@/features/health/data/api'
-import { habitDoneDays, habitStreak, recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
+import {
+  dayKey,
+  habitBestRun,
+  habitDoneDays,
+  habitStreak,
+  recentDayKeys,
+  todayDayKey,
+} from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
@@ -41,6 +48,7 @@ export function HealthHabitsPage() {
   /* The new-habit name survives leaving mid-word — same draft persistence
      as the journal and check-in fields. */
   const [name, setName] = useSessionDraft('dutiva:health:draft:habit-name')
+  const nameInputRef = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   /* Per-row busy keys ("habitId" or "habitId:YYYY-MM-DD" for day dots) — a
      write in flight on one habit never deadens the other rows' buttons. */
@@ -99,8 +107,12 @@ export function HealthHabitsPage() {
   const today = todayDayKey()
   const week = recentDayKeys(7)
   const month = recentDayKeys(30)
-  const nameTaken = (n: string) =>
-    (state?.habits ?? []).some((h) => h.name.trim().toLowerCase() === n.trim().toLowerCase())
+  /* exceptId — a rename shouldn't collide with its own current name, or a
+     case-only fix ("walk" → "Walk") can never be saved. */
+  const nameTaken = (n: string, exceptId?: string) =>
+    (state?.habits ?? []).some(
+      (h) => h.id !== exceptId && h.name.trim().toLowerCase() === n.trim().toLowerCase(),
+    )
 
   const submit = async () => {
     const trimmed = name.trim()
@@ -115,6 +127,9 @@ export function HealthHabitsPage() {
       setName('')
       showToast(HM.health_habit_added)
       await refresh()
+      /* The cleared name disables the button — without this, focus drops
+         to the body and a second habit costs a click to get back. */
+      nameInputRef.current?.focus()
       /* Best-effort: Mira notes the new habit — same as she does a done-day. */
       void sendHealthReaction({ type: 'habit_added', habit: trimmed }, lang, setMiraLine)
         .catch(() => {})
@@ -205,7 +220,14 @@ export function HealthHabitsPage() {
 
   const dismissSuggestion = async (s: HabitSuggestion) => {
     if (s.suggestionId) {
-      await resolveSuggestion(s.suggestionId, 'dismissed', 'dismissed').catch(() => {})
+      /* A failed resolve means the row resurrects on the next queue load —
+         keep it visible and say so instead of pretending it dismissed. */
+      try {
+        await resolveSuggestion(s.suggestionId, 'dismissed', 'dismissed')
+      } catch {
+        showToast(HM.health_review_action_failed)
+        return
+      }
     }
     setSuggestions((cur) => cur.filter((c) => c !== s))
   }
@@ -265,7 +287,7 @@ export function HealthHabitsPage() {
       setRenamingId(null)
       return
     }
-    if (nameTaken(trimmed)) {
+    if (nameTaken(trimmed, h.id)) {
       /* Stay open — the draft survives so the person can adjust instead
          of retyping; closing first silently dropped it. */
       showToast(HM.health_habit_exists)
@@ -302,6 +324,7 @@ export function HealthHabitsPage() {
             </label>
             <input
               id="hb-habit-name"
+              ref={nameInputRef}
               className="sb-input"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -394,11 +417,16 @@ export function HealthHabitsPage() {
             {habits.map((h) => {
               const doneDays = habitDoneDays(logs, h.id)
               const streak = habitStreak(logs, h.id)
+              const best = habitBestRun(logs, h.id)
               const doneToday = doneDays.has(today)
-              const weekDone = week.filter((d) => doneDays.has(d)).length
-              /* The dots show a week; this quiet count is the longer view —
-                 "12 of the last 30 days" without a month of UI. */
-              const monthDone = month.filter((d) => doneDays.has(d)).length
+              /* Days before the habit existed aren't "missed" — they're
+                 pre-tracking. Counts only ever run over days the habit
+                 lived, so a fresh row never reads "0 of the last 30". */
+              const createdDay = dayKey(h.createdAt)
+              const weekLive = week.filter((d) => d >= createdDay)
+              const monthLive = month.filter((d) => d >= createdDay)
+              const weekDone = weekLive.filter((d) => doneDays.has(d)).length
+              const monthDone = monthLive.filter((d) => doneDays.has(d)).length
               return (
                 <div key={h.id} className="hb-row" role="listitem">
                   <div className="hb-row-main">
@@ -449,40 +477,66 @@ export function HealthHabitsPage() {
                       {streak > 0 && !doneToday && (
                         <span className="hb-row-meta">{x(HM.health_ov_streak_pending)}</span>
                       )}
+                      {/* The record a live streak stands against — shows
+                          only when it adds information beyond the current
+                          run. */}
+                      {best > streak && best >= 2 && (
+                        <span className="hb-row-meta">
+                          {x(HM.health_habit_best).replace('{count}', String(best))}
+                        </span>
+                      )}
                       {/* Tappable backfill — each dot toggles its day, so a
-                          forgotten tick yesterday stays fixable. */}
+                          forgotten tick yesterday stays fixable. Dots for
+                          days before the habit existed still toggle (the
+                          practice can predate the tracking) but render
+                          fainter and label themselves "before tracking". */}
                       <span
                         className="flex items-center gap-[4px]"
                         role="group"
-                        aria-label={x(HM.health_habit_week_summary).replace(
-                          '{done}',
-                          String(weekDone),
-                        )}
+                        aria-label={x(HM.health_habit_week_tracked)
+                          .replace('{done}', String(weekDone))
+                          .replace('{total}', String(weekLive.length))}
                       >
                         {week.map((d) => {
                           const done = doneDays.has(d)
+                          const before = d < createdDay
                           const dayLabel = fmtDay(d, lang)
                           return (
                             <button
                               key={d}
                               type="button"
                               title={dayLabel}
-                              className={`hb-dot${done ? ' is-on' : ''}${d === today ? ' is-today' : ''}`}
+                              className={`hb-dot${done ? ' is-on' : ''}${d === today ? ' is-today' : ''}${before ? ' is-void' : ''}`}
                               aria-label={x(
-                                done ? HM.health_habit_dot_done : HM.health_habit_dot_open,
+                                before
+                                  ? HM.health_habit_dot_before
+                                  : done
+                                    ? HM.health_habit_dot_done
+                                    : HM.health_habit_dot_open,
                               ).replace('{day}', dayLabel)}
                               aria-pressed={done}
                               disabled={busyIds.has(`${h.id}:${d}`)}
                               onClick={() => void toggle(h.id, d, !done)}
-                            >
-                              <span className="sr-only">{dayLabel}</span>
-                            </button>
+                            />
                           )
                         })}
                       </span>
+                      <span className="hb-row-meta">
+                        {x(HM.health_habit_week_summary)
+                          .replace('{done}', String(weekDone))
+                          .replace('{total}', String(weekLive.length))}
+                      </span>
                     </div>
                     <span className="hb-row-meta">
-                      {x(HM.health_habit_month_summary).replace('{done}', String(monthDone))}
+                      {monthLive.length === 1
+                        ? x(HM.health_habit_started_today)
+                        : x(
+                            monthLive.length < 30
+                              ? HM.health_habit_since_summary
+                              : HM.health_habit_month_summary,
+                          )
+                            .replace('{done}', String(monthDone))
+                            .replace('{total}', String(monthLive.length))}
                     </span>
                   </div>
                   <div className="hb-row-side hb-row-actions">

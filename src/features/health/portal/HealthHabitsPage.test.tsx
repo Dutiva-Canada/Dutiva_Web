@@ -9,7 +9,7 @@ import type { HealthDataContextValue } from '@/features/health/data/HealthDataCo
 import type { HealthHabit, HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
-import { todayDayKey } from '@/features/health/data/healthStats'
+import { recentDayKeys, todayDayKey } from '@/features/health/data/healthStats'
 import { HealthHabitsPage as Habits } from './HealthHabitsPage'
 
 vi.mock('@/features/health/data/api', async (importOriginal) => ({
@@ -45,8 +45,10 @@ function langValue(lang: Lang): LangContextValue {
   }
 }
 
-function habit(id: string, name: string): HealthHabit {
-  return { id, name, createdAt: new Date().toISOString() }
+function habit(id: string, name: string, daysOld = 0): HealthHabit {
+  const created = new Date()
+  created.setDate(created.getDate() - daysOld)
+  return { id, name, createdAt: created.toISOString() }
 }
 
 function stateWith(over: Partial<HealthState> = {}): HealthState {
@@ -112,7 +114,8 @@ describe('HealthHabitsPage', () => {
   it('toggles today and backfills yesterday through the dots', async () => {
     vi.mocked(api.setHabitDone).mockResolvedValue()
     vi.mocked(api.sendHealthReaction).mockResolvedValue({ reply: null } as never)
-    renderHabits(stateWith({ habits: [habit('h1', 'Walk')] }))
+    /* Ten days old so the whole week strip is inside the habit's life. */
+    renderHabits(stateWith({ habits: [habit('h1', 'Walk', 10)] }))
 
     fireEvent.click(await screen.findByRole('button', { name: /Mark done — Walk/i }))
     expect(api.setHabitDone).toHaveBeenCalledWith('h1', todayDayKey(), true)
@@ -125,6 +128,79 @@ describe('HealthHabitsPage', () => {
     await vi.waitFor(() =>
       expect(api.setHabitDone).toHaveBeenCalledWith('h1', expect.not.stringMatching(todayDayKey()), true),
     )
+  })
+
+  it('marks days before the habit existed as pre-tracking, still tappable', async () => {
+    vi.mocked(api.setHabitDone).mockResolvedValue()
+    renderHabits(stateWith({ habits: [habit('h1', 'Walk')] })) /* created today */
+
+    /* Six of the seven dots predate the habit — labelled "before tracking
+       started" instead of "not done", and they still toggle (a practice
+       can predate its tracking row). */
+    const before = screen.getAllByRole('button', { name: /— before tracking started/ })
+    expect(before.length).toBe(6)
+    expect(screen.getAllByRole('button', { name: /— not done/ }).length).toBe(1)
+    fireEvent.click(before[before.length - 1]!)
+    await vi.waitFor(() => expect(api.setHabitDone).toHaveBeenCalled())
+  })
+
+  it('frames a brand-new habit as started, not zero-of-thirty', async () => {
+    renderHabits(stateWith({ habits: [habit('h1', 'Walk')] }))
+    expect(await screen.findByText('Started today')).toBeInTheDocument()
+    expect(screen.queryByText(/of the last 30 days/)).not.toBeInTheDocument()
+  })
+
+  it('counts only the days the habit has existed in the summary', async () => {
+    renderHabits(stateWith({ habits: [habit('h1', 'Walk', 2)] }))
+    expect(await screen.findByText('0 of 3 days since it started')).toBeInTheDocument()
+  })
+
+  it('renames a habit when only the casing changed', async () => {
+    vi.mocked(api.updateHabit).mockResolvedValue()
+    renderHabits(stateWith({ habits: [habit('h1', 'walk')] }))
+
+    fireEvent.click(await screen.findByRole('button', { name: /Rename — walk/i }))
+    const input = screen.getByRole('textbox', { name: /Rename/ })
+    fireEvent.change(input, { target: { value: 'Walk' } })
+    fireEvent.click(screen.getByRole('button', { name: /Save changes/i }))
+    /* Its own name can't count as the duplicate it would collide with. */
+    await vi.waitFor(() => expect(api.updateHabit).toHaveBeenCalledWith('h1', 'Walk'))
+  })
+
+  it('keeps a dismissed suggestion in place when the resolve fails', async () => {
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([
+      {
+        id: 's1',
+        kind: 'habit',
+        title: 'Stretch',
+        payload: { name: 'Stretch' },
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      } as never,
+    ])
+    vi.mocked(resolveSuggestion).mockRejectedValue(new Error('offline'))
+    renderHabits(stateWith())
+
+    fireEvent.click(await screen.findByRole('button', { name: /Dismiss — Stretch/i }))
+    /* Not silently dropped — it stays put and says why. */
+    expect(await screen.findByText(/didn’t save/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Dismiss — Stretch/i })).toBeInTheDocument()
+  })
+
+  it('shows the best run once a streak breaks', async () => {
+    const keys = recentDayKeys(6) /* [5d,4d,3d,2d,yesterday,today] */
+    const logs = ['l1', 'l2', 'l3'].map((id, i) => ({
+      id,
+      habitId: 'h1',
+      day: keys[i + 1]!,
+      createdAt: new Date().toISOString(),
+    }))
+    renderHabits(
+      stateWith({ habits: [habit('h1', 'Walk', 30)], habitLogs: logs }),
+    )
+    /* Three-in-a-row that ended two days ago — the streak is dead but the
+       record stays visible. */
+    expect(await screen.findByText('Best run: 3 days')).toBeInTheDocument()
   })
 
   it('hides the row behind an undo toast that names the cascade, then commits', async () => {

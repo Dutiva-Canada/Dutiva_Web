@@ -617,6 +617,12 @@ a.sb-stat-link:focus-visible {
   border-color: var(--sb-accent);
   background: var(--sb-accent);
 }
+/* Days before the habit existed — still tappable (the practice can predate
+   the tracking) but quieter, so they don't read as misses. */
+.hb-dot.is-void {
+  border-style: dashed;
+  opacity: 0.45;
+}
 /* Today's cell carries a ring so "the last dot" is findable at a glance. */
 .hb-dot.is-today {
   box-shadow: 0 0 0 2.5px var(--sb-card), 0 0 0 4px var(--sb-accent);

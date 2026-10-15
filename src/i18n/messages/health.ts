@@ -486,8 +486,26 @@ export const healthMessages = defineMessages({
   /* Spoken summary + per-dot labels for the 7-day strip — the dots are
      toggleable buttons for backfilling, so each carries its day and state.
      [FR self-authored] */
-  health_habit_week_summary: { en: '{done} of the last 7 days', fr: '{done} des 7 derniers jours' },
+  health_habit_week_summary: { en: '{done}/{total} this week', fr: '{done}/{total} cette semaine' },
   health_habit_month_summary: { en: '{done} of the last 30 days', fr: '{done} des 30 derniers jours' },
+  /* Younger habits get honest denominators — "0 of 30" would scold a
+     habit that only just started existing. [FR self-authored] */
+  health_habit_since_summary: {
+    en: '{done} of {total} days since it started',
+    fr: '{done} des {total} jours depuis le début',
+  },
+  health_habit_started_today: { en: 'Started today', fr: 'Commencée aujourd’hui' },
+  health_habit_week_tracked: {
+    en: '{done} of {total} days tracked',
+    fr: '{done} des {total} jours suivis',
+  },
+  /* Days before the habit existed stay tappable (the practice may predate
+     the tracking) but read differently — not "missed", just "not yet". */
+  health_habit_dot_before: {
+    en: '{day} — before tracking started',
+    fr: '{day} — avant le début du suivi',
+  },
+  health_habit_best: { en: 'Best run: {count} days', fr: 'Record : {count} jours' },
   health_habit_dot_done: { en: '{day} — done', fr: '{day} — fait' },
   health_habit_dot_open: { en: '{day} — not done', fr: '{day} — non fait' },
   /* Suggest-a-habit outcomes that aren't new rows. [FR self-authored] */

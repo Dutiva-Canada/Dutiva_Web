@@ -34,7 +34,7 @@ const NAV = [
 ] as const
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
+  `flex items-center justify-center rounded-[8px] px-[12px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
     isActive
       ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
       : 'text-text-muted hover:text-text-2'
@@ -182,7 +182,7 @@ export function HealthPortalLayout() {
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
+                className="flex shrink-0 cursor-pointer items-center gap-[6px] whitespace-nowrap rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden="true" />
                 {x(HM.health_sign_out)}

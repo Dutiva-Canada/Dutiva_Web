@@ -6,11 +6,18 @@ import type { HealthCheckIn, HealthHabit, HealthHabitLog } from './types'
  * here is a clinical metric: counts, day-level averages, and a day streak.
  */
 
-function dayKey(iso: string): string {
+export function dayKey(iso: string): string {
   const d = new Date(iso)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
     d.getDate(),
   ).padStart(2, '0')}`
+}
+
+/** YYYY-MM-DD → absolute day number — consecutive-day math that can't be
+    thrown by DST (a "day" is 23h or 25h twice a year). */
+function dayNum(key: string): number {
+  const [y, m, d] = key.split('-').map(Number)
+  return Date.UTC(y!, m! - 1, d!) / 86400000
 }
 
 function todayKey(now: Date): string {
@@ -173,6 +180,22 @@ export function habitStreak(
     cursor.setDate(cursor.getDate() - 1)
   }
   return streak
+}
+
+/** Longest consecutive run of done days — the record a live streak stands
+    against. A broken streak disappears from the pill; this one stays. */
+export function habitBestRun(logs: HealthHabitLog[], habitId: string): number {
+  const days = [...habitDoneDays(logs, habitId)].sort()
+  let best = 0
+  let run = 0
+  let prev = Number.NaN
+  for (const key of days) {
+    const n = dayNum(key)
+    run = n === prev + 1 ? run + 1 : 1
+    if (run > best) best = run
+    prev = n
+  }
+  return best
 }
 
 /** The length of a run that broke yesterday — the habit was done two days
