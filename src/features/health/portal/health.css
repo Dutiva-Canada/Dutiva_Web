@@ -92,6 +92,12 @@
 .sb.hb .sb-btn:not([disabled]):hover {
   transform: translateY(-1px);
 }
+/* The shared 0.55 disabled fade washes light-on-sage text nearly into the
+   card — a disabled primary action should still be readable, just
+   obviously inert. Health-scoped so the invest portal keeps its fade. */
+.sb.hb .sb-btn[disabled] {
+  opacity: 0.68;
+}
 .sb.hb .sb-btn-primary:not([disabled]):hover {
   background: var(--sb-accent-ink);
   box-shadow: 0 4px 14px rgba(43, 95, 71, 0.3);

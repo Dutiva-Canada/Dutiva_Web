@@ -2,7 +2,7 @@ import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Check, Loader2, RotateCcw, Volume2, VolumeX } from 'lucide-react'
+import { Check, Loader2, RefreshCw, RotateCcw, Volume2, VolumeX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { addJournalEntry, shareEntryWithMira } from '@/features/health/data/api'
@@ -413,12 +413,17 @@ function GratitudeCard() {
         <p className="sb-helper">{x(HM.health_tool_grat_body)}</p>
         <div className="mt-[14px] flex flex-col gap-[12px]">
           <div className="flex items-center justify-between gap-[10px]">
-            <p className="m-0 text-[14px] font-semibold text-[color:var(--sb-ink)]">{x(prompt)}</p>
+            {/* aria-live so swapping the prompt announces — the button keeps
+                focus, so nothing else tells a screen reader it changed. */}
+            <p className="m-0 text-[14px] font-semibold text-[color:var(--sb-ink)]" aria-live="polite">
+              {x(prompt)}
+            </p>
             <button
               type="button"
               className="sb-btn sb-btn-sm sb-btn-secondary"
               onClick={nextPrompt}
             >
+              <RefreshCw size={13} aria-hidden="true" />
               {x(HM.health_tool_grat_another)}
             </button>
           </div>
