@@ -529,6 +529,29 @@ describe('internal advice tier (@dutiva.ca)', () => {
     expect(p.content).toContain('at most ONE')
   })
 
+  it('internal chat carries the practice playbook — guided exercises plus the clinician-led boundary', () => {
+    const p = chatPrompt(facts, [], [], TODAY, 'en', true)
+    /* The approaches she can run as skills practice. */
+    for (const t of ['thought record', 'breathing space', 'defusion', 'DBT skills', 'DEAR MAN', 'miracle question', 'wind-down plan', 'loving-kindness']) {
+      expect(p.content).toContain(t)
+    }
+    /* The ones she explains but never conducts — named as clinician-led. */
+    expect(p.content).toContain('Clinician-led approaches')
+    expect(p.content).toContain('EMDR')
+    expect(p.content).toContain('hypnotherapy')
+    expect(p.content).toContain('never conduct or simulate')
+    /* One step per reply — an exercise is a conversation, not a dump. */
+    expect(p.content).toContain('one step per reply')
+  })
+
+  it('external chat never sees the playbook — the listening posture stands alone', () => {
+    const p = chatPrompt(facts, [], [], TODAY, 'en')
+    expect(p.content).not.toContain('thought record')
+    expect(p.content).not.toContain('DBT skills')
+    expect(p.content).not.toContain('EMDR')
+    expect(p.content).toContain('never offer therapy')
+  })
+
   it('one-shot prompts switch the advice rule, keeping the clinical line', () => {
     for (const p of [
       reflectPrompt(facts, [], 'en', true),
