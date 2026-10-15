@@ -112,6 +112,11 @@ export const healthMessages = defineMessages({
   health_checkin_history: { en: 'History', fr: 'Historique' },
   health_checkin_delete: { en: 'Delete', fr: 'Supprimer' },
   health_checkin_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  /* [FR self-authored] — inline edit of a saved check-in. */
+  health_checkin_edit: { en: 'Edit', fr: 'Modifier' },
+  health_checkin_save: { en: 'Save changes', fr: 'Enregistrer' },
+  health_checkin_cancel: { en: 'Cancel', fr: 'Annuler' },
+  health_checkin_updated: { en: 'Check-in updated.', fr: 'Bilan mis à jour.' },
   health_checkin_empty: {
     en: 'Nothing yet — your check-ins will appear here.',
     fr: 'Rien pour l’instant — vos points apparaîtront ici.',
@@ -316,6 +321,28 @@ export const healthMessages = defineMessages({
   },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
+  /* [FR self-authored] — memory suggestions Mira proposed in chat. */
+  health_review_accept_memory: { en: 'Remember it', fr: 'S’en souvenir' },
+  health_review_kind_memory: { en: 'Memory', fr: 'Souvenir' },
+  /* [FR self-authored] — the Home "What Mira remembers" card. */
+  health_mem_title: { en: 'What Mira remembers', fr: 'Ce dont Mira se souvient' },
+  health_mem_sub: {
+    en: 'Things you’ve asked her to keep — she holds these until you remove them.',
+    fr: 'Ce que vous lui avez demandé de retenir — elle le garde jusqu’à ce que vous le retiriez.',
+  },
+  health_mem_ph: {
+    en: 'Something you want Mira to remember — a preference, a context, a boundary.',
+    fr: 'Ce que vous voulez qu’elle retienne — une préférence, un contexte, une limite.',
+  },
+  health_mem_add: { en: 'Remember this', fr: 'Retenir ceci' },
+  health_mem_added: { en: 'Mira will remember that.', fr: 'Mira s’en souviendra.' },
+  health_mem_empty: {
+    en: 'Nothing yet — tell her once and she keeps it.',
+    fr: 'Rien pour l’instant — dites-le une fois et elle le garde.',
+  },
+  health_mem_delete: { en: 'Remove', fr: 'Retirer' },
+  health_mem_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_mem_from_mira: { en: 'proposed by Mira', fr: 'proposé par Mira' },
   health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
   /* Queue write didn't land upstream — the suggestion works but won't
      survive leaving the page. [FR self-authored] */
@@ -504,6 +531,8 @@ export const healthMessages = defineMessages({
   health_chat_did_habit: { en: 'Now tracking “{name}”', fr: '« {name} » ajouté au suivi' },
   health_chat_did_checkin: { en: 'Check-in logged — {name}', fr: 'Point du jour noté — {name}' },
   health_chat_did_journal: { en: 'Journal entry saved', fr: 'Entrée de journal enregistrée' },
+  /* [FR self-authored] — propose_memory files to the review queue. */
+  health_chat_did_memory: { en: 'Memory proposed — “{name}”', fr: 'Souvenir proposé — « {name} »' },
   health_chat_action_failed: {
     en: 'That write didn’t save — the reply above still stands.',
     fr: 'L’écriture n’a pas été enregistrée — la réponse ci-dessus demeure.',
@@ -633,8 +662,8 @@ export const healthMessages = defineMessages({
      sources, so the surface is honest about its scope. [FR self-authored] */
   health_chat_sees: { en: 'What Mira can see', fr: 'Ce que Mira voit' },
   health_chat_sees_list: {
-    en: 'Your check-ins, habit names and streaks, and journal entries you’ve shared — and this conversation.',
-    fr: 'Vos bilans, le nom et les séries de vos habitudes, et les entrées de journal que vous avez partagées — et cette conversation.',
+    en: 'Your check-ins, habit names and streaks, journal entries you’ve shared, things you asked her to remember — and this conversation.',
+    fr: 'Vos bilans, le nom et les séries de vos habitudes, les entrées de journal que vous avez partagées, ce que vous lui avez demandé de retenir — et cette conversation.',
   },
   /* One-tap reasons under a thumbs-down — stored with the rating.
      [FR self-authored] */

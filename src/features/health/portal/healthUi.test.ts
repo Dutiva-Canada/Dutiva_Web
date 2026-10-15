@@ -20,6 +20,7 @@ const EMPTY: HealthState = {
   checkIns: [],
   entries: [],
   habits: [],
+  memories: [],
   habitLogs: [],
   lastLoadedAt: NOW.toISOString(),
 }
@@ -32,6 +33,7 @@ describe('miraNoticed — the Overview strip', () => {
         { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
         { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
       ],
+      memories: [],
       habitLogs: [
         ...[0, 1, 2].map((ago, i) => ({
           id: `w${i}`,
@@ -98,6 +100,7 @@ describe('miraNoticed — the Overview strip', () => {
         { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
         { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
       ],
+      memories: [],
       habitLogs: [
         /* Walk: live, 3 days running (today, yesterday, the day before). */
         ...[0, 1, 2].map((ago, i) => ({
@@ -129,6 +132,7 @@ describe('miraNoticed — the Overview strip', () => {
         { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
         { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
       ],
+      memories: [],
       habitLogs: [
         ...[0, 1].map((ago, i) => ({
           id: `w${i}`,
@@ -160,6 +164,7 @@ describe('miraNoticed — the Overview strip', () => {
         { id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' },
         { id: 'h2', name: 'Stretch', createdAt: '2026-09-01T00:00:00Z' },
       ],
+      memories: [],
       habitLogs: [
         ...[0, 1, 2].map((ago, i) => ({
           id: `w${i}`,

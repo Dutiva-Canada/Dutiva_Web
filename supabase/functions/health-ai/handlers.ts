@@ -39,6 +39,18 @@ export interface HealthFacts {
 
 const DAY_MS = 86_400_000
 
+/** The remembered layer — durable facts the person asked Mira to hold
+    (health_memories: written by hand, or proposed by her and accepted on
+    the review queue). Rendered as its own labeled block so a memory never
+    blurs into "recent words" — and it's context, never permission. */
+function memoriesBlock(memories: string[]): string {
+  if (memories.length === 0) return ''
+  return (
+    'Things they asked you to remember — durable context they confirmed:\n' +
+    memories.map((m) => `  - ${oneLine(m, 300)}`).join('\n')
+  )
+}
+
 function avg(nums: number[]): number | null {
   if (nums.length === 0) return null
   return Math.round((nums.reduce((a, b) => a + b, 0) / nums.length) * 10) / 10
@@ -162,6 +174,7 @@ export function reflectPrompt(
   signals: string[],
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
@@ -173,6 +186,7 @@ export function reflectPrompt(
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
     'Their recent words:',
     signalsBlock(signals),
+    memoriesBlock(memories),
   ].join('\n')
 }
 
@@ -181,6 +195,7 @@ export function recapPrompt(
   signals: string[],
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
@@ -196,6 +211,7 @@ export function recapPrompt(
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
     'Their recent words:',
     signalsBlock(signals),
+    memoriesBlock(memories),
   ].join('\n')
 }
 
@@ -205,6 +221,7 @@ export function habitPrompt(
   signals: string[],
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
@@ -217,6 +234,7 @@ export function habitPrompt(
     `Stats for the last ${facts.days} days: ${JSON.stringify(facts)}`,
     'Their recent words:',
     signalsBlock(signals),
+    memoriesBlock(memories),
   ].join('\n')
 }
 
@@ -286,6 +304,7 @@ export type ChatAction =
   | { type: 'add_habit'; name: string }
   | { type: 'add_checkin'; mood: number; energy?: number; note?: string }
   | { type: 'add_journal_entry'; title?: string; body: string }
+  | { type: 'propose_memory'; text: string }
 
 export interface ChatReply {
   reply: string
@@ -356,6 +375,7 @@ export function chatPrompt(
   today: string,
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): { role: 'system'; content: string } {
   const habitLines =
     statuses.length === 0
@@ -386,7 +406,8 @@ export function chatPrompt(
       '  {"type":"add_habit","name":"<new habit>"}                    — start tracking a habit',
       '  {"type":"add_checkin","mood":<1-5>,"energy":<1-5>,"note":"<short>"} — log a check-in (mood required; energy/note optional)',
       '  {"type":"add_journal_entry","title":"<optional>","body":"<text>"}   — write a journal entry',
-      'Only emit an action the person actually asked for. If a habit name does not match the list below, ask which habit they mean instead of guessing. Never emit an action to satisfy a hypothetical. When you do act, keep the reply personal — a companion confirming, not a receipt.',
+      '  {"type":"propose_memory","text":"<a durable fact or preference>"}   — file something to remember for review',
+      'Only emit an action the person actually asked for. If a habit name does not match the list below, ask which habit they mean instead of guessing. Never emit an action to satisfy a hypothetical. When you do act, keep the reply personal — a companion confirming, not a receipt. propose_memory is the exception that waits: it files to their review queue and only becomes a memory if they accept — emit it when they ask you to remember something, or when they state a durable preference or standing context worth keeping. Never propose memories about symptoms, trauma, or anything clinical — those don’t belong in the record.',
       `If the person seems to be in crisis or mentions suicide or self-harm: set action to null and reply ONLY with supportive words plus this line — "${CRISIS_LINE}" Do not log check-ins or entries for crisis content.`,
       `Today is ${today} (the person's local date).`,
       lang === 'fr'
@@ -400,6 +421,7 @@ export function chatPrompt(
       habitLines,
       'Their recent words — their own text; quote back sparingly and only when it fits:',
       signalLines,
+      memoriesBlock(memories),
     ].join('\n'),
   }
 }
@@ -412,6 +434,7 @@ export const CHAT_ACTION_TYPES = new Set([
   'add_habit',
   'add_checkin',
   'add_journal_entry',
+  'propose_memory',
 ])
 
 /** Strict JSON reply from the model. Anything unparseable or with a malformed
@@ -482,6 +505,14 @@ export function parseChatReply(raw: string | null | undefined): ChatReply | null
           },
         }
       }
+      case 'propose_memory': {
+        if (typeof action.text !== 'string' || action.text.trim().length < 3) return null
+        return {
+          reply,
+          suggests,
+          action: { type: 'propose_memory', text: action.text.trim().slice(0, 500) },
+        }
+      }
     }
     return null
   } catch {
@@ -512,8 +543,35 @@ export function resolveHabitRef(
 
 export type ReactEvent =
   | { type: 'checkin_saved'; mood: number; energy?: number | null; note?: string }
+  | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
+
+/** Validate a client-sent reaction event. Pure — kept in handlers so vitest
+    reaches it (runtime.ts carries npm: imports). */
+export function parseReactEvent(raw: unknown): ReactEvent | null {
+  if (typeof raw !== 'object' || raw === null) return null
+  const ev = raw as Record<string, unknown>
+  if (ev.type === 'checkin_saved' || ev.type === 'checkin_edited') {
+    const mood = Number(ev.mood)
+    if (!Number.isInteger(mood) || mood < 1 || mood > 5) return null
+    const energy = ev.energy == null ? null : Number(ev.energy)
+    if (energy !== null && (!Number.isInteger(energy) || energy < 1 || energy > 5)) {
+      return null
+    }
+    return {
+      type: ev.type,
+      mood,
+      energy,
+      note: typeof ev.note === 'string' ? ev.note.slice(0, 2000) : undefined,
+    }
+  }
+  if (ev.type === 'habit_marked' || ev.type === 'habit_added') {
+    if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
+    return { type: ev.type, habit: ev.habit.trim().slice(0, 120) }
+  }
+  return null
+}
 
 /** One or two sentences reacting to something the person just did. `habitStreak`
     is the streak the server already computed — the client only names the habit. */
@@ -524,10 +582,11 @@ export function reactPrompt(
   today: string,
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): string {
   const eventLine =
-    event.type === 'checkin_saved'
-      ? `saved a check-in — mood ${event.mood}/5` +
+    event.type === 'checkin_saved' || event.type === 'checkin_edited'
+      ? `${event.type === 'checkin_edited' ? 'revised a check-in — it now reads' : 'saved a check-in'} — mood ${event.mood}/5` +
         (event.energy != null ? `, energy ${event.energy}/5` : '') +
         (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
       : event.type === 'habit_added'
@@ -554,6 +613,7 @@ export function reactPrompt(
     `The event: ${eventLine}.${milestone}`,
     'Their recent words:',
     signalsBlock(signals),
+    memoriesBlock(memories),
   ].join('\n')
 }
 
@@ -568,6 +628,7 @@ export function entryReactPrompt(
   today: string,
   lang: 'en' | 'fr',
   advice = false,
+  memories: string[] = [],
 ): string {
   return [
     `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${companionRules(advice)}`,
@@ -583,6 +644,7 @@ export function entryReactPrompt(
     `"""${oneLine(body, ENTRY_BODY_MAX)}"""`,
     'Their recent words:',
     signalsBlock(signals),
+    memoriesBlock(memories),
   ].join('\n')
 }
 

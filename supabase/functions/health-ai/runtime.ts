@@ -1,4 +1,5 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
+import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
 import {
   postChatCompletion,
   readUpstreamCompletion,
@@ -26,6 +27,8 @@ import {
   type CheckInNoteRow,
   type ChatReply,
   type HabitLogRowLite,
+  type HabitStatus,
+  type HealthFacts,
   type HabitRowLite,
   type JournalExcerptRow,
   type ReactEvent,
@@ -84,6 +87,9 @@ export interface CompanionContext {
   statuses: ReturnType<typeof buildHabitStatuses>
   habitNames: string[]
   signals: string[]
+  /** Durable facts the person asked Mira to hold — health_memories rows,
+      user-written or review-accepted. Context, never permission. */
+  memories: string[]
 }
 
 export async function loadCompanionContext(
@@ -103,6 +109,7 @@ export async function loadCompanionContext(
     { data: habits, error: hError },
     { data: logs, error: lError },
     { data: journals, error: jError },
+    { data: memories, error: mError },
   ] = await Promise.all([
     admin
       .from('health_checkins')
@@ -122,11 +129,18 @@ export async function loadCompanionContext(
       .not('shared_at', 'is', null)
       .order('created_at', { ascending: false })
       .limit(6),
+    admin
+      .from('health_memories')
+      .select('text')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(24),
   ])
   if (ciError) return { error: json({ error: ciError.message }, 500) }
   if (hError) return { error: json({ error: hError.message }, 500) }
   if (lError) return { error: json({ error: lError.message }, 500) }
   if (jError) return { error: json({ error: jError.message }, 500) }
+  if (mError) return { error: json({ error: mError.message }, 500) }
 
   const habitRows = (habits ?? []) as HabitRowLite[]
   const logRows = (logs ?? []) as HabitLogRowLite[]
@@ -136,6 +150,7 @@ export async function loadCompanionContext(
     statuses: buildHabitStatuses(habitRows, logRows, today),
     habitNames: habitRows.map((h) => h.name),
     signals: buildCompanionSignals(noteRows, (journals ?? []) as JournalExcerptRow[]),
+    memories: ((memories ?? []) as { text: string }[]).map((m) => m.text),
   }
 }
 
@@ -296,7 +311,7 @@ export async function runChat(
     }))
 
   const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-    chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang, advice),
+    chatPrompt(ctx.facts, ctx.statuses, ctx.signals, today, lang, advice, ctx.memories),
     ...history,
     { role: 'user', content: message },
   ]
@@ -535,6 +550,25 @@ async function executeChatAction(
         refId: data?.id,
       }
     }
+    /* Not a write — a proposal. The memory lands in the review queue and
+       only becomes real if the person accepts it there. */
+    case 'propose_memory': {
+      const filed = await fileSuggestion(admin, {
+        userId,
+        surface: 'health',
+        kind: 'memory',
+        title: action.text,
+        payload: { text: action.text },
+        source: 'model',
+        dedupeKey: textDedupeKey(action.text),
+      })
+      return {
+        type: action.type,
+        detail: action.text,
+        ok: filed != null,
+        refId: filed?.id,
+      }
+    }
   }
 }
 
@@ -592,6 +626,23 @@ async function undoChatAction(
         .eq('user_id', userId)
       return !error
     }
+    /* A memory proposal is reversible while it sits in the queue — undo
+       dismisses the pending suggestion row. Once resolved it stays: the
+       person already decided. */
+    case 'propose_memory': {
+      const { data, error } = await admin
+        .from('agent_suggestions')
+        .update({
+          status: 'dismissed',
+          resolved_at: new Date().toISOString(),
+          resolved_action: 'undone',
+        })
+        .eq('id', action.refId as string)
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        .select('id')
+      return !error && (data?.length ?? 0) > 0
+    }
     default:
       return false
   }
@@ -632,33 +683,7 @@ export async function runChatUndo(
    reply persists to health_chat_messages so the reaction still exists on
    the next visit; the originating page renders it inline too. */
 
-export function parseReactEvent(raw: unknown): ReactEvent | null {
-  if (typeof raw !== 'object' || raw === null) return null
-  const ev = raw as Record<string, unknown>
-  if (ev.type === 'checkin_saved') {
-    const mood = Number(ev.mood)
-    if (!Number.isInteger(mood) || mood < 1 || mood > 5) return null
-    const energy = ev.energy == null ? null : Number(ev.energy)
-    if (energy !== null && (!Number.isInteger(energy) || energy < 1 || energy > 5)) {
-      return null
-    }
-    return {
-      type: 'checkin_saved',
-      mood,
-      energy,
-      note: typeof ev.note === 'string' ? ev.note.slice(0, 2000) : undefined,
-    }
-  }
-  if (ev.type === 'habit_marked') {
-    if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
-    return { type: 'habit_marked', habit: ev.habit.trim().slice(0, 120) }
-  }
-  if (ev.type === 'habit_added') {
-    if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
-    return { type: 'habit_added', habit: ev.habit.trim().slice(0, 120) }
-  }
-  return null
-}
+/* parseReactEvent lives in handlers.ts — pure, so vitest can reach it. */
 
 /** Model call → plain text → persist an assistant turn. Shared by both
     reaction kinds; differs from runChat in prompt shape only. The reply
@@ -750,6 +775,58 @@ async function reactToModel(
   return json({ reply, assistantId: row?.id ?? null })
 }
 
+/* ── Proactive pattern suggestions ─────────────────────────────────────────
+   Not a sweep cron — a rule that fires on the moments that carry the data
+   (a check-in saved or revised). When the window shows a sustained low
+   patch, one gentle habit proposal lands in the review queue — deduped
+   while pending, cooled for 30 days once resolved (dismissed means "don't
+   ask again"; accepted means they took it). Proposed, never added. */
+
+const LOW_MOOD_SUGGEST_KEY = 'auto:low-mood-walk'
+const LOW_MOOD_COOLDOWN_MS = 30 * 86_400_000
+
+async function maybeFilePatternSuggestion(
+  admin: SupabaseClient,
+  userId: string,
+  facts: HealthFacts,
+  statuses: HabitStatus[],
+  lang: 'en' | 'fr',
+): Promise<void> {
+  /* Needs enough days to mean a pattern, not a bad afternoon — and never
+     proposes a walk when they already track one. */
+  if (facts.checkInCount < 5 || facts.avgMood == null || facts.avgMood > 2.4) return
+  if (statuses.some((h) => /walk|marche/i.test(h.name))) return
+  try {
+    const since = new Date(Date.now() - LOW_MOOD_COOLDOWN_MS).toISOString()
+    const { data: resolved } = await admin
+      .from('agent_suggestions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('surface', 'health')
+      .eq('kind', 'habit')
+      .eq('dedupe_key', LOW_MOOD_SUGGEST_KEY)
+      .gte('resolved_at', since)
+      .limit(1)
+    if ((resolved ?? []).length > 0) return
+    const name = lang === 'fr' ? 'Une courte marche en soirée' : 'A short evening walk'
+    const why =
+      lang === 'fr'
+        ? 'Vos bilans sont plus bas dernièrement — une petite habitude dehors est le point de départ le plus doux.'
+        : 'Your check-ins have been running low lately — a small outside habit is the gentlest place to start.'
+    await fileSuggestion(admin, {
+      userId,
+      surface: 'health',
+      kind: 'habit',
+      title: name,
+      payload: { name, why },
+      source: 'rule',
+      dedupeKey: LOW_MOOD_SUGGEST_KEY,
+    })
+  } catch {
+    /* best-effort — a failed filing never touches the reaction */
+  }
+}
+
 export async function runReact(
   admin: SupabaseClient,
   userId: string,
@@ -761,6 +838,12 @@ export async function runReact(
 ): Promise<Response> {
   const ctx = await loadCompanionContext(admin, userId, today)
   if ('error' in ctx) return ctx.error
+  /* The proactive rule rides the check-in moments — the context is already
+     loaded, and the filing happens before the model call so a slow or
+     failed reply never delays it. Bounded: two indexed reads + one insert. */
+  if (event.type === 'checkin_saved' || event.type === 'checkin_edited') {
+    await maybeFilePatternSuggestion(admin, userId, ctx.facts, ctx.statuses, lang)
+  }
   /* The client names the habit; the streak is resolved server-side from the
      rows already fetched, so the reaction can say "three days running". */
   const streak =
@@ -770,7 +853,7 @@ export async function runReact(
   return await reactToModel(
     admin,
     userId,
-    reactPrompt(event, streak, ctx.signals, today, lang, advice),
+    reactPrompt(event, streak, ctx.signals, today, lang, advice, ctx.memories),
     160,
     stream,
     lang,
@@ -812,7 +895,7 @@ export async function runEntryReact(
   return await reactToModel(
     admin,
     userId,
-    entryReactPrompt(e.title ?? '', e.body ?? '', ctx.signals, today, lang, advice),
+    entryReactPrompt(e.title ?? '', e.body ?? '', ctx.signals, today, lang, advice, ctx.memories),
     300,
     stream,
     lang,

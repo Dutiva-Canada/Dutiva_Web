@@ -12,20 +12,25 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   addCheckIn,
   addHabit,
+  addHealthMemory,
+  deleteHealthMemory,
   sendHealthReaction,
   shareEntryWithMira,
   unshareEntryFromMira,
+  updateCheckIn,
 } from '@/features/health/data/api'
 import { HealthCheckInPage } from './HealthCheckInPage'
 import { HealthHabitsPage } from './HealthHabitsPage'
 import { HealthHomePage } from './HealthHomePage'
 import { HealthJournalPage } from './HealthJournalPage'
+import { HealthReviewPage } from './HealthReviewPage'
 
 /* Both pages call the health-ai function for Mira's reaction — the api
    module is the seam; every export each page uses is stubbed here. */
 vi.mock('@/features/health/data/api', () => ({
   addCheckIn: vi.fn(),
   deleteCheckIn: vi.fn(),
+  updateCheckIn: vi.fn(),
   sendHealthReaction: vi.fn(),
   addJournalEntry: vi.fn(),
   updateJournalEntry: vi.fn(),
@@ -37,6 +42,8 @@ vi.mock('@/features/health/data/api', () => ({
   deleteHabit: vi.fn(),
   setHabitDone: vi.fn(),
   healthAiHabit: vi.fn(),
+  addHealthMemory: vi.fn(),
+  deleteHealthMemory: vi.fn(),
 }))
 
 /* Suggestion queue + notify pref hit Supabase directly — stub the lib
@@ -74,6 +81,7 @@ const STATE: HealthState = {
     },
   ],
   habits: [],
+  memories: [],
   habitLogs: [],
   lastLoadedAt: new Date().toISOString(),
 }
@@ -230,6 +238,156 @@ describe('habits → Mira reacts to a new habit', () => {
   })
 })
 
+describe('check-in → edit sends checkin_edited', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const withOne: HealthState = {
+    ...STATE,
+    checkIns: [
+      {
+        id: 'c1',
+        mood: 3,
+        energy: 2,
+        note: 'meh',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+  }
+
+  it('revising a check-in saves the patch and tells Mira it changed', async () => {
+    vi.mocked(updateCheckIn).mockResolvedValue(undefined)
+    vi.mocked(sendHealthReaction).mockResolvedValue({
+      reply: 'Noted — the revision stands.',
+      assistantId: null,
+    })
+    renderWith(<HealthCheckInPage />, 'en', withOne)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    /* The entry form's scale renders before the editor's — the last
+       'Great' radio on the page is the one inside the row editor. */
+    const great = screen.getAllByRole('radio', { name: 'Great' }).at(-1)!
+    fireEvent.click(great)
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() =>
+      expect(updateCheckIn).toHaveBeenCalledWith('c1', { mood: 5, energy: 2, note: 'meh' }),
+    )
+    await waitFor(() =>
+      expect(sendHealthReaction).toHaveBeenCalledWith(
+        { type: 'checkin_edited', mood: 5, energy: 2, note: 'meh' },
+        'en',
+        expect.any(Function),
+      ),
+    )
+    expect(await screen.findByText(/Noted — the revision stands/)).toBeInTheDocument()
+  })
+
+  it('cancel closes the editor without a write', async () => {
+    renderWith(<HealthCheckInPage />, 'en', withOne)
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(updateCheckIn).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+  })
+})
+
+describe('home — What Mira remembers', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const remembered: HealthState = {
+    ...STATE,
+    memories: [
+      {
+        id: 'm1',
+        text: 'Prefers mornings for anything hard',
+        source: 'manual',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: 'm2',
+        text: 'Sundays are family days',
+        source: 'mira',
+        createdAt: new Date().toISOString(),
+      },
+    ],
+  }
+
+  it('lists memories, labels a Mira-proposed one, adds by hand', async () => {
+    vi.mocked(addHealthMemory).mockResolvedValue({
+      id: 'm3',
+      text: 'Walks help me think',
+      source: 'manual',
+      createdAt: new Date().toISOString(),
+    })
+    const { refresh } = renderWith(<HealthHomePage />, 'en', remembered)
+
+    expect(await screen.findByText('Prefers mornings for anything hard')).toBeInTheDocument()
+    expect(screen.getByText('proposed by Mira')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText(/want Mira to remember/), {
+      target: { value: 'Walks help me think' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Remember this' }))
+    await waitFor(() => expect(addHealthMemory).toHaveBeenCalledWith('Walks help me think'))
+    await waitFor(() => expect(refresh).toHaveBeenCalled())
+  })
+
+  it('remove is a two-step confirm', async () => {
+    vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
+    renderWith(<HealthHomePage />, 'en', remembered)
+
+    const remove = await screen.findAllByRole('button', { name: 'Remove' })
+    fireEvent.click(remove[0]!)
+    expect(deleteHealthMemory).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
+    await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+  })
+})
+
+describe('review — accepting a proposed memory writes it', () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('accept writes health_memories with source mira', async () => {
+    const { loadPendingSuggestions, resolveSuggestion } = await import('@/lib/agentQueue')
+    vi.mocked(loadPendingSuggestions).mockResolvedValue([
+      {
+        id: 's1',
+        user_id: 'u1',
+        surface: 'health',
+        kind: 'memory',
+        title: 'Walks help me think',
+        payload: { text: 'Walks help me think' },
+        status: 'pending',
+        source: 'model',
+        dedupe_key: 'walks help me think',
+        resolved_at: null,
+        resolved_action: null,
+        created_at: new Date().toISOString(),
+      } as never,
+    ])
+    vi.mocked(addHealthMemory).mockResolvedValue({
+      id: 'm9',
+      text: 'Walks help me think',
+      source: 'mira',
+      createdAt: new Date().toISOString(),
+    })
+    vi.mocked(resolveSuggestion).mockResolvedValue(undefined)
+    renderWith(<HealthReviewPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Remember it' }))
+    await waitFor(() =>
+      expect(addHealthMemory).toHaveBeenCalledWith('Walks help me think', 'mira'),
+    )
+    await waitFor(() => expect(resolveSuggestion).toHaveBeenCalledWith('s1', 'accepted', 'remembered'))
+  })
+})
+
 describe('overview — Mira noticed strip', () => {
   const localDay = (ago: number) => {
     const d = new Date()
@@ -244,6 +402,7 @@ describe('overview — Mira noticed strip', () => {
       ...STATE,
       entries: [],
       habits: [{ id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' }],
+      memories: [],
       habitLogs: [0, 1].map((ago, i) => ({
         id: `l${i}`,
         habitId: 'h1',
@@ -266,6 +425,7 @@ describe('overview — Mira noticed strip', () => {
       checkIns: [],
       entries: [],
       habits: [],
+      memories: [],
       habitLogs: [],
       lastLoadedAt: new Date().toISOString(),
     }

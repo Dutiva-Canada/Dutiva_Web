@@ -7872,6 +7872,30 @@ export type Database = {
         }
         Relationships: []
       }
+      health_memories: {
+        Row: {
+          created_at: string
+          id: string
+          source: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source?: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       hr_advisor_case_narratives: {
         Row: {
           case_id: string

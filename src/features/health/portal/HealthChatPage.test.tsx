@@ -125,6 +125,7 @@ describe('HealthChatPage', () => {
       checkIns: [],
       entries: [],
       habits: [{ id: 'h1', name: 'Walk', createdAt: '2026-09-01T00:00:00Z' }],
+      memories: [],
       habitLogs: [0, 1, 2].map((ago, i) => ({
         id: `l${i}`,
         habitId: 'h1',

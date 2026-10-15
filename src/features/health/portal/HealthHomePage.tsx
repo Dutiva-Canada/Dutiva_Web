@@ -1,13 +1,111 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, HeartPulse, Info, Loader2, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
+import { addHealthMemory, deleteHealthMemory } from '@/features/health/data/api'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import { avgMood, checkInStreak, habitsDoneToday, hasCheckInToday } from '@/features/health/data/healthStats'
 import { fmtDateTime, miraNoticed, moodLabel } from './healthUi'
 import { useHealthHead } from './useHealthHead'
+
+/* The remembered layer, user-managed: write it, she keeps it; remove it,
+   she drops it. Mira's own proposals arrive through the review queue and
+   show their provenance — nothing lands here without a human hand. */
+function MemoriesCard() {
+  const { x } = useI18n()
+  const { state, refresh } = useHealthData()
+  const { showToast } = useToasts()
+  const [text, setText] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [armDelete, setArmDelete] = useState<string | null>(null)
+  const memories = state?.memories ?? []
+
+  const add = async () => {
+    const t = text.trim()
+    if (!t || saving) return
+    setSaving(true)
+    try {
+      await addHealthMemory(t)
+      setText('')
+      await refresh()
+      showToast(HM.health_mem_added)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const remove = async (id: string) => {
+    if (armDelete !== id) {
+      setArmDelete(id)
+      return
+    }
+    setArmDelete(null)
+    await deleteHealthMemory(id)
+    await refresh()
+  }
+
+  return (
+    <section className="sb-card sb-card-pad" style={{ marginTop: 18 }}>
+      <div className="sb-section-head" style={{ marginTop: 0 }}>
+        <h2 className="m-0 text-[16px]">{x(HM.health_mem_title)}</h2>
+      </div>
+      <p className="sb-body-text" style={{ marginTop: 0 }}>{x(HM.health_mem_sub)}</p>
+      <div className="sb-field">
+        <textarea
+          className="hb-textarea"
+          style={{ minHeight: 52 }}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={x(HM.health_mem_ph)}
+          maxLength={500}
+          aria-label={x(HM.health_mem_title)}
+        />
+      </div>
+      <div>
+        <button
+          type="button"
+          className="sb-btn sb-btn-secondary"
+          disabled={!text.trim() || saving}
+          onClick={() => void add()}
+        >
+          {saving && <Loader2 size={15} className="animate-spin" aria-hidden="true" />}
+          {x(HM.health_mem_add)}
+        </button>
+      </div>
+      {memories.length === 0 ? (
+        <div className="sb-empty">{x(HM.health_mem_empty)}</div>
+      ) : (
+        <div className="hb-rows">
+          {memories.map((m) => (
+            <div key={m.id} className="hb-row">
+              <div className="hb-row-main">
+                <p className="hb-row-body">{m.text}</p>
+                {m.source === 'mira' && (
+                  <span className="hb-row-meta">{x(HM.health_mem_from_mira)}</span>
+                )}
+              </div>
+              <div className="hb-row-side">
+                <button
+                  type="button"
+                  className={`sb-btn sb-btn-sm ${armDelete === m.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
+                  style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+                  onClick={() => void remove(m.id)}
+                  onBlur={() => setArmDelete(null)}
+                >
+                  {armDelete === m.id ? x(HM.health_mem_delete_confirm) : x(HM.health_mem_delete)}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
 export function HealthHomePage() {
   const { x, lang } = useI18n()
@@ -163,6 +261,8 @@ export function HealthHomePage() {
           )}
         </section>
       </div>
+
+      <MemoriesCard />
 
       <div className="sb-note">
         <Info size={16} aria-hidden="true" />
