@@ -69,7 +69,7 @@ const dayKey = (days: number) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
-function buildState(empty: boolean): HealthState {
+function buildState(empty: boolean, daysLimit?: number): HealthState {
   if (empty) {
     return {
       checkIns: [],
@@ -93,7 +93,7 @@ function buildState(empty: boolean): HealthState {
           ? 'Rough night — the kids were up twice and work was loud.'
           : '',
     createdAt: ago(i, 8),
-  }))
+  })).slice(0, daysLimit && daysLimit > 0 ? daysLimit : undefined)
   const entries: HealthJournalEntry[] = [
     {
       id: 'j0',
@@ -300,7 +300,8 @@ function Shell() {
   const [params] = useSearchParams()
   const page = params.get('p') ?? 'home'
   const empty = params.get('empty') === '1'
-  const state = useMemo(() => buildState(empty), [empty])
+  const daysLimit = parseInt(params.get('days') ?? '', 10)
+  const state = useMemo(() => buildState(empty, daysLimit), [empty, daysLimit])
   const other: Lang = lang === 'fr' ? 'en' : 'fr'
 
   useEffect(() => {

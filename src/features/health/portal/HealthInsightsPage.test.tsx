@@ -191,6 +191,20 @@ describe('HealthInsightsPage', () => {
     expect(screen.getByRole('link', { name: /Check in now/ })).toBeInTheDocument()
   })
 
+  it('names a thin window as the starting point instead of implying a trend', () => {
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }))
+    expect(screen.getByText(/Your starting point — /)).toBeInTheDocument()
+  })
+
+  it('drops the starting-point frame once four days are logged', () => {
+    renderInsights(
+      stateWith({
+        checkIns: [ci('c1', 4), ci('c2', 3, 1), ci('c3', 4, 2), ci('c4', 5, 3)],
+      }),
+    )
+    expect(screen.queryByText(/Your starting point/)).not.toBeInTheDocument()
+  })
+
   it('names the window, not "nothing yet", when check-ins all predate it', () => {
     renderInsights(stateWith({ checkIns: [ci('old', 3, 40)] }))
     expect(screen.getByText(/No check-ins in the last 14 days/)).toBeInTheDocument()

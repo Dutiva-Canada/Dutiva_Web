@@ -395,6 +395,14 @@ export const healthMessages = defineMessages({
     en: 'No check-ins in the last 14 days — your next one restarts the chart.',
     fr: 'Aucun point du jour dans les 14 derniers jours — votre prochain point relance le graphique.',
   },
+  /* 1–3 logged days: the bars are real but a "14-day chart" framing would
+     pretend a trend exists. Name the honest state — this is the starting
+     point — instead. {day} is the first logged day in the window.
+     [FR self-authored] */
+  health_ins_starting: {
+    en: 'Your starting point — {day}. A trend starts to show with a few more check-ins.',
+    fr: 'Votre point de départ — {day}. Une tendance commence à se dessiner après quelques points du jour de plus.',
+  },
   health_ins_low_day: { en: 'Toughest day this week', fr: 'Journée la plus difficile cette semaine' },
   health_ins_best_day: { en: 'Best day this week', fr: 'Meilleure journée cette semaine' },
 

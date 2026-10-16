@@ -17,6 +17,9 @@ const jobs = [
   /* Insights — two-week recap button copy */
   { p: 'insights', theme: 'light', lang: 'en', w: 1280, name: 'insights-light-en' },
   { p: 'insights', theme: 'dark', lang: 'fr', w: 1280, name: 'insights-dark-fr' },
+  /* Insights sparse — the starting-point frame on a thin window */
+  { p: 'insights', theme: 'light', lang: 'en', w: 1280, name: 'insights-sparse-en', extra: '&days=2' },
+  { p: 'insights', theme: 'dark', lang: 'fr', w: 1280, name: 'insights-sparse-fr', extra: '&days=2' },
 ]
 ;(async () => {
   const browser = await chromium.launch()

@@ -298,6 +298,16 @@ export function HealthInsightsPage() {
           </div>
         ) : (
           <>
+            {/* 1–3 logged days is a starting point, not a trend — name it
+                rather than let a mostly-empty chart imply one. */}
+            {loggedDays.length < 4 && (
+              <p className="sb-helper" style={{ marginTop: 0 }}>
+                {x(HM.health_ins_starting).replace(
+                  '{day}',
+                  fmtDay(loggedDays[0]!.day, lang),
+                )}
+              </p>
+            )}
             <DayChart
               days={days}
               kind="mood"
