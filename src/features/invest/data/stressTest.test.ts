@@ -21,6 +21,7 @@ const snap = (
   currency: 'CAD',
   source: 'test',
   asOf: '2025-01-01',
+  quoteName: '',
   ...extra,
 })
 

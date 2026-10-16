@@ -58,6 +58,10 @@ export interface MarketSnapshot {
   currency: string
   source: string
   asOf: string
+  /* 0235 — the feed-resolved listing name (Yahoo longName, CoinGecko
+     name). '' when none on file; a mistyped symbol shows what it
+     actually priced instead of staying invisible. */
+  quoteName: string
 }
 
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'

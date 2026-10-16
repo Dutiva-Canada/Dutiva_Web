@@ -1009,8 +1009,10 @@ export async function runUser(
   /* Run history is per strategy — one row for each strategy evaluated this
      sweep, so rule_hits and symbols_scanned never mix across strategies
      that share a rule title. Proposals count what was actually inserted.
-     Sweeps where nothing was due write no row at all — a daily "0 symbols
-     scanned" record claimed a scan that never happened. */
+     A sweep where nothing was due writes a single sweep-level heartbeat
+     instead: it declares 'nothing due' rather than a fake "0 symbols
+     scanned" evaluation, and it keeps the overview's 'Last agent run'
+     honest — otherwise a quiet cadence window reads as a dead agent. */
   const durationMs = Date.now() - startedAt
   const runRows: Database['public']['Tables']['invest_bot_runs']['Insert'][] =
     plan.perStrategy.map((s) => {
@@ -1047,20 +1049,42 @@ export async function runUser(
       duration_ms: durationMs,
     })
   }
+  if (runRows.length === 0) {
+    /* Heartbeat — evaluation days already carry their own rows, so this
+       only fills the silence. symbols_scanned stays empty: no scan ran,
+       and the portal renders that as 'book metrics only', which is what
+       the sweep actually did (book snapshots above are unconditional). */
+    runRows.push({
+      user_id: userId,
+      strategy_id: null,
+      signals_emitted: 0,
+      orders_suggested: 0,
+      orders_executed: 0,
+      summary: 'sweep — nothing due',
+      status: writesFailed ? 'partial' : 'ok',
+      symbols_scanned: [],
+      rule_hits: {},
+      duration_ms: durationMs,
+    })
+  }
   if (runRows.length > 0) {
     const runInsert = await adminClient.from('invest_bot_runs').insert(runRows)
     if (
       runInsert.error &&
       /strategy_id|symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)
     ) {
-      /* Pre-0184 schema — record a single flat row without diagnostics. */
+      /* Pre-0184 schema — record a single flat row without diagnostics.
+         A heartbeat-only sweep keeps its own summary rather than claim
+         "0 symbols scanned" for a scan that never ran. */
+      const heartbeatOnly = plan.perStrategy.length === 0 && insightsInserted === 0
       await adminClient.from('invest_bot_runs').insert({
         user_id: userId,
         signals_emitted: plan.signals.length + insightsInserted,
         orders_suggested: proposalsCreated,
         orders_executed: 0,
-        summary:
-          plan.symbolsScanned.length === 1
+        summary: heartbeatOnly
+          ? 'sweep — nothing due'
+          : plan.symbolsScanned.length === 1
             ? '1 symbol scanned'
             : `${plan.symbolsScanned.length} symbols scanned`,
         status: writesFailed ? 'partial' : 'ok',

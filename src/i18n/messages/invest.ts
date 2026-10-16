@@ -596,9 +596,11 @@ const investCoreMessages = defineMessages({
   invest_sync_prices: { en: 'Refresh prices', fr: 'Actualiser les cours' },
   invest_syncing: { en: 'Refreshing…', fr: 'Actualisation…' },
   invest_sync_done: {
-    en: 'Prices refreshed — {count} symbol(s) updated.',
-    fr: 'Cours actualisés — {count} symbole(s) mis à jour.',
+    en: 'Prices refreshed — {symbols} updated.',
+    fr: 'Cours actualisés — {symbols} mis à jour.',
   },
+  invest_sync_symbol_one: { en: 'symbol', fr: 'symbole' },
+  invest_sync_symbol_many: { en: 'symbols', fr: 'symboles' },
   invest_sync_partial: {
     en: 'Some symbols could not be priced: {symbols}',
     fr: 'Certains symboles n’ont pas pu être évalués : {symbols}',
@@ -1303,17 +1305,29 @@ const investCoreMessages = defineMessages({
      she noticed from the book, and a question. Built client-side from
      InvestState so it costs no call and stays bilingual. [FR self-authored] */
   invest_chat_hi: { en: 'Hi — I’m Tally, the book’s watch clerk.', fr: 'Bonjour — je suis Tally, la surveillante du carnet.' },
-  invest_chat_hi_watch: {
-    en: '{count} symbols are on the watchlist.',
-    fr: '{count} symboles sont sous surveillance.',
+  invest_chat_hi_watch_one: {
+    en: 'symbol is on the watchlist.',
+    fr: 'symbole est sous surveillance.',
   },
-  invest_chat_hi_orders: {
-    en: '{count} orders are queued waiting on you.',
-    fr: '{count} ordres attendent votre validation.',
+  invest_chat_hi_watch_many: {
+    en: 'symbols are on the watchlist.',
+    fr: 'symboles sont sous surveillance.',
   },
-  invest_chat_hi_signals: {
-    en: '{count} open signals on the board.',
-    fr: '{count} signaux ouverts au tableau.',
+  invest_chat_hi_orders_one: {
+    en: 'order is waiting on you.',
+    fr: 'ordre attend votre validation.',
+  },
+  invest_chat_hi_orders_many: {
+    en: 'orders are waiting on you.',
+    fr: 'ordres attendent votre validation.',
+  },
+  invest_chat_hi_signals_one: {
+    en: 'open signal on the board.',
+    fr: 'signal ouvert au tableau.',
+  },
+  invest_chat_hi_signals_many: {
+    en: 'open signals on the board.',
+    fr: 'signaux ouverts au tableau.',
   },
   invest_chat_hi_ask: {
     en: 'What should the book record today?',
@@ -1451,17 +1465,31 @@ const investCoreMessages = defineMessages({
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },
-  invest_home_tally_orders: {
-    en: '{count} orders are queued waiting on you.',
-    fr: '{count} ordres attendent votre validation.',
+  /* pl() one/many pairs — the order count covers drafts too, so it says
+     'waiting on you', not 'queued'. */
+  invest_home_tally_orders_one: {
+    en: 'order is waiting on you.',
+    fr: 'ordre attend votre validation.',
   },
-  invest_home_tally_signals: {
-    en: '{count} open signals on the board.',
-    fr: '{count} signaux ouverts au tableau.',
+  invest_home_tally_orders_many: {
+    en: 'orders are waiting on you.',
+    fr: 'ordres attendent votre validation.',
   },
-  invest_home_tally_watch: {
-    en: 'Watching {count} symbols.',
-    fr: '{count} symboles sous surveillance.',
+  invest_home_tally_signals_one: {
+    en: 'open signal on the board.',
+    fr: 'signal ouvert au tableau.',
+  },
+  invest_home_tally_signals_many: {
+    en: 'open signals on the board.',
+    fr: 'signaux ouverts au tableau.',
+  },
+  invest_home_tally_watch_one: {
+    en: 'symbol on the watchlist.',
+    fr: 'symbole sous surveillance.',
+  },
+  invest_home_tally_watch_many: {
+    en: 'symbols on the watchlist.',
+    fr: 'symboles sous surveillance.',
   },
   invest_home_tally_open: { en: 'Chat with Tally', fr: 'Discuter avec Tally' },
   /* Tally's reads — deterministic one-liners on the computed cards. She

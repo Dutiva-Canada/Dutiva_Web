@@ -7,6 +7,7 @@ import {
   newsQueries,
   parseCoingeckoCloses,
   parseCoingeckoMarkets,
+  parseCoingeckoNames,
   parseCoingeckoSimple,
   parseRssItems,
   parseYahooChart,
@@ -14,6 +15,7 @@ import {
   scopeAssetClass,
   technicalPack,
   validateSyncAction,
+  yahooChartUrl,
   yahooEquitySymbol,
 } from './handlers'
 
@@ -280,6 +282,27 @@ describe('computeRsi', () => {
     expect(rsi!).toBeGreaterThan(40)
     expect(rsi!).toBeLessThan(60)
     expect(computeRsi([1, 2, 3])).toBeNull()
+  })
+})
+
+describe('yahooChartUrl', () => {
+  it('defaults to the full-history range; light runs pass 5d', () => {
+    expect(yahooChartUrl('SHOP.TO')).toContain('range=2y')
+    expect(yahooChartUrl('SHOP.TO', '5d')).toContain('range=5d')
+  })
+})
+
+describe('parseCoingeckoNames', () => {
+  it('maps coin id → display name', () => {
+    const m = parseCoingeckoNames([
+      { id: 'bitcoin', name: 'Bitcoin' },
+      { id: 'solana', name: 'Solana' },
+      { id: 'junk' },
+    ])
+    expect(m.get('bitcoin')).toBe('Bitcoin')
+    expect(m.get('solana')).toBe('Solana')
+    expect(m.has('junk')).toBe(false)
+    expect(parseCoingeckoNames(null).size).toBe(0)
   })
 })
 

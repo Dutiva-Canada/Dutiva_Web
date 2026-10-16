@@ -1638,6 +1638,8 @@ function toSnapshot(row: any): MarketSnapshot {
     currency: row.currency,
     source: row.source,
     asOf: row.as_of,
+    /* 0235 column — absent while code outruns the migration. */
+    quoteName: typeof row.quote_name === 'string' ? row.quote_name : '',
   }
 }
 

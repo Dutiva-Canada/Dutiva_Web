@@ -10,6 +10,7 @@ import {
   newsQueries,
   parseCoingeckoCloses,
   parseCoingeckoMarkets,
+  parseCoingeckoNames,
   parseCoingeckoSimple,
   parseRssItems,
   parseYahooChart,
@@ -47,6 +48,11 @@ import { secretEquals } from '../_shared/secretEqual.ts'
  *                             and refreshes the shared news table.
  *   { action: 'sync-all' }  — trigger secret / service key (the 07:20 UTC
  *                             pg_cron sweep), or an admin-role portal JWT.
+ *   { action: 'sync-all', light: true } — the quarter-hour market-hours job
+ *                             (0235): price + day-change only. No news, no
+ *                             fundamentals, no close-series history — the
+ *                             patch omits those columns so existing rows
+ *                             keep the daily run's technicals.
  *
  * A user's universe is snapshot rows ∪ held positions ∪ watchlist ∪
  * symbols explicitly scoped into an enabled strategy.
@@ -151,27 +157,36 @@ interface SnapshotPatch {
   symbol: string
   price: number
   day_change_pct: number | null
-  ma50: number | null
-  ma200: number | null
-  rsi14: number | null
-  ret_1m: number | null
-  ret_3m: number | null
-  ret_12m: number | null
-  vol_20d: number | null
-  high_52w: number | null
-  low_52w: number | null
-  fundamentals: Fundamentals | null
-  fundamentals_as_of: string | null
   currency: string
   source: string
   as_of: string
+  /* Set only by a full sync — a light run omits these keys entirely so
+     the upsert preserves the daily run's technicals and fundamentals on
+     existing rows instead of overwriting them with NULL. */
+  ma50?: number | null
+  ma200?: number | null
+  rsi14?: number | null
+  ret_1m?: number | null
+  ret_3m?: number | null
+  ret_12m?: number | null
+  vol_20d?: number | null
+  high_52w?: number | null
+  low_52w?: number | null
+  fundamentals?: Fundamentals | null
+  fundamentals_as_of?: string | null
+  /* Feed-resolved listing name (0235) — written whenever the call that
+     carries it produced one; never cleared by a failed lookup. */
+  quote_name?: string
 }
 
-/** CoinGecko: one batched price call + per-coin history for the MA. */
+/** CoinGecko: one batched price call + per-coin history for the MA.
+    Light runs stop at the price call — history and the markets
+    fundamentals payload are the full sync's job. */
 async function syncCrypto(
   targets: SyncTarget[],
   patches: SnapshotPatch[],
   failed: string[],
+  light: boolean,
 ): Promise<void> {
   if (targets.length === 0) return
   const ids = [...new Set(targets.map((t) => coingeckoId(t.symbol)))]
@@ -199,7 +214,7 @@ async function syncCrypto(
       continue
     }
     let tech: ReturnType<typeof technicalPack> | null = null
-    if (historyCalls < MAX_PER_CLASS) {
+    if (!light && historyCalls < MAX_PER_CLASS) {
       historyCalls += 1
       /* 365 days of closes — enough for MA200, the 52-week range, and the
          12-month return; the 55-day pull only ever fed MA50. */
@@ -211,35 +226,42 @@ async function syncCrypto(
       await pause(HISTORY_STAGGER_MS)
     }
     for (const t of group) {
-      patches.push({
+      const p: SnapshotPatch = {
         user_id: t.user_id,
         asset_class: t.asset_class,
         symbol: t.symbol,
         price: quote.price,
         day_change_pct: quote.day_change_pct,
-        ma50: tech?.ma50 ?? null,
-        ma200: tech?.ma200 ?? null,
-        rsi14: tech?.rsi14 ?? null,
-        ret_1m: tech?.ret1m ?? null,
-        ret_3m: tech?.ret3m ?? null,
-        ret_12m: tech?.ret12m ?? null,
-        vol_20d: tech?.vol20d ?? null,
-        high_52w: tech?.high52w ?? null,
-        low_52w: tech?.low52w ?? null,
-        fundamentals: null,
-        fundamentals_as_of: null,
         currency: quote.currency,
         source: 'coingecko',
         as_of: new Date().toISOString(),
-      })
+      }
+      if (!light) {
+        p.ma50 = tech?.ma50 ?? null
+        p.ma200 = tech?.ma200 ?? null
+        p.rsi14 = tech?.rsi14 ?? null
+        p.ret_1m = tech?.ret1m ?? null
+        p.ret_3m = tech?.ret3m ?? null
+        p.ret_12m = tech?.ret12m ?? null
+        p.vol_20d = tech?.vol20d ?? null
+        p.high_52w = tech?.high52w ?? null
+        p.low_52w = tech?.low52w ?? null
+        p.fundamentals = null
+        p.fundamentals_as_of = null
+      }
+      patches.push(p)
     }
   }
 
   /* Crypto fundamentals — one batched /coins/markets call for every id
-     this pass touched (USD-denominated; the blob says so). */
+     this pass touched (USD-denominated; the blob says so). Also carries
+     the display names that become quote_name. */
+  if (light) return
   const fundRaw = await fetchText(coingeckoMarketsUrl(ids), cgHeaders)
   if (fundRaw) {
-    const funds = parseCoingeckoMarkets(JSON.parse(fundRaw))
+    const fundJson: unknown = JSON.parse(fundRaw)
+    const funds = parseCoingeckoMarkets(fundJson)
+    const names = parseCoingeckoNames(fundJson)
     const asOf = new Date().toISOString()
     for (const p of patches) {
       if (p.asset_class !== 'crypto') continue
@@ -248,17 +270,23 @@ async function syncCrypto(
         p.fundamentals = f
         p.fundamentals_as_of = asOf
       }
+      const name = names.get(coingeckoId(p.symbol))
+      if (name) p.quote_name = name
     }
   }
 }
 
 /** Yahoo: per-symbol v8/chart (quote + a year of closes → the whole
     technical pack) + fundamentals-timeseries (valuation block). Two
-    keyless calls per symbol, staggered; a refused call leaves NULLs. */
+    keyless calls per symbol, staggered; a refused call leaves NULLs.
+    Light runs take the chart only, at a 5d range — enough for price and
+    day-change without paying for the history a 15-minute cadence can't
+    meaningfully move. */
 async function syncEquities(
   targets: SyncTarget[],
   patches: SnapshotPatch[],
   failed: string[],
+  light: boolean,
 ): Promise<void> {
   if (targets.length === 0) return
   const mapped = targets.map((t) => ({ target: t, ...yahooEquitySymbol(t.symbol) }))
@@ -268,10 +296,12 @@ async function syncEquities(
   const chartBySymbol = new Map<string, ReturnType<typeof parseYahooChart>>()
   const fundBySymbol = new Map<string, Fundamentals>()
   for (const ys of uniqueSymbols.slice(0, MAX_PER_CLASS)) {
-    const [chartRaw, fundRaw] = await Promise.all([
-      fetchText(yahooChartUrl(ys), YAHOO_HEADERS),
-      fetchText(yahooFundamentalsUrl(ys), YAHOO_HEADERS),
-    ])
+    const [chartRaw, fundRaw] = light
+      ? [await fetchText(yahooChartUrl(ys, '5d'), YAHOO_HEADERS), null]
+      : await Promise.all([
+          fetchText(yahooChartUrl(ys), YAHOO_HEADERS),
+          fetchText(yahooFundamentalsUrl(ys), YAHOO_HEADERS),
+        ])
     if (chartRaw) chartBySymbol.set(ys, parseYahooChart(JSON.parse(chartRaw)))
     if (fundRaw) fundBySymbol.set(ys, parseYahooFundamentals(JSON.parse(fundRaw)))
     await pause(HISTORY_STAGGER_MS)
@@ -283,39 +313,46 @@ async function syncEquities(
       failed.push(m.target.symbol)
       continue
     }
-    const tech = chart.closes.length > 0 ? technicalPack(chart.closes) : null
-    const fund = fundBySymbol.get(m.symbol)
-    const fundamentals: Fundamentals | null =
-      fund && Object.keys(fund).length > 0
-        ? { ...fund, currency: chart.currency ?? m.currency }
-        : null
-    patches.push({
+    const p: SnapshotPatch = {
       user_id: m.target.user_id,
       asset_class: m.target.asset_class,
       symbol: m.target.symbol,
       price: chart.price,
       day_change_pct: chart.dayChangePct,
-      ma50: tech?.ma50 ?? null,
-      ma200: tech?.ma200 ?? null,
-      rsi14: tech?.rsi14 ?? null,
-      ret_1m: tech?.ret1m ?? null,
-      ret_3m: tech?.ret3m ?? null,
-      ret_12m: tech?.ret12m ?? null,
-      vol_20d: tech?.vol20d ?? null,
-      high_52w: tech?.high52w ?? null,
-      low_52w: tech?.low52w ?? null,
-      fundamentals,
-      fundamentals_as_of: fundamentals ? new Date().toISOString() : null,
       currency: chart.currency ?? m.currency,
       source: 'yahoo',
       as_of: new Date().toISOString(),
-    })
+    }
+    /* The chart meta's longName is free even on light runs — persist it
+       so a mistyped or renamed symbol shows what it resolved to. */
+    if (chart.name) p.quote_name = chart.name
+    if (!light) {
+      const tech = chart.closes.length > 0 ? technicalPack(chart.closes) : null
+      const fund = fundBySymbol.get(m.symbol)
+      const fundamentals: Fundamentals | null =
+        fund && Object.keys(fund).length > 0
+          ? { ...fund, currency: chart.currency ?? m.currency }
+          : null
+      p.ma50 = tech?.ma50 ?? null
+      p.ma200 = tech?.ma200 ?? null
+      p.rsi14 = tech?.rsi14 ?? null
+      p.ret_1m = tech?.ret1m ?? null
+      p.ret_3m = tech?.ret3m ?? null
+      p.ret_12m = tech?.ret12m ?? null
+      p.vol_20d = tech?.vol20d ?? null
+      p.high_52w = tech?.high52w ?? null
+      p.low_52w = tech?.low52w ?? null
+      p.fundamentals = fundamentals
+      p.fundamentals_as_of = fundamentals ? new Date().toISOString() : null
+    }
+    patches.push(p)
   }
 }
 
 /** One user's universe: snapshot rows ∪ held positions ∪ watchlist ∪
-    symbols explicitly scoped into an enabled strategy (0184). */
-async function syncUser(adminClient: SupabaseClient, userId: string) {
+    symbols explicitly scoped into an enabled strategy (0184). Light runs
+    refresh price/change only (0235 quarter-hour job). */
+async function syncUser(adminClient: SupabaseClient, userId: string, light = false) {
   const [snapsRes, positionsRes, watchRes, stratRes] = await Promise.all([
     adminClient.from('invest_market_snapshots').select('asset_class, symbol').eq('user_id', userId),
     adminClient.from('invest_positions').select('asset_class, symbol, name').eq('user_id', userId),
@@ -368,8 +405,8 @@ async function syncUser(adminClient: SupabaseClient, userId: string) {
 
   const patches: SnapshotPatch[] = []
   const failed: string[] = []
-  await syncCrypto(crypto, patches, failed)
-  await syncEquities(rest, patches, failed)
+  await syncCrypto(crypto, patches, failed, light)
+  await syncEquities(rest, patches, failed, light)
 
   for (const p of patches) {
     const { error } = await adminClient
@@ -451,6 +488,9 @@ const handler = async (req: Request) => {
       const authed = await authenticateInvestUser(req, config, { requireAdmin: true })
       if (authed instanceof Response) return authed
     }
+    /* The quarter-hour cron passes light:true — headline queries stay a
+       daily job; hammering Google News 96×/day buys nothing. */
+    const light = body['light'] === true
     const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
     /* Users who have anything invested/tracked/watched — cheaper than
        sweeping all. */
@@ -476,7 +516,7 @@ const handler = async (req: Request) => {
     const allTargets: SyncTarget[] = []
     for (const userId of userIds) {
       try {
-        const r = await syncUser(adminClient, userId)
+        const r = await syncUser(adminClient, userId, light)
         allTargets.push(...r.targets)
         results.push({ userId, symbols: r.symbols, synced: r.synced, failed: r.failed })
       } catch (error) {
@@ -484,7 +524,7 @@ const handler = async (req: Request) => {
         results.push({ userId, error: String(error).slice(0, 200) })
       }
     }
-    const news = await refreshNews(adminClient, allTargets)
+    const news = light ? 0 : await refreshNews(adminClient, allTargets)
     return json({ scanned: results.length, news, results })
   }
 

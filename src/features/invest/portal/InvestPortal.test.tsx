@@ -109,6 +109,7 @@ const STATE: InvestState = {
       currency: 'CAD',
       source: 'manual',
       asOf: '2026-01-20T00:00:00Z',
+      quoteName: '',
     },
   ],
   strategies: [
@@ -256,6 +257,7 @@ const USD_QUOTED: InvestState = {
       currency: 'USD',
       source: 'yahoo',
       asOf: '2026-10-12T00:00:00Z',
+      quoteName: '',
     },
   ],
 }

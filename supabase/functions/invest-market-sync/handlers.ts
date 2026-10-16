@@ -71,10 +71,13 @@ export const YAHOO_HEADERS: Record<string, string> = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
 }
 
-export function yahooChartUrl(yahooSymbol: string): string {
+/** `range` keeps the quarter-hour light sync cheap — the technical pack
+    needs 2y of closes, a price refresh needs only enough rows for a
+    current quote. */
+export function yahooChartUrl(yahooSymbol: string, range = '2y'): string {
   return (
     `https://query2.finance.yahoo.com/v8/finance/chart/` +
-    `${encodeURIComponent(yahooSymbol)}?range=2y&interval=1d&includePrePost=false`
+    `${encodeURIComponent(yahooSymbol)}?range=${range}&interval=1d&includePrePost=false`
   )
 }
 
@@ -329,6 +332,23 @@ export function coingeckoMarketsUrl(ids: string[]): string {
     `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd` +
     `&ids=${ids.join(',')}&price_change_percentage=24h`
   )
+}
+
+/** CoinGecko /coins/markets JSON → id → display name ("bitcoin" →
+    "Bitcoin") — the feed's own label, persisted as quote_name so a bare
+    ticker never hides what it resolved to. */
+export function parseCoingeckoNames(json: unknown): Map<string, string> {
+  const out = new Map<string, string>()
+  if (!Array.isArray(json)) return out
+  for (const row of json) {
+    const r = row as Record<string, unknown> | null
+    const id = r?.['id']
+    const name = r?.['name']
+    if (typeof id === 'string' && id && typeof name === 'string' && name) {
+      out.set(id, name)
+    }
+  }
+  return out
 }
 
 /** CoinGecko /coins/markets JSON → fundamentals per coin id (denominated

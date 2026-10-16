@@ -385,5 +385,6 @@ const EMPTY_SNAP: ShockedSnap = {
   currency: '',
   source: '',
   asOf: '',
+  quoteName: '',
   bookScale: 1,
 }

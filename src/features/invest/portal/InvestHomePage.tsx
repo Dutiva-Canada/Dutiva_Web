@@ -12,7 +12,7 @@ import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
 import { readDisplayCurrency } from './investPrefs'
-import { fmtDay, fmtNum, fmtPct, tallyNoticed } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct, pl, tallyNoticed } from './strategyUi'
 
 const assetLabel: Record<AssetClass, keyof typeof IM> = {
   equity: 'invest_asset_equity',
@@ -232,7 +232,10 @@ export function InvestHomePage() {
       setSyncNote(
         r.failed.length > 0
           ? x(IM.invest_sync_partial).replace('{symbols}', r.failed.join(', '))
-          : x(IM.invest_sync_done).replace('{count}', String(r.synced)),
+          : x(IM.invest_sync_done).replace(
+              '{symbols}',
+              pl(lang, r.synced, IM.invest_sync_symbol_one, IM.invest_sync_symbol_many),
+            ),
       )
       await refresh()
       /* Refresh doubles as the FX retry — a manual resync should also
@@ -609,7 +612,9 @@ export function InvestHomePage() {
               </li>
             ))}
           </ul>
-          {headlines.length > 12 && (
+          {/* Gate and count both read the scoped list — under 'Your book'
+              the button must promise only what the filter can reveal. */}
+          {scopedHeadlines.length > 12 && (
             <button
               type="button"
               onClick={() => setNewsExpanded((v) => !v)}
@@ -617,7 +622,7 @@ export function InvestHomePage() {
             >
               {newsExpanded
                 ? x(IM.invest_news_less)
-                : x(IM.invest_news_more).replace('{count}', String(headlines.length))}
+                : x(IM.invest_news_more).replace('{count}', String(scopedHeadlines.length))}
               {newsExpanded ? (
                 <ChevronUp size={14} aria-hidden="true" />
               ) : (

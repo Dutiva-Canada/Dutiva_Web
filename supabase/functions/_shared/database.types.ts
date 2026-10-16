@@ -10328,6 +10328,7 @@ export type Database = {
           ma200: number | null
           ma50: number | null
           price: number
+          quote_name: string
           ret_12m: number | null
           ret_1m: number | null
           ret_3m: number | null
@@ -10350,6 +10351,7 @@ export type Database = {
           ma200?: number | null
           ma50?: number | null
           price: number
+          quote_name?: string
           ret_12m?: number | null
           ret_1m?: number | null
           ret_3m?: number | null
@@ -10372,6 +10374,7 @@ export type Database = {
           ma200?: number | null
           ma50?: number | null
           price?: number
+          quote_name?: string
           ret_12m?: number | null
           ret_1m?: number | null
           ret_3m?: number | null

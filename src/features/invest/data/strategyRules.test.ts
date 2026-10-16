@@ -325,6 +325,7 @@ describe('staleScopeSymbols', () => {
     currency: 'CAD',
     source: 'yahoo',
     asOf,
+    quoteName: '',
   })
 
   it('flags missing snapshots and prices older than 48 h', () => {
