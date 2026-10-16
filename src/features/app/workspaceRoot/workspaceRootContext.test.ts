@@ -12,13 +12,24 @@ describe('workspaceRootContext helpers', () => {
   it('strips workspace prefixes for segment parsing', () => {
     expect(workspaceSegments('/demo/documents/studio')).toEqual(['documents', 'studio'])
     expect(workspaceSegments('/fr/demo/advisor')).toEqual(['advisor'])
+    expect(workspaceSegments('/workspace/cases/case1')).toEqual(['cases', 'case1'])
+    /* Legacy /app spellings still parse — the redirect normalizes them. */
     expect(workspaceSegments('/app/cases/case1')).toEqual(['cases', 'case1'])
   })
 
-  it('rewrites /app paths inside the public demo root', () => {
+  it('rewrites /app paths to the active workspace root', () => {
+    /* `/app/…` is the canonical virtual prefix link targets use — it maps to
+       the mounted root (/workspace in production, /demo in the preview). */
     expect(rewriteAppPath('/app/cases/case1', '/demo')).toBe('/demo/cases/case1')
     expect(rewriteAppPath('/app/advisor', '/fr/demo')).toBe('/fr/demo/advisor')
-    expect(rewriteAppPath('/app/home', '/app')).toBe('/app/home')
+    expect(rewriteAppPath('/app/home', '/workspace')).toBe('/workspace/home')
     expect(rewriteAppPath('/templates', '/demo')).toBe('/templates')
+  })
+
+  it('always sends the sign-in gate and auth landing to /workspace', () => {
+    expect(rewriteAppPath('/app/welcome', '/demo')).toBe('/workspace/welcome')
+    expect(rewriteAppPath('/app/welcome', '/fr/demo')).toBe('/workspace/welcome')
+    expect(rewriteAppPath('/app/auth/confirm', '/demo')).toBe('/workspace/auth/confirm')
+    expect(rewriteAppPath('/app/welcome', '/workspace')).toBe('/workspace/welcome')
   })
 })

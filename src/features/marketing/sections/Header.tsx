@@ -159,7 +159,7 @@ export function Header() {
               <ThemeIcon size={15} />
             </button>
             <Link
-              to="/app/welcome"
+              to="/workspace/welcome"
               className="ghost-button ghost-button-md"
               {...viewIntentProps('mkt.app')}
             >
@@ -252,7 +252,7 @@ export function Header() {
           </nav>
           <div className="mt-auto flex flex-col gap-2.5 pt-5">
             <Link
-              to="/app/welcome"
+              to="/workspace/welcome"
               className="ghost-button ghost-button-block"
               onClick={closeMenu}
               {...viewIntentProps('mkt.app')}

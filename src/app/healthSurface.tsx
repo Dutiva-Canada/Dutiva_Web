@@ -9,7 +9,7 @@ import { ToastHost } from '@/features/app/toasts/ToastHost'
  * Lazily composed /wellness route element — the standalone, invite-only
  * Dutiva Wellness surface. Same standalone pattern as the invest
  * portal: preference-scoped language, shared AuthProvider, its own shell —
- * separate from both the marketing chrome and the /app workspace sidebar.
+ * separate from both the marketing chrome and the /workspace workspace sidebar.
  *
  * Renders the child route's element: the gated HealthPortalLayout for app
  * pages, or the standalone HealthLegalPage for /wellness/legal/* (public so

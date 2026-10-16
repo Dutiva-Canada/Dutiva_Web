@@ -36,21 +36,21 @@ export function ProductionEmptyState({ title }: { readonly title: string }) {
           </p>
         </div>
         <div className="mb-[14px] flex flex-wrap justify-center gap-[10px]">
-          <Link to="/app/employees?new=1" className={linkClass}>
+          <Link to="/workspace/employees?new=1" className={linkClass}>
             <Users size={14} strokeWidth={1.9} aria-hidden="true" />
             {x(M.wsmode_empty_cta_employees)}
           </Link>
-          <Link to="/app/documents/studio" className={linkClass}>
+          <Link to="/workspace/documents/studio" className={linkClass}>
             <FileStack size={14} strokeWidth={1.9} aria-hidden="true" />
             {x(M.wsmode_empty_cta_studio)}
           </Link>
-          <Link to="/app/workflows" className={linkClass}>
+          <Link to="/workspace/workflows" className={linkClass}>
             <Route size={14} strokeWidth={1.9} aria-hidden="true" />
             {x(M.wsmode_empty_cta_workflows)}
           </Link>
         </div>
         <Link
-          to="/app/settings"
+          to="/workspace/settings"
           className="inline-flex items-center gap-[7px] text-[13px] font-semibold text-accent"
         >
           <Settings size={14} strokeWidth={1.9} aria-hidden="true" />

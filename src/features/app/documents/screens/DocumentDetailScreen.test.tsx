@@ -5,7 +5,7 @@ import { ToastHost } from '@/features/app/toasts/ToastHost'
 import { DoclibProvider } from '../DoclibProvider'
 import { DocumentDetailScreen } from './DocumentDetailScreen'
 
-const DOC1 = { route: '/app/documents/doc_001', path: '/app/documents/:docId' }
+const DOC1 = { route: '/workspace/documents/doc_001', path: '/workspace/documents/:docId' }
 
 function renderDetail(options: { route: string; path: string } = DOC1) {
   return renderApp(
@@ -101,8 +101,8 @@ describe('DocumentDetailScreen', () => {
 
   it('redirects to the repository for an unknown document id', async () => {
     const { container } = renderDetail({
-      route: '/app/documents/doc_does_not_exist',
-      path: '/app/documents/:docId',
+      route: '/workspace/documents/doc_does_not_exist',
+      path: '/workspace/documents/:docId',
     })
 
     /* Navigate fires once data resolves; the :docId route no longer matches. */

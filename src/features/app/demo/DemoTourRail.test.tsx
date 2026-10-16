@@ -34,7 +34,7 @@ describe('DemoTourRail', () => {
   it('does not render outside the public demo surface', () => {
     render(
       <LangProvider>
-        <MemoryRouter initialEntries={['/app/home']}>
+        <MemoryRouter initialEntries={['/workspace/home']}>
           <DemoTourRail />
         </MemoryRouter>
       </LangProvider>,

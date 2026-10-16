@@ -282,7 +282,7 @@ export function EmployeeProfileProductionView() {
   return (
     <AppPage width="comfort">
       <Link
-        to="/app/employees"
+        to="/workspace/employees"
         className="mb-[16px] inline-flex items-center gap-[6px] text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ArrowLeft size={14} strokeWidth={2} aria-hidden="true" />
@@ -339,7 +339,7 @@ export function EmployeeProfileProductionView() {
                 </select>
               )}
               <Link
-                to={`/app/settings/memory/people/${employee.id}`}
+                to={`/workspace/settings/memory/people/${employee.id}`}
                 className="inline-flex items-center gap-[6px] rounded-[8px] border border-border bg-surface px-[10px] py-[6px] font-sans text-[12px] font-bold text-text-2 no-underline"
               >
                 <Brain size={14} strokeWidth={1.7} aria-hidden="true" />

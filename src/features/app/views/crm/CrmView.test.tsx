@@ -7,7 +7,7 @@ import { CrmView } from './CrmView'
 function renderAt(route: string) {
   return renderApp(
     <Routes>
-      <Route path="/app/crm" element={<CrmView />} />
+      <Route path="/workspace/crm" element={<CrmView />} />
     </Routes>,
     { route, path: '*' },
   )
@@ -15,7 +15,7 @@ function renderAt(route: string) {
 
 describe('CrmView', () => {
   it('renders the CRM workspace with the dashboard tab and demo data', () => {
-    renderAt('/app/crm')
+    renderAt('/workspace/crm')
 
     expect(screen.getByRole('button', { name: 'Dashboard' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Contacts' })).toBeInTheDocument()
@@ -25,14 +25,14 @@ describe('CrmView', () => {
   })
 
   it('shows the demo pipeline and follow-ups on the dashboard', () => {
-    renderAt('/app/crm')
+    renderAt('/workspace/crm')
 
     expect(screen.getByText('Lakeside Manufacturing — Team Plan')).toBeInTheDocument()
     expect(screen.getByText('Amara Okafor')).toBeInTheDocument()
   })
 
   it('switches to the contacts tab and lists demo contacts', () => {
-    renderAt('/app/crm')
+    renderAt('/workspace/crm')
 
     fireEvent.click(screen.getByRole('button', { name: 'Contacts' }))
 
@@ -41,7 +41,7 @@ describe('CrmView', () => {
   })
 
   it('switches to the deals tab and lists the demo deal pipeline', () => {
-    renderAt('/app/crm')
+    renderAt('/workspace/crm')
 
     fireEvent.click(screen.getByRole('button', { name: 'Deals' }))
 

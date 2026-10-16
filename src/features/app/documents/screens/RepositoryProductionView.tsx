@@ -174,7 +174,7 @@ export function RepositoryProductionView() {
           <p className="mt-1 text-[13.5px] text-text-muted">{x(M.doclib_repo_subtitle)}</p>
         </div>
         <Link
-          to="/app/documents/studio"
+          to="/workspace/documents/studio"
           className="inline-flex min-h-[40px] items-center rounded-[9px] bg-navy px-[14px] py-[8px] text-[12.5px] font-semibold text-white hover:opacity-90"
         >
           {x(M.doclib_repo_createFrom)}
@@ -264,7 +264,7 @@ export function RepositoryProductionView() {
             {x(M.doclib_prod_empty_body)}
           </p>
           <Link
-            to="/app/documents/studio"
+            to="/workspace/documents/studio"
             className="mt-4 inline-flex rounded-[8px] bg-navy px-[14px] py-[8px] text-[13px] font-semibold text-white"
           >
             {x(M.doclib_prod_go_studio)}
@@ -294,13 +294,16 @@ export function RepositoryProductionView() {
                 return (
                   <tr key={doc.id} className="border-t border-border hover:bg-inset/60">
                     <td className={`${TD_CLASS} font-mono text-[12px] text-text-muted`}>
-                      <Link to={`/app/documents/${doc.id}`} className="text-text hover:underline">
+                      <Link
+                        to={`/workspace/documents/${doc.id}`}
+                        className="text-text hover:underline"
+                      >
                         {doc.ref}
                       </Link>
                     </td>
                     <td className={TD_CLASS}>
                       <Link
-                        to={`/app/documents/${doc.id}`}
+                        to={`/workspace/documents/${doc.id}`}
                         className="font-semibold text-text hover:underline"
                       >
                         {x(doc.title)}
@@ -335,7 +338,7 @@ export function RepositoryProductionView() {
             return (
               <Link
                 key={doc.id}
-                to={`/app/documents/${doc.id}`}
+                to={`/workspace/documents/${doc.id}`}
                 className="block rounded-[12px] border border-border bg-surface p-[14px]"
               >
                 <div className="text-[13.5px] font-semibold text-text">{x(doc.title)}</div>

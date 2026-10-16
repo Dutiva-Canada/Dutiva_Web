@@ -72,7 +72,7 @@ describe('Segments screen', () => {
 
   it('renders fixture segments and their contacts in demo (read-only)', async () => {
     const user = userEvent.setup()
-    renderApp(<Segments />, { route: '/app/comms/segments' })
+    renderApp(<Segments />, { route: '/workspace/comms/segments' })
 
     expect(screen.getByText('Tier-1 Media')).toBeInTheDocument()
     expect(screen.getByText('Bilingual Creators')).toBeInTheDocument()
@@ -90,7 +90,7 @@ describe('Segments screen', () => {
     segmentMockState.canWrite = true
     vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
-    renderApp(<Segments />, { route: '/app/comms/segments' })
+    renderApp(<Segments />, { route: '/workspace/comms/segments' })
 
     const removeButtons = screen.getAllByRole('button', { name: 'Remove' })
     expect(removeButtons).toHaveLength(2)

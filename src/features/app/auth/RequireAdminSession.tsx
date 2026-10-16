@@ -17,7 +17,7 @@ import { AppBootSkeleton } from '@/features/app/shell/AppBootSkeleton'
  * supabase/migrations/0026_open_workspace_to_beta_list.sql, capacity-capped
  * by 0067_beta_cohort_capacity.sql, domain staff in 0114). The workspace
  * used to double as a public demo reachable by anyone; it's invite-only
- * now. Unauthorized visitors are sent to /app/welcome (the sign-in gate),
+ * now. Unauthorized visitors are sent to /workspace/welcome (the sign-in gate),
  * carrying the location they wanted so EntryStage can return them there
  * after sign-in.
  *
@@ -50,8 +50,7 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
      Signed-out visitors skip this entirely (same specifier as the lazy()
      in appSurface, so no duplicate fetch). */
   useEffect(() => {
-    if (status === 'signed-in')
-      void import('@/features/app/shell/AppShell').catch(() => {})
+    if (status === 'signed-in') void import('@/features/app/shell/AppShell').catch(() => {})
   }, [status])
 
   if (!supabase) return children
@@ -60,16 +59,13 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
 
   /* `authorized` is null both while signed out and while the membership
      check is still in flight right after signing in — only the latter
-     should stay on the skeleton rather than bouncing to /app/welcome. */
+     should stay on the skeleton rather than bouncing to /workspace/welcome. */
   /* `resolving` keeps the skeleton up until WorkspaceModeProvider commits
      a mode + identity — without it, a signed-in production user renders the
      demo persona/fixtures for the whole async resolution window (and can
      navigate fixture ids into production routes before the flip). The
      skeleton keeps the wait legible instead of painting an empty page. */
-  if (
-    status === 'loading' ||
-    (status === 'signed-in' && (authorized === null || resolving))
-  ) {
+  if (status === 'loading' || (status === 'signed-in' && (authorized === null || resolving))) {
     return (
       <div role="status" aria-label={x(M.wsmode_loading_a11y)}>
         <AppBootSkeleton />
@@ -105,5 +101,5 @@ export function RequireAdminSession({ children }: { readonly children: ReactNode
     return children
   }
 
-  return <Navigate to="/app/welcome" replace state={{ from: location }} />
+  return <Navigate to="/workspace/welcome" replace state={{ from: location }} />
 }

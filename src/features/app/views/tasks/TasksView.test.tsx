@@ -23,7 +23,7 @@ function renderTasks() {
       <TasksView />
       <LocationProbe />
     </>,
-    { route: '/app/tasks' },
+    { route: '/workspace/tasks' },
   )
 }
 
@@ -80,7 +80,7 @@ describe('TasksView', () => {
       }),
     )
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/planning/tasks/tk1|')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/planning/tasks/tk1|')
   })
 })
 
@@ -205,7 +205,7 @@ describe('TasksView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { TasksView: TasksViewFresh } = await import('./TasksView')
 
-    renderAppFresh(<TasksViewFresh />, { route: '/app/tasks', path: '/app/tasks' })
+    renderAppFresh(<TasksViewFresh />, { route: '/workspace/tasks', path: '/workspace/tasks' })
 
     expect(await screen.findByText('File ROE for departing employee')).toBeInTheDocument()
     expect(screen.getByText('1 open')).toBeInTheDocument()
@@ -220,7 +220,7 @@ describe('TasksView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { TasksView: TasksViewFresh } = await import('./TasksView')
 
-    renderAppFresh(<TasksViewFresh />, { route: '/app/tasks', path: '/app/tasks' })
+    renderAppFresh(<TasksViewFresh />, { route: '/workspace/tasks', path: '/workspace/tasks' })
 
     expect(await screen.findByText('No tasks yet')).toBeInTheDocument()
 

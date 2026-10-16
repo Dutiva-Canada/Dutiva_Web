@@ -32,13 +32,13 @@ describe('createReporter', () => {
     reporter.report({
       error: new Error('Cannot read properties of undefined'),
       kind: 'route-boundary',
-      pathname: '/app/cases/8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e?tab=notes',
+      pathname: '/workspace/cases/8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e?tab=notes',
     })
 
     expect(sent).toHaveLength(1)
     const { endpoint, payload } = sent[0]!
     expect(endpoint).toBe('https://proj.supabase.co/functions/v1/report-error')
-    expect(payload.route).toBe('/app/cases/:id') // resolved id + query gone
+    expect(payload.route).toBe('/workspace/cases/:id') // resolved id + query gone
     expect(payload.env).toBe('production')
     expect(payload.release).toBe('abc1234')
     expect(payload.kind).toBe('route-boundary')
@@ -53,7 +53,7 @@ describe('createReporter', () => {
       'doclib: document 8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e failed for jane@corp.ca',
     )
     err.stack = 'Error: boom\n    at load (https://app.dutiva.ca/x.js?token=deadbeefdeadbeef:1:2)'
-    reporter.report({ error: err, kind: 'route-boundary', pathname: '/app/home' })
+    reporter.report({ error: err, kind: 'route-boundary', pathname: '/workspace/home' })
     const { message, stack } = sent[0]!.payload
     expect(message).not.toContain('8f3b9c1e-0a2d-4b6f-9c1e-0a2d4b6f9c1e')
     expect(message).not.toContain('jane@corp.ca')
@@ -74,7 +74,7 @@ describe('createReporter', () => {
     const input = {
       error: new Error('loop'),
       kind: 'route-boundary' as const,
-      pathname: '/app/home',
+      pathname: '/workspace/home',
     }
     reporter.report(input)
     reporter.report(input)
@@ -87,7 +87,7 @@ describe('createReporter', () => {
     const input = {
       error: new Error('loop'),
       kind: 'route-boundary' as const,
-      pathname: '/app/home',
+      pathname: '/workspace/home',
     }
     reporter.report(input)
     clock += 61_000
@@ -101,8 +101,8 @@ describe('createReporter', () => {
     a.stack = 'handleClick@https://app.dutiva.ca/assets/app.js:12:34'
     const b = new Error('boom')
     b.stack = 'renderRow@https://app.dutiva.ca/assets/app.js:56:78'
-    reporter.report({ error: a, kind: 'window-error', pathname: '/app/home' })
-    reporter.report({ error: b, kind: 'window-error', pathname: '/app/home' })
+    reporter.report({ error: a, kind: 'window-error', pathname: '/workspace/home' })
+    reporter.report({ error: b, kind: 'window-error', pathname: '/workspace/home' })
     // Different first frames → different fingerprints → both sent (they would
     // collapse to one if the @-format frame weren't recognized).
     expect(sent).toHaveLength(2)
@@ -114,7 +114,7 @@ describe('createReporter', () => {
       reporter.report({
         error: new Error(`distinct ${i}`),
         kind: 'window-error',
-        pathname: '/app/home',
+        pathname: '/workspace/home',
       })
     }
     expect(sent.length).toBeLessThanOrEqual(5)
@@ -169,7 +169,7 @@ describe('createReporter', () => {
     reporter.report({
       error: { message: 'objecty' },
       kind: 'unhandled-rejection',
-      pathname: '/app/home',
+      pathname: '/workspace/home',
     })
     expect(sent.map((s) => s.payload.message)).toEqual(['string reason', 'objecty'])
   })

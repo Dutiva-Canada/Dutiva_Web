@@ -22,7 +22,7 @@ const MEMORY_STATEMENT_CORRECTED = 'E2E Playwright memory fact (corrected)'
 const CASE_NARRATIVE_SUMMARY = 'E2E case resume summary'
 
 async function enableProductionMode(page: Page) {
-  await page.goto('/app/settings')
+  await page.goto('/workspace/settings')
   const productionTab = page.getByRole('tab', { name: 'Production' })
   await expect(productionTab).toBeVisible({ timeout: 30_000 })
   await productionTab.click()
@@ -32,7 +32,7 @@ async function enableProductionMode(page: Page) {
 }
 
 async function createEmployee(page: Page, name: string, title: string) {
-  await page.goto('/app/employees')
+  await page.goto('/workspace/employees')
   await expect(page.getByRole('button', { name: 'Add employee' })).toBeVisible({
     timeout: 45_000,
   })
@@ -49,7 +49,7 @@ async function removeEmployee(page: Page, name: string) {
 }
 
 async function createCase(page: Page, title: string) {
-  await page.goto('/app/cases')
+  await page.goto('/workspace/cases')
   await expect(page.getByRole('button', { name: 'New case' })).toBeVisible({
     timeout: 45_000,
   })
@@ -66,15 +66,15 @@ async function removeCase(page: Page, title: string) {
 
 test.describe('auth + workspace mode + employees CRUD', () => {
   test('production empty → add employee → list shows row', async ({ page }) => {
-    await page.goto('/app/home')
+    await page.goto('/workspace/home')
     await expect(page.locator('#root')).not.toBeEmpty()
     /* Signed-in admins land in the workspace shell, not the welcome gate. */
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
 
     await enableProductionMode(page)
 
     /* Capacity / bootstrap can take a beat before organizationId resolves. */
-    await page.goto('/app/employees')
+    await page.goto('/workspace/employees')
     await expect(page.getByRole('button', { name: 'Add employee' })).toBeVisible({
       timeout: 45_000,
     })
@@ -90,8 +90,8 @@ test.describe('auth + workspace mode + employees CRUD', () => {
   test('production search overlay opens from keyboard shortcut', async ({ page }) => {
     await enableProductionMode(page)
 
-    await page.goto('/app/home')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/home')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await page.keyboard.press('Control+k')
     await expect(page.getByRole('dialog', { name: 'Search' })).toBeVisible({ timeout: 10_000 })
   })
@@ -99,8 +99,8 @@ test.describe('auth + workspace mode + employees CRUD', () => {
   test('production documents repository shows honest empty state', async ({ page }) => {
     await enableProductionMode(page)
 
-    await page.goto('/app/documents')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/documents')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await expect(page.getByText('No documents yet')).toBeVisible({
       timeout: 30_000,
     })
@@ -109,8 +109,8 @@ test.describe('auth + workspace mode + employees CRUD', () => {
   test('production cases empty → create case → list shows row → remove', async ({ page }) => {
     await enableProductionMode(page)
 
-    await page.goto('/app/cases')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/cases')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await expect(page.getByRole('button', { name: 'New case' })).toBeVisible({
       timeout: 45_000,
     })
@@ -128,8 +128,8 @@ test.describe('auth + workspace mode + tasks CRUD', () => {
   test('production empty → add task → toggle done → remove', async ({ page }) => {
     await enableProductionMode(page)
 
-    await page.goto('/app/planning/tasks')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/planning/tasks')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await expect(page.getByRole('button', { name: 'Add task' })).toBeVisible({
       timeout: 45_000,
     })
@@ -158,8 +158,8 @@ test.describe('auth + workspace mode + communications CRUD', () => {
   test('production empty → log message → edit → mark sent → remove', async ({ page }) => {
     await enableProductionMode(page)
 
-    await page.goto('/app/communications')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/communications')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await expect(page.getByRole('button', { name: 'Log a message' })).toBeVisible({
       timeout: 45_000,
     })
@@ -196,8 +196,8 @@ test.describe('auth + workspace mode + memory CRUD', () => {
     await enableProductionMode(page)
     await createEmployee(page, EMPLOYEE_NAME, 'E2E Coordinator')
 
-    await page.goto('/app/settings/memory')
-    await expect(page).not.toHaveURL(/\/app\/welcome/)
+    await page.goto('/workspace/settings/memory')
+    await expect(page).not.toHaveURL(/\/workspace\/welcome/)
     await expect(page.getByRole('button', { name: 'Add memory fact' })).toBeVisible({
       timeout: 45_000,
     })
@@ -220,7 +220,7 @@ test.describe('auth + workspace mode + memory CRUD', () => {
     await correctedRow.getByRole('button', { name: 'Forget' }).click()
     await expect(page.getByText(MEMORY_STATEMENT_CORRECTED)).toHaveCount(0)
 
-    await page.goto('/app/employees')
+    await page.goto('/workspace/employees')
     await removeEmployee(page, EMPLOYEE_NAME)
   })
 
@@ -228,12 +228,12 @@ test.describe('auth + workspace mode + memory CRUD', () => {
     await enableProductionMode(page)
     await createCase(page, CASE_TITLE)
 
-    await page.goto('/app/settings/memory')
+    await page.goto('/workspace/settings/memory')
     await expect(page.getByRole('link', { name: CASE_TITLE })).toBeVisible({
       timeout: 15_000,
     })
     await page.getByRole('link', { name: CASE_TITLE }).click()
-    await expect(page).toHaveURL(/\/app\/settings\/memory\/cases\//)
+    await expect(page).toHaveURL(/\/workspace\/settings\/memory\/cases\//)
 
     await page.getByRole('button', { name: 'Edit resume summary' }).click()
     await page.getByLabel('Summary (English)').fill(CASE_NARRATIVE_SUMMARY)
@@ -241,7 +241,7 @@ test.describe('auth + workspace mode + memory CRUD', () => {
 
     await expect(page.getByText(CASE_NARRATIVE_SUMMARY)).toBeVisible({ timeout: 15_000 })
 
-    await page.goto('/app/cases')
+    await page.goto('/workspace/cases')
     await removeCase(page, CASE_TITLE)
   })
 })

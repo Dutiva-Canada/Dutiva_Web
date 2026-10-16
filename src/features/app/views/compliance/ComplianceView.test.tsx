@@ -11,7 +11,7 @@ function renderCompliance() {
       <ComplianceView />
       <AdvisorRail />
     </>,
-    { route: '/app/compliance', path: '/app/compliance' },
+    { route: '/workspace/compliance', path: '/workspace/compliance' },
   )
 }
 
@@ -268,7 +268,10 @@ describe('ComplianceView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { ComplianceView: ComplianceViewFresh } = await import('./ComplianceView')
 
-    renderAppFresh(<ComplianceViewFresh />, { route: '/app/compliance', path: '/app/compliance' })
+    renderAppFresh(<ComplianceViewFresh />, {
+      route: '/workspace/compliance',
+      path: '/workspace/compliance',
+    })
 
     expect(
       await screen.findByText('Vacation accrual policy missing for Quebec staff'),
@@ -285,7 +288,10 @@ describe('ComplianceView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { ComplianceView: ComplianceViewFresh } = await import('./ComplianceView')
 
-    renderAppFresh(<ComplianceViewFresh />, { route: '/app/compliance', path: '/app/compliance' })
+    renderAppFresh(<ComplianceViewFresh />, {
+      route: '/workspace/compliance',
+      path: '/workspace/compliance',
+    })
 
     expect(await screen.findByText('No findings yet')).toBeInTheDocument()
 
@@ -345,7 +351,10 @@ describe('ComplianceView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { ComplianceView: ComplianceViewFresh } = await import('./ComplianceView')
 
-    renderAppFresh(<ComplianceViewFresh />, { route: '/app/compliance', path: '/app/compliance' })
+    renderAppFresh(<ComplianceViewFresh />, {
+      route: '/workspace/compliance',
+      path: '/workspace/compliance',
+    })
 
     /* Production marker first — the demo diorama also has an obligation
        register, so wait for the mode flip before asserting content. */

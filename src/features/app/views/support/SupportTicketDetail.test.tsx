@@ -20,9 +20,9 @@ import { SupportTicketDetail } from './SupportTicketDetail'
 function renderDetail(id = 't1') {
   render(
     <LangProvider>
-      <MemoryRouter initialEntries={[`/app/support/requests/${id}`]}>
+      <MemoryRouter initialEntries={[`/workspace/support/requests/${id}`]}>
         <Routes>
-          <Route path="/app/support/requests/:ticketId" element={<SupportTicketDetail />} />
+          <Route path="/workspace/support/requests/:ticketId" element={<SupportTicketDetail />} />
         </Routes>
       </MemoryRouter>
     </LangProvider>,

@@ -25,7 +25,7 @@ function renderView() {
       <AdvisorRail />
       <LocationProbe />
     </>,
-    { route: '/app/compensation' },
+    { route: '/workspace/compensation' },
   )
 }
 
@@ -93,7 +93,7 @@ describe('CompensationView', () => {
     expect(row).toBeDefined()
     fireEvent.click(row as HTMLElement)
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/employees/e1#compensation')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/employees/e1#compensation')
   })
 })
 
@@ -179,7 +179,7 @@ describe('CompensationView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CompensationView: View } = await import('./CompensationView')
 
-    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    renderFresh(<View />, { route: '/workspace/compensation', path: '/workspace/compensation' })
 
     expect(await screen.findByText('Dana Okonjo')).toBeInTheDocument()
     expect(screen.getByText('1 record')).toBeInTheDocument()
@@ -197,7 +197,7 @@ describe('CompensationView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CompensationView: View } = await import('./CompensationView')
 
-    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    renderFresh(<View />, { route: '/workspace/compensation', path: '/workspace/compensation' })
 
     expect(await screen.findByText('No midpoint set')).toBeInTheDocument()
     expect(screen.queryByText(/% vs band midpoint/)).not.toBeInTheDocument()
@@ -210,7 +210,7 @@ describe('CompensationView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CompensationView: View } = await import('./CompensationView')
 
-    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    renderFresh(<View />, { route: '/workspace/compensation', path: '/workspace/compensation' })
     await screen.findByText('Dana Okonjo')
 
     expect(screen.queryByText('Below market midpoint')).not.toBeInTheDocument()
@@ -226,7 +226,7 @@ describe('CompensationView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CompensationView: View } = await import('./CompensationView')
 
-    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    renderFresh(<View />, { route: '/workspace/compensation', path: '/workspace/compensation' })
 
     expect(await screen.findByText('No compensation records yet')).toBeInTheDocument()
 
@@ -251,13 +251,13 @@ describe('CompensationView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CompensationView: View } = await import('./CompensationView')
 
-    renderFresh(<View />, { route: '/app/compensation', path: '/app/compensation' })
+    renderFresh(<View />, { route: '/workspace/compensation', path: '/workspace/compensation' })
     await screen.findByText('Dana Okonjo')
 
     expect(screen.getByText('Market comparison')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Dana Okonjo' })).toHaveAttribute(
       'href',
-      '/app/employees/emp-1',
+      '/workspace/employees/emp-1',
     )
   })
 })

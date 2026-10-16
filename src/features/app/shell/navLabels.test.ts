@@ -4,46 +4,46 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 
 describe('moduleLabelFor', () => {
   it('titles a module from its first path segment', () => {
-    expect(moduleLabelFor('/app/cases')).toBe(M.shell_v_cases)
-    expect(moduleLabelFor('/app/compliance')).toBe(M.shell_v_compliance)
+    expect(moduleLabelFor('/workspace/cases')).toBe(M.shell_v_cases)
+    expect(moduleLabelFor('/workspace/compliance')).toBe(M.shell_v_compliance)
   })
 
   it('collapses every documents and planning subroute onto the section label', () => {
-    expect(moduleLabelFor('/app/documents/hr-library')).toBe(M.shell_nav_library)
-    expect(moduleLabelFor('/app/documents/generate/t01')).toBe(M.shell_nav_library)
-    expect(moduleLabelFor('/app/planning/calendar')).toBe(M.shell_nav_planning)
+    expect(moduleLabelFor('/workspace/documents/hr-library')).toBe(M.shell_nav_library)
+    expect(moduleLabelFor('/workspace/documents/generate/t01')).toBe(M.shell_nav_library)
+    expect(moduleLabelFor('/workspace/planning/calendar')).toBe(M.shell_nav_planning)
   })
 
   it('falls back to Home rather than rendering an empty heading', () => {
-    expect(moduleLabelFor('/app/not-a-module')).toBe(M.shell_v_home)
-    expect(moduleLabelFor('/app')).toBe(M.shell_v_home)
+    expect(moduleLabelFor('/workspace/not-a-module')).toBe(M.shell_v_home)
+    expect(moduleLabelFor('/workspace')).toBe(M.shell_v_home)
   })
 
   it('never resolves a label from a route parameter', () => {
     /* ModeGate titles production empty states with this. viewLabelFor swaps in
        a fixture employee's name for /app/employees/:id; doing that here would
        put demo data on the screen that exists to prove there is none. */
-    expect(moduleLabelFor('/app/employees/e10')).toBe(M.shell_v_employees)
+    expect(moduleLabelFor('/workspace/employees/e10')).toBe(M.shell_v_employees)
   })
 })
 
 describe('isNavActive', () => {
   it('matches the item and its children, not a sibling with a shared prefix', () => {
-    expect(isNavActive('/app/cases', '/app/cases')).toBe(true)
-    expect(isNavActive('/app/cases', '/app/cases/case1')).toBe(true)
-    expect(isNavActive('/app/cases', '/app/cases-archive')).toBe(false)
-    expect(isNavActive('/app/cases', '/app/compliance')).toBe(false)
+    expect(isNavActive('/workspace/cases', '/workspace/cases')).toBe(true)
+    expect(isNavActive('/workspace/cases', '/workspace/cases/case1')).toBe(true)
+    expect(isNavActive('/workspace/cases', '/workspace/cases-archive')).toBe(false)
+    expect(isNavActive('/workspace/cases', '/workspace/compliance')).toBe(false)
   })
 })
 
 describe('isDoclibStudioPath', () => {
   it('separates the Studio flow from the Repository', () => {
-    expect(isDoclibStudioPath('/app/documents/studio')).toBe(true)
-    expect(isDoclibStudioPath('/app/documents/templates/t01')).toBe(true)
-    expect(isDoclibStudioPath('/app/documents/generate/t01')).toBe(true)
-    expect(isDoclibStudioPath('/app/documents')).toBe(false)
-    expect(isDoclibStudioPath('/app/documents/hr-library')).toBe(false)
-    expect(isDoclibStudioPath('/app/cases')).toBe(false)
+    expect(isDoclibStudioPath('/workspace/documents/studio')).toBe(true)
+    expect(isDoclibStudioPath('/workspace/documents/templates/t01')).toBe(true)
+    expect(isDoclibStudioPath('/workspace/documents/generate/t01')).toBe(true)
+    expect(isDoclibStudioPath('/workspace/documents')).toBe(false)
+    expect(isDoclibStudioPath('/workspace/documents/hr-library')).toBe(false)
+    expect(isDoclibStudioPath('/workspace/cases')).toBe(false)
   })
 })
 

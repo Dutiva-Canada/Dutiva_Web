@@ -2,21 +2,26 @@
  * Reduce a resolved pathname to a privacy-safe **route pattern** before it ever
  * leaves the browser.
  *
- * The binding constraint: the `/app` surface carries employee, case, document,
- * person, and conversation identifiers directly in the URL
- * (`/app/employees/:employeeId`, `/app/cases/:caseId`, …). Sending the resolved
- * path would leak those identifiers into telemetry.
+ * The binding constraint: the `/workspace` surface carries employee, case,
+ * document, person, and conversation identifiers directly in the URL
+ * (`/workspace/employees/:employeeId`, `/workspace/cases/:caseId`, …).
+ * Sending the resolved path would leak those identifiers into telemetry.
  *
  * Approach: **deny-by-default matching against a known route registry.** A
  * pathname is matched, segment by segment, against the real route patterns
- * below; a matching pattern is returned verbatim (`/app/cases/:id`) and the
- * query string and hash are dropped. Anything that does **not** match a known
- * route degrades to `/unknown` (or `/app/:unknown` on the private surface) —
- * never to the resolved path. This is position-aware, so `/app/employees/studio`
- * binds `studio` to `:employeeId` (there is no static `employees/studio` route)
- * and scrubs to `/app/employees/:id`, and a 404 or a newly added dynamic route
- * that isn't in the registry yet can never transmit an identifier — the worst
+ * below; a matching pattern is returned verbatim (`/workspace/cases/:id`)
+ * and the query string and hash are dropped. Anything that does **not**
+ * match a known route degrades to `/unknown` (or `/workspace/:unknown` on
+ * the private surface) — never to the resolved path. This is
+ * position-aware, so `/workspace/employees/studio` binds `studio` to
+ * `:employeeId` (there is no static `employees/studio` route) and scrubs to
+ * `/workspace/employees/:id`, and a 404 or a newly added dynamic route that
+ * isn't in the registry yet can never transmit an identifier — the worst
  * case is a lost grouping, never a leak.
+ *
+ * The legacy `/app/*` mount redirects to `/workspace/*`; a path captured
+ * mid-redirect is normalized before matching so it groups with the
+ * canonical pattern.
  *
  * The registry mirrors src/seo/routes.ts, src/app/routes.tsx, and
  * src/app/appViews.tsx. If a route is added or renamed there, add it here too;
@@ -95,48 +100,48 @@ const ROUTE_PATTERNS: readonly string[] = [
   '/invest/strategies',
   '/invest/notifications',
   '/invest/settings',
-  // App surface — entry + shell
-  '/app/welcome',
-  '/app/auth/confirm',
-  '/app',
-  '/app/home',
-  '/app/advisor',
-  '/app/workflows',
-  '/app/cases',
-  '/app/cases/:id',
-  '/app/employees',
-  '/app/employees/:id',
-  '/app/compliance',
-  '/app/policies',
-  '/app/templates',
-  '/app/analytics',
-  '/app/reports',
-  '/app/knowledge',
-  '/app/support',
-  '/app/support/requests',
-  '/app/support/requests/:id',
-  '/app/support/admin',
-  '/app/support/admin/:id',
-  '/app/communications',
-  '/app/compensation',
-  '/app/wellbeing',
-  '/app/tasks',
-  '/app/calendar',
-  '/app/memory',
-  '/app/planning',
-  '/app/planning/tasks',
-  '/app/planning/calendar',
-  '/app/settings',
-  '/app/settings/memory',
-  '/app/settings/memory/people/:id',
-  '/app/settings/memory/cases/:id',
-  '/app/settings/memory/conversations/:id',
-  '/app/documents',
-  '/app/documents/hr-library',
-  '/app/documents/studio',
-  '/app/documents/templates/:id',
-  '/app/documents/generate/:id',
-  '/app/documents/:id',
+  // Workspace surface — entry + shell
+  '/workspace/welcome',
+  '/workspace/auth/confirm',
+  '/workspace',
+  '/workspace/home',
+  '/workspace/advisor',
+  '/workspace/workflows',
+  '/workspace/cases',
+  '/workspace/cases/:id',
+  '/workspace/employees',
+  '/workspace/employees/:id',
+  '/workspace/compliance',
+  '/workspace/policies',
+  '/workspace/templates',
+  '/workspace/analytics',
+  '/workspace/reports',
+  '/workspace/knowledge',
+  '/workspace/support',
+  '/workspace/support/requests',
+  '/workspace/support/requests/:id',
+  '/workspace/support/admin',
+  '/workspace/support/admin/:id',
+  '/workspace/communications',
+  '/workspace/compensation',
+  '/workspace/wellbeing',
+  '/workspace/tasks',
+  '/workspace/calendar',
+  '/workspace/memory',
+  '/workspace/planning',
+  '/workspace/planning/tasks',
+  '/workspace/planning/calendar',
+  '/workspace/settings',
+  '/workspace/settings/memory',
+  '/workspace/settings/memory/people/:id',
+  '/workspace/settings/memory/cases/:id',
+  '/workspace/settings/memory/conversations/:id',
+  '/workspace/documents',
+  '/workspace/documents/hr-library',
+  '/workspace/documents/studio',
+  '/workspace/documents/templates/:id',
+  '/workspace/documents/generate/:id',
+  '/workspace/documents/:id',
 ]
 
 /** Split a pathname/pattern into segments (root → []). */
@@ -158,7 +163,10 @@ const PATTERN_SEGMENTS: ReadonlyArray<{ pattern: string; segments: string[] }> =
 export function scrubRoutePattern(rawPath: string): string {
   try {
     const path = (rawPath.split(/[?#]/)[0] || '/').trim()
-    const normalized = path.startsWith('/') ? path : `/${path}`
+    const prefixed = path.startsWith('/') ? path : `/${path}`
+    /* Legacy /app/* paths appear briefly before the redirect lands — scrub
+       them against the canonical /workspace patterns. */
+    const normalized = prefixed.replace(/^\/app(?=\/|$)/, '/workspace')
     const segments = toSegments(normalized)
 
     let best: string | null = null
@@ -185,7 +193,7 @@ export function scrubRoutePattern(rawPath: string): string {
 
     if (best) return best.slice(0, 128)
     // Unknown route: never echo the path. Keep only the surface it was on.
-    return segments[0] === 'app' ? '/app/:unknown' : '/unknown'
+    return segments[0] === 'workspace' ? '/workspace/:unknown' : '/unknown'
   } catch {
     /* A scrubbing failure must never block a report — degrade to a safe label. */
     return '/unknown'

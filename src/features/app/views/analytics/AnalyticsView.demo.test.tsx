@@ -13,7 +13,7 @@ describe('AnalyticsView (demo)', () => {
   }
 
   it('renders the compliance score hero with its delta and windowed trend data', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
 
     expect(screen.getByText('Workforce and compliance overview.')).toBeInTheDocument()
 
@@ -35,7 +35,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('breaks the score down by category and flags the lowest', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = scoreCard()
 
     expect(card.getByText('Score breakdown')).toBeInTheDocument()
@@ -47,7 +47,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('lists needs-attention items sorted overdue → soonest, with cert/document escalations', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Needs attention' }))
 
     const rows = card.getAllByRole('listitem')
@@ -59,7 +59,7 @@ describe('AnalyticsView (demo)', () => {
       within(rows[0]!).getByText(/Forklift operator certificate — Devon Clarke/),
     ).toBeInTheDocument()
     expect(within(rows[0]!).getByText('Overdue')).toBeInTheDocument()
-    expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/app/employees/e5')
+    expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/workspace/employees/e5')
 
     /* Then the CASL consent audit (was due Jun 30). */
     expect(within(rows[1]!).getByText(/Marketing consent records/)).toBeInTheDocument()
@@ -75,19 +75,19 @@ describe('AnalyticsView (demo)', () => {
     /* Chen's work permit (Jul 28, inside 30 days) is always escalated —
        an expiring work permit is a compliance event. */
     expect(within(rows[4]!).getByText(/Work permit — Chen Wei/)).toBeInTheDocument()
-    expect(within(rows[4]!).getByRole('link')).toHaveAttribute('href', '/app/employees/e8')
+    expect(within(rows[4]!).getByRole('link')).toHaveAttribute('href', '/workspace/employees/e8')
 
     /* Eight qualifying items; the cap cuts the rest (francization review
        among them). */
     expect(card.getByRole('link', { name: 'View all (8)' })).toHaveAttribute(
       'href',
-      '/app/compliance',
+      '/workspace/compliance',
     )
     expect(card.queryByText(/French-language workplace/)).not.toBeInTheDocument()
   })
 
   it('flags jurisdictions sitting 10+ points under the blended score', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = scoreCard()
 
     expect(card.getByText('Score by jurisdiction')).toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('AnalyticsView (demo)', () => {
   it('buckets certifications 1/2/3/1 and reveals the list in one tap', async () => {
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Certifications & training' }))
 
     /* Tile row: Expired 1 · ≤30 2 · 31–60 3 · 61–90 1. */
@@ -118,7 +118,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('lists service milestones within 30 days and flags the missing review task', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Service milestones due' }))
 
     const rows = card.getAllByRole('listitem')
@@ -136,7 +136,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('shows the leave overview grouped by imminent returns, protected leave marked', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Leave overview' }))
 
     expect(card.getByText('Returning within 14 days')).toBeInTheDocument()
@@ -150,7 +150,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('renders the headcount trend with the improving turnover tile', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Headcount & turnover' }))
 
     expect(card.getByText('9.8%')).toBeInTheDocument()
@@ -164,7 +164,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('renders headcount by jurisdiction with the total and the Federal footnote', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Headcount by jurisdiction' }))
 
     expect(card.getByText('82 employees total')).toBeInTheDocument()
@@ -187,7 +187,7 @@ describe('AnalyticsView (demo)', () => {
   })
 
   it('shows open-case aging tiles and rows that tap through to the case', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Open cases' }))
 
     /* Three open (case4 resolved); ages 9/21/151 days on July 11 → avg 60. */
@@ -200,13 +200,13 @@ describe('AnalyticsView (demo)', () => {
 
     /* Oldest first, linking through to the case record. */
     const rows = card.getAllByRole('listitem')
-    expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/app/cases/case3')
+    expect(within(rows[0]!).getByRole('link')).toHaveAttribute('href', '/workspace/cases/case3')
     expect(within(rows[0]!).getByText('151 days')).toBeInTheDocument()
-    expect(within(rows[2]!).getByRole('link')).toHaveAttribute('href', '/app/cases/case1')
+    expect(within(rows[2]!).getByRole('link')).toHaveAttribute('href', '/workspace/cases/case1')
   })
 
   it('shows the acknowledgment meter with the outstanding-signature action', () => {
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
     const card = within(screen.getByRole('region', { name: 'Policy acknowledgments' }))
 
     expect(card.getByText('Code of Conduct — annual attestation')).toBeInTheDocument()
@@ -217,12 +217,12 @@ describe('AnalyticsView (demo)', () => {
       card.getByRole('link', {
         name: 'Send a reminder to the 8 employees with outstanding signatures.',
       }),
-    ).toHaveAttribute('href', '/app/communications')
+    ).toHaveAttribute('href', '/workspace/communications')
   })
 
   it('renders the French strings when the language preference is fr', () => {
     localStorage.setItem('dutiva-lang', 'fr')
-    renderApp(<AnalyticsView />, { route: '/app/analytics' })
+    renderApp(<AnalyticsView />, { route: '/workspace/analytics' })
 
     expect(screen.getByText('Aperçu de l’effectif et de la conformité.')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Score de conformité' })).toBeInTheDocument()

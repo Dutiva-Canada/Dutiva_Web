@@ -49,7 +49,7 @@ import { chatWidgetMessages } from './chatWidgets'
 import { sharedMessages } from './shared'
 
 /**
- * The workspace (`/app…`) catalogue: every module read only from
+ * The workspace (`/workspace…`) catalogue: every module read only from
  * `src/features/app/**` (plus the workspace-only helpers under
  * `src/components/advisor/` and `src/lib/exportProtection/`), merged with the
  * shared set. `LangProvider` is the only consumer that should import this —

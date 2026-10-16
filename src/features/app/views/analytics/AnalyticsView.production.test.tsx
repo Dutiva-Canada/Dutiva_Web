@@ -213,7 +213,10 @@ describe('AnalyticsView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { AnalyticsView: AnalyticsViewFresh } = await import('./AnalyticsView')
 
-    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+    renderAppFresh(<AnalyticsViewFresh />, {
+      route: '/workspace/analytics',
+      path: '/workspace/analytics',
+    })
 
     expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
@@ -288,7 +291,10 @@ describe('AnalyticsView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { AnalyticsView: AnalyticsViewFresh } = await import('./AnalyticsView')
 
-    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+    renderAppFresh(<AnalyticsViewFresh />, {
+      route: '/workspace/analytics',
+      path: '/workspace/analytics',
+    })
 
     expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
@@ -349,7 +355,10 @@ describe('AnalyticsView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { AnalyticsView: AnalyticsViewFresh } = await import('./AnalyticsView')
 
-    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+    renderAppFresh(<AnalyticsViewFresh />, {
+      route: '/workspace/analytics',
+      path: '/workspace/analytics',
+    })
 
     expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
@@ -363,7 +372,7 @@ describe('AnalyticsView in production mode', () => {
     expect(within(rows[1]!).getByText('Compliance task')).toBeInTheDocument()
     expect(attention.getByRole('link', { name: 'View all (2)' })).toHaveAttribute(
       'href',
-      '/app/planning/tasks',
+      '/workspace/planning/tasks',
     )
 
     /* Headcount counts non-terminated rows (on-leave included) — the
@@ -380,7 +389,7 @@ describe('AnalyticsView in production mode', () => {
     const casesCard = within(screen.getByRole('region', { name: 'Open cases' }))
     expect(await casesCard.findByText('Open now')).toBeInTheDocument()
     expect(casesCard.getByText('20 days')).toBeInTheDocument()
-    expect(casesCard.getByRole('link')).toHaveAttribute('href', '/app/cases/c1')
+    expect(casesCard.getByRole('link')).toHaveAttribute('href', '/workspace/cases/c1')
     expect(casesCard.queryByText('Onboarding — first hire')).not.toBeInTheDocument()
 
     /* Acknowledgments have no production data source yet — said plainly. */
@@ -400,7 +409,7 @@ describe('AnalyticsView in production mode', () => {
     /* Leave overview lists the roster's real on-leave status. */
     const leave = within(screen.getByRole('region', { name: 'Leave overview' }))
     expect(await leave.findByText('Employee e5')).toBeInTheDocument()
-    expect(leave.getByRole('link')).toHaveAttribute('href', '/app/employees/e5')
+    expect(leave.getByRole('link')).toHaveAttribute('href', '/workspace/employees/e5')
     expect(
       leave.getByText('Leave types and return dates aren’t tracked in this workspace yet.'),
     ).toBeInTheDocument()
@@ -496,7 +505,10 @@ describe('AnalyticsView in production mode', () => {
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
 
-    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+    renderAppFresh(<AnalyticsViewFresh />, {
+      route: '/workspace/analytics',
+      path: '/workspace/analytics',
+    })
 
     expect(await screen.findByText('From your workspace records.')).toBeInTheDocument()
 
@@ -507,7 +519,10 @@ describe('AnalyticsView in production mode', () => {
     expect(within(certRows[0]!).getByText('WHMIS training')).toBeInTheDocument()
     expect(within(certRows[0]!).getByText('Expired')).toBeInTheDocument()
     expect(within(certRows[1]!).getByText('Forklift certificate')).toBeInTheDocument()
-    expect(within(certRows[1]!).getByRole('link')).toHaveAttribute('href', '/app/employees/e1')
+    expect(within(certRows[1]!).getByRole('link')).toHaveAttribute(
+      'href',
+      '/workspace/employees/e1',
+    )
 
     /* Escalations reach Needs attention: the expired certification and the
        ≤30-day work permit. */
@@ -551,7 +566,10 @@ describe('AnalyticsView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { AnalyticsView: AnalyticsViewFresh } = await import('./AnalyticsView')
 
-    renderAppFresh(<AnalyticsViewFresh />, { route: '/app/analytics', path: '/app/analytics' })
+    renderAppFresh(<AnalyticsViewFresh />, {
+      route: '/workspace/analytics',
+      path: '/workspace/analytics',
+    })
 
     expect(await screen.findByText('Nothing to report yet')).toBeInTheDocument()
     expect(screen.getByText(/Analytics builds itself from your real workspace/)).toBeInTheDocument()

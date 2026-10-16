@@ -41,7 +41,7 @@ const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_fc_contact', route: 'contact' },
   { key: 'landing_foot_vs_hrdownloads', route: 'vsHrdownloads' },
   { key: 'landing_foot_vs_sixfifty', route: 'vsSixfifty' },
-  { key: 'landing_fc_openapp', to: '/app/welcome' },
+  { key: 'landing_fc_openapp', to: '/workspace/welcome' },
 ]
 
 /* The invite-only invest portal — public overview page + direct sign-in. */

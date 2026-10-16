@@ -19,7 +19,7 @@ test.describe('plan entitlements (org usage)', () => {
   )
 
   test('Settings shows Advisor usage when org summary RPC is live', async () => {
-    /* Placeholder: navigate /app/settings in Production, assert usage panel
+    /* Placeholder: navigate /workspace/settings in Production, assert usage panel
        copy once OA21 migrations + fixture org are available. */
     test.skip(true, 'No plan-entitlement fixture yet')
   })

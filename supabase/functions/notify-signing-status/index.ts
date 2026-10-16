@@ -11,7 +11,9 @@ import { secretEquals } from '../_shared/secretEqual.ts'
  * Triggered internally from signing RPCs via pg_net (migration 0084).
  */
 
-const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const CORS = {
+  allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+}
 const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
@@ -25,7 +27,8 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-
 
 function isAuthorizedInternal(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret))
+    return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -34,7 +37,10 @@ function isAuthorizedInternal(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
+  return (
+    (serviceKey !== '' && secretEquals(token, serviceKey)) ||
+    (secretKey !== '' && secretEquals(token, secretKey))
+  )
 }
 
 const handler = async (req: Request) => {
@@ -96,8 +102,9 @@ const handler = async (req: Request) => {
   const docLang: Lang = doc.language === 'fr' ? 'fr' : 'en'
   const documentTitle =
     docLang === 'fr' ? String(doc.title_fr || doc.title_en) : String(doc.title_en || doc.title_fr)
-  const docPathPrefix = docLang === 'fr' ? '/fr' : ''
-  const documentUrl = `${siteUrl}${docPathPrefix}/app/documents/${documentId}`
+  /* No locale prefix: workspace routes are not URL-localized — the app
+     renders in the recipient's language preference, not the slug. */
+  const documentUrl = `${siteUrl}/workspace/documents/${documentId}`
 
   let signerSummary: string | undefined
   if (event === 'declined') {

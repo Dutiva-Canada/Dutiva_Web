@@ -1,7 +1,7 @@
 import { defineMessages } from '../core'
 
 /**
- * App shell chrome — entry stage (/app/welcome), sidebar, topbar, mobile nav.
+ * App shell chrome — entry stage (/workspace/welcome), sidebar, topbar, mobile nav.
  * EN + FR ported from `App v2.dc.html` (`buildI18n()` and `frDict()`).
  * FR strings with no source in the prototype are marked [FR self-authored].
  *

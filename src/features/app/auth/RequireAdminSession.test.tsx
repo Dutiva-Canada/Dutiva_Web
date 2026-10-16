@@ -22,18 +22,18 @@ describe('RequireAdminSession', () => {
 
     render(
       <LangProvider>
-        <MemoryRouter initialEntries={['/app']}>
+        <MemoryRouter initialEntries={['/workspace']}>
           <AuthProvider>
             <Routes>
               <Route
-                path="/app"
+                path="/workspace"
                 element={
                   <RequireAdminSession>
                     <div>workspace</div>
                   </RequireAdminSession>
                 }
               />
-              <Route path="/app/welcome" element={<div>welcome</div>} />
+              <Route path="/workspace/welcome" element={<div>welcome</div>} />
             </Routes>
           </AuthProvider>
         </MemoryRouter>
@@ -80,7 +80,7 @@ describe('RequireAdminSession', () => {
     expect(screen.queryByText('workspace')).toBeNull()
   })
 
-  it('redirects to /app/welcome when signed out', async () => {
+  it('redirects to /workspace/welcome when signed out', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
@@ -95,7 +95,7 @@ describe('RequireAdminSession', () => {
     expect(screen.queryByText('workspace')).toBeNull()
   })
 
-  it('redirects to /app/welcome for a signed-in session that is not on the beta list', async () => {
+  it('redirects to /workspace/welcome for a signed-in session that is not on the beta list', async () => {
     vi.doMock('@/lib/supabaseClient', () => ({
       supabase: {
         auth: {
@@ -185,20 +185,19 @@ describe('RequireAdminSession', () => {
     const { RequireAdminSession } = await import('./RequireAdminSession')
     const { AuthProvider } = await import('./AuthProvider')
     const { LangProvider } = await import('@/i18n/LangProvider')
-    const { WorkspaceModeContext } = await import(
-      '@/features/app/workspaceMode/workspaceModeContext'
-    )
+    const { WorkspaceModeContext } =
+      await import('@/features/app/workspaceMode/workspaceModeContext')
     const resolving = { resolving: true } as Parameters<
       typeof WorkspaceModeContext.Provider
     >[0]['value']
 
     render(
       <LangProvider>
-        <MemoryRouter initialEntries={['/app']}>
+        <MemoryRouter initialEntries={['/workspace']}>
           <AuthProvider>
             <Routes>
               <Route
-                path="/app"
+                path="/workspace"
                 element={
                   <WorkspaceModeContext.Provider value={resolving}>
                     <RequireAdminSession>
@@ -238,20 +237,19 @@ describe('RequireAdminSession', () => {
     const { RequireAdminSession } = await import('./RequireAdminSession')
     const { AuthProvider } = await import('./AuthProvider')
     const { LangProvider } = await import('@/i18n/LangProvider')
-    const { WorkspaceModeContext } = await import(
-      '@/features/app/workspaceMode/workspaceModeContext'
-    )
+    const { WorkspaceModeContext } =
+      await import('@/features/app/workspaceMode/workspaceModeContext')
     const resolving = { resolving: true } as Parameters<
       typeof WorkspaceModeContext.Provider
     >[0]['value']
 
     render(
       <LangProvider>
-        <MemoryRouter initialEntries={['/app']}>
+        <MemoryRouter initialEntries={['/workspace']}>
           <AuthProvider>
             <Routes>
               <Route
-                path="/app"
+                path="/workspace"
                 element={
                   <WorkspaceModeContext.Provider value={resolving}>
                     <RequireAdminSession>
@@ -296,21 +294,22 @@ describe('RequireAdminSession', () => {
     const { RequireAdminSession } = await import('./RequireAdminSession')
     const { AuthProvider } = await import('./AuthProvider')
     const { LangProvider } = await import('@/i18n/LangProvider')
-    const { WorkspaceModeContext } = await import(
-      '@/features/app/workspaceMode/workspaceModeContext'
-    )
+    const { WorkspaceModeContext } =
+      await import('@/features/app/workspaceMode/workspaceModeContext')
     const retryResolution = vi.fn()
-    const failed = { resolving: false, resolutionFailed: true, retryResolution } as unknown as Parameters<
-      typeof WorkspaceModeContext.Provider
-    >[0]['value']
+    const failed = {
+      resolving: false,
+      resolutionFailed: true,
+      retryResolution,
+    } as unknown as Parameters<typeof WorkspaceModeContext.Provider>[0]['value']
 
     render(
       <LangProvider>
-        <MemoryRouter initialEntries={['/app']}>
+        <MemoryRouter initialEntries={['/workspace']}>
           <AuthProvider>
             <Routes>
               <Route
-                path="/app"
+                path="/workspace"
                 element={
                   <WorkspaceModeContext.Provider value={failed}>
                     <RequireAdminSession>

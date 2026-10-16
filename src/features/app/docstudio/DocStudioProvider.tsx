@@ -321,7 +321,7 @@ export function DocStudioProvider({ children }: { readonly children: ReactNode }
         /* "Copy link" — a reference URL carrying the export id, so even the
            lightest share is traceable. Clipboard is absent in some contexts
            (tests, insecure origins); the export is still recorded. */
-        const url = `${window.location.origin}/app/documents?export-ref=${stamp.exportId}`
+        const url = `${window.location.origin}/workspace/documents?export-ref=${stamp.exportId}`
         navigator.clipboard?.writeText(url).catch(() => {})
       }
 

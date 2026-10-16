@@ -11,7 +11,7 @@ import { AppProviders } from '@/features/app/AppProviders'
 import { PublicDemoProvider } from '@/features/app/workspaceRoot/PublicDemoProvider'
 
 /**
- * Lazily composed /app route elements. The provider stack (Auth → Supabase
+ * Lazily composed /workspace route elements. The provider stack (Auth → Supabase
  * client, workspace mode, toasts, rail, …) lives in this chunk rather than
  * the route table, so marketing visitors never download the app
  * dependencies. Language on the app surface follows the persisted
@@ -33,7 +33,7 @@ const AuthConfirm = lazy(() =>
   import('@/features/app/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })),
 )
 
-/* This chunk is the gateway for every /app* route, and each of its children
+/* This chunk is the gateway for every /workspace* route, and each of its children
    is one more lazy hop — warm the small ones the moment it evaluates so the
    auth check and the next render never wait on a serial round trip. Same
    specifiers as the lazy() calls above, so those resolve from the in-flight
@@ -48,7 +48,7 @@ void warm(import('@/features/app/auth/RequireAdminSession'))
 void warm(import('@/features/app/shell/EntryStage'))
 void warm(import('@/features/app/auth/AuthConfirm'))
 
-/** /app/auth/confirm — magic-link landing: verifies the token_hash (see
+/** /workspace/auth/confirm — magic-link landing: verifies the token_hash (see
     AuthConfirm) and enters the workspace. Ungated by design — the visitor is
     mid-sign-in and has no session yet. */
 export function AppAuthConfirm() {
@@ -61,7 +61,7 @@ export function AppAuthConfirm() {
   )
 }
 
-/** /app/welcome — app entry stage, the sign-in gate (invite-only). */
+/** /workspace/welcome — app entry stage, the sign-in gate (invite-only). */
 export function AppWelcome() {
   return (
     <LangProvider>
@@ -74,8 +74,8 @@ export function AppWelcome() {
   )
 }
 
-/** /app — workspace shell; RequireAdminSession bounces anyone who isn't the
-    one allowed account back to /app/welcome. */
+/** /workspace — workspace shell; RequireAdminSession bounces anyone who isn't the
+    one allowed account back to /workspace/welcome. */
 export function Workspace() {
   return (
     <LangProvider>

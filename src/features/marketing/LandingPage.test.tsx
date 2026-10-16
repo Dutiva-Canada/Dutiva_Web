@@ -71,7 +71,7 @@ describe('LandingPage', () => {
     const header = document.querySelector('header')!
     expect(within(header).getByRole('link', { name: 'Sign in' })).toHaveAttribute(
       'href',
-      '/app/welcome',
+      '/workspace/welcome',
     )
     expect(within(header).getByRole('link', { name: 'See plans' })).toHaveAttribute(
       'href',

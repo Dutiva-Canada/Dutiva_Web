@@ -14,10 +14,11 @@ function resolveTo(to: To, root: WorkspaceRoot): To {
 }
 
 /**
- * `Link` that rewrites `to="/app/…"` to the active workspace root
- * (`/demo`, `/fr/demo`). Use it anywhere a view can render on the public
- * demo surface — a plain `/app` href bounces those visitors to sign-in.
- * `useWorkspaceNavigate()` is the imperative equivalent.
+ * `Link` that rewrites `to="/app/…"` — the canonical virtual prefix — to the
+ * active workspace root (`/workspace`, `/demo`, `/fr/demo`). Use it anywhere
+ * a view can render on the public demo surface — a plain `/app` href bounces
+ * those visitors to sign-in. `useWorkspaceNavigate()` is the imperative
+ * equivalent.
  */
 export function WorkspaceLink({ to, ...rest }: ComponentProps<typeof Link>) {
   const { root } = useWorkspaceRoot()

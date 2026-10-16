@@ -13,7 +13,7 @@ function renderPolicies() {
       <AdvisorRail />
       <DocStudioOverlay />
     </>,
-    { route: '/app/policies', path: '/app/policies' },
+    { route: '/workspace/policies', path: '/workspace/policies' },
   )
 }
 
@@ -196,7 +196,10 @@ describe('PoliciesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { PoliciesView: PoliciesViewFresh } = await import('./PoliciesView')
 
-    renderAppFresh(<PoliciesViewFresh />, { route: '/app/policies', path: '/app/policies' })
+    renderAppFresh(<PoliciesViewFresh />, {
+      route: '/workspace/policies',
+      path: '/workspace/policies',
+    })
 
     expect(await screen.findByText('Vacation Policy')).toBeInTheDocument()
     expect(screen.getByText('1 policy')).toBeInTheDocument()
@@ -209,7 +212,10 @@ describe('PoliciesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { PoliciesView: PoliciesViewFresh } = await import('./PoliciesView')
 
-    renderAppFresh(<PoliciesViewFresh />, { route: '/app/policies', path: '/app/policies' })
+    renderAppFresh(<PoliciesViewFresh />, {
+      route: '/workspace/policies',
+      path: '/workspace/policies',
+    })
 
     expect(await screen.findByText('No policies yet')).toBeInTheDocument()
 

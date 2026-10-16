@@ -47,7 +47,7 @@ describe('WorkspaceContextBanner', () => {
     expect(screen.getByText(/Advisor is using/)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Open record' }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent(`/app/employees/${emp.id}`)
+    expect(screen.getByTestId('pathname')).toHaveTextContent(`/workspace/employees/${emp.id}`)
   })
 
   it('clears the banner when the dismiss control is clicked', async () => {

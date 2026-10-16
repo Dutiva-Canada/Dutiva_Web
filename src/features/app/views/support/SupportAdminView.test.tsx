@@ -75,7 +75,7 @@ describe('SupportAdminView', () => {
 
     expect(await screen.findByRole('link', { name: /security concern/i })).toHaveAttribute(
       'href',
-      '/app/support/admin/t1',
+      '/workspace/support/admin/t1',
     )
     expect(screen.getByText('user@acme.test')).toBeInTheDocument()
     expect(screen.getByText(/DUT-2026-000009/)).toBeInTheDocument()

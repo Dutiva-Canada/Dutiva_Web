@@ -24,7 +24,7 @@ describe('buildBrief', () => {
   it('groups by route, sorts routes, and anchors each note to file:line', () => {
     const brief = buildBrief([
       note({
-        route: '/app/cases',
+        route: '/workspace/cases',
         file: 'src/features/app/views/cases/CasesView.tsx',
         line: 88,
         element: 'button "New case"',
@@ -42,8 +42,8 @@ describe('buildBrief', () => {
     ])
 
     expect(brief).toContain('# Requested changes (2 annotations)')
-    // '/app/cases' sorts before '/pricing'
-    expect(brief.indexOf('## /app/cases')).toBeLessThan(brief.indexOf('## /pricing'))
+    // '/workspace/cases' sorts after '/pricing'
+    expect(brief.indexOf('## /workspace/cases')).toBeGreaterThan(brief.indexOf('## /pricing'))
     expect(brief).toContain('`src/features/app/views/cases/CasesView.tsx:88`')
     expect(brief).toContain('button "New case"` — Make this bigger')
   })

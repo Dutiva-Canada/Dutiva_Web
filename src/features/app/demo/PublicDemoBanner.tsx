@@ -14,7 +14,7 @@ export function PublicDemoBanner() {
       <Info size={14} className="shrink-0 text-gold-strong" aria-hidden="true" />
       <span>{x(M.demo_banner_text)}</span>
       <Link
-        to="/app/welcome"
+        to="/workspace/welcome"
         className="font-semibold text-gold-strong transition-opacity hover:opacity-80"
       >
         {x(M.demo_banner_cta)}

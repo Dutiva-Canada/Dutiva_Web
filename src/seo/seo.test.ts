@@ -128,7 +128,7 @@ describe('SEO route registry', () => {
       // Self-mapping is stable too (a page is in its own alternate set).
       expect(alternatePathFor(page.path.en, 'en'), page.key).toBe(page.path.en)
     }
-    expect(alternatePathFor('/app/home', 'fr')).toBeUndefined()
+    expect(alternatePathFor('/workspace/home', 'fr')).toBeUndefined()
     expect(alternatePathFor('/nope', 'fr')).toBeUndefined()
   })
 

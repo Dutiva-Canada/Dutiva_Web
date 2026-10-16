@@ -11,7 +11,7 @@ function renderCalendar() {
       <CalendarView />
       <AdvisorRail />
     </>,
-    { route: '/app/calendar' },
+    { route: '/workspace/calendar' },
   )
 }
 
@@ -174,7 +174,10 @@ describe('CalendarView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { CalendarView: CalendarViewFresh } = await import('./CalendarView')
 
-    renderAppFresh(<CalendarViewFresh />, { route: '/app/calendar', path: '/app/calendar' })
+    renderAppFresh(<CalendarViewFresh />, {
+      route: '/workspace/calendar',
+      path: '/workspace/calendar',
+    })
 
     /* Both deadlines land on today in the current month (grid chip + list row). */
     expect(await screen.findByText('Due dates from your open cases and tasks.')).toBeInTheDocument()

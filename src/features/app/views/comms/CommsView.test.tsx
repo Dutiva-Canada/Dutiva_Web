@@ -15,7 +15,7 @@ import { Settings } from './screens/Settings'
 function renderAt(route: string) {
   return renderApp(
     <Routes>
-      <Route path="/app/comms/*" element={<CommsView />}>
+      <Route path="/workspace/comms/*" element={<CommsView />}>
         <Route path="overview" element={<Overview />} />
         <Route path="initiatives" element={<Initiatives />} />
         <Route path="content" element={<ContentCalendar />} />
@@ -32,7 +32,7 @@ function renderAt(route: string) {
 
 describe('CommsView', () => {
   it('renders the workspace shell with all navigation tabs', () => {
-    renderAt('/app/comms/overview')
+    renderAt('/workspace/comms/overview')
 
     expect(screen.getByRole('heading', { name: 'Comms planner' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument()
@@ -46,21 +46,21 @@ describe('CommsView', () => {
   })
 
   it('offers a refresh control on the overview activity log', () => {
-    renderAt('/app/comms/overview')
+    renderAt('/workspace/comms/overview')
 
     expect(screen.getByText('Recent activity')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeDisabled()
   })
 
   it('shows the pilot launch initiative on the overview', () => {
-    renderAt('/app/comms/overview')
+    renderAt('/workspace/comms/overview')
 
     expect(screen.getByText('Bilingual product launch')).toBeInTheDocument()
     expect(screen.getByText('Federal AI-in-HR consultation')).toBeInTheDocument()
   })
 
   it('lists the launch content items on the content tab', () => {
-    renderAt('/app/comms/content')
+    renderAt('/workspace/comms/content')
 
     expect(screen.getByText('English launch announcement')).toBeInTheDocument()
     expect(screen.getByText('French launch announcement')).toBeInTheDocument()
@@ -68,7 +68,7 @@ describe('CommsView', () => {
   })
 
   it('offers refresh controls on the intelligence news surfaces', () => {
-    renderAt('/app/comms/intelligence')
+    renderAt('/workspace/comms/intelligence')
 
     const refreshButtons = screen.getAllByRole('button', { name: 'Refresh' })
     expect(refreshButtons).toHaveLength(3)
@@ -76,7 +76,7 @@ describe('CommsView', () => {
   })
 
   it('shows the restricted HR handoff issue without leaking the underlying case', () => {
-    renderAt('/app/comms/intelligence')
+    renderAt('/workspace/comms/intelligence')
 
     expect(screen.getByText('HR handoff — conduct review')).toBeInTheDocument()
     expect(
@@ -87,7 +87,7 @@ describe('CommsView', () => {
   })
 
   it('shows the policy consultation as a separate public-affairs initiative', () => {
-    renderAt('/app/comms/initiatives')
+    renderAt('/workspace/comms/initiatives')
 
     expect(screen.getByText('Federal AI-in-HR consultation')).toBeInTheDocument()
   })

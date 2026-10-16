@@ -43,7 +43,7 @@ export function CandidateAuthPanel({ next }: { next?: string }) {
     setError(undefined)
     setCode('')
     void signInWithEmail(targetEmail, {
-      /* The emailed magic link lands on /app/auth/confirm — `next` returns
+      /* The emailed magic link lands on /workspace/auth/confirm — `next` returns
          the visitor here instead of dropping them into the workspace. */
       next: next ?? (pathname.startsWith('/careers/portal') ? pathname : '/careers/portal'),
       ...(withName ? { name } : {}),

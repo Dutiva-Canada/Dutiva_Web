@@ -10,7 +10,7 @@ import { SettingsView } from './SettingsView'
 
 describe('SettingsView', () => {
   it('renders workspace, team, retention, billing, and audit content', () => {
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
 
     // No workspace-mode toggle for a signed-out / non-admin visitor.
     expect(screen.queryByRole('tablist', { name: 'Workspace mode' })).not.toBeInTheDocument()
@@ -49,8 +49,8 @@ describe('SettingsView', () => {
   it('shows the device export trail: empty state, then real recorded exports', () => {
     clearExportAudit()
     const { unmount } = renderApp(<SettingsView />, {
-      route: '/app/settings',
-      path: '/app/settings',
+      route: '/workspace/settings',
+      path: '/workspace/settings',
     })
     expect(screen.getByText('No exports recorded on this device yet.')).toBeInTheDocument()
     unmount()
@@ -67,7 +67,7 @@ describe('SettingsView', () => {
       at: '2026-07-30T18:04:30Z',
       recordedRemotely: false,
     })
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
     expect(
       screen.getByText(/Termination Letter · PDF · by Amara Osei \(amara@northgate\.ca\)/),
     ).toBeInTheDocument()
@@ -78,8 +78,8 @@ describe('SettingsView', () => {
   it('shows Advisor activity: empty state, then recorded attempts with resolved labels', () => {
     resetAuditForTest()
     const { unmount } = renderApp(<SettingsView />, {
-      route: '/app/settings',
-      path: '/app/settings',
+      route: '/workspace/settings',
+      path: '/workspace/settings',
     })
     expect(
       screen.getByText(
@@ -116,7 +116,7 @@ describe('SettingsView', () => {
       finishedAt: '2026-09-18T12:01:01Z',
     })
 
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
     /* Tool ids resolve back to bilingual labels through the registry —
        no raw engineering ids in product chrome. */
     expect(screen.getByText('Send for signature · Documents')).toBeInTheDocument()
@@ -131,7 +131,7 @@ describe('SettingsView', () => {
 
   it('flips a preference toggle on click (autoEscalate starts off)', async () => {
     const user = userEvent.setup()
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
 
     const toggle = screen.getByRole('switch', { name: 'Auto-suggest legal escalation' })
     expect(toggle).toHaveAttribute('aria-checked', 'false')
@@ -144,7 +144,7 @@ describe('SettingsView', () => {
 
   it('clears the calendar-sync error state via Retry', async () => {
     const user = userEvent.setup()
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
 
     // Prototype starts with integrationError: true — two Connected + one error.
     expect(screen.getByText('Connection error')).toBeInTheDocument()
@@ -158,7 +158,7 @@ describe('SettingsView', () => {
   })
 
   it('points demo billing at Pricing instead of a fake portal toast', () => {
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
     expect(screen.getByRole('link', { name: 'See plans' })).toHaveAttribute('href', '/pricing')
   })
 
@@ -166,15 +166,15 @@ describe('SettingsView', () => {
     const user = userEvent.setup()
     localStorage.removeItem('dutiva.settings.prefs.v1')
     const { unmount } = renderApp(<SettingsView />, {
-      route: '/app/settings',
-      path: '/app/settings',
+      route: '/workspace/settings',
+      path: '/workspace/settings',
     })
     const toggle = screen.getByRole('switch', { name: 'Auto-suggest legal escalation' })
     await user.click(toggle)
     expect(toggle).toHaveAttribute('aria-checked', 'true')
     unmount()
 
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
     expect(screen.getByRole('switch', { name: 'Auto-suggest legal escalation' })).toHaveAttribute(
       'aria-checked',
       'true',
@@ -184,7 +184,7 @@ describe('SettingsView', () => {
 
   it('switches the app language from the Language segment', async () => {
     const user = userEvent.setup()
-    renderApp(<SettingsView />, { route: '/app/settings', path: '/app/settings' })
+    renderApp(<SettingsView />, { route: '/workspace/settings', path: '/workspace/settings' })
 
     expect(screen.getByText('Appearance')).toBeInTheDocument()
     await user.click(screen.getByRole('tab', { name: 'Français' }))
@@ -285,7 +285,10 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
     const { SettingsView: SettingsViewFresh } = await import('./SettingsView')
     const user = userEvent.setup()
 
-    renderAppFresh(<SettingsViewFresh />, { route: '/app/settings', path: '/app/settings' })
+    renderAppFresh(<SettingsViewFresh />, {
+      route: '/workspace/settings',
+      path: '/workspace/settings',
+    })
 
     const tablist = await screen.findByRole('tablist', { name: 'Workspace mode' })
     expect(tablist).toBeInTheDocument()

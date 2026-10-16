@@ -16,7 +16,7 @@ describe('KnowledgeView', () => {
   })
 
   it('renders every knowledge article with its tag', () => {
-    renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
+    renderApp(<KnowledgeView />, { route: '/workspace/knowledge', path: '/workspace/knowledge' })
 
     const articles = within(screen.getByTestId('knowledge-articles'))
     expect(articles.getAllByRole('button')).toHaveLength(knowledgeItems.length)
@@ -30,7 +30,7 @@ describe('KnowledgeView', () => {
   })
 
   it('filters articles by title or tag (case-insensitive substring)', () => {
-    renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
+    renderApp(<KnowledgeView />, { route: '/workspace/knowledge', path: '/workspace/knowledge' })
     const input = screen.getByPlaceholderText('Search HR knowledge…')
     const articles = within(screen.getByTestId('knowledge-articles'))
 
@@ -59,7 +59,7 @@ describe('KnowledgeView', () => {
   })
 
   it('shows an empty state when the filter matches nothing', () => {
-    renderApp(<KnowledgeView />, { route: '/app/knowledge', path: '/app/knowledge' })
+    renderApp(<KnowledgeView />, { route: '/workspace/knowledge', path: '/workspace/knowledge' })
     const input = screen.getByPlaceholderText('Search HR knowledge…')
 
     fireEvent.change(input, { target: { value: 'zzz-no-such-topic' } })
@@ -77,7 +77,7 @@ describe('KnowledgeView', () => {
         <KnowledgeView />
         <AdvisorRail />
       </>,
-      { route: '/app/knowledge', path: '/app/knowledge' },
+      { route: '/workspace/knowledge', path: '/workspace/knowledge' },
     )
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 

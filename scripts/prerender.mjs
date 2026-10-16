@@ -253,8 +253,9 @@ ${sitemapUrls}
    - Content-Signal declares post-fetch usage preferences (search / ai-input /
      ai-train). Matches the D4 training opt-in: all three are yes.
    - Private app surfaces are excluded for every crawler. robots.txt is not
-     a security boundary: /app is also noindex and behind authentication. */
-const PRIVATE_PATHS = ['/app', '/app/', '/app.html', '/404.html']
+     a security boundary: /workspace (and legacy /app) is also noindex and
+     behind authentication. */
+const PRIVATE_PATHS = ['/workspace', '/workspace/', '/app', '/app/', '/app.html', '/404.html']
 const disallowBlock = PRIVATE_PATHS.map((p) => `Disallow: ${p}`).join('\n')
 /* Preference line for every group — crawlers that ignore unknown directives
    still honour Disallow; those that understand Content-Signal see the policy. */

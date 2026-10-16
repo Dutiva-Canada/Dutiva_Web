@@ -1,22 +1,29 @@
 #!/usr/bin/env node
 /**
- * Guard: no literal `/app/…` navigation targets in files that can render
- * under /demo or /fr/demo. The public demo shares the app route tree, so a
- * hardcoded `/app` link or navigate() call bounces a visitor to the
- * sign-in gate mid-tour — the bug fixed in workflows/knowledge, which had
- * escaped code review three times before this check existed.
+ * Guard: no literal `/app/…` or `/workspace/…` navigation targets in files
+ * that can render under /demo or /fr/demo. The public demo shares the app
+ * route tree, so a hardcoded production link or navigate() call bounces a
+ * visitor to the sign-in gate mid-tour — the bug fixed in
+ * workflows/knowledge, which had escaped code review three times before
+ * this check existed.
+ *
+ * `/app/…` is the canonical virtual prefix (rewriteAppPath maps it to the
+ * active root: /workspace in production, /demo in the preview). `/workspace/…`
+ * literals bypass the rewrite entirely and are never correct in a shared
+ * file — not even on WorkspaceLink.
  *
  * Fixes: `workspacePath(root, 'cases/…')` for <Link to>/<Navigate to>, or
  * `useWorkspaceNavigate()` for imperative calls (it rewrites /app paths to
  * the active root; passing the literal /app path to it is correct).
  *
  * Exempt by construction — files that can never render on a public root:
- *   - *ProductionView.tsx / ProductionEmptyState.tsx (signed-in /app only)
+ *   - *ProductionView.tsx / ProductionEmptyState.tsx (signed-in /workspace only)
  *   - src/features/app/auth/** (the sign-in gate itself)
- *   - src/features/app/demo/** (banner/tour CTAs point at /app on purpose)
- *   - EntryStage (only mounted by /app/welcome)
- * …and `/app/welcome` targets anywhere: the gate lives at /app only, so
- * sending a demo visitor there is the intended conversion hop.
+ *   - src/features/app/demo/** (banner/tour CTAs point at the gate on purpose)
+ *   - EntryStage (only mounted by /workspace/welcome)
+ * …and any `/welcome` target on any root: the gate lives at
+ * /workspace/welcome only, so sending a demo visitor there is the
+ * intended conversion hop.
  */
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -34,7 +41,7 @@ const EXEMPT_FILE = [
   /\.test\.tsx?$/,
 ]
 
-const LITERAL = /(?:to|href)=\{?["'`]\/app\/|navigate\(\s*["'`]\/app\//g
+const LITERAL = /(?:to|href)=\{?["'`]\/(?:app|workspace)\/|navigate\(\s*["'`]\/(?:app|workspace)\//g
 /** Elements that already rewrite /app targets — literals on them are correct. */
 const ROOT_AWARE_TAGS = new Set(['WorkspaceLink', 'WorkspaceNavigate'])
 
@@ -103,6 +110,14 @@ for (const dir of SCAN_DIRS) {
       for (const match of line.matchAll(LITERAL)) {
         const hit = match[0]
         if (line.slice(match.index).startsWith(hit + 'welcome')) continue
+        /* A `/workspace/…` literal bypasses the /app→root rewrite — it is
+           wrong on any tag in a demo-renderable file. */
+        if (hit.includes('/workspace/')) {
+          errors.push(
+            `${file}:${i + 1} — ${hit}… (literal /workspace paths never rewrite; use the /app/… virtual form)`,
+          )
+          continue
+        }
         if (hit.startsWith('navigate') && hasWorkspaceNavigate) continue
         if (hit.startsWith('to') || hit.startsWith('href')) {
           const tag = enclosingTag(lines, i, match.index)

@@ -7,13 +7,13 @@ import { HTML_LANG, buildLangContextValue, readLang, writeLang } from './lang'
 import { messages } from './messages'
 
 /**
- * Preference-scoped language provider for the app surface (/app…): language
+ * Preference-scoped language provider for the app surface (/workspace…): language
  * follows the persisted `dutiva-lang` preference and toggles in place.
  * Public marketing routes instead use ForcedLangProvider, where the URL is
  * the source of truth (/fr… → French).
  *
  * Passes the full merged `messages` catalogue rather than the narrower
- * `workspaceMessages` (src/i18n/messages/workspace.ts). `/app` is already
+ * `workspaceMessages` (src/i18n/messages/workspace.ts). `/workspace` is already
  * behind a lazy route boundary and off the marketing critical path
  * (TODO.md EF6/EF6b), so trimming its bundle here has no measurable eager-
  * graph payoff — and `src/test/renderApp.tsx`, this provider's other

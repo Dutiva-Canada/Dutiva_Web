@@ -33,7 +33,7 @@ describe('EmployeeDrawer', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Review Advisor memory' })).toHaveAttribute(
       'href',
-      '/app/settings/memory/people/e1',
+      '/workspace/settings/memory/people/e1',
     )
   })
 

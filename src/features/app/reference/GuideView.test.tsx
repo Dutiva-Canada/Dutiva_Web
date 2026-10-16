@@ -10,7 +10,10 @@ import { customTemplateByTid } from '@/features/app/documents/customTemplates'
 import { flowBySlug } from '@/features/app/flows/data'
 
 const renderGuide = (slug: string) =>
-  renderApp(<GuideView />, { route: `/app/knowledge/${slug}`, path: '/app/knowledge/:slug' })
+  renderApp(<GuideView />, {
+    route: `/workspace/knowledge/${slug}`,
+    path: '/workspace/knowledge/:slug',
+  })
 
 const bi = (en: string) => ({ en, fr: `${en} (fr)` })
 
@@ -66,11 +69,11 @@ describe('GuideView', () => {
     renderGuide('functional-limitations')
     expect(screen.getByRole('link', { name: /Duty to accommodate/ })).toHaveAttribute(
       'href',
-      '/app/workflows/duty-to-accommodate',
+      '/workspace/workflows/duty-to-accommodate',
     )
     expect(screen.getByRole('link', { name: /Accommodation request form/ })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T21',
+      '/workspace/documents/templates/T21',
     )
   })
 

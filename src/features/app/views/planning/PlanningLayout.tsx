@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { viewIntentProps } from '@/app/viewPrefetch'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
@@ -15,7 +16,8 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 function PlanningTabs() {
   const { x } = useI18n()
   const { pathname } = useLocation()
-  const calendar = pathname.startsWith('/app/planning/calendar')
+  const [seg0, seg1] = workspaceSegments(pathname)
+  const calendar = seg0 === 'planning' && seg1 === 'calendar'
   const linkClass = (active: boolean) =>
     `relative inline-flex min-h-[44px] shrink-0 items-center rounded-none border-b-2 border-transparent px-[14px] py-[9px] font-sans text-[13px] font-semibold whitespace-nowrap transition-[color] duration-200 ease-out after:absolute after:right-[14px] after:bottom-[-2px] after:left-[14px] after:h-[2px] after:origin-left after:rounded-full after:bg-navy after:transition-transform after:duration-200 after:ease-out after:content-[""] ${
       active ? 'text-text after:scale-x-100' : 'text-text-muted after:scale-x-0'

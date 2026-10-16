@@ -20,9 +20,9 @@ import { SupportAdminTicket } from './SupportAdminTicket'
 function renderTicket(id = 't1') {
   render(
     <LangProvider>
-      <MemoryRouter initialEntries={[`/app/support/admin/${id}`]}>
+      <MemoryRouter initialEntries={[`/workspace/support/admin/${id}`]}>
         <Routes>
-          <Route path="/app/support/admin/:ticketId" element={<SupportAdminTicket />} />
+          <Route path="/workspace/support/admin/:ticketId" element={<SupportAdminTicket />} />
         </Routes>
       </MemoryRouter>
     </LangProvider>,
