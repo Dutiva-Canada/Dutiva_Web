@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url'
 const envPath = resolve(dirname(fileURLToPath(import.meta.url)), '../../.env')
 
 if (existsSync(envPath)) {
-  for (const line of readFileSync(envPath, 'utf8').split('\n')) {
+  for (const line of readFileSync(envPath, 'utf8').split(/\r?\n/)) {
     const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line)
     if (!m || line.trimStart().startsWith('#')) continue
     const value = m[2].trim().replace(/^["'](.*)["']\s*$/, '$1')
