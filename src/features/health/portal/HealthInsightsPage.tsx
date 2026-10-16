@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Info, Loader2, Sparkles, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -8,6 +8,8 @@ import type { Lang } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { useHealthData } from '@/features/health/data/HealthDataContext'
 import { healthAiRecap } from '@/features/health/data/api'
+import { AuthContext } from '@/features/app/auth/authContext'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import {
   avgEnergy,
@@ -79,6 +81,10 @@ function DayChart({
 export function HealthInsightsPage() {
   const { x, lang } = useI18n()
   const { state, loading } = useHealthData()
+  /* Null outside AuthProvider (tests, the preview shell) — treated as the
+     external tier, which keeps the stricter note. */
+  const auth = useContext(AuthContext)
+  const adviceTier = isInternalDutivaAccount(auth?.session?.user?.email)
   const { showToast } = useToasts()
   useHealthHead(HM.health_insights_title, HM.health_insights_sub)
   const [recap, setRecap] = useState<string | null>(null)
@@ -212,7 +218,9 @@ export function HealthInsightsPage() {
           {recap ? (
             <>
               <p style={{ marginTop: 0, whiteSpace: 'pre-line' }}>{recap}</p>
-              <p className="sb-helper" style={{ marginBottom: 0 }}>{x(HM.health_ai_note)}</p>
+              <p className="sb-helper" style={{ marginBottom: 0 }}>
+                {x(adviceTier ? HM.health_ai_note_advice : HM.health_ai_note)}
+              </p>
             </>
           ) : (
             <p className="sb-helper" style={{ margin: 0 }}>

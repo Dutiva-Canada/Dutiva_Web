@@ -200,12 +200,21 @@ export function recapPrompt(
 ): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
-    `You write weekly summaries for a personal wellness tracker. ${sharedRules(advice)}`,
-    'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down, how habits went, and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. ' +
+    `You write two-week summaries for a personal wellness tracker. ${sharedRules(advice)}`,
+    'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down' +
+      /* Zero configured habits is an absence, not a failure — without this
+         guard the model reads habitsKept:0 as "kept none" and reports a
+         lapse the person never signed up for. */
+      (facts.habitsTotal > 0 ? ', how habits went' : '') +
+      ', and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. ' +
+      /* Two steers against the failure shapes seen live: verdict words
+         ("very low", "poor") instead of numbers, and week-scale claims
+         ("all week", "staying at the bottom") extrapolated from a single
+         check-in. */
+      'Report the numbers plainly — counts and averages — never verdicts like "very low", "poor", or "failing". If the data is thin — a check-in or two — describe those days plainly instead of narrating a period you can\'t see; if there is no data at all, say so in one sentence and stop. ' +
       (advice
         ? 'Describe first — then, if the numbers call for it, say plainly what you would change.'
-        : 'Describe, don\'t advise.') +
-      ' If there is no data, say so in one sentence and stop.',
+        : 'Describe, don\'t advise.'),
     langLine,
     'Return only the summary text.',
     '',

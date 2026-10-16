@@ -633,12 +633,22 @@ export const healthMessages = defineMessages({
     en: 'An idea to write about — Mira reads your numbers and what you’ve written.',
     fr: 'Une idée à explorer — Mira lit vos chiffres et vos écrits.',
   },
-  health_ai_recap_btn: { en: 'Summarize my week', fr: 'Résumer ma semaine' },
+  health_ai_recap_btn: {
+    en: 'Summarize my last two weeks',
+    fr: 'Résumer mes deux dernières semaines',
+  },
   health_ai_recap_loading: { en: 'Summarizing…', fr: 'Résumé en cours…' },
-  health_ai_recap_title: { en: 'Your week', fr: 'Votre semaine' },
+  health_ai_recap_title: { en: 'Your last two weeks', fr: 'Vos deux dernières semaines' },
   health_ai_note: {
     en: 'Mira reads your numbers and what you wrote to respond. A reflection, not advice.',
     fr: 'Mira lit vos chiffres et vos écrits pour répondre. Une réflexion, pas un conseil.',
+  },
+  /* Internal (@dutiva.ca) tier may give everyday advice — "a reflection,
+     not advice" would be false there. Provenance stays; the hedge becomes
+     the one that's still true: suggestions, never medical advice. */
+  health_ai_note_advice: {
+    en: 'Mira reads your numbers and what you wrote to respond. Everyday suggestions, never medical advice.',
+    fr: 'Mira lit vos chiffres et vos écrits pour répondre. Des suggestions du quotidien, jamais un avis médical.',
   },
   health_ai_failed: {
     en: 'Mira isn’t available right now.',

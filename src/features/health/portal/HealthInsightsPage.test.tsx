@@ -6,6 +6,8 @@ import type { LangContextValue } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
 import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
+import { AuthContext } from '@/features/app/auth/authContext'
+import type { AuthContextValue } from '@/features/app/auth/authContext'
 import type { HealthCheckIn, HealthJournalEntry, HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { ToastHost } from '@/features/app/toasts/ToastHost'
@@ -57,7 +59,12 @@ function LocationProbe() {
   return <div data-testid="loc">{useLocation().search}</div>
 }
 
-function renderInsights(state: HealthState | undefined, url = '/health/insights', loading = false) {
+function renderInsights(
+  state: HealthState | undefined,
+  url = '/health/insights',
+  loading = false,
+  auth?: AuthContextValue,
+) {
   const health: HealthDataContextValue = {
     state,
     loading,
@@ -66,17 +73,24 @@ function renderInsights(state: HealthState | undefined, url = '/health/insights'
   }
   render(
     <LangContext value={langValue('en')}>
-      <HealthDataContext value={health}>
-        <ToastsProvider>
-          <MemoryRouter initialEntries={[url]}>
-            <Insights />
-            <LocationProbe />
-            <ToastHost />
-          </MemoryRouter>
-        </ToastsProvider>
-      </HealthDataContext>
+      <AuthContext value={auth ?? null}>
+        <HealthDataContext value={health}>
+          <ToastsProvider>
+            <MemoryRouter initialEntries={[url]}>
+              <Insights />
+              <LocationProbe />
+              <ToastHost />
+            </MemoryRouter>
+          </ToastsProvider>
+        </HealthDataContext>
+      </AuthContext>
     </LangContext>,
   )
+}
+
+/* Minimal signed-in stub — the page only reads session.user.email. */
+function authAs(email: string): AuthContextValue {
+  return { session: { user: { email } } } as AuthContextValue
 }
 
 describe('HealthInsightsPage', () => {
@@ -115,7 +129,29 @@ describe('HealthInsightsPage', () => {
 
   it('lets journal-only users reach the recap', () => {
     renderInsights(stateWith({ entries: [je('e1')] }))
-    expect(screen.getByRole('button', { name: /Summarize my week/ })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /Summarize my last two weeks/ }),
+    ).toBeInTheDocument()
+  })
+
+  it('names the note by tier — reflection for external, suggestions for internal', async () => {
+    vi.mocked(healthAiRecap).mockResolvedValue('A steady stretch.')
+    renderInsights(
+      stateWith({ checkIns: [ci('c1', 4)] }),
+      '/health/insights?recap=1',
+      false,
+      authAs('staff@dutiva.ca'),
+    )
+    expect(await screen.findByText('A steady stretch.')).toBeInTheDocument()
+    expect(screen.getByText(/Everyday suggestions, never medical advice/)).toBeInTheDocument()
+    expect(screen.queryByText(/A reflection, not advice/)).not.toBeInTheDocument()
+  })
+
+  it('keeps the reflection note when there is no internal session', async () => {
+    vi.mocked(healthAiRecap).mockResolvedValue('A steady stretch.')
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/health/insights?recap=1')
+    expect(await screen.findByText('A steady stretch.')).toBeInTheDocument()
+    expect(screen.getByText(/A reflection, not advice/)).toBeInTheDocument()
   })
 
   it('links the check-in and journal stat cards to their surfaces', () => {

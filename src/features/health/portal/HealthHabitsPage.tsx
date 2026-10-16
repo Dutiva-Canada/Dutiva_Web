@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './health.css'
-import { useEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { Check, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
@@ -26,6 +26,8 @@ import {
 } from '@/features/health/data/healthStats'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import { loadPendingSuggestions, resolveSuggestion } from '@/lib/agentQueue'
+import { AuthContext } from '@/features/app/auth/authContext'
+import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useSessionDraft } from '@/components/chat/portalChatUtils'
 import { fillBi } from '@/lib/format'
@@ -44,6 +46,11 @@ import { useUndoableDelete } from './useUndoableDelete'
 export function HealthHabitsPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useHealthData()
+  /* The suggestion note names what tier wrote it — internal accounts can
+     receive advice, so "a reflection, not advice" would be false there.
+     Null context (tests, preview) keeps the stricter external line. */
+  const auth = useContext(AuthContext)
+  const adviceTier = isInternalDutivaAccount(auth?.session?.user?.email)
   const { showToast } = useToasts()
   useHealthHead(HM.health_seo_title_habits, HM.health_seo_desc_habits)
 
@@ -405,7 +412,7 @@ export function HealthHabitsPage() {
         </div>
         {suggestions.length > 0 && (
           <p className="sb-notify-hint" style={{ margin: '12px 0 0' }}>
-            {x(HM.health_ai_note)}
+            {x(adviceTier ? HM.health_ai_note_advice : HM.health_ai_note)}
           </p>
         )}
         {suggestions.length > 0 && (

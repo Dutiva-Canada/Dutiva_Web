@@ -14,6 +14,9 @@ const jobs = [
   /* Voice call — server engine recording state with the level meter */
   { p: 'chat', theme: 'light', lang: 'en', w: 1280, name: 'call-server-en', extra: '&call=server' },
   { p: 'chat', theme: 'dark', lang: 'fr', w: 1280, name: 'call-server-dark-fr', extra: '&call=server' },
+  /* Insights — two-week recap button copy */
+  { p: 'insights', theme: 'light', lang: 'en', w: 1280, name: 'insights-light-en' },
+  { p: 'insights', theme: 'dark', lang: 'fr', w: 1280, name: 'insights-dark-fr' },
 ]
 ;(async () => {
   const browser = await chromium.launch()

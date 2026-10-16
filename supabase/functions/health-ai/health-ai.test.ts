@@ -117,6 +117,20 @@ describe('prompt guardrails', () => {
   it('recap instructs describe-not-advise', () => {
     expect(recapPrompt(facts, [], 'en').toLowerCase()).toContain('describe')
   })
+  it('recap never narrates habits that were never configured', () => {
+    /* Zero configured habits is an absence, not a failure — asking "how
+       habits went" when habitsTotal is 0 made the model report a lapse
+       the person never signed up for. */
+    const none = buildHealthFacts([], [], [], 14, NOW)
+    expect(none.habitsTotal).toBe(0)
+    expect(recapPrompt(none, [], 'en')).not.toContain('how habits went')
+    expect(recapPrompt(facts, [], 'en')).toContain('how habits went')
+  })
+  it('recap pins plain numbers over verdicts and guards thin data', () => {
+    const p = recapPrompt(facts, [], 'en')
+    expect(p).toContain('Report the numbers plainly')
+    expect(p).toContain('If the data is thin')
+  })
   it('habit prompt stays non-clinical and names existing habits', () => {
     const p = habitPrompt(facts, ['Morning walk'], [], 'en')
     expect(p).toContain('non-clinical')
