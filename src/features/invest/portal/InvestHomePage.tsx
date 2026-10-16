@@ -407,10 +407,9 @@ export function InvestHomePage() {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 })}
-                {' · '}
                 {/* Sweep = heartbeat, nothing due; evaluation = a strategy
-                    actually ran — say which the timestamp belongs to. */}
-                <span className="dim">
+                    actually ran — its own dim line, never a dangling "·". */}
+                <span className="dim" style={{ display: 'block' }}>
                   {x(lastRun.strategyId ? IM.invest_ov_last_run_eval : IM.invest_ov_last_run_sweep)}
                 </span>
               </>

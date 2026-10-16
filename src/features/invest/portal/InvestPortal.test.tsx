@@ -9,6 +9,7 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { AuthContextValue } from '@/features/app/auth/authContext'
 import type { InvestState } from '@/features/invest/data/api'
 import type { FxTable } from '@/features/invest/data/fx'
+import { EMPTY_SWOT } from '@/features/invest/data/types'
 
 /* useAuth is mocked per-test to drive the signed-out / no-access / granted
    gates; the real AuthContext stays so AuthProvider still mounts. */
@@ -491,6 +492,43 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('Dismissed noise')).not.toBeInTheDocument()
     /* No symbol → date sits alone, never behind a dangling '·'. */
     expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
+  })
+
+  it('tags a mover with the book context that explains it', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      theses: [
+        {
+          id: 'th1',
+          assetClass: 'equity' as const,
+          symbol: 'SHOP',
+          name: 'Shopify',
+          thesis: 'Logistics flywheel',
+          intent: 'core' as const,
+          breakRules: [],
+          driftRules: [],
+          swot: EMPTY_SWOT,
+          status: 'broken' as const,
+          evalDetail: null,
+          lastEvaluatedAt: null,
+          createdAt: '2026-01-10T00:00:00Z',
+          updatedAt: '2026-01-10T00:00:00Z',
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* SHOP −6% clears the mover bar; its thesis is broken and 120 sits
+       under ma50 130 — the strongest two tags ride the mover. */
+    expect(
+      await screen.findByText(/SHOP −6\.0% — thesis broken, below its 50-day average/),
+    ).toBeInTheDocument()
   })
 })
 

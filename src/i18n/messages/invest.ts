@@ -912,6 +912,22 @@ const investCoreMessages = defineMessages({
      not overnight gaps. */
   /* [FR self-authored] */
   invest_brief_movers_day: { en: 'Session: {list}', fr: 'Séance : {list}' },
+  /* Mover context tails — "ASTS −8.5% — thesis broken, below your cost".
+     The strongest two attach so a bare % never stands in for why a move
+     matters to this book. */
+  /* [FR self-authored] */
+  invest_brief_mover_broken: { en: 'thesis broken', fr: 'thèse brisée' },
+  /* [FR self-authored] */
+  invest_brief_mover_drifting: { en: 'thesis drifting', fr: 'thèse en dérive' },
+  /* [FR self-authored] */
+  invest_brief_mover_signal: { en: 'signal fired', fr: 'signal déclenché' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_cost: { en: 'below your cost', fr: 'sous votre coût' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_ma: {
+    en: 'below its 50-day average',
+    fr: 'sous sa moyenne de 50 jours',
+  },
   /* [FR self-authored] */
   invest_brief_signal_one: { en: 'signal fired since yesterday', fr: 'signal déclenché depuis hier' },
   /* [FR self-authored] */

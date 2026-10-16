@@ -61,8 +61,18 @@ export function MorningBrief(props: {
   const lines = (() => {
     const out: string[] = []
 
+    const freshSignals = signals.filter(
+      (s) =>
+        s.status !== 'dismissed' &&
+        s.createdAt &&
+        Date.now() - Date.parse(s.createdAt) < FRESH_MS,
+    )
+
     /* Overnight movers — anything held or watched whose day move clears
-       the bar. The snap's dayChangePct is the provider's own figure. */
+       the bar. The snap's dayChangePct is the provider's own figure.
+       A bare "−8.5%" doesn't say whether anything actually broke, so each
+       mover carries the strongest two context tags the book knows:
+       degraded thesis, a fresh signal, below cost, under the 50-day. */
     const tracked = new Set([
       ...positions.map((p) => p.symbol.toUpperCase()),
       ...watchSymbols.map((s) => s.toUpperCase()),
@@ -77,22 +87,40 @@ export function MorningBrief(props: {
       .sort((a, b) => Math.abs(b.dayChangePct ?? 0) - Math.abs(a.dayChangePct ?? 0))
       .slice(0, 4)
     if (movers.length > 0) {
+      const parts = movers.map((m) => {
+        const sym = m.symbol.toUpperCase()
+        const ctx: string[] = []
+        const th = theses.find((t) => t.symbol.toUpperCase() === sym)
+        if (th?.status === 'broken') ctx.push(x(IM.invest_brief_mover_broken))
+        else if (th?.status === 'drifting') ctx.push(x(IM.invest_brief_mover_drifting))
+        if (freshSignals.some((s) => s.symbol.toUpperCase() === sym))
+          ctx.push(x(IM.invest_brief_mover_signal))
+        /* avg_cost is position-currency; only compare when the quote is
+           quoted in the same currency, never raw across currencies. */
+        const pos = positions.find(
+          (p) => p.symbol.toUpperCase() === sym && p.currency === m.currency,
+        )
+        if (pos && pos.avgCost > 0 && m.price < pos.avgCost)
+          ctx.push(x(IM.invest_brief_mover_below_cost))
+        if (m.ma50 !== null && m.price < m.ma50)
+          ctx.push(x(IM.invest_brief_mover_below_ma))
+        return `${m.symbol} ${pctFmt(m.dayChangePct ?? 0)}${ctx.length > 0 ? ` — ${ctx.slice(0, 2).join(', ')}` : ''}`
+      })
+      /* Once a mover carries a tail, commas can't separate movers and tags
+         at once — step up to · for movers, commas inside the tail. */
+      const sep = parts.some((p) => p.includes(' — ')) ? ' · ' : ', '
       out.push(
         x(morning ? IM.invest_brief_movers : IM.invest_brief_movers_day).replace(
           '{list}',
-          movers.map((m) => `${m.symbol} ${pctFmt(m.dayChangePct ?? 0)}`).join(', '),
+          parts.join(sep),
         ),
       )
     }
 
-    const fresh = signals.filter(
-      (s) =>
-        s.status !== 'dismissed' &&
-        s.createdAt &&
-        Date.now() - Date.parse(s.createdAt) < FRESH_MS,
-    ).length
-    if (fresh > 0) {
-      out.push(pl(lang, fresh, IM.invest_brief_signal_one, IM.invest_brief_signal_many))
+    if (freshSignals.length > 0) {
+      out.push(
+        pl(lang, freshSignals.length, IM.invest_brief_signal_one, IM.invest_brief_signal_many),
+      )
     }
 
     const broken = theses.filter((t) => t.status === 'broken').length
