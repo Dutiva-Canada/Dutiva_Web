@@ -5,6 +5,7 @@ import type {
   FinanceJournal,
   FinanceWorkspaceState,
 } from './types'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Export utilities for the Finance workspace. Produces CSV files for
@@ -162,7 +163,7 @@ interface ExportBundle {
 }
 
 export function buildExportBundles(state: FinanceWorkspaceState): ExportBundle[] {
-  const date = new Date().toISOString().slice(0, 10)
+  const date = localTodayISO()
   return [
     {
       fileName: `bank_items_${date}.csv`,

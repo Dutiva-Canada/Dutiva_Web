@@ -106,10 +106,12 @@ export function parseFeedItems(xml: string): FeedItem[] {
   const channelTitle = feedTitle(xml)
   const items: FeedItem[] = []
 
-  /* RSS 2.0 */
+  /* RSS 2.0 — a <guid> that is a permalink stands in when <link> is absent
+     (some feeds only carry guid). Non-URL guids stay ignored. */
   for (const m of xml.matchAll(/<item[\s>]([\s\S]*?)<\/item>/gi)) {
     const block = m[1]
-    const link = tagText(block, 'link')
+    const guid = tagText(block, 'guid')
+    const link = tagText(block, 'link') || (/^https?:\/\//i.test(guid) ? guid : '')
     items.push({
       title: tagText(block, 'title'),
       link: unwrapGoogleRedirect(link),
@@ -123,10 +125,11 @@ export function parseFeedItems(xml: string): FeedItem[] {
     })
   }
 
-  /* Atom */
+  /* Atom — <id> is often the entry URL when no alternate <link> exists. */
   for (const m of xml.matchAll(/<entry[\s>]([\s\S]*?)<\/entry>/gi)) {
     const block = m[1]
-    const link = atomLink(block)
+    const id = tagText(block, 'id')
+    const link = atomLink(block) || (/^https?:\/\//i.test(id) ? id : '')
     items.push({
       title: tagText(block, 'title'),
       link: unwrapGoogleRedirect(link),
@@ -147,6 +150,32 @@ function hostnameOf(link: string): string {
   } catch {
     return ''
   }
+}
+
+/** Dedupe one parsed batch against what the desk already stores — the
+   read-then-insert half, with the unique index as the race backstop. A
+   linked item keys on its URL (the pr_mentions unique index's key). A
+   linkless item — no <link> and no URL-shaped guid — can't use that key,
+   so it dedupes on its normalized title against the desk's linkless rows;
+   an item with neither link nor title carries no key at all and drops. */
+export function dedupeFeedItems(
+  items: FeedItem[],
+  known: { urls: Set<string>; linklessTitles: Set<string> },
+): FeedItem[] {
+  const seenUrls = new Set<string>()
+  const seenTitles = new Set<string>()
+  return items.filter((i) => {
+    if (i.link !== '') {
+      if (known.urls.has(i.link) || seenUrls.has(i.link)) return false
+      seenUrls.add(i.link)
+      return true
+    }
+    const key = i.title.trim().toLowerCase()
+    if (key === '') return false
+    if (known.linklessTitles.has(key) || seenTitles.has(key)) return false
+    seenTitles.add(key)
+    return true
+  })
 }
 
 /** Digest tone tallies — counts only items the model actually tagged, so an

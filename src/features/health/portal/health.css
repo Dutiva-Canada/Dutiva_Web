@@ -1,4 +1,4 @@
-/* Dutiva Health portal styles — sits on top of the shared `.sb` design
+/* Dutiva Wellness portal styles — sits on top of the shared `.sb` design
    system (invest/portal/strategies.css, imported by each page). `.hb`
    overrides only the token palette: a calmer sage/forest accent instead of
    the invest gold, same surfaces and components. Pages mount `.hb` beside
@@ -14,8 +14,34 @@
   --sb-ok-soft: #dcece1;
   --sb-ink: #234036;
   --sb-ink-soft: #4c6a5c;
+  /* Body + muted join the sage family too — the invest navy body and warm
+     taupe muted read as two palettes at once. The deeper muted also lifts
+     small secondary text past the contrast the old taupe missed. */
+  --sb-body: #3d4a40;
+  --sb-muted: #6f7057;
+  --sb-line: #e1dcc8;
+  --sb-input: #fffdf6;
+  /* Card lifts a step lighter than the page so surfaces read as raised
+     panels instead of flat wells; the deeper shadow carries the height. */
+  --sb-card: #f9f4e6;
   --sb-card-deep: #e3e0cf;
-  --sb-shadow: 0 1px 2px rgba(35, 64, 54, 0.07), 0 4px 14px rgba(35, 64, 54, 0.07);
+  --sb-shadow: 0 1px 2px rgba(35, 64, 54, 0.05), 0 10px 26px rgba(35, 64, 54, 0.07);
+  /* Mood ramp — 1 (rough) → 5 (great). A graded warm→sage scale carries the
+     signal a single accent can't: low days read warm without alarming. */
+  --hb-mood-1: #b65442;
+  --hb-mood-2: #bf8a3f;
+  --hb-mood-3: #94905f;
+  --hb-mood-4: #6d9c72;
+  --hb-mood-5: #3d7a5e;
+  /* Energy ramp — 1 (drained) → 5 (energized). Muted slate→steel so the
+     second chart reads as its own metric, never a second mood. Energy
+     isn't valenced — low reads quiet, not bad. */
+  --hb-energy-1: #a0a9b8;
+  --hb-energy-2: #8b99ad;
+  --hb-energy-3: #7689a3;
+  --hb-energy-4: #627999;
+  --hb-energy-5: #4d6990;
+  --hb-crisis-bg: #fbf0e8;
 }
 
 [data-theme='dark'] .sb.hb {
@@ -28,8 +54,200 @@
   --sb-ok-soft: #1e3026;
   --sb-ink: #e6ecdf;
   --sb-ink-soft: #b9c9bb;
+  /* Dark moves off the invest navy onto the same forest family as light —
+     a wellness portal's dark theme should feel like the same room with the
+     lights low, not a different product. */
+  --sb-body: #d5ddd0;
+  --sb-muted: #98a59a;
+  --sb-line: #2f3f37;
+  --sb-input: #131a16;
+  --sb-card: #222e27;
   --sb-card-deep: #22312a;
-  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+  --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 30px rgba(0, 0, 0, 0.34);
+  --hb-mood-1: #d08a72;
+  --hb-mood-2: #d0a35f;
+  --hb-mood-3: #aaa572;
+  --hb-mood-4: #8cb98f;
+  --hb-mood-5: #7fc4a2;
+  --hb-energy-1: #96a1b8;
+  --hb-energy-2: #8b99b5;
+  --hb-energy-3: #8091b2;
+  --hb-energy-4: #7589b0;
+  --hb-energy-5: #6a81b4;
+  --hb-crisis-bg: #2c2028;
+}
+
+/* The mood ramp resolves a data-mood="1..5" attribute into a local var —
+   chips, chart bars, and spark bars all read the same mapping. */
+.sb.hb [data-mood='1'] { --hb-mood: var(--hb-mood-1); }
+.sb.hb [data-mood='2'] { --hb-mood: var(--hb-mood-2); }
+.sb.hb [data-mood='3'] { --hb-mood: var(--hb-mood-3); }
+.sb.hb [data-mood='4'] { --hb-mood: var(--hb-mood-4); }
+.sb.hb [data-mood='5'] { --hb-mood: var(--hb-mood-5); }
+/* Same pattern for the energy ramp — chart bars only (energy has no
+   chips/dots elsewhere yet). */
+.sb.hb [data-energy='1'] { --hb-energy: var(--hb-energy-1); }
+.sb.hb [data-energy='2'] { --hb-energy: var(--hb-energy-2); }
+.sb.hb [data-energy='3'] { --hb-energy: var(--hb-energy-3); }
+.sb.hb [data-energy='4'] { --hb-energy: var(--hb-energy-4); }
+.sb.hb [data-energy='5'] { --hb-energy: var(--hb-energy-5); }
+
+/* Buttons in the shared system have no hover response at all — the health
+   palette adds a quiet lift so controls feel alive without animating the
+   invest portal. */
+.sb.hb .sb-btn {
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
+}
+.sb.hb .sb-btn:not([disabled]):hover {
+  transform: translateY(-1px);
+}
+/* The shared 0.55 disabled fade washes light-on-sage text nearly into the
+   card — a disabled primary action should still be readable, just
+   obviously inert. Health-scoped so the invest portal keeps its fade. */
+.sb.hb .sb-btn[disabled] {
+  opacity: 0.68;
+}
+.sb.hb .sb-btn-primary:not([disabled]):hover {
+  background: var(--sb-accent-ink);
+  box-shadow: 0 4px 14px rgba(43, 95, 71, 0.3);
+}
+.sb.hb .sb-btn-secondary:not([disabled]):hover {
+  border-color: var(--sb-accent-ink);
+  background: var(--sb-accent-soft);
+}
+.sb.hb .sb-btn-danger:not([disabled]):hover {
+  background: color-mix(in srgb, var(--sb-danger) 10%, transparent);
+}
+/* Notes sit on the accent edge in this portal — Mira's nudges, the pending
+   review strip, and the wellness disclaimers then read as one family and
+   stay distinct from the crisis banner and plain cards. */
+.sb.hb .sb-note {
+  border-left: 3px solid var(--sb-accent);
+}
+/* Fields pick up the same soft ring the journal textarea uses. */
+.sb.hb .sb-input:focus {
+  outline: none;
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+/* Page entrance — a single gentle rise per top-level block so navigation
+   feels soft, not flashy. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .sb.hb > * {
+    animation: hb-rise 0.45s ease-out both;
+  }
+}
+
+/* Ambient breathing rings — the portal's signature motif, echoed faintly
+   behind the top of every page like a slow exhale fading into the canvas.
+   isolation: isolate keeps the decoration under the content without
+   z-index gymnastics leaking to ancestors. */
+.sb.hb.sb-page {
+  position: relative;
+  isolation: isolate;
+}
+.sb.hb.sb-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 440px;
+  height: 330px;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    transparent 0 30px,
+    color-mix(in srgb, var(--sb-accent) 13%, transparent) 30px 31.5px,
+    transparent 31.5px 64px,
+    color-mix(in srgb, var(--sb-accent) 10%, transparent) 64px 65.5px,
+    transparent 65.5px 100px,
+    color-mix(in srgb, var(--sb-accent) 7%, transparent) 100px 101.5px,
+    transparent 101.5px 138px,
+    color-mix(in srgb, var(--sb-accent) 5%, transparent) 138px 139.5px,
+    transparent 139.5px 200px
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    #000 0%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    #000 0%,
+    transparent 72%
+  );
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-aura-breathe {
+    to {
+      opacity: 0.45;
+    }
+  }
+  .sb.hb.sb-page::before {
+    animation: hb-aura-breathe 9s ease-in-out infinite alternate;
+  }
+}
+@media (max-width: 560px) {
+  .sb.hb.sb-page::before {
+    width: 280px;
+    height: 220px;
+    background: repeating-radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      transparent 0 22px,
+      color-mix(in srgb, var(--sb-accent) 12%, transparent) 22px 23.5px,
+      transparent 23.5px 46px,
+      color-mix(in srgb, var(--sb-accent) 9%, transparent) 46px 47.5px,
+      transparent 47.5px 72px,
+      color-mix(in srgb, var(--sb-accent) 6%, transparent) 72px 73.5px,
+      transparent 73.5px 140px
+    );
+    -webkit-mask-image: radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      #000 0%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      #000 0%,
+      transparent 75%
+    );
+  }
+}
+
+/* Breathing room — this portal's rhythm is unhurried: deeper card padding,
+   a wider page column edge, and a little more air between the pieces.
+   Mobile keeps the tighter density. */
+.sb.hb .sb-card-pad {
+  padding: 22px 20px;
+}
+.sb.hb.sb-page {
+  padding: 0 20px 56px;
+}
+.sb.hb .sb-stats {
+  gap: 14px;
+  margin-top: 22px;
+}
+.sb.hb .sb-duo {
+  gap: 18px;
+  margin-top: 18px;
+}
+.sb.hb .sb-head-row h1 {
+  margin-top: 28px;
+}
+.sb.hb .sb-note {
+  padding: 13px 16px;
 }
 
 /* Mood / energy pickers — a row of five labelled buttons. */
@@ -50,10 +268,16 @@
   color: var(--sb-muted);
   cursor: pointer;
   font: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition:
+    border-color 0.22s ease,
+    background 0.22s ease,
+    color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
 }
 .hb-scale-btn:hover {
   border-color: var(--sb-accent);
+  transform: translateY(-1px);
 }
 .hb-scale-btn:focus-visible {
   outline: 2px solid var(--sb-accent);
@@ -63,6 +287,7 @@
   border-color: var(--sb-accent);
   background: var(--sb-accent-soft);
   color: var(--sb-accent-ink);
+  box-shadow: 0 1px 4px rgba(43, 95, 71, 0.18);
 }
 .hb-scale-num {
   font-family: var(--font-serif);
@@ -101,8 +326,11 @@
 }
 .hb-row-title {
   margin: 0;
+  /* Serif titles give the journal/habits rows the same voice as the page
+     headings instead of reading as bare labels. */
+  font-family: var(--font-serif);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--sb-ink);
 }
 .hb-row-body {
@@ -124,13 +352,19 @@
   gap: 8px;
   flex-shrink: 0;
 }
+/* Mood chip — the dot and a soft tinted wash carry the mood ramp so a
+   history list scans by colour before the words are read. */
 .hb-mood-dot {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   font-size: 12px;
   font-weight: 600;
-  color: var(--sb-accent-ink);
+  color: var(--sb-ink);
+  white-space: nowrap;
 }
 .hb-mood-dot::before {
   content: '';
@@ -139,11 +373,12 @@
   border-radius: 50%;
   background: var(--sb-accent);
 }
-.hb-mood-dot[data-low] {
-  color: var(--sb-danger);
+.hb-mood-dot[data-mood] {
+  background: color-mix(in srgb, var(--hb-mood) 13%, transparent);
+  border-color: color-mix(in srgb, var(--hb-mood) 32%, transparent);
 }
-.hb-mood-dot[data-low]::before {
-  background: var(--sb-danger);
+.hb-mood-dot[data-mood]::before {
+  background: var(--hb-mood);
 }
 
 /* Stat cards that route — the overview strip links each number to the
@@ -178,11 +413,23 @@ a.sb-stat-link .hb-spark {
   background: var(--sb-accent);
   min-height: 3px;
 }
+.hb-spark-bar[data-mood] {
+  background: var(--hb-mood);
+}
 .hb-spark-bar.is-empty {
   background: var(--sb-line);
 }
+/* The average-mood number itself rides the ramp. */
+.sb.hb .sb-stat .v[data-mood] {
+  color: var(--hb-mood);
+}
+a.sb-stat-link {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
 a.sb-stat-link:hover {
   border-color: var(--sb-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--sb-shadow);
 }
 a.sb-stat-link:focus-visible {
   outline: 2px solid var(--sb-accent);
@@ -213,14 +460,32 @@ a.sb-stat-link:focus-visible {
   background: var(--sb-accent);
   min-height: 4px;
 }
+/* Bars ride the mood ramp — rough days trend terracotta, good days sage.
+   Declared before [data-empty] so the dashed "nothing logged" outline
+   still wins on days with no entry. */
+.hb-bar-fill[data-mood] {
+  background: var(--hb-mood);
+}
+.hb-bar-fill[data-energy] {
+  background: var(--hb-energy);
+}
+/* Empty days must not masquerade as low days — a dashed outline reads
+   "nothing logged" where a solid sliver would read "rough day". */
 .hb-bar-fill[data-empty] {
-  background: var(--sb-line);
-  min-height: 4px;
+  background: transparent;
+  border: 1px dashed var(--sb-line);
+  min-height: 5px;
 }
 .hb-bar-day {
   font-size: 10px;
   color: var(--sb-muted);
   font-variant-numeric: tabular-nums;
+}
+/* Month-boundary labels on the axis ("Oct 1" instead of bare "1") — marks
+   the rollover so 29 30 1 2 doesn't read as a glitch. */
+.hb-bar-day.is-month {
+  color: var(--sb-body);
+  font-weight: 600;
 }
 
 /* Crisis banner — rendered on Overview and the top of Resources. Uses the
@@ -232,7 +497,9 @@ a.sb-stat-link:focus-visible {
   align-items: flex-start;
   border: 1.5px solid var(--sb-danger);
   border-radius: var(--sb-radius);
-  background: var(--sb-card);
+  /* A faint warm tint separates "act now" from the card fill without
+     turning the banner into an alarm. */
+  background: var(--hb-crisis-bg, var(--sb-card));
   padding: 14px 16px;
 }
 .hb-crisis-icon {
@@ -263,6 +530,17 @@ a.sb-stat-link:focus-visible {
   font-weight: 600;
 }
 
+/* CrisisNote — the tel:/sms: verbs inside the standing crisis line. It
+   renders inside a few different surfaces (composer note, distress pin,
+   the gold boxes on the walls), so the links inherit the surface color
+   and only carry underline + weight as their affordance. */
+.hb-cn a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* Resource cards. */
 .hb-res {
   display: flex;
@@ -277,6 +555,14 @@ a.sb-stat-link:focus-visible {
   border: 1px solid var(--sb-line);
   border-radius: 12px;
   background: var(--sb-input);
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+}
+/* The hover affordance belongs to rows that act — resource cards hold real
+   links. Static rows (the grounding countdown) opt out: nothing happens on
+   click, so nothing should promise it on hover. */
+.hb-res-item:not(.hb-res-item--static):hover {
+  border-color: var(--sb-accent);
+  box-shadow: var(--sb-shadow);
 }
 .hb-res-icon {
   flex-shrink: 0;
@@ -304,12 +590,27 @@ a.sb-stat-link:focus-visible {
 .hb-res-item.is-current {
   border-color: var(--sb-accent);
 }
-/* Grounding step badge — smaller square than the resource icon it borrows. */
+/* Static rows (the grounding countdown) aren't fields — the shared input
+   background made five steps read as five empty text boxes. Transparent
+   reads as a checklist; the current step still gets its accent tint. */
+.hb-res-item--static {
+  background: transparent;
+}
+.hb-res-item--static.is-current {
+  background: var(--sb-accent-soft);
+}
+/* Grounding step badge — smaller square than the resource icon it borrows.
+   On the current step it fills accent so "where you are" survives a
+   glance, not just a 1px border. */
 .hb-step-badge {
   width: 30px;
   height: 30px;
   font-size: 13px;
   font-weight: 700;
+}
+.hb-res-item--static.is-current .hb-step-badge {
+  background: var(--sb-accent);
+  color: var(--sb-primary-text);
 }
 .hb-res-item a {
   color: var(--sb-accent-ink);
@@ -319,8 +620,174 @@ a.sb-stat-link:focus-visible {
 .hb-res-item a:hover {
   text-decoration: underline;
 }
+/* Immediate danger gets the urgent border the 988 banner carries. */
+.hb-res-item.is-urgent {
+  border: 1.5px solid var(--sb-danger);
+}
+/* Tappable contact chips under each service — tel:/sms:/web. */
+.hb-res-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+.hb-res-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 11px;
+  border: 1px solid var(--sb-accent);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sb-accent-ink);
+  background: var(--sb-accent-soft);
+  text-decoration: none;
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+.hb-res-link:hover {
+  text-decoration: none;
+  border-color: var(--sb-accent-ink);
+  transform: translateY(-1px);
+  box-shadow: var(--sb-shadow);
+}
+.hb-res-link:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+/* Same chips on the crisis banner itself. */
+.hb-crisis .hb-res-link {
+  border-color: var(--sb-danger);
+  color: var(--sb-danger);
+  background: transparent;
+}
+/* Non-crisis off-ramp at the foot of Resources. */
+.hb-res-mira {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--sb-muted);
+}
+.hb-res-mira a {
+  color: var(--sb-accent-ink);
+  font-weight: 600;
+}
 
-/* Habit 7-day dots — a filled accent dot per done day, plain ring otherwise. */
+/* Journal bodies clamp to a few lines in the list — the toggle expands. */
+.hb-row-body.is-clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hb-row-expand {
+  align-self: flex-start;
+  border: 0;
+  padding: 0;
+  margin: 2px 0 0;
+  background: transparent;
+  color: var(--sb-accent-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hb-row-expand:hover {
+  text-decoration: underline;
+}
+.hb-row-expand:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
+
+/* Centered "load more / show all" row under paged lists. */
+.hb-pager {
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* Journal photo attachment — a small thumb in the list (opens full size
+   via signed URL) and the same frame in the editor's pick state. */
+.hb-jthumb {
+  display: block;
+  max-width: 160px;
+  max-height: 120px;
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--sb-line);
+  object-fit: cover;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+a > .hb-jthumb:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--hb-shadow-card);
+}
+.hb-photo-edit {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.hb-photo-edit .hb-jthumb {
+  margin-top: 0;
+}
+
+/* Consent state on a journal row — an ok-pill, not a button. */
+.hb-share-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sb-ok-soft);
+  color: var(--sb-ok);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Row action buttons — the shared treatment retired the per-row inline
+   styles (minHeight/padding/fontSize) that drifted across pages. */
+.hb-row-actions {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hb-row-actions .sb-btn-sm {
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+}
+
+/* Dismiss button on Mira notes and the recap card. */
+.hb-note-close {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.hb-note-close:hover {
+  color: var(--sb-ink);
+  background: var(--sb-card);
+}
+.hb-note-close:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 1px;
+}
+
+/* Habit 7-day dots — a filled accent dot per done day, plain ring otherwise.
+   They're real buttons: tapping backfills that day within the week. */
 .hb-dot {
   width: 10px;
   height: 10px;
@@ -328,44 +795,78 @@ a.sb-stat-link:focus-visible {
   border: 1.5px solid var(--sb-line);
   background: transparent;
   display: inline-block;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.hb-dot:not(:disabled):hover {
+  transform: scale(1.3);
 }
 .hb-dot.is-on {
   border-color: var(--sb-accent);
   background: var(--sb-accent);
 }
+/* Days before the habit existed — still tappable (the practice can predate
+   the tracking) but quieter, so they don't read as misses. */
+.hb-dot.is-void {
+  border-style: dashed;
+  opacity: 0.45;
+}
+/* Today's cell carries a ring so "the last dot" is findable at a glance. */
+.hb-dot.is-today {
+  box-shadow: 0 0 0 2.5px var(--sb-card), 0 0 0 4px var(--sb-accent);
+}
+.hb-dot:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.hb-dot:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 2px;
+}
 
 /* Box-breathing circle — scales up on inhale, holds, scales down on exhale.
    The phase duration is set inline so the animation and the countdown are
    driven by the same constant in the component. */
+/* The disc inside breathes; the label stays full-size — scaling the text
+   with the circle shrank the resting readout to ~10px. */
 .hb-breath {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 148px;
   height: 148px;
-  border-radius: 50%;
-  background: var(--sb-accent-soft);
-  border: 2px solid var(--sb-accent);
   color: var(--sb-accent-ink);
   font-size: 14px;
   font-weight: 700;
+}
+.hb-breath-disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--sb-accent-soft);
+  border: 2px solid var(--sb-accent);
   transition: transform var(--breath-ms, 4000ms) ease-in-out;
   transform: scale(0.72);
 }
-.hb-breath[data-phase='in'] {
+.hb-breath-label {
+  position: relative;
+}
+.hb-breath[data-phase='in'] .hb-breath-disc {
   transform: scale(1);
 }
-.hb-breath[data-phase='hold-in'] {
+.hb-breath[data-phase='hold-in'] .hb-breath-disc {
   transform: scale(1);
 }
-.hb-breath[data-phase='out'] {
+.hb-breath[data-phase='out'] .hb-breath-disc {
   transform: scale(0.72);
 }
-.hb-breath[data-phase='hold-out'] {
+.hb-breath[data-phase='hold-out'] .hb-breath-disc {
   transform: scale(0.72);
 }
 @media (prefers-reduced-motion: reduce) {
-  .hb-breath {
+  .hb-breath-disc {
     transition: none;
   }
 }
@@ -443,6 +944,10 @@ a.sb-stat-link:focus-visible {
   margin-top: 14px;
   border-bottom: 1px solid var(--sb-line);
   overflow-x: auto;
+  scrollbar-width: none;
+}
+.hb-tabs::-webkit-scrollbar {
+  display: none;
 }
 .hb-tab {
   padding: 9px 14px;
@@ -483,6 +988,9 @@ a.sb-stat-link:focus-visible {
 
 /* Breath pace chips — a quiet pill toggle over the breathing circle. */
 .hb-pace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: 999px;
   border: 1.5px solid var(--sb-line);
@@ -538,7 +1046,210 @@ a.sb-stat-link:focus-visible {
   height: 16px;
 }
 
+/* ---------- shell chrome (layout-level, outside the .sb page roots) ---------- */
+/* These use the app-wide surface tokens, not the .sb palette, because they
+   render in HealthPortalLayout above/beside the page content. */
+
+/* Health shell retune — the portal's dark theme joins the forest family of
+   its cards instead of borrowing the workspace's navy ramp (dark canvas +
+   navy chrome behind green cards read as two products stacked). Scoped to
+   .hb-shell so only /wellness's chrome moves; light keeps the shared ivory
+   ramp, which already reads warm. The navy wordmark and gold note tokens
+   stay — those are the Dutiva thread that anchors the personality layer. */
+[data-theme='dark'] .surface-app.hb-shell {
+  --bg: #0d130f;
+  --desk: #080d0a;
+  --inset: #151f18;
+  --surface: #1a241e;
+  --surface-2: #233028;
+  --border: #33463b;
+  --border-soft: #223028;
+  --text: #eef1ea;
+  --text-2: #c7d0c2;
+  --text-3: #a2af9f;
+  --text-muted: #93a08f;
+  --text-faint: #7f8d7f;
+  /* Chrome focus + accent follow the sage accent, not workspace teal. */
+  --accent: #7fc4a2;
+  --accent-soft: rgba(127, 196, 162, 0.13);
+  --accent-soft-border: rgba(127, 196, 162, 0.32);
+  --focus: rgba(127, 196, 162, 0.6);
+  --sel: #1c322a;
+}
+
+/* Sticky portal header — translucent so scrolled content shows a soft blur
+   instead of a hard edge. */
+.hb-topbar {
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+/* The wordmark grew with the Wellness rename — MIEUX-ÊTRE is nearly twice
+   SANTÉ's width, and the FR tab bar clipped mid-label. The header's max-w is
+   fixed at 1100px, so the overflow exists at every desktop width, not just
+   narrow ones — the tightened cluster applies from the desktop breakpoint up. */
+@media (min-width: 1080px) {
+  .hb-topbar .hb-wordmark {
+    font-size: 13.5px;
+    letter-spacing: 0.02em;
+  }
+  .hb-topbar nav a {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 12px;
+  }
+  .hb-topbar .flex.min-w-0 {
+    gap: 8px;
+  }
+}
+.hb-mobile-menu {
+  box-shadow: 0 16px 28px -18px rgba(13, 27, 42, 0.4);
+}
+/* The stale-data note renders above the outlet — before this it used the
+   .sb-note class with no .sb scope, so its tokens resolved to nothing and
+   it drew a currentColor-bordered paragraph. */
+.hb-stale {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--gold-border, var(--border));
+  border-radius: 12px;
+  background: var(--gold-bg, var(--surface-2));
+  color: var(--text-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+/* ---------- loading skeleton ---------- */
+/* Replaces the lone spinner: the block echoes the page's shape (heading,
+   sub, stat strip, card) so first paint already has structure. Rendered
+   with app tokens because it also mounts on surfaces outside .sb.hb. */
+.hb-skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft, var(--border));
+  background: var(--surface);
+}
+.hb-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--text) 6%, transparent),
+    transparent
+  );
+  animation: hb-skel-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes hb-skel-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- chat polish (scoped so the other .sb chat surfaces don't move) ---------- */
+.sb.hb .sbchat-input:focus {
+  border-color: var(--sb-accent);
+  box-shadow: 0 0 0 3px var(--sb-accent-soft);
+}
+.sb.hb .sbchat-send {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+}
+.sb.hb .sbchat-send:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow: var(--sb-shadow);
+}
+/* The user's own bubble lifts off the log like a sent card. */
+.sb.hb .sbchat-bubble.user {
+  box-shadow: var(--sb-shadow);
+}
+/* A thin token-colored scrollbar keeps long threads tidy. */
+.sb.hb .sbchat-log {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-line) transparent;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar {
+  width: 8px;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar-thumb {
+  background: var(--sb-line);
+  border-radius: 4px;
+}
+.sb.hb .sbchat-log::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Roomier empty states — the dashed box is the only thing on the card, so
+   it earns a bit more air plus the portal's quiet signature: a small
+   breathing orb (soft disc + accent ring + halo) that slowly swells and
+   settles. Alert variants (load failures) keep the plain box — an ornament
+   on an error reads as decoration, not calm. */
+.sb.hb .sb-empty {
+  padding: 30px 18px 26px;
+}
+.sb.hb .sb-empty:not([role='alert'])::before {
+  content: '';
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin: 2px auto 12px;
+  border-radius: 50%;
+  background: var(--sb-accent-soft);
+  border: 1.5px solid color-mix(in srgb, var(--sb-accent) 45%, transparent);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--sb-accent) 12%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-orb-breathe {
+    0%,
+    100% {
+      transform: scale(0.84);
+    }
+    45%,
+    55% {
+      transform: scale(1);
+    }
+  }
+  .sb.hb .sb-empty:not([role='alert'])::before {
+    animation: hb-orb-breathe 7s ease-in-out infinite;
+  }
+}
+
+.hb-pace {
+  transition: border-color 0.22s ease, background 0.22s ease, color 0.22s ease;
+}
+.hb-quiet-link {
+  transition: color 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb.hb .sb-btn,
+  .sb.hb .sbchat-send,
+  a.sb-stat-link,
+  .hb-dot,
+  .hb-res-link,
+  .hb-res-item,
+  .hb-scale-btn,
+  .hb-pace,
+  .hb-quiet-link {
+    transition: none;
+  }
+  .hb-skel::after {
+    animation: none;
+  }
+}
+
 @media (max-width: 560px) {
+  /* Warmth pass keeps tighter density on phones — the extra air is a
+     desktop luxury. */
+  .sb.hb .sb-card-pad {
+    padding: 18px 16px;
+  }
+  .sb.hb.sb-page {
+    padding: 0 16px 44px;
+  }
   .hb-scale {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
@@ -550,7 +1261,8 @@ a.sb-stat-link:focus-visible {
     font-size: 16px;
   }
   .hb-scale-label {
-    font-size: 9.5px;
+    /* 9.5px was effectively unreadable — 11px stays the floor. */
+    font-size: 11px;
   }
   /* Practices rows — stack the side buttons under the text on small screens. */
   .hb-mod-rows .hb-row {
@@ -562,4 +1274,210 @@ a.sb-stat-link:focus-visible {
     align-items: center;
     justify-content: flex-start;
   }
+}
+
+/* ---------- voice call overlay ---------- */
+/* A dim sheet over the chat page — the call card centers on it. The log
+   behind stays live because voice turns are ordinary turns. */
+.hbcall {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: color-mix(in srgb, var(--sb-ink) 32%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.hbcall-card {
+  width: min(420px, 100%);
+  padding: 30px 26px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--sb-line);
+  background: var(--sb-card);
+  box-shadow: var(--sb-shadow);
+  text-align: center;
+}
+.hbcall-name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--sb-ink);
+}
+.hbcall-status {
+  margin: 6px 0 0;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--sb-muted);
+}
+.hbcall-live {
+  margin: 16px 0 20px;
+  min-height: 44px;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--sb-ink);
+}
+.hbcall-controls {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+.hbcall-btn {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid var(--sb-line);
+  background: var(--sb-card-deep);
+  color: var(--sb-ink);
+  cursor: pointer;
+  transition: transform 0.22s ease, border-color 0.22s ease, color 0.22s ease;
+}
+.hbcall-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hbcall-btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: var(--sb-accent);
+}
+/* aria-pressed=false means the mic/speaker is off — show it plainly. */
+.hbcall-btn[aria-pressed='false'] {
+  color: var(--sb-muted);
+  border-style: dashed;
+}
+.hbcall-end {
+  border-color: var(--sb-danger);
+  background: var(--sb-danger);
+  color: #fff;
+}
+.hbcall-end:not(:disabled):hover {
+  border-color: var(--sb-danger);
+  filter: brightness(1.06);
+}
+/* Recording — the mic button is also the send control, so it borrows the
+   danger-family ring with a slow pulse while audio rolls. */
+.hbcall-btn.is-rec {
+  border-color: var(--sb-danger);
+  color: var(--sb-danger);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hbcall-btn.is-rec {
+    animation: hbcall-rec 1.6s ease-in-out infinite;
+  }
+}
+@keyframes hbcall-rec {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sb-danger) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+.hbcall-note {
+  margin: 20px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sb-muted);
+}
+.hbcall-crisis {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* First-run welcome — a calmer card: accent-tinted step icons, an X in
+   the corner instead of a second button row. */
+.hb-welcome {
+  position: relative;
+  margin-top: 18px;
+}
+.hb-welcome-x {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.hb-welcome-x:hover {
+  background: var(--sb-accent-soft);
+  color: var(--sb-ink);
+}
+.hb-welcome-steps {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.hb-welcome-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--sb-ink);
+}
+.hb-welcome-steps svg {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+}
+
+/* Live mic level under the recording status — a thin fill that answers
+   "is it hearing me?" on the server engine, which has no interim text.
+   scaleX keeps the repaints cheap; a slow settle reads as breath, not a
+   VU needle. */
+.hbcall-meter {
+  width: 180px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sb-line) 55%, transparent);
+  overflow: hidden;
+}
+.hbcall-meter > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sb-accent);
+  transform-origin: left center;
+  transition: transform 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hbcall-meter > span {
+    transition: none;
+  }
+}
+
+/* Per-habit cadence select — sb-input at 48px would dwarf the meta row;
+   the compact shape keeps it a quiet setting, not a form field. */
+.sb.hb .hb-cadence {
+  width: auto;
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 4px 26px 4px 9px;
+  border-radius: 8px;
+  background-position: right 8px center;
+  color: var(--sb-muted);
+}
+.sb.hb .hb-cadence:focus {
+  color: var(--sb-ink);
+}
+[data-theme='dark'] .sb.hb select.hb-cadence {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237fc4a2' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
 }

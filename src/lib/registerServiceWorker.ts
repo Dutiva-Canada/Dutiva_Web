@@ -52,6 +52,9 @@ export function registerServiceWorker(): void {
 const NO_TAKEOVER_RELOAD = [
   '/app',
   '/invest',
+  /* Both spellings — /health redirects client-side now, but a client
+     sitting on the old URL still deserves draft protection. */
+  '/wellness',
   '/health',
   '/pr',
   '/careers',

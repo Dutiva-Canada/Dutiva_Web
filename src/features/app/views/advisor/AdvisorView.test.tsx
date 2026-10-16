@@ -460,6 +460,9 @@ describe('AdvisorView', () => {
                 code: 'ai_usage_limit',
                 scope: 'commercial',
                 retry_after_seconds: 86_400,
+                /* The edge function echoes the org's plan-tiered allowance
+                   (claim_ai_usage's monthly limit) on commercial refusals. */
+                monthly_included: 400,
               }),
           },
         }),
@@ -488,8 +491,11 @@ describe('AdvisorView', () => {
       fireEvent.change(composer, { target: { value: 'What notice does a 3-year employee get?' } })
       fireEvent.keyDown(composer, { key: 'Enter' })
 
+      /* The refusal body's monthly_included (400, the pro tier) is what the
+         reply quotes — the server's own limit, immune to client plan-load
+         timing. The offer shape still matters: pack buttons, no Retry. */
       expect(
-        await screen.findByText(/80 included Advisor replies/, {}, { timeout: 8000 }),
+        await screen.findByText(/400 included Advisor replies/, {}, { timeout: 8000 }),
       ).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /50 replies/ })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /200 replies/ })).toBeInTheDocument()

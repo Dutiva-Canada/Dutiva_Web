@@ -5,7 +5,7 @@
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
 import { Suspense, lazy } from 'react'
-import { Outlet, redirect, useLocation } from 'react-router-dom'
+import { Navigate, Outlet, redirect, useLocation } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
 import type { Lang } from '@/i18n/core'
@@ -81,7 +81,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
-/* Health surface — standalone invite-only wellness portal (/health), see healthSurface.tsx. */
+/* Health surface — standalone invite-only wellness portal (/wellness), see healthSurface.tsx. */
 /* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
 /* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
 /* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))
@@ -93,7 +93,12 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
 /* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
+/* prettier-ignore */ const HealthDataPage = lazy(() => import('@/features/health/portal/HealthDataPage').then((m) => ({ default: m.HealthDataPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
+/* Dev-only visual preview of the health portal on fixture data — never routed in prod builds. */
+const HealthPreview = import.meta.env.DEV
+  ? lazy(() => import('@/dev/HealthPreview').then((m) => ({ default: m.HealthPreview })))
+  : () => null
 /* PR surface — standalone invite-only communications portal (/pr), see prSurface.tsx. */
 /* prettier-ignore */ const PrPortalSurface = lazy(() => import('./prSurface').then((m) => ({ default: m.PrPortalSurface })))
 /* prettier-ignore */ const PrHomePage = lazy(() => import('@/features/pr/portal/PrHomePage').then((m) => ({ default: m.PrHomePage })))
@@ -197,6 +202,15 @@ function NotFoundRoute() {
   )
 }
 
+/* The portal launched at /health and was renamed Wellness — old links
+   (bookmarks, emails already sent, the recap deep-link) keep working via a
+   path-preserving redirect: /health/journal?x → /wellness/journal?x. */
+function HealthLegacyRedirect() {
+  const loc = useLocation()
+  const rest = loc.pathname.replace(/^\/health/, '')
+  return <Navigate to={`/wellness${rest}${loc.search}${loc.hash}`} replace />
+}
+
 /**
  * Route map (see CONVENTIONS.md):
  *   /  /about /faq /blog /pricing /templates /guides
@@ -236,15 +250,19 @@ function NotFoundRoute() {
  *                           SWOT per thesis — Tally's analytical layer
  *   /invest/profile         the "knows you" layer — declared profile +
  *                           mandate, confirmed memories, observed patterns
- *   /health                 health portal — standalone shell, shared auth,
+ *   /wellness               wellness portal — standalone shell, shared auth,
  *                           gated by a health_access grant (invite-only);
  *                           non-clinical self-tracking + journal
- *   /health/check-in        daily mood/energy check-in + history
- *   /health/habits          daily habit toggles + streaks (non-clinical)
- *   /health/journal         private journal entries
- *   /health/tools           self-guided pauses — breathing, grounding, gratitude
- *   /health/insights        trends derived from the user's own check-ins
- *   /health/resources       crisis + support resources (real services)
+ *   /wellness/check-in      daily mood/energy check-in + history
+ *   /wellness/habits        daily habit toggles + streaks (non-clinical)
+ *   /wellness/journal       private journal entries
+ *   /wellness/tools         self-guided pauses — breathing, grounding, gratitude
+ *   /wellness/insights      trends derived from the user's own check-ins
+ *   /wellness/resources     crisis + support resources (real services)
+ *   /wellness/review        Mira's pending suggestions queue
+ *   /wellness/data          export + delete-all trust surface
+ *   /wellness/legal/:slug   public legal docs (terms, privacy, wellness notice)
+ *   /health/*               legacy — path-preserving redirect to /wellness/*
  *   /pr                     PR portal — standalone shell, shared auth,
  *                           gated by a pr_access grant (invite-only);
  *                           communications desk: campaigns, content,
@@ -431,11 +449,20 @@ function routeTree(): RouteObject[] {
         },
       ],
     },
-    /* Standalone health portal — shared auth + health_access grant, own
+    /* Standalone wellness portal — shared auth + health_access grant, own
        shell. Invite-only; a self-tracking/reflection tool, not a clinical
-       or crisis service (see the wellness notice legal doc). */
+       or crisis service (see the wellness notice legal doc). Lives at
+       /wellness — the original /health paths redirect below. */
+    {
+      path: '/health/*',
+      element: <HealthLegacyRedirect />,
+    },
     {
       path: '/health',
+      element: <HealthLegacyRedirect />,
+    },
+    {
+      path: '/wellness',
       element: (
         <Suspense fallback={null}>
           <HealthPortalSurface />
@@ -457,6 +484,7 @@ function routeTree(): RouteObject[] {
             { path: 'insights', element: <HealthInsightsPage /> },
             { path: 'review', element: <HealthReviewPage /> },
             { path: 'resources', element: <HealthResourcesPage /> },
+            { path: 'data', element: <HealthDataPage /> },
           ],
         },
       ],
@@ -492,6 +520,18 @@ function routeTree(): RouteObject[] {
         },
       ],
     },
+    ...(import.meta.env.DEV
+      ? [
+          {
+            path: '/dev-health-preview',
+            element: (
+              <Suspense fallback={null}>
+                <HealthPreview />
+              </Suspense>
+            ),
+          },
+        ]
+      : []),
     { path: '*', element: <NotFoundRoute /> },
   ]
 }

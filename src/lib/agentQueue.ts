@@ -32,6 +32,9 @@ export async function loadPendingSuggestions(
     .eq('surface', surface)
     .eq('status', 'pending')
     .order('created_at', { ascending: false })
+    /* An inbox is shallow by design — 200 pending rows is already a
+       neglected queue; bound it rather than stream an unbounded list. */
+    .limit(200)
   if (error) throw error
   return (data ?? []) as AgentSuggestion[]
 }
@@ -71,6 +74,18 @@ export async function resolveSuggestion(
       resolved_at: new Date().toISOString(),
       resolved_action: action.slice(0, 60),
     })
+    .eq('id', id)
+  if (error) throw error
+}
+
+/** Send a resolved row back to pending — the undo for a mis-dismiss or a
+    premature accept. Clears the resolution stamp so the audit trail reads
+    "still open", not "resolved twice". */
+export async function reopenSuggestion(id: string): Promise<void> {
+  const sb = requireSupabase()
+  const { error } = await sb
+    .from('agent_suggestions')
+    .update({ status: 'pending', resolved_at: null, resolved_action: null })
     .eq('id', id)
   if (error) throw error
 }

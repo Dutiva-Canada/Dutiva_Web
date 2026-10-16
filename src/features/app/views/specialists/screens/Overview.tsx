@@ -4,7 +4,7 @@ import { specialistsMessages as M } from '@/i18n/messages/specialists'
 import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSpecialistsData } from '../SpecialistsDataContext'
-import { fill } from '@/lib/format'
+import { fill, localDatePlusDaysISO, localTodayISO } from '@/lib/format'
 import type { SpecialistSpecialty } from '../data/types'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
@@ -35,8 +35,8 @@ export function Overview() {
   const { root } = useWorkspaceRoot()
   const { specialists, engagements } = useSpecialistsData()
 
-  const todayISO = new Date().toISOString().slice(0, 10)
-  const in7ISO = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
+  const in7ISO = localDatePlusDaysISO(7)
   const currentMonth = todayISO.slice(0, 7)
 
   const activeAccessCount = specialists.filter((s) => s.workspace_access).length

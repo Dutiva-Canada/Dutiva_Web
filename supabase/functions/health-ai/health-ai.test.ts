@@ -17,6 +17,7 @@ import {
   HEALTH_RECAP_FALLBACK_FR,
   HEALTH_REFLECT_FALLBACK_EN,
   HEALTH_REFLECT_FALLBACK_FR,
+  lowMoodPatchEligible,
   parseChatReply,
   parseHabit,
   parseReactEvent,
@@ -48,11 +49,36 @@ describe('buildHealthFacts', () => {
       NOW,
     )
     expect(facts.checkInCount).toBe(2)
+    expect(facts.loggedDays).toBe(2)
     expect(facts.avgMood).toBe(3)
     expect(facts.avgEnergy).toBe(3)
-    expect(facts.habitsKept).toBe(1)
     expect(facts.habitsTotal).toBe(1)
-    expect(facts.bestHabitDays).toBe(1)
+    expect(facts.habitDays).toEqual([{ name: 'Walk', days: 1 }])
+  })
+
+  it('weights days equally — a day logged three times cannot outweigh a day logged once', () => {
+    const sameDay = (hour: number) => {
+      const d = new Date(Date.parse(NOW) - 86_400_000)
+      d.setUTCHours(hour)
+      return d.toISOString()
+    }
+    const facts = buildHealthFacts(
+      [
+        { mood: 1, energy: null, created_at: sameDay(8) },
+        { mood: 1, energy: null, created_at: sameDay(13) },
+        { mood: 1, energy: null, created_at: sameDay(21) },
+        { mood: 5, energy: null, created_at: dayAgo(2) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    /* Per-check-in would be 2.0; per-day is (1 + 5) / 2 — matching the
+       average the Insights card displays. */
+    expect(facts.avgMood).toBe(3)
+    expect(facts.checkInCount).toBe(4)
+    expect(facts.loggedDays).toBe(2)
   })
 
   it('computes mood trend across the halves', () => {
@@ -79,12 +105,199 @@ describe('buildHealthFacts', () => {
     expect(flat.moodTrend).toBeNull() // one half empty → no trend claim
   })
 
+  it('refuses a trend built from one logged day per half', () => {
+    const thin = buildHealthFacts(
+      [
+        { mood: 1, energy: null, created_at: dayAgo(10) },
+        { mood: 5, energy: null, created_at: dayAgo(1) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(thin.moodTrend).toBeNull()
+  })
+
+  it('splits the 14-day window into even 7|7 halves — the boundary day is older', () => {
+    /* dayAgo(7) is the hinge: anchored to today it would land in the newer
+       half (8|6 split); anchored to the cutoff it closes the older half.
+       If it flipped back, the older side would hold one logged day and
+       the trend would read null instead of 'up'. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 2, energy: null, created_at: dayAgo(8) },
+        { mood: 2, energy: null, created_at: dayAgo(7) },
+        { mood: 4, energy: null, created_at: dayAgo(2) },
+        { mood: 5, energy: null, created_at: dayAgo(1) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.moodTrend).toBe('up')
+  })
+
+  it('compares raw half-means — a 0.35 shift must not round down to flat', () => {
+    /* Older days mean 2.4 and 2.5 (half 2.45, rounds to 2.5); newer days
+       mean 2.8 twice. Rounded halves would diff 0.3 → 'flat'; the real
+       0.35 shift is 'up'. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 2, energy: null, created_at: dayAgo(8, 8) },
+        { mood: 2, energy: null, created_at: dayAgo(8, 12) },
+        { mood: 2, energy: null, created_at: dayAgo(8, 18) },
+        { mood: 3, energy: null, created_at: dayAgo(8, 21) },
+        { mood: 3, energy: null, created_at: dayAgo(8, 23) },
+        { mood: 2, energy: null, created_at: dayAgo(9, 9) },
+        { mood: 3, energy: null, created_at: dayAgo(9, 20) },
+        { mood: 3, energy: null, created_at: dayAgo(2, 8) },
+        { mood: 3, energy: null, created_at: dayAgo(2, 12) },
+        { mood: 3, energy: null, created_at: dayAgo(2, 16) },
+        { mood: 3, energy: null, created_at: dayAgo(2, 20) },
+        { mood: 2, energy: null, created_at: dayAgo(2, 23) },
+        { mood: 2, energy: null, created_at: dayAgo(1, 9) },
+        { mood: 3, energy: null, created_at: dayAgo(1, 12) },
+        { mood: 3, energy: null, created_at: dayAgo(1, 16) },
+        { mood: 3, energy: null, created_at: dayAgo(1, 19) },
+        { mood: 3, energy: null, created_at: dayAgo(1, 22) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.moodTrend).toBe('up')
+  })
+
+  it('reports per-habit days marked — including untouched habits and deduped days', () => {
+    const facts = buildHealthFacts(
+      [],
+      [
+        { id: 'h1', name: 'Walk' },
+        { id: 'h2', name: 'Stretch' },
+      ],
+      [
+        { habit_id: 'h1', day: isoDay(1) },
+        { habit_id: 'h1', day: isoDay(1) }, // duplicate row can't inflate
+        { habit_id: 'h1', day: isoDay(3) },
+        { habit_id: 'h1', day: isoDay(40) }, // outside window
+      ],
+      14,
+      NOW,
+    )
+    expect(facts.habitDays).toEqual([
+      { name: 'Walk', days: 2 },
+      { name: 'Stretch', days: 0 },
+    ])
+  })
+
   it('handles an empty window without fabricating stats', () => {
     const f = buildHealthFacts([], [], [], 14, NOW)
     expect(f.checkInCount).toBe(0)
+    expect(f.loggedDays).toBe(0)
     expect(f.avgMood).toBeNull()
     expect(f.moodTrend).toBeNull()
-    expect(f.habitsKept).toBe(0)
+    expect(f.habitDays).toEqual([])
+  })
+
+  it('buckets on the stored local day when the row carries one', () => {
+    /* The stored day wins in both directions: a row created_at a date
+       outside the window but stamped inside counts, and a row created_at
+       inside but stamped outside doesn't. UTC-only bucketing fails both. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 4, energy: null, created_at: dayAgo(20), day: isoDay(2) },
+        { mood: 1, energy: null, created_at: dayAgo(1), day: isoDay(20) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.checkInCount).toBe(1)
+    expect(facts.avgMood).toBe(4)
+  })
+
+  it('lets a stored day one date ahead of the anchor in — UTC+ writers exist', () => {
+    /* todayUtc is 2026-10-02; a UTC+14 writer's today is 2026-10-03. That
+       day is real, not future — but 2026-10-04 is. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 4, energy: null, created_at: dayAgo(0), day: '2026-10-03' },
+        { mood: 1, energy: null, created_at: dayAgo(0), day: '2026-10-04' },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.checkInCount).toBe(1)
+    expect(facts.avgMood).toBe(4)
+  })
+
+  it('ignores habit marks stamped before the habit existed', () => {
+    const facts = buildHealthFacts(
+      [],
+      [
+        { id: 'h1', name: 'Walk', day: isoDay(2) },
+        /* Legacy row without `day` — created_at is the floor instead. */
+        { id: 'h2', name: 'Stretch', created_at: dayAgo(1) },
+      ],
+      [
+        { habit_id: 'h1', day: isoDay(3) }, // before h1 existed
+        { habit_id: 'h1', day: isoDay(1) }, // counts
+        { habit_id: 'h2', day: isoDay(4) }, // before h2 existed
+      ],
+      14,
+      NOW,
+    )
+    expect(facts.habitDays).toEqual([
+      { name: 'Walk', days: 1 },
+      { name: 'Stretch', days: 0 },
+    ])
+  })
+})
+
+describe('lowMoodPatchEligible', () => {
+  const factsFor = (checkIns: { mood: number; energy: number | null; created_at: string }[]) =>
+    buildHealthFacts(checkIns, [], [], 14, NOW)
+
+  it('needs five logged days — five check-ins across two days is a bad weekend, not a patch', () => {
+    const twoDays = factsFor([
+      { mood: 1, energy: null, created_at: dayAgo(1, 8) },
+      { mood: 1, energy: null, created_at: dayAgo(1, 13) },
+      { mood: 2, energy: null, created_at: dayAgo(1, 21) },
+      { mood: 1, energy: null, created_at: dayAgo(2, 9) },
+      { mood: 2, energy: null, created_at: dayAgo(2, 18) },
+    ])
+    expect(twoDays.checkInCount).toBe(5)
+    expect(twoDays.loggedDays).toBe(2)
+    expect(lowMoodPatchEligible(twoDays, [])).toBe(false)
+  })
+
+  it('files on five low days, and stays quiet for the wrong reasons', () => {
+    const lowWeek = factsFor(
+      [1, 2, 3, 4, 5].map((d) => ({ mood: 2, energy: null, created_at: dayAgo(d) })),
+    )
+    expect(lowMoodPatchEligible(lowWeek, [])).toBe(true)
+    /* A tracked walk already covers the suggestion — in either language. */
+    expect(
+      lowMoodPatchEligible(lowWeek, [
+        { id: 'h1', name: 'Evening walk', doneToday: false, streak: 2 },
+      ]),
+    ).toBe(false)
+    expect(
+      lowMoodPatchEligible(lowWeek, [
+        { id: 'h1', name: 'Marche du soir', doneToday: false, streak: 2 },
+      ]),
+    ).toBe(false)
+    /* A healthy week never triggers it, however many days are logged. */
+    const goodWeek = factsFor(
+      [1, 2, 3, 4, 5].map((d) => ({ mood: 4, energy: null, created_at: dayAgo(d) })),
+    )
+    expect(lowMoodPatchEligible(goodWeek, [])).toBe(false)
   })
 })
 
@@ -116,6 +329,20 @@ describe('prompt guardrails', () => {
   })
   it('recap instructs describe-not-advise', () => {
     expect(recapPrompt(facts, [], 'en').toLowerCase()).toContain('describe')
+  })
+  it('recap never narrates habits that were never configured', () => {
+    /* Zero configured habits is an absence, not a failure — asking "how
+       habits went" when habitsTotal is 0 made the model report a lapse
+       the person never signed up for. */
+    const none = buildHealthFacts([], [], [], 14, NOW)
+    expect(none.habitsTotal).toBe(0)
+    expect(recapPrompt(none, [], 'en')).not.toContain('how each habit went')
+    expect(recapPrompt(facts, [], 'en')).toContain('how each habit went by its days marked')
+  })
+  it('recap pins plain numbers over verdicts and guards thin data', () => {
+    const p = recapPrompt(facts, [], 'en')
+    expect(p).toContain('Report the numbers plainly')
+    expect(p).toContain('If the data is thin')
   })
   it('habit prompt stays non-clinical and names existing habits', () => {
     const p = habitPrompt(facts, ['Morning walk'], [], 'en')
@@ -186,6 +413,82 @@ describe('buildHabitStatuses', () => {
     expect(buildHabitStatuses(HABITS, [], TODAY).map((s) => s.streak)).toEqual([0, 0])
     expect(buildHabitStatuses([], [], TODAY)).toEqual([])
   })
+
+  it('floors a streak at the habit\'s own day — a backfill can\'t invent history', () => {
+    const statuses = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', day: '2026-10-01' }],
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        /* Stamped before the habit existed — the mark can't count. */
+        { habit_id: 'h1', day: '2026-09-30' },
+        { habit_id: 'h1', day: '2026-09-29' },
+      ],
+      TODAY,
+    )
+    expect(statuses[0].streak).toBe(2)
+    /* A habit carrying no day falls back to created_at's UTC date. */
+    const legacy = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', created_at: '2026-10-01T20:00:00Z' }],
+      [{ habit_id: 'h1', day: '2026-09-30' }],
+      TODAY,
+    )
+    expect(legacy[0].streak).toBe(0)
+  })
+
+  it('flags a streak that runs off the fetched window — the data ran out, not the streak', () => {
+    const logs = [
+      { habit_id: 'h1', day: '2026-10-01' },
+      { habit_id: 'h1', day: '2026-09-30' },
+      { habit_id: 'h1', day: '2026-09-29' },
+    ]
+    /* Floor on the streak's last day → the walk died at the window edge. */
+    const capped = buildHabitStatuses(HABITS, logs, TODAY, '2026-09-29')
+    expect(capped[0]).toMatchObject({ streak: 3, streakCapped: true })
+    /* Floor one day earlier — a real gap day exists in the data → exact. */
+    const exact = buildHabitStatuses(HABITS, logs, TODAY, '2026-09-28')
+    expect(exact[0].streak).toBe(3)
+    expect(exact[0].streakCapped).toBeUndefined()
+    /* No floor passed → legacy callers stay exact by definition. */
+    expect(buildHabitStatuses(HABITS, logs, TODAY)[0].streakCapped).toBeUndefined()
+  })
+
+  it('reads exact, not capped, when the habit\'s own start day is the fetch floor', () => {
+    /* The walk dies at prevDay(floorDay) whether the fetch truncated or
+       the creation floor clipped — but a habit created ON the floor can
+       never extend past it, so the streak is genuinely exact. */
+    const statuses = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', day: '2026-09-29' }],
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        { habit_id: 'h1', day: '2026-09-30' },
+        { habit_id: 'h1', day: '2026-09-29' },
+      ],
+      TODAY,
+      '2026-09-29',
+    )
+    expect(statuses[0].streak).toBe(4)
+    expect(statuses[0].streakCapped).toBeUndefined()
+  })
+
+  it('renders a capped streak as "N+" in the prompt, never a bare count', () => {
+    const capped = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk' }],
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        { habit_id: 'h1', day: '2026-09-30' },
+      ],
+      TODAY,
+      '2026-09-30',
+    )
+    expect(capped[0].streakCapped).toBe(true)
+    const facts = buildHealthFacts([], HABITS, [], 14, NOW)
+    const p = chatPrompt(facts, capped, [], TODAY, 'en').content
+    expect(p).toContain('streak 3+ days')
+    expect(p).not.toContain('streak 3 days')
+  })
 })
 
 describe('chatPrompt', () => {
@@ -222,6 +525,15 @@ describe('chatPrompt', () => {
 })
 
 describe('buildCompanionSignals', () => {
+  it('labels the writer\'s stored day, not the UTC date it landed on', () => {
+    const lines = buildCompanionSignals(
+      [{ mood: 3, energy: null, note: 'late entry', created_at: dayAgo(1), day: '2026-09-30' }],
+      [],
+    )
+    expect(lines[0]).toContain('check-in 2026-09-30')
+    expect(lines[0]).not.toContain(isoDay(1))
+  })
+
   it('quotes notes and journal excerpts, newest first, skipping empty text', () => {
     const lines = buildCompanionSignals(
       [
@@ -340,6 +652,24 @@ describe('reaction prompts', () => {
     expect(mark).toContain('a round mark')
     const ordinary = reactPrompt({ type: 'habit_marked', habit: 'Walk' }, 6, [], TODAY, 'en')
     expect(ordinary).not.toContain('round mark')
+  })
+
+  it('a capped streak says "90+" and never claims a milestone it cannot verify', () => {
+    const p = reactPrompt(
+      { type: 'habit_marked', habit: 'Walk' },
+      90,
+      [],
+      TODAY,
+      'en',
+      false,
+      [],
+      true,
+    )
+    expect(p).toContain('streak now 90+ days')
+    /* 90 % 10 === 0 would normally print the milestone clause — but the
+       true streak may be longer, so "this is day 90" could be wrong. */
+    expect(p).not.toContain('round mark')
+    expect(p).not.toContain('day 90 —')
   })
 
   it('a check-in without a note says so instead of inventing one', () => {

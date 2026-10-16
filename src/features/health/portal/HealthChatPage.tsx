@@ -11,12 +11,14 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   clearHealthChat,
   deleteHealthChatThread,
+  healthVoiceTranscribeAvailable,
   listHealthChatThreads,
   loadHealthChatHistory,
   newHealthChatThread,
   regenerateHealthChat,
   renameHealthChatThread,
   sendHealthChat,
+  transcribeHealthAudio,
   type HealthChatAction,
   type HealthChatContext,
   type HealthChatThread,
@@ -37,7 +39,9 @@ import { DISTRESS_RE, isAbort } from './healthChatUi'
 import { HealthChatComposer, HealthChatPendingBubble } from './HealthChatComposer'
 import { HealthChatHeader } from './HealthChatHeader'
 import { HealthChatTurnRow } from './HealthChatTurnRow'
+import { HealthVoiceCall } from './HealthVoiceCall'
 import { useHealthChatTurnOps } from './useHealthChatTurnOps'
+import { useHealthVoiceCall } from './useHealthVoiceCall'
 import { useHealthHead } from './useHealthHead'
 
 const HISTORY_PAGE = 40
@@ -213,7 +217,24 @@ export function HealthChatPage() {
           const fresh = rows.filter(
             (r) => !seen.has(r.id) && !localOnly.has(`${r.role} ${r.content}`),
           )
-          return fresh.length ? [...prev, ...fresh] : prev
+          /* The response is the server's whole tail — a persisted turn
+             inside that window that's missing was deleted elsewhere (or
+             the thread was cleared when the window came back empty), and
+             the old append-only merge left the ghost on screen forever.
+             Optimistic local rows sit outside the server's view; keep
+             them. */
+          const windowStart = rows[0]?.createdAt
+          const windowIds = new Set(rows.map((r) => r.id))
+          const kept = prev.filter(
+            (t) =>
+              !UUID_RE.test(t.id) ||
+              (windowStart !== undefined &&
+                (t.createdAt < windowStart || windowIds.has(t.id))),
+          )
+          if (fresh.length === 0 && kept.length === prev.length) return prev
+          return [...kept, ...fresh].sort((a, b) =>
+            a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0,
+          )
         })
         /* Reading this thread now — its tail stamp is the seen marker, so
            the switcher never dots the conversation you're sitting in. */
@@ -287,10 +308,12 @@ export function HealthChatPage() {
     return result.action?.ok ? refresh() : Promise.resolve()
   }
 
-  const sendText = async (message: string) => {
+  /* Returns the reply text (or null on failure/abort) so the voice-call
+     layer can speak it — typed callers ignore the return. */
+  const sendText = async (message: string): Promise<string | null> => {
     /* turns===null means history is still loading — a send now would be
        wiped when the fetch resolves and the optimistic turn is replaced. */
-    if (!message || sending || turns === null) return
+    if (!message || sending || turns === null) return null
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -339,6 +362,7 @@ export function HealthChatPage() {
         },
       )
       await adoptReply(result, userTurn.id)
+      return result.reply
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
         /* Stop pressed — keep whatever streamed in as a local turn (the
@@ -369,6 +393,7 @@ export function HealthChatPage() {
           (prev ?? []).map((t) => (t.id === userTurn.id ? { ...t, failed: true } : t)),
         )
       }
+      return null
     } finally {
       abortRef.current = null
       setSending(false)
@@ -467,6 +492,22 @@ export function HealthChatPage() {
     inputRef.current?.focus()
   }
 
+  /* Voice-call mode — either the browser transcribes (Web Speech) or
+     MediaRecorder audio goes through health-transcribe, and the reply
+     flows through sendText like typed chat either way (same consent,
+     persistence and distress detection); speechSynthesis reads it back.
+     `capable` is false where neither engine can run, so the phone button
+     hides. */
+  const voice = useHealthVoiceCall({
+    lang,
+    sendMessage: sendText,
+    transcribe: {
+      available: healthVoiceTranscribeAvailable,
+      send: transcribeHealthAudio,
+    },
+    onError: () => showToast(HM.health_chat_call_transcribe_failed),
+  })
+
   /* Switcher ops — rename keeps an empty string meaningful (resets to
      untitled, so the next message names it again); delete returns the
      reader to main if they were inside the removed thread. */
@@ -491,12 +532,32 @@ export function HealthChatPage() {
   }
 
   /* Whole-transcript copy — data portability without a download file.
-     Header lines carry the day chip wording the reader already sees. */
+     Header lines carry the day chip wording the reader already sees.
+     When the loaded page is only the tail, page backwards first so the
+     pasted transcript isn't silently missing older turns. */
   const exportChat = async () => {
     const rows = turns ?? []
     if (!rows.length) return
+    let all = rows
+    if (hasMore) {
+      try {
+        const earlier: HealthChatTurn[] = []
+        let cursor: string | undefined = rows[0]?.createdAt
+        for (let i = 0; cursor && i < 25; i++) {
+          const page = await loadHealthChatHistory(HISTORY_PAGE, cursor, threadId)
+          if (page.length === 0) break
+          earlier.unshift(...page)
+          const next = page.at(0)?.createdAt
+          if (page.length < HISTORY_PAGE || next === cursor) break
+          cursor = next
+        }
+        all = [...earlier, ...rows]
+      } catch {
+        /* Fall back to what's loaded — a partial transcript beats none. */
+      }
+    }
     const who = (t: HealthChatTurn) => (t.role === 'user' ? youLabel : 'Mira')
-    const text = rows
+    const text = all
       .map(
         (t) =>
           `${who(t)} · ${formatTurnDay(t.createdAt, lang, dayLabels)} ${formatTurnTime(t.createdAt, lang)}\n${t.content}`,
@@ -542,6 +603,9 @@ export function HealthChatPage() {
      (null) is always selectable as the main one. */
   const openThread = (id: string | null) => {
     if (sending || id === threadId) return
+    /* A call belongs to the conversation it was opened in — switching
+       threads hangs up instead of speaking replies into the other one. */
+    voice.end()
     setThreadId(id)
   }
   const startThread = async () => {
@@ -615,6 +679,9 @@ export function HealthChatPage() {
         onDelete={(id) => void removeThread(id)}
         onExport={() => void exportChat()}
         onClear={() => void clear()}
+        voiceCapable={voice.capable}
+        canCall={turns !== null}
+        onCall={voice.start}
       />
 
       <section className="sb-card sb-card-pad sbchat" style={{ marginTop: 14 }}>
@@ -674,7 +741,7 @@ export function HealthChatPage() {
                   chipClass="sbchat-starter"
                   onPick={(s) => void sendText(s)}
                 />
-                <Link className="sbchat-recap" to="/health/insights?recap=1">
+                <Link className="sbchat-recap" to="/wellness/insights?recap=1">
                   {x(HM.health_chat_recap_link)}
                 </Link>
               </>
@@ -767,6 +834,23 @@ export function HealthChatPage() {
           x={x}
         />
       </section>
+
+      {voice.active && (
+        <HealthVoiceCall
+          status={voice.status}
+          blockKind={voice.blockKind}
+          engine={voice.engine}
+          liveText={voice.liveText}
+          lastText={voice.lastText}
+          level={voice.level}
+          micOff={voice.micOff}
+          voiceOff={voice.voiceOff}
+          x={x}
+          onMic={voice.toggleMic}
+          onVoice={voice.toggleVoice}
+          onEnd={voice.end}
+        />
+      )}
     </div>
   )
 }

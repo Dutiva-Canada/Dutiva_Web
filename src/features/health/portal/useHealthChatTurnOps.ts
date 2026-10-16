@@ -68,19 +68,19 @@ export function useHealthChatTurnOps(
     setDeleting(turn.id)
     try {
       await deleteHealthChatTurn(turn.id)
-      setTurns((prev) =>
-        (prev ?? []).filter(
-          (t) =>
-            t.id !== turn.id &&
-            /* The paired reply persists exactly 1ms after the user row —
-               that's the stamp that identifies it. */
-            !(
-              turn.role === 'user' &&
-              t.role === 'assistant' &&
-              Date.parse(t.createdAt) - Date.parse(turn.createdAt) === 1
-            ),
-        ),
-      )
+      setTurns((prev) => {
+        const list = prev ?? []
+        const idx = list.findIndex((t) => t.id === turn.id)
+        /* The server drops a user turn's paired reply along with it —
+           identify that reply by position (the assistant turn right
+           after), not the +1ms stamp it happens to persist with; a stamp
+           that slips leaves an orphaned bubble no poll will clean up. */
+        const pairId =
+          turn.role === 'user' && list.at(idx + 1)?.role === 'assistant'
+            ? (list.at(idx + 1)?.id ?? null)
+            : null
+        return list.filter((t) => t.id !== turn.id && t.id !== pairId)
+      })
     } catch {
       showToast(HM.health_chat_error)
     } finally {
@@ -107,6 +107,9 @@ export function useHealthChatTurnOps(
         (prev ?? []).map((t) => (t.id === turnId ? { ...t, feedback: before } : t)),
       )
       setReasonFor(null)
+      /* The thumb silently snapping back reads as "it toggled off" — the
+         toast is the only way to tell the rating itself didn't save. */
+      showToast(HM.health_chat_error)
     }
   }
 

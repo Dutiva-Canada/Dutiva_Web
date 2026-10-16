@@ -18,6 +18,9 @@ import {
 export interface ResolvedRoute {
   routeKey: string
   modelName: string
+  /** The provider row's provider_key — telemetry (ai_telemetry_events) wants
+     the vendor name, while `provider` carries the connection details. */
+  providerKey: string
   provider: UpstreamProvider
   secretRef: string | null
   /** Route row's `config` jsonb — callers pass it to `routeBodyExtras` so
@@ -27,6 +30,7 @@ export interface ResolvedRoute {
 }
 
 interface ProviderRow {
+  provider_key: string
   base_url: string | null
   secret_ref: string | null
   status: string
@@ -60,6 +64,7 @@ export async function activeModelRoute(
       return {
         routeKey,
         modelName: row.model_name,
+        providerKey: provider.provider_key,
         provider: { base_url: provider.base_url, secret_ref: provider.secret_ref },
         secretRef: provider.secret_ref,
         config: row.config,

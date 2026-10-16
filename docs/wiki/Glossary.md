@@ -426,7 +426,7 @@ Sources: [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
 
 ### Mira
 
-The wellness portal's companion — the assistant persona served by the `health-ai` edge function at `/health`. Warm and non-clinical: reads only the caller's own check-ins and explicitly shared journal excerpts, can execute whitelisted writes (habits, check-ins, journal entries), and answers with the 9-8-8 line when content hints at crisis. Persists to `health_chat_messages`. See [Portal Assistants](Portal-Assistants).
+The wellness portal's companion — the assistant persona served by the `health-ai` edge function at `/wellness`. Warm and non-clinical: reads only the caller's own check-ins and explicitly shared journal excerpts, can execute whitelisted writes (habits, check-ins, journal entries), and answers with the 9-8-8 line when content hints at crisis. Persists to `health_chat_messages`. See [Portal Assistants](Portal-Assistants).
 
 Sources: [supabase/functions/health-ai/index.ts](), [src/features/health/data/types.ts]()
 

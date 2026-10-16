@@ -1,8 +1,8 @@
 import { defineMessages } from '../core'
 
 /**
- * Dutiva Health portal chrome — the standalone, invite-only mental-wellness
- * surface under `/health`: daily check-ins, a private journal, gentle trend
+ * Dutiva Wellness portal chrome — the standalone, invite-only mental-wellness
+ * surface under `/wellness`: daily check-ins, a private journal, gentle trend
  * views, and a curated list of real support resources.
  *
  * Positioning is strict because Dutiva is not a licensed provider: this is a
@@ -15,20 +15,40 @@ import { defineMessages } from '../core'
  * [FR self-authored — not from a design handoff; hedge strength matched.]
  */
 export const healthMessages = defineMessages({
-  health_title: { en: 'Health', fr: 'Santé' },
-  health_portal_title: { en: 'HEALTH', fr: 'SANTÉ' },
+  health_title: { en: 'Wellness', fr: 'Mieux-être' },
+  health_portal_title: { en: 'WELLNESS', fr: 'MIEUX-ÊTRE' },
   health_subtitle: {
     en: 'A private space to check in with yourself, keep a journal, and notice patterns over time.',
     fr: 'Un espace privé pour faire le point avec vous-même, tenir un journal et repérer des tendances au fil du temps.',
   },
   health_info_note: {
-    en: 'Dutiva Health is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment — and it is not a crisis service.',
-    fr: 'Dutiva Santé est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement — et ce n’est pas un service de crise.',
+    en: 'Dutiva Wellness is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment — and it is not a crisis service.',
+    fr: 'Dutiva Mieux-être est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement — et ce n’est pas un service de crise.',
   },
   health_crisis_note: {
     en: 'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
     fr: 'En crise ou si vous pensez au suicide ? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
   },
+
+  /* The standing crisis line — CrisisNote renders these as one sentence
+     whose verbs are the links: Call → tel:988, text → sms:988, 911 →
+     tel:911. The number itself stays unlinked text so both actions share
+     it. health_crisis_note above is the same sentence as one string for
+     contexts that need it plain. */
+  health_cn_q: {
+    en: 'In crisis or thinking about suicide?',
+    fr: 'En crise ou si vous pensez au suicide ?',
+  },
+  health_cn_call: { en: 'Call', fr: 'Appelez' },
+  health_cn_or: { en: 'or', fr: 'ou' },
+  health_cn_text: { en: 'text', fr: 'textez' },
+  health_cn_988: { en: '9-8-8 (Canada, 24/7) — or', fr: 'le 9-8-8 (Canada, 24/7) — ou le' },
+  health_cn_911: { en: '911', fr: '911' },
+  health_cn_end: {
+    en: 'if you’re in immediate danger.',
+    fr: 'en cas de danger immédiat.',
+  },
+  health_cn_more: { en: 'All support options', fr: 'Toutes les options' },
 
   /* Tabs */
   health_tab_overview: { en: 'Overview', fr: 'Aperçu' },
@@ -40,7 +60,7 @@ export const healthMessages = defineMessages({
   health_tab_resources: { en: 'Resources', fr: 'Ressources' },
 
   /* Sign-in wall + access gate */
-  health_signin_title: { en: 'Sign in to Dutiva Health', fr: 'Se connecter à Dutiva Santé' },
+  health_signin_title: { en: 'Sign in to Dutiva Wellness', fr: 'Se connecter à Dutiva Mieux-être' },
   health_signin_body: {
     en: 'Enter your email and we’ll send you a one-time sign-in code. No password needed.',
     fr: 'Entrez votre courriel et nous vous enverrons un code de connexion à usage unique. Aucun mot de passe requis.',
@@ -57,10 +77,16 @@ export const healthMessages = defineMessages({
     en: 'Something went wrong. Check the code and try again.',
     fr: 'Une erreur s’est produite. Vérifiez le code et réessayez.',
   },
+  /* The send step fails before a code exists — different words than the
+     verify step's "check the code". */
+  health_signin_send_error: {
+    en: 'Couldn’t send the code — check the address and try again.',
+    fr: 'Impossible d’envoyer le code — vérifiez l’adresse et réessayez.',
+  },
   health_access_title: { en: 'Access required', fr: 'Accès requis' },
   health_access_body: {
-    en: 'Dutiva Health is invite-only while it’s in early access. Your account doesn’t have a Health grant yet — contact support to request one.',
-    fr: 'Dutiva Santé est sur invitation pendant son accès anticipé. Votre compte n’a pas encore d’accès Santé — contactez le soutien pour en faire la demande.',
+    en: 'Dutiva Wellness is invite-only while it’s in early access. Your account doesn’t have a Wellness grant yet — contact support to request one.',
+    fr: 'Dutiva Mieux-être est sur invitation pendant son accès anticipé. Votre compte n’a pas encore accès à Mieux-être — contactez le soutien pour en faire la demande.',
   },
   health_access_contact: { en: 'Contact support', fr: 'Contacter le soutien' },
   health_back_site: { en: 'Back to dutiva.ca', fr: 'Retour à dutiva.ca' },
@@ -102,6 +128,27 @@ export const healthMessages = defineMessages({
     en: 'Start with a one-minute check-in — the summary builds from there.',
     fr: 'Commencez par un point d’une minute — le résumé se construit à partir de là.',
   },
+  /* First-run orientation — only while every surface is empty; any way
+     out (the X or the CTA) dismisses it for good. [FR self-authored] */
+  health_welcome_title: { en: 'Welcome', fr: 'Bienvenue' },
+  health_welcome_sub: {
+    en: 'Three small moves — then the portal works quietly for you.',
+    fr: 'Trois petits gestes — puis le portail travaille discrètement pour vous.',
+  },
+  health_welcome_step1: {
+    en: 'Check in — mood and energy, thirty seconds.',
+    fr: 'Faites le point — humeur et énergie, trente secondes.',
+  },
+  health_welcome_step2: {
+    en: 'Write, or take a guided pause.',
+    fr: 'Écrivez, ou prenez une pause guidée.',
+  },
+  health_welcome_step3: {
+    en: 'Mira notices and suggests — you decide. Nothing changes without a yes.',
+    fr: 'Mira remarque et suggère — vous décidez. Rien ne change sans votre oui.',
+  },
+  health_welcome_cta: { en: 'Start with a check-in', fr: 'Commencer par le point du jour' },
+  health_welcome_dismiss: { en: 'Skip the welcome', fr: 'Fermer la présentation' },
   health_ov_last_checkin: { en: 'Last check-in: {date}', fr: 'Dernier point : {date}' },
   /* Pending review queue — a strip, with the count carried by fill(). */
   health_ov_review_one: { en: '1 suggestion is waiting for your call', fr: '1 suggestion attend votre décision' },
@@ -142,7 +189,6 @@ export const healthMessages = defineMessages({
   health_checkin_saved: { en: 'Check-in saved.', fr: 'Point enregistré.' },
   health_checkin_history: { en: 'History', fr: 'Historique' },
   health_checkin_delete: { en: 'Delete', fr: 'Supprimer' },
-  health_checkin_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   /* [FR self-authored] — inline edit of a saved check-in. */
   health_checkin_edit: { en: 'Edit', fr: 'Modifier' },
   health_checkin_save: { en: 'Save changes', fr: 'Enregistrer' },
@@ -152,6 +198,27 @@ export const healthMessages = defineMessages({
     en: 'Nothing yet — your check-ins will appear here.',
     fr: 'Rien pour l’instant — vos points apparaîtront ici.',
   },
+  /* [FR self-authored] — inline hints + named controls on the check-in page. */
+  health_checkin_failed: {
+    en: 'Couldn’t save the check-in — try again.',
+    fr: 'Enregistrement du point impossible — réessayez.',
+  },
+  health_checkin_need_mood: { en: 'Pick a mood first — it’s the one required piece.', fr: 'Choisissez d’abord une humeur — c’est le seul champ requis.' },
+  health_checkin_clear_hint: { en: 'Pick it again to clear it.', fr: 'Sélectionnez-la à nouveau pour l’effacer.' },
+  health_checkin_logged_today: {
+    en: 'Already logged today — your check-ins are below.',
+    fr: 'Déjà pointé aujourd’hui — vos points sont en bas.',
+  },
+  health_checkin_edit_named: { en: 'Edit check-in from {when}', fr: 'Modifier le point du {when}' },
+  health_checkin_delete_named: { en: 'Delete check-in from {when}', fr: 'Supprimer le point du {when}' },
+  /* Two-step cancel on a dirty edit — same guard the journal editor has. */
+  health_checkin_cancel_confirm: {
+    en: 'Discard changes?',
+    fr: 'Ignorer les modifications ?',
+  },
+  /* History renders the newest 30; the rest unfold on demand so a mature
+     account doesn't mount hundreds of rows. [FR self-authored] */
+  health_checkin_show_all: { en: 'Show all {count} check-ins', fr: 'Afficher les {count} points' },
   health_mood_1: { en: 'Rough', fr: 'Difficile' },
   health_mood_2: { en: 'Low', fr: 'Bas' },
   health_mood_3: { en: 'Okay', fr: 'Correct' },
@@ -188,7 +255,6 @@ export const healthMessages = defineMessages({
   health_journal_edit: { en: 'Edit', fr: 'Modifier' },
   health_journal_cancel: { en: 'Cancel', fr: 'Annuler' },
   health_journal_delete: { en: 'Delete', fr: 'Supprimer' },
-  health_journal_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_journal_empty: {
     en: 'No entries yet. Writing a few lines is a good place to start.',
     fr: 'Aucune entrée pour l’instant. Écrire quelques lignes est un bon point de départ.',
@@ -200,6 +266,82 @@ export const healthMessages = defineMessages({
   health_journal_untitled: { en: 'Untitled', fr: 'Sans titre' },
   health_journal_edited: { en: 'Edited {date}', fr: 'Modifiée le {date}' },
   health_journal_body_required: { en: 'Write a few words first.', fr: 'Écrivez d’abord quelques mots.' },
+  /* [FR self-authored] — archive affordances, search, and the shared-entry
+     filter on the journal list. */
+  health_journal_load_failed: {
+    en: 'Couldn’t load earlier entries — try again.',
+    fr: 'Chargement des entrées précédentes impossible — réessayez.',
+  },
+  health_journal_expand: { en: 'Read more', fr: 'Lire la suite' },
+  health_journal_collapse: { en: 'Show less', fr: 'Réduire' },
+  health_journal_search: { en: 'Search entries', fr: 'Rechercher dans les entrées' },
+  health_journal_no_results: {
+    en: 'No loaded entries match — load earlier entries to search further back.',
+    fr: 'Aucune entrée chargée ne correspond — chargez les entrées précédentes pour remonter plus loin.',
+  },
+  /* When the whole archive is already loaded, a search miss is a real
+     miss — no "load earlier" tail to offer. */
+  health_journal_no_match: {
+    en: 'No entries match that.',
+    fr: 'Aucune entrée ne correspond.',
+  },
+  /* Whole-journal clipboard copy — same portability shape as the chat
+     transcript. [FR self-authored] */
+  health_journal_copy_all: { en: 'Copy all', fr: 'Copier tout' },
+  health_journal_copy_hint: {
+    en: 'Copies every entry, oldest to newest, to the clipboard.',
+    fr: 'Copie toutes les entrées, de la plus ancienne à la plus récente.',
+  },
+  health_journal_copied: { en: 'Entries copied.', fr: 'Entrées copiées.' },
+  health_journal_copy_failed: {
+    en: 'Couldn’t copy — try again.',
+    fr: 'Copie impossible — réessayez.',
+  },
+  /* Photo attachments — one optional image per entry, private bucket,
+     gated on migration 0226 actually existing. Never reaches Mira: her
+     context stays text-only. [FR self-authored] */
+  health_journal_photo_label: { en: 'Photo (optional)', fr: 'Photo (facultative)' },
+  health_journal_photo_add: { en: 'Add a photo', fr: 'Ajouter une photo' },
+  health_journal_photo_remove: { en: 'Remove photo', fr: 'Retirer la photo' },
+  health_journal_photo_open: { en: 'Open the photo full size', fr: 'Ouvrir la photo en grand' },
+  health_journal_photo_alt: {
+    en: 'Photo attached to “{title}”',
+    fr: 'Photo jointe à « {title} »',
+  },
+  health_journal_photo_failed: {
+    en: 'Entry saved, but the photo didn’t upload — edit the entry to try again.',
+    fr: 'Entrée enregistrée, mais la photo n’a pas été téléversée — modifiez l’entrée pour réessayer.',
+  },
+  health_journal_photo_too_big: {
+    en: 'That photo is over 5 MB — pick a smaller one.',
+    fr: 'Cette photo dépasse 5 Mo — choisissez-en une plus petite.',
+  },
+  health_journal_photo_type: {
+    en: 'That file isn’t a supported photo (JPEG, PNG, WebP, GIF, HEIC).',
+    fr: 'Ce fichier n’est pas une photo prise en charge (JPEG, PNG, WebP, GIF, HEIC).',
+  },
+  health_journal_photo_attached: { en: '(photo attached)', fr: '(photo jointe)' },
+  health_journal_filter_shared: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
+  health_journal_shared_edit_hint: {
+    en: 'Shared — Mira reads the latest saved version.',
+    fr: 'Partagée — Mira lit la dernière version enregistrée.',
+  },
+  /* Two-step cancel — a dirty editor asks before dropping the draft. */
+  health_journal_cancel_confirm: {
+    en: 'Discard what you wrote?',
+    fr: 'Jeter ce que vous avez écrit ?',
+  },
+  health_journal_share_named: { en: 'Let Mira read “{title}”', fr: 'Laisser Mira lire « {title} »' },
+  health_journal_unshare_named: { en: 'Stop sharing “{title}” with Mira', fr: 'Retirer le partage de « {title} » avec Mira' },
+  health_journal_edit_named: { en: 'Edit “{title}”', fr: 'Modifier « {title} »' },
+  health_journal_delete_named: { en: 'Delete “{title}”', fr: 'Supprimer « {title} »' },
+
+  /* "Suggest a prompt" is disabled while a draft is open — the prompt is
+     seed text, and swapping it under half-written prose surprises. */
+  health_journal_prompt_busy: {
+    en: 'Finish or clear this draft to get a fresh prompt.',
+    fr: 'Terminez ou effacez ce brouillon pour obtenir une nouvelle invite.',
+  },
 
   /* Insights — observations, not assessments */
   health_insights_title: { en: 'Insights', fr: 'Tendances' },
@@ -208,11 +350,37 @@ export const healthMessages = defineMessages({
     fr: 'Des tendances tirées de vos propres points du jour — des observations, pas une évaluation.',
   },
   health_ins_mood_14d: { en: 'Mood over the last 14 days', fr: 'Humeur des 14 derniers jours' },
-  health_ins_avg_mood: { en: 'Average mood', fr: 'Humeur moyenne' },
-  health_ins_avg_energy: { en: 'Average energy', fr: 'Énergie moyenne' },
+  health_ins_energy_14d: {
+    en: 'Energy over the last 14 days',
+    fr: 'Énergie des 14 derniers jours',
+  },
+  /* The averages and the chart now share per-day semantics — label carries
+     the window so the three windows on the page stay legible. */
+  health_ins_avg_mood: { en: 'Average mood (30 days)', fr: 'Humeur moyenne (30 jours)' },
+  health_ins_avg_energy: { en: 'Average energy (30 days)', fr: 'Énergie moyenne (30 jours)' },
   health_ins_total: { en: 'Check-ins', fr: 'Points du jour' },
-  health_ins_streak: { en: 'Current streak', fr: 'Jours de suite' },
+  /* Same metric as Overview's "Check-in streak" — one name, one concept. */
+  health_ins_streak: { en: 'Check-in streak', fr: 'Jours de suite' },
   health_ins_entries: { en: 'Journal entries', fr: 'Entrées de journal' },
+  /* Spoken summary carried on the chart's role="img" label — the bars
+     themselves are decoration; this is what AT hears. [FR self-authored] */
+  health_ins_chart_summary: {
+    en: '{logged} of {total} days logged · average mood {avg}',
+    fr: '{logged} jours pointés sur {total} · humeur moyenne {avg}',
+  },
+  health_ins_chart_summary_none: {
+    en: '{logged} of {total} days logged',
+    fr: '{logged} jours pointés sur {total}',
+  },
+  /* [FR self-authored] */
+  health_ins_chart_summary_energy: {
+    en: '{logged} of {total} days logged · average energy {avg}',
+    fr: '{logged} jours pointés sur {total} · énergie moyenne {avg}',
+  },
+  health_ins_checkin_cta: { en: 'Check in now', fr: 'Pointer maintenant' },
+  /* Tooltip on an empty chart day — distinguishes "nothing logged" from a
+     genuinely low day. [FR self-authored] */
+  health_ins_day_none: { en: '{day} — no check-in', fr: '{day} — aucun point' },
   health_ins_note: {
     en: 'These are simple counts and averages of what you recorded — they describe your inputs, not your health. If a trend concerns you, bring it to a qualified professional.',
     fr: 'Ce sont de simples décomptes et moyennes de ce que vous avez noté — ils décrivent vos saisies, pas votre santé. Si une tendance vous préoccupe, parlez-en à un professionnel qualifié.',
@@ -221,14 +389,28 @@ export const healthMessages = defineMessages({
     en: 'Nothing to chart yet. A few check-ins will start to show a pattern.',
     fr: 'Rien à afficher pour l’instant. Quelques points du jour commenceront à dessiner une tendance.',
   },
+  /* Check-ins exist but the 14-day window is empty — different from never
+     having checked in; the chart can restart, not start. [FR self-authored] */
+  health_ins_no_data_window: {
+    en: 'No check-ins in the last 14 days — your next one restarts the chart.',
+    fr: 'Aucun point du jour dans les 14 derniers jours — votre prochain point relance le graphique.',
+  },
+  /* 1–3 logged days: the bars are real but a "14-day chart" framing would
+     pretend a trend exists. Name the honest state — this is the starting
+     point — instead. {day} is the first logged day in the window.
+     [FR self-authored] */
+  health_ins_starting: {
+    en: 'Your starting point — {day}. A trend starts to show with a few more check-ins.',
+    fr: 'Votre point de départ — {day}. Une tendance commence à se dessiner après quelques points du jour de plus.',
+  },
   health_ins_low_day: { en: 'Toughest day this week', fr: 'Journée la plus difficile cette semaine' },
   health_ins_best_day: { en: 'Best day this week', fr: 'Meilleure journée cette semaine' },
 
   /* Resources — real services only; Dutiva never presents as one */
   health_res_title: { en: 'Resources', fr: 'Ressources' },
   health_res_sub: {
-    en: 'Real places to reach people. Dutiva Health is a reflection tool, not a support service — these are.',
-    fr: 'De vrais endroits pour joindre des gens. Dutiva Santé est un outil de réflexion, pas un service de soutien — eux le sont.',
+    en: 'Real places to reach people. Dutiva Wellness is a reflection tool, not a support service — these are.',
+    fr: 'De vrais endroits pour joindre des gens. Dutiva Mieux-être est un outil de réflexion, pas un service de soutien — eux le sont.',
   },
   health_res_crisis_title: { en: 'If you’re in crisis right now', fr: 'Si vous êtes en crise en ce moment' },
   health_res_988_name: { en: '9-8-8: Suicide Crisis Helpline', fr: '9-8-8 : Ligne d’aide en cas de crise suicide' },
@@ -244,13 +426,13 @@ export const healthMessages = defineMessages({
   health_res_talk_title: { en: 'Talk to someone', fr: 'Parler à quelqu’un' },
   health_res_khp_name: { en: 'Kids Help Phone (up to age 29)', fr: 'Jeunesse, J’écoute (29 ans et moins)' },
   health_res_khp_body: {
-    en: 'Call 1-800-668-6868 or text CONNECT to 686868. Free, 24/7.',
-    fr: 'Appelez le 1-800-668-6868 ou textez PARLER au 686868. Gratuit, 24/7.',
+    en: 'Call 1-800-668-6868, text CONNECT to 686868, or chat at kidshelpphone.ca. Free, 24/7.',
+    fr: 'Appelez le 1-800-668-6868, textez PARLER au 686868 ou clavardez sur jeunessejecoute.ca. Gratuit, 24/7.',
   },
   health_res_hope_name: { en: 'Hope for Wellness Helpline', fr: 'Ligne d’écoute d’espoir pour le mieux-être' },
   health_res_hope_body: {
-    en: 'Support for Indigenous peoples across Canada. Call 1-855-242-3310, 24/7.',
-    fr: 'Soutien pour les peuples autochtones partout au Canada. Appelez le 1-855-242-3310, 24/7.',
+    en: 'Support for Indigenous peoples across Canada. Call 1-855-242-3310 or chat at hopeforwellness.ca, 24/7.',
+    fr: 'Soutien pour les peuples autochtones partout au Canada. Appelez le 1-855-242-3310 ou clavardez sur hopeforwellness.ca, 24/7.',
   },
   health_res_qc_name: { en: 'Suicide.ca (Quebec)', fr: 'Suicide.ca (Québec)' },
   health_res_qc_body: {
@@ -268,8 +450,101 @@ export const healthMessages = defineMessages({
     fr: 'Dans la plupart des provinces, le 8-1-1 vous met en contact avec une infirmière qui peut vous orienter vers des services de santé mentale locaux.',
   },
   health_res_note: {
-    en: 'Dutiva Health isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
-    fr: 'Dutiva Santé n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
+    en: 'Dutiva Wellness isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
+    fr: 'Dutiva Mieux-être n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
+  },
+  /* Link-chip labels — the contact methods are tappable, not just printed.
+     [FR self-authored] */
+  health_res_call: { en: 'Call', fr: 'Appeler le' },
+  health_res_text: { en: 'Text', fr: 'Texter le' },
+  health_res_chat_online: { en: 'Chat online', fr: 'Clavarder' },
+  health_res_mira_line: {
+    en: 'Not urgent? Mira can think it through with you.',
+    fr: 'Pas urgent ? Mira peut en parler avec vous.',
+  },
+  health_res_mira_link: { en: 'Open chat', fr: 'Ouvrir la conversation' },
+
+  /* Ongoing support + community resources — vetted external links only;
+     each is a real service that responds, never an endorsement of paid care.
+     [FR self-authored] */
+  health_res_visit: { en: 'Visit', fr: 'Visiter' },
+  health_res_pt_name: {
+    en: 'Psychology Today — therapist directory',
+    fr: 'Psychology Today — répertoire de thérapeutes',
+  },
+  health_res_pt_body: {
+    en: 'A widely used directory of therapists across Canada — filter by city, concern, approach, and language.',
+    fr: 'Un répertoire de thérapeutes bien établi au Canada — filtrez par ville, préoccupation, approche et langue.',
+  },
+  health_res_atn_name: { en: 'Affordable Therapy Network', fr: 'Affordable Therapy Network' },
+  health_res_atn_body: {
+    en: 'A Canadian directory of therapists offering low-cost and sliding-scale sessions, online and in person.',
+    fr: 'Un répertoire canadien de thérapeutes qui offrent des séances à faible coût ou à tarif ajusté au revenu, en ligne et en personne.',
+  },
+  health_res_op_name: { en: 'Open Path Collective', fr: 'Open Path Collective' },
+  health_res_op_body: {
+    en: 'A nonprofit connecting you with therapists at reduced rates for a one-time membership fee — it serves Canada.',
+    fr: 'Un organisme sans but lucratif qui vous relie à des thérapeutes à tarifs réduits moyennant des frais d’adhésion uniques — il dessert le Canada.',
+  },
+  health_res_cmha_name: { en: 'CMHA — local programs', fr: 'ACSM — programmes locaux' },
+  health_res_cmha_body: {
+    en: 'Community mental-health programs across Canada — peer support, courses, and local services. The branch finder on their site shows what’s near you.',
+    fr: 'Des programmes communautaires en santé mentale partout au Canada — soutien par les pairs, cours et services locaux. Le localisateur de filiales sur leur site indique ce qui existe près de chez vous.',
+  },
+  health_res_camh_name: { en: 'CAMH — mental-health guides', fr: 'CAMH — guides en santé mentale' },
+  health_res_camh_body: {
+    en: 'Free, plain-language explainers on conditions, treatment, and coping — including the Mental Health 101 series. In English and French.',
+    fr: 'Des explications gratuites en langage simple sur les troubles, les traitements et les moyens d’y faire face — dont la série Santé mentale 101. En français et en anglais.',
+  },
+  health_res_7cups_name: { en: '7 Cups — someone to talk to', fr: '7 Cups — quelqu’un à qui parler' },
+  health_res_7cups_body: {
+    en: 'Free, anonymous chat with trained volunteer listeners, day or night — for when you need to talk but it isn’t a crisis. Dedicated listeners for teens 13–17.',
+    fr: 'Clavardage gratuit et anonyme avec des écoutants bénévoles formés, jour et nuit — quand vous avez besoin de parler sans être en crise. Des écoutants sont dédiés aux 13 à 17 ans.',
+  },
+  /* Listed because users will find it anyway — labeled paid so the
+     commercial option reads differently from the free ones. */
+  health_res_bh_name: {
+    en: 'BetterHelp — online therapy (paid)',
+    fr: 'BetterHelp — thérapie en ligne (payant)',
+  },
+  health_res_bh_body: {
+    en: 'Video, phone, or messaging sessions with a matched therapist — a paid subscription service.',
+    fr: 'Des séances par vidéo, téléphone ou messagerie avec un thérapeute jumelé — un service payant par abonnement.',
+  },
+  health_res_community_title: { en: 'Community supports', fr: 'Soutiens communautaires' },
+  health_res_211_name: {
+    en: '211 — community services navigator',
+    fr: '211 — navigation des services communautaires',
+  },
+  health_res_211_body: {
+    en: 'One free number for the essentials — housing, food, money trouble, legal aid, senior and newcomer services. Confidential, 24/7, in over 150 languages.',
+    fr: 'Un numéro gratuit pour l’essentiel — logement, alimentation, difficultés financières, aide juridique, services aux aînés et aux nouveaux arrivants. Confidentiel, 24/7, dans plus de 150 langues.',
+  },
+  health_res_benefits_name: {
+    en: 'Benefits Finder — Government of Canada',
+    fr: 'Chercheur de prestations — Gouvernement du Canada',
+  },
+  health_res_benefits_body: {
+    en: 'Answer a few questions to see which federal benefits you may qualify for — disability, caregiving, job loss, housing, family.',
+    fr: 'Répondez à quelques questions pour voir quelles prestations fédérales pourraient s’appliquer — invalidité, proche aidance, perte d’emploi, logement, famille.',
+  },
+  health_res_food_name: {
+    en: 'Food Banks Canada — find a food bank',
+    fr: 'Banques alimentaires Canada — trouver une banque',
+  },
+  health_res_food_body: {
+    en: 'Search the national map for a food bank near you — if nothing comes up, 211 knows the smaller programs.',
+    fr: 'Cherchez une banque alimentaire près de chez vous sur la carte nationale — si rien n’apparaît, le 211 connaît les plus petits programmes.',
+  },
+  health_res_credit_name: { en: 'Credit Counselling Canada', fr: 'Conseil en crédit du Canada' },
+  health_res_credit_body: {
+    en: 'Non-profit agencies that help with debt — free first sessions, repayment plans, and alternatives to consolidation loans.',
+    fr: 'Des organismes sans but lucratif qui aident à gérer les dettes — premières séances gratuites, plans de remboursement et solutions de rechange aux prêts de consolidation.',
+  },
+  health_res_learn_name: { en: 'Learn at Home — Ontario', fr: 'Apprentissage à la maison — Ontario' },
+  health_res_learn_body: {
+    en: 'The province’s hub of free K–12 learning resources for kids — curriculum, activities, and supports for parents.',
+    fr: 'Le carrefour provincial de ressources d’apprentissage gratuites pour les enfants de la maternelle à la 12e année — curriculum, activités et soutiens pour les parents.',
   },
 
   /* Habits — gentle routine tracking, nothing diagnostic */
@@ -288,7 +563,57 @@ export const healthMessages = defineMessages({
   health_habit_streak_many: { en: '{count}-day streak', fr: '{count} jours de suite' },
   health_habit_week: { en: 'Last 7 days', fr: '7 derniers jours' },
   health_habit_delete: { en: 'Delete', fr: 'Supprimer' },
-  health_habit_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
+  health_habit_rename: { en: 'Rename', fr: 'Renommer' },
+  health_habit_renamed: { en: 'Habit renamed.', fr: 'Habitude renommée.' },
+  health_habit_exists: {
+    en: 'You’re already tracking a habit with that name.',
+    fr: 'Une habitude porte déjà ce nom.',
+  },
+  /* Spoken summary + per-dot labels for the 7-day strip — the dots are
+     toggleable buttons for backfilling, so each carries its day and state.
+     [FR self-authored] */
+  health_habit_week_summary: { en: '{done}/{total} this week', fr: '{done}/{total} cette semaine' },
+  /* Weekly cadence — an opt-in alternative to the daily streak for habits
+     that aren't meant to be daily ("gym 3× a week"). The progress pill
+     carries the fraction; there is deliberately no "missed day" language
+     on a weekly habit. Gated on migration 0228's column. [FR self-authored] */
+  health_habit_cadence: { en: 'Cadence', fr: 'Rythme' },
+  health_habit_cadence_daily: { en: 'Every day', fr: 'Chaque jour' },
+  health_habit_cadence_weekly: { en: '{n}× a week', fr: '{n}× par semaine' },
+  health_habit_week_progress: {
+    en: '{done} of {target} this week',
+    fr: '{done} sur {target} cette semaine',
+  },
+  health_habit_month_summary: { en: '{done} of the last 30 days', fr: '{done} des 30 derniers jours' },
+  /* Younger habits get honest denominators — "0 of 30" would scold a
+     habit that only just started existing. [FR self-authored] */
+  health_habit_since_summary: {
+    en: '{done} of {total} days since it started',
+    fr: '{done} des {total} jours depuis le début',
+  },
+  health_habit_started_today: { en: 'Started today', fr: 'Commencée aujourd’hui' },
+  health_habit_week_tracked: {
+    en: '{done} of {total} days tracked',
+    fr: '{done} des {total} jours suivis',
+  },
+  /* Days before the habit existed stay tappable (the practice may predate
+     the tracking) but read differently — not "missed", just "not yet". */
+  health_habit_dot_before: {
+    en: '{day} — before tracking started',
+    fr: '{day} — avant le début du suivi',
+  },
+  health_habit_best: { en: 'Best run: {count} days', fr: 'Record : {count} jours' },
+  health_habit_dot_done: { en: '{day} — done', fr: '{day} — fait' },
+  health_habit_dot_open: { en: '{day} — not done', fr: '{day} — non fait' },
+  /* Suggest-a-habit outcomes that aren't new rows. [FR self-authored] */
+  health_ai_habit_dupe: {
+    en: 'You’re already tracking that — ask again for a different idea.',
+    fr: 'Vous la suivez déjà — demandez une autre idée.',
+  },
+  health_ai_habit_same: {
+    en: 'Same idea again — add it or dismiss it first.',
+    fr: 'Même idée — ajoutez-la ou ignorez-la d’abord.',
+  },
   health_habits_empty: {
     en: 'No habits yet. Pick one small thing you’d like to do most days — a walk, a stretch, a screen-free meal.',
     fr: 'Aucune habitude pour l’instant. Choisissez une petite chose à faire la plupart des jours — une marche, un étirement, un repas sans écran.',
@@ -316,12 +641,22 @@ export const healthMessages = defineMessages({
     en: 'An idea to write about — Mira reads your numbers and what you’ve written.',
     fr: 'Une idée à explorer — Mira lit vos chiffres et vos écrits.',
   },
-  health_ai_recap_btn: { en: 'Summarize my week', fr: 'Résumer ma semaine' },
+  health_ai_recap_btn: {
+    en: 'Summarize my last two weeks',
+    fr: 'Résumer mes deux dernières semaines',
+  },
   health_ai_recap_loading: { en: 'Summarizing…', fr: 'Résumé en cours…' },
-  health_ai_recap_title: { en: 'Your week', fr: 'Votre semaine' },
+  health_ai_recap_title: { en: 'Your last two weeks', fr: 'Vos deux dernières semaines' },
   health_ai_note: {
     en: 'Mira reads your numbers and what you wrote to respond. A reflection, not advice.',
     fr: 'Mira lit vos chiffres et vos écrits pour répondre. Une réflexion, pas un conseil.',
+  },
+  /* Internal (@dutiva.ca) tier may give everyday advice — "a reflection,
+     not advice" would be false there. Provenance stays; the hedge becomes
+     the one that's still true: suggestions, never medical advice. */
+  health_ai_note_advice: {
+    en: 'Mira reads your numbers and what you wrote to respond. Everyday suggestions, never medical advice.',
+    fr: 'Mira lit vos chiffres et vos écrits pour répondre. Des suggestions du quotidien, jamais un avis médical.',
   },
   health_ai_failed: {
     en: 'Mira isn’t available right now.',
@@ -347,7 +682,9 @@ export const healthMessages = defineMessages({
     en: 'Nothing waiting — agent suggestions land here when there’s something worth a look.',
     fr: 'Rien en attente — les suggestions des agents arrivent ici quand quelque chose mérite un regard.',
   },
-  health_review_filed_by: { en: 'Filed by an agent', fr: 'Déposé par un agent' },
+  /* On Wellness only Mira files suggestions — name her, not "an agent". */
+  health_review_filed_by: { en: 'Mira suggested this', fr: 'Suggestion de Mira' },
+  health_review_dismissed: { en: 'Dismissed.', fr: 'Ignorée.' },
   health_review_load_failed: {
     en: 'The review list didn’t load — retry.',
     fr: 'La liste n’a pas chargé — réessayez.',
@@ -360,6 +697,36 @@ export const healthMessages = defineMessages({
   },
   health_review_accept_habit: { en: 'Add it', fr: 'L’ajouter' },
   health_review_kind_habit: { en: 'Habit', fr: 'Habitude' },
+  /* Recently-resolved rail + the shared-entries consent ledger — what Mira
+     can currently read, with revoke right on the row. [FR self-authored] */
+  health_review_resolved_title: { en: 'Recently resolved', fr: 'Récemment tranchées' },
+  health_review_resolved_accepted: { en: 'accepted', fr: 'acceptée' },
+  health_review_resolved_dismissed: { en: 'dismissed', fr: 'écartée' },
+  health_review_resolved_putback: { en: 'Put back', fr: 'Remettre en attente' },
+  health_review_resolved_putback_named: {
+    en: 'Put “{title}” back on the list',
+    fr: 'Remettre « {title} » dans la liste',
+  },
+  health_review_resolved_restored: { en: 'Back on the list.', fr: 'De retour dans la liste.' },
+  /* Accepting before the provider's first load lands would dedupe against
+     an empty list — ask for a moment instead. */
+  health_review_wait_load: {
+    en: 'Still loading your data — try again in a moment.',
+    fr: 'Vos données chargent encore — réessayez dans un instant.',
+  },
+  health_review_shared_title: { en: 'Shared with Mira', fr: 'Partagées avec Mira' },
+  health_review_shared_sub: {
+    en: 'Journal entries Mira can read until you stop sharing — the same toggle the journal page offers.',
+    fr: 'Les entrées de journal que Mira peut lire tant que vous ne retirez pas le partage — le même réglage que dans le journal.',
+  },
+  health_review_shared_empty: { en: 'Nothing shared right now.', fr: 'Rien de partagé pour l’instant.' },
+  /* The consent ledger's own query failed — naming the object ("what Mira
+     can read") keeps the stakes visible, not an abstract "list". */
+  health_review_shared_load_failed: {
+    en: 'Couldn’t load what Mira can read — retry.',
+    fr: 'Impossible de charger ce que Mira peut lire — réessayez.',
+  },
+  health_review_shared_revoked: { en: 'Stopped sharing.', fr: 'Partage retiré.' },
   /* [FR self-authored] — memory suggestions Mira proposed in chat. */
   health_review_accept_memory: { en: 'Remember it', fr: 'S’en souvenir' },
   health_review_kind_memory: { en: 'Memory', fr: 'Souvenir' },
@@ -380,7 +747,6 @@ export const healthMessages = defineMessages({
     fr: 'Rien pour l’instant — dites-le une fois et elle le garde.',
   },
   health_mem_delete: { en: 'Remove', fr: 'Retirer' },
-  health_mem_delete_confirm: { en: 'Click again to confirm', fr: 'Cliquez à nouveau pour confirmer' },
   health_mem_from_mira: { en: 'proposed by Mira', fr: 'proposé par Mira' },
   health_mem_label: { en: 'New memory', fr: 'Nouvelle mémoire' },
   /* Scope note under the list — what she does with these, and who sees it.
@@ -390,20 +756,19 @@ export const healthMessages = defineMessages({
     fr: 'Mira s’en sert dans vos discussions — la liste reste entre vous.',
   },
   health_mem_edit: { en: 'Edit', fr: 'Modifier' },
+  /* Named controls — every memory row's buttons name their row's snippet,
+     same convention as the check-in/journal rows. */
+  health_mem_edit_named: { en: 'Edit “{text}”', fr: 'Modifier « {text} »' },
+  health_mem_delete_named: { en: 'Remove “{text}”', fr: 'Retirer « {text} »' },
   /* Accessible name for the inline edit field — the visible button says
      "Edit", but a field needs a noun. */
   health_mem_edit_label: { en: 'Edit memory', fr: 'Modifier la mémoire' },
   health_mem_updated: { en: 'Memory updated.', fr: 'Mémoire mise à jour.' },
-  health_mem_removed: { en: 'Mira dropped that.', fr: 'Mira l’a oublié.' },
   health_mem_save_failed: {
     en: 'That didn’t save — try again.',
     fr: 'Ça n’a pas enregistré — réessayez.',
   },
-  health_mem_delete_failed: {
-    en: 'That didn’t remove — try again.',
-    fr: 'Ça n’a pas été retiré — réessayez.',
-  },
-  health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
+  health_seo_title_review: { en: 'For review — Dutiva Wellness', fr: 'À valider — Dutiva Mieux-être' },
   /* Queue write didn't land upstream — the suggestion works but won't
      survive leaving the page. [FR self-authored] */
   health_ai_not_filed: {
@@ -432,6 +797,15 @@ export const healthMessages = defineMessages({
   health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
   health_tool_breath_mode_label: { en: 'Pace', fr: 'Rythme' },
   health_tool_breath_mode_box: { en: 'Box', fr: 'Carrée' },
+  /* Physiological sigh — double inhale, long exhale. [FR self-authored] */
+  health_tool_breath_mode_sigh: { en: 'Sigh', fr: 'Soupir' },
+  /* The eyes-closed affordance — a soft tone and a short pulse mark each
+     phase change so the screen can go unread. [FR self-authored] */
+  health_tool_breath_cues: { en: 'Chime', fr: 'Carillon' },
+  health_tool_breath_cues_hint: {
+    en: 'A soft tone — and a short pulse on phones — marks each phase change.',
+    fr: 'Une note douce — et une courte vibration sur mobile — marque chaque changement de phase.',
+  },
   health_tool_breath_nudge: {
     en: 'A few rounds in — a good place to pause, or keep going.',
     fr: 'Quelques cycles — un bon moment pour faire une pause, ou continuer.',
@@ -531,14 +905,44 @@ export const healthMessages = defineMessages({
     fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
   },
   health_retry: { en: 'Try again', fr: 'Réessayer' },
+  /* Shown inline when a refresh fails but loaded data is still on screen —
+     the page keeps working off the last good snapshot. [FR self-authored] */
+  health_refresh_stale: {
+    en: 'Couldn’t refresh — showing the last saved data.',
+    fr: 'Actualisation impossible — les dernières données enregistrées s’affichent.',
+  },
+  health_save_failed: {
+    en: 'Couldn’t save — try again.',
+    fr: 'Enregistrement impossible — réessayez.',
+  },
+  health_delete_failed: {
+    en: 'Couldn’t delete — it’s still here.',
+    fr: 'Suppression impossible — l’élément est toujours là.',
+  },
+  /* [FR self-authored] — undo toasts for the portal's row deletes. The row
+     hides at once and the real delete fires only when the toast lapses, so
+     the window's copy stays past-tense. */
+  health_undo_deleted: { en: 'Deleted “{label}”.', fr: '« {label} » supprimé.' },
+  health_undo_deleted_history: {
+    en: 'Deleted “{label}” and its history.',
+    fr: '« {label} » et son historique supprimés.',
+  },
+  health_undo_deleted_checkin: { en: 'Check-in deleted.', fr: 'Check-in supprimé.' },
+  health_undo_restored: { en: 'Restored.', fr: 'Restauré.' },
+  health_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
+  health_cancel: { en: 'Cancel', fr: 'Annuler' },
+  /* Compact relative day labels used in history timestamps.
+     [FR self-authored] */
+  health_day_today: { en: 'Today', fr: 'Aujourd’hui' },
+  health_day_yesterday: { en: 'Yesterday', fr: 'Hier' },
   health_sign_out: { en: 'Sign out', fr: 'Se déconnecter' },
   health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
 
   /* Footer + legal */
-  health_footer_nav: { en: 'Dutiva Health links', fr: 'Liens Dutiva Santé' },
+  health_footer_nav: { en: 'Dutiva Wellness links', fr: 'Liens Dutiva Mieux-être' },
   health_footer_terms: { en: 'Terms', fr: 'Conditions' },
   health_footer_privacy: { en: 'Privacy', fr: 'Confidentialité' },
-  health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de bien-être' },
+  health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de mieux-être' },
   health_footer_support: { en: 'Support', fr: 'Soutien' },
   health_legal_back: { en: 'Back to Health', fr: 'Retour à Santé' },
   health_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
@@ -546,14 +950,87 @@ export const healthMessages = defineMessages({
   health_legal_contact: { en: 'Contact', fr: 'Nous joindre' },
   health_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
 
+  /* "Your data" — export, the opt-in evening reminder, delete-all. The
+     delete copy names what stays (account, access, email settings) rather
+     than implying the whole account vanishes. [FR self-authored] */
+  health_data_title: { en: 'Your data', fr: 'Vos données' },
+  health_data_sub: {
+    en: 'Everything the portal stores for you — check-ins, journal, habits, memories, and chats with Mira. Take a copy, or clear it all.',
+    fr: 'Tout ce que le portail conserve pour vous — points du jour, journal, habitudes, souvenirs et clavardages avec Mira. Téléchargez-en une copie ou effacez le tout.',
+  },
+  health_data_export_title: { en: 'Take it with you', fr: 'Emportez vos données' },
+  health_data_export_sub: {
+    en: 'Your full history in one file, exactly as stored. Downloading changes nothing — no one is notified.',
+    fr: 'Tout votre historique dans un fichier, tel que conservé. Le téléchargement ne change rien — personne n’en est avisé.',
+  },
+  health_data_export_json: { en: 'Download everything (JSON)', fr: 'Tout télécharger (JSON)' },
+  health_data_export_md: {
+    en: 'Journal as readable text (.md)',
+    fr: 'Journal en texte lisible (.md)',
+  },
+  health_data_export_empty_journal: {
+    en: 'No journal entries yet — nothing to write out.',
+    fr: 'Aucune entrée de journal pour l’instant — rien à exporter.',
+  },
+  health_data_export_done: {
+    en: 'Download started — check your downloads folder.',
+    fr: 'Téléchargement lancé — voyez votre dossier de téléchargements.',
+  },
+  health_data_export_failed: {
+    en: 'Couldn’t export your data — try again.',
+    fr: 'Impossible d’exporter vos données — réessayez.',
+  },
+  health_data_remind_title: { en: 'Evening reminder', fr: 'Rappel du soir' },
+  health_data_remind_sub: {
+    en: 'Off by default. Turn it on for one quiet email in the evening on days you haven’t checked in — never about what you wrote.',
+    fr: 'Inactif par défaut. Activez-le pour un courriel discret le soir, les jours sans point — jamais au sujet de ce que vous écrivez.',
+  },
+  health_data_remind_toggle: {
+    en: 'Email me in the evening if I haven’t checked in today',
+    fr: 'M’écrire le soir si je n’ai pas fait mon point',
+  },
+  health_data_remind_saved_on: {
+    en: 'Reminder on — at most one email, only on quiet days.',
+    fr: 'Rappel activé — un seul courriel, les jours sans point.',
+  },
+  health_data_remind_saved_off: { en: 'Reminder off.', fr: 'Rappel désactivé.' },
+  health_data_remind_failed: {
+    en: 'Couldn’t save that — try again.',
+    fr: 'Impossible d’enregistrer — réessayez.',
+  },
+  health_data_delete_title: { en: 'Delete everything', fr: 'Tout effacer' },
+  health_data_delete_sub: {
+    en: 'Removes every check-in, journal entry and photo, habit and its history, saved memory, queued suggestion, and chat with Mira. Keeps your sign-in, your access to the portal, and your email settings.',
+    fr: 'Efface chaque point du jour, entrée de journal et photo, habitude et son historique, souvenir, suggestion en attente et clavardage avec Mira. Conserve votre connexion, votre accès au portail et vos réglages de courriel.',
+  },
+  health_data_delete_btn: {
+    en: 'Delete all my health data',
+    fr: 'Effacer toutes mes données Mieux-être',
+  },
+  health_data_delete_armed: {
+    en: 'No undo — click again to delete',
+    fr: 'Aucun retour — cliquez encore pour effacer',
+  },
+  health_data_delete_done: {
+    en: 'Your health data is deleted.',
+    fr: 'Vos données Mieux-être sont effacées.',
+  },
+  health_data_delete_failed: {
+    en: 'Couldn’t delete everything — try again.',
+    fr: 'Impossible de tout effacer — réessayez.',
+  },
+  health_data_back: { en: 'Back to overview', fr: 'Retour à l’aperçu' },
+  health_footer_data: { en: 'Your data', fr: 'Vos données' },
+
   /* SEO/head titles */
-  health_seo_title: { en: 'Dutiva Health', fr: 'Dutiva Santé' },
-  health_seo_title_terms: { en: 'Terms — Dutiva Health', fr: 'Conditions — Dutiva Santé' },
-  health_seo_title_privacy: { en: 'Privacy — Dutiva Health', fr: 'Confidentialité — Dutiva Santé' },
-  health_seo_title_support: { en: 'Support — Dutiva Health', fr: 'Soutien — Dutiva Santé' },
-  health_seo_title_wellness: { en: 'Wellness notice — Dutiva Health', fr: 'Avis de bien-être — Dutiva Santé' },
-  health_seo_title_habits: { en: 'Habits — Dutiva Health', fr: 'Habitudes — Dutiva Santé' },
-  health_seo_title_tools: { en: 'Tools — Dutiva Health', fr: 'Outils — Dutiva Santé' },
+  health_seo_title: { en: 'Dutiva Wellness', fr: 'Dutiva Mieux-être' },
+  health_seo_title_data: { en: 'Your data — Dutiva Wellness', fr: 'Vos données — Dutiva Mieux-être' },
+  health_seo_title_terms: { en: 'Terms — Dutiva Wellness', fr: 'Conditions — Dutiva Mieux-être' },
+  health_seo_title_privacy: { en: 'Privacy — Dutiva Wellness', fr: 'Confidentialité — Dutiva Mieux-être' },
+  health_seo_title_support: { en: 'Support — Dutiva Wellness', fr: 'Soutien — Dutiva Mieux-être' },
+  health_seo_title_wellness: { en: 'Wellness notice — Dutiva Wellness', fr: 'Avis de mieux-être — Dutiva Mieux-être' },
+  health_seo_title_habits: { en: 'Habits — Dutiva Wellness', fr: 'Habitudes — Dutiva Mieux-être' },
+  health_seo_title_tools: { en: 'Tools — Dutiva Wellness', fr: 'Outils — Dutiva Mieux-être' },
   health_seo_desc_habits: {
     en: 'Small daily habits you track yourself.',
     fr: 'De petites habitudes quotidiennes à suivre vous-même.',
@@ -563,20 +1040,20 @@ export const healthMessages = defineMessages({
     fr: 'Des pauses guidées — respiration, ancrage, gratitude.',
   },
   health_seo_desc_terms: {
-    en: 'Terms of use for Dutiva Health.',
-    fr: 'Conditions d’utilisation de Dutiva Santé.',
+    en: 'Terms of use for Dutiva Wellness.',
+    fr: 'Conditions d’utilisation de Dutiva Mieux-être.',
   },
   health_seo_desc_privacy: {
-    en: 'How Dutiva Health handles your data.',
-    fr: 'Comment Dutiva Santé traite vos données.',
+    en: 'How Dutiva Wellness handles your data.',
+    fr: 'Comment Dutiva Mieux-être traite vos données.',
   },
   health_seo_desc_support: {
     en: 'How to reach Dutiva support.',
     fr: 'Comment joindre le soutien Dutiva.',
   },
   health_seo_desc_wellness: {
-    en: 'What Dutiva Health is and is not — a reflection tool, not medical care.',
-    fr: 'Ce qu’est et n’est pas Dutiva Santé — un outil de réflexion, pas des soins médicaux.',
+    en: 'What Dutiva Wellness is and is not — a reflection tool, not medical care.',
+    fr: 'Ce qu’est et n’est pas Dutiva Mieux-être — un outil de réflexion, pas des soins médicaux.',
   },
 
   /* Chat — Mira, the portal companion. She sees the aggregate numbers, the
@@ -713,6 +1190,14 @@ export const healthMessages = defineMessages({
   health_home_mira_week: {
     en: 'You’ve checked in {count} times this week.',
     fr: 'Vous avez pris le point {count} fois cette semaine.',
+  },
+  /* Weekly rhythm notice — {day} is a localized weekday name; both
+     languages pluralize it with a trailing "s" ("your Sundays" / "vos
+     dimanches"). Observational only — names the pattern, never why.
+     [FR self-authored] */
+  health_home_mira_weekday: {
+    en: 'Lately, your {day}s have been running lower than the rest of your week.',
+    fr: 'Ces temps-ci, vos {day}s tirent un peu plus bas que le reste de la semaine.',
   },
   /* Thumbs rating under an assistant reply — stored on the turn.
      [FR self-authored] */
@@ -881,7 +1366,71 @@ export const healthMessages = defineMessages({
   /* Exit on the downvote reason chips — a changed mind shouldn't have to
      pick one. [FR self-authored] */
   health_chat_reason_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
-  health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
+  /* Voice-call mode — a phone button in the header opens an overlay where
+     the same conversation runs by voice: the browser transcribes the mic,
+     the reply flows through the normal send pipe, and a synthesized voice
+     reads it. The conversation still saves like typed chat.
+     [FR self-authored] */
+  health_chat_call: { en: 'Voice call', fr: 'Appel vocal' },
+  /* 'ready' is the server engine's resting state — no continuous
+     listening exists there, so each turn starts with a tap.
+     [FR self-authored] */
+  health_chat_call_ready: { en: 'Tap the mic and talk', fr: 'Touchez le micro et parlez' },
+  health_chat_call_listening: { en: 'Listening…', fr: 'À l’écoute…' },
+  /* [FR self-authored] */
+  health_chat_call_recording: {
+    en: 'Recording — tap the mic to send',
+    fr: 'Enregistrement — touchez le micro pour envoyer',
+  },
+  /* [FR self-authored] */
+  health_chat_call_transcribing: {
+    en: 'Writing that down…',
+    fr: 'Mise en texte…',
+  },
+  /* Server-engine transcription failure — the clip didn't become text;
+     the call stays up and the next tap records again. [FR self-authored] */
+  health_chat_call_transcribe_failed: {
+    en: 'Couldn’t transcribe that — tap the mic and try again.',
+    fr: 'Transcription impossible — touchez le micro pour réessayer.',
+  },
+  health_chat_call_thinking: { en: 'Mira is thinking…', fr: 'Mira réfléchit…' },
+  health_chat_call_speaking: { en: 'Mira is speaking…', fr: 'Mira parle…' },
+  health_chat_call_muted: {
+    en: 'Mic off — tap to speak',
+    fr: 'Micro coupé — touchez pour parler',
+  },
+  /* 'perm' block — the mic permission was refused; the mic button doubles
+     as the retry. [FR self-authored] */
+  health_chat_call_blocked: {
+    en: 'Microphone blocked — allow it in the browser, then tap the mic to retry. Or close this and keep typing.',
+    fr: 'Micro bloqué — autorisez-le dans le navigateur, puis touchez le micro pour réessayer. Ou fermez et continuez à écrire.',
+  },
+  /* 'service' block — the browser's speech service itself is gone (Brave
+     ships the constructor without a backend, some builds disable it). Not
+     a permission the user can fix — say so. [FR self-authored] */
+  health_chat_call_unavailable: {
+    en: 'Voice isn’t working in this browser — typed chat still works below.',
+    fr: 'La voix ne fonctionne pas dans ce navigateur — le clavardage écrit fonctionne toujours plus bas.',
+  },
+  health_chat_call_end: { en: 'End call', fr: 'Raccrocher' },
+  health_chat_call_mic_on: { en: 'Turn microphone on', fr: 'Rétablir le micro' },
+  health_chat_call_mic_off: { en: 'Turn microphone off', fr: 'Couper le micro' },
+  health_chat_call_voice_on: { en: 'Unmute Mira’s voice', fr: 'Rétablir la voix de Mira' },
+  health_chat_call_voice_off: { en: 'Mute Mira’s voice', fr: 'Couper la voix de Mira' },
+  /* Provenance note inside the call overlay — names who carries the audio
+     without promising anything about retention. [FR self-authored] */
+  health_chat_call_note: {
+    en: 'Mira hears and speaks through your browser’s speech services — the conversation saves like typed chat.',
+    fr: 'Mira entend et parle par les services vocaux de votre navigateur — la discussion se sauvegarde comme à l’écrit.',
+  },
+  /* Server-engine provenance — the recording is uploaded to the
+     configured transcription service; Mira only ever receives the text.
+     [FR self-authored] */
+  health_chat_call_note_server: {
+    en: 'Your voice becomes text through a speech service — Mira never receives the recording itself. The conversation saves like typed chat.',
+    fr: 'Votre voix devient du texte par un service de transcription — Mira ne reçoit jamais l’enregistrement lui-même. La discussion se sauvegarde comme à l’écrit.',
+  },
+  health_seo_title_chat: { en: 'Mira — Dutiva Wellness', fr: 'Mira — Dutiva Mieux-être' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',
     fr: 'Discutez avec Mira — la compagne de bien-être qui vous écoute et suit le fil avec vous.',

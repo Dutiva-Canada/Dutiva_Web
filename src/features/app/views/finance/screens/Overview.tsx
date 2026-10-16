@@ -10,6 +10,7 @@ import { useFinanceData } from '../data/useFinanceData'
 import { computeFinanceAttention, type FinanceAttentionItem } from '../data/financeAttention'
 import { deadlineState } from '../data/productionApi'
 import { BANK_MATCH_LABEL, PAY_RUN_STATUS_LABEL, REQUEST_STATUS_LABEL } from '../financeLabels'
+import { localTodayISO } from '@/lib/format'
 
 type ExceptionRow = {
   key: string
@@ -145,7 +146,7 @@ export function Overview() {
   )
 
   const attentionItems = useMemo(
-    () => computeFinanceAttention(state, new Date().toISOString().slice(0, 10)),
+    () => computeFinanceAttention(state, localTodayISO()),
     [state],
   )
 

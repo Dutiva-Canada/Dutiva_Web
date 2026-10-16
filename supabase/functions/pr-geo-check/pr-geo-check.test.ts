@@ -25,6 +25,19 @@ describe('classifyGeoAnswer', () => {
     expect(classifyGeoAnswer('dutivational content marketing tips', FP)).toBe('absent')
   })
 
+  it('matches the domain at its boundaries only — lookalikes are not citations', () => {
+    /* Substring matching used to count dutiva.careers, notdutiva.ca and
+       dutiva.cafe as citations to dutiva.ca. */
+    expect(classifyGeoAnswer('Try dutiva.careers for listings.', FP)).toBe('absent')
+    expect(classifyGeoAnswer('The site notdutiva.ca is unrelated.', FP)).toBe('absent')
+    expect(classifyGeoAnswer('Order at dutiva.cafe downtown.', FP)).toBe('absent')
+    /* Real references still count — subdomain, path, protocol, punctuation. */
+    expect(classifyGeoAnswer('See https://www.dutiva.ca/fr for more.', FP)).toBe('cited')
+    expect(classifyGeoAnswer('Details at dutiva.ca/pr.', FP)).toBe('cited')
+    expect(classifyGeoAnswer('(dutiva.ca)', FP)).toBe('cited')
+    expect(classifyGeoAnswer('mail at team@dutiva.ca works', FP)).toBe('cited')
+  })
+
   it('domain match wins over a bare brand mention', () => {
     expect(classifyGeoAnswer('Dutiva — https://dutiva.ca — is one option.', FP)).toBe('cited')
   })

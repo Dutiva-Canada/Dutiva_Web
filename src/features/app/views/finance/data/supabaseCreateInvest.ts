@@ -14,6 +14,7 @@ import {
   mapWatchlistItem,
 } from './supabaseMappers'
 import { TABLES, supabase } from './supabaseTables'
+import { localTodayISO } from '@/lib/format'
 
 export async function addWatchlistItemInSupabase(
   orgId: string,
@@ -337,7 +338,7 @@ export async function transitionCashSweepStatusInSupabase(
     .from(TABLES.cashSweeps)
     .update({
       status,
-      ...(status === 'executed' ? { executed_date: new Date().toISOString().slice(0, 10) } : {}),
+      ...(status === 'executed' ? { executed_date: localTodayISO() } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('organization_id', orgId)
@@ -493,7 +494,7 @@ export async function transitionCapitalCallStatusInSupabase(
   )
   return updateCapitalCallInSupabase(orgId, id, {
     status: nextStatus,
-    receivedDate: willBeReceived ? new Date().toISOString().slice(0, 10) : '',
+    receivedDate: willBeReceived ? localTodayISO() : '',
   })
 }
 

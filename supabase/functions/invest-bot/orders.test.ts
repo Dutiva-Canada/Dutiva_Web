@@ -10,6 +10,16 @@ vi.mock('./botShared.ts', () => ({
     }),
 }))
 
+/* fetchFxTable is the only network call in the fill path — stub the table,
+   keep the real convertFx so the tests exercise actual rate math. */
+const fxStub = vi.hoisted(() => ({
+  table: null as null | { date: string; rates: Record<string, number> },
+}))
+vi.mock('./fx.ts', async (importOriginal) => {
+  const real = await importOriginal<typeof import('./fx.ts')>()
+  return { ...real, fetchFxTable: async () => fxStub.table }
+})
+
 import { executeOrder, importFill } from './orders'
 import type { SupabaseClient } from './botShared'
 
@@ -340,5 +350,107 @@ describe('importFill', () => {
     const res = await importFill(client, 'u-1', { ...FILL, side: 'sell', quantity: 9 })
     expect(res.status).toBe(409)
     expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+  })
+})
+
+describe('cross-currency fills', () => {
+  /* 1 CAD = 0.73 USD → 1 USD ≈ 1.3699 CAD. cash_balance is always in the
+     account's base currency — the fill converts qty×price, never 1:1. */
+  const USD_FX = { date: '2026-10-13', rates: { CAD: 1, USD: 0.73 } }
+  const usdSeed = (): Record<string, Row[]> => ({
+    invest_orders: [{ ...ORDER }],
+    invest_positions: [{ ...POSITION, currency: 'USD' }],
+    invest_accounts: [
+      { id: 'acc-1', user_id: 'u-1', cash_balance: 1000, base_currency: 'CAD' },
+    ],
+    invest_market_snapshots: [
+      { user_id: 'u-1', asset_class: 'equity', symbol: 'ARM', price: 120, currency: 'USD' },
+    ],
+  })
+
+  it('a USD sell credits CAD at the ECB rate, not raw dollars', async () => {
+    fxStub.table = USD_FX
+    const { client, tables } = fakeDb(usdSeed())
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(200)
+    /* 5 × 120 USD = 600 USD → 821.92 CAD (the old code booked 600 raw). */
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBeCloseTo(1821.92, 2)
+    fxStub.table = null
+  })
+
+  it('a USD buy stamps the new position currency and debits CAD', async () => {
+    fxStub.table = USD_FX
+    const seed = usdSeed()
+    seed['invest_orders'] = [{ ...ORDER, side: 'buy', quantity: 2 }]
+    seed['invest_positions'] = []
+    const { client, tables } = fakeDb(seed)
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(200)
+    /* The snapshot names the instrument currency — the row must not fall
+       back to the column default or every later conversion misreads it. */
+    expect(tables['invest_positions']![0]!['currency']).toBe('USD')
+    /* 2 × 120 USD = 240 USD → 328.77 CAD debited. */
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBeCloseTo(671.23, 2)
+    fxStub.table = null
+  })
+
+  it('refuses to settle a foreign fill when no FX rate exists', async () => {
+    fxStub.table = null
+    const { client, tables } = fakeDb(usdSeed())
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ code: 'no_fx' })
+    /* The refusal lands before the claim — nothing moved. */
+    expect(tables['invest_orders']![0]!['status']).toBe('queued')
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+  })
+
+  it('same-currency fills never hit the FX feed', async () => {
+    fxStub.table = null /* would fail the conversion if it were consulted */
+    const { client, tables } = fakeDb(baseSeed())
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(200)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1600)
+  })
+
+  it('importFill converts the cash move for a USD position in a CAD account', async () => {
+    fxStub.table = USD_FX
+    const { client, tables } = fakeDb(usdSeed())
+    const res = await importFill(client, 'u-1', {
+      account_id: 'acc-1',
+      asset_class: 'equity',
+      symbol: 'ARM',
+      side: 'buy',
+      quantity: 4,
+      price: 90,
+      filled_at: '2025-01-15',
+    })
+    expect(res.status).toBe(200)
+    /* avg_cost stays in the instrument currency: 5@100 + 4@90 → 95.56 USD. */
+    expect(tables['invest_positions']![0]!['avg_cost']).toBeCloseTo(95.56, 2)
+    /* Cash move converts: 4 × 90 USD = 360 USD → 493.15 CAD debited. */
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBeCloseTo(506.85, 2)
+    fxStub.table = null
+  })
+
+  it('importFill rejects rather than book 1:1 when the rate is missing', async () => {
+    fxStub.table = null
+    const { client, tables } = fakeDb(usdSeed())
+    const res = await importFill(client, 'u-1', {
+      account_id: 'acc-1',
+      asset_class: 'equity',
+      symbol: 'ARM',
+      side: 'buy',
+      quantity: 4,
+      price: 90,
+      filled_at: '2025-01-15',
+    })
+    expect(res.status).toBe(409)
+    /* Order + fill rows the import staged are both compensated away. */
+    expect(tables['invest_orders'] ?? []).toHaveLength(1)
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
   })
 })

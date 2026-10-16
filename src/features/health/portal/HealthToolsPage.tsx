@@ -2,7 +2,7 @@ import '@/features/invest/portal/strategies.css'
 import './health.css'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Check, Loader2, RotateCcw } from 'lucide-react'
+import { Check, Loader2, RefreshCw, RotateCcw, Volume2, VolumeX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { addJournalEntry, shareEntryWithMira } from '@/features/health/data/api'
@@ -44,7 +44,26 @@ const BREATH_MODES: readonly BreathMode[] = [
       ['out', 8],
     ],
   },
+  /* Physiological sigh — a double inhale then one long exhale. The disc
+     stays expanded across the two 'in' beats, which reads as a topped-up
+     breath; the "Breathe in" label repeating is the point. */
+  {
+    id: 'sigh',
+    labelKey: HM.health_tool_breath_mode_sigh,
+    steps: [
+      ['in', 2],
+      ['in', 1],
+      ['out', 6],
+    ],
+  },
 ]
+
+/* Phase cues — a soft WebAudio chime plus a short haptic pulse mark each
+   transition, so the exercise works with eyes closed. The AudioContext is
+   created inside the Start press (autoplay rules need the gesture); the
+   per-step effect only plays on a ready context. Persisted — one toggle
+   and the choice sticks. */
+const BREATH_CUES_KEY = 'dutiva:health:breath-cues'
 
 function BreathingCard() {
   const { x } = useI18n()
@@ -52,6 +71,16 @@ function BreathingCard() {
   const [running, setRunning] = useState(false)
   const [beat, setBeat] = useState({ step: 0, secs: BREATH_MODES[0]!.steps[0]![1] })
   const [cycles, setCycles] = useState(0)
+  /* Opt-in, not opt-out — a pause tool shouldn't sound or buzz before the
+     person asks it to. 'on' is the stored value; anything else is off. */
+  const [cues, setCues] = useState(() => localStorage.getItem(BREATH_CUES_KEY) === 'on')
+  const audioRef = useRef<AudioContext | null>(null)
+
+  const toggleCues = () =>
+    setCues((on) => {
+      localStorage.setItem(BREATH_CUES_KEY, on ? 'off' : 'on')
+      return !on
+    })
 
   const mode = BREATH_MODES.find((m) => m.id === modeId) ?? BREATH_MODES[0]!
   const steps = mode.steps
@@ -59,19 +88,59 @@ function BreathingCard() {
 
   /* One 1s ticker drives the countdown; the step advances when it hits 0.
      The CSS circle reads the same per-step duration so motion and text stay
-     in step. No audio, no haptics — the pace is the whole point. */
+     in step. No audio, no haptics — the pace is the whole point. The
+     updater stays pure: the cycle tally lives in the wrap effect below —
+     StrictMode replays updaters in dev and would count every lap twice. */
   useEffect(() => {
     if (!running) return
     const t = setInterval(() => {
       setBeat((b) => {
         if (b.secs > 1) return { ...b, secs: b.secs - 1 }
         const next = (b.step + 1) % steps.length
-        if (next === 0) setCycles((c) => c + 1)
         return { step: next, secs: steps[next]?.[1] ?? 4 }
       })
     }, 1000)
     return () => clearInterval(t)
   }, [running, steps])
+
+  /* A lap completes when the step wraps from the last phase back to the
+     first — observed here, not inside the beat updater. */
+  const prevStepRef = useRef(0)
+  useEffect(() => {
+    if (running && prevStepRef.current === steps.length - 1 && beat.step === 0) {
+      setCycles((c) => c + 1)
+    }
+    prevStepRef.current = beat.step
+  }, [beat.step, running, steps.length])
+
+  /* The cue fires on the phase change itself — the countdown ticking over
+     is what an eyes-closed user needs marked. Inhale rises (660 Hz),
+     exhale settles (440 Hz), holds get a shorter, quieter blip. Audio and
+     haptics are a nicety wrapped in try/catch: neither may break the tool. */
+  useEffect(() => {
+    if (!running || !cues) return
+    const step = steps[beat.step]?.[0] ?? 'in'
+    try {
+      navigator.vibrate?.(step === 'in' ? 45 : step === 'out' ? 65 : 20)
+      const ctx = audioRef.current
+      if (ctx && ctx.state === 'running') {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.type = 'sine'
+        osc.frequency.value = step === 'in' ? 660 : step === 'out' ? 440 : 520
+        const t = ctx.currentTime
+        const tail = step === 'hold-in' || step === 'hold-out' ? 0.35 : 0.8
+        gain.gain.setValueAtTime(0.0001, t)
+        gain.gain.exponentialRampToValueAtTime(step.startsWith('hold') ? 0.04 : 0.07, t + 0.03)
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + tail)
+        osc.connect(gain).connect(ctx.destination)
+        osc.start(t)
+        osc.stop(t + tail + 0.05)
+      }
+    } catch {
+      /* a silent tool still works — the circle and the count carry it */
+    }
+  }, [beat.step, running, cues, steps])
 
   /* Stop ends the session: the circle and count reset, but the cycle tally
      stays up — it's the record of what you just did. Starting again begins
@@ -81,6 +150,19 @@ function BreathingCard() {
       setRunning(false)
       setBeat({ step: 0, secs: steps[0]?.[1] ?? 4 })
     } else {
+      /* AudioContext needs the press gesture to leave `suspended` — warm
+         it here so the first chime actually sounds. */
+      try {
+        const Ctor =
+          window.AudioContext ??
+          (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        if (Ctor) {
+          audioRef.current ??= new Ctor()
+          if (audioRef.current.state === 'suspended') void audioRef.current.resume()
+        }
+      } catch {
+        /* no audio stack — cues just stay silent */
+      }
       setCycles(0)
       setBeat({ step: 0, secs: steps[0]?.[1] ?? 4 })
       setRunning(true)
@@ -135,15 +217,34 @@ function BreathingCard() {
             role="img"
             aria-label={running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
           >
-            {running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
+            {/* The disc breathes; the label doesn't — shrinking text with
+                the circle made the resting readout ~10px tall. */}
+            <span className="hb-breath-disc" aria-hidden="true" />
+            <span className="hb-breath-label">
+              {running ? `${x(phaseLabel)} · ${beat.secs}` : pattern}
+            </span>
           </div>
-          <div className="flex items-center gap-[10px]">
+          <div className="flex flex-wrap items-center justify-center gap-[10px]">
             <button
               type="button"
               className={`sb-btn ${running ? 'sb-btn-secondary' : 'sb-btn-primary'}`}
               onClick={toggle}
             >
               {x(running ? HM.health_tool_breath_stop : HM.health_tool_breath_start)}
+            </button>
+            <button
+              type="button"
+              className={`hb-pace ${cues ? 'is-on' : ''}`}
+              aria-pressed={cues}
+              title={x(HM.health_tool_breath_cues_hint)}
+              onClick={toggleCues}
+            >
+              {cues ? (
+                <Volume2 size={13} aria-hidden="true" />
+              ) : (
+                <VolumeX size={13} aria-hidden="true" />
+              )}
+              {x(HM.health_tool_breath_cues)}
             </button>
             {cycles > 0 && (
               <span className="sb-pill">
@@ -155,7 +256,7 @@ function BreathingCard() {
             <p className="hb-row-meta m-0">{x(HM.health_tool_breath_nudge)}</p>
           )}
           {!running && cycles > 0 && (
-            <Link className="hb-quiet-link" to="/health/checkin">
+            <Link className="hb-quiet-link" to="/wellness/check-in">
               {x(HM.health_tool_checkin_link)}
             </Link>
           )}
@@ -193,11 +294,14 @@ function GroundingCard() {
           {GROUND_STEPS.map((label, i) => (
             <li
               key={i}
-              className={`hb-res-item ${i === step ? 'is-current' : ''}`}
+              className={`hb-res-item hb-res-item--static ${i === step ? 'is-current' : ''}`}
               aria-current={i === step ? 'step' : undefined}
             >
+              {/* The badge echoes the count the row asks for (5 things, 4
+                  things…) — the ordinal "1 ↔ 5 things" juxtaposition read
+                  like two numbers disagreeing. Done steps keep the check. */}
               <span className="hb-res-icon hb-step-badge" aria-hidden="true">
-                {i < step ? <Check size={15} strokeWidth={3} /> : i + 1}
+                {i < step ? <Check size={15} strokeWidth={3} /> : GROUND_STEPS.length - i}
               </span>
               <span className={`hb-res-name ${i < step ? 'text-[color:var(--sb-muted)]' : ''}`}>
                 {x(label)}
@@ -219,7 +323,7 @@ function GroundingCard() {
                 <RotateCcw size={13} aria-hidden="true" />
                 {x(HM.health_tool_ground_restart)}
               </button>
-              <Link className="hb-quiet-link" to="/health/checkin">
+              <Link className="hb-quiet-link" to="/wellness/check-in">
                 {x(HM.health_tool_checkin_link)}
               </Link>
             </>
@@ -301,7 +405,7 @@ function GratitudeCard() {
       setBody('')
       showToast(HM.health_tool_grat_saved, 'ok', {
         label: HM.health_tool_grat_view,
-        to: '/health/journal',
+        to: '/wellness/journal',
       })
     } catch {
       showToast(HM.health_tool_grat_failed)
@@ -321,12 +425,17 @@ function GratitudeCard() {
         <p className="sb-helper">{x(HM.health_tool_grat_body)}</p>
         <div className="mt-[14px] flex flex-col gap-[12px]">
           <div className="flex items-center justify-between gap-[10px]">
-            <p className="m-0 text-[14px] font-semibold text-[color:var(--sb-ink)]">{x(prompt)}</p>
+            {/* aria-live so swapping the prompt announces — the button keeps
+                focus, so nothing else tells a screen reader it changed. */}
+            <p className="m-0 text-[14px] font-semibold text-[color:var(--sb-ink)]" aria-live="polite">
+              {x(prompt)}
+            </p>
             <button
               type="button"
               className="sb-btn sb-btn-sm sb-btn-secondary"
               onClick={nextPrompt}
             >
+              <RefreshCw size={13} aria-hidden="true" />
               {x(HM.health_tool_grat_another)}
             </button>
           </div>
@@ -398,7 +507,7 @@ function PracticesSection() {
       /* storage blocked — the chat opens empty; the question is still
          readable on the card */
     }
-    navigate('/health/chat')
+    navigate('/wellness/chat')
   }
 
   const guided = healthModalities.filter((m) => m.guided)
@@ -579,7 +688,7 @@ export function HealthToolsPage() {
       <div className="sb-note" style={{ marginTop: 18 }}>
         <p className="m-0">
           {x(HM.health_tools_note)}{' '}
-          <Link to="/health/resources">{x(HM.health_tools_note_link)}</Link>
+          <Link to="/wellness/resources">{x(HM.health_tools_note_link)}</Link>
         </p>
       </div>
     </div>

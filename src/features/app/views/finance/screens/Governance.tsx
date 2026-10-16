@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { LEGAL_FORM_LABEL } from '../financeLabels'
+import { localDayOfISO } from '@/lib/format'
 
 /**
  * Board-oriented finance governance view: the cap table (entities +
@@ -139,7 +140,7 @@ export function Governance() {
                   <span className="text-text-2"> · {x(ev.outcome)}</span>
                 </div>
                 <span className="shrink-0 text-[11px] text-text-muted">
-                  {ev.timestamp.slice(0, 10)}
+                  {localDayOfISO(ev.timestamp)}
                 </span>
               </li>
             ))}

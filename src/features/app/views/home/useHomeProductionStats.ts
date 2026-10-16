@@ -11,6 +11,7 @@ import type { ProductionTask } from '@/features/app/views/tasks/productionApi'
 import { listFindings } from '@/features/app/views/compliance/productionApi'
 import { listPolicies } from '@/features/app/views/policies/productionApi'
 import { listDocuments } from '@/features/app/documents/productionApi'
+import { localTodayISO } from '@/lib/format'
 
 interface HomeProductionData {
   employees: number
@@ -33,7 +34,9 @@ interface HomeDueItem {
   overdue: boolean
 }
 
-const today = (): string => new Date().toISOString().slice(0, 10)
+/* Due dates are calendar days in the user's timezone — local day, not UTC
+   (UTC runs ahead all evening and would mark today's items overdue early). */
+const today = (): string => localTodayISO()
 
 export function useHomeProductionStats() {
   const { root } = useWorkspaceRoot()

@@ -16,6 +16,7 @@ import type { HealthChatTurn } from '@/features/health/data/api'
 import { CopyTurnButton, ReasonChips, ReasoningBlock } from '@/components/chat/portalChat'
 import { formatTurnDay, formatTurnTime } from '@/components/chat/portalChatUtils'
 import { actionLabel, actionRoute, contextLine } from './healthChatUi'
+import { CrisisNote } from './CrisisNote'
 
 /* Markdown + widget-fence rendering is a lazy chunk (react-markdown,
    remark-gfm, the widget spec parser) — the bubble falls back to verbatim
@@ -166,7 +167,7 @@ export function HealthChatTurnRow({
         )}
         {!t.failed && (
           <span className="sbchat-bubble-meta">
-            <time>{formatTurnTime(t.createdAt, lang)}</time>
+            <time dateTime={t.createdAt}>{formatTurnTime(t.createdAt, lang)}</time>
             {t.stopped && <em className="sbchat-stopped">{x(HM.health_chat_stopped)}</em>}
             {t.role === 'user' && (
               <button
@@ -255,10 +256,11 @@ export function HealthChatTurnRow({
         )}
       </div>
       {/* Distress words pin the 988 line right under the bubble — a sibling
-          row, dismissible, session-only. */}
+          row, dismissible, session-only. The verbs are tappable; `more`
+          deep-links the Resources page's crisis block. */}
       {t.distress && !crisisDismissed && (
         <div className="sbchat-crisis-inline" role="note">
-          <span>{x(HM.health_crisis_note)}</span>
+          <span><CrisisNote more /></span>
           <button
             type="button"
             className="sbchat-crisis-x"

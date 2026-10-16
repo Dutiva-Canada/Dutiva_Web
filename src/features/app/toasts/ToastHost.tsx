@@ -26,23 +26,38 @@ export function ToastHost() {
           #c4c9d9 in the light theme — white text at ~1.65:1. The pill is
           pinned to --toast-bg (#2a313d) in both themes: identical to the
           dark reference, legible in light. */}
-      {toasts.map((toast) => (
-        <output
-          key={toast.id}
-          className="flex animate-[toastIn_.2s_ease] flex-col gap-[8px] rounded-[10px] bg-toast-bg px-[16px] py-[12px] text-[13.5px] font-medium text-white shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
-        >
-          <span>{pickL(toast.message, lang)}</span>
-          {toast.action != null && (
-            <Link
-              to={toast.action.to}
-              onClick={() => dismissToast(toast.id)}
-              className="pointer-events-auto w-fit text-[12.5px] font-bold text-gold-on-navy underline-offset-2 hover:underline"
-            >
-              {pickL(toast.action.label, lang)}
-            </Link>
-          )}
-        </output>
-      ))}
+      {toasts.map((toast) => {
+        const action = toast.action
+        return (
+          <output
+            key={toast.id}
+            className="flex animate-[toastIn_.2s_ease] flex-col gap-[8px] rounded-[10px] bg-toast-bg px-[16px] py-[12px] text-[13.5px] font-medium text-white shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+          >
+            <span>{pickL(toast.message, lang)}</span>
+            {action != null &&
+              ('onPress' in action ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    action.onPress()
+                    dismissToast(toast.id)
+                  }}
+                  className="pointer-events-auto w-fit cursor-pointer border-0 bg-transparent p-0 text-left text-[12.5px] font-bold text-gold-on-navy underline-offset-2 hover:underline"
+                >
+                  {pickL(action.label, lang)}
+                </button>
+              ) : (
+                <Link
+                  to={action.to}
+                  onClick={() => dismissToast(toast.id)}
+                  className="pointer-events-auto w-fit text-[12.5px] font-bold text-gold-on-navy underline-offset-2 hover:underline"
+                >
+                  {pickL(action.label, lang)}
+                </Link>
+              ))}
+          </output>
+        )
+      })}
     </div>
   )
 }

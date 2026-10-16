@@ -2,6 +2,7 @@ import { lazy, Suspense, type RefObject } from 'react'
 import { Loader2, Send, Square } from 'lucide-react'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import { ReasoningBlock } from '@/components/chat/portalChat'
+import { CrisisNote } from './CrisisNote'
 
 /* Markdown + widget-fence rendering is a lazy chunk (react-markdown,
    remark-gfm, the widget spec parser) — the bubble falls back to verbatim
@@ -132,7 +133,7 @@ export function HealthChatComposer({
         <span className="sbchat-hint">{x(HM.health_chat_enter_hint)}</span>
         {draft.length > COUNT_FROM && <span>{draft.length}/1200</span>}
       </div>
-      <p className="sbchat-note">{x(HM.health_crisis_note)}</p>
+      <p className="sbchat-note"><CrisisNote more /></p>
     </>
   )
 }

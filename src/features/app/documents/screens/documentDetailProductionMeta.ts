@@ -6,6 +6,7 @@ import { bi } from '@/i18n/core'
 import type { Lang } from '@/i18n/core'
 import { doclibMessages as M } from '@/i18n/messages/doclib'
 import { signatureStatusInfo } from '../data'
+import { localDayOfISO } from '@/lib/format'
 import type { RecipientType, SignatureStatus, StatusInfo } from '../data'
 import type { ProductionDocumentStatus } from '../productionApi'
 import type { InviteDeliveryStatus, ProductionDocumentRecipient } from '../signatureQueries'
@@ -71,7 +72,7 @@ const INVITE_DELIVERY_TONE: Record<
 }
 
 export function fmtDetailDate(value: string, lang: Lang): string {
-  const parsed = new Date(`${value.slice(0, 10)}T00:00:00`)
+  const parsed = new Date(`${localDayOfISO(value)}T00:00:00`)
   if (Number.isNaN(parsed.getTime())) return value
   return parsed.toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
     year: 'numeric',

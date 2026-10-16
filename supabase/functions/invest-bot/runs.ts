@@ -605,24 +605,48 @@ export async function runUser(
     for (const rc of dueRows ?? []) {
       const account = accounts.find((a) => a.id === rc.account_id)
       if (!account) continue /* archived account — the row just waits */
+      /* Ledger invariant: cash events are denominated in the account's
+         base currency — the balance write below and deleteCashEvent's
+         reversal read the amount raw. A contribution declared in another
+         currency (rc.currency) converts here; a missing rate skips the
+         row so it retries next sweep rather than booking 1:1. The
+         original `amount CCY` goes in the note as the audit trail. */
+      const accCcy = (account.base_currency ?? bookCurrency).toUpperCase()
+      const rcCcy = String(rc.currency ?? accCcy).toUpperCase()
+      let amount = Number(rc.amount)
+      if (rcCcy !== accCcy) {
+        const converted = convertFx(amount, rcCcy, accCcy, fx)
+        if (converted === null) {
+          plan.warnings.push(
+            `recurring contribution ${rc.id} skipped: no ${rcCcy}->${accCcy} rate`,
+          )
+          continue
+        }
+        amount = converted
+      }
+      const note =
+        rcCcy !== accCcy
+          ? `${Number(rc.amount)} ${rcCcy}${rc.note ? ` — ${rc.note}` : ''}`
+          : rc.note || undefined
       const stamp = new Date().toISOString()
       const { error: evErr } = await adminClient.from('invest_cash_events').insert({
         user_id: userId,
         account_id: rc.account_id,
         kind: 'deposit',
-        amount: Number(rc.amount),
-        currency: rc.currency,
+        amount,
+        currency: accCcy,
         occurred_at: today,
         /* No locale source server-side — the row's kind already renders
            "Deposit" localized; the note carries only the user's own words
-           so no English leaks into a French ledger. */
-        note: rc.note || undefined,
+           (plus a locale-neutral amount/currency code) so no English
+           leaks into a French ledger. */
+        note,
       })
       if (evErr) throw evErr
       const { error: cashErr } = await adminClient
         .from('invest_accounts')
         .update({
-          cash_balance: Number(account.cash_balance) + Number(rc.amount),
+          cash_balance: Number(account.cash_balance) + amount,
           updated_at: stamp,
         })
         .eq('id', rc.account_id)
@@ -630,7 +654,7 @@ export async function runUser(
       if (cashErr) throw cashErr
       /* Keep the next due row's math honest — numeric columns can come
          back as strings, so reassign through Number(), not +=. */
-      account.cash_balance = Number(account.cash_balance) + Number(rc.amount)
+      account.cash_balance = Number(account.cash_balance) + amount
       const next = new Date(`${rc.next_run_on}T00:00:00Z`)
       if (rc.cadence === 'weekly') next.setUTCDate(next.getUTCDate() + 7)
       else next.setUTCMonth(next.getUTCMonth() + 1)

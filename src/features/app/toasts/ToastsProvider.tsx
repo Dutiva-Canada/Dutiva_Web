@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { LText } from '@/i18n/core'
-import { ToastsContext } from './toastsContext'
+import { ToastsContext, TOAST_DURATION_MS, TOAST_WITH_ACTION_MS } from './toastsContext'
 import type { Toast, ToastAction, ToastTone } from './toastsContext'
-
-const TOAST_DURATION_MS = 3600
-const TOAST_WITH_ACTION_MS = 6200
 
 export function ToastsProvider({ children }: { readonly children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])

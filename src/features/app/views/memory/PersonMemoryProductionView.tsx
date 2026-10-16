@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import {
@@ -80,8 +80,11 @@ export function PersonMemoryProductionView() {
     statementFr: '',
   })
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !personId) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
       const [emp, factRows, cases] = await Promise.all([
@@ -89,6 +92,7 @@ export function PersonMemoryProductionView() {
         listFactsByEntity(organizationId, 'person', personId),
         listCases(organizationId).catch(() => []),
       ])
+      if (requestRef.current !== request) return
       setEmployee(emp)
       setFacts(factRows)
       setRelatedCases(
@@ -98,6 +102,7 @@ export function PersonMemoryProductionView() {
           .slice(0, 3),
       )
     } catch {
+      if (requestRef.current !== request) return
       setEmployee(null)
       setFacts([])
       setRelatedCases([])

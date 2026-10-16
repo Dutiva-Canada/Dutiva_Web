@@ -2,12 +2,12 @@ import type { Lang } from '@/i18n/core'
 import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
 
 /**
- * Health wellness notice — a health-specific policy edition in the same
+ * Wellness notice — a health-specific policy edition in the same
  * shape the marketing legal collection renders (PolicyEdition), so the
- * standalone /health/legal/wellness page reuses the same article renderer
+ * standalone /wellness/legal/wellness page reuses the same article renderer
  * as the shared Terms and Privacy documents.
  *
- * The substance is mandated, not editorial: Dutiva Health is a self-tracking
+ * The substance is mandated, not editorial: Dutiva Wellness is a self-tracking
  * and reflection tool — not medical or mental-health advice, diagnosis,
  * treatment, therapy, or a crisis service; journal contents are private to
  * the user; nothing the user writes is monitored by a person, and no entry
@@ -25,16 +25,16 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
     title: 'Wellness notice',
     effectiveDate: 'October 6, 2026',
     callout: [
-      'Dutiva Health is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment, and it is not a crisis service.',
+      'Dutiva Wellness is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment, and it is not a crisis service.',
       'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
     ],
     sections: [
       {
-        title: '1. What Dutiva Health is',
+        title: '1. What Dutiva Wellness is',
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva Health lets you record daily check-ins (mood and energy), keep a private journal, track small habits, and view simple counts and averages of what you recorded. It is a reflection tool you operate yourself.',
+            text: 'Dutiva Wellness lets you record daily check-ins (mood and energy), keep a private journal, track small habits, and view simple counts and averages of what you recorded. It is a reflection tool you operate yourself.',
           },
           {
             type: 'p',
@@ -43,11 +43,11 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         ],
       },
       {
-        title: '2. What Dutiva Health is not',
+        title: '2. What Dutiva Wellness is not',
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva is not a licensed health-care provider, and Dutiva Health is not a medical device or a health-care service. In particular:',
+            text: 'Dutiva is not a licensed health-care provider, and Dutiva Wellness is not a medical device or a health-care service. In particular:',
           },
           { type: 'li', text: 'it does not diagnose any condition;' },
           { type: 'li', text: 'it does not provide therapy, counselling, or treatment;' },
@@ -91,19 +91,19 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
     ],
   },
   fr: {
-    title: 'Avis de bien-être',
+    title: 'Avis de mieux-être',
     effectiveDate: '6 octobre 2026',
     callout: [
-      'Dutiva Santé est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement, et ce n’est pas un service de crise.',
+      'Dutiva Mieux-être est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement, et ce n’est pas un service de crise.',
       'En crise ou si vous pensez au suicide? Appelez ou textez le 9-8-8 (Canada, 24/7) — ou le 911 en cas de danger immédiat.',
     ],
     sections: [
       {
-        title: '1. Ce qu’est Dutiva Santé',
+        title: '1. Ce qu’est Dutiva Mieux-être',
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva Santé vous permet de noter des points du jour (humeur et énergie), de tenir un journal privé, de suivre de petites habitudes et de voir de simples décomptes et moyennes de ce que vous avez noté. C’est un outil de réflexion que vous utilisez vous-même.',
+            text: 'Dutiva Mieux-être vous permet de noter des points du jour (humeur et énergie), de tenir un journal privé, de suivre de petites habitudes et de voir de simples décomptes et moyennes de ce que vous avez noté. C’est un outil de réflexion que vous utilisez vous-même.',
           },
           {
             type: 'p',
@@ -112,11 +112,11 @@ export const healthWellnessNotice: Record<Lang, PolicyEdition> = {
         ],
       },
       {
-        title: '2. Ce que Dutiva Santé n’est pas',
+        title: '2. Ce que Dutiva Mieux-être n’est pas',
         blocks: [
           {
             type: 'p',
-            text: 'Dutiva n’est pas un fournisseur de soins de santé agréé, et Dutiva Santé n’est ni un appareil médical ni un service de soins de santé. Plus précisément :',
+            text: 'Dutiva n’est pas un fournisseur de soins de santé agréé, et Dutiva Mieux-être n’est ni un appareil médical ni un service de soins de santé. Plus précisément :',
           },
           { type: 'li', text: 'il ne pose aucun diagnostic;' },
           { type: 'li', text: 'il n’offre ni thérapie, ni counselling, ni traitement;' },

@@ -13,28 +13,38 @@ import { portalNavKey, viewIntentProps } from '@/app/viewPrefetch'
 import { HealthAuthPanel } from './HealthAuthPanel'
 import { HealthFooter } from './HealthFooter'
 import { HealthLoading } from './HealthLoading'
+import { CrisisNote } from './CrisisNote'
+/* The shell uses hb-* classes (skip link, badge, topbar, stale note) before
+   any page chunk loads — import the sheet here so they're never naked. */
+import './health.css'
 
 const NAV = [
-  { to: '/health', end: true, label: HM.health_tab_overview },
-  { to: '/health/chat', end: false, label: HM.health_tab_chat },
-  { to: '/health/check-in', end: false, label: HM.health_tab_checkin },
-  { to: '/health/habits', end: false, label: HM.health_tab_habits },
-  { to: '/health/journal', end: false, label: HM.health_tab_journal },
-  { to: '/health/tools', end: false, label: HM.health_tab_tools },
-  { to: '/health/insights', end: false, label: HM.health_tab_insights },
-  { to: '/health/review', end: false, label: HM.health_tab_review },
-  { to: '/health/resources', end: false, label: HM.health_tab_resources },
+  /* Daily surfaces lead, companion/oversight tail — the strip reads
+     "do your day" left to right: log, toggle, write, practice, then
+     talk, reflect, review, get help. */
+  { to: '/wellness', end: true, label: HM.health_tab_overview },
+  { to: '/wellness/check-in', end: false, label: HM.health_tab_checkin },
+  { to: '/wellness/habits', end: false, label: HM.health_tab_habits },
+  { to: '/wellness/journal', end: false, label: HM.health_tab_journal },
+  { to: '/wellness/tools', end: false, label: HM.health_tab_tools },
+  { to: '/wellness/chat', end: false, label: HM.health_tab_chat },
+  { to: '/wellness/insights', end: false, label: HM.health_tab_insights },
+  { to: '/wellness/review', end: false, label: HM.health_tab_review },
+  { to: '/wellness/resources', end: false, label: HM.health_tab_resources },
 ] as const
 
+/* whitespace-nowrap — French labels run longer ("Aperçu du jour", "À
+   valider") and must not wrap to two lines inside the pill nav; the
+   container already scrolls horizontally when it truly runs out of room. */
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-[8px] px-[12px] py-[7px] text-[13px] font-semibold transition-[background,color] duration-150 ${
+  `flex items-center justify-center whitespace-nowrap rounded-[8px] px-[10px] py-[5px] text-center text-[13px] font-semibold leading-[1.15] transition-[background,color] duration-150 ${
     isActive
       ? 'bg-surface text-text shadow-[0_1px_3px_rgba(13,27,42,0.10)]'
       : 'text-text-muted hover:text-text-2'
   }`
 
 /**
- * Layout for the standalone health portal (/health). Two gates: shared auth
+ * Layout for the standalone health portal (/wellness). Two gates: shared auth
  * (same email-code flow as the invest portal), then the health_access
  * grant — a signed-in user without a row sees a localized "access required"
  * card instead of the app. No demo mode; everything is real user data.
@@ -46,6 +56,20 @@ function ReviewBadge() {
   const pending = state?.pendingReview ?? 0
   if (pending === 0) return null
   return <span className="hb-badge">{pending}</span>
+}
+
+/* A refresh failure leaves last-good data on screen — the note says so
+   instead of silently serving a stale snapshot. Only renders when there IS
+   loaded data; a first-load failure is each page's HealthDataError. */
+function StaleDataNote() {
+  const { x } = useI18n()
+  const { state, error } = useHealthData()
+  if (!state || !error) return null
+  return (
+    <p className="hb-stale" role="alert">
+      {x(HM.health_refresh_stale)}
+    </p>
+  )
 }
 
 export function HealthPortalLayout() {
@@ -78,7 +102,7 @@ export function HealthPortalLayout() {
 
   if (status !== 'signed-in') {
     return (
-      <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+      <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
         <header className="border-b border-border bg-bg-elevated">
           <div className="mx-auto flex max-w-[960px] items-center justify-between gap-[16px] px-[20px] py-3">
             <span className="shrink-0 font-display text-lg font-bold text-text">
@@ -105,7 +129,7 @@ export function HealthPortalLayout() {
           <div className="flex w-full max-w-[460px] flex-col gap-[16px]">
             <HealthAuthPanel />
             <p className="m-0 rounded-[12px] border border-gold-border bg-gold-bg px-[14px] py-[10px] text-[12.5px] leading-[1.5] text-text-2">
-              {x(HM.health_crisis_note)}
+              <CrisisNote />
             </p>
           </div>
         </main>
@@ -118,36 +142,36 @@ export function HealthPortalLayout() {
   /* The data provider wraps the whole shell — but only once the grant is
      confirmed, so a user without access never fires health_* queries. */
   const shell = (
-    <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+    <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
       <a href="#hb-main" className="hb-skip">
         {x(HM.health_skip)}
       </a>
-      <header className="sticky top-0 z-10 border-b border-border bg-surface">
+      <header className="hb-topbar sticky top-0 z-10 border-b border-border">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
-            <div className="flex min-w-0 items-center gap-[24px]">
+            <div className="flex min-w-0 items-center gap-[16px]">
               <NavLink
-                to="/health"
-                className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
+                to="/wellness"
+                className="hb-wordmark shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
               >
                 {x(HM.health_portal_title)}
               </NavLink>
-              <nav className="hidden items-center gap-[3px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[1080px]:flex">
                 {NAV.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     end={item.end}
                     className={navLinkClass}
-                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
+                    title={item.to === '/wellness/chat' ? x(HM.health_home_mira_open) : undefined}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
-                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
+                    {item.to === '/wellness/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
               </nav>
             </div>
-            <div className="hidden items-center gap-[8px] min-[820px]:flex">
+            <div className="hidden items-center gap-[8px] min-[1080px]:flex">
               <ThemeCycleButton className="inline-flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset" />
               <button
                 type="button"
@@ -161,13 +185,13 @@ export function HealthPortalLayout() {
               <button
                 type="button"
                 onClick={() => void signOut()}
-                className="flex cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
+                className="flex shrink-0 cursor-pointer items-center gap-[6px] whitespace-nowrap rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[13px] font-semibold text-text-2 hover:bg-inset"
               >
                 <LogOut size={14} strokeWidth={2} aria-hidden="true" />
                 {x(HM.health_sign_out)}
               </button>
             </div>
-            <div className="flex items-center gap-[8px] min-[820px]:hidden">
+            <div className="flex items-center gap-[8px] min-[1080px]:hidden">
               <ThemeCycleButton className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset" />
               <button
                 type="button"
@@ -201,7 +225,7 @@ export function HealthPortalLayout() {
           {mobileMenuOpen && (
             <nav
               id="health-portal-mobile-nav"
-              className="border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
+              className="hb-mobile-menu border-t border-border bg-surface px-[20px] py-[8px] min-[1080px]:hidden"
             >
               <div className="flex flex-col gap-[4px]">
                 {NAV.map((item) => (
@@ -212,12 +236,12 @@ export function HealthPortalLayout() {
                     className={(p) =>
                       `${navLinkClass(p)} flex min-h-[44px] items-center justify-between`
                     }
-                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
+                    title={item.to === '/wellness/chat' ? x(HM.health_home_mira_open) : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
-                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
+                    {item.to === '/wellness/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
                 {session?.user?.email && (
@@ -244,7 +268,10 @@ export function HealthPortalLayout() {
           ) : access === 'no' ? (
             <AccessRequired />
           ) : (
-            <Outlet />
+            <>
+              <StaleDataNote />
+              <Outlet />
+            </>
           )}
         </main>
         <HealthFooter />
@@ -271,7 +298,7 @@ function AccessRequired() {
         {x(HM.health_access_contact)}
       </a>
       <p className="m-0 mt-[14px] rounded-[10px] border border-gold-border bg-gold-bg px-[12px] py-[8px] text-[12px] leading-[1.5] text-text-2">
-        {x(HM.health_crisis_note)}
+        <CrisisNote />
       </p>
     </div>
   )

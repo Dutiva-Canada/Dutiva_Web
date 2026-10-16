@@ -81,7 +81,7 @@ Key constants and security controls:
 
 The server exposes two endpoints:
 
-- **`GET /health`** — Sends `zPING\0` to clamd and returns `{"ok":true,"clamd":"PONG"}` on success, `503` otherwise. Used by platform health checks.
+- **`GET /wellness`** — Sends `zPING\0` to clamd and returns `{"ok":true,"clamd":"PONG"}` on success, `503` otherwise. Used by platform health checks.
 - **`POST /scan`** — The main scan endpoint, authenticated via `Bearer $SCAN_TOKEN`.
 
 [services/attachment-scanner/server.js:258-270]()

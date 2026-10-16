@@ -36,13 +36,13 @@ export function actionRoute(action: HealthChatAction): string | null {
     case 'mark_habit_done':
     case 'unmark_habit_done':
     case 'add_habit':
-      return '/health/habits'
+      return '/wellness/habits'
     case 'add_checkin':
-      return '/health/check-in'
+      return '/wellness/check-in'
     case 'add_journal_entry':
-      return '/health/journal'
+      return '/wellness/journal'
     case 'propose_memory':
-      return '/health/review'
+      return '/wellness/review'
     default:
       return null
   }
@@ -50,8 +50,14 @@ export function actionRoute(action: HealthChatAction): string | null {
 
 /* Words that pin the 988 line beside the bubble, not only under the
    composer. Deliberately narrow — it fires on ideation, not venting. */
+/* `don['’]?t` — phone keyboards autocorrect 'don't' to the curly form;
+   matching only the straight quote let "I don't want to live" sail past
+   the flag that's supposed to pin the crisis line. The prefix-shaped
+   alternatives are written in full (`kill \w*sel(?:f|ves)`, plurals) —
+   the trailing \b used to reject every word that continued past the
+   partial form, so "kill myself" and "hurt myself" never flagged. */
 export const DISTRESS_RE =
-  /\b(suicid(?:e|al)|kill mysel|end (?:my life|it all)|self[- ]?harm|hurt mysel|want to die|don'?t want to (?:live|be here|go on)|no reason to (?:live|go on)|better off without me|me suicider|suicidaire|me faire du mal|en finir|envie de mourir|plus envie de vivre|envie de dispara[îi]tre)\b/i
+  /\b(suicid(?:e|al)s?|suicidaires?|kill \w*sel(?:f|ves)|end (?:my life|it all)|self[- ]?harm(?:ing|ed|s)?|hurt \w*sel(?:f|ves)|wants? to die|don['’]?t want to (?:live|be here|go on)|doesn['’]?t want to (?:live|be here|go on)|no reason to (?:live|go on)|better off without me|me suicider|me faire du mal|en finir|envie de mourir|plus envie de vivre|envie de dispara[îi]tre)\b/i
 
 /** True when a failed send was the reader's own stop — an aborted stream
     keeps its partial text instead of flagging the turn failed. */

@@ -115,7 +115,7 @@ function ScheduledCallPanel({ ticketId }: { readonly ticketId: string }) {
             <a
               href={call.meetLink}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="mt-2 inline-block text-[13px] font-semibold text-navy underline"
             >
               {x(M.support_call_join_link)}

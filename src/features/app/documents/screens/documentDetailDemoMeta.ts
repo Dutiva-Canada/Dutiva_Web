@@ -9,6 +9,7 @@ import { doclibMessages } from '@/i18n/messages/doclib'
 import type { ToastTone } from '@/features/app/toasts/toastsContext'
 import type { DocAction } from '../engine'
 import { signatureStatusInfo } from '../data'
+import { localDayOfISO } from '@/lib/format'
 import type { AuditEventType, RecipientType, SignatureStatus, StatusInfo } from '../data'
 
 export const DETAIL_TABS = [
@@ -110,7 +111,7 @@ export const CASE_FILE_LABEL: Bi = bi('Case file', 'Dossier')
 export const CURRENT_VERSION_LABEL: Bi = bi('Current version', 'Version actuelle')
 
 export function fmtDemoDetailDate(value: string, lang: Lang): string {
-  const parsed = new Date(`${value.slice(0, 10)}T00:00:00`)
+  const parsed = new Date(`${localDayOfISO(value)}T00:00:00`)
   if (Number.isNaN(parsed.getTime())) return value
   return parsed.toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
     year: 'numeric',

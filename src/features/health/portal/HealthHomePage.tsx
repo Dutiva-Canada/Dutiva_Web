@@ -9,8 +9,11 @@ import {
   Inbox,
   ListChecks,
   Loader2,
+  PenLine,
   Pencil,
   Sparkles,
+  Sun,
+  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -26,6 +29,9 @@ import {
   updateHealthMemory,
 } from '@/features/health/data/api'
 import { useToasts } from '@/features/app/toasts/toastsContext'
+import { useSessionDraft } from '@/components/chat/portalChatUtils'
+import { fillBi } from '@/lib/format'
+import { useUndoableDelete } from './useUndoableDelete'
 import {
   avgMood,
   checkInStreak,
@@ -37,12 +43,13 @@ import {
 } from '@/features/health/data/healthStats'
 import {
   ENERGY_LABELS,
-  fmtDateTime,
+  fmtRelativeDateTime,
   fmtToday,
   miraNoticed,
   MOOD_LABELS,
   moodLabel,
 } from './healthUi'
+import { HealthDataError } from './HealthDataError'
 import { HealthLoading } from './HealthLoading'
 import { HealthScalePicker } from './HealthScalePicker'
 import { MiraNote } from './MiraNote'
@@ -54,20 +61,26 @@ import { useHealthHead } from './useHealthHead'
    hand. Same 3-char floor as the server-side propose_memory parse. */
 const MEM_MIN = 3
 
+/* First-run welcome — one card explaining the loop, shown only while the
+   account is genuinely empty, dismissed forever by any path out of it. */
+const WELCOME_KEY = 'dutiva:health:welcomed'
+
 const headerLinkStyle = { color: 'var(--sb-accent-ink)' } as const
 
 function MemoriesCard() {
   const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
   const { showToast } = useToasts()
-  const [text, setText] = useState('')
+  const { queueDelete } = useUndoableDelete()
+  const [text, setText] = useSessionDraft('dutiva:health:draft:memory-new')
   const [saving, setSaving] = useState(false)
-  const [armDelete, setArmDelete] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
   const [editSaving, setEditSaving] = useState(false)
+  /* Rows hidden while their delete waits out the undo window. */
+  const [hiddenIds, setHiddenIds] = useState<ReadonlySet<string>>(new Set())
   const newMemRef = useRef<HTMLInputElement>(null)
-  const memories = state?.memories ?? []
+  const memories = (state?.memories ?? []).filter((m) => !hiddenIds.has(m.id))
 
   const add = async () => {
     const t = text.trim()
@@ -85,23 +98,26 @@ function MemoriesCard() {
     }
   }
 
-  const remove = async (id: string) => {
-    if (armDelete !== id) {
-      setArmDelete(id)
-      return
-    }
-    setArmDelete(null)
-    try {
-      await deleteHealthMemory(id)
-      await refresh()
-      showToast(HM.health_mem_removed)
-      /* The focused row just unmounted — land keyboard users back on the
-         new-memory field instead of dropping them to <body>. */
-      newMemRef.current?.focus()
-    } catch {
-      showToast(HM.health_mem_delete_failed)
-    }
-  }
+  /* One click hides the row; the delete commits when the undo toast
+     lapses. The focused row unmounts with the optimistic hide, so focus
+     lands back on the new-memory field instead of <body>. */
+  const remove = (m: { id: string; label: string }) =>
+    queueDelete({
+      key: `memory:${m.id}`,
+      message: fillBi(HM.health_undo_deleted, { label: m.label }),
+      commit: () => deleteHealthMemory(m.id),
+      onOptimistic: () => {
+        setHiddenIds((cur) => new Set(cur).add(m.id))
+        newMemRef.current?.focus()
+      },
+      onUndo: () =>
+        setHiddenIds((cur) => {
+          const next = new Set(cur)
+          next.delete(m.id)
+          return next
+        }),
+      onCommitted: () => void refresh(),
+    })
 
   const startEdit = (id: string, current: string) => {
     setEditingId(id)
@@ -131,7 +147,7 @@ function MemoriesCard() {
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_mem_title)}</h2>
       </div>
@@ -175,9 +191,13 @@ function MemoriesCard() {
       {memories.length === 0 ? (
         <div className="sb-empty">{x(HM.health_mem_empty)}</div>
       ) : (
-        <div className="hb-rows">
-          {memories.map((m) => (
-            <div key={m.id} className="hb-row">
+        <div className="hb-rows" role="list">
+          {memories.map((m) => {
+            /* Named controls carry a short snippet — "Edit / Remove" on
+               every row tells a screen-reader nothing about which memory. */
+            const snippet = m.text.length > 40 ? `${m.text.slice(0, 40)}…` : m.text
+            return (
+            <div key={m.id} className="hb-row" role="listitem">
               {editingId === m.id ? (
                 <div className="hb-row-main">
                   <input
@@ -218,14 +238,14 @@ function MemoriesCard() {
                     <p className="hb-row-body">{m.text}</p>
                     <span className="hb-row-meta">
                       {m.source === 'mira' ? `${x(HM.health_mem_from_mira)} · ` : ''}
-                      {fmtDateTime(m.createdAt, lang)}
+                      {fmtRelativeDateTime(m.createdAt, lang)}
                     </span>
                   </div>
-                  <div className="hb-row-side" style={{ flexDirection: 'row', gap: 6 }}>
+                  <div className="hb-row-side hb-row-actions">
                     <button
                       type="button"
                       className="sb-btn sb-btn-secondary sb-btn-sm"
-                      style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
+                      aria-label={x(HM.health_mem_edit_named).replace('{text}', snippet)}
                       onClick={() => startEdit(m.id, m.text)}
                     >
                       <Pencil size={12} aria-hidden="true" />
@@ -233,20 +253,18 @@ function MemoriesCard() {
                     </button>
                     <button
                       type="button"
-                      className={`sb-btn sb-btn-sm ${armDelete === m.id ? 'sb-btn-danger sb-armed' : 'sb-btn-secondary'}`}
-                      style={{ minHeight: 32, padding: '4px 12px', fontSize: 12.5 }}
-                      onClick={() => void remove(m.id)}
-                      onBlur={() => setArmDelete(null)}
+                      className="sb-btn sb-btn-secondary sb-btn-sm"
+                      aria-label={x(HM.health_mem_delete_named).replace('{text}', snippet)}
+                      onClick={() => remove({ id: m.id, label: snippet })}
                     >
-                      {armDelete === m.id
-                        ? x(HM.health_mem_delete_confirm)
-                        : x(HM.health_mem_delete)}
+                      {x(HM.health_mem_delete)}
                     </button>
                   </div>
                 </>
               )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>
@@ -282,17 +300,19 @@ function QuickCheckIn() {
           if (r.reply !== null) setMiraLine(r.reply)
         })
         .catch(() => {})
+    } catch {
+      showToast(HM.health_checkin_failed)
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_quick_title)}</h2>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
           style={headerLinkStyle}
         >
@@ -328,7 +348,7 @@ function QuickCheckIn() {
             {x(HM.health_checkin_submit)}
           </button>
         </div>
-        {miraLine && <MiraNote line={miraLine} />}
+        {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
       </div>
     </section>
   )
@@ -340,7 +360,10 @@ function QuickCheckIn() {
 function TodayHabits() {
   const { x, lang } = useI18n()
   const { state, refresh } = useHealthData()
-  const [busyId, setBusyId] = useState<string | null>(null)
+  const { showToast } = useToasts()
+  /* Per-habit busy — a save in flight on "Walk" must not deaden taps on
+     "Read"; a single global lock silently ate the second tap. */
+  const [busyIds, setBusyIds] = useState<Set<string>>(new Set())
   const [miraLine, setMiraLine] = useState<string | null>(null)
 
   const habits = state?.habits ?? []
@@ -349,8 +372,8 @@ function TodayHabits() {
   if (habits.length === 0) return null
 
   const toggle = async (habitId: string, done: boolean) => {
-    if (busyId) return
-    setBusyId(habitId)
+    if (busyIds.has(habitId)) return
+    setBusyIds((prev) => new Set(prev).add(habitId))
     try {
       await setHabitDone(habitId, today, done)
       await refresh()
@@ -364,17 +387,23 @@ function TodayHabits() {
           })
           .catch(() => {})
       }
+    } catch {
+      showToast(HM.health_save_failed)
     } finally {
-      setBusyId(null)
+      setBusyIds((prev) => {
+        const next = new Set(prev)
+        next.delete(habitId)
+        return next
+      })
     }
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_habits)}</h2>
         <Link
-          to="/health/habits"
+          to="/wellness/habits"
           className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
           style={headerLinkStyle}
         >
@@ -389,12 +418,11 @@ function TodayHabits() {
               <div className="hb-row-main">
                 <span className="hb-row-title">{h.name}</span>
               </div>
-              <div className="hb-row-side">
+              <div className="hb-row-side hb-row-actions">
                 <button
                   type="button"
                   className={`sb-btn sb-btn-sm ${doneToday ? 'sb-btn-primary' : 'sb-btn-secondary'}`}
-                  style={{ minHeight: 34, padding: '5px 12px', fontSize: 12.5 }}
-                  disabled={busyId === h.id}
+                  disabled={busyIds.has(h.id)}
                   aria-pressed={doneToday}
                   onClick={() => void toggle(h.id, !doneToday)}
                 >
@@ -406,28 +434,31 @@ function TodayHabits() {
           )
         })}
       </div>
-      {miraLine && <MiraNote line={miraLine} />}
+      {miraLine && <MiraNote line={miraLine} onDismiss={() => setMiraLine(null)} />}
     </section>
   )
 }
 
 export function HealthHomePage() {
   const { x, lang } = useI18n()
-  const { state, loading, error, refresh } = useHealthData()
+  const { state, loading } = useHealthData()
   useHealthHead(HM.health_seo_title, HM.health_subtitle)
+  const [welcomed, setWelcomed] = useState(
+    () => localStorage.getItem(WELCOME_KEY) === '1',
+  )
+  const dismissWelcome = () => {
+    localStorage.setItem(WELCOME_KEY, '1')
+    setWelcomed(true)
+  }
 
-  if (loading || !state) {
+  if (loading) {
     return <HealthLoading />
   }
-  if (error) {
-    return (
-      <div className="sb hb sb-page">
-        <p role="alert" className="sb-note">{x(HM.health_load_error)}</p>
-        <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
-          {x(HM.health_retry)}
-        </button>
-      </div>
-    )
+  /* First-load failure → retry card. A refresh failure while data is on
+     screen surfaces as the layout's stale-data note — the page keeps
+     working off the last good snapshot. */
+  if (!state) {
+    return <HealthDataError />
   }
 
   const mood7 = avgMood(state.checkIns, 7)
@@ -441,6 +472,10 @@ export function HealthHomePage() {
   const entryTotal = state.entriesTotal ?? state.entries.length
   const pending = state.pendingReview ?? 0
   const isEmpty = state.checkIns.length === 0 && state.entries.length === 0
+  /* Truly fresh account — nothing in any surface, so the welcome card can
+     introduce the loop instead of the page greeting someone who's already
+     started elsewhere. */
+  const isFresh = isEmpty && state.habits.length === 0 && state.memories.length === 0
   /* Mira's presence outside the chat tab — one noticed thing, built locally
      from the same state the stats read. No model call. */
   const noticed = miraNoticed(state, lang)
@@ -458,7 +493,7 @@ export function HealthHomePage() {
         : x(HM.health_ov_streak_days).replace('{count}', String(streak))
 
   const moodValue =
-    mood7 == null ? x(HM.health_ov_none) : `${mood7.toFixed(1)} ${moodLabel(mood7, lang)}`
+    mood7 == null ? x(HM.health_ov_none) : `${+mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`
   const habitsValue =
     habitsToday.total === 0
       ? x(HM.health_ov_habits_none)
@@ -469,10 +504,10 @@ export function HealthHomePage() {
       <div className="sb-head-row">
         <h1>{x(HM.health_ov_title)}</h1>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link to="/health/check-in" className="sb-btn sb-btn-primary">
+          <Link to="/wellness/check-in" className="sb-btn sb-btn-primary">
             {x(HM.health_ov_new_checkin)}
           </Link>
-          <Link to="/health/journal?new=1" className="sb-btn sb-btn-secondary">
+          <Link to="/wellness/journal?new=1" className="sb-btn sb-btn-secondary">
             {x(HM.health_ov_new_entry)}
           </Link>
         </div>
@@ -481,7 +516,7 @@ export function HealthHomePage() {
       <p className="hb-row-meta" style={{ marginTop: 6 }}>
         {fmtToday(lang)}
         {!today && latestCheckIn
-          ? ` · ${x(HM.health_ov_last_checkin).replace('{date}', fmtDateTime(latestCheckIn.createdAt, lang))}`
+          ? ` · ${x(HM.health_ov_last_checkin).replace('{date}', fmtRelativeDateTime(latestCheckIn.createdAt, lang))}`
           : ''}
       </p>
 
@@ -493,17 +528,59 @@ export function HealthHomePage() {
           <p className="hb-crisis-title">{x(HM.health_ov_crisis_title)}</p>
           <p className="hb-crisis-body">
             {x(HM.health_ov_crisis_body)}{' '}
-            <Link to="/health/resources">{x(HM.health_ov_crisis_link)}</Link>
+            <Link to="/wellness/resources#crisis">{x(HM.health_ov_crisis_link)}</Link>
           </p>
         </div>
       </div>
+
+      {isFresh && !welcomed && (
+        <section className="sb-card sb-card-pad hb-welcome" aria-labelledby="hb-welcome-t">
+          <button
+            type="button"
+            className="hb-welcome-x"
+            aria-label={x(HM.health_welcome_dismiss)}
+            onClick={dismissWelcome}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+          <h2 id="hb-welcome-t" className="m-0 text-[16px]">
+            {x(HM.health_welcome_title)}
+          </h2>
+          <p className="sb-body-text" style={{ marginTop: 6 }}>
+            {x(HM.health_welcome_sub)}
+          </p>
+          <ol className="hb-welcome-steps">
+            <li>
+              <Sun size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step1)}</span>
+            </li>
+            <li>
+              <PenLine size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step2)}</span>
+            </li>
+            <li>
+              <Sparkles size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step3)}</span>
+            </li>
+          </ol>
+          <div className="mt-[14px]">
+            <Link
+              to="/wellness/check-in"
+              className="sb-btn sb-btn-primary"
+              onClick={dismissWelcome}
+            >
+              {x(HM.health_welcome_cta)}
+            </Link>
+          </div>
+        </section>
+      )}
 
       {noticed && (
         <div className="sb-note" style={{ marginTop: 14, alignItems: 'center' }}>
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
             <strong>{x(HM.health_home_mira_label)}</strong> — {noticed}{' '}
-            <Link to="/health/chat" style={{ color: 'inherit', fontWeight: 600 }}>
+            <Link to="/wellness/chat" style={{ color: 'inherit', fontWeight: 600 }}>
               {x(HM.health_home_mira_open)}
             </Link>
           </span>
@@ -519,7 +596,7 @@ export function HealthHomePage() {
               String(pending),
             )}{' '}
             —{' '}
-            <Link to="/health/review" style={{ color: 'inherit', fontWeight: 600 }}>
+            <Link to="/wellness/review" style={{ color: 'inherit', fontWeight: 600 }}>
               {x(HM.health_ov_review_link)}
             </Link>
           </span>
@@ -528,7 +605,7 @@ export function HealthHomePage() {
 
       <div className="sb-stats">
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={statAria(
             HM.health_ov_today,
@@ -541,26 +618,30 @@ export function HealthHomePage() {
           </div>
         </Link>
         <Link
-          to="/health/insights"
+          to="/wellness/insights"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_mood_7d, moodValue)}
         >
           <div className="k">{x(HM.health_ov_mood_7d)}</div>
-          <div className="v">
-            {mood7 == null ? '—' : `${mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`}
+          <div className="v" {...(mood7 != null ? { 'data-mood': Math.round(mood7) } : {})}>
+            {mood7 == null ? '—' : `${+mood7.toFixed(1)} · ${moodLabel(mood7, lang)}`}
           </div>
           <div className="hb-spark" aria-hidden="true">
             {moodWeek.map((d) => (
               <span
                 key={d.day}
-                className={`hb-spark-bar${d.mood == null ? ' is-empty' : ''}`}
-                style={{ height: d.mood == null ? '3px' : `${18 + ((d.mood - 1) / 4) * 82}%` }}
+                className={`hb-spark-bar${d.value == null ? ' is-empty' : ''}`}
+                /* Round to the nearest ramp step — a fractional average
+                   (two check-ins on one day) matches no data-mood rule and
+                   silently fell back to plain accent. */
+                {...(d.value != null ? { 'data-mood': Math.round(d.value) } : {})}
+                style={{ height: d.value == null ? '3px' : `${18 + ((d.value - 1) / 4) * 82}%` }}
               />
             ))}
           </div>
         </Link>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={statAria(
             HM.health_ov_streak,
@@ -576,7 +657,7 @@ export function HealthHomePage() {
           )}
         </Link>
         <Link
-          to="/health/journal"
+          to="/wellness/journal"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_entries, String(entryTotal))}
         >
@@ -584,7 +665,7 @@ export function HealthHomePage() {
           <div className="v">{entryTotal}</div>
         </Link>
         <Link
-          to="/health/habits"
+          to="/wellness/habits"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_habits, habitsValue)}
         >
@@ -597,11 +678,7 @@ export function HealthHomePage() {
 
       {state.checkIns.length > 0 && (
         <p style={{ margin: '10px 2px 0', textAlign: 'right' }}>
-          <Link
-            to="/health/insights?recap=1"
-            className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
-            style={headerLinkStyle}
-          >
+          <Link to="/wellness/insights?recap=1" className="sb-btn sb-btn-secondary sb-btn-sm">
             <Sparkles size={13} aria-hidden="true" />
             {x(HM.health_ai_recap_btn)}
           </Link>
@@ -615,7 +692,7 @@ export function HealthHomePage() {
           <div className="sb-section-head" style={{ marginTop: 0 }}>
             <h2 className="m-0 text-[16px]">{x(HM.health_ov_recent)}</h2>
             <Link
-              to="/health/check-in"
+              to="/wellness/check-in"
               className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
               style={headerLinkStyle}
             >
@@ -627,7 +704,7 @@ export function HealthHomePage() {
             <div className="sb-empty">
               <p style={{ margin: 0 }}>{x(HM.health_ov_empty)}</p>
               <Link
-                to="/health/check-in"
+                to="/wellness/check-in"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
                 style={{ marginTop: 12 }}
               >
@@ -638,7 +715,7 @@ export function HealthHomePage() {
             <ul className="sb-mini-list">
               {state.checkIns.slice(0, 5).map((c) => (
                 <li key={c.id}>
-                  <span className="hb-mood-dot" {...(c.mood <= 2 ? { 'data-low': true } : {})}>
+                  <span className="hb-mood-dot" data-mood={c.mood}>
                     {moodLabel(c.mood, lang)}
                   </span>
                   {c.note.trim() ? (
@@ -646,7 +723,7 @@ export function HealthHomePage() {
                       {c.note.trim()}
                     </span>
                   ) : null}
-                  <span className="hb-row-meta">{fmtDateTime(c.createdAt, lang)}</span>
+                  <span className="hb-row-meta">{fmtRelativeDateTime(c.createdAt, lang)}</span>
                 </li>
               ))}
             </ul>
@@ -657,7 +734,7 @@ export function HealthHomePage() {
           <div className="sb-section-head" style={{ marginTop: 0 }}>
             <h2 className="m-0 text-[16px]">{x(HM.health_ov_latest_entry)}</h2>
             <Link
-              to="/health/journal"
+              to="/wellness/journal"
               className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
               style={headerLinkStyle}
             >
@@ -669,7 +746,7 @@ export function HealthHomePage() {
             <div className="sb-empty">
               <p style={{ margin: 0 }}>{x(HM.health_journal_empty)}</p>
               <Link
-                to="/health/journal?new=1"
+                to="/wellness/journal?new=1"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
                 style={{ marginTop: 12 }}
               >
@@ -692,7 +769,7 @@ export function HealthHomePage() {
               >
                 {latest.body}
               </p>
-              <span className="hb-row-meta">{fmtDateTime(latest.createdAt, lang)}</span>
+              <span className="hb-row-meta">{fmtRelativeDateTime(latest.createdAt, lang)}</span>
             </div>
           )}
         </section>

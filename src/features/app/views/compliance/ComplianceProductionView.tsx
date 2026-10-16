@@ -26,6 +26,7 @@ import type {
   ProductionObligationStatus,
 } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Compliance in production mode — two registers. Findings live on the
@@ -132,7 +133,7 @@ export function ComplianceProductionView() {
     void loadObligations()
   }, [load, loadObligations])
 
-  const todayISO = new Date().toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
   const dayFormat = new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
     month: 'short',
     day: 'numeric',

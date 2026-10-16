@@ -1,7 +1,14 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
-import { brokeStreak, habitStreak } from '../data/healthStats'
+import {
+  brokeStreak,
+  checkInDay,
+  habitSinceDay,
+  habitStreak,
+  recentDayKeys,
+  todayDayKey,
+} from '../data/healthStats'
 import type { HealthState } from '../data/types'
 
 /** Localized 1–5 labels for the mood and energy scales. */
@@ -71,8 +78,33 @@ export function fmtDay(dayKey: string, lang: Lang): string {
   return dateFmt(lang, { month: 'short', day: 'numeric' }).format(new Date(y, m - 1, d))
 }
 
+/** "Today, 3:30 p.m." / "Yesterday, …" / "Oct 4, …" — history timestamps
+    lead with the relative day so recent rows scan faster. */
+export function fmtRelativeDateTime(iso: string, lang: Lang, now: Date = new Date()): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const today = new Date(now)
+  today.setHours(0, 0, 0, 0)
+  const entryDay = new Date(d)
+  entryDay.setHours(0, 0, 0, 0)
+  const diff = Math.round((today.getTime() - entryDay.getTime()) / DAY_MS)
+  if (diff === 0 || diff === 1) {
+    const label = pick(diff === 0 ? HM.health_day_today : HM.health_day_yesterday, lang)
+    const time = dateFmt(lang, { hour: 'numeric', minute: '2-digit' }).format(d)
+    return `${label}, ${time}`
+  }
+  return fmtDateTime(iso, lang, now)
+}
+
 const DAY_MS = 24 * 60 * 60 * 1000
-const WEEK_MS = 7 * DAY_MS
+
+/* "This week" in the greetings is the same last-7-calendar-days window the
+   stats and charts use — a rolling 7×24h cutoff would quietly disagree with
+   the numbers on the page it sits next to. */
+function weekCheckIns(state: HealthState, now: Date): number {
+  const weekDays = new Set(recentDayKeys(7, now))
+  return state.checkIns.filter((c) => weekDays.has(checkInDay(c))).length
+}
 
 /* A fresh break is a change; a live streak is a standing state — the change
    is the thing worth noticing. The 3-day floor keeps a two-day dabble from
@@ -83,7 +115,7 @@ function pausedHabit(
 ): { name: string; days: number } | null {
   let longest: { name: string; days: number } | null = null
   for (const h of state.habits) {
-    const run = brokeStreak(state.habitLogs, h.id, now)
+    const run = brokeStreak(state.habitLogs, h.id, now, habitSinceDay(h))
     if (run >= 3 && (!longest || run > longest.days)) longest = { name: h.name, days: run }
   }
   return longest
@@ -103,7 +135,7 @@ export function companionGreeting(
     const paused = pausedHabit(state, now)
     let best: { name: string; streak: number } | null = null
     for (const h of state.habits) {
-      const streak = habitStreak(state.habitLogs, h.id, now)
+      const streak = habitStreak(state.habitLogs, h.id, now, habitSinceDay(h))
       if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
     }
     if (paused) {
@@ -119,8 +151,7 @@ export function companionGreeting(
           .replace('{days}', String(best.streak)),
       )
     } else {
-      const cutoff = now.getTime() - WEEK_MS
-      const count = state.checkIns.filter((c) => Date.parse(c.createdAt) >= cutoff).length
+      const count = weekCheckIns(state, now)
       if (count >= 2) {
         parts.push(pick(HM.health_chat_hi_checkins, lang).replace('{count}', String(count)))
       }
@@ -150,7 +181,7 @@ export function miraNoticed(
   }
   let best: { name: string; streak: number } | null = null
   for (const h of state.habits) {
-    const streak = habitStreak(state.habitLogs, h.id, now)
+    const streak = habitStreak(state.habitLogs, h.id, now, habitSinceDay(h))
     if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
   }
   if (best) {
@@ -158,10 +189,8 @@ export function miraNoticed(
       .replace('{name}', best.name)
       .replace('{days}', String(best.streak))
   }
-  const startOfDay = new Date(now)
-  startOfDay.setHours(0, 0, 0, 0)
   const todayCheckIn = state.checkIns.find(
-    (c) => Date.parse(c.createdAt) >= startOfDay.getTime(),
+    (c) => checkInDay(c) === todayDayKey(now),
   )
   if (todayCheckIn?.note.trim()) {
     const note = todayCheckIn.note.replace(/\s+/g, ' ').trim().slice(0, 80)
@@ -173,9 +202,63 @@ export function miraNoticed(
       moodLabel(todayCheckIn.mood, lang).toLowerCase(),
     )
   }
-  const weekCount = state.checkIns.filter(
-    (c) => Date.parse(c.createdAt) >= now.getTime() - WEEK_MS,
-  ).length
+  /* Weekly rhythm — "your Sundays run low." Only fires when one weekday
+     has 3+ logged days in the last 6 weeks AND averages clearly below the
+     person's own norm (≥0.5 under their mean, ≤2.8 absolute): a single
+     rough Tuesday never earns the line, and neither do three check-ins
+     all taken on the same Tuesday — the count is days, not entries, and
+     both sides of the comparison weight days equally. Observational,
+     never causal — Mira names the pattern, she doesn't explain it. */
+  const windowDays = new Set(recentDayKeys(42, now))
+  const dayMoods = new Map<string, number[]>()
+  for (const c of state.checkIns) {
+    const key = checkInDay(c)
+    if (!windowDays.has(key)) continue
+    const list = dayMoods.get(key) ?? []
+    list.push(c.mood)
+    dayMoods.set(key, list)
+  }
+  if (dayMoods.size >= 8) {
+    const byWeekday = new Map<number, number[]>()
+    let overallTotal = 0
+    for (const [key, moods] of dayMoods) {
+      const dayMean = moods.reduce((a, b) => a + b, 0) / moods.length
+      /* Noon anchors the weekday to the calendar date regardless of DST —
+         the key is already a local day, so this can't drift a day. */
+      const day = new Date(`${key}T12:00:00`).getDay()
+      const list = byWeekday.get(day) ?? []
+      list.push(dayMean)
+      byWeekday.set(day, list)
+      overallTotal += dayMean
+    }
+    const overall = overallTotal / dayMoods.size
+    let lowDay: number | null = null
+    let lowAvg = Infinity
+    for (const [day, moods] of byWeekday) {
+      if (moods.length < 3) continue
+      const avg = moods.reduce((a, b) => a + b, 0) / moods.length
+      if (avg <= overall - 0.5 && avg <= 2.8 && avg < lowAvg) {
+        lowAvg = avg
+        lowDay = day
+      }
+    }
+    if (lowDay !== null) {
+      /* Name the weekday from an in-window date — an ancient check-in that
+         happened to share it would still format correctly, but sampling
+         inside the window keeps the line anchored to the data it's
+         describing. Noon keeps the day stable on DST edges. */
+      const sample = state.checkIns.find(
+        (c) =>
+          windowDays.has(checkInDay(c)) &&
+          new Date(`${checkInDay(c)}T12:00:00`).getDay() === lowDay,
+      )
+      const name = dateFmt(lang, { weekday: 'long' }).format(
+        sample ? new Date(`${checkInDay(sample)}T12:00:00`) : now,
+      )
+      return pick(HM.health_home_mira_weekday, lang).replace('{day}', name)
+    }
+  }
+  const weekCount = weekCheckIns(state, now)
   if (weekCount >= 2) {
     /* The Overview strip's own wording — the greeting's "already" reads as
        a hello, not an observation. */
@@ -186,7 +269,11 @@ export function miraNoticed(
      be absent from. */
   const newest = state.checkIns[0]
   if (newest && state.checkIns.length >= 3) {
-    const silentDays = Math.floor((now.getTime() - Date.parse(newest.createdAt)) / DAY_MS)
+    /* Calendar days since the last check-in's own day — the same unit every
+       other count uses, and a stored `day` survives timezone travel the
+       elapsed-hours math can't. */
+    const silentDays =
+      (Date.parse(todayDayKey(now)) - Date.parse(checkInDay(newest))) / DAY_MS
     if (silentDays >= 3) {
       return pick(HM.health_home_mira_away, lang).replace('{days}', String(silentDays))
     }

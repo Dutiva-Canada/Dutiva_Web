@@ -6,6 +6,7 @@ import type { UseCrmDataReturn } from './useCrmData'
 import { bi } from '@/i18n/core'
 import type { CrmActivityType } from './types'
 import { CRM_ACTIVITY_TYPES, fromBi, toBi } from './crmUtils'
+import { localTodayISO } from '@/lib/format'
 
 const inputClass =
   'w-full rounded-[10px] border border-border bg-surface px-[12px] py-[9px] font-sans text-[13.5px] text-text'
@@ -15,7 +16,7 @@ export function CrmActivities({ crm }: { readonly crm: UseCrmDataReturn }) {
   const { x, lang } = useI18n()
   const [showForm, setShowForm] = useState(false)
   const [type, setType] = useState<CrmActivityType>(CRM_ACTIVITY_TYPES[0])
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(localTodayISO)
   const [contactId, setContactId] = useState('')
   const [companyId, setCompanyId] = useState('')
   const [dealId, setDealId] = useState('')
@@ -24,7 +25,7 @@ export function CrmActivities({ crm }: { readonly crm: UseCrmDataReturn }) {
 
   const reset = () => {
     setType(CRM_ACTIVITY_TYPES[0])
-    setDate(new Date().toISOString().slice(0, 10))
+    setDate(localTodayISO())
     setContactId('')
     setCompanyId('')
     setDealId('')

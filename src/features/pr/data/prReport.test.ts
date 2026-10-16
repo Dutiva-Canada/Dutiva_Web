@@ -97,6 +97,7 @@ describe('buildPrReport', () => {
       engine: 'chatgpt' as const,
       result: result as 'cited',
       note: '',
+      noteSource: 'auto' as const,
       checkedAt,
       checkedVia: checkedVia as 'auto',
       createdAt: '2026-10-01T00:00:00Z',

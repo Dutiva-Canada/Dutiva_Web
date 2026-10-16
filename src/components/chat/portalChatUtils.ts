@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type DependencyList, type RefObject } from
 
 /* Shared bits for the four standalone portal chats (Tally, Mira, Paige,
    Claire). Each page keeps its own styling system — the sb-* sheets for
-   invest/health/pr, Tailwind for careers — so this module only carries the
+   invest/wellness/pr, Tailwind for careers — so this module only carries the
    pieces that are identical everywhere: time/day formatting, the
    stick-to-bottom scroll model, and textarea auto-grow. Components that
    share the pages (e.g. the copy control) live in portalChat.tsx so this
@@ -173,29 +173,41 @@ export function useStickToBottom(deps: DependencyList): {
 
 /**
  * Draft that survives navigation — kept in sessionStorage keyed by surface
- * (and thread), so leaving the page mid-sentence doesn't lose the text.
+ * (and thread, or by field for non-chat prose like a journal entry), so
+ * leaving the page mid-sentence doesn't lose the text. `null` opts out and
+ * behaves like plain useState — editors that shouldn't persist (a saved
+ * row's edit form) pass null instead of skipping the hook call. Clears when
+ * the draft empties, so a save or confirmed discard never leaves residue.
  * Returns the same pair useState would.
  */
-export function usePortalChatDraft(
-  storageKey: string,
+export function useSessionDraft(
+  storageKey: string | null,
+  initial = '',
 ): [string, (v: string) => void] {
+  const initialRef = useRef(initial)
   const [draft, setDraftState] = useState<string>(() => {
+    if (!storageKey) return initialRef.current
     try {
-      return sessionStorage.getItem(storageKey) ?? ''
+      return sessionStorage.getItem(storageKey) ?? initialRef.current
     } catch {
-      return ''
+      return initialRef.current
     }
   })
   /* Switching keys (e.g. switching threads) reloads that key's draft. */
   useEffect(() => {
+    if (!storageKey) {
+      setDraftState(initialRef.current)
+      return
+    }
     try {
-      setDraftState(sessionStorage.getItem(storageKey) ?? '')
+      setDraftState(sessionStorage.getItem(storageKey) ?? initialRef.current)
     } catch {
-      setDraftState('')
+      setDraftState(initialRef.current)
     }
   }, [storageKey])
   const setDraft = (v: string) => {
     setDraftState(v)
+    if (!storageKey) return
     try {
       if (v) sessionStorage.setItem(storageKey, v)
       else sessionStorage.removeItem(storageKey)
@@ -205,6 +217,9 @@ export function usePortalChatDraft(
   }
   return [draft, setDraft]
 }
+
+/** Chat-scoped alias — kept for the existing composer call sites. */
+export const usePortalChatDraft = useSessionDraft
 
 /**
  * Grow a textarea with its content as the draft lengthens — capped by the

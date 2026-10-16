@@ -7765,6 +7765,7 @@ export type Database = {
       health_checkins: {
         Row: {
           created_at: string
+          day: string | null
           energy: number | null
           id: string
           mood: number
@@ -7773,6 +7774,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day?: string | null
           energy?: number | null
           id?: string
           mood: number
@@ -7781,6 +7783,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day?: string | null
           energy?: number | null
           id?: string
           mood?: number
@@ -7824,21 +7827,27 @@ export type Database = {
       health_habits: {
         Row: {
           created_at: string
+          day: string | null
           id: string
           name: string
           user_id: string
+          weekly_target: number | null
         }
         Insert: {
           created_at?: string
+          day?: string | null
           id?: string
           name: string
           user_id: string
+          weekly_target?: number | null
         }
         Update: {
           created_at?: string
+          day?: string | null
           id?: string
           name?: string
           user_id?: string
+          weekly_target?: number | null
         }
         Relationships: []
       }
@@ -7847,6 +7856,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          image_path: string | null
           shared_at: string | null
           title: string
           updated_at: string
@@ -7856,6 +7866,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          image_path?: string | null
           shared_at?: string | null
           title?: string
           updated_at?: string
@@ -7865,6 +7876,7 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          image_path?: string | null
           shared_at?: string | null
           title?: string
           updated_at?: string
@@ -12616,19 +12628,25 @@ export type Database = {
       portal_notification_prefs: {
         Row: {
           email_enabled: boolean
+          reminder_enabled: boolean
           surface: string
+          tz: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           email_enabled?: boolean
+          reminder_enabled?: boolean
           surface: string
+          tz?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           email_enabled?: boolean
+          reminder_enabled?: boolean
           surface?: string
+          tz?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -12892,6 +12910,7 @@ export type Database = {
           engine: string
           id: string
           note: string
+          note_source: string
           prompt: string
           result: string
           updated_at: string
@@ -12904,6 +12923,7 @@ export type Database = {
           engine?: string
           id?: string
           note?: string
+          note_source?: string
           prompt: string
           result?: string
           updated_at?: string
@@ -12916,6 +12936,7 @@ export type Database = {
           engine?: string
           id?: string
           note?: string
+          note_source?: string
           prompt?: string
           result?: string
           updated_at?: string
@@ -17488,6 +17509,10 @@ export type Database = {
           orgs_awaiting_reminder: number
           secret_configured: boolean
         }[]
+      }
+      pr_keyword_check: {
+        Args: { p_keyword_id: string; p_position?: number | null }
+        Returns: undefined
       }
       process_expired_data_deletions: { Args: never; Returns: number }
       profile_applied_to_member_org: {

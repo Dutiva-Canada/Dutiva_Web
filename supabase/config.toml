@@ -110,6 +110,9 @@ verify_jwt = false
 [functions.health-ai]
 verify_jwt = false
 
+[functions.health-transcribe]
+verify_jwt = false
+
 [functions.notify-signing-status]
 verify_jwt = false
 

@@ -8,6 +8,7 @@ import type { SigningCompletionRecord } from '../completionRecord'
 import { isSigningTokenExpired } from '../signatureQueries'
 import type { ProductionDocumentRecipient, ProductionDocumentSignature } from '../signatureQueries'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { localDayOfISO } from '@/lib/format'
 import {
   PROD_RECIPIENT_TYPE,
   fmtDetailDate,
@@ -114,7 +115,7 @@ export function RecipientsTab({
             {x(M.doclib_prod_completion_title)}
           </div>
           <p className="text-[12.5px] text-text-muted">
-            {x(completion.title)} · {completion.completedAt.slice(0, 10)}
+            {x(completion.title)} · {localDayOfISO(completion.completedAt)}
           </p>
           <button
             type="button"

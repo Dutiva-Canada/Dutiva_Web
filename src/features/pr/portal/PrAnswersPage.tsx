@@ -76,15 +76,16 @@ export function PrAnswersPage() {
     try {
       const res = await runGeoChecks()
       await refresh()
+      const base = res.checked === 1 ? PM.pr_ans_ran_one : PM.pr_ans_ran_many
+      const fail =
+        res.failed === 0
+          ? null
+          : res.failed === 1
+            ? PM.pr_ans_check_fail_one
+            : PM.pr_ans_check_fail_many
       showToast({
-        en: (res.checked === 1 ? PM.pr_ans_ran_one : PM.pr_ans_ran_many).en.replace(
-          '{count}',
-          String(res.checked),
-        ),
-        fr: (res.checked === 1 ? PM.pr_ans_ran_one : PM.pr_ans_ran_many).fr.replace(
-          '{count}',
-          String(res.checked),
-        ),
+        en: `${base.en.replace('{count}', String(res.checked))}${fail ? ` — ${fail.en.replace('{count}', String(res.failed))}` : ''}`,
+        fr: `${base.fr.replace('{count}', String(res.checked))}${fail ? ` — ${fail.fr.replace('{count}', String(res.failed))}` : ''}`,
       })
     } catch {
       showToast(PM.pr_ans_run_fail)
@@ -186,13 +187,6 @@ export function PrAnswersPage() {
     await refresh()
   }
 
-  if (loading || !state) {
-    return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="sb prx sb-page">
@@ -200,6 +194,13 @@ export function PrAnswersPage() {
         <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
           {x(PM.pr_retry)}
         </button>
+      </div>
+    )
+  }
+  if (loading || !state) {
+    return (
+      <div className="flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
       </div>
     )
   }

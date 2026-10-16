@@ -1,14 +1,17 @@
 import { bi } from '@/i18n/core'
 import type { Bi, Lang } from '@/i18n/core'
+import { localDayOfISO, localTodayISO } from '@/lib/format'
 export { isCanonicalMemoryDate } from '@/data/memoryDates'
 
 /**
  * Localized memory date labels. Renders "Today / Aujourd'hui" when the stored
  * ISO value falls on the reference calendar day; otherwise a short date.
  */
+const localDayOf = localDayOfISO
+
 export function formatMemoryDate(iso: string, lang: Lang, referenceDateISO: string): string {
-  const valueDay = iso.slice(0, 10)
-  const referenceDay = referenceDateISO.slice(0, 10)
+  const valueDay = localDayOf(iso)
+  const referenceDay = localDayOf(referenceDateISO)
   if (valueDay === referenceDay) {
     return lang === 'fr' ? 'Aujourd’hui' : 'Today'
   }
@@ -23,13 +26,13 @@ export function formatMemoryDate(iso: string, lang: Lang, referenceDateISO: stri
 }
 
 export function memoryDateReferenceISO(scenarioReferenceISO?: string): string {
-  return scenarioReferenceISO ?? new Date().toISOString().slice(0, 10)
+  return scenarioReferenceISO ?? localTodayISO()
 }
 
 /** Derives a conversation nav subtitle from a stored resume date — never persist relative labels. */
 export function formatMemoryResumedSub(resumedAtISO: string, referenceDateISO: string): Bi {
-  const resumedDay = resumedAtISO.slice(0, 10)
-  const referenceDay = referenceDateISO.slice(0, 10)
+  const resumedDay = localDayOf(resumedAtISO)
+  const referenceDay = localDayOf(referenceDateISO)
   if (resumedDay === referenceDay) {
     return bi('Resumed today', 'Repris aujourd’hui')
   }

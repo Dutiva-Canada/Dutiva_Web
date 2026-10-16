@@ -59,7 +59,7 @@ const STATE: HealthState = {
   lastLoadedAt: new Date().toISOString(),
 }
 
-function renderTools(lang: Lang = 'en', entry = '/health/tools') {
+function renderTools(lang: Lang = 'en', entry = '/wellness/tools') {
   const health: HealthDataContextValue = {
     state: STATE,
     loading: false,
@@ -72,8 +72,8 @@ function renderTools(lang: Lang = 'en', entry = '/health/tools') {
         <ToastsProvider>
           <MemoryRouter initialEntries={[entry]}>
             <Routes>
-              <Route path="/health/tools" element={<Tools />} />
-              <Route path="/health/chat" element={<div>chat surface</div>} />
+              <Route path="/wellness/tools" element={<Tools />} />
+              <Route path="/wellness/chat" element={<div>chat surface</div>} />
             </Routes>
             <ToastHost />
           </MemoryRouter>
@@ -211,7 +211,7 @@ describe('HealthToolsPage — tools', () => {
     const link = await screen.findByRole('link', {
       name: 'If you’re struggling, the Resources page lists real people to reach.',
     })
-    expect(link).toHaveAttribute('href', '/health/resources')
+    expect(link).toHaveAttribute('href', '/wellness/resources')
   })
 
   it('grounding offers a back step once past the first item', async () => {
@@ -272,7 +272,7 @@ describe('HealthToolsPage — tabs', () => {
 
   it('#practices lands on the library tab', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
-    renderTools('en', '/health/tools#practices')
+    renderTools('en', '/wellness/tools#practices')
     expect(
       await screen.findByRole('heading', { name: 'Practices with Mira' }),
     ).toBeInTheDocument()
@@ -299,6 +299,27 @@ describe('HealthToolsPage — tabs', () => {
     fireEvent.keyDown(practices, { key: 'ArrowLeft' })
     expect(exercises).toHaveFocus()
     expect(await screen.findByRole('heading', { name: 'Box breathing' })).toBeInTheDocument()
+  })
+
+  it('the chime toggle persists and survives jsdom having no audio stack', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
+    const user = userEvent.setup()
+    renderTools()
+    const cues = await screen.findByRole('button', { name: /Chime/ })
+    /* Opt-in — nothing sounds or buzzes until the person asks for it. */
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+    await user.click(cues)
+    expect(cues).toHaveAttribute('aria-pressed', 'true')
+    expect(localStorage.getItem('dutiva:health:breath-cues')).toBe('on')
+    await user.click(cues)
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+    expect(localStorage.getItem('dutiva:health:breath-cues')).toBe('off')
+    /* Start must work with no AudioContext and no vibrate — the tool is
+       visual first, cues are the nicety. Asserting "Stop" (not a phase
+       label) — the first phase may already have ticked past. */
+    await user.click(screen.getByRole('button', { name: 'Start' }))
+    expect(await screen.findByRole('button', { name: 'Stop' })).toBeInTheDocument()
+    localStorage.removeItem('dutiva:health:breath-cues')
   })
 
   it('switching back to exercises keeps the exercises cards', async () => {

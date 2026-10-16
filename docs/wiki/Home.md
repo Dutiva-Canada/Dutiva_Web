@@ -32,7 +32,7 @@ The following files were used as context for generating this wiki page:
 
 Dutiva is a bilingual (English / French Canadian) HR compliance SaaS product built by **Dutiva Canada Inc.**, a federally incorporated Canadian company based in Ottawa. The platform helps Canadian employers manage HR compliance — documents, deadlines, and workplace decisions — with practical, AI-assisted guidance covering Ontario (ESA 2000), Québec (LNT), and federally regulated workplaces (Canada Labour Code Part III).
 
-The codebase implements three main surfaces — a public marketing site at `dutiva.ca`, a **public read-only demo** at `/demo` (and `/fr/demo`), and the signed-in product workspace at `/app/*` — plus **standalone invite-only portals** (`/health`, `/invest`, `/pr`, `/careers/portal`) with their own shells and access grants — in a single React 19 monolith deployed on Vercel, with Supabase as the backend.
+The codebase implements three main surfaces — a public marketing site at `dutiva.ca`, a **public read-only demo** at `/demo` (and `/fr/demo`), and the signed-in product workspace at `/app/*` — plus **standalone invite-only portals** (`/wellness`, `/invest`, `/pr`, `/careers/portal`) with their own shells and access grants — in a single React 19 monolith deployed on Vercel, with Supabase as the backend.
 
 Sources: [README.md:1-7](), [docs/CANONICAL_FACTS.md:1-55]()
 
@@ -95,7 +95,7 @@ graph LR
     end
 
     subgraph Portals["Standalone Portals (invite-only)"]
-        HEALTH["/health — Mira"]
+        HEALTH["/wellness — Mira"]
         INVEST["/invest — Tally"]
         PRP["/pr — Paige"]
         CAREERS["/careers/portal"]
@@ -357,7 +357,7 @@ Sources: [src/features/marketing/landing.css](), [src/features/app/views/advisor
 | [Advisor Edge Function Response Contract](Advisor-Edge-Function-Response-Contract) | The `advisor-chat` edge function pipeline: request/response contract, `proposedActions` agent layer, safety backstop                                                                                                                                                  |
 | [Advisor Safety Guardrails](Advisor-Safety-Guardrails)                       | Deterministic safety rule layer on every advisor turn, statutory-figure guards, crisis signals                                                                                                                                                                            |
 | [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift)       | The deterministic eval layer: golden eval (64 cases), statute registry, corpus snapshot, live statute-drift checker                                                                                                                                                        |
-| [Portal Assistants](Portal-Assistants)                                     | Mira (`/health`), Paige (`/pr`), Tally (`/invest`) — standalone invite-only portals, shared chat contract, whitelisted actions, safety postures                                                                                                                             |
+| [Portal Assistants](Portal-Assistants)                                     | Mira (`/wellness`), Paige (`/pr`), Tally (`/invest`) — standalone invite-only portals, shared chat contract, whitelisted actions, safety postures                                                                                                                             |
 | [Chat Widgets](Chat-Widgets)                                               | The `dutiva-widget` spec system — six widget types, validation/fallback, per-surface feature flag, demo route                                                                                                                                                              |
 | [Template Catalogue & Engine](Template-Catalogue-Engine)                     | The 50-template (T01–T50) authoring system powering the HR Document Library                                                                                                                                                                                             |
 | [Document Management System](Document-Management-System)                     | Authoring, generating, signing, and exporting HR documents; repository and library surfaces                                                                                                                                                                              |

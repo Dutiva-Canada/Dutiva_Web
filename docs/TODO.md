@@ -168,7 +168,7 @@ _Historical detail below._
 `apps-s-1vcpu-2gb`, built from
 [`services/attachment-scanner`](../services/attachment-scanner/README.md) on
 `main` with `deploy_on_push` off. Verified 2026-08-06 against the deployed URL:
-`/health` → `{"ok":true,"clamd":"PONG"}`, `/scan` with a wrong or absent token
+`/wellness` → `{"ok":true,"clamd":"PONG"}`, `/scan` with a wrong or absent token
 → `401`, unknown route → `404`, plain http → `301`. The first deployment
 deliberately failed — `SCAN_TOKEN is not set — refusing to start an
 unauthenticated scan endpoint` — which also proved clamd loads its full

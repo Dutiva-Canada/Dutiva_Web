@@ -73,10 +73,7 @@ export function securityTiles(
       vendorReviewRows.length >
     0
 
-  const today = new Date(todayISO)
-  const in7Days = new Date(today)
-  in7Days.setDate(today.getDate() + 7)
-  const in7ISO = in7Days.toISOString().slice(0, 10)
+  const in7ISO = addDaysISO(todayISO, 7)
 
   const atRisk = assetRows.filter((a) => a.status === 'at_risk').length
   const criticalAssets = assetRows.filter((a) => a.criticality === 'critical').length
@@ -158,10 +155,7 @@ export function operationsTiles(
       logisticsRows.length >
     0
 
-  const today = new Date(todayISO)
-  const in7Days = new Date(today)
-  in7Days.setDate(today.getDate() + 7)
-  const in7ISO = in7Days.toISOString().slice(0, 10)
+  const in7ISO = addDaysISO(todayISO, 7)
 
   const activeProjects = projectRows.filter((p) => p.status === 'active').length
   const activeVendors = vendorRows.filter((v) => v.status === 'active').length

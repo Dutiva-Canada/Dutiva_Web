@@ -280,8 +280,13 @@ export function ThreadSwitcher({
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLSpanElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
   /* Thread id mid-rename — its row swaps the pick button for the input. */
   const [renamingId, setRenamingId] = useState<string | null>(null)
+  /* React fires blur on an unmounting focused input — Enter commits, so
+     the trailing blur must not commit a second time; Escape cancels, so
+     it must not commit at all. Both paths set this before unmounting. */
+  const skipNextBlur = useRef(false)
   /* Two-step delete — first tap arms the row, second confirms. */
   const [deleteArmed, setDeleteArmed] = useState<string | null>(null)
   const ops = (onRename ?? onDelete) && opsLabels
@@ -314,6 +319,36 @@ export function ThreadSwitcher({
       setDeleteArmed(null)
     }
   }, [open])
+
+  /* Opening moves focus to the active item — role="menu" promises arrow-
+     key navigation, and that only works once focus is inside the list. */
+  useEffect(() => {
+    if (!open) return
+    const items = listRef.current?.querySelectorAll('button')
+    const active = [...(items ?? [])].find(
+      (b) => b.getAttribute('aria-checked') === 'true',
+    )
+    ;(active ?? items?.[0])?.focus()
+  }, [open])
+
+  /* ArrowUp/Down/Home/End cycle the menu's buttons — the WAI menu
+     pattern the roles already claim. */
+  const onMenuKeyDown = (e: React.KeyboardEvent) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return
+    e.preventDefault()
+    const items = [...(listRef.current?.querySelectorAll('button') ?? [])]
+    if (items.length === 0) return
+    const idx = items.indexOf(document.activeElement as HTMLButtonElement)
+    const next =
+      e.key === 'Home'
+        ? 0
+        : e.key === 'End'
+          ? items.length - 1
+          : e.key === 'ArrowDown'
+            ? (idx + 1) % items.length
+            : (idx - 1 + items.length) % items.length
+    items[next]?.focus()
+  }
 
   /* An armed delete disarms itself — the confirm can't linger. */
   useEffect(() => {
@@ -359,7 +394,12 @@ export function ThreadSwitcher({
         )}
       </button>
       {open && (
-        <div className={listClass} role="menu">
+        <div
+          ref={listRef}
+          className={listClass}
+          role="menu"
+          onKeyDown={onMenuKeyDown}
+        >
           <button
             type="button"
             role="menuitemradio"
@@ -382,15 +422,24 @@ export function ThreadSwitcher({
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
+                        skipNextBlur.current = true
                         onRename?.(t.id, e.currentTarget.value)
                         setRenamingId(null)
                       } else if (e.key === 'Escape') {
                         e.stopPropagation()
+                        skipNextBlur.current = true
                         setRenamingId(null)
                       }
                     }}
                     onBlur={(e) => {
-                      onRename?.(t.id, e.currentTarget.value)
+                      /* The blur after an Enter/Escape unmount must not
+                         commit — and an unchanged value isn't worth a
+                         write either. */
+                      if (skipNextBlur.current) {
+                        skipNextBlur.current = false
+                      } else if (e.currentTarget.value !== (t.title ?? '')) {
+                        onRename?.(t.id, e.currentTarget.value)
+                      }
                       setRenamingId(null)
                     }}
                   />

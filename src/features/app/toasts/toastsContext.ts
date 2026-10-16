@@ -3,10 +3,17 @@ import type { LText } from '@/i18n/core'
 
 export type ToastTone = 'ok' | 'info'
 
-export interface ToastAction {
-  label: LText
-  to: string
-}
+/* Actions are either a link (navigates, toast dismissed) or a callback
+   (a real button — used by undo-toasts, which never leave the page). */
+export type ToastAction =
+  | { label: LText; to: string }
+  | { label: LText; onPress: () => void }
+
+/* Kept here (not in the provider) so producers that need to know how long
+   an actionable toast lives — like an undo window that commits when the
+   toast expires — read the same constant the UI does. */
+export const TOAST_DURATION_MS = 3600
+export const TOAST_WITH_ACTION_MS = 6200
 
 export interface Toast {
   id: number

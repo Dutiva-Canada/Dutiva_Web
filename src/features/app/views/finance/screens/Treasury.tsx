@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, RESERVE_TYPE_LABEL } from '../financeLabels'
+import { localDatePlusDaysISO, localTodayISO } from '@/lib/format'
 import { CashSweepsSection } from './TreasurySweeps'
 import type { FinanceCurrency, FinanceReserveType } from '../data/types'
 
@@ -239,11 +240,15 @@ export function Treasury() {
             {state.debts.map((d) => {
               /* Covenant + notice columns existed on finance_debts before
                  anything rendered them — surface them under the terms line,
-                 and flag an active facility inside 90 days of maturity. */
-              const daysToMaturity =
-                (Date.parse(d.maturityDate) - Date.now()) / 86400000
+                 and flag an active facility inside 90 days of maturity.
+                 Calendar-day comparison — an ms diff against a UTC-parsed
+                 date-only value flips the flag off hours early in local
+                 evening. */
+              const todayISO = localTodayISO()
               const maturingSoon =
-                d.status === 'active' && daysToMaturity >= 0 && daysToMaturity <= 90
+                d.status === 'active' &&
+                d.maturityDate >= todayISO &&
+                d.maturityDate <= localDatePlusDaysISO(90)
               return (
                 <li key={d.id} className="flex items-start justify-between gap-[12px]">
                   <div>

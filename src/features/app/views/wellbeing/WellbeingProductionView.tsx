@@ -24,6 +24,7 @@ import type {
   ProductionInitiativeStatus,
 } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Wellbeing in production mode — real persistence on
@@ -78,7 +79,7 @@ const EMPTY_FORM = {
 }
 
 /** Today as YYYY-MM-DD (local) — the cutoff an overdue review is measured against. */
-const today = (): string => new Date().toISOString().slice(0, 10)
+const today = (): string => localTodayISO()
 
 function initiativeToForm(row: ProductionInitiative) {
   return {

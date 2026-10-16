@@ -100,13 +100,6 @@ export function PrSeoPage() {
     }
   }
 
-  if (loading || !state) {
-    return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="sb prx sb-page">
@@ -114,6 +107,13 @@ export function PrSeoPage() {
         <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
           {x(PM.pr_retry)}
         </button>
+      </div>
+    )
+  }
+  if (loading || !state) {
+    return (
+      <div className="flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
       </div>
     )
   }

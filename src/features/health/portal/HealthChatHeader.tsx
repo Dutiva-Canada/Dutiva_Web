@@ -1,4 +1,4 @@
-import { Copy, Trash2 } from 'lucide-react'
+import { Copy, Phone, Trash2 } from 'lucide-react'
 import { healthMessages as HM } from '@/i18n/messages/health'
 import type { HealthChatThread } from '@/features/health/data/api'
 import { ThreadSwitcher } from '@/components/chat/portalChat'
@@ -25,6 +25,9 @@ export function HealthChatHeader({
   onDelete,
   onExport,
   onClear,
+  onCall,
+  voiceCapable,
+  canCall,
 }: {
   x: (m: { en: string; fr: string }) => string
   isInternal: boolean
@@ -43,6 +46,13 @@ export function HealthChatHeader({
   onDelete: (id: string) => void
   onExport: () => void
   onClear: () => void
+  onCall: () => void
+  /* The browser supports both halves of the call (speech recognition +
+     synthesis) — when false the phone button never renders. */
+  voiceCapable: boolean
+  /* History resolved — a call opened over a loading log would drop the
+     first spoken turn when the fetch lands. */
+  canCall: boolean
 }) {
   return (
     <>
@@ -80,6 +90,18 @@ export function HealthChatHeader({
             onRename={onRename}
             onDelete={onDelete}
           />
+          {voiceCapable && (
+            <button
+              type="button"
+              className="sb-btn sb-btn-sm sb-btn-secondary"
+              onClick={onCall}
+              disabled={sending || !canCall}
+              title={x(HM.health_chat_call)}
+            >
+              <Phone size={13} aria-hidden="true" />
+              {x(HM.health_chat_call)}
+            </button>
+          )}
           {hasTurns && (
             <>
               <button

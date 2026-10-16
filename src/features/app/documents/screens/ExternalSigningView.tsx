@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Disclaimer } from '@/components/Disclaimer'
 import { useI18n } from '@/i18n/context'
@@ -50,13 +50,18 @@ export function ExternalSigningView() {
   const [signature, setSignature] = useState<SignatureValue | undefined>()
   const [completedStatus, setCompletedStatus] = useState<'signed' | 'partially_signed' | null>(null)
   const [signError, setSignError] = useState(false)
+  const requestRef = useRef(0)
 
   const load = useCallback(async () => {
     if (!token) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
-      setPkg(await getExternalSigningPackage(token))
+      const next = await getExternalSigningPackage(token)
+      if (requestRef.current !== request) return
+      setPkg(next)
     } catch {
+      if (requestRef.current !== request) return
       setPkg(null)
       setLoadFailed(true)
     }

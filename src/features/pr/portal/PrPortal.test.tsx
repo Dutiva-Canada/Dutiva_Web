@@ -61,6 +61,7 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn().mockResolvedValue(true),
   setNotifyPref: vi.fn().mockResolvedValue(undefined),
+  syncNotifyTz: vi.fn().mockResolvedValue(undefined),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -142,6 +143,7 @@ const STATE: PrState = {
       engine: 'chatgpt',
       result: 'cited',
       note: '',
+      noteSource: 'manual',
       checkedAt: '2026-10-02T14:00:00Z',
       checkedVia: 'manual',
       createdAt: '2026-10-01T14:00:00Z',

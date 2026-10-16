@@ -21,6 +21,7 @@ import type {
   FinanceDecisionKind,
   FinanceLegalEntity,
 } from '../data/types'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Form components for Deals.tsx — extracted to keep the screen under the
@@ -249,7 +250,7 @@ export function DealDecisionForm({
 }) {
   const { x, lang } = useI18n()
   const [decision, setDecision] = useState<FinanceDecisionKind>('review')
-  const [decidedAt, setDecidedAt] = useState(() => new Date().toISOString().slice(0, 10))
+  const [decidedAt, setDecidedAt] = useState(localTodayISO)
   const [summary, setSummary] = useState(() => pickL(deal.name, lang))
   const [rationale, setRationale] = useState('')
   const [reviewDate, setReviewDate] = useState('')

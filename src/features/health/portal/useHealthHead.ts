@@ -24,7 +24,7 @@ export function useHealthHead(title: Bi, description: Bi) {
       lang,
       title: pick(title, lang),
       description: desc,
-      path: { en: '/health', fr: '/health' },
+      path: { en: '/wellness', fr: '/wellness' },
       indexable: false,
     })
     const image = OG_IMAGE[lang]
@@ -33,7 +33,7 @@ export function useHealthHead(title: Bi, description: Bi) {
       { tag: 'meta', attrs: { property: 'og:type', content: 'website' } },
       { tag: 'meta', attrs: { property: 'og:title', content: h.title } },
       { tag: 'meta', attrs: { property: 'og:description', content: desc } },
-      { tag: 'meta', attrs: { property: 'og:url', content: absoluteUrl('/health') } },
+      { tag: 'meta', attrs: { property: 'og:url', content: absoluteUrl('/wellness') } },
       {
         tag: 'meta',
         attrs: { property: 'og:locale', content: lang === 'fr' ? 'fr_CA' : 'en_CA' },

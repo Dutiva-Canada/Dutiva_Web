@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
 import { sourceChipClass } from '@/components/chips'
 import type { ExpiryRecordKind, ProductionExpiryRecord } from './productionApi'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Documents tab for the production employee profile — certifications and
@@ -18,7 +19,7 @@ const smallButtonClass =
 const primaryButtonClass =
   'cursor-pointer rounded-[10px] border-none bg-navy px-[14px] py-[8px] font-sans text-[12.5px] font-semibold text-white disabled:opacity-60'
 
-const todayISO = (): string => new Date().toISOString().slice(0, 10)
+const todayISO = (): string => localTodayISO()
 
 function SectionHeading({ text }: { readonly text: string }) {
   return (

@@ -58,7 +58,7 @@ export function HealthLegalPage() {
   const meta = slug && slug in SLUGS ? SLUGS[slug as AnySlug] : undefined
   useHealthHead(meta?.title ?? HM.health_title, meta?.desc ?? HM.health_subtitle)
 
-  if (!meta) return <Navigate to="/health" replace />
+  if (!meta) return <Navigate to="/wellness" replace />
 
   const other: Lang = lang === 'fr' ? 'en' : 'fr'
   const label = lang === 'en' ? 'FR' : 'EN'
@@ -68,7 +68,7 @@ export function HealthLegalPage() {
       <header className="border-b border-border bg-bg-elevated">
         <div className="mx-auto flex max-w-[960px] items-center justify-between gap-[16px] px-[20px] py-3">
           <Link
-            to="/health"
+            to="/wellness"
             className="shrink-0 font-display text-lg font-bold text-text no-underline"
           >
             Duti<span className="text-gold-strong">va</span>{' '}
@@ -90,7 +90,7 @@ export function HealthLegalPage() {
 
       <main className="mx-auto w-full max-w-[820px] flex-1 px-[20px] pt-[28px] pb-[48px]">
         <Link
-          to="/health"
+          to="/wellness"
           className="inline-flex items-center gap-2 text-[13px] font-semibold text-accent no-underline hover:opacity-80"
         >
           <ArrowLeft size={15} aria-hidden="true" />
@@ -119,7 +119,7 @@ function DocArticle({ docSlug, showContact }: { docSlug: DocSlug; showContact?: 
   const { lang } = useI18n()
   const doc = policyDoc(SLUGS[docSlug].doc ?? '')
   const resolved = doc ? use(policyEditionResource(doc, lang)) : undefined
-  if (!resolved) return <Navigate to="/health" replace />
+  if (!resolved) return <Navigate to="/wellness" replace />
   return <PolicyArticle edition={resolved.edition} lang={resolved.lang} contact={showContact} />
 }
 

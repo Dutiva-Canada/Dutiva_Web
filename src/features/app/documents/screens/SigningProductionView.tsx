@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { Disclaimer } from '@/components/Disclaimer'
@@ -41,13 +41,18 @@ export function SigningProductionView() {
     searchParams.get('recipient'),
   )
   const [signature, setSignature] = useState<SignatureValue | undefined>()
+  const requestRef = useRef(0)
 
   const load = useCallback(async () => {
     if (!organizationId || !envelopeId) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
-      setPkg(await getSigningPackage(organizationId, envelopeId))
+      const next = await getSigningPackage(organizationId, envelopeId)
+      if (requestRef.current !== request) return
+      setPkg(next)
     } catch {
+      if (requestRef.current !== request) return
       setPkg(null)
       setLoadFailed(true)
     }

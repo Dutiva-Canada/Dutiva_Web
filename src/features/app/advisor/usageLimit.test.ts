@@ -78,4 +78,15 @@ describe('usageLimitReply', () => {
     expect(reply.fr).toContain('5 $')
     expect(reply.en).not.toContain('{included}')
   })
+
+  it('quotes the caller\u2019s plan-tiered allowance, not the flat fallback', () => {
+    /* Free workspaces get 20 included replies — telling them "80" overstates
+       the allowance they actually burned through. */
+    const free = usageLimitReply(new AdvisorUsageLimitError('commercial', 86_400), 20)
+    expect(free.en).toContain('20 included')
+    expect(free.fr).toContain('20')
+    expect(free.en).not.toContain('80 included')
+    const pro = usageLimitReply(new AdvisorUsageLimitError('commercial', 86_400), 400)
+    expect(pro.en).toContain('400 included')
+  })
 })

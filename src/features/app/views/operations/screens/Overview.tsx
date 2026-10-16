@@ -5,14 +5,15 @@ import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useOperationsData } from '../OperationsDataContext'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { localDatePlusDaysISO, localTodayISO } from '@/lib/format'
 
 export function Overview() {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { projects, vendors, qualityChecks, technology, logistics } = useOperationsData()
 
-  const todayISO = new Date().toISOString().slice(0, 10)
-  const in7ISO = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
+  const in7ISO = localDatePlusDaysISO(7)
 
   const activeProjects = projects.filter((p) => p.status === 'active').length
   const activeVendors = vendors.filter((v) => v.status === 'active').length

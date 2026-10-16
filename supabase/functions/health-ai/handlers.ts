@@ -13,12 +13,20 @@ import { detectPatterns } from '../_shared/adviceScreen.ts'
 export interface CheckInRow {
   mood: number
   energy: number | null
+  /** The writer's local calendar day (migration 0229). NULL on legacy
+      rows — the UTC date of created_at is the fallback, and the comment
+      in buildHealthFacts owns what that approximation means. */
+  day?: string | null
   created_at: string
 }
 
 export interface HabitRowLite {
   id: string
   name: string
+  /** Local day the habit was created (migration 0229) — the floor for its
+      streak/progress math. NULL → created_at's UTC date, pre-0229 shape. */
+  day?: string | null
+  created_at?: string | null
 }
 
 export interface HabitLogRowLite {
@@ -29,15 +37,25 @@ export interface HabitLogRowLite {
 export interface HealthFacts {
   days: number
   checkInCount: number
+  /** Distinct days with at least one check-in — the honest "how much data"
+      number; checkInCount can exceed it when a day is logged twice. */
+  loggedDays: number
   avgMood: number | null
   avgEnergy: number | null
   moodTrend: 'up' | 'down' | 'flat' | null
-  habitsKept: number
   habitsTotal: number
-  bestHabitDays: number
+  /** Days each tracked habit was marked done inside the window — real
+      adherence, so "a habit marked once" never reads as "a habit kept". */
+  habitDays: { name: string; days: number }[]
 }
 
 const DAY_MS = 86_400_000
+
+/** A YYYY-MM-DD shifted by `n` days — calendar-date math without a
+    timezone surprise (UTC anchor, same trick as dayNum client-side). */
+function shiftDay(day: string, n: number): string {
+  return new Date(Date.parse(`${day}T00:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10)
+}
 
 /** The remembered layer — durable facts the person asked Mira to hold
     (health_memories: written by hand, or proposed by her and accepted on
@@ -65,47 +83,98 @@ export function buildHealthFacts(
   days: number,
   nowIso: string,
 ): HealthFacts {
-  const now = Date.parse(nowIso)
-  const cutoff = now - days * DAY_MS
-  const mid = now - Math.floor(days / 2) * DAY_MS
+  /* Calendar-day window anchored on the caller's local today — the same
+     frame the page charts. Rows written after migration 0229 carry the
+     writer's own local day; legacy rows fall back to the UTC date of
+     created_at, which can read one day "future" for writers behind UTC —
+     the +1 bound keeps those while excluding genuinely future stamps. */
+  const todayUtc = nowIso.slice(0, 10)
+  const cutoffDay = shiftDay(todayUtc, -(days - 1))
+  /* Half the WINDOW, not half measured back from today — `today−7` would
+     leave an 8-date newer half against 6 older dates on a 14-day window.
+     Anchoring to the cutoff splits 14 dates evenly (odd windows give the
+     recent half the extra day). */
+  const midDay = shiftDay(cutoffDay, Math.floor(days / 2))
 
-  const recent = checkIns.filter((c) => Date.parse(c.created_at) >= cutoff)
-  const olderHalf = recent.filter((c) => Date.parse(c.created_at) < mid)
-  const newerHalf = recent.filter((c) => Date.parse(c.created_at) >= mid)
+  /* Per-day averaging — the same weighting the Insights page uses, so the
+     recap can't cite an average the displayed card disagrees with. */
+  const byDay = new Map<string, { moodSum: number; n: number; eSum: number; eN: number }>()
+  let checkInCount = 0
+  for (const c of checkIns) {
+    const day = c.day ?? c.created_at.slice(0, 10)
+    /* The stored day is the writer's calendar — a UTC+ user can be a real
+       day ahead of the server's UTC today without anything being wrong.
+       The +1 bound keeps genuinely future rows out while letting the
+       furthest real timezone in (UTC+14). */
+    if (day < cutoffDay || day > shiftDay(todayUtc, 1)) continue
+    checkInCount += 1
+    const slot = byDay.get(day) ?? { moodSum: 0, n: 0, eSum: 0, eN: 0 }
+    slot.moodSum += c.mood
+    slot.n += 1
+    if (c.energy != null) {
+      slot.eSum += c.energy
+      slot.eN += 1
+    }
+    byDay.set(day, slot)
+  }
 
-  const avgMood = avg(recent.map((c) => c.mood))
-  const avgOlder = avg(olderHalf.map((c) => c.mood))
-  const avgNewer = avg(newerHalf.map((c) => c.mood))
+  const moodAvgs: { day: string; v: number }[] = []
+  const energyAvgs: number[] = []
+  for (const [day, s] of byDay) {
+    moodAvgs.push({ day, v: s.moodSum / s.n })
+    if (s.eN > 0) energyAvgs.push(s.eSum / s.eN)
+  }
+
+  /* A trend needs at least two logged days in EACH half — otherwise two
+     check-ins a fortnight apart would manufacture a "trend" out of two
+     points. Empty halves already meant null; thin ones now do too. */
+  const olderVals = moodAvgs.filter((m) => m.day < midDay).map((m) => m.v)
+  const newerVals = moodAvgs.filter((m) => m.day >= midDay).map((m) => m.v)
   let moodTrend: HealthFacts['moodTrend'] = null
-  if (avgOlder != null && avgNewer != null) {
-    const diff = avgNewer - avgOlder
+  if (olderVals.length >= 2 && newerVals.length >= 2) {
+    /* The diff runs on raw means — rounding each half to a tenth first
+       would let a real 0.34 shift collapse to a rounded 0.3 and read
+       "flat". (avg()'s rounding stays for the reported stats.) */
+    const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length
+    const diff = mean(newerVals) - mean(olderVals)
     moodTrend = diff > 0.3 ? 'up' : diff < -0.3 ? 'down' : 'flat'
   }
 
-  const recentDays = new Set(
-    logs.filter((l) => Date.parse(`${l.day}T12:00:00Z`) >= cutoff).map((l) => l.day),
-  )
-  const keptHabitIds = new Set(
-    logs.filter((l) => recentDays.has(l.day)).map((l) => l.habit_id),
-  )
-  let bestHabitDays = 0
-  const perHabit = new Map<string, number>()
+  /* Per-habit adherence — a Set per habit so a duplicated (habit, day)
+     row can't inflate the count, habits never marked still appear with
+     days:0 rather than vanishing, and marks stamped before the habit
+     existed don't count toward it. */
+  const floorByHabit = new Map(habits.map((h) => [h.id, habitStartDay(h)]))
+  const doneDays = new Map<string, Set<string>>()
   for (const l of logs) {
-    if (!recentDays.has(l.day)) continue
-    perHabit.set(l.habit_id, (perHabit.get(l.habit_id) ?? 0) + 1)
+    /* habit_logs.day is already the writer's local day — same +1 bound:
+       their "today" can sit one UTC date ahead of the server's. */
+    if (l.day < cutoffDay || l.day > shiftDay(todayUtc, 1)) continue
+    const floor = floorByHabit.get(l.habit_id)
+    if (floor != null && l.day < floor) continue
+    const set = doneDays.get(l.habit_id) ?? new Set<string>()
+    set.add(l.day)
+    doneDays.set(l.habit_id, set)
   }
-  for (const n of perHabit.values()) bestHabitDays = Math.max(bestHabitDays, n)
 
   return {
     days,
-    checkInCount: recent.length,
-    avgMood,
-    avgEnergy: avg(recent.map((c) => c.energy).filter((e): e is number => e != null)),
+    checkInCount,
+    loggedDays: byDay.size,
+    avgMood: avg(moodAvgs.map((m) => m.v)),
+    avgEnergy: avg(energyAvgs),
     moodTrend,
-    habitsKept: keptHabitIds.size,
     habitsTotal: habits.length,
-    bestHabitDays,
+    habitDays: habits.map((h) => ({ name: h.name, days: doneDays.get(h.id)?.size ?? 0 })),
   }
+}
+
+/** The day a habit started existing — the stored local day when the row
+    carries it (migration 0229), else created_at's UTC date, else no floor
+    (a bare id/name fixture gets no restriction). Streak and adherence math
+    ignore logs stamped before it: a backfill can't invent history. */
+function habitStartDay(h: HabitRowLite): string | null {
+  return h.day ?? h.created_at?.slice(0, 10) ?? null
 }
 
 /* The advice line is tiered: external accounts get observations only, a
@@ -200,12 +269,23 @@ export function recapPrompt(
 ): string {
   const langLine = lang === 'fr' ? 'Reply in Canadian French.' : 'Reply in English.'
   return [
-    `You write weekly summaries for a personal wellness tracker. ${sharedRules(advice)}`,
-    'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down, how habits went, and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. ' +
+    `You write two-week summaries for a personal wellness tracker. ${sharedRules(advice)}`,
+    'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down' +
+      /* Zero configured habits is an absence, not a failure. And habits
+         are reported as days-marked, not kept/failed — a habit with
+         days:1 was marked once, not "kept up". */
+      (facts.habitsTotal > 0
+        ? ', how each habit went by its days marked in habitDays'
+        : '') +
+      ', and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. ' +
+      /* Two steers against the failure shapes seen live: verdict words
+         ("very low", "poor") instead of numbers, and week-scale claims
+         ("all week", "staying at the bottom") extrapolated from a single
+         check-in. */
+      'Report the numbers plainly — counts and averages — never verdicts like "very low", "poor", or "failing". If the data is thin — a check-in or two — describe those days plainly instead of narrating a period you can\'t see; if there is no data at all, say so in one sentence and stop. ' +
       (advice
         ? 'Describe first — then, if the numbers call for it, say plainly what you would change.'
-        : 'Describe, don\'t advise.') +
-      ' If there is no data, say so in one sentence and stop.',
+        : 'Describe, don\'t advise.'),
     langLine,
     'Return only the summary text.',
     '',
@@ -270,12 +350,19 @@ export interface HabitStatus {
       mark doesn't break a streak started yesterday — same leniency as the
       client-side habitStreak). */
   streak: number
+  /** The walk reached the fetched window's floor still running — the true
+     streak is `streak` OR LONGER. Prompts must say "N+", never "N". */
+  streakCapped?: boolean
 }
 
 export function buildHabitStatuses(
   habits: HabitRowLite[],
   logs: HabitLogRowLite[],
   today: string,
+  /** Oldest day the log slice covers. When a streak's walk consumes it, the
+     run may continue past the fetch — the status flags itself rather than
+     narrating the window edge as the streak's real length. */
+  floorDay?: string,
 ): HabitStatus[] {
   const doneToday = new Set(logs.filter((l) => l.day === today).map((l) => l.habit_id))
   const prevDay = (ymd: string): string => {
@@ -284,14 +371,35 @@ export function buildHabitStatuses(
     return d.toISOString().slice(0, 10)
   }
   return habits.map((h) => {
-    const days = new Set(logs.filter((l) => l.habit_id === h.id).map((l) => l.day))
+    const floor = habitStartDay(h)
+    const days = new Set(
+      logs
+        .filter((l) => l.habit_id === h.id && (floor == null || l.day >= floor))
+        .map((l) => l.day),
+    )
     let streak = 0
     let cursor = days.has(today) ? today : prevDay(today)
     while (days.has(cursor)) {
       streak += 1
       cursor = prevDay(cursor)
     }
-    return { id: h.id, name: h.name, doneToday: doneToday.has(h.id), streak }
+    /* Stopping exactly at the fetch floor means the data ran out, not the
+       streak — reaching prevDay(floorDay) proves it consumed the window's
+       last day. Unless the habit's own start day sits at the floor: that
+       floor stops the walk at the same cursor by DESIGN (marks can't
+       predate the habit), so the streak is exact, not truncated. The flag
+       only ships when true — an exact streak carries no noise key. */
+    const capped =
+      floorDay != null &&
+      cursor === prevDay(floorDay) &&
+      (floor == null || floor < floorDay)
+    return {
+      id: h.id,
+      name: h.name,
+      doneToday: doneToday.has(h.id),
+      streak,
+      ...(capped ? { streakCapped: true } : {}),
+    }
   })
 }
 
@@ -344,6 +452,16 @@ const oneLine = (s: string, max: number): string =>
     journal. Newest first; empty notes and entries are dropped, and journal
     excerpts come only from entries the person explicitly shared — consent
     is enforced here too, not just in the query that fetched the rows. */
+/** Gate for the automatic "short evening walk" proposal. "Sustained" means
+    days, not entries — five check-ins across two days is a bad weekend, not
+    a low patch — and a tracked walk (in either language) already covers the
+    suggestion. Pure so the boundary is testable; the runtime adds dedupe and
+    cooldown on top. */
+export function lowMoodPatchEligible(facts: HealthFacts, statuses: HabitStatus[]): boolean {
+  if (facts.loggedDays < 5 || facts.avgMood == null || facts.avgMood > 2.4) return false
+  return !statuses.some((h) => /walk|marche/i.test(h.name))
+}
+
 export function buildCompanionSignals(
   checkIns: CheckInNoteRow[],
   journals: JournalExcerptRow[],
@@ -357,7 +475,11 @@ export function buildCompanionSignals(
     .filter((c) => c.note.trim() !== '')
     .slice(0, SIGNAL_NOTES_LIMIT)
   for (const c of notes) {
-    lines.push(`- check-in ${dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`)
+    /* The stored local day when the row carries it — the label names the
+       day the writer meant, not the UTC date it landed on. */
+    lines.push(
+      `- check-in ${c.day ?? dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`,
+    )
   }
   const entries = byNewest(journals)
     .filter((j) => j.shared_at != null && j.body.trim() !== '')
@@ -385,14 +507,14 @@ export function chatPrompt(
           .map(
             (s) =>
               `  - "${s.name}" — ${s.doneToday ? 'done today' : 'not done today'}, ` +
-              `streak ${s.streak} day${s.streak === 1 ? '' : 's'}`,
+              `streak ${s.streak}${s.streakCapped ? '+' : ''} day${s.streak === 1 ? '' : 's'}`,
           )
           .join('\n')
   const signalLines = signals.length === 0 ? '  (nothing shared yet)' : signals.join('\n')
   return {
     role: 'system',
     content: [
-      `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${companionRules(advice)}`,
+      `You are Mira — the emotional companion inside Dutiva Wellness, a personal wellness tracker. ${companionRules(advice)}`,
       'How you keep company:',
       '- Listen first. When the person shares how they feel, acknowledge it warmly and specifically — name the feeling back in their own terms, then ask at most one gentle follow-up. Let them set the pace; do not interrogate.',
       '- Weave their tracked context (below) into conversation when it helps them feel heard — a streak kept, a note they left, something they journaled. Never recite it as a report, and never mention that you were given a context block.',
@@ -547,6 +669,7 @@ export type ReactEvent =
   | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
+  | { type: 'memory_added'; text: string }
 
 /** Validate a client-sent reaction event. Pure — kept in handlers so vitest
     reaches it (runtime.ts carries npm: imports). */
@@ -571,11 +694,17 @@ export function parseReactEvent(raw: unknown): ReactEvent | null {
     if (typeof ev.habit !== 'string' || ev.habit.trim() === '') return null
     return { type: ev.type, habit: ev.habit.trim().slice(0, 120) }
   }
+  if (ev.type === 'memory_added') {
+    if (typeof ev.text !== 'string' || ev.text.trim() === '') return null
+    return { type: ev.type, text: ev.text.trim().slice(0, 500) }
+  }
   return null
 }
 
 /** One or two sentences reacting to something the person just did. `habitStreak`
-    is the streak the server already computed — the client only names the habit. */
+    is the streak the server already computed — the client only names the habit.
+    `streakCapped` marks a floor value (the fetched window ran out): the prompt
+    says "N+" and never claims a round mark it can't verify. */
 export function reactPrompt(
   event: ReactEvent,
   habitStreak: number | null,
@@ -584,25 +713,32 @@ export function reactPrompt(
   lang: 'en' | 'fr',
   advice = false,
   memories: string[] = [],
+  streakCapped = false,
 ): string {
   const eventLine =
     event.type === 'checkin_saved' || event.type === 'checkin_edited'
       ? `${event.type === 'checkin_edited' ? 'revised a check-in — it now reads' : 'saved a check-in'} — mood ${event.mood}/5` +
         (event.energy != null ? `, energy ${event.energy}/5` : '') +
         (event.note?.trim() ? `, note: "${oneLine(event.note, 300)}"` : ', no note')
-      : event.type === 'habit_added'
-        ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
-        : `marked the habit "${oneLine(event.habit, 120)}" done today` +
-          (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+      : event.type === 'memory_added'
+        ? `just asked you to remember — "${oneLine(event.text, 200)}"`
+        : event.type === 'habit_added'
+          ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
+          : `marked the habit "${oneLine(event.habit, 120)}" done today` +
+            (habitStreak != null
+              ? ` — streak now ${habitStreak}${streakCapped ? '+' : ''} day${habitStreak === 1 ? '' : 's'}`
+              : '')
   /* A streak lands differently at a round mark — a week, two weeks, a month,
      a round ten. Tell her once, so she can name the milestone plainly rather
      than recite a number every day. */
   const milestone =
-    habitStreak != null && (habitStreak % 10 === 0 || habitStreak === 7 || habitStreak === 14 || habitStreak === 21 || habitStreak === 28)
+    habitStreak != null &&
+    !streakCapped &&
+    (habitStreak % 10 === 0 || habitStreak === 7 || habitStreak === 14 || habitStreak === 21 || habitStreak === 28)
       ? ` This is day ${habitStreak} — a round mark; you may name it in a few words (e.g. "a week of it", "a month straight").`
       : ''
   return [
-    `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${companionRules(advice)}`,
+    `You are Mira — the emotional companion inside Dutiva Wellness, a personal wellness tracker. ${companionRules(advice)}`,
     advice
       ? 'The person just did something in the app (below). React the way a companion would — one or two short sentences, naming what they did. If they shared a feeling in the note, meet the feeling first. Small warmth, no cheerleading — a small concrete suggestion is welcome if the moment calls for it.'
       : 'The person just did something in the app (below). React the way a companion would — one or two short sentences, naming what they did. If they shared a feeling in the note, meet the feeling first. Small warmth, no cheerleading, no advice unless it lands as one gentle observation.',
@@ -632,7 +768,7 @@ export function entryReactPrompt(
   memories: string[] = [],
 ): string {
   return [
-    `You are Mira — the emotional companion inside Dutiva Health, a personal wellness tracker. ${companionRules(advice)}`,
+    `You are Mira — the emotional companion inside Dutiva Wellness, a personal wellness tracker. ${companionRules(advice)}`,
     advice
       ? 'The person chose to share a private journal entry with you. Respond as a companion who was trusted with it: name what they shared in their own terms, reflect the feeling underneath it, ask at most one gentle question if it helps them feel heard. 2–4 short sentences. Not a summary — a concrete suggestion is fine if it helps. No lists.'
       : 'The person chose to share a private journal entry with you. Respond as a companion who was trusted with it: name what they shared in their own terms, reflect the feeling underneath it, ask at most one gentle question if it helps them feel heard. 2–4 short sentences. Not a summary, not advice — no fixes, no lists.',

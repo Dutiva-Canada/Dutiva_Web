@@ -183,6 +183,62 @@ describe('workspaceMode api', () => {
     )
   })
 
+  it('updateOrganizationSettings writes name (trimmed) and returns the row', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'org-1',
+        name: 'Acme Logistics',
+        industry: null,
+        jurisdictions: ['CA-ON'],
+        enabled_modules: {},
+        finance_features: {},
+      },
+      error: null,
+    })
+    const select = vi.fn().mockReturnValue({ maybeSingle })
+    const eq = vi.fn().mockReturnValue({ select })
+    const update = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    const saved = await api.updateOrganizationSettings('org-1', {
+      name: '  Acme Logistics  ',
+    })
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Acme Logistics' }),
+    )
+    expect(saved?.name).toBe('Acme Logistics')
+    expect(saved?.jurisdictions).toEqual(['CA-ON'])
+  })
+
+  it('updateOrganizationSettings drops a blank name instead of wiping the row', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        id: 'org-1',
+        name: 'Acme',
+        industry: null,
+        jurisdictions: [],
+        enabled_modules: {},
+        finance_features: {},
+      },
+      error: null,
+    })
+    const select = vi.fn().mockReturnValue({ maybeSingle })
+    const eq = vi.fn().mockReturnValue({ select })
+    const update = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    await api.updateOrganizationSettings('org-1', { name: '   ' })
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: undefined }))
+  })
+
   it('saveStoredMode upserts and reports success', async () => {
     const upsert = vi.fn().mockResolvedValue({ error: null })
     vi.doMock('@/lib/supabaseClient', () => ({

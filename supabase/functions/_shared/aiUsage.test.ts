@@ -7,6 +7,7 @@ import {
   claimAiUsage,
   decisionFromRpc,
   finalizeAiUsage,
+  prAiPolicy,
   supportFirstLinePolicy,
   usageLimitBody,
 } from './aiUsage'
@@ -167,26 +168,37 @@ describe('claimAiUsage', () => {
 })
 
 describe('the beta policies', () => {
-  it('gives both AI surfaces one shared daily budget', () => {
+  it('gives every AI surface one shared daily budget', () => {
     /* Per-surface daily budgets would just add up to their sum — the point of
        the shared ceiling is that moving between surfaces cannot double it. */
     const chat = advisorChatPolicy()
     const support = supportFirstLinePolicy()
-    expect(support.dailyRequestLimit).toBe(chat.dailyRequestLimit)
-    expect(support.dailyTokenLimit).toBe(chat.dailyTokenLimit)
-    expect(support.platformDailyLimit).toBe(chat.platformDailyLimit)
+    const pr = prAiPolicy()
+    for (const surface of [support, pr]) {
+      expect(surface.dailyRequestLimit).toBe(chat.dailyRequestLimit)
+      expect(surface.dailyTokenLimit).toBe(chat.dailyTokenLimit)
+      expect(surface.platformDailyLimit).toBe(chat.platformDailyLimit)
+    }
   })
 
   it('meters only the operations that actually call a model', () => {
-    expect(METERED_OPERATIONS).toEqual(['chat', 'support_firstline'])
+    expect(METERED_OPERATIONS).toEqual(['chat', 'support_firstline', 'pr_ai'])
     /* safety_backstop records that a deterministic gate fired — being kept
        safe must never spend a user's AI budget. */
     expect(METERED_OPERATIONS).not.toContain('safety_backstop')
   })
 
-  it('does not sell the support helper as a pack SKU', () => {
+  it('does not sell the support helper or the invite-only PR desk as a pack SKU', () => {
     expect(COMMERCIAL_OPERATIONS).toEqual(['chat'])
     expect(COMMERCIAL_OPERATIONS).not.toContain('support_firstline')
+    expect(COMMERCIAL_OPERATIONS).not.toContain('pr_ai')
+  })
+
+  it("lets the PR desk's batch sweeps burst wider than a chat box", () => {
+    /* A feed sync claims once per feed and a GEO sweep once per user — both
+       legitimately cluster several claims into a minute, unlike a person
+       typing. */
+    expect(prAiPolicy().burstLimit).toBeGreaterThan(advisorChatPolicy().burstLimit)
   })
 })
 
@@ -307,5 +319,28 @@ describe('usageLimitBody', () => {
     })
     expect(body.error).toContain('prepaid pack')
     expect(body.scope).toBe('commercial')
+  })
+
+  it('echoes the plan-tiered monthly limit only on commercial refusals', () => {
+    /* claim_ai_usage returns `limit: v_monthly_limit` (20/80/200/400) — the
+       client quotes this number, so a Free workspace is never told "80". */
+    const commercial = usageLimitBody({
+      kind: 'denied',
+      scope: 'commercial',
+      limit: 20,
+      used: 20,
+      retryAfterSeconds: 86_400,
+    })
+    expect(commercial).toMatchObject({ monthly_included: 20 })
+
+    /* Internal ceilings (burst/daily/platform) stay server-side. */
+    const burst = usageLimitBody({
+      kind: 'denied',
+      scope: 'burst',
+      limit: 10,
+      used: 10,
+      retryAfterSeconds: 30,
+    })
+    expect('monthly_included' in burst).toBe(false)
   })
 })

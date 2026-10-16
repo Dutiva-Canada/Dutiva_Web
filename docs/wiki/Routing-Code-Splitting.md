@@ -86,11 +86,11 @@ routes = [{ element: <Outlet />, errorElement: <RouteErrorPage />, children: rou
 8. **`/employer`** (EN + `/fr/employeur`) — `EmployerDoorPage`: employer door whose sign-in leads into `/app`
 9. **`/careers/portal`** — Candidate portal (own shell, profile/applications/AI-tools/jobs)
 10. **`/invest`** — Standalone invest portal (`invest_access` grant, own shell; public `legal/:slug` leaf)
-11. **`/health`** — Standalone wellness portal (`health_access` grant, own shell; public `legal/:slug` leaf)
+11. **`/wellness`** — Standalone wellness portal (`health_access` grant, own shell; public `legal/:slug` leaf)
 12. **`/pr`** — Standalone PR desk (`pr_access` grant, own shell; public `legal/:slug` leaf)
 13. **`*`** — Catch-all 404
 
-The three standalone portals (`/invest`, `/health`, `/pr`) each mount a lazily-composed surface (`InvestPortalSurface`, `HealthPortalSurface`, `PrPortalSurface`) that shares `AuthProvider`/`LangProvider`/`ToastsProvider` but renders its own portal layout — separate from both marketing chrome and the `/app` sidebar. See [Portal Assistants](Portal-Assistants).
+The three standalone portals (`/invest`, `/wellness`, `/pr`) each mount a lazily-composed surface (`InvestPortalSurface`, `HealthPortalSurface`, `PrPortalSurface`) that shares `AuthProvider`/`LangProvider`/`ToastsProvider` but renders its own portal layout — separate from both marketing chrome and the `/app` sidebar. See [Portal Assistants](Portal-Assistants).
 
 [src/app/routes.tsx:144-175]()
 

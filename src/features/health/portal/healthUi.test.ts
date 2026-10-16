@@ -70,6 +70,25 @@ describe('miraNoticed — the Overview strip', () => {
     )
   })
 
+  it('treats the stored local day as today even when created_at says otherwise', () => {
+    /* Written 23:30 local — created_at timestamps into "yesterday" for a
+       UTC- reader, but the stored day is where the writer put it. */
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        {
+          id: 'c1',
+          mood: 3,
+          energy: null,
+          note: 'Quiet evening in',
+          createdAt: '2020-01-01T00:00:00Z',
+          day: localDay(0),
+        },
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).toBe('You wrote today: “Quiet evening in”')
+  })
+
   it('falls back to the mood word, then the week count, then silence', () => {
     const moodOnly: HealthState = {
       ...EMPTY,
@@ -237,6 +256,106 @@ describe('miraNoticed — the Overview strip', () => {
       })),
     }
     expect(miraNoticed(recent, 'en', NOW)).not.toContain('door')
+  })
+
+  /* NOW is a Monday — days-ago 7/14/21 are Mondays too. */
+  const checkIn = (ago: number, mood: number, i: number) => ({
+    id: `c${ago}-${i}`,
+    mood,
+    energy: null,
+    note: '',
+    createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
+  })
+
+  it('counts "this week" in calendar days — the rolling-168h tail can\'t leak in', () => {
+    /* NOW is Mon Oct 5 15:00. A check-in the previous Monday evening is
+       inside a rolling 168h window but outside the last 7 calendar days —
+       the same boundary the charts and stat cards draw. With it wrongly
+       counted, the greeting would claim "2 times this week". */
+    const evening = new Date(Date.parse(localDay(7) + 'T20:00:00')).toISOString()
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        { id: 'c1', mood: 3, energy: null, note: '', createdAt: new Date(Date.parse(localDay(3) + 'T12:00:00')).toISOString() },
+        { id: 'c2', mood: 3, energy: null, note: '', createdAt: evening },
+      ],
+    }
+    /* Nothing worth noticing at all — the wrong count would have spoken. */
+    expect(miraNoticed(state, 'en', NOW)).toBeNull()
+    expect(companionGreeting(state, 'en', NOW)).not.toContain('this week')
+  })
+
+  it('needs three logged DAYS on a weekday — three check-ins on one Monday don\'t count', () => {
+    /* One rough Monday logged three times, plus eight other healthy days.
+       Entries-weighted, that Monday would carry three votes and "your
+       Mondays run low" would fire on a single morning. */
+    const monday = localDay(7)
+    const at = (h: number) => new Date(Date.parse(`${monday}T${String(h).padStart(2, '0')}:00:00`)).toISOString()
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        /* Newest first, like the real query. */
+        checkIn(3, 4, 0),
+        checkIn(5, 4, 1),
+        { id: 'm1', mood: 1, energy: null, note: '', createdAt: at(21) },
+        { id: 'm2', mood: 1, energy: null, note: '', createdAt: at(13) },
+        { id: 'm3', mood: 1, energy: null, note: '', createdAt: at(8) },
+        checkIn(8, 4, 2),
+        checkIn(10, 4, 3),
+        checkIn(12, 4, 4),
+        checkIn(17, 4, 5),
+        checkIn(19, 4, 6),
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).not.toContain('Mondays')
+    expect(miraNoticed(state, 'fr', NOW)).not.toContain('lundis')
+  })
+
+  it('names the weekday that keeps running low', () => {
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        /* Mondays: three low ones (avg 2.0). */
+        ...[7, 14, 21].map((a, i) => checkIn(a, 2, i)),
+        /* Wednesdays + Fridays: fine. Overall ≈ 3.3 — Mondays sit 1.3
+           under it. */
+        ...[5, 12, 19].map((a, i) => checkIn(a, 4, i)),
+        ...[3, 10, 17].map((a, i) => checkIn(a, 4, i)),
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).toBe(
+      'Lately, your Mondays have been running lower than the rest of your week.',
+    )
+    expect(miraNoticed(state, 'fr', NOW)).toBe(
+      'Ces temps-ci, vos lundis tirent un peu plus bas que le reste de la semaine.',
+    )
+  })
+
+  it('won’t call a weekday pattern on thin or flat data', () => {
+    /* Only two Mondays — the three-occurrence floor isn't met, so the
+       weekday line must not fire whichever fallback speaks instead.
+       (Newest first, like the real query.) */
+    const thin: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        ...[5, 12, 19, 26, 33, 40].map((a, i) => checkIn(a, 4, i)),
+        ...[7, 14].map((a, i) => checkIn(a, 1, i)),
+      ],
+    }
+    expect(miraNoticed(thin, 'en', NOW)).not.toContain('Mondays')
+    expect(miraNoticed(thin, 'fr', NOW)).not.toContain('lundis')
+
+    /* Same shape but the "low" weekday averages 4 like everyone else —
+       no dip, no line. */
+    const flat: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        ...[3, 10, 17].map((a, i) => checkIn(a, 4, i)),
+        ...[5, 12, 19].map((a, i) => checkIn(a, 4, i)),
+        ...[7, 14, 21].map((a, i) => checkIn(a, 4, i)),
+      ],
+    }
+    expect(miraNoticed(flat, 'en', NOW)).not.toContain('Mondays')
   })
 })
 

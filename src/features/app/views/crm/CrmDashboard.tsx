@@ -2,19 +2,21 @@ import { useI18n } from '@/i18n/context'
 import { crmMessages as M } from '@/i18n/messages/crm'
 import type { UseCrmDataReturn } from './useCrmData'
 import { fromBi } from './crmUtils'
+import { localDatePlusDaysISO, localTodayISO } from '@/lib/format'
 
 export function CrmDashboard({ crm }: { readonly crm: UseCrmDataReturn }) {
   const { x, lang } = useI18n()
   const openDeals = crm.state.deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost')
   const wonDeals = crm.state.deals.filter((d) => d.stage === 'won')
   const pipeline = openDeals.reduce((sum, d) => sum + (d.value ?? 0), 0)
-  const today = new Date()
-  const inSeven = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
-  const upcoming = crm.state.activities.filter((a) => {
-    if (!a.followUpDate) return false
-    const d = new Date(a.followUpDate)
-    return d >= today && d <= inSeven
-  })
+  /* followUpDate is a calendar day (YYYY-MM-DD) — compare day strings in
+     the user's local timezone; parsing it as a Date reads UTC midnight and
+     drops same-day follow-ups for everyone west of UTC. */
+  const todayISO = localTodayISO()
+  const inSevenISO = localDatePlusDaysISO(7)
+  const upcoming = crm.state.activities.filter(
+    (a) => a.followUpDate != null && a.followUpDate >= todayISO && a.followUpDate <= inSevenISO,
+  )
 
   const StatCard = ({
     label,

@@ -9,6 +9,7 @@ import { createBankStatementBulkImportAdapter } from '../bulkImport/bankStatemen
 import { BulkImportWizard } from '@/features/app/bulkImport/BulkImportWizard'
 import { CategoryRuleForm } from './CategoryRuleForm'
 import { useImportExportActions } from './useImportExportActions'
+import { localDayOfISO } from '@/lib/format'
 
 export function ImportExport() {
   const { x } = useI18n()
@@ -521,7 +522,7 @@ export function ImportExport() {
                 <tr key={s.id} className="border-t border-border">
                   <td className="py-[6px] pr-[10px] font-semibold">{s.fileName}</td>
                   <td className="py-[6px] pr-[10px] text-text-muted">
-                    {s.importedAt.slice(0, 10)}
+                    {localDayOfISO(s.importedAt)}
                   </td>
                   <td className="py-[6px] pr-[10px]">{s.totalRows}</td>
                   <td className="py-[6px] pr-[10px]">{s.newItems}</td>

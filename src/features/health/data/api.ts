@@ -49,11 +49,13 @@ export async function hasHealthAccess(): Promise<boolean> {
    the account ages. A check-in streak longer than CHECKIN_CAP days would
    under-report at the cap's edge; journal gets a pager instead since
    bodies are heavy and the archive is browsed. Totals come from head
-   counts so capped lists never show a wrong number. */
+   counts so capped lists never show a wrong number. Habit logs share one
+   pool across habits — 3,000 covers ~8 years of one habit or ~2 years of
+   ten before the oldest marks start clipping a streak's math. */
 const CHECKIN_CAP = 400
 const JOURNAL_CAP = 100
 const HABIT_CAP = 200
-const HABIT_LOG_CAP = 1500
+const HABIT_LOG_CAP = 3000
 const MEMORY_CAP = 300
 export const JOURNAL_PAGE = 50
 
@@ -128,17 +130,40 @@ export async function loadHealthState(): Promise<HealthState> {
 }
 
 /** Older journal pages — the state fetch keeps the newest JOURNAL_CAP rows;
-    the journal's "load earlier" walks back from the oldest shown. */
+    the journal's "load earlier" walks back from the oldest shown. The id
+    tiebreaker keeps same-timestamp rows (a fast double-save, a bulk import)
+    from slipping between pages. */
 export async function listJournalEntriesBefore(
-  beforeIso: string,
+  before: { createdAt: string; id: string },
   limit: number = JOURNAL_PAGE,
 ): Promise<HealthJournalEntry[]> {
   const client = requireSupabase()
   const { data, error } = await client
     .from('health_journal_entries')
     .select('*')
-    .lt('created_at', beforeIso)
+    .or(
+      `created_at.lt.${before.createdAt},and(created_at.eq.${before.createdAt},id.lt.${before.id})`,
+    )
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  return (data ?? []).map(journalFromRow)
+}
+
+/* The consent ledger reads its own query — filtering the state.entries
+   window (newest JOURNAL_CAP) would hide shares that paged out while Mira
+   can still read them. Bounded all the same: the shared set is small in
+   practice, but "all my shares" should never page. */
+export async function listSharedJournalEntries(
+  limit = 200,
+): Promise<HealthJournalEntry[]> {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from('health_journal_entries')
+    .select('*')
+    .not('shared_at', 'is', null)
+    .order('shared_at', { ascending: false })
     .limit(limit)
   if (error) throw error
   return (data ?? []).map(journalFromRow)
@@ -158,6 +183,9 @@ export async function addCheckIn(input: {
       mood: input.mood,
       energy: input.energy ?? null,
       note: (input.note ?? '').trim(),
+      /* The writer's local day (migration 0229) — stored so the server's
+         facts bucket it on the same calendar the writer saw, not UTC. */
+      day: todayDayKey(),
     })
     .select()
     .single()
@@ -236,7 +264,7 @@ export async function addJournalEntry(input: {
     .insert({
       user_id: userId,
       title: (input.title ?? '').trim(),
-      body: input.body,
+      body: input.body.trim(),
       created_at: now,
       updated_at: now,
     })
@@ -248,18 +276,143 @@ export async function addJournalEntry(input: {
 
 export async function updateJournalEntry(
   id: string,
-  patch: { title?: string; body?: string },
+  patch: { title?: string; body?: string; imagePath?: string | null },
 ): Promise<void> {
   const client = requireSupabase()
   const { error } = await client
     .from('health_journal_entries')
     .update({
       ...(patch.title !== undefined ? { title: patch.title.trim() } : {}),
-      ...(patch.body !== undefined ? { body: patch.body } : {}),
+      ...(patch.body !== undefined ? { body: patch.body.trim() } : {}),
+      ...(patch.imagePath !== undefined ? { image_path: patch.imagePath } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)
   if (error) throw error
+}
+
+/* ---------- journal photo attachments ----------
+
+   One photo per entry, stored in the private `health-journal-images`
+   bucket at `<uid>/<entry>/<file>`; the row's `image_path` column is the
+   link. The bucket and its policies ship in migration 0226 — until it's
+   applied, `journalImagesAvailable()` answers false and the UI simply
+   doesn't offer photos (no dead button pointing at a missing bucket).
+   Nothing here ever reaches Mira: her context is text excerpts only. */
+
+const JOURNAL_IMAGE_BUCKET = 'health-journal-images'
+let journalImageCapable: boolean | null = null
+
+/** One-shot capability probe — a private bucket that doesn't exist yet
+    answers with an error, and that's cached for the session. */
+export async function journalImagesAvailable(): Promise<boolean> {
+  if (journalImageCapable !== null) return journalImageCapable
+  try {
+    const client = requireSupabase()
+    const userId = await requireUserId()
+    const { error } = await client.storage
+      .from(JOURNAL_IMAGE_BUCKET)
+      .list(userId, { limit: 1 })
+    journalImageCapable = !error
+  } catch {
+    journalImageCapable = false
+  }
+  return journalImageCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetJournalImagesProbe() {
+  journalImageCapable = null
+}
+
+const JOURNAL_IMAGE_MAX = 5242880 // keep in step with the bucket limit
+
+export async function uploadJournalImage(entryId: string, file: File): Promise<string> {
+  if (file.size > JOURNAL_IMAGE_MAX) throw new Error('journal image too large')
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  const ext = file.name.includes('.') ? (file.name.split('.').pop() ?? 'jpg') : 'jpg'
+  const path = `${userId}/${entryId}/${crypto.randomUUID()}.${ext.toLowerCase()}`
+  const { error } = await client.storage.from(JOURNAL_IMAGE_BUCKET).upload(path, file)
+  if (error) throw error
+  return path
+}
+
+/** Six hours — long enough that a written session won't see a thumb die. */
+export async function signJournalImage(path: string): Promise<string> {
+  const client = requireSupabase()
+  const { data, error } = await client.storage
+    .from(JOURNAL_IMAGE_BUCKET)
+    .createSignedUrl(path, 21600)
+  if (error || !data?.signedUrl) throw error ?? new Error('No signed URL')
+  return data.signedUrl
+}
+
+export async function removeJournalImage(path: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client.storage.from(JOURNAL_IMAGE_BUCKET).remove([path])
+  if (error) throw error
+}
+
+/* ---------- voice-call transcription ---------- 
+
+   The fallback path for browsers whose Web Speech recognition is missing
+   or unbacked (Firefox has no SpeechRecognition; Brave ships the
+   constructor but no service): MediaRecorder captures the audio and the
+   `health-transcribe` edge function forwards it to the configured
+   provider's /audio/transcriptions endpoint. The text then enters the
+   chat pipeline like typed input. Same contract as the journal-image
+   probe — until the function AND its `health_transcribe` route row exist,
+   `healthVoiceTranscribeAvailable()` answers false and the call
+   affordance never appears. */
+
+const HEALTH_VOICE_FN = 'health-transcribe'
+let voiceTranscribeCapable: boolean | null = null
+
+/** One-shot probe — POST {ping:true} answers ok only when the function is
+    deployed AND a health_transcribe model route resolves. */
+export async function healthVoiceTranscribeAvailable(): Promise<boolean> {
+  if (voiceTranscribeCapable !== null) return voiceTranscribeCapable
+  try {
+    const client = requireSupabase()
+    const { data, error } = await client.functions.invoke(HEALTH_VOICE_FN, {
+      body: { ping: true },
+    })
+    voiceTranscribeCapable = !error && (data as { ok?: boolean } | null)?.ok === true
+  } catch {
+    voiceTranscribeCapable = false
+  }
+  return voiceTranscribeCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetHealthVoiceProbe() {
+  voiceTranscribeCapable = null
+}
+
+/** One recorded utterance → its transcript text. Raw fetch rather than
+    functions.invoke so the audio rides multipart, not JSON. */
+export async function transcribeHealthAudio(blob: Blob, lang: 'en' | 'fr'): Promise<string> {
+  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
+  const anon = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? ''
+  const client = requireSupabase()
+  const {
+    data: { session },
+  } = await client.auth.getSession()
+  const form = new FormData()
+  form.append('file', blob)
+  form.append('lang', lang)
+  const res = await fetch(`${base}/functions/v1/${HEALTH_VOICE_FN}`, {
+    method: 'POST',
+    headers: {
+      apikey: anon,
+      Authorization: `Bearer ${session?.access_token ?? anon}`,
+    },
+    body: form,
+  })
+  if (!res.ok) throw new Error(`${HEALTH_VOICE_FN} ${res.status}`)
+  const data = (await res.json()) as { text?: string }
+  return (data.text ?? '').trim()
 }
 
 export async function deleteJournalEntry(id: string): Promise<void> {
@@ -270,22 +423,80 @@ export async function deleteJournalEntry(id: string): Promise<void> {
 
 /* ---------- daily habits ---------- */
 
-export async function addHabit(name: string): Promise<HealthHabit> {
+export async function addHabit(name: string, weeklyTarget?: number): Promise<HealthHabit> {
   const client = requireSupabase()
   const userId = await requireUserId()
+  /* Omit the key entirely when unset — before migration 0228 lands, even
+     a null weekly_target would fail the insert as an unknown column. */
   const { data, error } = await client
     .from('health_habits')
-    .insert({ user_id: userId, name: name.trim() })
+    .insert({
+      user_id: userId,
+      name: name.trim(),
+      /* The local creation day (migration 0229) — streak math floors logs
+         at the habit's own day, not created_at's UTC date. */
+      day: todayDayKey(),
+      ...(weeklyTarget ? { weekly_target: weeklyTarget } : {}),
+    })
     .select()
     .single()
   if (error) throw error
   return habitFromRow(data)
 }
 
+/* Optional weekly cadence — migration 0228's column. The probe pattern is
+   the same contract as journal images: the UI never offers the control
+   before the column exists. */
+let habitTargetCapable: boolean | null = null
+
+export async function habitTargetsAvailable(): Promise<boolean> {
+  if (habitTargetCapable !== null) return habitTargetCapable
+  try {
+    const client = requireSupabase()
+    const { error } = await client.from('health_habits').select('weekly_target').limit(0)
+    habitTargetCapable = !error
+  } catch {
+    habitTargetCapable = false
+  }
+  return habitTargetCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetHabitTargetsProbe() {
+  habitTargetCapable = null
+}
+
+/** Dev-preview only: pose as migrated so gated controls render in the
+    harness — a live build still answers from the real probe. */
+export function primeHabitTargetsProbe(capable: boolean) {
+  habitTargetCapable = capable
+}
+
+/** Set or clear a habit's weekly target — null hands it back to the
+    daily-streak model. */
+export async function setHabitTarget(id: string, weeklyTarget: number | null): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_habits')
+    .update({ weekly_target: weeklyTarget })
+    .eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteHabit(id: string): Promise<void> {
   const client = requireSupabase()
   /* The log rows cascade on habit_id, so this removes its history too. */
   const { error } = await client.from('health_habits').delete().eq('id', id)
+  if (error) throw error
+}
+
+/** Rename a habit — keeps the log history, unlike delete-and-recreate. */
+export async function updateHabit(id: string, name: string): Promise<void> {
+  const client = requireSupabase()
+  const { error } = await client
+    .from('health_habits')
+    .update({ name: name.trim() })
+    .eq('id', id)
   if (error) throw error
 }
 
@@ -642,6 +853,7 @@ export type HealthReactEvent =
   | { type: 'checkin_edited'; mood: number; energy?: number | null; note?: string }
   | { type: 'habit_marked'; habit: string }
   | { type: 'habit_added'; habit: string }
+  | { type: 'memory_added'; text: string }
 
 /* Reactions fire a model call per qualifying action — someone checking off
    three habits shouldn't produce three calls. A floor between calls keeps
@@ -671,13 +883,20 @@ export async function sendHealthReaction(
   }
   lastReactionAt = Date.now()
   const body = { kind: 'react', event, lang, today: todayDayKey() }
-  const raw = (onDelta
-    ? await invokeHealthAiStream(body, onDelta)
-    : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reaction from health-ai')
+  try {
+    const raw = (onDelta
+      ? await invokeHealthAiStream(body, onDelta)
+      : await invokeHealthAi(body)) as { reply?: string; assistantId?: string | null }
+    if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+      throw new Error('Empty reaction from health-ai')
+    }
+    return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+  } catch (err) {
+    /* A failed call must not keep the slot it stamped — that would silence
+       the next legitimate nudge for 90 seconds on top of losing this one. */
+    lastReactionAt = 0
+    throw err
   }
-  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
 /** Share ONE journal entry with Mira — explicit per-entry consent; the
@@ -752,4 +971,216 @@ export async function loadHealthChatHistory(
     writer stays server-side. */
 export async function clearHealthChat(threadId?: string | null): Promise<void> {
   await invokeHealthAi({ kind: 'chat_clear', threadId: threadId ?? null })
+}
+
+/* ---------- your data — full export and delete-all ----------
+
+   The state fetch above is capped for the dashboard; "everything" on the
+   data page means every row, so export walks each table in 1000-row
+   pages. Rows come back in their stored shape minus user_id — the file
+   is the person's own data, not a curated digest.
+
+   Delete-all relies on owner-scoped RLS rather than a service-role path:
+   every health_* table already carries an owner `for all` policy, so a
+   direct authenticated delete can't reach another user's rows. Two
+   deliberate leftovers get named in the UI copy instead of silently
+   skipped: notification prefs (settings, not content) stay put, and
+   agent_suggestions only grants a delete under migration 0227 — until
+   then the flow falls back to resolving every pending suggestion so the
+   review queue still empties. */
+
+const EXPORT_PAGE = 1000
+
+type RawRow = Record<string, unknown>
+
+/** The tables export/delete walk — a literal union so the typed client's
+    `from()` resolves each row shape. */
+type HealthTable =
+  | 'health_checkins'
+  | 'health_journal_entries'
+  | 'health_habits'
+  | 'health_habit_logs'
+  | 'health_memories'
+  | 'health_chat_threads'
+  | 'health_chat_messages'
+
+async function collectPages(
+  fetchPage: (from: number, to: number) => Promise<RawRow[]>,
+): Promise<RawRow[]> {
+  const out: RawRow[] = []
+  for (let from = 0; ; from += EXPORT_PAGE) {
+    const page = await fetchPage(from, from + EXPORT_PAGE - 1)
+    out.push(...page)
+    if (page.length < EXPORT_PAGE) return out
+  }
+}
+
+/** Everything the Health portal stores for the caller — seven tables,
+    every row, user_id stripped (the file itself says whose it is). */
+export interface HealthDataExport {
+  exportedAt: string
+  checkIns: RawRow[]
+  journalEntries: RawRow[]
+  habits: RawRow[]
+  habitLogs: RawRow[]
+  memories: RawRow[]
+  chatThreads: RawRow[]
+  chatMessages: RawRow[]
+}
+
+export async function exportHealthData(): Promise<HealthDataExport> {
+  const client = requireSupabase()
+  const page =
+    (table: HealthTable, orderCol: string) =>
+    async (from: number, to: number): Promise<RawRow[]> => {
+      const { data, error } = await client
+        .from(table)
+        .select('*')
+        .order(orderCol, { ascending: true })
+        /* id tiebreak — rows sharing a timestamp must not drift across
+           page boundaries. */
+        .order('id')
+        .range(from, to)
+      if (error) throw error
+      return (data ?? []).map((row) => {
+        const { user_id: _uid, ...rest } = row as RawRow
+        return rest
+      })
+    }
+  const [checkIns, journalEntries, habits, habitLogs, memories, chatThreads, chatMessages] =
+    await Promise.all([
+      collectPages(page('health_checkins', 'created_at')),
+      collectPages(page('health_journal_entries', 'created_at')),
+      collectPages(page('health_habits', 'created_at')),
+      collectPages(page('health_habit_logs', 'day')),
+      collectPages(page('health_memories', 'created_at')),
+      collectPages(page('health_chat_threads', 'created_at')),
+      collectPages(page('health_chat_messages', 'created_at')),
+    ])
+  return {
+    exportedAt: new Date().toISOString(),
+    checkIns,
+    journalEntries,
+    habits,
+    habitLogs,
+    memories,
+    chatThreads,
+    chatMessages,
+  }
+}
+
+/** Journal only, fully paged — the readable-text export shouldn't pay
+    for a seven-table sweep it never uses. */
+export async function listAllJournalEntries(): Promise<HealthJournalEntry[]> {
+  const client = requireSupabase()
+  const out: HealthJournalEntry[] = []
+  for (let from = 0; ; from += EXPORT_PAGE) {
+    const { data, error } = await client
+      .from('health_journal_entries')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .order('id')
+      .range(from, from + EXPORT_PAGE - 1)
+    if (error) throw error
+    out.push(...(data ?? []).map(journalFromRow))
+    if (!data || data.length < EXPORT_PAGE) return out
+  }
+}
+
+/** The same export content, shaped for reading — journal entries as a
+    markdown document. Kept separate from exportHealthData so the JSON
+    stays the raw record. */
+export function journalToMarkdown(
+  entries: Pick<HealthJournalEntry, 'title' | 'body' | 'createdAt'>[],
+  lang: 'en' | 'fr',
+): string {
+  const fmt = new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+  const sorted = [...entries].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  return sorted
+    .map((e) => {
+      const d = new Date(e.createdAt)
+      const when = Number.isNaN(d.getTime()) ? e.createdAt : fmt.format(d)
+      return `# ${e.title || when}\n\n*${when}*\n\n${e.body}`
+    })
+    .join('\n\n---\n\n')
+}
+
+/** Ordered so children land before parents; every table has an `id`
+    column, so `not id is null` is the whole-row filter RLS then narrows
+    to the caller. */
+const HEALTH_DATA_TABLES = [
+  'health_chat_messages',
+  'health_chat_threads',
+  'health_habit_logs',
+  'health_habits',
+  'health_journal_entries',
+  'health_checkins',
+  'health_memories',
+] as const
+
+/** Removes every stored object under `<uid>/` in the journal-images
+    bucket — rows' image_path values plus orphans (an upload whose entry
+    row was later lost). Tolerates the bucket not existing: migration
+    0226 may still be unapplied, and a missing bucket means nothing was
+    ever stored. */
+async function removeJournalImageObjects(userId: string): Promise<void> {
+  const client = requireSupabase()
+  try {
+    const { data: top } = await client.storage
+      .from(JOURNAL_IMAGE_BUCKET)
+      .list(userId, { limit: 1000 })
+    const paths: string[] = []
+    for (const item of top ?? []) {
+      if (item.id) {
+        paths.push(`${userId}/${item.name}`)
+        continue
+      }
+      /* A folder entry (id null) is an entry directory — list inside it. */
+      const { data: inner } = await client.storage
+        .from(JOURNAL_IMAGE_BUCKET)
+        .list(`${userId}/${item.name}`, { limit: 1000 })
+      for (const file of inner ?? []) {
+        if (file.id) paths.push(`${userId}/${item.name}/${file.name}`)
+      }
+    }
+    if (paths.length) {
+      await client.storage.from(JOURNAL_IMAGE_BUCKET).remove(paths)
+    }
+  } catch {
+    /* No bucket means nothing stored — rows are deleted regardless. */
+  }
+}
+
+/** Deletes every Health row and journal image the caller owns. What it
+    does NOT touch — and the UI says so: the sign-in account, the health
+    access grant, email-notification prefs, and the server-side
+    notification log (a send journal, not user content). */
+export async function deleteAllHealthData(): Promise<void> {
+  const client = requireSupabase()
+  const userId = await requireUserId()
+  await removeJournalImageObjects(userId)
+  for (const table of HEALTH_DATA_TABLES) {
+    const { error } = await client.from(table).delete().not('id', 'is', null)
+    if (error) throw error
+  }
+  /* Suggestions are filed by functions, not the user — but they're still
+     the person's review queue. Migration 0227 adds the owner delete
+     policy; before that lands this delete silently matches zero rows, so
+     the update below resolves anything still pending — the queue empties
+     either way. */
+  await client.from('agent_suggestions').delete().eq('surface', 'health')
+  const { error: resolveError } = await client
+    .from('agent_suggestions')
+    .update({
+      status: 'dismissed',
+      resolved_at: new Date().toISOString(),
+      resolved_action: 'data_delete',
+    })
+    .eq('surface', 'health')
+    .eq('status', 'pending')
+  if (resolveError) throw resolveError
 }

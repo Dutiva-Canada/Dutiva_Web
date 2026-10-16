@@ -17,6 +17,7 @@ import type {
 } from '@/data'
 import { supabase } from '@/lib/supabaseClient'
 import { fetchAllPages } from '@/lib/supabasePagination'
+import { localDayOfISO } from '@/lib/format'
 
 /**
  * Real persistence for Advisor Memory (production mode) —
@@ -208,10 +209,10 @@ function toFact(row: z.infer<typeof factRowSchema>): MemoryFact {
       type: row.source_type,
       detail: bi(row.source_detail_en, row.source_detail_fr),
     },
-    learnedAt: row.learned_at.slice(0, 10),
+    learnedAt: localDayOfISO(row.learned_at),
     confirmation: row.confirmed_at
       ? {
-          at: row.confirmed_at.slice(0, 10),
+          at: localDayOfISO(row.confirmed_at),
           source: {
             type: 'manual',
             detail: bi('Confirmed in Memory', 'Confirmé dans la Mémoire'),
@@ -230,14 +231,14 @@ function toFact(row: z.infer<typeof factRowSchema>): MemoryFact {
   if (row.retention_category != null) fact.retentionCategory = row.retention_category
   if (row.review_date != null) fact.reviewDate = row.review_date.slice(0, 10)
   if (row.expiry_date != null) fact.expiryDate = row.expiry_date.slice(0, 10)
-  if (row.last_verified_at != null) fact.lastVerifiedAt = row.last_verified_at.slice(0, 10)
+  if (row.last_verified_at != null) fact.lastVerifiedAt = localDayOfISO(row.last_verified_at)
   if (row.legal_hold_placed_at != null) {
     fact.legalHold = {
       reason: bi(
         row.legal_hold_reason_en ?? '',
         row.legal_hold_reason_fr ?? row.legal_hold_reason_en ?? '',
       ),
-      placedAt: row.legal_hold_placed_at.slice(0, 10),
+      placedAt: localDayOfISO(row.legal_hold_placed_at),
       placedBy: row.legal_hold_placed_by ?? '',
     }
   }

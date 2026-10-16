@@ -1,4 +1,5 @@
 import { bi } from '@/i18n/core'
+import { localTodayISO } from '@/lib/format'
 import type { AgentToolOutcome } from './types'
 
 /**
@@ -7,9 +8,10 @@ import type { AgentToolOutcome } from './types'
  * outcome shape. Kept module-free so each module's agentTools file stays thin.
  */
 
-/** Today as YYYY-MM-DD (UTC) — the stamp tools write when no date is passed. */
+/** Today as YYYY-MM-DD in the user's local calendar day — the stamp tools
+    write when no date is passed. */
 export function today(): string {
-  return new Date().toISOString().slice(0, 10)
+  return localTodayISO()
 }
 
 /** Trimmed non-empty string param, or undefined. */

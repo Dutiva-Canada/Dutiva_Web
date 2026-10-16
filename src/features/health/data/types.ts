@@ -13,6 +13,10 @@ export interface HealthCheckIn {
   /** Self-reported energy, 1 (drained) → 5 (energized). Optional. */
   energy: number | null
   note: string
+  /** The writer's local calendar day, stored at insert (YYYY-MM-DD). Rows
+      written before migration 0229 lack it — readers derive the day from
+      createdAt in the reader's timezone instead. */
+  day?: string | null
   createdAt: string
 }
 
@@ -23,6 +27,10 @@ export interface HealthJournalEntry {
   /** When the person pressed "Let Mira read this" — null means the entry
       stays private and its excerpt never reaches her context. */
   sharedAt: string | null
+  /** Storage path inside the private `health-journal-images` bucket —
+      never the image bytes. Absent on rows fetched before migration
+      0226's column existed. */
+  imagePath?: string | null
   createdAt: string
   updatedAt: string
 }
@@ -33,6 +41,13 @@ export interface HealthJournalEntry {
 export interface HealthHabit {
   id: string
   name: string
+  /** Opt-in times-per-week goal (1–6); null = the daily streak model.
+      Absent on rows read before migration 0228's column existed. */
+  weeklyTarget?: number | null
+  /** The local calendar day the habit was created (YYYY-MM-DD). Rows from
+      before migration 0229 lack it — the reader's dayKey of createdAt is
+      the fallback. */
+  day?: string | null
   createdAt: string
 }
 
@@ -76,6 +91,7 @@ export function checkInFromRow(row: CheckInRow): HealthCheckIn {
     mood: row.mood,
     energy: row.energy,
     note: row.note,
+    day: row.day ?? null,
     createdAt: row.created_at,
   }
 }
@@ -86,6 +102,7 @@ export function journalFromRow(row: JournalRow): HealthJournalEntry {
     title: row.title,
     body: row.body,
     sharedAt: row.shared_at,
+    imagePath: row.image_path ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -95,6 +112,8 @@ export function habitFromRow(row: HabitRow): HealthHabit {
   return {
     id: row.id,
     name: row.name,
+    weeklyTarget: row.weekly_target ?? null,
+    day: row.day ?? null,
     createdAt: row.created_at,
   }
 }

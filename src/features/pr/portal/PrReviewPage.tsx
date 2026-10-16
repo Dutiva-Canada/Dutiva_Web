@@ -4,6 +4,7 @@ import { prMessages as PM } from '@/i18n/messages/pr'
 import { useI18n } from '@/i18n/context'
 import { AgentReviewQueue, type KindRenderer } from '@/features/agent/AgentReviewQueue'
 import { addGeoPrompt } from '@/features/pr/data/api'
+import type { PrGeoEngine } from '@/features/pr/data/types'
 import type { AgentSuggestion } from '@/lib/agentQueue'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { usePrHead } from './usePrHead'
@@ -26,7 +27,10 @@ interface PitchPayload {
 
 interface PromptPayload {
   prompt?: string
+  engine?: string
 }
+
+const GEO_ENGINE_IDS = new Set(['chatgpt', 'perplexity', 'gemini', 'copilot', 'other'])
 
 export function PrReviewPage() {
   const { x } = useI18n()
@@ -73,7 +77,13 @@ export function PrReviewPage() {
           run: async (s: AgentSuggestion) => {
             const p = (s.payload ?? {}) as PromptPayload
             if (!p.prompt) return
-            await addGeoPrompt({ prompt: p.prompt, engine: 'chatgpt' })
+            await addGeoPrompt({
+              prompt: p.prompt,
+              engine:
+                typeof p.engine === 'string' && GEO_ENGINE_IDS.has(p.engine)
+                  ? (p.engine as PrGeoEngine)
+                  : 'chatgpt',
+            })
             showToast(PM.pr_review_saved)
           },
         },

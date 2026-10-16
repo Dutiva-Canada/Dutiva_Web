@@ -1,13 +1,10 @@
 import { bi } from '@/i18n/core'
+import { localDatePlusDaysISO } from '@/lib/format'
 import type { CrmState } from './types'
 
 /** Follow-ups are dated relative to today so the dashboard's 7-day
     "upcoming" window always has rows — a fixed date goes stale. */
-const inDays = (n: number): string => {
-  const d = new Date()
-  d.setDate(d.getDate() + n)
-  return d.toISOString().slice(0, 10)
-}
+const inDays = (n: number): string => localDatePlusDaysISO(n)
 
 /** Northgate-style demo fixtures for the lightweight CRM. */
 export const initialCrmState: CrmState = {

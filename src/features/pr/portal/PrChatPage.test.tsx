@@ -26,6 +26,8 @@ vi.mock('@/features/pr/data/chatApi', () => ({
   regeneratePrChat: vi.fn(),
   listPrChatThreads: vi.fn(async () => []),
   newPrChatThread: vi.fn(),
+  renamePrChatThread: vi.fn(),
+  deletePrChatThread: vi.fn(),
   loadPrChatHistory: vi.fn(),
   clearPrChat: vi.fn(),
   ratePrChatTurn: vi.fn(),

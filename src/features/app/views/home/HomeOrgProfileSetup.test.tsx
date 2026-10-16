@@ -137,9 +137,9 @@ describe('HomeOrgProfileSetup', () => {
                         Promise.resolve({
                           data: {
                             id: 'org-1',
-                            name: 'Acme Studios',
+                            name: payload.name ?? 'Acme Studios',
                             industry: null,
-                            jurisdictions: payload.jurisdictions,
+                            jurisdictions: payload.jurisdictions ?? [],
                             enabled_modules: {},
                             finance_features: {},
                           },
@@ -175,17 +175,25 @@ describe('HomeOrgProfileSetup', () => {
     await waitFor(() => expect(company).toHaveValue('Acme Studios'))
     await waitFor(() => expect(screen.getByLabelText('City')).toHaveValue('Ottawa'))
 
+    /* Edit the company name — the workspace displays organizations.name, so
+       the org row must receive the typed value, not just the profile. */
     const user = userEvent.setup()
+    await user.clear(company)
+    await user.type(company, 'Acme Logistics')
     await user.click(screen.getByRole('button', { name: /Save and continue/i }))
 
     /* Profile row gets the human-readable fields. */
-    expect(updates.profiles).toEqual({
-      legal_name: 'Acme Studios',
-      company_name: 'Acme Studios',
-      province: 'Ontario',
-      city: 'Ottawa',
-    })
-    /* Org row gets the jurisdiction code — flips setup step 1 to done. */
+    await waitFor(() =>
+      expect(updates.profiles).toEqual({
+        legal_name: 'Acme Logistics',
+        company_name: 'Acme Logistics',
+        province: 'Ontario',
+        city: 'Ottawa',
+      }),
+    )
+    /* Org row gets the display name AND the jurisdiction code — the latter
+       flips setup step 1 to done. */
+    expect(updates.organizations?.name).toBe('Acme Logistics')
     expect(updates.organizations?.jurisdictions).toEqual(['CA-ON'])
   })
 })

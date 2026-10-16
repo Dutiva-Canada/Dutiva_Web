@@ -228,7 +228,7 @@ export function GuidanceSourcesPanel() {
                       <a
                         href={source.url}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         aria-label={source.title}
                         className="mt-[2px] shrink-0 text-text-3"
                       >
@@ -313,7 +313,7 @@ export function GuidanceSourcesPanel() {
                           <a
                             href={update.referenceUrl ?? update.url}
                             target="_blank"
-                            rel="noreferrer"
+                            rel="noopener noreferrer"
                             className="inline-flex items-center gap-[4px] text-[11.5px] font-semibold text-text-3 underline underline-offset-2"
                           >
                             {x(M.guidance_update_read_source)}

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { useI18n } from '@/i18n/context'
 import { employeesMessages as M } from '@/i18n/messages/employees'
+import { localDayOfISO } from '@/lib/format'
 import type { ProductionEmployee, ProductionEmployeeNote } from './productionApi'
 import { PerformanceReviews } from './PerformanceReviews'
 import { OnboardingTasks } from './OnboardingTasks'
@@ -80,7 +81,7 @@ export function EmployeeOverviewTab({
               {note.body}
             </div>
             <div className="mt-[4px] text-[11.5px] text-text-faint">
-              {note.createdAt.slice(0, 10)}
+              {localDayOfISO(note.createdAt)}
             </div>
           </div>
         ))}

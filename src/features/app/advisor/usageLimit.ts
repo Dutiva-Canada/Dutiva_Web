@@ -64,11 +64,20 @@ export function usageWaitPhrase(seconds: number): Bi {
  * The full bilingual reply. A platform-wide ceiling gets its own wording — the
  * user did nothing to hit it, and telling them they used too much would be
  * false.
+ *
+ * `includedReplies` is the caller's plan-tiered monthly allowance (20/80/200/
+ * 400 from planEntitlements); `error.monthlyIncluded` — the server's own
+ * monthly limit — wins when present since it's the number the refusal was
+ * actually computed against. The flat `ADVISOR_MONTHLY_INCLUDED` (80) is only
+ * a fallback for contexts where neither is known — quoting it for a Free
+ * workspace would overstate their real allowance four-fold.
  */
-export function usageLimitReply(error: AdvisorUsageLimitError): Bi {
+export function usageLimitReply(error: AdvisorUsageLimitError, includedReplies?: number): Bi {
   if (error.scope === 'commercial') {
     const vars = {
-      '{included}': String(ADVISOR_MONTHLY_INCLUDED),
+      '{included}': String(
+        error.monthlyIncluded ?? includedReplies ?? ADVISOR_MONTHLY_INCLUDED,
+      ),
       '{pack50}': String(ADVISOR_PACK_50_REPLIES),
       '{price50}': String(ADVISOR_PACK_50_PRICE_CAD),
       '{pack200}': String(ADVISOR_PACK_200_REPLIES),

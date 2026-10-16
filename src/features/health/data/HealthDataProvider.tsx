@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { loadHealthState } from './api'
+import { syncNotifyTz } from '@/lib/notifications/notifyPrefs'
 import { HealthDataContext, type HealthDataContextValue } from './HealthDataContext'
 import type { HealthState } from './types'
 
@@ -31,12 +32,32 @@ export function HealthDataProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       if (mounted.current) setError(e as Error)
     }
+    /* The evening sweep reads "today" per user — stamp the zone once per
+       session (no-op before migration 0229 lands; UTC stays the fallback). */
+    void syncNotifyTz('health')
   }, [])
 
   useEffect(() => {
     void refresh().finally(() => {
       if (mounted.current) setLoading(false)
     })
+  }, [refresh])
+
+  /* Writes in another tab don't reach this one until something calls
+     refresh — revalidate when the tab comes back, throttled so a rapid
+     alt-tab doesn't stampede the queries. A failed load just leaves the
+     stale-data note the layout already shows. */
+  const lastRevalidate = useRef(0)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      const now = Date.now()
+      if (now - lastRevalidate.current < 30_000) return
+      lastRevalidate.current = now
+      void refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [refresh])
 
   const value: HealthDataContextValue = { state, loading, error, refresh }

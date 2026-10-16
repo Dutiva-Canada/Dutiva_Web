@@ -9,6 +9,7 @@ import { HealthDataContext } from '@/features/health/data/HealthDataContext'
 import type { HealthDataContextValue } from '@/features/health/data/HealthDataContext'
 import type { HealthState } from '@/features/health/data/types'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
+import { ToastHost } from '@/features/app/toasts/ToastHost'
 import {
   addCheckIn,
   addHabit,
@@ -38,6 +39,12 @@ vi.mock('@/features/health/data/api', () => ({
   healthAiPrompt: vi.fn(),
   shareEntryWithMira: vi.fn(),
   unshareEntryFromMira: vi.fn(),
+  listSharedJournalEntries: vi.fn().mockResolvedValue([]),
+  habitTargetsAvailable: vi.fn().mockResolvedValue(false),
+  journalImagesAvailable: vi.fn().mockResolvedValue(false),
+  signJournalImage: vi.fn(),
+  removeJournalImage: vi.fn(),
+  uploadJournalImage: vi.fn(),
   addHabit: vi.fn(),
   deleteHabit: vi.fn(),
   setHabitDone: vi.fn(),
@@ -56,6 +63,7 @@ vi.mock('@/lib/agentQueue', () => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn(async () => false),
   setNotifyPref: vi.fn(async () => undefined),
+  syncNotifyTz: vi.fn(async () => undefined),
 }))
 
 function langValue(lang: Lang): LangContextValue {
@@ -94,7 +102,10 @@ function renderWith(ui: ReactElement, lang: Lang = 'en', state: HealthState = ST
     <LangContext value={langValue(lang)}>
       <HealthDataContext value={health}>
         <ToastsProvider>
-          <MemoryRouter>{ui}</MemoryRouter>
+          <MemoryRouter>
+            {ui}
+            <ToastHost />
+          </MemoryRouter>
         </ToastsProvider>
       </HealthDataContext>
     </LangContext>,
@@ -172,15 +183,20 @@ describe('journal → share with Mira', () => {
     })
     renderWith(<HealthJournalPage />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Let Mira read this' }))
+    /* Share buttons carry the entry's title in their accessible name —
+       "Let Mira read "Sunday"" — so the match is a prefix. */
+    fireEvent.click(screen.getByRole('button', { name: /Let Mira read/ }))
     await waitFor(() =>
       expect(shareEntryWithMira).toHaveBeenCalledWith('j1', 'en', expect.any(Function)),
     )
     expect(await screen.findByText(/Quiet can carry a lot/)).toBeInTheDocument()
     /* The share persisted (shared_at) — the row now reads as shared and
-       offers revocation instead of the share button. */
-    expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
-    expect(await screen.findByText('Shared with Mira')).toBeInTheDocument()
+       offers revocation instead of the share button. The revoke button is
+       the signal ("Shared with Mira" text also matches the list filter). */
+    expect(screen.queryByRole('button', { name: /Let Mira read/ })).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', { name: /Stop sharing/ }),
+    ).toBeInTheDocument()
   })
 
   it('revokes a shared entry — shared_at clears and the share button returns', async () => {
@@ -191,8 +207,8 @@ describe('journal → share with Mira', () => {
     }
     const { refresh } = renderWith(<HealthJournalPage />, 'en', sharedState)
 
-    expect(screen.queryByRole('button', { name: 'Let Mira read this' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Stop sharing' }))
+    expect(screen.queryByRole('button', { name: /Let Mira read/ })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Stop sharing/ }))
     await waitFor(() => expect(unshareEntryFromMira).toHaveBeenCalledWith('j1'))
     await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
@@ -200,7 +216,7 @@ describe('journal → share with Mira', () => {
   it('says she reads only this entry, in French too', async () => {
     renderWith(<HealthJournalPage />, 'fr')
 
-    const btn = await screen.findByRole('button', { name: 'Laisser Mira le lire' })
+    const btn = await screen.findByRole('button', { name: /Laisser Mira lire/ })
     expect(btn).toHaveAttribute('title', 'Elle lit seulement cette entrée — sa réponse arrive ici et dans votre discussion.')
   })
 })
@@ -227,7 +243,7 @@ describe('habits → Mira reacts to a new habit', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Add habit' }))
 
-    await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Stretch'))
+    await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Stretch', undefined))
     await waitFor(() =>
       expect(sendHealthReaction).toHaveBeenCalledWith(
         { type: 'habit_added', habit: 'Stretch' },
@@ -265,7 +281,8 @@ describe('check-in → edit sends checkin_edited', () => {
     })
     renderWith(<HealthCheckInPage />, 'en', withOne)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    /* Row controls name their row — "Edit check-in from Today, 10:52 a.m." */
+    fireEvent.click(screen.getByRole('button', { name: /Edit check-in/ }))
     /* The entry form's scale renders before the editor's — the last
        'Great' radio on the page is the one inside the row editor. */
     const great = screen.getAllByRole('radio', { name: 'Great' }).at(-1)!
@@ -287,10 +304,10 @@ describe('check-in → edit sends checkin_edited', () => {
 
   it('cancel closes the editor without a write', async () => {
     renderWith(<HealthCheckInPage />, 'en', withOne)
-    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    fireEvent.click(screen.getByRole('button', { name: /Edit check-in/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(updateCheckIn).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Edit check-in/ })).toBeInTheDocument()
   })
 })
 
@@ -337,15 +354,38 @@ describe('home — What Mira remembers', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalled())
   })
 
-  it('remove is a two-step confirm', async () => {
-    vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
-    renderWith(<HealthHomePage />, 'en', remembered)
+  it('remove hides the row behind an undo toast — the delete commits when it lapses', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
+      renderWith(<HealthHomePage />, 'en', remembered)
 
-    const remove = await screen.findAllByRole('button', { name: 'Remove' })
-    fireEvent.click(remove[0]!)
-    expect(deleteHealthMemory).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: 'Click again to confirm' }))
-    await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+      const remove = await screen.findAllByRole('button', { name: /Remove / })
+      fireEvent.click(remove[0]!)
+      expect(deleteHealthMemory).not.toHaveBeenCalled()
+      expect(screen.queryByText('Prefers mornings for anything hard')).not.toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      await waitFor(() => expect(deleteHealthMemory).toHaveBeenCalledWith('m1'))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('undo brings the memory back before the delete commits', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(deleteHealthMemory).mockResolvedValue(undefined)
+      renderWith(<HealthHomePage />, 'en', remembered)
+
+      const remove = await screen.findAllByRole('button', { name: /Remove / })
+      fireEvent.click(remove[0]!)
+      fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
+      expect(screen.getByText('Prefers mornings for anything hard')).toBeInTheDocument()
+      await vi.advanceTimersByTimeAsync(6400)
+      expect(deleteHealthMemory).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('edits a memory inline — Enter saves, Escape cancels', async () => {
@@ -353,7 +393,7 @@ describe('home — What Mira remembers', () => {
     vi.mocked(updateHealthMemory).mockResolvedValue(undefined)
     renderWith(<HealthHomePage />, 'en', remembered)
 
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Edit' }))[0]!)
+    fireEvent.click((await screen.findAllByRole('button', { name: /Edit / }))[0]!)
     const input = screen.getByLabelText('Edit memory')
     fireEvent.change(input, { target: { value: 'Prefers early calls' } })
     fireEvent.keyDown(input, { key: 'Enter' })
@@ -407,7 +447,9 @@ describe('review — accepting a proposed memory writes it', () => {
     vi.mocked(resolveSuggestion).mockResolvedValue(undefined)
     renderWith(<HealthReviewPage />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Remember it' }))
+    /* The accept button's accessible name carries the row title —
+       "Remember it — Walks help me think". */
+    fireEvent.click(await screen.findByRole('button', { name: /Remember it/ }))
     await waitFor(() =>
       expect(addHealthMemory).toHaveBeenCalledWith('Walks help me think', 'mira'),
     )
@@ -443,7 +485,7 @@ describe('overview — Mira noticed strip', () => {
     expect(screen.getByText(/days running/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Chat with Mira' })).toHaveAttribute(
       'href',
-      '/health/chat',
+      '/wellness/chat',
     )
   })
 

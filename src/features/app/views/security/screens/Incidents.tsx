@@ -4,6 +4,7 @@ import { securityMessages as M } from '@/i18n/messages/security'
 import { statusChipClass } from '@/components/chips'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/FormField'
 import { useSecurityData } from '../SecurityDataContext'
+import { localDayOfISO } from '@/lib/format'
 import type { SecurityIncident, SecurityIncidentStatus, SecuritySeverity } from '../data/types'
 
 const SEVERITIES: SecuritySeverity[] = ['critical', 'high', 'medium', 'low']
@@ -62,11 +63,13 @@ function emptyIncident(): SecurityIncident {
 }
 
 function incidentDateToInput(date: string) {
-  return date.slice(0, 10)
+  return localDayOfISO(date)
 }
 
+/* The column is timestamptz but the field is a calendar date — store local
+   midnight so the day the person picked reads back as that same day. */
 function inputToIncidentDate(date: string) {
-  return `${date}T00:00:00Z`
+  return new Date(`${date}T00:00:00`).toISOString()
 }
 
 function IncidentRow({
@@ -86,7 +89,7 @@ function IncidentRow({
           {incident.title}
         </div>
         <div className="text-[12px] text-text-muted">
-          {incident.reported_at ? incident.reported_at.slice(0, 10) : null}
+          {incident.reported_at ? localDayOfISO(incident.reported_at) : null}
           {incident.assigned_to ? ` · assigned` : null}
           {incident.summary ? ` · ${incident.summary}` : null}
         </div>
@@ -168,7 +171,7 @@ export function Incidents() {
       title,
       severity,
       status,
-      reported_at: inputToIncidentDate(reportedAt || now),
+      reported_at: reportedAt ? inputToIncidentDate(reportedAt) : now,
       resolved_at: resolvedAt ? inputToIncidentDate(resolvedAt) : null,
       summary: summary || null,
       impact: impact || null,

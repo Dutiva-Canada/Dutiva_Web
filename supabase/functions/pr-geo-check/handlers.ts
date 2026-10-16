@@ -19,13 +19,19 @@ export function classifyGeoAnswer(
   answer: string,
   opts: { domains: string[]; brands: string[] },
 ): GeoCheckResult {
-  const lower = answer.toLowerCase()
   for (const domain of opts.domains) {
-    if (domain !== '' && lower.includes(domain.toLowerCase())) return 'cited'
+    if (domain === '') continue
+    /* Boundaries on both ends — a substring test would call "dutiva.cafe",
+       "notdutiva.ca", or "dutiva.careers" a citation of dutiva.ca. */
+    const re = new RegExp(`\\b${escapeRe(domain.toLowerCase())}\\b`, 'i')
+    if (re.test(answer)) return 'cited'
   }
   for (const brand of opts.brands) {
     if (brand === '') continue
-    const re = new RegExp(`\\b${escapeRe(brand)}\\b`, 'i')
+    /* Same boundary care as the domains, plus a domain-prefix exclusion:
+       "dutiva" inside "dutiva.careers" or "www.dutiva" is a lookalike
+       hostname, not a brand mention. */
+    const re = new RegExp(`(?<![\\w.])${escapeRe(brand)}(?!\\w|\\.\\w)`, 'i')
     if (re.test(answer)) return 'mentioned'
   }
   return 'absent'

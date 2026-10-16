@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -72,12 +72,18 @@ export function DocumentDetailProductionView() {
   const [emailingAll, setEmailingAll] = useState(false)
   const [reissuingRecipientId, setReissuingRecipientId] = useState<string | null>(null)
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !docId) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
-      setDetail(await getDocument(organizationId, docId))
+      const next = await getDocument(organizationId, docId)
+      if (requestRef.current !== request) return
+      setDetail(next)
     } catch {
+      if (requestRef.current !== request) return
       setDetail(null)
       setLoadFailed(true)
     }
@@ -89,9 +95,17 @@ export function DocumentDetailProductionView() {
 
   useEffect(() => {
     if (!organizationId || !docId || !detail?.id) return
+    let cancelled = false
     void listDocumentExports(organizationId, docId)
-      .then(setStoredExports)
-      .catch(() => setStoredExports([]))
+      .then((rows) => {
+        if (!cancelled) setStoredExports(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setStoredExports([])
+      })
+    return () => {
+      cancelled = true
+    }
   }, [organizationId, docId, detail?.id, detail?.updatedAt])
 
   if (!organizationId) {

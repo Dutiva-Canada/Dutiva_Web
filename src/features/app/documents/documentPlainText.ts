@@ -1,4 +1,5 @@
 import type { Lang } from '@/i18n/core'
+import { localDayOfISO } from '@/lib/format'
 import { mergeSegments, splitBilingualBody, splitProseParagraphs } from './engine'
 import type { PreviewBlock } from './data'
 import type { ProductionDocumentRecipient } from './signatureQueries'
@@ -131,7 +132,7 @@ export function blocksToPlainTextExport(
             recipients?.find((r) => r.order === index + 1) ??
             recipients?.find((_, i) => i === index)
           if (recipient?.status === 'signed') {
-            const signedAt = recipient.signedAt?.slice(0, 10) ?? ''
+            const signedAt = recipient.signedAt ? localDayOfISO(recipient.signedAt) : ''
             paragraphs.push(`${label}\n${recipient.signedName ?? recipient.name}\n${signedAt}`)
             if (recipient.signatureImage?.startsWith('data:image/png')) {
               signatureImages.push({

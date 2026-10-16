@@ -3,10 +3,13 @@ import { useI18n } from '@/i18n/context'
 import { healthMessages as HM } from '@/i18n/messages/health'
 
 const LINKS = [
-  { to: '/health/legal/terms', label: HM.health_footer_terms },
-  { to: '/health/legal/privacy', label: HM.health_footer_privacy },
-  { to: '/health/legal/wellness', label: HM.health_footer_wellness },
-  { to: '/health/legal/support', label: HM.health_footer_support },
+  { to: '/wellness/legal/terms', label: HM.health_footer_terms },
+  { to: '/wellness/legal/privacy', label: HM.health_footer_privacy },
+  { to: '/wellness/legal/wellness', label: HM.health_footer_wellness },
+  { to: '/wellness/legal/support', label: HM.health_footer_support },
+  /* Gated — a signed-out click lands on the sign-in wall, which is the
+     honest answer to "where is my data" anyway. */
+  { to: '/wellness/data', label: HM.health_footer_data },
 ] as const
 
 /**
