@@ -35,6 +35,7 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { suggestionIcon } from './suggestionIcons'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
+import { newRulePersistId } from './ruleDrafts'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
@@ -1132,6 +1133,12 @@ export function InvestPortfolioPage() {
                       scope: { watchlist: false, symbols: [alertSym] },
                       rules: [
                         {
+                          /* A real id keeps the dedupe/history identity
+                             stable when the threshold is edited — without
+                             it the wire fallback title carries the value,
+                             so every threshold change would look like a
+                             new rule to the firing log. */
+                          id: newRulePersistId(),
                           type: 'signal',
                           metric: 'price',
                           op,

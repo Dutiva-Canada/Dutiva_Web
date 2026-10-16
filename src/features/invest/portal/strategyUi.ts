@@ -12,6 +12,7 @@ import { pick } from '@/i18n/core'
 import type { Bi, Lang } from '@/i18n/core'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { RULE_METRIC_LABELS } from '../data/strategyRules'
+import { persistedRuleTitle } from '../data/strategyRules'
 import type { RuleProblem } from '../data/strategyRules'
 import type {
   InvestBotRun,
@@ -127,9 +128,11 @@ export function ruleTitle(lang: Lang, rule: StrategyRule, ccy = 'CAD'): string {
 /** Title persisted on the wire — the user's label when present, else the
     English auto-title so the dedupe fallback key stays distinct. The
     stored form stays CAD-templated: the label predates the book currency,
-    and titles are fallback keys, not rendered truth. */
+    and titles are fallback keys, not rendered truth. Delegates to the data
+    layer's persistedRuleTitle so every writer — editor, watchlist alert,
+    thesis conditions — stores the identical fallback string. */
 export function storedRuleTitle(rule: StrategyRule): string {
-  return rule.title.trim() || ruleTitle('en', rule)
+  return persistedRuleTitle(rule)
 }
 
 /** Live plain-language preview under the quantity control — "Buys 1 share",

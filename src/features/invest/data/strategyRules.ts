@@ -115,6 +115,53 @@ export function scopeIsEmpty(scope: InvestStrategy['scope']): boolean {
   return !scope.watchlist && scope.symbols.length === 0
 }
 
+/* The label the user never typed still has to persist — `title` is the
+   rule's fallback dedupe identity, and both normalizeRules and the engine's
+   parseRules drop a rule whose title is blank. Writers that bypass the
+   editor's toWire (the watchlist alert form, thesis conditions, test-scan
+   payloads) used to ship '' and lose the rule silently at save. This is the
+   English auto-title they persist instead — the same strings the accordion's
+   localized `ruleTitle` generates, kept here because this layer has no i18n:
+   the stored title is a stable key, not localized chrome. */
+const RULE_METRIC_EN: Record<RuleMetric, string> = {
+  day_change_pct: 'Day change',
+  vs_ma50: 'Price vs 50-day average',
+  price: 'Price',
+  value_floor: 'Position value',
+  weight_pct: 'Portfolio weight',
+  unrealized_gain_pct: 'Gain vs cost',
+  cash_above: 'Cash balance',
+}
+
+export function defaultRuleTitleEn(rule: StrategyRule): string {
+  const fmt = (n: number): string => {
+    if (!Number.isFinite(n)) return ''
+    if (rule.metric === 'price') return n.toLocaleString('en-CA')
+    /* Money thresholds are denominated in the book currency — the stored
+       form stays CAD-templated, matching the pre-bookCurrency labels. */
+    if (rule.metric === 'value_floor' || rule.metric === 'cash_above') {
+      return `$${n.toLocaleString('en-CA')} CAD`
+    }
+    return `${n.toLocaleString('en-CA').replace('-', '−')}%`
+  }
+  const metric = RULE_METRIC_EN[rule.metric]
+  if (rule.op === 'between') {
+    const lo = Math.min(rule.value, rule.value2 ?? rule.value)
+    const hi = Math.max(rule.value, rule.value2 ?? rule.value)
+    return `${metric} is between ${fmt(lo)} and ${fmt(hi)}`.trimEnd()
+  }
+  const verb = rule.op === 'lt' ? 'falls below' : 'rises above'
+  return `${metric} ${verb} ${fmt(rule.value)}`.trimEnd()
+}
+
+/** The title a rule persists with — the user's label when present, else
+    the English auto-title so the wire contract (and the dedupe fallback
+    key) always has a non-empty value. Single entry point for every writer
+    that serializes rules. */
+export function persistedRuleTitle(rule: StrategyRule): string {
+  return rule.title.trim() || defaultRuleTitleEn(rule)
+}
+
 /** Problems that would make a rule silently die at save — a cleared
     number input serializes to null and the engine's parseRules drops the
     whole rule, so the editor must surface these instead of persisting a

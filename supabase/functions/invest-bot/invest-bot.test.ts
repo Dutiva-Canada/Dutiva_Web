@@ -851,6 +851,34 @@ describe('planRun FX conversion', () => {
     )
     expect(plan.signals.map((s) => s.symbol)).toEqual(['AMD'])
   })
+
+  it('reports the converted unrealized % in the signal body, not raw math', () => {
+    /* A CAD-cost position quoting in USD: cost 95 CAD, quote 50 USD ≈
+       68.49 CAD → −27.9%. The old body divided raw numbers (−47.4%) —
+       the line must match the value the firing decision used. */
+    const cadCostPos: Position = { ...position, symbol: 'AMD', currency: 'CAD' }
+    const plan = planRun(
+      [
+        {
+          ...baseStrategy,
+          scope_symbols: ['AMD'],
+          rules: [
+            signalRule({ metric: 'unrealized_gain_pct', op: 'lt', value: -25, title: 'Under water' }),
+          ],
+        },
+      ],
+      [usdSnap],
+      [cadCostPos],
+      new Set(),
+      { fx },
+    )
+    const sig = plan.signals[0]
+    expect(sig).toBeDefined()
+    expect(sig!.body).toContain('unrealized -27.9%')
+    expect(sig!.body).not.toContain('-47.4%')
+    /* The held line names the cost currency so `@ 95.00` can't read as USD. */
+    expect(sig!.body).toContain('held: 10 @ 95.00 CAD')
+  })
 })
 
 describe('insights helpers', () => {

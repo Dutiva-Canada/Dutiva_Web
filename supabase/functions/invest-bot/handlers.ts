@@ -858,15 +858,23 @@ function buildSignalBody(
     rule.metric === 'vs_ma50' && snap.ma50 !== null
       ? `vs 50-day avg ${snap.ma50.toFixed(2)}`
       : null,
-    position ? `held: ${position.quantity} @ ${position.avg_cost.toFixed(2)}` : null,
+    position
+      ? `held: ${position.quantity} @ ${position.avg_cost.toFixed(2)} ${position.currency ?? snap.currency}`
+      : null,
     rule.metric === 'weight_pct' && position && ctx.bookValue > 0
       ? (() => {
           const v = positionBookValue(position, snap, ctx)
           return v === null ? null : `weight ${((v / ctx.bookValue) * 100).toFixed(1)}%`
         })()
       : null,
+    /* Same FX-aware math the firing decision used — raw quote minus raw
+       cost would mix currencies in the display (a USD quote against a CAD
+       cost once read -100% while the rule fired at a real gain). */
     rule.metric === 'unrealized_gain_pct' && position && position.avg_cost > 0
-      ? `unrealized ${(((snap.price - position.avg_cost) / position.avg_cost) * 100).toFixed(1)}%`
+      ? (() => {
+          const u = metricValue('unrealized_gain_pct', snap, position, ctx)
+          return u === null ? null : `unrealized ${u.toFixed(1)}%`
+        })()
       : null,
   ]
   return parts.filter(Boolean).join(' · ')

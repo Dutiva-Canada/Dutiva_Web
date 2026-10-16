@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient'
 import type { Json } from '@/lib/supabase/database.types'
-import { normalizeRules, validateRules } from './strategyRules'
+import { convertFx, loadFxRates } from './fx'
+import { normalizeRules, persistedRuleTitle, validateRules } from './strategyRules'
 import { ASSET_CLASSES } from './types'
 import type {
   AssetClass,
@@ -430,12 +431,31 @@ export async function recordCashEvent(input: {
   const { client, userId } = await requireUserId()
   const { data: account } = await client
     .from('invest_accounts')
-    .select('id, cash_balance')
+    .select('id, cash_balance, base_currency')
     .eq('id', input.accountId)
     .eq('user_id', userId)
     .maybeSingle()
   if (!account) throw new Error('Account not found')
-  const delta = input.kind === 'withdrawal' ? -input.amount : input.amount
+  /* Ledger invariant (0223 comment): amount is always denominated in the
+     account's base currency — balance updates, deleteCashEvent's reversal
+     and the recurring-contribution detector all read it raw. A non-base
+     event (e.g. a USD dividend into a CAD account) converts at write time
+     and keeps the original `amount CCY` in the note as the audit trail.
+     A missing FX rate refuses the write rather than booking 1:1. */
+  const base = String(account.base_currency ?? 'CAD').toUpperCase()
+  const eventCcy = String(input.currency ?? base).toUpperCase()
+  let amount = input.amount
+  let note = input.note ?? ''
+  if (eventCcy !== base) {
+    const converted = convertFx(input.amount, eventCcy, base, await loadFxRates())
+    if (converted == null) {
+      throw new Error(`No FX rate available to convert ${eventCcy} to ${base}`)
+    }
+    amount = converted
+    const orig = `${input.amount} ${eventCcy}`
+    if (!note.includes(orig)) note = note ? `${note} (${orig})` : orig
+  }
+  const delta = input.kind === 'withdrawal' ? -amount : amount
   const balance = Number(account.cash_balance) + delta
   if (balance < 0) throw new Error('Withdrawal exceeds the account’s cash balance')
   const { data: inserted, error } = await client
@@ -444,10 +464,10 @@ export async function recordCashEvent(input: {
       user_id: userId,
       account_id: input.accountId,
       kind: input.kind,
-      amount: input.amount,
-      currency: input.currency ?? 'CAD',
+      amount,
+      currency: base,
       occurred_at: input.occurredAt ?? new Date().toISOString().slice(0, 10),
-      note: input.note ?? '',
+      note,
     })
     .select('id')
     .single()
@@ -660,6 +680,9 @@ export async function importFill(input: {
   quantity: number
   price: number
   filledAt: string
+  /** Currency the fill price is denominated in — defaults to the held
+      position's, then the account base. */
+  currency?: string
   note?: string
   applyBook?: boolean
 }): Promise<void> {
@@ -673,6 +696,7 @@ export async function importFill(input: {
     quantity: input.quantity,
     price: input.price,
     filled_at: input.filledAt,
+    currency: input.currency,
     note: input.note,
     apply_book: input.applyBook,
   })
@@ -1009,6 +1033,13 @@ export async function testScan(input: {
 /* Wire shape for the rules jsonb column and the edge function — snake_case
    qty_unit; severity only on signals, order fields only on proposals. The
    rule id rides along — it's the dedupe/history identity (0218). */
+/* Wire shape for the rules jsonb column and the edge function — snake_case
+   qty_unit; severity only on signals, order fields only on proposals. The
+   rule id rides along — it's the dedupe/history identity (0218). A blank
+   label persists as the generated English title: both normalizeRules and
+   the engine's parseRules drop an empty-title rule, so shipping '' meant
+   the row saved fine and silently never fired (the watchlist alert form
+   did exactly this). */
 function rulesToWire(rules: InvestStrategy['rules']) {
   return rules.map((r) =>
     r.type === 'signal'
@@ -1019,7 +1050,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           op: r.op,
           value: r.value,
           ...(r.op === 'between' ? { value2: r.value2 } : {}),
-          title: r.title,
+          title: persistedRuleTitle(r),
           severity: r.severity,
         }
       : {
@@ -1029,7 +1060,7 @@ function rulesToWire(rules: InvestStrategy['rules']) {
           op: r.op,
           value: r.value,
           ...(r.op === 'between' ? { value2: r.value2 } : {}),
-          title: r.title,
+          title: persistedRuleTitle(r),
           side: r.side,
           qty: r.qty,
           qty_unit: r.qtyUnit,
@@ -1126,7 +1157,7 @@ export async function saveThesis(
       op: r.op,
       value: r.value,
       ...(r.op === 'between' ? { value2: r.value2 } : {}),
-      title: r.title,
+      title: persistedRuleTitle(r),
       severity: r.severity,
     })),
     drift_rules: thesis.driftRules.map((r) => ({
@@ -1136,7 +1167,7 @@ export async function saveThesis(
       op: r.op,
       value: r.value,
       ...(r.op === 'between' ? { value2: r.value2 } : {}),
-      title: r.title,
+      title: persistedRuleTitle(r),
       severity: r.severity,
     })),
     updated_at: new Date().toISOString(),

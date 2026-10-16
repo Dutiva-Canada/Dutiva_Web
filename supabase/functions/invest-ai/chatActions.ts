@@ -15,6 +15,7 @@ import {
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
 import { fetchOnDemandMarket } from './marketFetch.ts'
 import { loadPersonalContext } from './personalContext.ts'
+import { convertFx, fetchFxTable } from '../invest-bot/fx.ts'
 
 /* The action lifecycle for Tally's chat — the whitelisted write path
    (executeChatAction) plus its reversal (undoChatAction / runChatUndo).
@@ -457,7 +458,29 @@ export async function executeChatAction(
         return { type: action.type, detail: `${action.kind} — account unclear`, ok: false }
       }
       const account = accounts.find((a) => a.id === accountId)
-      const delta = action.kind === 'withdrawal' ? -action.amount : action.amount
+      /* Ledger invariant: cash events are denominated in the account's
+         base currency — the balance move and undo's reversal both read
+         amount raw. A stated foreign currency converts at write time;
+         no rate → the action fails rather than book 1:1. The original
+         `amount CCY` goes in the note as the audit trail. */
+      const accCcy = String(account?.base_currency ?? 'CAD').toUpperCase()
+      const eventCcy = String(action.currency ?? accCcy).toUpperCase()
+      let amount = action.amount
+      let note = action.note ?? ''
+      if (eventCcy !== accCcy) {
+        const converted = convertFx(amount, eventCcy, accCcy, await fetchFxTable())
+        if (converted === null) {
+          return {
+            type: action.type,
+            detail: `${action.kind} — no ${eventCcy}->${accCcy} rate`,
+            ok: false,
+          }
+        }
+        amount = converted
+        const orig = `${action.amount} ${eventCcy}`
+        if (!note.includes(orig)) note = note ? `${note} (${orig})` : orig
+      }
+      const delta = action.kind === 'withdrawal' ? -amount : amount
       const balance = Number(account?.cash_balance ?? 0) + delta
       /* Same guard the ledger form enforces — a withdrawal can't overdraw. */
       if (balance < 0) {
@@ -469,10 +492,10 @@ export async function executeChatAction(
           user_id: userId,
           account_id: accountId,
           kind: action.kind,
-          amount: action.amount,
-          currency: action.currency ?? account?.base_currency ?? 'CAD',
+          amount,
+          currency: accCcy,
           occurred_at: new Date().toISOString().slice(0, 10),
-          note: action.note ?? '',
+          note,
         })
         .select('id')
         .single()
@@ -543,24 +566,43 @@ export async function executeChatAction(
         action.total ?? Math.round(action.perShare! * pos.quantity * 100) / 100
       const { data: account } = await adminClient
         .from('invest_accounts')
-        .select('cash_balance')
+        .select('cash_balance, base_currency')
         .eq('id', pos.account_id)
         .eq('user_id', userId)
         .maybeSingle()
-      const balance = Number(account?.cash_balance ?? 0) + amount
+      /* The dividend is declared in the position's currency; the ledger
+         invariant stores the account-base equivalent — convert or fail. */
+      const accCcy = String(account?.base_currency ?? 'CAD').toUpperCase()
+      const posCcy = String(pos.currency || 'CAD').toUpperCase()
+      let amountBase = amount
+      if (posCcy !== accCcy) {
+        const converted = convertFx(amount, posCcy, accCcy, await fetchFxTable())
+        if (converted === null) {
+          return {
+            type: action.type,
+            detail: `${action.symbol} dividend — no ${posCcy}->${accCcy} rate`,
+            ok: false,
+          }
+        }
+        amountBase = converted
+      }
+      const balance = Number(account?.cash_balance ?? 0) + amountBase
       const { data: ev, error } = await adminClient
         .from('invest_cash_events')
         .insert({
           user_id: userId,
           account_id: pos.account_id,
           kind: 'dividend',
-          amount,
-          currency: pos.currency || 'CAD',
+          amount: amountBase,
+          currency: accCcy,
           occurred_at: new Date().toISOString().slice(0, 10),
           note:
-            action.perShare !== undefined
-              ? `${pos.symbol} — ${action.perShare} × ${pos.quantity}`
-              : `${pos.symbol} dividend`,
+            posCcy !== accCcy
+              ? `${pos.symbol} — ${amount} ${posCcy}` +
+                (action.perShare !== undefined ? ` (${action.perShare} × ${pos.quantity})` : '')
+              : action.perShare !== undefined
+                ? `${pos.symbol} — ${action.perShare} × ${pos.quantity}`
+                : `${pos.symbol} dividend`,
         })
         .select('id')
         .single()

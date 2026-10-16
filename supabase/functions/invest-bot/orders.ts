@@ -1,4 +1,5 @@
 import { applyFill, type AssetClass } from './handlers.ts'
+import { convertFx, fetchFxTable } from './fx.ts'
 import { json, type SupabaseClient } from './botShared.ts'
 
 /* ── Manual order execution (paper fills + live confirmations) ──────────────
@@ -29,7 +30,7 @@ export async function executeOrder(
      their cash. */
   const { data: account } = await adminClient
     .from('invest_accounts')
-    .select('cash_balance')
+    .select('cash_balance, base_currency')
     .eq('id', order.account_id)
     .eq('user_id', userId)
     .maybeSingle()
@@ -65,17 +66,19 @@ export async function executeOrder(
   }
 
   let price = fillPrice
+  let snapCcy: string | null = null
   if (price === null) {
     if (order.mode === 'live') {
       return json({ error: 'Live orders need an explicit fill price', code: 'fill_required' }, 400)
     }
     const { data: snap } = await adminClient
       .from('invest_market_snapshots')
-      .select('price')
+      .select('price, currency')
       .eq('user_id', userId)
       .eq('asset_class', order.asset_class)
       .eq('symbol', order.symbol)
       .maybeSingle()
+    snapCcy = snap?.currency ? String(snap.currency).toUpperCase() : null
     price = snap ? Number(snap.price) : (order.limit_price as number | null)
   }
   if (price === null || !Number.isFinite(price) || price <= 0) {
@@ -89,7 +92,7 @@ export async function executeOrder(
 
   const { data: position } = await adminClient
     .from('invest_positions')
-    .select('id, quantity, avg_cost')
+    .select('id, quantity, avg_cost, currency')
     .eq('account_id', order.account_id)
     .eq('user_id', userId)
     .eq('asset_class', order.asset_class)
@@ -106,6 +109,41 @@ export async function executeOrder(
       },
       409,
     )
+  }
+
+  /* The fill price is denominated in the instrument's currency — the held
+     position's when it exists, else the snapshot's, else the account base.
+     cash_balance is always in the account base, so the cash move converts
+     qty×price at the ECB rate; a missing rate refuses the fill before the
+     claim below, rather than posting a USD cost against a CAD balance.
+     avg_cost stays in instrument currency on both legs, so applyFill math
+     needs no conversion. */
+  const accCcy = String(account.base_currency ?? 'CAD').toUpperCase()
+  let fillCcy =
+    (position?.currency ? String(position.currency).toUpperCase() : null) ?? snapCcy
+  if (!fillCcy) {
+    /* Live order with an explicit price on a new symbol — the snapshot
+       wasn't needed for the quote, but it's the only place that knows
+       the instrument's currency. */
+    const { data: ccySnap } = await adminClient
+      .from('invest_market_snapshots')
+      .select('currency')
+      .eq('user_id', userId)
+      .eq('asset_class', order.asset_class)
+      .eq('symbol', order.symbol)
+      .maybeSingle()
+    fillCcy = ccySnap?.currency ? String(ccySnap.currency).toUpperCase() : accCcy
+  }
+  let costBase = qty * price
+  if (fillCcy !== accCcy) {
+    const conv = convertFx(costBase, fillCcy, accCcy, await fetchFxTable())
+    if (conv === null) {
+      return json(
+        { error: `No ${fillCcy}->${accCcy} FX rate to settle the fill`, code: 'no_fx' },
+        409,
+      )
+    }
+    costBase = conv
   }
 
   /* Completing fills claim the order first: the conditional update only
@@ -222,15 +260,17 @@ export async function executeOrder(
       avg_cost: fill.avg_cost,
       last_price: price,
       last_price_at: now,
+      /* The instrument's currency, not the column default — a USD fill
+         landing 'CAD' would corrupt every FX conversion downstream. */
+      currency: fillCcy,
     })
     if (error) return release(error.message)
   }
 
-  const cost = qty * price
   const { error: cashError } = await adminClient
     .from('invest_accounts')
     .update({
-      cash_balance: Number(account.cash_balance) + (side === 'sell' ? cost : -cost),
+      cash_balance: Number(account.cash_balance) + (side === 'sell' ? costBase : -costBase),
       updated_at: now,
     })
     .eq('id', order.account_id)
@@ -262,13 +302,16 @@ export async function importFill(
     quantity: number
     price: number
     filled_at: string
+    /** Currency the fill price is denominated in — defaults to the held
+        position's, then the account base. */
+    currency?: string
     note?: string
     apply_book?: boolean
   },
 ): Promise<Response> {
   const { data: account } = await adminClient
     .from('invest_accounts')
-    .select('cash_balance')
+    .select('cash_balance, base_currency')
     .eq('id', input.account_id)
     .eq('user_id', userId)
     .maybeSingle()
@@ -288,7 +331,7 @@ export async function importFill(
 
   const { data: position } = await adminClient
     .from('invest_positions')
-    .select('id, quantity, avg_cost')
+    .select('id, quantity, avg_cost, currency')
     .eq('account_id', input.account_id)
     .eq('user_id', userId)
     .eq('asset_class', input.asset_class)
@@ -353,6 +396,27 @@ export async function importFill(
       qty,
       price,
     )
+    /* Same ledger invariant as executeOrder — the fill price is in the
+       instrument's currency (the position's when held, else the caller's
+       declared currency, else the account base); the cash move converts
+       to base or the whole import is rejected. */
+    const accCcy = String(account.base_currency ?? 'CAD').toUpperCase()
+    const fillCcy = String(
+      position?.currency ?? input.currency ?? accCcy,
+    ).toUpperCase()
+    let costBase = qty * price
+    if (fillCcy !== accCcy) {
+      const conv = convertFx(costBase, fillCcy, accCcy, await fetchFxTable())
+      if (conv === null) {
+        await adminClient.from('invest_order_fills').delete().eq('order_id', orderRow.id).eq('user_id', userId)
+        await adminClient.from('invest_orders').delete().eq('id', orderRow.id).eq('user_id', userId)
+        return json(
+          { error: `No ${fillCcy}->${accCcy} FX rate to book the fill`, code: 'no_fx' },
+          409,
+        )
+      }
+      costBase = conv
+    }
     if (position) {
       await adminClient
         .from('invest_positions')
@@ -375,13 +439,13 @@ export async function importFill(
         avg_cost: fill.avg_cost,
         last_price: price,
         last_price_at: iso,
+        currency: fillCcy,
       })
     }
-    const cost = qty * price
     await adminClient
       .from('invest_accounts')
       .update({
-        cash_balance: Number(account.cash_balance) + (input.side === 'sell' ? cost : -cost),
+        cash_balance: Number(account.cash_balance) + (input.side === 'sell' ? costBase : -costBase),
         updated_at: iso,
       })
       .eq('id', input.account_id)

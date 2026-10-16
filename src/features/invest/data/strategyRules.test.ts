@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
   cadenceMismatch,
+  defaultRuleTitleEn,
   estimateFrequency,
   normalizeRules,
+  persistedRuleTitle,
   ruleFireCount,
   scopeIsEmpty,
   staleScopeSymbols,
   validateRules,
 } from './strategyRules'
-import type { InvestBotRun, InvestSignal, MarketSnapshot, StrategyRule } from './types'
+import type {
+  InvestBotRun,
+  InvestSignal,
+  MarketSnapshot,
+  SignalRule,
+  StrategyRule,
+} from './types'
 
 describe('normalizeRules', () => {
   it('splits the new typed shapes cleanly', () => {
@@ -78,6 +86,83 @@ describe('normalizeRules', () => {
       ]),
     ).toEqual([])
     expect(normalizeRules(null)).toEqual([])
+  })
+})
+
+describe('persistedRuleTitle', () => {
+  const priceRule = (over: Partial<SignalRule> = {}): SignalRule => ({
+    type: 'signal',
+    metric: 'price',
+    op: 'gt',
+    value: 150,
+    severity: 'alert',
+    title: '',
+    ...over,
+  })
+
+  it('generates the English auto-title for a blank label', () => {
+    /* The wire fallback — the watchlist alert form saves title:''; both
+       normalizeRules and the engine's parseRules would drop that rule
+       silently, so the persisted title can never be blank. */
+    expect(persistedRuleTitle(priceRule())).toBe('Price rises above 150')
+    expect(persistedRuleTitle(priceRule({ op: 'lt', value: 95.5 }))).toBe(
+      'Price falls below 95.5',
+    )
+    expect(persistedRuleTitle(priceRule({ title: '  ' }))).toBe(
+      'Price rises above 150',
+    )
+  })
+
+  it('keeps a user-typed label verbatim', () => {
+    expect(persistedRuleTitle(priceRule({ title: 'My alert' }))).toBe('My alert')
+  })
+
+  it('formats percent and currency metrics like the accordion does', () => {
+    const pct: StrategyRule = {
+      type: 'signal',
+      metric: 'day_change_pct',
+      op: 'lt',
+      value: -5,
+      severity: 'insight',
+      title: '',
+    }
+    expect(persistedRuleTitle(pct)).toBe('Day change falls below −5%')
+    const money: StrategyRule = {
+      type: 'signal',
+      metric: 'value_floor',
+      op: 'between',
+      value: 5000,
+      value2: 2000,
+      severity: 'alert',
+      title: '',
+    }
+    expect(persistedRuleTitle(money)).toBe(
+      'Position value is between $2,000 CAD and $5,000 CAD',
+    )
+  })
+
+  it('round-trips: a persisted title survives normalizeRules', () => {
+    const rule = priceRule()
+    const titled = { ...rule, title: persistedRuleTitle(rule) }
+    const [parsed] = normalizeRules([titled])
+    expect(parsed).toMatchObject({ title: 'Price rises above 150' })
+  })
+
+  it('covers every metric — no fallback can ever be blank', () => {
+    for (const metric of [
+      'day_change_pct',
+      'vs_ma50',
+      'price',
+      'value_floor',
+      'weight_pct',
+      'unrealized_gain_pct',
+      'cash_above',
+    ] as const) {
+      const t = defaultRuleTitleEn(priceRule({ metric }))
+      expect(t.length).toBeGreaterThan(0)
+      expect(t).not.toContain('undefined')
+      expect(t).not.toContain('NaN')
+    }
   })
 })
 
