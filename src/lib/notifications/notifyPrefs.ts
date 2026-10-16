@@ -119,3 +119,38 @@ export async function setReminderPref(
   )
   if (error) throw error
 }
+
+/* ---------- timezone sync ----------
+   The evening sweep computes "today" per user from migration 0229's `tz`
+   column; without it "today" means the UTC date. The portal stamps its
+   IANA zone on load — a fire-and-forget merge-upsert, once per session,
+   that never creates a pref the person didn't ask for (the row's toggles
+   keep their defaults). */
+
+let tzSynced: string | null = null
+
+export async function syncNotifyTz(surface: PortalNotifySurface): Promise<void> {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  if (!tz || tzSynced === `${surface}:${tz}`) return
+  tzSynced = `${surface}:${tz}`
+  try {
+    const sb = requireSupabase()
+    const {
+      data: { user },
+    } = await sb.auth.getUser()
+    if (!user) return
+    await sb.from('portal_notification_prefs').upsert(
+      { user_id: user.id, surface, tz, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,surface' },
+    )
+  } catch {
+    /* Best-effort — a failed stamp just means the sweep falls back to UTC,
+       the behaviour it always had. */
+    tzSynced = null
+  }
+}
+
+/** Test-only: reset the once-per-session tz stamp between specs. */
+export function resetNotifyTz() {
+  tzSynced = null
+}

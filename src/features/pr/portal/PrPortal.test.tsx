@@ -61,6 +61,7 @@ vi.mock('@/features/pr/data/api', async (importOriginal) => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn().mockResolvedValue(true),
   setNotifyPref: vi.fn().mockResolvedValue(undefined),
+  syncNotifyTz: vi.fn().mockResolvedValue(undefined),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')

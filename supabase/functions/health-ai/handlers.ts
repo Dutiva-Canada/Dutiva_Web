@@ -13,12 +13,20 @@ import { detectPatterns } from '../_shared/adviceScreen.ts'
 export interface CheckInRow {
   mood: number
   energy: number | null
+  /** The writer's local calendar day (migration 0229). NULL on legacy
+      rows — the UTC date of created_at is the fallback, and the comment
+      in buildHealthFacts owns what that approximation means. */
+  day?: string | null
   created_at: string
 }
 
 export interface HabitRowLite {
   id: string
   name: string
+  /** Local day the habit was created (migration 0229) — the floor for its
+      streak/progress math. NULL → created_at's UTC date, pre-0229 shape. */
+  day?: string | null
+  created_at?: string | null
 }
 
 export interface HabitLogRowLite {
@@ -75,10 +83,11 @@ export function buildHealthFacts(
   days: number,
   nowIso: string,
 ): HealthFacts {
-  /* Calendar-day window, matching what the UI labels and charts. Rows
-     carry only created_at, so the day bucket is the UTC date — for a
-     late-night check-in that can differ from the writer's local date by
-     one, which shifts a bucket edge, not the story the numbers tell. */
+  /* Calendar-day window anchored on the caller's local today — the same
+     frame the page charts. Rows written after migration 0229 carry the
+     writer's own local day; legacy rows fall back to the UTC date of
+     created_at, which can read one day "future" for writers behind UTC —
+     the +1 bound keeps those while excluding genuinely future stamps. */
   const todayUtc = nowIso.slice(0, 10)
   const cutoffDay = shiftDay(todayUtc, -(days - 1))
   /* Half the WINDOW, not half measured back from today — `today−7` would
@@ -92,8 +101,12 @@ export function buildHealthFacts(
   const byDay = new Map<string, { moodSum: number; n: number; eSum: number; eN: number }>()
   let checkInCount = 0
   for (const c of checkIns) {
-    const day = c.created_at.slice(0, 10)
-    if (day < cutoffDay || day > todayUtc) continue
+    const day = c.day ?? c.created_at.slice(0, 10)
+    /* The stored day is the writer's calendar — a UTC+ user can be a real
+       day ahead of the server's UTC today without anything being wrong.
+       The +1 bound keeps genuinely future rows out while letting the
+       furthest real timezone in (UTC+14). */
+    if (day < cutoffDay || day > shiftDay(todayUtc, 1)) continue
     checkInCount += 1
     const slot = byDay.get(day) ?? { moodSum: 0, n: 0, eSum: 0, eN: 0 }
     slot.moodSum += c.mood
@@ -128,11 +141,17 @@ export function buildHealthFacts(
   }
 
   /* Per-habit adherence — a Set per habit so a duplicated (habit, day)
-     row can't inflate the count, and habits never marked still appear
-     with days:0 rather than vanishing. */
+     row can't inflate the count, habits never marked still appear with
+     days:0 rather than vanishing, and marks stamped before the habit
+     existed don't count toward it. */
+  const floorByHabit = new Map(habits.map((h) => [h.id, habitStartDay(h)]))
   const doneDays = new Map<string, Set<string>>()
   for (const l of logs) {
-    if (l.day < cutoffDay || l.day > todayUtc) continue
+    /* habit_logs.day is already the writer's local day — same +1 bound:
+       their "today" can sit one UTC date ahead of the server's. */
+    if (l.day < cutoffDay || l.day > shiftDay(todayUtc, 1)) continue
+    const floor = floorByHabit.get(l.habit_id)
+    if (floor != null && l.day < floor) continue
     const set = doneDays.get(l.habit_id) ?? new Set<string>()
     set.add(l.day)
     doneDays.set(l.habit_id, set)
@@ -148,6 +167,14 @@ export function buildHealthFacts(
     habitsTotal: habits.length,
     habitDays: habits.map((h) => ({ name: h.name, days: doneDays.get(h.id)?.size ?? 0 })),
   }
+}
+
+/** The day a habit started existing — the stored local day when the row
+    carries it (migration 0229), else created_at's UTC date, else no floor
+    (a bare id/name fixture gets no restriction). Streak and adherence math
+    ignore logs stamped before it: a backfill can't invent history. */
+function habitStartDay(h: HabitRowLite): string | null {
+  return h.day ?? h.created_at?.slice(0, 10) ?? null
 }
 
 /* The advice line is tiered: external accounts get observations only, a
@@ -344,7 +371,12 @@ export function buildHabitStatuses(
     return d.toISOString().slice(0, 10)
   }
   return habits.map((h) => {
-    const days = new Set(logs.filter((l) => l.habit_id === h.id).map((l) => l.day))
+    const floor = habitStartDay(h)
+    const days = new Set(
+      logs
+        .filter((l) => l.habit_id === h.id && (floor == null || l.day >= floor))
+        .map((l) => l.day),
+    )
     let streak = 0
     let cursor = days.has(today) ? today : prevDay(today)
     while (days.has(cursor)) {
@@ -438,7 +470,11 @@ export function buildCompanionSignals(
     .filter((c) => c.note.trim() !== '')
     .slice(0, SIGNAL_NOTES_LIMIT)
   for (const c of notes) {
-    lines.push(`- check-in ${dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`)
+    /* The stored local day when the row carries it — the label names the
+       day the writer meant, not the UTC date it landed on. */
+    lines.push(
+      `- check-in ${c.day ?? dayOf(c.created_at)} · mood ${c.mood}/5 · "${oneLine(c.note, SIGNAL_NOTE_MAX)}"`,
+    )
   }
   const entries = byNewest(journals)
     .filter((j) => j.shared_at != null && j.body.trim() !== '')

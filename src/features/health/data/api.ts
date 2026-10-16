@@ -183,6 +183,9 @@ export async function addCheckIn(input: {
       mood: input.mood,
       energy: input.energy ?? null,
       note: (input.note ?? '').trim(),
+      /* The writer's local day (migration 0229) — stored so the server's
+         facts bucket it on the same calendar the writer saw, not UTC. */
+      day: todayDayKey(),
     })
     .select()
     .single()
@@ -430,6 +433,9 @@ export async function addHabit(name: string, weeklyTarget?: number): Promise<Hea
     .insert({
       user_id: userId,
       name: name.trim(),
+      /* The local creation day (migration 0229) — streak math floors logs
+         at the habit's own day, not created_at's UTC date. */
+      day: todayDayKey(),
       ...(weeklyTarget ? { weekly_target: weeklyTarget } : {}),
     })
     .select()

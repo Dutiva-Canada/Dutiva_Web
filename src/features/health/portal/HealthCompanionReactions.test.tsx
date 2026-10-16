@@ -63,6 +63,7 @@ vi.mock('@/lib/agentQueue', () => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn(async () => false),
   setNotifyPref: vi.fn(async () => undefined),
+  syncNotifyTz: vi.fn(async () => undefined),
 }))
 
 function langValue(lang: Lang): LangContextValue {

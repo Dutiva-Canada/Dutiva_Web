@@ -7765,6 +7765,7 @@ export type Database = {
       health_checkins: {
         Row: {
           created_at: string
+          day: string | null
           energy: number | null
           id: string
           mood: number
@@ -7773,6 +7774,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day?: string | null
           energy?: number | null
           id?: string
           mood: number
@@ -7781,6 +7783,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day?: string | null
           energy?: number | null
           id?: string
           mood?: number
@@ -7824,6 +7827,7 @@ export type Database = {
       health_habits: {
         Row: {
           created_at: string
+          day: string | null
           id: string
           name: string
           user_id: string
@@ -7831,6 +7835,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          day?: string | null
           id?: string
           name: string
           user_id: string
@@ -7838,6 +7843,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          day?: string | null
           id?: string
           name?: string
           user_id?: string
@@ -12624,6 +12630,7 @@ export type Database = {
           email_enabled: boolean
           reminder_enabled: boolean
           surface: string
+          tz: string | null
           updated_at: string
           user_id: string
         }
@@ -12631,6 +12638,7 @@ export type Database = {
           email_enabled?: boolean
           reminder_enabled?: boolean
           surface: string
+          tz?: string | null
           updated_at?: string
           user_id: string
         }
@@ -12638,6 +12646,7 @@ export type Database = {
           email_enabled?: boolean
           reminder_enabled?: boolean
           surface?: string
+          tz?: string | null
           updated_at?: string
           user_id?: string
         }

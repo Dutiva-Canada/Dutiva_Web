@@ -1,7 +1,14 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
-import { brokeStreak, dayKey, habitStreak, recentDayKeys } from '../data/healthStats'
+import {
+  brokeStreak,
+  checkInDay,
+  habitSinceDay,
+  habitStreak,
+  recentDayKeys,
+  todayDayKey,
+} from '../data/healthStats'
 import type { HealthState } from '../data/types'
 
 /** Localized 1–5 labels for the mood and energy scales. */
@@ -96,7 +103,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
    the numbers on the page it sits next to. */
 function weekCheckIns(state: HealthState, now: Date): number {
   const weekDays = new Set(recentDayKeys(7, now))
-  return state.checkIns.filter((c) => weekDays.has(dayKey(c.createdAt))).length
+  return state.checkIns.filter((c) => weekDays.has(checkInDay(c))).length
 }
 
 /* A fresh break is a change; a live streak is a standing state — the change
@@ -108,7 +115,7 @@ function pausedHabit(
 ): { name: string; days: number } | null {
   let longest: { name: string; days: number } | null = null
   for (const h of state.habits) {
-    const run = brokeStreak(state.habitLogs, h.id, now)
+    const run = brokeStreak(state.habitLogs, h.id, now, habitSinceDay(h))
     if (run >= 3 && (!longest || run > longest.days)) longest = { name: h.name, days: run }
   }
   return longest
@@ -128,7 +135,7 @@ export function companionGreeting(
     const paused = pausedHabit(state, now)
     let best: { name: string; streak: number } | null = null
     for (const h of state.habits) {
-      const streak = habitStreak(state.habitLogs, h.id, now)
+      const streak = habitStreak(state.habitLogs, h.id, now, habitSinceDay(h))
       if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
     }
     if (paused) {
@@ -174,7 +181,7 @@ export function miraNoticed(
   }
   let best: { name: string; streak: number } | null = null
   for (const h of state.habits) {
-    const streak = habitStreak(state.habitLogs, h.id, now)
+    const streak = habitStreak(state.habitLogs, h.id, now, habitSinceDay(h))
     if (streak >= 2 && (!best || streak > best.streak)) best = { name: h.name, streak }
   }
   if (best) {
@@ -182,10 +189,8 @@ export function miraNoticed(
       .replace('{name}', best.name)
       .replace('{days}', String(best.streak))
   }
-  const startOfDay = new Date(now)
-  startOfDay.setHours(0, 0, 0, 0)
   const todayCheckIn = state.checkIns.find(
-    (c) => Date.parse(c.createdAt) >= startOfDay.getTime(),
+    (c) => checkInDay(c) === todayDayKey(now),
   )
   if (todayCheckIn?.note.trim()) {
     const note = todayCheckIn.note.replace(/\s+/g, ' ').trim().slice(0, 80)
@@ -207,7 +212,7 @@ export function miraNoticed(
   const windowDays = new Set(recentDayKeys(42, now))
   const dayMoods = new Map<string, number[]>()
   for (const c of state.checkIns) {
-    const key = dayKey(c.createdAt)
+    const key = checkInDay(c)
     if (!windowDays.has(key)) continue
     const list = dayMoods.get(key) ?? []
     list.push(c.mood)
@@ -238,13 +243,17 @@ export function miraNoticed(
       }
     }
     if (lowDay !== null) {
-      /* Any real date on that weekday names it in the reader's locale —
-         no hardcoded table. */
+      /* Name the weekday from an in-window date — an ancient check-in that
+         happened to share it would still format correctly, but sampling
+         inside the window keeps the line anchored to the data it's
+         describing. Noon keeps the day stable on DST edges. */
       const sample = state.checkIns.find(
-        (c) => new Date(c.createdAt).getDay() === lowDay,
+        (c) =>
+          windowDays.has(checkInDay(c)) &&
+          new Date(`${checkInDay(c)}T12:00:00`).getDay() === lowDay,
       )
       const name = dateFmt(lang, { weekday: 'long' }).format(
-        new Date(sample?.createdAt ?? now),
+        sample ? new Date(`${checkInDay(sample)}T12:00:00`) : now,
       )
       return pick(HM.health_home_mira_weekday, lang).replace('{day}', name)
     }
@@ -260,7 +269,11 @@ export function miraNoticed(
      be absent from. */
   const newest = state.checkIns[0]
   if (newest && state.checkIns.length >= 3) {
-    const silentDays = Math.floor((now.getTime() - Date.parse(newest.createdAt)) / DAY_MS)
+    /* Calendar days since the last check-in's own day — the same unit every
+       other count uses, and a stored `day` survives timezone travel the
+       elapsed-hours math can't. */
+    const silentDays =
+      (Date.parse(todayDayKey(now)) - Date.parse(checkInDay(newest))) / DAY_MS
     if (silentDays >= 3) {
       return pick(HM.health_home_mira_away, lang).replace('{days}', String(silentDays))
     }

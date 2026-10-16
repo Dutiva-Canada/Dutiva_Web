@@ -70,6 +70,25 @@ describe('miraNoticed — the Overview strip', () => {
     )
   })
 
+  it('treats the stored local day as today even when created_at says otherwise', () => {
+    /* Written 23:30 local — created_at timestamps into "yesterday" for a
+       UTC- reader, but the stored day is where the writer put it. */
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        {
+          id: 'c1',
+          mood: 3,
+          energy: null,
+          note: 'Quiet evening in',
+          createdAt: '2020-01-01T00:00:00Z',
+          day: localDay(0),
+        },
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).toBe('You wrote today: “Quiet evening in”')
+  })
+
   it('falls back to the mood word, then the week count, then silence', () => {
     const moodOnly: HealthState = {
       ...EMPTY,

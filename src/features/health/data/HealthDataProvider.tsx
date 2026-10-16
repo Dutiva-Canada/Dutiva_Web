@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { loadHealthState } from './api'
+import { syncNotifyTz } from '@/lib/notifications/notifyPrefs'
 import { HealthDataContext, type HealthDataContextValue } from './HealthDataContext'
 import type { HealthState } from './types'
 
@@ -31,6 +32,9 @@ export function HealthDataProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       if (mounted.current) setError(e as Error)
     }
+    /* The evening sweep reads "today" per user — stamp the zone once per
+       session (no-op before migration 0229 lands; UTC stays the fallback). */
+    void syncNotifyTz('health')
   }, [])
 
   useEffect(() => {

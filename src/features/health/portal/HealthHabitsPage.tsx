@@ -17,9 +17,9 @@ import {
   type HabitSuggestion,
 } from '@/features/health/data/api'
 import {
-  dayKey,
   habitBestRun,
   habitDoneDays,
+  habitSinceDay,
   habitStreak,
   recentDayKeys,
   todayDayKey,
@@ -467,14 +467,14 @@ export function HealthHabitsPage() {
         ) : (
           <div className="hb-rows" role="list">
             {habits.map((h) => {
-              const doneDays = habitDoneDays(logs, h.id)
-              const streak = habitStreak(logs, h.id)
-              const best = habitBestRun(logs, h.id)
-              const doneToday = doneDays.has(today)
               /* Days before the habit existed aren't "missed" — they're
-                 pre-tracking. Counts only ever run over days the habit
-                 lived, so a fresh row never reads "0 of the last 30". */
-              const createdDay = dayKey(h.createdAt)
+                 pre-tracking. Counts and streaks only ever run over days
+                 the habit lived, so a backfilled mark can't invent history. */
+              const createdDay = habitSinceDay(h)
+              const doneDays = habitDoneDays(logs, h.id, createdDay)
+              const streak = habitStreak(logs, h.id, undefined, createdDay)
+              const best = habitBestRun(logs, h.id, createdDay)
+              const doneToday = doneDays.has(today)
               const weekLive = week.filter((d) => d >= createdDay)
               const monthLive = month.filter((d) => d >= createdDay)
               const weekDone = weekLive.filter((d) => doneDays.has(d)).length

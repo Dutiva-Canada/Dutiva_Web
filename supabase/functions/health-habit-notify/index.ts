@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import {
   atRiskHabits,
+  localDay,
   reminderRecipients,
   type HabitLogRow,
   type HabitRow,
@@ -12,7 +13,7 @@ import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
 
 /**
- * health-habit-notify — the evening Health sweep (pg_cron 23:00 UTC,
+ * health-habit-notify — the evening Wellness sweep (pg_cron 23:00 UTC,
  * migration 0196). Two gentle emails share this run, and a user gets at
  * most one per night:
  *
@@ -20,6 +21,12 @@ import { secretEquals } from '../_shared/secretEqual.ts'
  *     off yet — the 0196 original
  *   - check-in reminder (opt-IN, migration 0227's reminder_enabled): no
  *     check-in row exists for today
+ *
+ * "Today" is each recipient's own local day, resolved from the timezone
+ * the portal stamps on their prefs row (migration 0229): an evening
+ * check-in counts for the day it was written, and a missed-day warning
+ * names the day the reader lives in. Absent tz falls back to the UTC
+ * date the sweep always used.
  *
  * When both apply to the same person the reminder email carries the
  * streak line — one quiet ping, not two. Non-clinical, no shame
@@ -77,46 +84,79 @@ const handler = async (req: Request) => {
   }
 
   try {
+    const nowUtc = new Date()
+    const utcToday = nowUtc.toISOString().slice(0, 10)
+
+    /* Prefs feed two things: reminder opt-ins and every known user's
+       timezone. Read once for the whole run — a tz on a reminder-off row
+       still tells the sweep when that user's day turns. If the 0229
+       columns haven't landed the query errors: reminders skip, tz falls
+       back to UTC, and streak nudges still go out. */
+    let allPrefs: NotifyPrefRow[] = []
+    try {
+      const { data: prefs, error: prefsError } = await admin
+        .from('portal_notification_prefs')
+        .select('user_id, email_enabled, reminder_enabled, tz')
+        .eq('surface', 'health')
+      if (prefsError) throw prefsError
+      allPrefs = (prefs ?? []) as NotifyPrefRow[]
+    } catch (err) {
+      console.warn('[health-habit-notify] prefs read failed:', (err as Error).message)
+    }
+    const tzByUser = new Map(allPrefs.map((p) => [p.user_id, p.tz ?? null]))
+    const todayFor = (userId: string): string => localDay(nowUtc, tzByUser.get(userId))
+
     const { data: habits, error: habitsError } = await admin
       .from('health_habits')
-      .select('id, user_id, name')
+      .select('id, user_id, name, created_at, day')
     if (habitsError) return json({ error: habitsError.message }, 500)
 
-    const since = new Date(Date.now() - LOG_LOOKBACK_DAYS * 86_400_000).toISOString().slice(0, 10)
+    const since = new Date(nowUtc.getTime() - LOG_LOOKBACK_DAYS * 86_400_000)
+      .toISOString()
+      .slice(0, 10)
     const { data: logs, error: logsError } = await admin
       .from('health_habit_logs')
       .select('habit_id, user_id, day')
       .gte('day', since)
     if (logsError) return json({ error: logsError.message }, 500)
 
-    const today = new Date().toISOString().slice(0, 10)
     const atRisk = atRiskHabits(
       (habits ?? []) as HabitRow[],
       (logs ?? []) as HabitLogRow[],
-      today,
+      todayFor,
     )
 
-    /* Opt-in check-in reminders — the same sweep, gated on migration
-       0227's reminder_enabled column. If that migration hasn't landed
-       yet the prefs query errors; streak nudges still go out, so the
-       failure is logged and skipped rather than thrown. */
+    /* Opt-in check-in reminders — a row "counts for today" when its
+       stored local day matches the recipient's own date. NULL-day rows
+       (written before migration 0229) keep the old created_at ≥ UTC
+       midnight test so the transition window changes nothing. A 48h
+       fetch covers every local day that could be someone's today at
+       this UTC instant (±14h zones). */
     let reminders = new Set<string>()
     try {
-      const { data: prefs, error: prefsError } = await admin
-        .from('portal_notification_prefs')
-        .select('user_id, email_enabled, reminder_enabled')
-        .eq('surface', 'health')
-        .eq('reminder_enabled', true)
-      if (prefsError) throw prefsError
-      const { data: todayCheckins, error: checkinsError } = await admin
+      const { data: recentCheckins, error: checkinsError } = await admin
         .from('health_checkins')
-        .select('user_id')
-        .gte('created_at', `${today}T00:00:00Z`)
+        .select('user_id, day, created_at')
+        .gte('created_at', new Date(nowUtc.getTime() - 48 * 3600_000).toISOString())
       if (checkinsError) throw checkinsError
-      reminders = reminderRecipients(
-        (prefs ?? []) as NotifyPrefRow[],
-        new Set((todayCheckins ?? []).map((r: { user_id: string }) => r.user_id)),
+      const daysByUser = new Map<string, Set<string>>()
+      const nullDayToday = new Set<string>()
+      for (const row of recentCheckins ?? []) {
+        const r = row as { user_id: string; day: string | null; created_at: string }
+        if (r.day) {
+          const s = daysByUser.get(r.user_id) ?? new Set<string>()
+          s.add(r.day)
+          daysByUser.set(r.user_id, s)
+        } else if (r.created_at >= `${utcToday}T00:00:00Z`) {
+          nullDayToday.add(r.user_id)
+        }
+      }
+      const checkedIn = new Set(
+        allPrefs
+          .map((p) => p.user_id)
+          .filter((u) => daysByUser.get(u)?.has(todayFor(u)) === true || nullDayToday.has(u)),
       )
+      reminders = reminderRecipients(allPrefs, checkedIn)
     } catch (err) {
       console.warn('[health-habit-notify] reminder sweep skipped:', (err as Error).message)
     }
@@ -124,7 +164,8 @@ const handler = async (req: Request) => {
     /* One email per user per night: the union of streak-risk and
        reminder recipients, combined under the reminder kind when both
        apply (the reminder is the wider ask — "no check-in" subsumes
-       "habits unchecked"). */
+       "habits unchecked"). The dedupe ref_date is the recipient's local
+       day — the same "today" the eligibility used. */
     const outcomes: Record<string, string> = {}
     for (const userId of new Set([...atRisk.keys(), ...reminders])) {
       const names = atRisk.get(userId)
@@ -165,7 +206,7 @@ const handler = async (req: Request) => {
       outcomes[userId] = await sendPortalEmail(admin, {
         userId,
         kind: reminded ? 'health_checkin_reminder' : 'health_streak_risk',
-        refDate: today,
+        refDate: todayFor(userId),
         subject: reminded
           ? 'Dutiva Wellness — check-in reminder / rappel du point du jour'
           : `Dutiva Wellness — streak at risk / suite à protéger (${names?.length ?? 0})`,

@@ -201,6 +201,63 @@ describe('buildHealthFacts', () => {
     expect(f.moodTrend).toBeNull()
     expect(f.habitDays).toEqual([])
   })
+
+  it('buckets on the stored local day when the row carries one', () => {
+    /* The stored day wins in both directions: a row created_at a date
+       outside the window but stamped inside counts, and a row created_at
+       inside but stamped outside doesn't. UTC-only bucketing fails both. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 4, energy: null, created_at: dayAgo(20), day: isoDay(2) },
+        { mood: 1, energy: null, created_at: dayAgo(1), day: isoDay(20) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.checkInCount).toBe(1)
+    expect(facts.avgMood).toBe(4)
+  })
+
+  it('lets a stored day one date ahead of the anchor in — UTC+ writers exist', () => {
+    /* todayUtc is 2026-10-02; a UTC+14 writer's today is 2026-10-03. That
+       day is real, not future — but 2026-10-04 is. */
+    const facts = buildHealthFacts(
+      [
+        { mood: 4, energy: null, created_at: dayAgo(0), day: '2026-10-03' },
+        { mood: 1, energy: null, created_at: dayAgo(0), day: '2026-10-04' },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(facts.checkInCount).toBe(1)
+    expect(facts.avgMood).toBe(4)
+  })
+
+  it('ignores habit marks stamped before the habit existed', () => {
+    const facts = buildHealthFacts(
+      [],
+      [
+        { id: 'h1', name: 'Walk', day: isoDay(2) },
+        /* Legacy row without `day` — created_at is the floor instead. */
+        { id: 'h2', name: 'Stretch', created_at: dayAgo(1) },
+      ],
+      [
+        { habit_id: 'h1', day: isoDay(3) }, // before h1 existed
+        { habit_id: 'h1', day: isoDay(1) }, // counts
+        { habit_id: 'h2', day: isoDay(4) }, // before h2 existed
+      ],
+      14,
+      NOW,
+    )
+    expect(facts.habitDays).toEqual([
+      { name: 'Walk', days: 1 },
+      { name: 'Stretch', days: 0 },
+    ])
+  })
 })
 
 describe('lowMoodPatchEligible', () => {
@@ -357,6 +414,28 @@ describe('buildHabitStatuses', () => {
     expect(buildHabitStatuses([], [], TODAY)).toEqual([])
   })
 
+  it('floors a streak at the habit\'s own day — a backfill can\'t invent history', () => {
+    const statuses = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', day: '2026-10-01' }],
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        /* Stamped before the habit existed — the mark can't count. */
+        { habit_id: 'h1', day: '2026-09-30' },
+        { habit_id: 'h1', day: '2026-09-29' },
+      ],
+      TODAY,
+    )
+    expect(statuses[0].streak).toBe(2)
+    /* A habit carrying no day falls back to created_at's UTC date. */
+    const legacy = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', created_at: '2026-10-01T20:00:00Z' }],
+      [{ habit_id: 'h1', day: '2026-09-30' }],
+      TODAY,
+    )
+    expect(legacy[0].streak).toBe(0)
+  })
+
   it('flags a streak that runs off the fetched window — the data ran out, not the streak', () => {
     const logs = [
       { habit_id: 'h1', day: '2026-10-01' },
@@ -427,6 +506,15 @@ describe('chatPrompt', () => {
 })
 
 describe('buildCompanionSignals', () => {
+  it('labels the writer\'s stored day, not the UTC date it landed on', () => {
+    const lines = buildCompanionSignals(
+      [{ mood: 3, energy: null, note: 'late entry', created_at: dayAgo(1), day: '2026-09-30' }],
+      [],
+    )
+    expect(lines[0]).toContain('check-in 2026-09-30')
+    expect(lines[0]).not.toContain(isoDay(1))
+  })
+
   it('quotes notes and journal excerpts, newest first, skipping empty text', () => {
     const lines = buildCompanionSignals(
       [

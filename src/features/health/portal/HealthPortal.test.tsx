@@ -12,6 +12,8 @@ import {
   avgMood,
   checkInStreak,
   dailyMoods,
+  habitBestRun,
+  habitSinceDay,
   habitStreak,
   habitsDoneToday,
   hasCheckInToday,
@@ -46,6 +48,7 @@ vi.mock('@/features/health/data/api', async (importOriginal) => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn().mockResolvedValue(true),
   setNotifyPref: vi.fn().mockResolvedValue(undefined),
+  syncNotifyTz: vi.fn().mockResolvedValue(undefined),
 }))
 
 const { useAuth } = await import('@/features/app/auth/authContext')
@@ -203,6 +206,22 @@ describe('healthStats', () => {
   it('detects whether today has a check-in', () => {
     expect(hasCheckInToday([ci(4, 0)])).toBe(true)
     expect(hasCheckInToday([ci(4, 1)])).toBe(false)
+    /* The stored local day wins over created_at — a check-in written just
+       before midnight can timestamp into yesterday while still being
+       today's on the writer's calendar. */
+    expect(hasCheckInToday([{ ...ci(4, 1), day: dayKey(0) }])).toBe(true)
+  })
+
+  it('buckets averages and streaks on the stored day when present', () => {
+    /* ci(4, 2) is timestamped two days ago but stamped today — every
+       day-indexed answer must agree with the writer's calendar. */
+    const lateWrite = { ...ci(4, 2), day: dayKey(0) }
+    expect(checkInStreak([lateWrite])).toBe(1)
+    expect(avgMood([lateWrite, ci(2, 1)], 7)).toBe(3)
+    /* And stamped-out-of-window means out — created_at can't smuggle it
+       back in. */
+    const stampedOld = { ...ci(4, 0), day: dayKey(30) }
+    expect(avgMood([stampedOld], 7)).toBeNull()
   })
 
   it('averages mood over a bounded window', () => {
@@ -251,6 +270,14 @@ describe('healthStats', () => {
     expect(habitStreak([], 'h1')).toBe(0)
     /* A different habit's days never bleed into the count. */
     expect(habitStreak([log('h2', 0), log('h2', 1)], 'h1')).toBe(0)
+  })
+
+  it('floors streak math at the habit\'s own start day', () => {
+    /* log('h1', 3) predates a habit created dayKey(2) — it can't count. */
+    expect(habitStreak([log('h1', 0), log('h1', 1), log('h1', 3)], 'h1', undefined, dayKey(2))).toBe(2)
+    expect(habitBestRun([log('h1', 3), log('h1', 4)], 'h1', dayKey(2))).toBe(0)
+    /* And habitSinceDay supplies the floor from the row itself. */
+    expect(habitSinceDay({ ...habit('h1'), day: '2026-10-01' })).toBe('2026-10-01')
   })
 
   it('counts habits done today out of the total', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { atRiskHabits, reminderRecipients, streakEndingOn } from './handlers'
+import { atRiskHabits, localDay, reminderRecipients, streakEndingOn } from './handlers'
 
 const habit = (id: string, user_id = 'u1', name = `Habit ${id}`) => ({ id, user_id, name })
 const log = (habit_id: string, day: string, user_id = 'u1') => ({ habit_id, user_id, day })
@@ -67,6 +67,54 @@ const pref = (user_id: string, email_enabled = true, reminder_enabled = true) =>
   user_id,
   email_enabled,
   reminder_enabled,
+})
+
+describe('localDay', () => {
+  const NOW = new Date('2026-10-03T02:00:00Z') // UTC Oct 3 — still Oct 2 in Toronto, already Oct 3 in Sydney
+
+  it('answers the calendar day in the given timezone', () => {
+    expect(localDay(NOW, 'Australia/Sydney')).toBe('2026-10-03')
+    expect(localDay(NOW, 'America/Toronto')).toBe('2026-10-02')
+  })
+
+  it('falls back to the UTC date when the zone is absent or invalid', () => {
+    expect(localDay(NOW, null)).toBe('2026-10-03')
+    expect(localDay(NOW, 'Not/AZone')).toBe('2026-10-03')
+  })
+})
+
+describe('atRiskHabits — per-user today and creation floor', () => {
+  it('evaluates "today" per recipient — one user\'s yesterday is another\'s today', () => {
+    const habits = [habit('h1', 'u1'), habit('h2', 'u2', 'Other')]
+    const logs = [log('h1', '2026-10-03'), log('h2', '2026-10-03', 'u2')]
+    /* u1 lives a date ahead: the mark is yesterday, streak at risk.
+       u2 is on it: the mark is today, already safe. */
+    const out = atRiskHabits(habits, logs, (u) => (u === 'u1' ? '2026-10-04' : '2026-10-03'))
+    expect(out.get('u1')).toEqual(['Habit h1'])
+    expect(out.get('u2')).toBeUndefined()
+  })
+
+  it('ignores marks stamped before the habit existed', () => {
+    const created = { id: 'h1', user_id: 'u1', name: 'Walk', day: '2026-10-02' }
+    const out = atRiskHabits(
+      [created],
+      [log('h1', '2026-09-30'), log('h1', '2026-09-29')],
+      TODAY,
+    )
+    /* The only marks precede the habit — no live streak to protect. */
+    expect(out.size).toBe(0)
+  })
+
+  it('floors legacy habits at created_at when day is absent', () => {
+    const created = {
+      id: 'h1',
+      user_id: 'u1',
+      name: 'Walk',
+      created_at: '2026-10-02T20:00:00Z',
+    }
+    const out = atRiskHabits([created], [log('h1', '2026-10-01')], TODAY)
+    expect(out.size).toBe(0)
+  })
 })
 
 describe('reminderRecipients', () => {

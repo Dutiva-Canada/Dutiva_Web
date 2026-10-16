@@ -29,6 +29,7 @@ vi.mock('@/lib/agentQueue', async (importOriginal) => ({
 vi.mock('@/lib/notifications/notifyPrefs', () => ({
   loadNotifyPref: vi.fn().mockResolvedValue(true),
   setNotifyPref: vi.fn().mockResolvedValue(undefined),
+  syncNotifyTz: vi.fn().mockResolvedValue(undefined),
 }))
 
 const api = await import('@/features/health/data/api')

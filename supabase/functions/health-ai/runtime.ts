@@ -117,10 +117,10 @@ export async function loadCompanionContext(
   ] = await Promise.all([
     admin
       .from('health_checkins')
-      .select('mood, energy, note, created_at')
+      .select('mood, energy, note, created_at, day')
       .eq('user_id', userId)
       .gte('created_at', factsSince),
-    admin.from('health_habits').select('id, name').eq('user_id', userId),
+    admin.from('health_habits').select('id, name, created_at, day').eq('user_id', userId),
     admin
       .from('health_habit_logs')
       .select('habit_id, day')
@@ -150,7 +150,10 @@ export async function loadCompanionContext(
   const logRows = (logs ?? []) as HabitLogRowLite[]
   const noteRows = (checkIns ?? []) as CheckInNoteRow[]
   return {
-    facts: buildHealthFacts(noteRows, habitRows, logRows, FACTS_DAYS, new Date().toISOString()),
+    /* `today` is the caller's local day — anchoring the window on it makes
+       these facts count exactly the days the page charts, whatever zone
+       the writer (or this server) sits in. */
+    facts: buildHealthFacts(noteRows, habitRows, logRows, FACTS_DAYS, today),
     statuses: buildHabitStatuses(habitRows, logRows, today, logsSince),
     habitNames: habitRows.map((h) => h.name),
     signals: buildCompanionSignals(noteRows, (journals ?? []) as JournalExcerptRow[]),
@@ -528,7 +531,7 @@ async function executeChatAction(
     case 'add_habit': {
       const { data, error } = await admin
         .from('health_habits')
-        .insert({ user_id: userId, name: action.name })
+        .insert({ user_id: userId, name: action.name, day: today })
         .select('id')
         .single()
       return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
@@ -541,6 +544,8 @@ async function executeChatAction(
           mood: action.mood,
           energy: action.energy ?? null,
           note: action.note ?? '',
+          /* The caller's local today — same day the check-in page stamps. */
+          day: today,
         })
         .select('id')
         .single()
