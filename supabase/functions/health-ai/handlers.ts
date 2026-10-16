@@ -29,15 +29,25 @@ export interface HabitLogRowLite {
 export interface HealthFacts {
   days: number
   checkInCount: number
+  /** Distinct days with at least one check-in — the honest "how much data"
+      number; checkInCount can exceed it when a day is logged twice. */
+  loggedDays: number
   avgMood: number | null
   avgEnergy: number | null
   moodTrend: 'up' | 'down' | 'flat' | null
-  habitsKept: number
   habitsTotal: number
-  bestHabitDays: number
+  /** Days each tracked habit was marked done inside the window — real
+      adherence, so "a habit marked once" never reads as "a habit kept". */
+  habitDays: { name: string; days: number }[]
 }
 
 const DAY_MS = 86_400_000
+
+/** A YYYY-MM-DD shifted by `n` days — calendar-date math without a
+    timezone surprise (UTC anchor, same trick as dayNum client-side). */
+function shiftDay(day: string, n: number): string {
+  return new Date(Date.parse(`${day}T00:00:00Z`) + n * DAY_MS).toISOString().slice(0, 10)
+}
 
 /** The remembered layer — durable facts the person asked Mira to hold
     (health_memories: written by hand, or proposed by her and accepted on
@@ -65,46 +75,70 @@ export function buildHealthFacts(
   days: number,
   nowIso: string,
 ): HealthFacts {
-  const now = Date.parse(nowIso)
-  const cutoff = now - days * DAY_MS
-  const mid = now - Math.floor(days / 2) * DAY_MS
+  /* Calendar-day window, matching what the UI labels and charts. Rows
+     carry only created_at, so the day bucket is the UTC date — for a
+     late-night check-in that can differ from the writer's local date by
+     one, which shifts a bucket edge, not the story the numbers tell. */
+  const todayUtc = nowIso.slice(0, 10)
+  const cutoffDay = shiftDay(todayUtc, -(days - 1))
+  const midDay = shiftDay(todayUtc, -Math.floor(days / 2))
 
-  const recent = checkIns.filter((c) => Date.parse(c.created_at) >= cutoff)
-  const olderHalf = recent.filter((c) => Date.parse(c.created_at) < mid)
-  const newerHalf = recent.filter((c) => Date.parse(c.created_at) >= mid)
+  /* Per-day averaging — the same weighting the Insights page uses, so the
+     recap can't cite an average the displayed card disagrees with. */
+  const byDay = new Map<string, { moodSum: number; n: number; eSum: number; eN: number }>()
+  let checkInCount = 0
+  for (const c of checkIns) {
+    const day = c.created_at.slice(0, 10)
+    if (day < cutoffDay || day > todayUtc) continue
+    checkInCount += 1
+    const slot = byDay.get(day) ?? { moodSum: 0, n: 0, eSum: 0, eN: 0 }
+    slot.moodSum += c.mood
+    slot.n += 1
+    if (c.energy != null) {
+      slot.eSum += c.energy
+      slot.eN += 1
+    }
+    byDay.set(day, slot)
+  }
 
-  const avgMood = avg(recent.map((c) => c.mood))
-  const avgOlder = avg(olderHalf.map((c) => c.mood))
-  const avgNewer = avg(newerHalf.map((c) => c.mood))
+  const moodAvgs: { day: string; v: number }[] = []
+  const energyAvgs: number[] = []
+  for (const [day, s] of byDay) {
+    moodAvgs.push({ day, v: s.moodSum / s.n })
+    if (s.eN > 0) energyAvgs.push(s.eSum / s.eN)
+  }
+
+  /* A trend needs at least two logged days in EACH half — otherwise two
+     check-ins a fortnight apart would manufacture a "trend" out of two
+     points. Empty halves already meant null; thin ones now do too. */
+  const olderVals = moodAvgs.filter((m) => m.day < midDay).map((m) => m.v)
+  const newerVals = moodAvgs.filter((m) => m.day >= midDay).map((m) => m.v)
   let moodTrend: HealthFacts['moodTrend'] = null
-  if (avgOlder != null && avgNewer != null) {
-    const diff = avgNewer - avgOlder
+  if (olderVals.length >= 2 && newerVals.length >= 2) {
+    const diff = avg(newerVals)! - avg(olderVals)!
     moodTrend = diff > 0.3 ? 'up' : diff < -0.3 ? 'down' : 'flat'
   }
 
-  const recentDays = new Set(
-    logs.filter((l) => Date.parse(`${l.day}T12:00:00Z`) >= cutoff).map((l) => l.day),
-  )
-  const keptHabitIds = new Set(
-    logs.filter((l) => recentDays.has(l.day)).map((l) => l.habit_id),
-  )
-  let bestHabitDays = 0
-  const perHabit = new Map<string, number>()
+  /* Per-habit adherence — a Set per habit so a duplicated (habit, day)
+     row can't inflate the count, and habits never marked still appear
+     with days:0 rather than vanishing. */
+  const doneDays = new Map<string, Set<string>>()
   for (const l of logs) {
-    if (!recentDays.has(l.day)) continue
-    perHabit.set(l.habit_id, (perHabit.get(l.habit_id) ?? 0) + 1)
+    if (l.day < cutoffDay || l.day > todayUtc) continue
+    const set = doneDays.get(l.habit_id) ?? new Set<string>()
+    set.add(l.day)
+    doneDays.set(l.habit_id, set)
   }
-  for (const n of perHabit.values()) bestHabitDays = Math.max(bestHabitDays, n)
 
   return {
     days,
-    checkInCount: recent.length,
-    avgMood,
-    avgEnergy: avg(recent.map((c) => c.energy).filter((e): e is number => e != null)),
+    checkInCount,
+    loggedDays: byDay.size,
+    avgMood: avg(moodAvgs.map((m) => m.v)),
+    avgEnergy: avg(energyAvgs),
     moodTrend,
-    habitsKept: keptHabitIds.size,
     habitsTotal: habits.length,
-    bestHabitDays,
+    habitDays: habits.map((h) => ({ name: h.name, days: doneDays.get(h.id)?.size ?? 0 })),
   }
 }
 
@@ -202,10 +236,12 @@ export function recapPrompt(
   return [
     `You write two-week summaries for a personal wellness tracker. ${sharedRules(advice)}`,
     'Summarize the stats and the person\'s own recent words below in 3–4 short sentences: check-in count, mood and energy averages, whether mood trended up or down' +
-      /* Zero configured habits is an absence, not a failure — without this
-         guard the model reads habitsKept:0 as "kept none" and reports a
-         lapse the person never signed up for. */
-      (facts.habitsTotal > 0 ? ', how habits went' : '') +
+      /* Zero configured habits is an absence, not a failure. And habits
+         are reported as days-marked, not kept/failed — a habit with
+         days:1 was marked once, not "kept up". */
+      (facts.habitsTotal > 0
+        ? ', how each habit went by its days marked in habitDays'
+        : '') +
       ', and — only if a note or excerpt makes it natural — one nod to what they\'ve actually been carrying. ' +
       /* Two steers against the failure shapes seen live: verdict words
          ("very low", "poor") instead of numbers, and week-scale claims

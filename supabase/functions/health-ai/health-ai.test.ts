@@ -48,11 +48,36 @@ describe('buildHealthFacts', () => {
       NOW,
     )
     expect(facts.checkInCount).toBe(2)
+    expect(facts.loggedDays).toBe(2)
     expect(facts.avgMood).toBe(3)
     expect(facts.avgEnergy).toBe(3)
-    expect(facts.habitsKept).toBe(1)
     expect(facts.habitsTotal).toBe(1)
-    expect(facts.bestHabitDays).toBe(1)
+    expect(facts.habitDays).toEqual([{ name: 'Walk', days: 1 }])
+  })
+
+  it('weights days equally — a day logged three times cannot outweigh a day logged once', () => {
+    const sameDay = (hour: number) => {
+      const d = new Date(Date.parse(NOW) - 86_400_000)
+      d.setUTCHours(hour)
+      return d.toISOString()
+    }
+    const facts = buildHealthFacts(
+      [
+        { mood: 1, energy: null, created_at: sameDay(8) },
+        { mood: 1, energy: null, created_at: sameDay(13) },
+        { mood: 1, energy: null, created_at: sameDay(21) },
+        { mood: 5, energy: null, created_at: dayAgo(2) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    /* Per-check-in would be 2.0; per-day is (1 + 5) / 2 — matching the
+       average the Insights card displays. */
+    expect(facts.avgMood).toBe(3)
+    expect(facts.checkInCount).toBe(4)
+    expect(facts.loggedDays).toBe(2)
   })
 
   it('computes mood trend across the halves', () => {
@@ -79,12 +104,49 @@ describe('buildHealthFacts', () => {
     expect(flat.moodTrend).toBeNull() // one half empty → no trend claim
   })
 
+  it('refuses a trend built from one logged day per half', () => {
+    const thin = buildHealthFacts(
+      [
+        { mood: 1, energy: null, created_at: dayAgo(10) },
+        { mood: 5, energy: null, created_at: dayAgo(1) },
+      ],
+      [],
+      [],
+      14,
+      NOW,
+    )
+    expect(thin.moodTrend).toBeNull()
+  })
+
+  it('reports per-habit days marked — including untouched habits and deduped days', () => {
+    const facts = buildHealthFacts(
+      [],
+      [
+        { id: 'h1', name: 'Walk' },
+        { id: 'h2', name: 'Stretch' },
+      ],
+      [
+        { habit_id: 'h1', day: isoDay(1) },
+        { habit_id: 'h1', day: isoDay(1) }, // duplicate row can't inflate
+        { habit_id: 'h1', day: isoDay(3) },
+        { habit_id: 'h1', day: isoDay(40) }, // outside window
+      ],
+      14,
+      NOW,
+    )
+    expect(facts.habitDays).toEqual([
+      { name: 'Walk', days: 2 },
+      { name: 'Stretch', days: 0 },
+    ])
+  })
+
   it('handles an empty window without fabricating stats', () => {
     const f = buildHealthFacts([], [], [], 14, NOW)
     expect(f.checkInCount).toBe(0)
+    expect(f.loggedDays).toBe(0)
     expect(f.avgMood).toBeNull()
     expect(f.moodTrend).toBeNull()
-    expect(f.habitsKept).toBe(0)
+    expect(f.habitDays).toEqual([])
   })
 })
 
@@ -123,8 +185,8 @@ describe('prompt guardrails', () => {
        the person never signed up for. */
     const none = buildHealthFacts([], [], [], 14, NOW)
     expect(none.habitsTotal).toBe(0)
-    expect(recapPrompt(none, [], 'en')).not.toContain('how habits went')
-    expect(recapPrompt(facts, [], 'en')).toContain('how habits went')
+    expect(recapPrompt(none, [], 'en')).not.toContain('how each habit went')
+    expect(recapPrompt(facts, [], 'en')).toContain('how each habit went by its days marked')
   })
   it('recap pins plain numbers over verdicts and guards thin data', () => {
     const p = recapPrompt(facts, [], 'en')
