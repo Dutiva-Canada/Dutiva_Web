@@ -50,8 +50,13 @@ export function MorningBrief(props: {
   const [dismissed, setDismissed] = useState(
     () => readPref(DISMISS_KEY, '') === todayKey(),
   )
+  /* Time-of-day neutral after noon — a "This morning"/"Overnight" card
+     reads stale at 7 p.m., and the numbers are today's session moves. */
+  const morning = new Date().getHours() < 12
 
-  const pctFmt = (n: number) => `${n > 0 ? '+' : ''}${fmtPct(lang, n, { max: 1 })}`
+  /* One decimal for every mover — {max:1} alone drops trailing zeros and
+     mixes "−8%" next to "−8.5%" in the same breath. */
+  const pctFmt = (n: number) => `${n > 0 ? '+' : ''}${fmtPct(lang, n, { min: 1, max: 1 })}`
 
   const lines = (() => {
     const out: string[] = []
@@ -73,7 +78,7 @@ export function MorningBrief(props: {
       .slice(0, 4)
     if (movers.length > 0) {
       out.push(
-        x(IM.invest_brief_movers).replace(
+        x(morning ? IM.invest_brief_movers : IM.invest_brief_movers_day).replace(
           '{list}',
           movers.map((m) => `${m.symbol} ${pctFmt(m.dayChangePct ?? 0)}`).join(', '),
         ),
@@ -124,10 +129,6 @@ export function MorningBrief(props: {
     setDismissed(true)
   }
 
-  /* The card stays up all day once dismissed-tomorrow logic passes — a
-     "This morning" title reads stale in the afternoon, so it goes
-     time-of-day neutral after noon. */
-  const morning = new Date().getHours() < 12
   const title = morning ? IM.invest_brief_title : IM.invest_brief_title_day
   const TitleIcon = morning ? Sunrise : Sun
 

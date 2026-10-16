@@ -388,7 +388,10 @@ export function InvestHomePage() {
               ))}
             </p>
           ) : (
-            <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(book.cash)}</p>
+            <p className="v" style={{ margin: '8px 0 0' }}>
+              {book.used && <span className="dim">≈ </span>}
+              {fmt.format(book.cash)}
+            </p>
           )}
         </div>
         <div className="sb-stat">

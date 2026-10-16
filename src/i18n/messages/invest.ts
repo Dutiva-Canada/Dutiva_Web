@@ -902,6 +902,10 @@ const investCoreMessages = defineMessages({
   invest_brief_title_day: { en: 'Today', fr: "Aujourd'hui" },
   /* [FR self-authored] */
   invest_brief_movers: { en: 'Overnight: {list}', fr: 'Pendant la nuit : {list}' },
+  /* Day variant — after noon the same numbers are today's session moves,
+     not overnight gaps. */
+  /* [FR self-authored] */
+  invest_brief_movers_day: { en: 'Session: {list}', fr: 'Séance : {list}' },
   /* [FR self-authored] */
   invest_brief_signal_one: { en: 'signal fired since yesterday', fr: 'signal déclenché depuis hier' },
   /* [FR self-authored] */
