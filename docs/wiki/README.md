@@ -37,4 +37,6 @@ Set `WIKI_REPO` if your wiki clone is not at `../Dutiva_Web-wiki`.
 
 This folder’s **`README.md`** is repo-only (not copied to GitHub wiki). All other `*.md` files mirror the wiki one-to-one.
 
-**Last synced to wiki commit:** `7aa4b3a` (pushed 2026-10-09 — portal assistants, chat widgets, advisor evaluation layer; Woodpecker CI correction; counts refreshed: 45 edge functions, 71 SEO pages / 142 localized URLs, 209 migrations, 68 message modules, 19 monitored law pages).
+**Last synced to wiki commit:** `7aa4b3a` (pushed 2026-10-09 — portal assistants, chat widgets, advisor evaluation layer; Woodpecker CI correction; counts as of that commit: 45 edge functions, 71 SEO pages / 142 localized URLs, 209 migrations, 19 monitored law pages — superseded by the refresh below).
+
+**In-repo refresh (pending push):** mirror updated in-repo after the `/app` → `/workspace` and Health → Wellness renames and the live-database regeneration — current counts: 46 edge functions, 300 tables / 687 RLS policies / 206 RPCs, 234 migrations, 72 SEO pages / 144 localized URLs, 68 aggregated message modules (110 leaf files), 20 monitored law pages, 8 providers, monthly Stripe billing live (OA11). Run `npm run wiki:sync -- --push` from a wiki clone to publish.

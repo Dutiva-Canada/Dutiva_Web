@@ -69,9 +69,9 @@ it currently is.
 `src/features/app/auth/allowedEmail.ts` hard-codes a single address, and
 `AuthProvider.signInWithEmail` refuses to even send a magic link to anything
 else (`AuthProvider.tsx:49`). `RequireAdminSession` then bounces every other
-session away from `/app` (`RequireAdminSession.tsx:42`).
+session away from `/workspace` (`RequireAdminSession.tsx:42`).
 
-Because `handleCheckout` sends any signed-out visitor to `/app/welcome`
+Because `handleCheckout` sends any signed-out visitor to `/workspace/welcome`
 (`PricingPage.tsx:288`), the funnel is closed at its first step: a prospect
 clicks _Start Growth_, lands on the sign-in gate, enters their address, and is
 told the workspace is restricted. `auth.users` holding exactly one row is that

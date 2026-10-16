@@ -125,7 +125,7 @@ cannot reset.
 - ~~The server trail is read through service-role tooling today; an in-app
   admin viewer over `export_events` is a natural follow-up once the
   admin-reporting surface exists.~~ **Done (EF3, 2026-08-06).** An admin
-  viewer is live at `/app/support/admin/exports`, reading through the
+  viewer is live at `/workspace/support/admin/exports`, reading through the
   `export-audit-trail` edge function (service-role, `is_admin`-gated
   server-side). The table itself stays service-role-only with zero client
   policies — the edge function is the only read path. Supports filtering by

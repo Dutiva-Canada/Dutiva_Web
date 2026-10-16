@@ -33,7 +33,7 @@ The following files were used as context for generating this wiki page:
 
 The Dutiva workspace contains **29 feature-module directories** under `src/features/app/views/` — including the AI Advisor, Document Management (`templates`), and `chatwidgets` showcase covered on their own pages. Each module follows a consistent **phased rollout pattern**: a demo mode renders rich fixture data (the "Northgate Logistics Inc." diorama from `src/data/`), while production mode reads and writes real Supabase tables through a per-module `productionApi.ts` boundary file. The mode dispatch happens inside each view component — modules render a `*ProductionView` (or their own mode-aware variant) against real tables, falling back to empty-state primitives when the org has no records yet.
 
-Two larger workspace modules — **Communications Platform** (`/app/comms`) and **Finance** (`/app/finance`) — follow a multi-screen layout pattern with their own data providers, context, bilingual message catalogues, and shared bulk-import adapters. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
+Two larger workspace modules — **Communications Platform** (`/workspace/comms`) and **Finance** (`/workspace/finance`) — follow a multi-screen layout pattern with their own data providers, context, bilingual message catalogues, and shared bulk-import adapters. These modules are integration-led: they connect to external accounting, payroll, and publishing systems rather than replacing them.
 
 This page provides a high-level map of all workspace modules, their rollout status, and how they interconnect. For detailed coverage:
 
@@ -44,70 +44,70 @@ This page provides a high-level map of all workspace modules, their rollout stat
 
 All workspace modules are lazy-loaded through `React.lazy()` in the route table at `appViews.tsx`. There is no route-level gate: every module handles both modes itself. Fixture-backed surfaces decide their production/demo behaviour within the view or its mode-aware dependencies — Home and Advisor have production variants; Knowledge, Settings, Document Studio, repository/detail, Advisor Memory, and Signing have real production-backed behaviour; the legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`.
 
-[src/app/appViews.tsx:30-42]()
+[src/app/appViews.tsx:30-42](<>)
 
 **Self-dispatching** modules check `workspaceMode` in their root component and render their own `*ProductionView` variant. This includes Employees, Cases, Compliance, Policies, Tasks, Calendar, Analytics, Communications, Compensation, Wellbeing, Home, Comms Platform, Finance, Hiring, CRM, Revenue, Operations, Governance, Security, Specialists, and the Memory screens:
 
-[src/app/appViews.tsx:79-118]()
+[src/app/appViews.tsx:79-118](<>)
 
 **Empty production data** renders `ProductionEmptyState` (module-level) or `ModuleEmptyBlock` (in-view) primitives rather than fixtures — a fresh production workspace is intentionally empty, and Home adds a five-step setup path on top (see [Workspace Mode & Provider Stack](#2.3)):
 
-[src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](), [src/features/app/views/home/HomeProductionEmptyState.tsx]()
+[src/features/app/workspaceMode/ProductionEmptyState.tsx](<>), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](<>), [src/features/app/views/home/HomeProductionEmptyState.tsx](<>)
 
-Sources: [src/app/appViews.tsx:1-166](), [src/features/app/workspaceMode/ProductionEmptyState.tsx:1-47]()
+Sources: [src/app/appViews.tsx:1-166](<>), [src/features/app/workspaceMode/ProductionEmptyState.tsx:1-47](<>)
 
 ### Module routing map
 
 ```mermaid
 graph TD
     subgraph "AppShell Outlet"
-        R["/app/*"]
+        R["/workspace/*"]
     end
 
-    R --> HOME["/app/home\nHomeView"]
-    R --> ADV["/app/advisor\nAdvisorView"]
-    R --> EMP["/app/employees\nEmployeesView"]
-    R --> EMPPROF["/app/employees/:employeeId\nEmployeeProfileView"]
-    R --> CASES["/app/cases\nCasesView"]
-    R --> CASEDET["/app/cases/:caseId\nCaseDetailView"]
-    R --> COMP["/app/compliance\nComplianceView"]
-    R --> POL["/app/policies\nPoliciesView"]
-    R --> ANA["/app/analytics\nAnalyticsView"]
-    R --> KNOW["/app/knowledge\nKnowledgeView"]
+    R --> HOME["/workspace/home\nHomeView"]
+    R --> ADV["/workspace/advisor\nAdvisorView"]
+    R --> EMP["/workspace/employees\nEmployeesView"]
+    R --> EMPPROF["/workspace/employees/:employeeId\nEmployeeProfileView"]
+    R --> CASES["/workspace/cases\nCasesView"]
+    R --> CASEDET["/workspace/cases/:caseId\nCaseDetailView"]
+    R --> COMP["/workspace/compliance\nComplianceView"]
+    R --> POL["/workspace/policies\nPoliciesView"]
+    R --> ANA["/workspace/analytics\nAnalyticsView"]
+    R --> KNOW["/workspace/knowledge\nKnowledgeView"]
 
-    R --> PLAN["/app/planning\nPlanningLayout"]
-    PLAN --> TASKS["/app/planning/tasks\nTasksView"]
-    PLAN --> CAL["/app/planning/calendar\nCalendarView"]
+    R --> PLAN["/workspace/planning\nPlanningLayout"]
+    PLAN --> TASKS["/workspace/planning/tasks\nTasksView"]
+    PLAN --> CAL["/workspace/planning/calendar\nCalendarView"]
 
-    R --> SET["/app/settings\nSettingsLayout"]
-    SET --> SETV["/app/settings (index)\nSettingsView"]
-    SET --> MEML["/app/settings/memory\nMemoryLayout (gated)"]
+    R --> SET["/workspace/settings\nSettingsLayout"]
+    SET --> SETV["/workspace/settings (index)\nSettingsView"]
+    SET --> MEML["/workspace/settings/memory\nMemoryLayout"]
     MEML --> MEMM["MemoryManagerView"]
     MEML --> MEMP["PersonMemoryView"]
     MEML --> MEMC["CaseMemoryView"]
     MEML --> MEMR["ChatRecallView"]
 
-    R --> COMMS["/app/communications\nCommunicationsView"]
-    R --> COMMS2["/app/comms\nCommsLayout (10 screens)"]
-    R --> COMPN["/app/compensation\nCompensationView"]
-    R --> WELL["/app/wellbeing\nWellbeingView"]
-    R --> WF["/app/workflows\nWorkflowsView + FlowRunner"]
-    R --> FIN["/app/finance\nFinanceLayout (15 screens)"]
-    R --> HIRE["/app/hiring\nHiringView + detail views"]
-    R --> SUP["/app/support\nSupportView + admin screens"]
-    R --> CRM["/app/crm\nCrmWorkspace"]
-    R --> REV["/app/revenue\nRevenueLayout (3 screens)"]
-    R --> OPS["/app/operations\nOperationsLayout (5 screens)"]
-    R --> GOV["/app/governance\nGovernanceLayout (5 screens)"]
-    R --> SEC["/app/security\nSecurityLayout (5 screens)"]
-    R --> SPEC["/app/specialists\nSpecialistsLayout (3 screens)"]
-    R --> DOCS["/app/documents\nhr-library, studio, generate,\nsign, detail screens"]
-    R --> WID["/app/chat-widgets\nChatWidgetsView (showcase)"]
+    R --> COMMS["/workspace/communications\nCommunicationsView"]
+    R --> COMMS2["/workspace/comms\nCommsLayout (10 screens)"]
+    R --> COMPN["/workspace/compensation\nCompensationView"]
+    R --> WELL["/workspace/wellbeing\nWellbeingView"]
+    R --> WF["/workspace/workflows\nWorkflowsView + FlowRunner"]
+    R --> FIN["/workspace/finance\nFinanceLayout (15 screens)"]
+    R --> HIRE["/workspace/hiring\nHiringView + detail views"]
+    R --> SUP["/workspace/support\nSupportView + admin screens"]
+    R --> CRM["/workspace/crm\nCrmWorkspace"]
+    R --> REV["/workspace/revenue\nRevenueLayout (3 screens)"]
+    R --> OPS["/workspace/operations\nOperationsLayout (6 screens)"]
+    R --> GOV["/workspace/governance\nGovernanceLayout (5 screens)"]
+    R --> SEC["/workspace/security\nSecurityLayout (6 screens)"]
+    R --> SPEC["/workspace/specialists\nSpecialistsLayout (3 screens)"]
+    R --> DOCS["/workspace/documents\nhr-library, studio, generate,\nsign, detail screens"]
+    R --> WID["/workspace/chat-widgets\nChatWidgetsView (showcase)"]
 ```
 
-Not shown: redirect loaders (`/app/tasks` → `/app/planning/tasks`, `/app/calendar` → `/app/planning/calendar`, `/app/memory` → `/app/settings/memory`, `/app/templates` → `/app/documents/hr-library`, `/app/reports` → `/app/analytics`) and detail/param routes (`/app/knowledge/:slug`, `/app/workflows/:slug`, `/app/hiring/candidates/:candidateId`, `/app/hiring/postings/:postingId`, `/app/support/*` admin sub-routes).
+Not shown: redirect loaders (`/workspace/tasks` → `/workspace/planning/tasks`, `/workspace/calendar` → `/workspace/planning/calendar`, `/workspace/memory` → `/workspace/settings/memory`, `/workspace/templates` → `/workspace/documents/hr-library`, `/workspace/reports` → `/workspace/analytics`) and detail/param routes (`/workspace/knowledge/:slug`, `/workspace/workflows/:slug`, `/workspace/hiring/candidates/:candidateId`, `/workspace/hiring/postings/:postingId`, `/workspace/support/*` admin sub-routes).
 
-Sources: [src/app/appViews.tsx:71-237]()
+Sources: [src/app/appViews.tsx:71-237](<>)
 
 ## Phased Rollout Pattern
 
@@ -119,8 +119,8 @@ Every workspace module follows a three-layer architecture:
 
 The `WorkspaceModeProvider` resolves the active mode and exposes `organizationId` for scoping every production query.
 
-[src/features/app/workspaceMode/WorkspaceModeProvider.tsx:52-155]()
-[src/features/app/workspaceMode/workspaceModeContext.ts:5-56]()
+[src/features/app/workspaceMode/WorkspaceModeProvider.tsx:52-155](<>)
+[src/features/app/workspaceMode/workspaceModeContext.ts:5-56](<>)
 
 ### Phased rollout data flow
 
@@ -135,7 +135,7 @@ flowchart LR
     PROD -->|"no records"| EMPTY["ProductionEmptyState"]
 ```
 
-Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/employees/productionApi.ts:1-13](), [src/features/app/workspaceMode/ProductionEmptyState.tsx:13-47]()
+Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](<>), [src/features/app/views/employees/productionApi.ts:1-13](<>), [src/features/app/workspaceMode/ProductionEmptyState.tsx:13-47](<>)
 
 ## Production API Boundary Files
 
@@ -155,7 +155,7 @@ Eleven modules have `productionApi.ts` files. Each follows the same contract: or
 | Comms Platform | `views/comms/data/productionApi.ts`     | localStorage (no migration yet)                                    | `loadCommsState`, `listInitiatives`, `addInitiative`, `updateInitiative`, `removeInitiative`, `listObjectives`, `addObjective`, `updateObjective`, `removeObjective`, `listContentItems`, `addContentItem`, `updateContentItem`, `removeContentItem`, `transitionDeliveryStatus`, `addSource`, `removeSource`, `addCoverageItem`, `removeCoverageItem`, `addSubmission`, `removeSubmission`, `addFeed`, `syncFeed`, `addContact`, `updateContact`, `removeContact`, `addOrganization`, `updateOrganization`, `removeOrganization`, `addInteraction`, `removeInteraction`, `addPolicyFile`, `removePolicyFile`, `addIssue`, `updateIssue`, `removeIssue`, `addMetric`, `updateMetric`, `removeMetric`, `addIntegration`, `updateIntegration`, `removeIntegration`, `addExecutionEvent` |
 | Finance        | `views/finance/data/productionApi.ts`   | 32 `finance_*` tables (migration 0119)                             | `loadFinanceState`, `addInvoice`, `addSpendRequest`, `addJournal`, `transitionPayRunStatus`, `settlePayrollLiability`, `addTaxObligation`, `addBudget`, `reviseBudget`, `addTaxScenario`, `addScenario`, `addForecast`, `addReserveGoal`, `addBankAccount`, `addLedgerAccount`, `addParty`, `addSubscription`, `importBankStatement`, `deleteImportSession`, `runAutoCategorize`, `seedDefaultCategoryRules`, `addCategoryRule`, `updateCategoryRule`, `removeCategoryRule`, `updateAiImportSettings`, `buildExportBundles`                                                                                                                                                                                                                                                           |
 
-Sources: [src/features/app/views/employees/productionApi.ts:1-405](), [src/features/app/views/cases/productionApi.ts:1-60](), [src/features/app/views/tasks/productionApi.ts:1-93](), [src/features/app/views/compliance/productionApi.ts:1-132](), [src/features/app/views/policies/productionApi.ts:1-107](), [src/features/app/views/communications/productionApi.ts:1-99](), [src/features/app/views/compensation/productionApi.ts:1-118](), [src/features/app/views/wellbeing/productionApi.ts:1-148](), [src/features/app/views/analytics/productionApi.ts:1-74](), [src/features/app/views/comms/data/productionApi.ts:1-552](), [src/features/app/views/finance/data/productionApi.ts:1-622]()
+Sources: [src/features/app/views/employees/productionApi.ts:1-405](<>), [src/features/app/views/cases/productionApi.ts:1-60](<>), [src/features/app/views/tasks/productionApi.ts:1-93](<>), [src/features/app/views/compliance/productionApi.ts:1-132](<>), [src/features/app/views/policies/productionApi.ts:1-107](<>), [src/features/app/views/communications/productionApi.ts:1-99](<>), [src/features/app/views/compensation/productionApi.ts:1-118](<>), [src/features/app/views/wellbeing/productionApi.ts:1-148](<>), [src/features/app/views/analytics/productionApi.ts:1-74](<>), [src/features/app/views/comms/data/productionApi.ts:1-552](<>), [src/features/app/views/finance/data/productionApi.ts:1-622](<>)
 
 ## Module Categories
 
@@ -167,102 +167,102 @@ The Employees module provides a roster view with People/Org Chart tabs (`Employe
 
 For details, see [Employees, Cases & HR Records](#10.1).
 
-[src/features/app/views/employees/EmployeesView.tsx:27-31]()
-[src/features/app/views/cases/CasesView.tsx:24-27]()
+[src/features/app/views/employees/EmployeesView.tsx:27-31](<>)
+[src/features/app/views/cases/CasesView.tsx:24-27](<>)
 
 ### Compliance & Risk: Compliance, Policies, Analytics
 
 The Compliance module surfaces a findings register with severity levels and an obligation tracker. The Policies module maintains a policy status register (up-to-date / needs review / missing). The Analytics module is the dashboard hub, aggregating live data from all other modules' production APIs to compute compliance scores, attention queues, case aging, expiry buckets, and headcount trends.
 
-For details on Compliance scoring, see page [5.2](). For Policies and Analytics views, see [Planning, Settings & Other Modules](#10.2).
+For details on Compliance scoring, see page [5.2](<>). For Policies and Analytics views, see [Planning, Settings & Other Modules](#10.2).
 
-[src/features/app/views/compliance/ComplianceView.tsx:64-67]()
-[src/features/app/views/policies/PoliciesView.tsx:34-37]()
-[src/features/app/views/analytics/AnalyticsView.tsx:69-72]()
+[src/features/app/views/compliance/ComplianceView.tsx:64-67](<>)
+[src/features/app/views/policies/PoliciesView.tsx:34-37](<>)
+[src/features/app/views/analytics/AnalyticsView.tsx:69-72](<>)
 
 ### Planning & Operations: Tasks, Calendar, Workflows, Home
 
-Tasks and Calendar live under a shared `PlanningLayout` with sub-tabs at `/app/planning/tasks` and `/app/planning/calendar`. Tasks are backed by `compliance_tasks`; Calendar is fixture-driven in demo mode with a production variant. The Workflows view blends real guided processes (`FlowRunner`) with fixture-driven in-flight rows. The Home module is the workspace command centre — production mode aggregates live counts from employees, cases, tasks, findings, and policies via their production APIs.
+Tasks and Calendar live under a shared `PlanningLayout` with sub-tabs at `/workspace/planning/tasks` and `/workspace/planning/calendar`. Tasks are backed by `compliance_tasks`; Calendar is fixture-driven in demo mode with a production variant. The Workflows view blends real guided processes (`FlowRunner`) with fixture-driven in-flight rows. The Home module is the workspace command centre — production mode aggregates live counts from employees, cases, tasks, findings, and policies via their production APIs.
 
 For details, see [Planning, Settings & Other Modules](#10.2).
 
-[src/features/app/views/planning/PlanningLayout.tsx:43-51]()
-[src/features/app/views/home/HomeView.tsx:29-46]()
-[src/features/app/views/home/HomeProductionView.tsx:49-78]()
+[src/features/app/views/planning/PlanningLayout.tsx:43-51](<>)
+[src/features/app/views/home/HomeView.tsx:29-46](<>)
+[src/features/app/views/home/HomeProductionView.tsx:49-78](<>)
 
 ### Sensitive Data Modules: Communications, Compensation, Wellbeing
 
 These three modules were ungated in migrations 0039–0041. Each self-dispatches on mode and intentionally narrows its production surface compared to demo:
 
-- **Communications** — `/app/communications` logs what was sent, to whom, and when. The newer `/app/comms` workspace adds initiative planning, content calendar, relationships, engagement, intelligence, results, and bulk import, but it still does not analyse or review drafts.
+- **Communications** — `/workspace/communications` logs what was sent, to whom, and when. The newer `/workspace/comms` workspace adds initiative planning, content calendar, relationships, engagement, intelligence, results, and bulk import, but it still does not analyse or review drafts.
 - **Compensation** — records base salary and the employer's own band midpoint. No market-rate comparison in production — `deltaFromMidpoint` returns `null` when no midpoint is entered.
 - **Wellbeing** — records employer-offered initiatives, **never per-person health signals**. The demo's `supportSignals` with confidence scores are explicitly not persisted, as they represent inferred health information (Ring 2 data the system avoids recording).
 
 For details, see [Planning, Settings & Other Modules](#10.2).
 
-[src/features/app/views/communications/CommunicationsView.tsx:40-43]()
-[src/features/app/views/compensation/CompensationView.tsx:56-59]()
-[src/features/app/views/wellbeing/WellbeingView.tsx:28-31]()
-[src/features/app/views/wellbeing/productionApi.ts:4-20]()
+[src/features/app/views/communications/CommunicationsView.tsx:40-43](<>)
+[src/features/app/views/compensation/CompensationView.tsx:56-59](<>)
+[src/features/app/views/wellbeing/WellbeingView.tsx:28-31](<>)
+[src/features/app/views/wellbeing/productionApi.ts:4-20](<>)
 
 ### Multi-Screen Workspace Modules
 
 Seven workspace modules follow a different pattern from the single-view modules above. Each has its own layout component, a multi-screen route tree, a dedicated data context/provider (`*DataContext`/`*DataProvider`/`use*Data`), and bilingual message catalogues:
 
-| Module      | Layout                | Screens | Route root         |
-| ----------- | --------------------- | ------- | ------------------ |
-| Comms       | `CommsLayout`         | 10      | `/app/comms`       |
-| Finance     | `FinanceLayout`       | 15      | `/app/finance`     |
-| Revenue     | `RevenueLayout`       | 3       | `/app/revenue`     |
-| Operations  | `OperationsLayout`    | 5       | `/app/operations`  |
-| Governance  | `GovernanceLayout`    | 5       | `/app/governance`  |
-| Security    | `SecurityLayout`      | 5       | `/app/security`    |
-| Specialists | `SpecialistsLayout`   | 3       | `/app/specialists` |
+| Module      | Layout              | Screens | Route root               |
+| ----------- | ------------------- | ------- | ------------------------ |
+| Comms       | `CommsLayout`       | 10      | `/workspace/comms`       |
+| Finance     | `FinanceLayout`     | 15      | `/workspace/finance`     |
+| Revenue     | `RevenueLayout`     | 3       | `/workspace/revenue`     |
+| Operations  | `OperationsLayout`  | 5       | `/workspace/operations`  |
+| Governance  | `GovernanceLayout`  | 5       | `/workspace/governance`  |
+| Security    | `SecurityLayout`    | 5       | `/workspace/security`    |
+| Specialists | `SpecialistsLayout` | 3       | `/workspace/specialists` |
 
 The two largest are detailed below; the business-operations five (Revenue, Operations, Governance, Security, Specialists) share the same Demo/Production `*View` self-dispatch and provider architecture at smaller scale.
 
-#### Communications Platform (`/app/comms`)
+#### Communications Platform (`/workspace/comms`)
 
 The Comms Platform is a planning-and-approval workspace for internal communications. It manages initiatives, content calendar, stakeholder relationships, engagement tracking, intelligence feeds (RSS/Atom), and results reporting. Ten screens are nested under `CommsLayout`:
 
-| Screen           | Route                      | Purpose                                                                           |
-| ---------------- | -------------------------- | --------------------------------------------------------------------------------- |
-| Overview         | `/app/comms/overview`      | Initiative summary, active campaigns, coverage, recent activity log               |
-| Initiatives      | `/app/comms/initiatives`   | Create/edit/pause communications initiatives and objectives                       |
-| Content Calendar | `/app/comms/content`       | Content items with delivery status tracking and Markdown body support             |
-| Relationships    | `/app/comms/relationships` | Stakeholder and audience mapping; bulk import contacts and organizations          |
-| Segments         | `/app/comms/segments`      | Audience segment definitions                                                      |
-| Engagement       | `/app/comms/engagement`    | Engagement metrics and outreach tracking                                          |
-| Intelligence     | `/app/comms/intelligence`  | RSS/Atom feed monitoring, policy files, and issue tracking                        |
-| Results          | `/app/comms/results`       | Submission tracking, metrics, coverage, and outcome reporting                     |
-| Analytics        | `/app/comms/analytics`     | Aggregate performance views over comms data                                       |
-| Settings         | `/app/comms/settings`      | Feed sources, coverage items, integrations, usage controls, claims, and approvals |
+| Screen           | Route                            | Purpose                                                                           |
+| ---------------- | -------------------------------- | --------------------------------------------------------------------------------- |
+| Overview         | `/workspace/comms/overview`      | Initiative summary, active campaigns, coverage, recent activity log               |
+| Initiatives      | `/workspace/comms/initiatives`   | Create/edit/pause communications initiatives and objectives                       |
+| Content Calendar | `/workspace/comms/content`       | Content items with delivery status tracking and Markdown body support             |
+| Relationships    | `/workspace/comms/relationships` | Stakeholder and audience mapping; bulk import contacts and organizations          |
+| Segments         | `/workspace/comms/segments`      | Audience segment definitions                                                      |
+| Engagement       | `/workspace/comms/engagement`    | Engagement metrics and outreach tracking                                          |
+| Intelligence     | `/workspace/comms/intelligence`  | RSS/Atom feed monitoring, policy files, and issue tracking                        |
+| Results          | `/workspace/comms/results`       | Submission tracking, metrics, coverage, and outcome reporting                     |
+| Analytics        | `/workspace/comms/analytics`     | Aggregate performance views over comms data                                       |
+| Settings         | `/workspace/comms/settings`      | Feed sources, coverage items, integrations, usage controls, claims, and approvals |
 
 The data layer (`views/comms/data/`) provides `CommsDataContext`, `CommsDataProvider`, `useCommsData`, typed fixtures, and a `productionApi.ts` with localStorage persistence. Bulk-import adapters live in `views/comms/bulkImport/` and reuse the shared `BulkImportWizard`. External publishing, ad execution, and AI drafting are intentionally out of scope. No Supabase migration exists yet — production mode uses localStorage.
 
-Sources: [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/comms/CommsLayout.tsx:1-60](), [src/features/app/views/comms/data/types.ts:1-50](), [src/features/app/views/comms/data/productionApi.ts:1-552]()
+Sources: [src/features/app/views/comms/CommsView.tsx:1-20](<>), [src/features/app/views/comms/CommsLayout.tsx:1-60](<>), [src/features/app/views/comms/data/types.ts:1-50](<>), [src/features/app/views/comms/data/productionApi.ts:1-552](<>)
 
-#### Finance (`/app/finance`)
+#### Finance (`/workspace/finance`)
 
 The Finance workspace is an integration-led financial management module for Canadian SMBs (Ontario and Québec initially). It answers: what do we own and owe, what money is available, what must be paid/collected/filed, what can we afford, and how will decisions affect the business. Fifteen screens are nested under `FinanceLayout`:
 
-| Screen        | Route                        | Purpose                                                                                                      |
-| ------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Overview      | `/app/finance/overview`      | AR, AP, burn-rate KPIs, entity summary                                                                       |
-| Entities      | `/app/finance/entities`      | Legal-entity master data                                                                                     |
-| Transactions  | `/app/finance/transactions`  | Bank items, matching, reconciliation                                                                         |
-| Sales         | `/app/finance/sales`         | Invoices, credits, AR lifecycle                                                                              |
-| Purchases     | `/app/finance/purchases`     | Bills, expenses, spend requests, parties, subscriptions                                                      |
-| Payroll       | `/app/finance/payroll`       | Pay runs, payroll liabilities (admin-restricted in production)                                               |
-| Accounting    | `/app/finance/accounting`    | Journals, ledger accounts, close periods, books                                                              |
-| Plans         | `/app/finance/plans`         | Budgets, scenarios, forecasts, variance reporting                                                            |
-| Treasury      | `/app/finance/treasury`      | Bank accounts, reserves, holdings, debt                                                                      |
-| Portfolio     | `/app/finance/portfolio`     | Holdings and investment positions                                                                            |
-| Deals         | `/app/finance/deals`         | Deal pipeline tracking                                                                                       |
-| Governance    | `/app/finance/governance`    | Finance-side governance records                                                                              |
-| Tax           | `/app/finance/tax`           | Tax obligations, tax-planning scenarios                                                                      |
-| Evidence      | `/app/finance/evidence`      | Receipt upload, review, signed download URLs                                                                 |
-| Import/Export | `/app/finance/import-export` | Bank statement and CSV import, auto-categorization, rule suggestions, export bundles, and bulk import wizard |
+| Screen        | Route                              | Purpose                                                                                                      |
+| ------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Overview      | `/workspace/finance/overview`      | AR, AP, burn-rate KPIs, entity summary                                                                       |
+| Entities      | `/workspace/finance/entities`      | Legal-entity master data                                                                                     |
+| Transactions  | `/workspace/finance/transactions`  | Bank items, matching, reconciliation                                                                         |
+| Sales         | `/workspace/finance/sales`         | Invoices, credits, AR lifecycle                                                                              |
+| Purchases     | `/workspace/finance/purchases`     | Bills, expenses, spend requests, parties, subscriptions                                                      |
+| Payroll       | `/workspace/finance/payroll`       | Pay runs, payroll liabilities (admin-restricted in production)                                               |
+| Accounting    | `/workspace/finance/accounting`    | Journals, ledger accounts, close periods, books                                                              |
+| Plans         | `/workspace/finance/plans`         | Budgets, scenarios, forecasts, variance reporting                                                            |
+| Treasury      | `/workspace/finance/treasury`      | Bank accounts, reserves, holdings, debt                                                                      |
+| Portfolio     | `/workspace/finance/portfolio`     | Holdings and investment positions                                                                            |
+| Deals         | `/workspace/finance/deals`         | Deal pipeline tracking                                                                                       |
+| Governance    | `/workspace/finance/governance`    | Finance-side governance records                                                                              |
+| Tax           | `/workspace/finance/tax`           | Tax obligations, tax-planning scenarios                                                                      |
+| Evidence      | `/workspace/finance/evidence`      | Receipt upload, review, signed download URLs                                                                 |
+| Import/Export | `/workspace/finance/import-export` | Bank statement and CSV import, auto-categorization, rule suggestions, export bundles, and bulk import wizard |
 
 The data layer (`views/finance/data/`) provides `FinanceDataContext`, `FinanceDataProvider`, `useFinanceData`, typed fixtures, a `productionApi.ts` (localStorage demo), and a full Supabase persistence layer split across:
 
@@ -288,7 +288,7 @@ Migration `0119_add_finance_module.sql` creates 32 `finance_*` tables with org-s
 
 The product does not provide native accounting, payroll, tax filing, investment execution, or professional advice. The selected accounting system remains authoritative for posted books; the payroll provider remains authoritative for completed pay runs. Dutiva owns budgets, forecasts, review work, approvals, and source-record links.
 
-Sources: [src/features/app/views/finance/FinanceView.tsx](), [src/features/app/views/finance/data/types.ts:1-50](), [src/features/app/views/finance/data/FinanceDataContext.ts:1-60](), [src/features/app/views/finance/data/supabaseApi.ts:1-593](), [supabase/migrations/0119_add_finance_module.sql:1-50]()
+Sources: [src/features/app/views/finance/FinanceView.tsx](<>), [src/features/app/views/finance/data/types.ts:1-50](<>), [src/features/app/views/finance/data/FinanceDataContext.ts:1-60](<>), [src/features/app/views/finance/data/supabaseApi.ts:1-593](<>), [supabase/migrations/0119_add_finance_module.sql:1-50](<>)
 
 ## Cross-Module Bulk Import
 
@@ -337,22 +337,22 @@ flowchart TB
     AGG -->|"score formula v3"| AV
 ```
 
-Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72]()
+Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](<>), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](<>)
 
 ## Settings, Memory & Knowledge
 
 **Settings** (`SettingsView`) is ungated because it hosts the demo/production mode toggle. It is wrapped in `SettingsLayout`, which provides a tab strip between General settings and Memory. Appearance (theme) and language toggles drive the real `ThemeProvider` and `LangProvider`.
 
-**Memory** (`MemoryLayout`) is gated (demo-only) and provides sub-routes for `MemoryManagerView`, `PersonMemoryView`, `CaseMemoryView`, and `ChatRecallView`. It displays an Advisor memory store with fact rows, confidence levels, and governance controls.
+**Memory** (`MemoryLayout`) provides sub-routes for `MemoryManagerView`, `PersonMemoryView`, `CaseMemoryView`, and `ChatRecallView`, each self-dispatching on mode via `*DemoView`/`*ProductionView` pairs. It displays an Advisor memory store with fact rows, confidence levels, and governance controls.
 
 **Knowledge** (`KnowledgeView`) is ungated and renders both fixture-driven article items and real content — reference guides from `src/features/app/reference/data` and the `GuidanceSourcesPanel` which shows live backend guidance source status.
 
 For details, see [Planning, Settings & Other Modules](#10.2).
 
-[src/features/app/views/settings/SettingsLayout.tsx:44-52]()
-[src/features/app/views/memory/MemoryLayout.tsx:28-82]()
-[src/features/app/views/knowledge/KnowledgeView.tsx:27-31]()
-[src/app/appViews.tsx:134-151]()
+[src/features/app/views/settings/SettingsLayout.tsx:44-52](<>)
+[src/features/app/views/memory/MemoryLayout.tsx:28-82](<>)
+[src/features/app/views/knowledge/KnowledgeView.tsx:27-31](<>)
+[src/app/appViews.tsx:134-151](<>)
 
 ## Global Search Overlay
 
@@ -360,11 +360,11 @@ The `SearchOverlay` is a workspace-wide ⌘K search dialog backed by `SearchProv
 
 The overlay supports keyboard navigation (arrow keys, Enter, Escape) and navigates to the appropriate module route when an entry is selected.
 
-[src/features/app/search/SearchOverlay.tsx:23-27]()
-[src/features/app/search/SearchOverlay.tsx:42-47]()
-[src/features/app/search/searchContext.ts:1-16]()
+[src/features/app/search/SearchOverlay.tsx:23-27](<>)
+[src/features/app/search/SearchOverlay.tsx:42-47](<>)
+[src/features/app/search/searchContext.ts:1-16](<>)
 
-Sources: [src/features/app/search/SearchOverlay.tsx:1-96]()
+Sources: [src/features/app/search/SearchOverlay.tsx:1-96](<>)
 
 ## Fixture Data Layer
 
@@ -372,41 +372,41 @@ All demo views consume typed fixture arrays exported from `src/data/`. The domai
 
 The design intent is that fixture arrays will be replaced wholesale by Supabase data when each module reaches production — the `productionApi.ts` files are that replacement layer.
 
-[src/data/types.ts:1-14]()
+[src/data/types.ts:1-14](<>)
 
-Sources: [src/data/types.ts:1-148](), [CONVENTIONS.md:17-38]()
+Sources: [src/data/types.ts:1-148](<>), [CONVENTIONS.md:17-38](<>)
 
 ## Module Rollout Status Summary
 
-| Module         | Demo                                 | Production                                       | Gating                   |
-| -------------- | ------------------------------------ | ------------------------------------------------ | ------------------------ |
-| Home           | `HomeView`                           | `HomeProductionView`                             | Self-dispatch            |
-| Employees      | `EmployeesDemoView`                  | `EmployeesProductionView`                        | Self-dispatch            |
-| Cases          | `CasesDemoView`                      | `CasesProductionView`                            | Self-dispatch            |
-| Compliance     | `ComplianceDemoView`                 | `ComplianceProductionView`                       | Self-dispatch            |
-| Policies       | `PoliciesDemoView`                   | `PoliciesProductionView`                         | Self-dispatch            |
-| Tasks          | `TasksDemoView`                      | `TasksProductionView`                            | Self-dispatch            |
-| Calendar       | `CalendarView` (demo)                | `CalendarProductionView`                         | Self-dispatch            |
-| Analytics      | `AnalyticsDemoView`                  | `AnalyticsProductionView`                        | Self-dispatch            |
-| Communications | `CommunicationsDemoView`             | `CommunicationsProductionView`                   | Self-dispatch            |
-| Compensation   | `CompensationDemoView`               | `CompensationProductionView`                     | Self-dispatch            |
-| Wellbeing      | `WellbeingDemoView`                  | `WellbeingProductionView`                        | Self-dispatch            |
-| Workflows      | `WorkflowsView` (mixed)              | Guided flows only                                | Self-dispatch (partial)  |
-| Knowledge      | `KnowledgeView`                      | Same (real content)                              | Ungated                  |
-| Settings       | `SettingsView`                       | Same (hosts toggle)                              | Ungated                  |
-| Memory         | `MemoryLayout` + sub-views           | `ProductionEmptyState`                           | `gated()` via `ModeGate` |
-| Hiring         | `HiringDemoView`                     | `HiringProductionView`                           | Self-dispatch            |
-| Support        | `SupportView`                        | Same view + admin screens                        | Role-gated admin         |
-| CRM            | `CrmDemoView`                        | `CrmProductionView`                              | Self-dispatch            |
-| Revenue        | `RevenueDemoView`                    | `RevenueProductionView`                          | Self-dispatch            |
-| Operations     | `OperationsDemoView`                 | `OperationsProductionView`                       | Self-dispatch            |
-| Governance     | `GovernanceDemoView`                 | `GovernanceProductionView`                       | Self-dispatch            |
-| Security       | `SecurityDemoView`                   | `SecurityProductionView`                         | Self-dispatch            |
-| Specialists    | `SpecialistsDemoView`                | `SpecialistsProductionView`                      | Self-dispatch            |
-| Comms Platform | `CommsDemoView`                      | `CommsProductionView`                            | Self-dispatch            |
-| Finance        | `FinanceView` (fixtures)             | `FinanceView` (Supabase)                         | Self-dispatch            |
-| Chat Widgets   | `ChatWidgetsView` (showcase)         | Same                                             | Ungated                  |
+| Module         | Demo                               | Production                     | Gating                  |
+| -------------- | ---------------------------------- | ------------------------------ | ----------------------- |
+| Home           | `HomeView`                         | `HomeProductionView`           | Self-dispatch           |
+| Employees      | `EmployeesDemoView`                | `EmployeesProductionView`      | Self-dispatch           |
+| Cases          | `CasesDemoView`                    | `CasesProductionView`          | Self-dispatch           |
+| Compliance     | `ComplianceDemoView`               | `ComplianceProductionView`     | Self-dispatch           |
+| Policies       | `PoliciesDemoView`                 | `PoliciesProductionView`       | Self-dispatch           |
+| Tasks          | `TasksDemoView`                    | `TasksProductionView`          | Self-dispatch           |
+| Calendar       | `CalendarView` (demo)              | `CalendarProductionView`       | Self-dispatch           |
+| Analytics      | `AnalyticsDemoView`                | `AnalyticsProductionView`      | Self-dispatch           |
+| Communications | `CommunicationsDemoView`           | `CommunicationsProductionView` | Self-dispatch           |
+| Compensation   | `CompensationDemoView`             | `CompensationProductionView`   | Self-dispatch           |
+| Wellbeing      | `WellbeingDemoView`                | `WellbeingProductionView`      | Self-dispatch           |
+| Workflows      | `WorkflowsView` (mixed)            | Guided flows only              | Self-dispatch (partial) |
+| Knowledge      | `KnowledgeView`                    | Same (real content)            | Ungated                 |
+| Settings       | `SettingsView`                     | Same (hosts toggle)            | Ungated                 |
+| Memory         | `MemoryLayout` + `*DemoView` pairs | `*ProductionView` counterparts | Self-dispatch           |
+| Hiring         | `HiringDemoView`                   | `HiringProductionView`         | Self-dispatch           |
+| Support        | `SupportView`                      | Same view + admin screens      | Role-gated admin        |
+| CRM            | `CrmDemoView`                      | `CrmProductionView`            | Self-dispatch           |
+| Revenue        | `RevenueDemoView`                  | `RevenueProductionView`        | Self-dispatch           |
+| Operations     | `OperationsDemoView`               | `OperationsProductionView`     | Self-dispatch           |
+| Governance     | `GovernanceDemoView`               | `GovernanceProductionView`     | Self-dispatch           |
+| Security       | `SecurityDemoView`                 | `SecurityProductionView`       | Self-dispatch           |
+| Specialists    | `SpecialistsDemoView`              | `SpecialistsProductionView`    | Self-dispatch           |
+| Comms Platform | `CommsDemoView`                    | `CommsProductionView`          | Self-dispatch           |
+| Finance        | `FinanceView` (fixtures)           | `FinanceView` (Supabase)       | Self-dispatch           |
+| Chat Widgets   | `ChatWidgetsView` (showcase)       | Same                           | Ungated                 |
 
-Sources: [src/app/appViews.tsx:71-237](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/cases/CasesView.tsx:24-27](), [src/features/app/views/compliance/ComplianceView.tsx:64-67](), [src/features/app/views/tasks/TasksView.tsx:33-35](), [src/features/app/views/communications/CommunicationsView.tsx:40-43](), [src/features/app/views/compensation/CompensationView.tsx:56-59](), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:29-46](), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28](), [src/features/app/views/comms/CommsView.tsx:1-20](), [src/features/app/views/finance/FinanceView.tsx]()
+Sources: [src/app/appViews.tsx:71-237](<>), [src/features/app/views/employees/EmployeesView.tsx:27-31](<>), [src/features/app/views/cases/CasesView.tsx:24-27](<>), [src/features/app/views/compliance/ComplianceView.tsx:64-67](<>), [src/features/app/views/tasks/TasksView.tsx:33-35](<>), [src/features/app/views/communications/CommunicationsView.tsx:40-43](<>), [src/features/app/views/compensation/CompensationView.tsx:56-59](<>), [src/features/app/views/wellbeing/WellbeingView.tsx:28-31](<>), [src/features/app/views/analytics/AnalyticsView.tsx:69-72](<>), [src/features/app/views/policies/PoliciesView.tsx:34-37](<>), [src/features/app/views/home/HomeView.tsx:29-46](<>), [src/features/app/views/knowledge/KnowledgeView.tsx:27-28](<>), [src/features/app/views/comms/CommsView.tsx:1-20](<>), [src/features/app/views/finance/FinanceView.tsx](<>)
 
 ---

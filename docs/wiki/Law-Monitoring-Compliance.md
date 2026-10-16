@@ -79,13 +79,13 @@ flowchart LR
   FLOWDATA -- "outcome.documents\n(TID handoff)" --> DocStudio["Document Studio"]
 ```
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](), [src/features/app/views/analytics/aggregation.ts:1-9](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:156-172](), [src/features/app/flows/flowEngine.ts:1-15](), [src/features/app/flows/data/index.ts:1-17]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](<>), [src/features/app/views/analytics/aggregation.ts:1-9](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:156-172](<>), [src/features/app/flows/flowEngine.ts:1-15](<>), [src/features/app/flows/data/index.ts:1-17](<>)
 
 ---
 
 ## Law Change Monitor
 
-The `monitor-law-changes` edge function sweeps 19 legislation pages across all 14 Canadian jurisdictions on a nightly cron and records what it finds in two tables: `law_page_hashes` (current state per page) and `law_updates` (append-only event log). Four source strategies are used depending on what each government publishes: plain HTML hashing, the Ontario e-Laws API (`ontarioApi.ts`), Québec's CKAN dataset (`quebecCkan.ts`), and Justice Canada XML (`justiceXml.ts`).
+The `monitor-law-changes` edge function sweeps 20 legislation pages across all 14 Canadian jurisdictions on a nightly cron and records what it finds in two tables: `law_page_hashes` (current state per page) and `law_updates` (append-only event log). Four source strategies are used depending on what each government publishes: plain HTML hashing, the Ontario e-Laws API (`ontarioApi.ts`), Québec's CKAN dataset (`quebecCkan.ts`), and Justice Canada XML (`justiceXml.ts`).
 
 The monitor deliberately watches more jurisdictions than the product supports (ON, QC, FED). The customer-facing `GuidanceSourcesPanel` filters what users see — showing only supported jurisdictions — and the `monitoringCoverage.ts` module explicitly declares each jurisdiction's detection status as `active`, `unavailable`, or `unverified`. Staleness is detected by `updatesAreStale()`, which flags when no update has arrived for 7+ days.
 
@@ -93,7 +93,7 @@ A weekly digest (`send-law-updates`) emails internal operators about reviewed ch
 
 For details, see [Law Change Monitor](#5.1).
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:8-40](), [src/features/app/guidance/monitoringCoverage.ts:1-40](), [src/features/app/guidance/updatesAreStale.ts:1-18](), [supabase/functions/send-law-updates/index.ts:1-30](), [docs/LAW_MONITORING.md:1-30]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:8-40](<>), [src/features/app/guidance/monitoringCoverage.ts:1-40](<>), [src/features/app/guidance/updatesAreStale.ts:1-18](<>), [supabase/functions/send-law-updates/index.ts:1-30](<>), [docs/LAW_MONITORING.md:1-30](<>)
 
 ---
 
@@ -105,7 +105,7 @@ The `AnalyticsProductionView` dashboard renders this score alongside attention-q
 
 For details, see [Compliance Scoring & Analytics Dashboard](#5.2).
 
-Sources: [src/features/app/views/analytics/aggregation.ts:212-290](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:72-85](), [supabase/functions/record-score-snapshots/scoring.ts:1-30](), [supabase/functions/record-score-snapshots/scoring.test.ts:1-40](), [docs/SCORING_LOGIC.md:67-125]()
+Sources: [src/features/app/views/analytics/aggregation.ts:212-290](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:72-85](<>), [supabase/functions/record-score-snapshots/scoring.ts:1-30](<>), [supabase/functions/record-score-snapshots/scoring.test.ts:1-40](<>), [docs/SCORING_LOGIC.md:67-125](<>)
 
 ---
 
@@ -119,7 +119,7 @@ The `WorkflowsView` serves as the catalogue, rendering both guided flows (real i
 
 For details, see [Guided Workflows & Reference Guides](#5.3).
 
-Sources: [src/features/app/flows/flowModel.ts:1-30](), [src/features/app/flows/flowEngine.ts:1-15](), [src/features/app/flows/data/index.ts:1-17](), [src/features/app/reference/data/index.ts:1-20](), [src/features/app/views/workflows/WorkflowsView.tsx:1-40]()
+Sources: [src/features/app/flows/flowModel.ts:1-30](<>), [src/features/app/flows/flowEngine.ts:1-15](<>), [src/features/app/flows/data/index.ts:1-17](<>), [src/features/app/reference/data/index.ts:1-20](<>), [src/features/app/views/workflows/WorkflowsView.tsx:1-40](<>)
 
 ---
 
@@ -197,7 +197,7 @@ flowchart TB
   FE --> FM
 ```
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:1-7](), [supabase/functions/send-law-updates/index.ts:1-6](), [supabase/functions/record-score-snapshots/index.ts:1-5](), [src/features/app/guidance/GuidanceSourcesPanel.tsx:1-15](), [src/features/app/guidance/api.ts:1-15](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:1-70](), [src/features/app/flows/flowEngine.ts:1-10]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:1-7](<>), [supabase/functions/send-law-updates/index.ts:1-6](<>), [supabase/functions/record-score-snapshots/index.ts:1-5](<>), [src/features/app/guidance/GuidanceSourcesPanel.tsx:1-15](<>), [src/features/app/guidance/api.ts:1-15](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:1-70](<>), [src/features/app/flows/flowEngine.ts:1-10](<>)
 
 The following table summarizes the key data tables and edge functions across the three sub-systems:
 
@@ -207,20 +207,20 @@ The following table summarizes the key data tables and edge functions across the
 | Compliance Scoring | `record-score-snapshots`                  | `compliance_score_snapshots`, `compliance_tasks`, `compliance_findings`, `hr_obligations`, `hr_policies` | `src/features/app/views/analytics/`                      |
 | Guided Workflows   | — (client-only)                           | —                                                                                                        | `src/features/app/flows/`, `src/features/app/reference/` |
 
-Sources: [supabase/migrations/0034_cron_locks.sql:1-10](), [supabase/functions/record-score-snapshots/index.ts:1-10](), [src/features/app/views/analytics/productionApi.ts:1-14](), [src/features/app/flows/data/index.ts:1-17](), [src/features/app/reference/data/index.ts:1-20]()
+Sources: [supabase/migrations/0034_cron_locks.sql:1-10](<>), [supabase/functions/record-score-snapshots/index.ts:1-10](<>), [src/features/app/views/analytics/productionApi.ts:1-14](<>), [src/features/app/flows/data/index.ts:1-17](<>), [src/features/app/reference/data/index.ts:1-20](<>)
 
 ---
 
 ## Key Design Principles
 
-1. **Deterministic scoring.** The compliance score is computed by pure functions with no `Date.now()` calls — callers inject "today" so demo stays stable and every path is unit-testable. The LLM is never involved in score computation. See [docs/AI_USAGE_STRATEGY.md:1-15]() and [docs/SCORING_LOGIC.md:1-15]().
+1. **Deterministic scoring.** The compliance score is computed by pure functions with no `Date.now()` calls — callers inject "today" so demo stays stable and every path is unit-testable. The LLM is never involved in score computation. See [docs/AI_USAGE_STRATEGY.md:1-15](<>) and [docs/SCORING_LOGIC.md:1-15](<>).
 
-2. **Monitored ≠ covered.** The law monitor sweeps 14 jurisdictions but the product supports only three (ON, QC, FED). The `monitoringCoverage.ts` module is a _maintained claim_ — manually audited and dated — rather than being derived from `law_page_hashes`, because deriving it would re-create the silent failure it exists to prevent. See [src/features/app/guidance/monitoringCoverage.ts:1-35]().
+2. **Monitored ≠ covered.** The law monitor sweeps 14 jurisdictions but the product supports only three (ON, QC, FED). The `monitoringCoverage.ts` module is a _maintained claim_ — manually audited and dated — rather than being derived from `law_page_hashes`, because deriving it would re-create the silent failure it exists to prevent. See [src/features/app/guidance/monitoringCoverage.ts:1-35](<>).
 
-3. **Drift-tested copies.** The scoring formula exists in two copies — `aggregation.ts` (client) and `scoring.ts` (edge function) — because the two runtimes cannot share a module. A drift test (`scoring.test.ts`) imports both and asserts identical outputs across scenarios. See [supabase/functions/record-score-snapshots/scoring.test.ts:1-40]().
+3. **Drift-tested copies.** The scoring formula exists in two copies — `aggregation.ts` (client) and `scoring.ts` (edge function) — because the two runtimes cannot share a module. A drift test (`scoring.test.ts`) imports both and asserts identical outputs across scenarios. See [supabase/functions/record-score-snapshots/scoring.test.ts:1-40](<>).
 
-4. **Flows decide, templates document.** A completed flow run records the path taken and hands off to the Document Studio template that makes it official (`outcome.documents`). The two are kept separate: the flow is how you decide, the template is what you send. See [src/features/app/flows/flowModel.ts:1-30]().
+4. **Flows decide, templates document.** A completed flow run records the path taken and hands off to the Document Studio template that makes it official (`outcome.documents`). The two are kept separate: the flow is how you decide, the template is what you send. See [src/features/app/flows/flowModel.ts:1-30](<>).
 
-Sources: [docs/AI_USAGE_STRATEGY.md:1-10](), [docs/SCORING_LOGIC.md:67-75](), [src/features/app/guidance/monitoringCoverage.ts:1-35](), [supabase/functions/record-score-snapshots/scoring.test.ts:30-45](), [src/features/app/flows/flowModel.ts:20-30]()
+Sources: [docs/AI_USAGE_STRATEGY.md:1-10](<>), [docs/SCORING_LOGIC.md:67-75](<>), [src/features/app/guidance/monitoringCoverage.ts:1-35](<>), [supabase/functions/record-score-snapshots/scoring.test.ts:30-45](<>), [src/features/app/flows/flowModel.ts:20-30](<>)
 
 ---

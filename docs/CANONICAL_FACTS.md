@@ -120,7 +120,7 @@ publication mandate.
 May 2026 and September 2026 have both been published as launch dates and both have
 passed. **Do not publish a new calendar date.** Paid plans are sold: a visitor can
 check out on `/pricing` and skip the free waitlist once checkout completes. The
-15-person free cohort remains a waitlist. Product feature gates are **on**
+five-seat free cohort remains a waitlist. Product feature gates are **on**
 (`PLAN_FEATURE_GATES_ENABLED`) together with org billing and capacity enforcement
 (migrations **0107–0111**, applied 2026-09-03). Demo workspace still shows the
 full product. Optional prepaid Advisor reply packs and opt-in metered overage
@@ -171,22 +171,22 @@ listed for it (T25–T32 closed the last eight gaps). **Ring 2 is complete** —
 all four pillars:
 
 - **Pillar A, Mental Health & EAP readiness** — the mental health response
-  checklist at `/app/workflows/mental-health-response`, and three guides at
-  `/app/knowledge/`: `eap-referral`, `manager-conversations`, and
+  checklist at `/workspace/workflows/mental-health-response`, and three guides at
+  `/workspace/knowledge/`: `eap-referral`, `manager-conversations`, and
   `return-after-mental-health-leave`.
 - **Pillar B, Accommodation** — the accommodation documents (T21–T24, plus the
   ported T19/T20) in Document Studio's Accommodation category, the
-  duty-to-accommodate flow at `/app/workflows/duty-to-accommodate`, and the
-  functional limitations guide at `/app/knowledge/functional-limitations`.
+  duty-to-accommodate flow at `/workspace/workflows/duty-to-accommodate`, and the
+  functional limitations guide at `/workspace/knowledge/functional-limitations`.
 - **Pillar D, Leave Management** — the leave request form (T33) and sick leave
   policy (T34), the leave of absence checklist at
-  `/app/workflows/leave-of-absence`, and the parental leave guide at
-  `/app/knowledge/parental-leave`.
+  `/workspace/workflows/leave-of-absence`, and the parental leave guide at
+  `/workspace/knowledge/parental-leave`.
 
 - **Pillar C, Psychological Safety** — the self-check at
-  `/app/workflows/psychological-safety-check`, the respectful workplace policy
+  `/workspace/workflows/psychological-safety-check`, the respectful workplace policy
   (T13, widened to cover inclusion), the bystander intervention guide at
-  `/app/knowledge/bystander-intervention`, and the wellness action plan (T44).
+  `/workspace/knowledge/bystander-intervention`, and the wellness action plan (T44).
 
 None of Pillar A is clinical, and it must not be described as though it were.
 The flow triages what an employer should do next; it does not screen, assess
@@ -218,8 +218,8 @@ restructuring, policy rollout, and crisis communications.
 
 **Ring 4, Compensation & Financial Literacy, is complete** — the total
 compensation summary (T45) and salary review letter (T46) in Document Studio's
-Compensation category, the pay statement guide at `/app/knowledge/pay-statement`,
-and the RRSP/TFSA guide at `/app/knowledge/retirement-savings`.
+Compensation category, the pay statement guide at `/workspace/knowledge/pay-statement`,
+and the RRSP/TFSA guide at `/workspace/knowledge/retirement-savings`.
 
 The RRSP/TFSA guide is **educational, not financial advice**, and that is the
 claim to make about it. It explains how the two accounts are taxed and what a

@@ -21,7 +21,7 @@ npm run dev        # start the dev server
 - `/help` — Help Centre (`/fr/aide`)
 - `/careers` — public job board (`/fr/carrieres`)
 - `/employer` — employer sign-in, leads into the workspace (`/fr/employeur`)
-- `/app` → `/app/home` — the workspace
+- `/workspace` → `/workspace/home` — the workspace
 
 No env vars are needed for the marketing pages or the demo — both run on
 bundled fixtures. Sign-in and the production workspace need
@@ -36,19 +36,19 @@ the app surface follows the persisted `dutiva-lang` preference. See
 
 ## Scripts
 
-| Command                 | What it does                                                                                        |
-| ----------------------- | --------------------------------------------------------------------------------------------------- |
-| `npm run dev`           | Vite dev server                                                                                     |
-| `npm run build`         | Typecheck + client/SSR builds + prerender + SEO validation                                          |
-| `npm run preview`       | Serve the production build                                                                          |
-| `npm run typecheck`     | `tsc -b` (strict)                                                                                   |
-| `npm run lint`          | oxlint                                                                                              |
-| `npm run test`          | Vitest (jsdom + Testing Library)                                                                    |
-| `npm run test:e2e`      | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))            |
-| `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)                 |
-| `npm run format`        | Prettier                                                                                            |
-| `npm run db:types`      | Regenerate `src/lib/supabase/database.types.ts` (and the edge-function copy) from the linked project |
-| `npm run db:snapshot`   | `supabase db dump` → `supabase/schema.sql`; `db:document` regenerates the schema doc from it         |
+| Command                 | What it does                                                                                                                                                                                                                                 |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev`           | Vite dev server                                                                                                                                                                                                                              |
+| `npm run build`         | Typecheck + client/SSR builds + prerender + SEO validation                                                                                                                                                                                   |
+| `npm run preview`       | Serve the production build                                                                                                                                                                                                                   |
+| `npm run typecheck`     | `tsc -b` (strict)                                                                                                                                                                                                                            |
+| `npm run lint`          | oxlint                                                                                                                                                                                                                                       |
+| `npm run test`          | Vitest (jsdom + Testing Library)                                                                                                                                                                                                             |
+| `npm run test:e2e`      | Playwright smoke on `dist/` (hermetic — no Supabase; see [e2e/README.md](e2e/README.md))                                                                                                                                                     |
+| `npm run test:e2e:auth` | Playwright production CRUD matrix (Supabase env required; skips cleanly when unset)                                                                                                                                                          |
+| `npm run format`        | Prettier                                                                                                                                                                                                                                     |
+| `npm run db:types`      | Regenerate `src/lib/supabase/database.types.ts` (and the edge-function copy) from the linked project                                                                                                                                         |
+| `npm run db:snapshot`   | `supabase db dump` → `supabase/schema.sql`; `db:document` regenerates the schema doc from it                                                                                                                                                 |
 | `npm run check`         | typecheck + lint + test + `check:migrations` + `check:rls` + `check:facts` + `check:message-scopes` + `check:brand-assets` + `check:architecture` + `check:workspace-links` + `check:advisor-golden` + `check:db-types` + `check:edge-types` |
 
 ## End-to-end tests

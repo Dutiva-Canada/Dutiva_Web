@@ -11,39 +11,42 @@ Classifications: `PUBLIC_INDEXABLE` · `PUBLIC_NOINDEX` ·
 `AUTHENTICATION_NOINDEX` · `PRIVATE_APPLICATION_NOINDEX` ·
 `ADMIN_INTERNAL_NOINDEX` · `API_NON_DOCUMENT` · `REDIRECT` · `NOT_FOUND`.
 
-## Public marketing surface — PUBLIC_INDEXABLE (134 URLs)
+## Public marketing surface — PUBLIC_INDEXABLE (144 URLs)
 
 Prerendered, self-canonical, reciprocal en-CA/fr-CA/x-default hreflang, in
 sitemap.xml. Purpose/intent notes double as the content matrix.
 
-71 pages × 2 locales: 20 static routes, the 26 policy documents, the 13 Help
+72 pages × 2 locales: 21 static routes, the 26 policy documents, the 13 Help
 Centre articles, and the 12 editorial articles (6 guides + 6 blog posts).
 `scripts/validate-seo.mjs` compares `dist/` against the route registry entry
 by entry, so this count cannot drift from the build.
 
-| EN path                     | FR path                               | Purpose / primary intent                                                         | Schema                                                                    | Conversion                  |
-| --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------- |
-| `/`                         | `/fr`                                 | What Dutiva is: AI-assisted HR compliance software for Canadian employers        | FAQPage + WebApplication + BreadcrumbList + Article (visible guide cards) | Start free → `/app/welcome` |
-| `/about`                    | `/fr/a-propos`                        | Who builds Dutiva; mission; built in Canada; company facts                       | AboutPage                                                                 | Start free                  |
-| `/faq`                      | `/fr/faq`                             | Common questions: product, coverage, data, pricing, choosing and getting started | FAQPage (20 visible Q&A)                                                  | Contact support             |
-| `/blog`                     | `/fr/blogue`                          | HR-compliance-in-practice article listing                                        | CollectionPage                                                            | Start free                  |
-| `/blog/:slug` (×6)          | `/fr/blogue/:frSlug` (×6)             | One blog article — jurisdiction scope, policies, records, leaves, harassment     | WebPage + BreadcrumbList (visible trail)                                  | Start free                  |
-| `/pricing`                  | `/fr/tarifs`                          | Plans + visible CAD prices; Stripe checkout                                      | WebPage + WebApplication w/ Offers                                        | Checkout / start free       |
-| `/templates`                | `/fr/modeles`                         | Catalogue of the real HR document templates (ON/QC/FED badges)                   | CollectionPage                                                            | Start free                  |
-| `/guides`                   | `/fr/guides`                          | Practical guidance index for Canadian employers                                  | CollectionPage                                                            | Start free                  |
-| `/guides/template-usage`    | `/fr/guides/utilisation-des-modeles`  | How template generation works; best practices                                    | WebPage + BreadcrumbList (visible trail)                                  | Start free                  |
-| `/guides/:slug` (×6)        | `/fr/guides/:frSlug` (×6)             | One evergreen guide — notice, probation, documents, contracts, accommodation     | WebPage + BreadcrumbList (visible trail)                                  | Start free                  |
-| `/known-limitations`        | `/fr/limites-connues`                 | Transparency: what Dutiva is not; AI limits                                      | WebPage                                                                   | Contact support             |
-| `/legal`                    | `/fr/juridique`                       | Index of the 26 policy documents                                                 | CollectionPage                                                            | —                           |
-| `/legal/:slug` (×26)        | `/fr/juridique/:frSlug` (×26)         | One policy document; visible last-updated/effective dates                        | WebPage w/ dates + BreadcrumbList                                         | —                           |
-| `/help`                     | `/fr/aide`                            | Help Centre index; articles grouped by category                                  | CollectionPage                                                            | Contact support             |
-| `/help/:slug` (×13)         | `/fr/aide/:frSlug` (×13)              | One self-service help article; related articles in the same category             | WebPage + BreadcrumbList (visible trail)                                  | Contact support             |
-| `/contact`                  | `/fr/contact`                         | Account-free support request form (product, privacy, security, accessibility)    | WebPage                                                                   | Submit request              |
-| `/status`                   | `/fr/etat`                            | Self-reported service status: platform, Advisor, documents, support              | WebPage                                                                   | Contact support             |
-| `/changelog`                | `/fr/journal-des-modifications`       | Dated public product updates; founder byline; sitemap lastmod from entries       | WebPage                                                                   | Start free / read changelog |
-| `/vs/hrdownloads`           | `/fr/vs/hrdownloads`                  | Dutiva vs HRdownloads — pricing, risk flags, bilingual, statutes, self-serve     | FAQPage (visible Q&A on page)                                             | Start free                  |
-| `/vs/sixfifty`              | `/fr/vs/sixfifty`                     | Dutiva vs SixFifty — same comparison dimensions for Canadian employers           | FAQPage (visible Q&A on page)                                             | Start free                  |
-| `/tools/jurisdiction-check` | `/fr/outils/verification-juridiction` | Free scoping tool: Ontario vs Quebec vs federal employment standards             | WebPage                                                                   | Try Dutiva free             |
+| EN path                     | FR path                               | Purpose / primary intent                                                         | Schema                                                                    | Conversion                        |
+| --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------- |
+| `/`                         | `/fr`                                 | What Dutiva is: AI-assisted HR compliance software for Canadian employers        | FAQPage + WebApplication + BreadcrumbList + Article (visible guide cards) | Start free → `/workspace/welcome` |
+| `/about`                    | `/fr/a-propos`                        | Who builds Dutiva; mission; built in Canada; company facts                       | AboutPage                                                                 | Start free                        |
+| `/faq`                      | `/fr/faq`                             | Common questions: product, coverage, data, pricing, choosing and getting started | FAQPage (20 visible Q&A)                                                  | Contact support                   |
+| `/blog`                     | `/fr/blogue`                          | HR-compliance-in-practice article listing                                        | CollectionPage                                                            | Start free                        |
+| `/blog/:slug` (×6)          | `/fr/blogue/:frSlug` (×6)             | One blog article — jurisdiction scope, policies, records, leaves, harassment     | WebPage + BreadcrumbList (visible trail)                                  | Start free                        |
+| `/pricing`                  | `/fr/tarifs`                          | Plans + visible CAD prices; Stripe checkout                                      | WebPage + WebApplication w/ Offers                                        | Checkout / start free             |
+| `/templates`                | `/fr/modeles`                         | Catalogue of the real HR document templates (ON/QC/FED badges)                   | CollectionPage                                                            | Start free                        |
+| `/guides`                   | `/fr/guides`                          | Practical guidance index for Canadian employers                                  | CollectionPage                                                            | Start free                        |
+| `/guides/template-usage`    | `/fr/guides/utilisation-des-modeles`  | How template generation works; best practices                                    | WebPage + BreadcrumbList (visible trail)                                  | Start free                        |
+| `/guides/:slug` (×6)        | `/fr/guides/:frSlug` (×6)             | One evergreen guide — notice, probation, documents, contracts, accommodation     | WebPage + BreadcrumbList (visible trail)                                  | Start free                        |
+| `/known-limitations`        | `/fr/limites-connues`                 | Transparency: what Dutiva is not; AI limits                                      | WebPage                                                                   | Contact support                   |
+| `/legal`                    | `/fr/juridique`                       | Index of the 26 policy documents                                                 | CollectionPage                                                            | —                                 |
+| `/legal/:slug` (×26)        | `/fr/juridique/:frSlug` (×26)         | One policy document; visible last-updated/effective dates                        | WebPage w/ dates + BreadcrumbList                                         | —                                 |
+| `/help`                     | `/fr/aide`                            | Help Centre index; articles grouped by category                                  | CollectionPage                                                            | Contact support                   |
+| `/help/:slug` (×13)         | `/fr/aide/:frSlug` (×13)              | One self-service help article; related articles in the same category             | WebPage + BreadcrumbList (visible trail)                                  | Contact support                   |
+| `/contact`                  | `/fr/contact`                         | Account-free support request form (product, privacy, security, accessibility)    | WebPage                                                                   | Submit request                    |
+| `/status`                   | `/fr/etat`                            | Self-reported service status: platform, Advisor, documents, support              | WebPage                                                                   | Contact support                   |
+| `/changelog`                | `/fr/journal-des-modifications`       | Dated public product updates; founder byline; sitemap lastmod from entries       | WebPage                                                                   | Start free / read changelog       |
+| `/vs/hrdownloads`           | `/fr/vs/hrdownloads`                  | Dutiva vs HRdownloads — pricing, risk flags, bilingual, statutes, self-serve     | FAQPage (visible Q&A on page)                                             | Start free                        |
+| `/vs/sixfifty`              | `/fr/vs/sixfifty`                     | Dutiva vs SixFifty — same comparison dimensions for Canadian employers           | FAQPage (visible Q&A on page)                                             | Start free                        |
+| `/tools/jurisdiction-check` | `/fr/outils/verification-juridiction` | Free scoping tool: Ontario vs Quebec vs federal employment standards             | WebPage                                                                   | Try Dutiva free                   |
+| `/demo`                     | `/fr/demo`                            | Full public demo workspace (Northgate fixtures) — the try-before-signup surface  | WebPage                                                                   | Explore demo / start free         |
+| `/careers`                  | `/fr/carrieres`                       | Public job board — open roles from employers hiring through Dutiva               | CollectionPage                                                            | Browse roles / apply              |
+| `/investors`                | `/fr/investisseurs`                   | Investor relations page                                                          | WebPage                                                                   | —                                 |
 
 The 26 policy slugs and their French equivalents live in
 `src/features/marketing/legal/legalHubData.ts` (`slug` / `frSlug` per row);
@@ -69,30 +72,81 @@ landed on the wrong one can cross over.
 
 ## Authentication — AUTHENTICATION_NOINDEX
 
-| Route          | Notes                                                                                                                             |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `/app/welcome` | Sign-in gate (invite-only). Served from noindex `app.html`; `X-Robots-Tag: noindex, nofollow`; robots-disallowed; not in sitemap. |
+| Route                     | Notes                                                                                                                             |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `/workspace/welcome`      | Sign-in gate (invite-only). Served from noindex `app.html`; `X-Robots-Tag: noindex, nofollow`; robots-disallowed; not in sitemap. |
+| `/workspace/auth/confirm` | Magic-link confirm target (`bootstrap-auth.js` forwards `/?token_hash=…` here); same noindex shell.                               |
 
 ## Private application — PRIVATE_APPLICATION_NOINDEX
 
 All served from the noindex `app.html` shell behind `RequireAdminSession`;
 same header/robots/sitemap treatment as above.
 
-`/app/home` · `/app/advisor` · `/app/workflows` · `/app/cases` ·
-`/app/cases/:caseId` · `/app/employees` · `/app/employees/:employeeId` ·
-`/app/compliance` · `/app/policies` · `/app/templates` · `/app/tasks` ·
-`/app/calendar` · `/app/reports` · `/app/knowledge` · `/app/communications` ·
-`/app/compensation` · `/app/wellbeing` · `/app/memory` ·
-`/app/memory/people/:personId` · `/app/memory/cases/:caseId` ·
-`/app/memory/conversations/:threadId` · `/app/documents` ·
-`/app/documents/studio` · `/app/documents/templates/:tid` ·
-`/app/documents/generate/:templateId` · `/app/documents/:docId`
+`/workspace/home` · `/workspace/advisor` · `/workspace/workflows` ·
+`/workspace/workflows/:slug` · `/workspace/cases` · `/workspace/cases/:caseId` ·
+`/workspace/employees` · `/workspace/employees/:employeeId` · `/workspace/compliance` ·
+`/workspace/policies` · `/workspace/analytics` · `/workspace/knowledge` ·
+`/workspace/knowledge/:slug` · `/workspace/support` · `/workspace/support/requests` ·
+`/workspace/support/requests/:ticketId` · `/workspace/communications` ·
+`/workspace/comms` (10 screens: overview, initiatives, content, relationships, segments,
+engagement, intelligence, results, analytics, settings) ·
+`/workspace/finance` (15 screens: overview, entities, transactions, sales, purchases,
+payroll, accounting, plans, treasury, portfolio, deals, governance, tax, evidence,
+import-export) · `/workspace/compensation` · `/workspace/crm` ·
+`/workspace/revenue` (overview, streams, invoices) ·
+`/workspace/operations` (overview, projects, vendors, quality, technology, logistics) ·
+`/workspace/governance` (overview, records, decisions, officers, shareholders) ·
+`/workspace/security` (overview, assets, access, incidents, risks, vendors) ·
+`/workspace/specialists` (overview, directory, engagements) ·
+`/workspace/wellbeing` · `/workspace/hiring` · `/workspace/hiring/candidates/:candidateId` ·
+`/workspace/hiring/postings/:postingId` · `/workspace/chat-widgets` ·
+`/workspace/planning/tasks` · `/workspace/planning/tasks/:taskId` ·
+`/workspace/planning/calendar` · `/workspace/settings` · `/workspace/settings/memory` ·
+`/workspace/settings/memory/people/:personId` · `/workspace/settings/memory/cases/:caseId` ·
+`/workspace/settings/memory/conversations/:threadId` · `/workspace/documents` ·
+`/workspace/documents/hr-library` · `/workspace/documents/studio` ·
+`/workspace/documents/templates/:tid` · `/workspace/documents/generate/:templateId` ·
+`/workspace/documents/sign/:envelopeId` · `/workspace/documents/:docId`
+
+In-tree redirects (client-side `redirect()` loaders in `appViews.tsx`):
+`/workspace` → `/workspace/home` · `/workspace/templates` →
+`/workspace/documents/hr-library` · `/workspace/reports` → `/workspace/analytics` ·
+`/workspace/tasks` → `/workspace/planning/tasks` · `/workspace/calendar` →
+`/workspace/planning/calendar` · `/workspace/memory` → `/workspace/settings/memory` ·
+module index routes (`comms`, `finance`, `revenue`, `operations`, `governance`,
+`security`, `specialists`, `planning`) → their `*/overview` (or `planning/tasks`).
+
+## Standalone portals — PUBLIC_NOINDEX
+
+Separate shells served from `index.html` (vercel.json rewrites), each with its
+own auth/access grant. None are in `SEO_ROUTES` or the sitemap; the three
+product portals mark every page `noindex, nofollow` in-document
+(`useHealthHead` / `useInvestHead` / `usePrHead`), and `/sign/*` gets the
+`X-Robots-Tag` header from vercel.json.
+
+- `/wellness/*` — Wellness portal (Mira companion: chat, check-in, habits,
+  journal, tools, review, resources, data, legal/:slug). `health_access` grant.
+  Legacy `/health/*` redirects here.
+- `/invest/*` — Invest portal (Tally: chat, portfolio, orders, signals,
+  strategies, theses, analysis, profile, notifications, settings,
+  legal/:slug). `invest_access` grant.
+- `/pr/*` — PR desk (Paige: chat, campaigns, content, media, seo, answers,
+  mentions, report, review, legal/:slug). `pr_access` grant.
+- `/careers/portal/*` — Candidate portal (profile, applications, ai-tools,
+  chat, settings, jobs/:postingId/apply) behind candidate sign-in. The public
+  `/careers` job board itself IS indexable (static route + job detail pages).
+- `/employer` · `/fr/employeur` — Employer door page on the careers surface.
+- `/sign/:token` · `/fr/sign/:token` — Dutiva Signature signing links;
+  `X-Robots-Tag: noindex, nofollow` via vercel.json headers.
+- `/demo/*` and `/fr/demo/*` — deep workspace paths inside the demo are
+  client-rendered (`/demo` and `/fr/demo` roots themselves are indexable
+  static routes).
 
 ## Admin/internal — ADMIN_INTERNAL_NOINDEX
 
-| Route           | Notes                                                                                                                            |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `/app/settings` | Hosts the admin-only workspace-mode toggle; same noindex treatment as the rest of `/app`. There is no separate `/admin` surface. |
+| Route                 | Notes                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `/workspace/settings` | Hosts the admin-only workspace-mode toggle; same noindex treatment as the rest of `/workspace`. There is no separate `/admin` surface. |
 
 ## API — API_NON_DOCUMENT
 
@@ -103,12 +157,14 @@ are not crawlable site URLs.
 
 ## Redirects — REDIRECT
 
-| From                                           | To                    | Mechanism                                                   |
-| ---------------------------------------------- | --------------------- | ----------------------------------------------------------- |
-| `https://www.dutiva.ca/*`                      | `https://dutiva.ca/*` | 308, `vercel.json` (requires the www domain on the project) |
-| `/path/` (trailing slash)                      | `/path`               | 308, `"trailingSlash": false`                               |
-| `/app`                                         | `/app/home`           | client-side index redirect                                  |
-| `/legal/<unknown>` , `/fr/juridique/<unknown>` | locale legal hub      | client-side `<Navigate replace>`                            |
+| From                                           | To                    | Mechanism                                                     |
+| ---------------------------------------------- | --------------------- | ------------------------------------------------------------- |
+| `https://www.dutiva.ca/*`                      | `https://dutiva.ca/*` | 308, `vercel.json` (requires the www domain on the project)   |
+| `/path/` (trailing slash)                      | `/path`               | 308, `"trailingSlash": false`                                 |
+| `/workspace`                                   | `/workspace/home`     | client-side index redirect                                    |
+| `/app/*`                                       | `/workspace/*`        | path-preserving client-side redirect (`AppLegacyRedirect`)    |
+| `/health/*`                                    | `/wellness/*`         | path-preserving client-side redirect (`HealthLegacyRedirect`) |
+| `/legal/<unknown>` , `/fr/juridique/<unknown>` | locale legal hub      | client-side `<Navigate replace>`                              |
 
 ## Not found — NOT_FOUND
 

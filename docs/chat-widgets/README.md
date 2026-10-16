@@ -8,7 +8,7 @@ boundary.
 
 ## Emitting a widget
 
-Assistant replies embed a ```` ```dutiva-widget ```` fence containing a spec:
+Assistant replies embed a ` ```dutiva-widget ` fence containing a spec:
 
     ```dutiva-widget
     {
@@ -30,14 +30,14 @@ that fails validation renders a quiet fallback line, never markup.
 
 ## Widget types
 
-| `type`        | Data                                            | Examples |
-| ------------- | ----------------------------------------------- | -------- |
-| `calculator`  | Labeled numeric inputs + declarative formula AST | Ontario ESA termination pay, overtime (see `prebuiltWidgets.ts`) |
-| `chart`       | Series + labels; `bar` or `pie`                  | Payroll cost breakdown |
-| `table`       | Columns + rows; sortable + searchable            | Compliance deadlines |
-| `checklist`   | Checkable items, progress bar, copy summary      | Onboarding checklist |
-| `timeline`    | Dated steps on a rail                            | Probation schedule |
-| `comparison`  | Side-by-side option cards + recommended flag     | Contractor vs employee |
+| `type`       | Data                                             | Examples                                                         |
+| ------------ | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `calculator` | Labeled numeric inputs + declarative formula AST | Ontario ESA termination pay, overtime (see `prebuiltWidgets.ts`) |
+| `chart`      | Series + labels; `bar` or `pie`                  | Payroll cost breakdown                                           |
+| `table`      | Columns + rows; sortable + searchable            | Compliance deadlines                                             |
+| `checklist`  | Checkable items, progress bar, copy summary      | Onboarding checklist                                             |
+| `timeline`   | Dated steps on a rail                            | Probation schedule                                               |
+| `comparison` | Side-by-side option cards + recommended flag     | Contractor vs employee                                           |
 
 Calculator formulas are `FormulaExpr` trees (`src/components/chatWidgets/formula.ts`)
 — an interpreter over data, not executable code. Regulated calculators set

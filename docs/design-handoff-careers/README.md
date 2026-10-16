@@ -6,7 +6,7 @@ Dutiva Careers is a B2C product surface that lets candidates browse job postings
 from Canadian employers, create profiles, and apply with optional AI assistance.
 
 It is a two-sided platform: employers post jobs through the existing B2B hiring
-module (`/app/hiring`), candidates discover and apply through the public job
+module (`/workspace/hiring`), candidates discover and apply through the public job
 board (`/careers`), and applications flow back into the employer's hiring pipeline.
 
 ## Product positioning

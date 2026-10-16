@@ -60,13 +60,13 @@ sequenceDiagram
     Worker->>Worker: "UPDATE support_attachments SET scan_status"
 ```
 
-Sources: [services/attachment-scanner/server.js:1-281](), [supabase/functions/support-attachment-scan/index.ts:1-247](), [src/features/support/attachmentScan.ts:1-129]()
+Sources: [services/attachment-scanner/server.js:1-281](<>), [supabase/functions/support-attachment-scan/index.ts:1-247](<>), [src/features/support/attachmentScan.ts:1-129](<>)
 
 ### server.js — Zero-Dependency HTTP Server
 
 The server is a ~280-line CommonJS Node.js module with no npm dependencies. It uses only `node:http`, `node:net`, and `node:events`. The `package.json` explicitly sets `"type": "commonjs"` because the repo root uses `type=module` and Node resolves module type from the nearest `package.json`.
 
-[services/attachment-scanner/package.json:6-7]()
+[services/attachment-scanner/package.json:6-7](<>)
 
 Key constants and security controls:
 
@@ -77,14 +77,14 @@ Key constants and security controls:
 | `CHUNK_BYTES` | 32,768              | INSTREAM chunk ceiling                                          |
 | `SCAN_TOKEN`  | env var             | Bearer token — server refuses to start if unset                 |
 
-[services/attachment-scanner/server.js:44-57]()
+[services/attachment-scanner/server.js:44-57](<>)
 
 The server exposes two endpoints:
 
 - **`GET /wellness`** — Sends `zPING\0` to clamd and returns `{"ok":true,"clamd":"PONG"}` on success, `503` otherwise. Used by platform health checks.
 - **`POST /scan`** — The main scan endpoint, authenticated via `Bearer $SCAN_TOKEN`.
 
-[services/attachment-scanner/server.js:258-270]()
+[services/attachment-scanner/server.js:258-270](<>)
 
 ### INSTREAM Protocol Implementation
 
@@ -98,7 +98,7 @@ The `scanStream()` function implements ClamAV's INSTREAM wire protocol:
 
 If `total > MAX_BYTES` the socket is destroyed immediately and `unsupported/too_large` is returned — this cap fires _before_ clamd sees the data, so an oversized file never gets a false `clean` verdict.
 
-[services/attachment-scanner/server.js:79-150]()
+[services/attachment-scanner/server.js:79-150](<>)
 
 ### SSRF Protection
 
@@ -108,7 +108,7 @@ The `handleScan()` function validates the fetch URL:
 - If `ALLOWED_FETCH_HOST` is set, the URL hostname must match exactly
 - This prevents authenticated callers from using the scanner as a generic URL fetcher
 
-[services/attachment-scanner/server.js:186-200]()
+[services/attachment-scanner/server.js:186-200](<>)
 
 ### The 200-vs-502 Design
 
@@ -123,13 +123,13 @@ This split is the central design principle:
 
 An expired signed URL, a network blip, or a sick clamd **must** produce a 502, never `unsupported`. The `unsupported` verdict is permanent; a 502 is transient.
 
-Sources: [services/attachment-scanner/server.js:17-29](), [services/attachment-scanner/README.md:26-36]()
+Sources: [services/attachment-scanner/server.js:17-29](<>), [services/attachment-scanner/README.md:26-36](<>)
 
 ### Dockerfile & Deployment
 
 The Dockerfile is based on `node:22-bookworm-slim` with `clamav-daemon` and `clamav-freshclam` installed. Signatures are **baked at build time** via `freshclam --stdout` so cold starts don't spend minutes downloading ~250 MB. The `freshclam` call is **not** wrapped with `|| true` — if signatures cannot be fetched, the build fails.
 
-[services/attachment-scanner/Dockerfile:12-56]()
+[services/attachment-scanner/Dockerfile:12-56](<>)
 
 Key clamd configuration written inline:
 
@@ -140,15 +140,15 @@ Key clamd configuration written inline:
 | `MaxThreads`            | 4     | Bounded parallelism            |
 | `AlertEncryptedArchive` | yes   | Flag encrypted archives        |
 
-[services/attachment-scanner/Dockerfile:28-40]()
+[services/attachment-scanner/Dockerfile:28-40](<>)
 
 The `entrypoint.sh` starts freshclam (daemon mode), then clamd, then waits up to 3 minutes for clamd to respond to `zPING\0` before starting `server.js`. The wait prevents the server from coming up and returning 502s while clamd parses the database (30–90s).
 
-[services/attachment-scanner/entrypoint.sh:1-43]()
+[services/attachment-scanner/entrypoint.sh:1-43](<>)
 
 **DigitalOcean App Platform deployment** (`do-app.yaml`) is configured for **Toronto (`tor`)** region deliberately — PIPEDA data residency. The instance requires **2 GB RAM** (`apps-s-1vcpu-2gb`, ~$25/mo) because clamd loads the entire signature database (~3.3M signatures) into memory. `deploy_on_push: false` prevents unreviewed pushes from redeploying the security gate.
 
-[services/attachment-scanner/do-app.yaml:1-68]()
+[services/attachment-scanner/do-app.yaml:1-68](<>)
 
 ### scan_status Lifecycle
 
@@ -164,7 +164,7 @@ stateDiagram-v2
     pending --> skipped: "unknown after SCAN_MAX_ATTEMPTS (5)"
 ```
 
-Sources: [src/features/support/attachmentScan.ts:101-110](), [supabase/functions/support-attachment-scan/index.ts:100-105]()
+Sources: [src/features/support/attachmentScan.ts:101-110](<>), [supabase/functions/support-attachment-scan/index.ts:100-105](<>)
 
 ### Client-Side Verdict Interpretation
 
@@ -176,7 +176,7 @@ Sources: [src/features/support/attachmentScan.ts:101-110](), [supabase/functions
 
 The critical safety property: **unrecognised is never clean**. `{clean: false}` maps to `unknown` (not `flagged`) because "not clean" ≠ "malware found".
 
-[src/features/support/attachmentScan.ts:36-81]()
+[src/features/support/attachmentScan.ts:36-81](<>)
 
 The `canReleaseAttachment()` function controls downloads:
 
@@ -184,7 +184,7 @@ The `canReleaseAttachment()` function controls downloads:
 - With scanning enabled, only `clean` files are downloadable
 - With scanning disabled, all non-flagged files are downloadable (backwards compatible)
 
-[src/features/support/attachmentScan.ts:120-128]()
+[src/features/support/attachmentScan.ts:120-128](<>)
 
 ### Test Harness (harness.cjs)
 
@@ -192,9 +192,9 @@ The `canReleaseAttachment()` function controls downloads:
 
 The critical test: a 27 MiB file is sent with clamd answering "clean" — the test asserts `unsupported/too_large` is returned. If the size cap breaks, this test catches it by returning `clean` for an oversized file.
 
-[services/attachment-scanner/harness.cjs:1-8](), [services/attachment-scanner/harness.cjs:166-174]()
+[services/attachment-scanner/harness.cjs:1-8](<>), [services/attachment-scanner/harness.cjs:166-174](<>)
 
-Sources: [services/attachment-scanner/harness.cjs:1-174](), [src/features/support/attachmentScan.test.ts:1-108]()
+Sources: [services/attachment-scanner/harness.cjs:1-174](<>), [src/features/support/attachmentScan.test.ts:1-108](<>)
 
 ---
 
@@ -237,13 +237,13 @@ flowchart LR
     H -->|"UPDATE support_notifications"| D
 ```
 
-Sources: [supabase/functions/support-notify/index.ts:1-345](), [supabase/functions/resend-webhook/index.ts:1-157]()
+Sources: [supabase/functions/support-notify/index.ts:1-345](<>), [supabase/functions/resend-webhook/index.ts:1-157](<>)
 
 ### Worker Behaviour
 
 The worker queries `support_notifications` for rows with `status = 'pending'` and `attempts < MAX_ATTEMPTS` (5), limited to `BATCH_SIZE` (50), ordered by `created_at` ascending.
 
-[supabase/functions/support-notify/index.ts:288-295]()
+[supabase/functions/support-notify/index.ts:288-295](<>)
 
 For each row it:
 
@@ -252,11 +252,11 @@ For each row it:
 3. On success: marks the row `sent`, records `provider_message_id` and `sent_at`
 4. On failure: increments `attempts`, stores `last_error`; gives up as `failed` after `MAX_ATTEMPTS`
 
-[supabase/functions/support-notify/index.ts:310-343]()
+[supabase/functions/support-notify/index.ts:310-343](<>)
 
 **Configured-or-inert pattern**: If no `RESEND_API_KEY` / `SUPPORT_EMAIL_PROVIDER_API_KEY` is set, pending rows are left untouched — wiring the key later flushes the backlog. But if a provider _is_ configured, `SUPPORT_NOTIFY_SECRET` must also be set (fail-closed).
 
-[supabase/functions/support-notify/index.ts:284-286](), [supabase/functions/support-notify/index.ts:299-303]()
+[supabase/functions/support-notify/index.ts:284-286](<>), [supabase/functions/support-notify/index.ts:299-303](<>)
 
 ### Notification Kinds
 
@@ -283,13 +283,13 @@ The `renderNotificationEmail()` function handles 18 notification kinds:
 | `account_signup`       | operator | New auth/free account (`handle_new_user`)  |
 | `plan_signup`          | operator | Paid checkout completed (`stripe-webhook`) |
 
-[supabase/functions/support-notify/index.ts:88-91](), [supabase/functions/support-notify/index.ts:109-228]()
+[supabase/functions/support-notify/index.ts:88-91](<>), [supabase/functions/support-notify/index.ts:109-228](<>)
 
 ### Resend Email Wrapper
 
 The `resendSend()` shared module (`_shared/resendSend.ts`) is a minimal wrapper around Resend's API. It returns the `provider_message_id` so callers can correlate later delivery/bounce webhooks — acceptance is explicitly documented as NOT delivery.
 
-[supabase/functions/_shared/resendSend.ts:1-25]()
+[supabase/functions/_shared/resendSend.ts:1-25](<>)
 
 ---
 
@@ -308,7 +308,7 @@ Migration `0018_notification_delivery.sql` adds four columns to `support_notific
 
 Two indexes support lookups: `support_notifications_provider_msg_idx` for webhook correlation and `support_notifications_undelivered_idx` for surfacing problems (bounced/complained).
 
-[supabase/migrations/0018_notification_delivery.sql:1-38]()
+[supabase/migrations/0018_notification_delivery.sql:1-38](<>)
 
 ### resend-webhook Edge Function
 
@@ -316,7 +316,7 @@ The `resend-webhook` function receives delivery events from Resend. It runs with
 
 **Fail-closed**: If `RESEND_WEBHOOK_SECRET` is not configured, the function returns 503 — it never accepts unsigned webhooks.
 
-[supabase/functions/resend-webhook/index.ts:110-112]()
+[supabase/functions/resend-webhook/index.ts:110-112](<>)
 
 The event type mapping (`EVENT_MAP`):
 
@@ -329,7 +329,7 @@ The event type mapping (`EVENT_MAP`):
 
 Unknown event types are acknowledged (200) but ignored, so Resend doesn't retry them forever.
 
-[supabase/functions/resend-webhook/index.ts:95-100](), [supabase/functions/resend-webhook/index.ts:134-137]()
+[supabase/functions/resend-webhook/index.ts:95-100](<>), [supabase/functions/resend-webhook/index.ts:134-137](<>)
 
 ### Svix Signature Verification
 
@@ -343,11 +343,11 @@ Verification steps:
 4. HMAC-SHA256 sign `"${id}.${timestamp}.${body}"`
 5. Compare against all `v1,` prefixed signatures (supports key rotation) using timing-safe comparison
 
-[src/features/support/email/svixSignature.ts:55-99]()
+[src/features/support/email/svixSignature.ts:55-99](<>)
 
 The `SvixFailure` type captures five rejection reasons: `missing_headers`, `bad_timestamp`, `stale_timestamp`, `bad_secret`, `no_match`.
 
-[src/features/support/email/svixSignature.ts:22-28]()
+[src/features/support/email/svixSignature.ts:22-28](<>)
 
 The test suite verifies against the **published Svix test vector** to prove the implementation matches the real spec, not just self-consistency:
 
@@ -357,9 +357,9 @@ id:     msg_p5jXN8AQM9LWM0D4loKWxJek
 body:   {"test": 2432232314}
 ```
 
-[src/features/support/email/svixSignature.test.ts:7-13]()
+[src/features/support/email/svixSignature.test.ts:7-13](<>)
 
-Sources: [src/features/support/email/svixSignature.ts:1-100](), [src/features/support/email/svixSignature.test.ts:1-79]()
+Sources: [src/features/support/email/svixSignature.ts:1-100](<>), [src/features/support/email/svixSignature.test.ts:1-79](<>)
 
 ---
 
@@ -409,13 +409,13 @@ flowchart TD
     HCC --> HCP
 ```
 
-Sources: [src/features/support/help/helpCenterData.ts:1-333](), [src/features/support/help/helpContent.ts:1-22](), [src/features/support/help/helpSearch.ts:1-103](), [src/features/support/firstLineAssist.ts:1-60]()
+Sources: [src/features/support/help/helpCenterData.ts:1-333](<>), [src/features/support/help/helpContent.ts:1-22](<>), [src/features/support/help/helpSearch.ts:1-103](<>), [src/features/support/firstLineAssist.ts:1-60](<>)
 
 ### helpCenterData.ts — Article Registry
 
 `HELP_CATEGORIES` defines 6 categories: `getting_started`, `documents`, `advisor`, `account_billing`, `privacy_security`, `support_contact`. Each has a `Bi` title, description, and Lucide icon name.
 
-[src/features/support/help/helpCenterData.ts:17-97]()
+[src/features/support/help/helpCenterData.ts:17-97](<>)
 
 `HELP_ARTICLES` defines 13 articles, each with:
 
@@ -428,31 +428,31 @@ Sources: [src/features/support/help/helpCenterData.ts:1-333](), [src/features/su
 | `summary`  | `Bi`             | One-line blurb for cards, search, SEO                      |
 | `keywords` | `Bi` (optional)  | Extra search terms, never rendered                         |
 
-[src/features/support/help/helpCenterData.ts:109-120]()
+[src/features/support/help/helpCenterData.ts:109-120](<>)
 
 Lookup functions: `helpArticleBySlug()`, `helpArticleByFrSlug()`, `helpArticlesByCategory()`.
 
-[src/features/support/help/helpCenterData.ts:305-315]()
+[src/features/support/help/helpCenterData.ts:305-315](<>)
 
 ### helpContent.ts — Article Bodies (Lazy)
 
 Article bodies are split into a separate module to keep them out of the eager entry graph. The SEO route registry imports `helpCenterData.ts` (for URL minting), and if bodies were inlined, every public page would carry the entire Help Centre text. `scripts/check-entry-graph.mjs` enforces this boundary.
 
-[src/features/support/help/helpContent.ts:5-17]()
+[src/features/support/help/helpContent.ts:5-17](<>)
 
 `HELP_SECTIONS` is a `Record<string, readonly HelpSection[]>` keyed by English slug. Each `HelpSection` has optional `heading` (`Bi`) and `blocks` (`HelpBlock[]`). `HelpBlock` is a union: `{ type: 'p', text: Bi }` or `{ type: 'li', text: Bi }`.
 
-[src/features/support/help/helpCenterData.ts:101-107]()
+[src/features/support/help/helpCenterData.ts:101-107](<>)
 
 The `groupHelpBlocks()` function collapses consecutive `li` blocks into semantic lists for rendering.
 
-[src/features/support/help/helpCenterData.ts:321-333]()
+[src/features/support/help/helpCenterData.ts:321-333](<>)
 
 ### helpSearch.ts — Client-Side Search
 
 Search is a plain in-memory scan over the small article set. Matching is accent- and case-insensitive via `normalizeText()` (NFD + strip diacritics + lowercase), so "resilie" finds "résilié".
 
-[src/features/support/help/helpSearch.ts:18-21]()
+[src/features/support/help/helpSearch.ts:18-21](<>)
 
 `searchHelpArticles()` supports two modes:
 
@@ -463,23 +463,23 @@ Search is a plain in-memory scan over the small article set. Matching is accent-
 
 Ranking uses field weights: title match = 3, summary = 2, rest (keywords + category + body) = 1. Results are sorted by total score descending.
 
-[src/features/support/help/helpSearch.ts:49-54](), [src/features/support/help/helpSearch.ts:75-103]()
+[src/features/support/help/helpSearch.ts:49-54](<>), [src/features/support/help/helpSearch.ts:75-103](<>)
 
 ### HelpCenterPage & HelpArticlePage
 
 `HelpCenterPage` (`/help`, `/fr/aide`) provides a search box with debounced analytics tracking (1s delay), category browsing via `BrowseByTopic`, and a `HelpContactCta` escalation link.
 
-[src/features/marketing/pages/HelpCenterPage.tsx:28-128]()
+[src/features/marketing/pages/HelpCenterPage.tsx:28-128](<>)
 
 `HelpArticlePage` (`/help/:slug`, `/fr/aide/:slug`) renders one article. It resolves slugs in both locales (cross-locale fallback), tracks `help_article_view` events, renders article sections with `helpArticleSections()`, shows related articles from the same category, and includes a `HelpfulnessWidget` and `HelpContactCta`.
 
-[src/features/marketing/pages/HelpArticlePage.tsx:35-159]()
+[src/features/marketing/pages/HelpArticlePage.tsx:35-159](<>)
 
 The `HelpfulnessWidget` stores a yes/no vote in `localStorage` (via `helpFeedback`) — no data is transmitted, and the vote is remembered per article.
 
-[src/features/support/help/HelpfulnessWidget.tsx:1-54]()
+[src/features/support/help/HelpfulnessWidget.tsx:1-54](<>)
 
-Sources: [src/features/marketing/pages/HelpCenterPage.tsx:1-208](), [src/features/marketing/pages/HelpArticlePage.tsx:1-159](), [src/features/support/help/HelpfulnessWidget.tsx:1-54](), [src/features/support/help/HelpContactCta.tsx:1-48]()
+Sources: [src/features/marketing/pages/HelpCenterPage.tsx:1-208](<>), [src/features/marketing/pages/HelpArticlePage.tsx:1-159](<>), [src/features/support/help/HelpfulnessWidget.tsx:1-54](<>), [src/features/support/help/HelpContactCta.tsx:1-48](<>)
 
 ---
 
@@ -491,11 +491,11 @@ The first-line assist layer deflects simple questions before they become tickets
 
 `HUMAN_ONLY_CATEGORIES` defines 6 categories that **always** reach a human and are never auto-answered: `privacy`, `security`, `accessibility`, `complaint`, `billing`, `account_access`.
 
-[src/features/support/firstLineAssist.ts:23-30]()
+[src/features/support/firstLineAssist.ts:23-30](<>)
 
 `suggestFirstLine()` checks escalation first, then uses `searchHelpArticles()` in `'any'` mode to find up to 3 matching articles. Queries under 3 characters return no results.
 
-[src/features/support/firstLineAssist.ts:46-59]()
+[src/features/support/firstLineAssist.ts:46-59](<>)
 
 ### Generative First-Line (support-firstline Edge Function)
 
@@ -509,17 +509,17 @@ Hard guardrails:
 - Max 320 tokens, temperature 0.2
 - Authenticated (JWT) + metered through `claimAiUsage`/`finalizeAiUsage` (same daily budget as the Advisor)
 
-[supabase/functions/support-firstline/index.ts:45-47](), [supabase/functions/support-firstline/index.ts:49-52](), [supabase/functions/support-firstline/index.ts:54-69]()
+[supabase/functions/support-firstline/index.ts:45-47](<>), [supabase/functions/support-firstline/index.ts:49-52](<>), [supabase/functions/support-firstline/index.ts:54-69](<>)
 
 The function reuses the active `advisor_chat` model route (same provider/model as the main Advisor).
 
-[supabase/functions/support-firstline/index.ts:129-141]()
+[supabase/functions/support-firstline/index.ts:129-141](<>)
 
 The client wrapper `firstLineApi.ts` calls the edge function via `supabase.functions.invoke('support-firstline')` and returns `FirstLineAnswer { escalate: boolean, answer: string }`.
 
-[src/features/support/firstLineApi.ts:46-66]()
+[src/features/support/firstLineApi.ts:46-66](<>)
 
-Sources: [src/features/support/firstLineAssist.ts:1-60](), [supabase/functions/support-firstline/index.ts:1-215](), [src/features/support/firstLineApi.ts:1-66](), [src/features/support/firstLineAssist.test.ts:1-39]()
+Sources: [src/features/support/firstLineAssist.ts:1-60](<>), [supabase/functions/support-firstline/index.ts:1-215](<>), [src/features/support/firstLineApi.ts:1-66](<>), [src/features/support/firstLineAssist.test.ts:1-39](<>)
 
 ---
 
@@ -529,35 +529,35 @@ Sources: [src/features/support/firstLineAssist.ts:1-60](), [supabase/functions/s
 
 The service status board tracks 4 components: `platform`, `advisor`, `documents`, `support`. Each has one of 4 levels: `operational`, `degraded`, `maintenance`, `outage`.
 
-[src/features/support/statusApi.ts:14-15]()
+[src/features/support/statusApi.ts:14-15](<>)
 
 `SERVICE_COMPONENTS` defines the canonical component list with bilingual labels. `STATUS_LEVEL_LABELS` provides bilingual labels for each level. `STATUS_LEVEL_COLOR` maps levels to dot colours. `STATUS_SEVERITY` orders levels for rollup (operational=0, maintenance=1, degraded=2, outage=3).
 
-[src/features/support/statusApi.ts:17-45]()
+[src/features/support/statusApi.ts:17-45](<>)
 
 `getServiceStatus()` reads from the `service_status` table. Missing components default to `operational`. When Supabase isn't configured, it falls back to all-operational.
 
-[src/features/support/statusApi.ts:71-84]()
+[src/features/support/statusApi.ts:71-84](<>)
 
 `overallStatus()` returns the worst component status (highest severity).
 
-[src/features/support/statusApi.ts:87-92]()
+[src/features/support/statusApi.ts:87-92](<>)
 
 `setServiceStatus()` posts changes through the `set-service-status` admin-gated edge function.
 
-[src/features/support/statusApi.ts:94-104]()
+[src/features/support/statusApi.ts:94-104](<>)
 
 ### StatusPage (Public)
 
 `StatusPage` at `/status` (EN) / `/fr/etat` (FR) is a public, self-reported status board. It shows an overall banner (all-operational or degraded), per-component status with colored dots and optional messages, and a link to the contact page.
 
-[src/features/marketing/pages/StatusPage.tsx:19-96]()
+[src/features/marketing/pages/StatusPage.tsx:19-96](<>)
 
 ### ServiceStatusControl (Admin)
 
 `ServiceStatusControl` is an admin-only component rendered inside `SupportAdminView`. It allows operators to change component status levels and set optional messages, posting changes via `setServiceStatus()`.
 
-[src/features/app/views/support/ServiceStatusControl.tsx:19-112]()
+[src/features/app/views/support/ServiceStatusControl.tsx:19-112](<>)
 
 **Status board component diagram**
 
@@ -590,7 +590,7 @@ flowchart TD
     SSEF --> ST
 ```
 
-Sources: [src/features/support/statusApi.ts:1-105](), [src/features/marketing/pages/StatusPage.tsx:1-97](), [src/features/app/views/support/ServiceStatusControl.tsx:1-112](), [src/features/support/statusApi.test.ts:1-78]()
+Sources: [src/features/support/statusApi.ts:1-105](<>), [src/features/marketing/pages/StatusPage.tsx:1-97](<>), [src/features/app/views/support/ServiceStatusControl.tsx:1-112](<>), [src/features/support/statusApi.test.ts:1-78](<>)
 
 ---
 
@@ -659,6 +659,6 @@ flowchart TB
     SSC2 --> SA
 ```
 
-Sources: [services/attachment-scanner/server.js:1-281](), [supabase/functions/support-attachment-scan/index.ts:1-247](), [supabase/functions/support-notify/index.ts:1-345](), [supabase/functions/resend-webhook/index.ts:1-157](), [src/features/support/help/helpCenterData.ts:1-333](), [src/features/support/firstLineAssist.ts:1-60](), [src/features/support/statusApi.ts:1-105]()
+Sources: [services/attachment-scanner/server.js:1-281](<>), [supabase/functions/support-attachment-scan/index.ts:1-247](<>), [supabase/functions/support-notify/index.ts:1-345](<>), [supabase/functions/resend-webhook/index.ts:1-157](<>), [src/features/support/help/helpCenterData.ts:1-333](<>), [src/features/support/firstLineAssist.ts:1-60](<>), [src/features/support/statusApi.ts:1-105](<>)
 
 ---

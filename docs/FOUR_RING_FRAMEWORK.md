@@ -36,10 +36,11 @@ previous rings more useful. They are not tiers of a price list, and no plan in
 exists, and this section is the record of where each one lives.
 
 **Ring 1 — the document catalogue** (`catalogue.ts`), covering every tool the
-April framework listed for it. The catalogue is 46 templates in total,
-T01…T46 — nine of them Ring 3, two of them Ring 4. Plus the Advisor, the
-compliance register, cases, employees, policies and tasks. This is the
-product.
+April framework listed for it. The catalogue is 50 templates in total,
+T01…T50 — nine of them Ring 3 (T35–T43), T44 a Ring 2 tool, two of them
+Ring 4 (T45–T46), and four Ring 1 additions since the framework audit
+(T47–T50). Plus the Advisor, the compliance register, cases, employees,
+policies and tasks. This is the product.
 
 **Ring 2 — complete.** Six accommodation tools (Pillar B), four
 leave-management tools (Pillar D), four mental health tools (Pillar A), and
@@ -53,10 +54,10 @@ communications.
 
 **Ring 4 — complete.** Two templates in the new Compensation category — the
 total compensation summary (T45) and the salary review letter (T46) — and two
-reference guides, `/app/knowledge/pay-statement` and
-`/app/knowledge/retirement-savings`.
+reference guides, `/workspace/knowledge/pay-statement` and
+`/workspace/knowledge/retirement-savings`.
 
-The `/app/communications`, `/app/compensation` and `/app/wellbeing` modules
+The `/workspace/communications`, `/workspace/compensation` and `/workspace/wellbeing` modules
 are **not** Rings 3, 4 and 2 — they never were, and wiring them did not make
 them so. They are now org-scoped registers on real persistence (migrations
 0039–0041), no longer `gated(…)` prototypes on demo fixtures, but a module and
@@ -104,14 +105,14 @@ produces, and it was not in the catalogue. It is now.
 
 **Pillar B is complete**, and it was the first pillar of Rings 2–4 to be.
 
-| Tool                            | Where                                   | State     |
-| ------------------------------- | --------------------------------------- | --------- |
-| Accommodation request form      | T21                                     | **Built** |
-| Accommodation response (Ring 1) | T22                                     | **Built** |
-| Accommodation plan              | T23                                     | **Built** |
-| Undue hardship assessment       | T24                                     | **Built** |
-| Duty to accommodate workflow    | `/app/workflows/duty-to-accommodate`    | **Built** |
-| Functional limitations guide    | `/app/knowledge/functional-limitations` | **Built** |
+| Tool                            | Where                                         | State     |
+| ------------------------------- | --------------------------------------------- | --------- |
+| Accommodation request form      | T21                                           | **Built** |
+| Accommodation response (Ring 1) | T22                                           | **Built** |
+| Accommodation plan              | T23                                           | **Built** |
+| Undue hardship assessment       | T24                                           | **Built** |
+| Duty to accommodate workflow    | `/workspace/workflows/duty-to-accommodate`    | **Built** |
+| Functional limitations guide    | `/workspace/knowledge/functional-limitations` | **Built** |
 
 Two ported legacy documents sit in the same category and complete the
 workflow: **Accommodation documentation** (T19) and **Medical information
@@ -148,7 +149,7 @@ mixes them — which is why there is one engine and not three.
 - `flowModel.ts` — the content model.
 - `flowEngine.ts` — pure: `advance` / `back` / `progress` / `flowRecord`, plus
   the graph checks (`unreachableSteps`, `longestPath`) the tests use.
-- `FlowRunner.tsx` — the runner at `/app/workflows/:slug`, ungated.
+- `FlowRunner.tsx` — the runner at `/workspace/workflows/:slug`, ungated.
 
 Two decisions worth keeping. **Flows loop** — "check for funding, then re-test
 hardship" is a real step, so the graph is not a tree and `longestPath` walks
@@ -172,18 +173,18 @@ Nothing is persisted. A run is a thinking tool; the record it produces is
 meant to be carried into the template the outcome names.
 
 **Entitlement calculators (EF11)** use the same engine. Workspace tools on
-`/app/workflows/`:
+`/workspace/workflows/`:
 
-| Tool                                       | Route                                          | State                                                         |
-| ------------------------------------------ | ---------------------------------------------- | ------------------------------------------------------------- |
-| Ontario statutory notice (ESA s. 57 floor) | `/app/workflows/statutory-notice-ontario`      | **Built** — band or typed months → floor weeks; T03           |
-| Québec termination notice (hedge)          | `/app/workflows/statutory-notice-quebec`       | **Built** — no week figures while L6 keeps `bands: null`; T03 |
-| Federal termination notice (hedge)         | `/app/workflows/statutory-notice-federal`      | **Built** — no week figures; T03                              |
-| Ontario ESA severance eligibility          | `/app/workflows/severance-eligibility-ontario` | **Built** — Option B gate; T03                                |
-| Ontario ESA severance amount               | `/app/workflows/severance-amount-ontario`      | **Built** — Option A formula from user inputs; T03            |
-| ROE filing checklist                       | `/app/workflows/roe-filing-checklist`          | **Built** — process shape; T29                                |
-| Temporary layoff awareness                 | `/app/workflows/temporary-layoff-awareness`    | **Built** — contract + statute-cap shape; T32                 |
-| Leave return tracker                       | `/app/workflows/leave-return-tracker`          | **Built** — return milestones; T27                            |
+| Tool                                       | Route                                                | State                                                         |
+| ------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------- |
+| Ontario statutory notice (ESA s. 57 floor) | `/workspace/workflows/statutory-notice-ontario`      | **Built** — band or typed months → floor weeks; T03           |
+| Québec termination notice (hedge)          | `/workspace/workflows/statutory-notice-quebec`       | **Built** — no week figures while L6 keeps `bands: null`; T03 |
+| Federal termination notice (hedge)         | `/workspace/workflows/statutory-notice-federal`      | **Built** — no week figures; T03                              |
+| Ontario ESA severance eligibility          | `/workspace/workflows/severance-eligibility-ontario` | **Built** — Option B gate; T03                                |
+| Ontario ESA severance amount               | `/workspace/workflows/severance-amount-ontario`      | **Built** — Option A formula from user inputs; T03            |
+| ROE filing checklist                       | `/workspace/workflows/roe-filing-checklist`          | **Built** — process shape; T29                                |
+| Temporary layoff awareness                 | `/workspace/workflows/temporary-layoff-awareness`    | **Built** — contract + statute-cap shape; T32                 |
+| Leave return tracker                       | `/workspace/workflows/leave-return-tracker`          | **Built** — return milestones; T27                            |
 
 Numeric QC/FED ladders remain open until L6 sign-off. Org-stored payroll /
 mass-termination counts for auto-eligibility remain a product/data follow-on.
@@ -220,7 +221,7 @@ thirteen-question assessment. `flowEngine.test.ts` builds exactly that shape.
 ### Reference guides — `src/features/app/reference/`
 
 Long-form in-product content with per-jurisdiction notes, at
-`/app/knowledge/:slug`, listed above the fixture titles on the Knowledge
+`/workspace/knowledge/:slug`, listed above the fixture titles on the Knowledge
 index.
 
 Deliberately not `articleModel.ts`, though the block structure is similar.
@@ -276,12 +277,12 @@ document already existed: the plan is T23, the return is T27, the leave is
 T33. What Pillar A adds is the judgement in front of those, which is why it is
 one flow and three guides.
 
-| Tool                                     | Where                                             | State     |
-| ---------------------------------------- | ------------------------------------------------- | --------- |
-| Mental health support checklist          | `/app/workflows/mental-health-response`           | **Built** |
-| EAP referral guide                       | `/app/knowledge/eap-referral`                     | **Built** |
-| Manager conversation guide               | `/app/knowledge/manager-conversations`            | **Built** |
-| Return to work after mental health leave | `/app/knowledge/return-after-mental-health-leave` | **Built** |
+| Tool                                     | Where                                                   | State     |
+| ---------------------------------------- | ------------------------------------------------------- | --------- |
+| Mental health support checklist          | `/workspace/workflows/mental-health-response`           | **Built** |
+| EAP referral guide                       | `/workspace/knowledge/eap-referral`                     | **Built** |
+| Manager conversation guide               | `/workspace/knowledge/manager-conversations`            | **Built** |
+| Return to work after mental health leave | `/workspace/knowledge/return-after-mental-health-leave` | **Built** |
 
 **Two near-duplicates were avoided here, and the reasoning is the reusable
 part.** The framework's "support checklist" reads like a second
@@ -328,12 +329,12 @@ is what stops an employer either counting protected leave against attendance —
 the most common reprisal exposure there is — or having no written sick-leave
 terms at all. Each names the other.
 
-| Tool                       | Where                             | State     |
-| -------------------------- | --------------------------------- | --------- |
-| Leave request form         | T33                               | **Built** |
-| Sick leave policy          | T34                               | **Built** |
-| Leave of absence checklist | `/app/workflows/leave-of-absence` | **Built** |
-| Parental leave guide       | `/app/knowledge/parental-leave`   | **Built** |
+| Tool                       | Where                                   | State     |
+| -------------------------- | --------------------------------------- | --------- |
+| Leave request form         | T33                                     | **Built** |
+| Sick leave policy          | T34                                     | **Built** |
+| Leave of absence checklist | `/workspace/workflows/leave-of-absence` | **Built** |
+| Parental leave guide       | `/workspace/knowledge/parental-leave`   | **Built** |
 
 **The parental leave guide states no figures, and that is the decision this
 doc said to make first.** Durations, notice periods and benefit amounts differ
@@ -352,12 +353,12 @@ and the year nobody does is the year it misleads.
 Complete. The self-check came first (see below); the other three landed once
 the generator decision unblocked the policy.
 
-| Tool                         | Where                                       | State     |
-| ---------------------------- | ------------------------------------------- | --------- |
-| Psychological safety check   | `/app/workflows/psychological-safety-check` | **Built** |
-| Respectful workplace policy  | T13, widened                                | **Built** |
-| Bystander intervention guide | `/app/knowledge/bystander-intervention`     | **Built** |
-| Wellness action plan         | T44                                         | **Built** |
+| Tool                         | Where                                             | State     |
+| ---------------------------- | ------------------------------------------------- | --------- |
+| Psychological safety check   | `/workspace/workflows/psychological-safety-check` | **Built** |
+| Respectful workplace policy  | T13, widened                                      | **Built** |
+| Bystander intervention guide | `/workspace/knowledge/bystander-intervention`     | **Built** |
+| Wellness action plan         | T44                                               | **Built** |
 
 **Do not paraphrase a statutory test in copy that renders everywhere.** T13's
 prohibited-conduct clause first restated Ontario's "known or ought reasonably
@@ -457,7 +458,7 @@ witness.
 
 ### The psychological safety self-check
 
-Pillar C's scored assessment, at `/app/workflows/psychological-safety-check` —
+Pillar C's scored assessment, at `/workspace/workflows/psychological-safety-check` —
 thirteen rated questions banded into a result with a per-factor breakdown.
 Building it is what added scoring to the flow engine, so the last piece of
 machinery Rings 2–4 needed now exists.
@@ -595,12 +596,12 @@ both languages.
 All four built: two templates in a new `compensation` category, and two
 reference guides.
 
-| Tool                       | Where                               | State     |
-| -------------------------- | ----------------------------------- | --------- |
-| Total compensation summary | T45                                 | **Built** |
-| Salary review letter       | T46                                 | **Built** |
-| Pay stub guide             | `/app/knowledge/pay-statement`      | **Built** |
-| RRSP & TFSA guide          | `/app/knowledge/retirement-savings` | **Built** |
+| Tool                       | Where                                     | State     |
+| -------------------------- | ----------------------------------------- | --------- |
+| Total compensation summary | T45                                       | **Built** |
+| Salary review letter       | T46                                       | **Built** |
+| Pay stub guide             | `/workspace/knowledge/pay-statement`      | **Built** |
+| RRSP & TFSA guide          | `/workspace/knowledge/retirement-savings` | **Built** |
 
 **The `compensation` category exists because these report rather than vary.**
 That is the whole boundary against `changes`, and it is the test for anything
@@ -669,7 +670,7 @@ benefit is announced rather than when the first person calls.
 
 ## Wiring the prototype modules
 
-The `/app/compensation`, `/app/communications` and `/app/wellbeing` surfaces
+The `/workspace/compensation`, `/workspace/communications` and `/workspace/wellbeing` surfaces
 were ported from the App v2 design handoff, ran on demo fixtures, and rendered
 an empty state in a production workspace. They are now on real per-tenant
 tables — migrations 0039, 0040 and 0041, following the
@@ -810,12 +811,12 @@ finished; it applies to the next amendment to any of these files.
 The framework predates the July canonical-facts audit and contradicts it in
 four places. Treat the Drive document as superseded on all four.
 
-| The Drive document says                         | Actually                                                                                                                               |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                    |
-| $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99, and paid plans are not sold during beta                                                     |
-| 47 tools at launch                              | 46 templates ship; the 47 counted a launch state that did not happen                                                                   |
-| Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status) |
+| The Drive document says                         | Actually                                                                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| All 14 jurisdictions, every ring                | Three — ON, QC, FED                                                                                                                        |
+| $39/month flat                                  | Free · Starter $24 · Growth $49 · Pro $99 CAD/month — monthly billing is live (OA11 closed 2026-08-27); annual remains a pending follow-on |
+| 47 tools at launch                              | 46 templates ship; the 47 counted a launch state that did not happen                                                                       |
+| Month-numbered build schedule off a launch date | Both published launch dates have passed. Tie sequencing to product state, never a calendar date (`CANONICAL_FACTS.md` § Launch status)     |
 
 Its Ring 1 inventory did not match what shipped either. Of the 18 tools it
 lists, 9 had no template — **"Ring 1 is complete at launch" was not true

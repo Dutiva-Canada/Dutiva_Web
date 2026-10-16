@@ -57,7 +57,7 @@ Add to `src/app/appViews.tsx` under `createAppViewRoutes`:
 },
 ```
 
-Remove or repurpose the legacy `/app/communications` route name if it conflicts with the new model. The existing `/app/comms` stays as the PR/marketing workspace.
+Remove or repurpose the legacy `/workspace/communications` route name if it conflicts with the new model. The existing `/workspace/comms` stays as the PR/marketing workspace.
 
 ## Sidebar nav changes
 
@@ -182,8 +182,8 @@ Additional role-specific policies where required:
 
 - Use the existing `useWorkspaceMode()` and a new `useOrgRole()` hook.
 - Hide UI actions the user cannot perform; do not rely on API errors as the primary gate.
-- Route-level guards redirect to `/app/home` if a `viewer` or `consultant` tries to reach a module outside their scope.
-- Consultants and freelancers show in the `/app/specialists` directory and can be granted or revoked workspace access from there.
+- Route-level guards redirect to `/workspace/home` if a `viewer` or `consultant` tries to reach a module outside their scope.
+- Consultants and freelancers show in the `/workspace/specialists` directory and can be granted or revoked workspace access from there.
 
 ## Data model
 
@@ -564,5 +564,5 @@ supabase/migrations/0xxx_governance_security_operations_specialists.sql
 - New modules follow the `*DemoView` / `*ProductionView` pattern.
 - The sidebar restructure does not break public demo navigation.
 - Role-aware navigation, Home, and quick actions work for owner, admin, manager, professional, member, consultant, and viewer.
-- Consultants and freelancers can be granted and revoked scoped workspace access from `/app/specialists`.
+- Consultants and freelancers can be granted and revoked scoped workspace access from `/workspace/specialists`.
 - `viewer` and `consultant` roles cannot reach edit routes or API writes outside their scope.

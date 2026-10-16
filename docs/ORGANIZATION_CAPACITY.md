@@ -54,7 +54,7 @@ so two admissions arriving at the boundary cannot both slip through.
 
 ## Admin capacity management
 
-Internal admins see **Organization capacity** in `/app/support`:
+Internal admins see **Organization capacity** in `/workspace/support`:
 
 - Current utilization, remaining slots, and waitlist size.
 - Threshold status (`normal | approaching | near | full | unlimited | monitoring_disabled`).

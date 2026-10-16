@@ -49,7 +49,7 @@ Three design handoff folders live under `docs/`:
 | `design-handoff-hr-documents-library/` | Document Studio, Repository, Signing       | 1 DC prototype + `dutiva-data.js` + assets  | 6 annotated PNGs  | Built                   |
 | `design-handoff-analytics/`            | Analytics dashboard (Reports rebuild)      | 1 static HTML mockup                        | —                 | Built (Phase 1 PR #170) |
 
-Sources: [docs/design-handoff-advisor-chat/README.md:1-8](), [docs/design-handoff-hr-documents-library/README.md:1-13](), [docs/design-handoff-analytics/README.md:1-35]()
+Sources: [docs/design-handoff-advisor-chat/README.md:1-8](<>), [docs/design-handoff-hr-documents-library/README.md:1-13](<>), [docs/design-handoff-analytics/README.md:1-35](<>)
 
 ### Handoff Folder Structure
 
@@ -80,7 +80,7 @@ docs/
 │   └── dutiva-reports-mockup.html    # 393px mobile mockup
 ```
 
-Sources: [docs/design-handoff-advisor-chat/README.md:6-7](), [docs/design-handoff-hr-documents-library/README.md:14-26](), [docs/design-handoff-analytics/README.md:1-3]()
+Sources: [docs/design-handoff-advisor-chat/README.md:6-7](<>), [docs/design-handoff-hr-documents-library/README.md:14-26](<>), [docs/design-handoff-analytics/README.md:1-3](<>)
 
 ## Advisor Chat Handoff
 
@@ -92,7 +92,7 @@ The advisor chat handoff is the largest package. It contains three HTML prototyp
 
 | Handoff piece                                  | Production implementation                                                                  |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Chat, thread list, home (`/app/advisor`)       | `src/features/app/views/advisor/` — `AdvisorView`, `ChatPane`, `ThreadList`, `AdvisorHome` |
+| Chat, thread list, home (`/workspace/advisor`) | `src/features/app/views/advisor/` — `AdvisorView`, `ChatPane`, `ThreadList`, `AdvisorHome` |
 | Compliance Workspace                           | `src/features/app/views/advisor/ComplianceWorkspace.tsx`                                   |
 | Chat primitives (bubbles, composer, streaming) | `src/features/app/advisor/` — `ChatBubble`, `ChatComposer`, `StreamedText`, `TypingDots`   |
 | Response contract (Roadmap P0)                 | `src/features/app/advisor/contract.ts` (Zod schema)                                        |
@@ -102,7 +102,7 @@ The advisor chat handoff is the largest package. It contains three HTML prototyp
 | Demo scenarios                                 | `src/features/app/views/advisor/advisorScenarios.ts`                                       |
 | Bilingual strings                              | `src/i18n/messages/advisorView.ts`                                                         |
 
-Sources: [docs/design-handoff-advisor-chat/README.md:22-32]()
+Sources: [docs/design-handoff-advisor-chat/README.md:22-32](<>)
 
 ### AGENT.md — The Normative Behavior Spec
 
@@ -114,19 +114,19 @@ Sources: [docs/design-handoff-advisor-chat/README.md:22-32]()
 - **§7 Disclaimer contract** — "not legal advice" visible on every compliance turn
 - **§8 Supportive/wellbeing mode** — all structured surfaces gated off; crisis resource 9-8-8 verbatim
 
-Sources: [docs/design-handoff-advisor-chat/AGENT.md:1-9](), [docs/design-handoff-advisor-chat/AGENT.md:42-55](), [docs/design-handoff-advisor-chat/AGENT.md:86-95]()
+Sources: [docs/design-handoff-advisor-chat/AGENT.md:1-9](<>), [docs/design-handoff-advisor-chat/AGENT.md:42-55](<>), [docs/design-handoff-advisor-chat/AGENT.md:86-95](<>)
 
 ### Engineering Roadmap
 
 The `Engineering Roadmap.dc.html` prototype is a rendered document describing the phased delivery plan. It defines two services: the consuming app (React 19 + Vite + Tailwind v4) and the engine (originally `dutiva-advisor-engine`, now `supabase/functions/advisor-chat`). Five non-negotiable principles anchor it: obey the gates, jurisdiction never assumed, disclaimer always ships, bilingual EN/FR parity, and crisis intercepts everything.
 
-Sources: [docs/design-handoff-advisor-chat/prototypes/Engineering Roadmap.dc.html:32-65]()
+Sources: [docs/design-handoff-advisor-chat/prototypes/Engineering Roadmap.dc.html:32-65](<>)
 
 ### Design Token Binding
 
 The handoff explicitly states: bind to `.surface-app` design system tokens, never hardcode hex values from prototypes. The mapping is: prototype `#1f3a5f` → `var(--navy)`, `#a23b3b`/`#f8e9e7` → `--risk-*` tier, etc.
 
-Sources: [docs/design-handoff-advisor-chat/README.md:35-43]()
+Sources: [docs/design-handoff-advisor-chat/README.md:35-43](<>)
 
 **Advisor Chat Handoff: Design-to-Code Bridge**
 
@@ -159,7 +159,7 @@ flowchart LR
     Contract --> RespPayload
 ```
 
-Sources: [docs/design-handoff-advisor-chat/README.md:22-32](), [supabase/functions/advisor-chat/responsePayload.ts:1-21]()
+Sources: [docs/design-handoff-advisor-chat/README.md:22-32](<>), [supabase/functions/advisor-chat/responsePayload.ts:1-21](<>)
 
 ## HR Documents Library Handoff
 
@@ -172,7 +172,7 @@ The `design-handoff-hr-documents-library/` package covers the Document Studio (1
 - **Template content shape**: `questions[]` for the wizard, `preview[]` for conditional clause rendering, `body_content` for full legal formatting, all with `{{token}}` merge fields
 - **Six screens**: Document Studio, Template Detail, Generation Wizard (3 steps), Repository, Document Detail, Data Model (dev-only)
 
-Sources: [docs/design-handoff-hr-documents-library/README.md:54-120](), [docs/design-handoff-hr-documents-library/README.md:209-282]()
+Sources: [docs/design-handoff-hr-documents-library/README.md:54-120](<>), [docs/design-handoff-hr-documents-library/README.md:209-282](<>)
 
 ### Handoff-to-Schema Mapping
 
@@ -187,7 +187,7 @@ The data model from this handoff was implemented as Supabase tables (documented 
 | `documents`                    | Generated documents | `status`, `risk_level`, `review_status`, `signature_status`             |
 | `document_audit_events`        | Signatures & audit  | `event_type`, `event_metadata` — append-only                            |
 
-Sources: [docs/design-handoff-hr-documents-library/README.md:209-228](), [docs/DATA_MODEL.md:17-138]()
+Sources: [docs/design-handoff-hr-documents-library/README.md:209-228](<>), [docs/DATA_MODEL.md:17-138](<>)
 
 ## Analytics Handoff
 
@@ -199,7 +199,7 @@ Deliberate divergences from the mockup:
 - Chips use shared `statusChipClass` vocabulary
 - Demo diorama's fixed "today" is July 5, 2026 (from calendar fixtures), so card numbers differ
 
-Sources: [docs/design-handoff-analytics/README.md:1-35]()
+Sources: [docs/design-handoff-analytics/README.md:1-35](<>)
 
 ## Advisor Guidance Corpus
 
@@ -229,7 +229,7 @@ Created in migration `0022`:
 
 RLS is enabled with no policies — only the service role (used by `advisor-chat`) can read/write.
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:53-69](), [supabase/migrations/0071_corpus_source_change_flags.sql:34-36]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](<>), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:53-69](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:34-36](<>)
 
 ### Retrieval via `match_advisor_guidance`
 
@@ -250,7 +250,7 @@ Key implementation details:
 - Results limited to `greatest(1, least(k, 8))` — between 1 and 8 chunks
 - Access revoked from `public`, `anon`, `authenticated` — service-role only
 
-Sources: [supabase/migrations/0023_match_advisor_guidance.sql:1-43](), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:77-127](), [supabase/migrations/0071_corpus_source_change_flags.sql:94-150]()
+Sources: [supabase/migrations/0023_match_advisor_guidance.sql:1-43](<>), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:77-127](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:94-150](<>)
 
 **Corpus Retrieval Pipeline**
 
@@ -271,7 +271,7 @@ flowchart TD
     ValidCheck -- "No" --> NeedsReview["legalBasis.valid = false\n('Needs review')"]
 ```
 
-Sources: [supabase/functions/advisor-chat/responsePayload.ts:1-21](), [supabase/functions/advisor-chat/responsePayload.ts:14-16](), [supabase/migrations/0071_corpus_source_change_flags.sql:14-17]()
+Sources: [supabase/functions/advisor-chat/responsePayload.ts:1-21](<>), [supabase/functions/advisor-chat/responsePayload.ts:14-16](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:14-17](<>)
 
 ### Review Status & Validity
 
@@ -286,21 +286,21 @@ Migration `0071` adds the law-monitor coupling: when `law_updates` records a `'c
 
 This means a detected law change **re-demotes** every citation in that jurisdiction to "Needs review" until a human re-verifies.
 
-Sources: [supabase/migrations/0071_corpus_source_change_flags.sql:44-84](), [supabase/functions/advisor-chat/responsePayload.ts:37-39]()
+Sources: [supabase/migrations/0071_corpus_source_change_flags.sql:44-84](<>), [supabase/functions/advisor-chat/responsePayload.ts:37-39](<>)
 
 ### Statutory Notice Schedule
 
 `NOTICE_SCHEDULES` in `src/features/app/advisor/safety/statutoryNotice.ts` is a parallel grounding mechanism for notice-of-termination figures. It uses typed `NoticeBand[]` arrays rather than free-text corpus chunks.
 
-| Jurisdiction | Status                                                                      | Source                                                       |
-| ------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Ontario      | Populated — ESA s. 57, bands from 0 months (0 weeks) to 96 months (8 weeks) | [src/features/app/advisor/safety/statutoryNotice.ts:52-62]() |
-| Québec       | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:83]()    |
-| Federal      | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:95]()    |
+| Jurisdiction | Status                                                                      | Source                                                         |
+| ------------ | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Ontario      | Populated — ESA s. 57, bands from 0 months (0 weeks) to 96 months (8 weeks) | [src/features/app/advisor/safety/statutoryNotice.ts:52-62](<>) |
+| Québec       | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:83](<>)    |
+| Federal      | `bands: null` — pending legal review                                        | [src/features/app/advisor/safety/statutoryNotice.ts:95](<>)    |
 
 The `lookupStatutoryNoticeWeeks(jurisdiction, completedMonths)` function returns `null` when a schedule is unpopulated — triggering the Advisor to hedge rather than state a figure.
 
-Sources: [src/features/app/advisor/safety/statutoryNotice.ts:35-121]()
+Sources: [src/features/app/advisor/safety/statutoryNotice.ts:35-121](<>)
 
 ## Corpus Documentation Tranches
 
@@ -316,7 +316,7 @@ The corpus content is documented in dated snapshot files. Each is a point-in-tim
 | `advisor-corpus-verification-2026-08-02.md` | 2026-08-02 | **Blocked** verification cycle — no chunks changed; egress proxy refused all official hosts            | —             | 0           |
 | `advisor-guidance-corpus-2026-08-04.md`     | 2026-08-04 | Amendment tranche closing WI1/WI2/WI3 from the blocked cycle                                           | ON, QC, FED   | 3 updated   |
 
-Sources: [docs/advisor-guidance-corpus-2026-07-26.md:1-6](), [docs/advisor-guidance-corpus-2026-07-27.md:1-6](), [docs/advisor-guidance-corpus-2026-07-29.md:1-9](), [docs/advisor-corpus-verification-2026-08-02.md:1-11](), [docs/advisor-guidance-corpus-2026-08-04.md:1-18]()
+Sources: [docs/advisor-guidance-corpus-2026-07-26.md:1-6](<>), [docs/advisor-guidance-corpus-2026-07-27.md:1-6](<>), [docs/advisor-guidance-corpus-2026-07-29.md:1-9](<>), [docs/advisor-corpus-verification-2026-08-02.md:1-11](<>), [docs/advisor-guidance-corpus-2026-08-04.md:1-18](<>)
 
 ### Corpus Authoring Standard
 
@@ -328,7 +328,7 @@ Every figure must be:
 4. Rows enter as `review_status = 'machine_curated'`; only a human promotes to `'reviewed'`
 5. `fts`/`fts_fr` columns are GENERATED — never hand-written
 
-Sources: [docs/advisor-corpus-verification-2026-08-02.md:100-113](), [docs/advisor-guidance-corpus-2026-08-04.md:13-14]()
+Sources: [docs/advisor-corpus-verification-2026-08-02.md:100-113](<>), [docs/advisor-guidance-corpus-2026-08-04.md:13-14](<>)
 
 ### Amendment Tranche (2026-08-04) — Migration 0042
 
@@ -342,7 +342,7 @@ The amendment tranche (`0042_corpus_amendment_tranche_2026_08_04.sql`) closed th
 
 The migration uses `UPDATE … WHERE jurisdiction = 'X' AND topic = 'Y'` to amend specific chunks. It explicitly does **not** touch `review_status` — rows remain `machine_curated`.
 
-Sources: [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:1-39](), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:41-65](), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:67-82]()
+Sources: [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:1-39](<>), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:41-65](<>), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:67-82](<>)
 
 **Corpus Lifecycle & Law-Monitor Coupling**
 
@@ -362,7 +362,7 @@ flowchart TD
     Demote --> HumanReview
 ```
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](), [docs/advisor-corpus-review-pack-ontario.md:18-33]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](<>), [docs/advisor-corpus-review-pack-ontario.md:18-33](<>)
 
 ## Corpus Review Packs
 
@@ -404,7 +404,7 @@ SELECT topic, review_status
 
 **What review unlocks:** A `reviewed` chunk's citation renders **Valid** (green) instead of "Needs review", and the "machine-curated and pending human review" warning stops appearing on turns grounded solely in reviewed chunks.
 
-Sources: [docs/advisor-corpus-review-pack-ontario.md:1-80]()
+Sources: [docs/advisor-corpus-review-pack-ontario.md:1-80](<>)
 
 ### Notice Bands Review Pack (`notice-bands-review-pack.md`)
 
@@ -441,7 +441,7 @@ const FEDERAL_BANDS: NoticeBand[] = [
 
 **Sign-off block** at the end requires: Reviewer name, qualification, date, and explicit Yes/No per jurisdiction.
 
-Sources: [docs/notice-bands-review-pack.md:1-28](), [docs/notice-bands-review-pack.md:143-178](), [docs/notice-bands-review-pack.md:337-354](), [docs/notice-bands-review-pack.md:525-565]()
+Sources: [docs/notice-bands-review-pack.md:1-28](<>), [docs/notice-bands-review-pack.md:143-178](<>), [docs/notice-bands-review-pack.md:337-354](<>), [docs/notice-bands-review-pack.md:525-565](<>)
 
 ## End-to-End Corpus Data Flow
 
@@ -484,7 +484,7 @@ flowchart LR
     CrossCheck --> AdvisorEdge
 ```
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabase/functions/advisor-chat/responsePayload.ts:1-61](), [src/features/app/advisor/safety/statutoryNotice.ts:1-121](), [docs/advisor-corpus-review-pack-ontario.md:1-80]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](<>), [supabase/functions/advisor-chat/responsePayload.ts:1-61](<>), [src/features/app/advisor/safety/statutoryNotice.ts:1-121](<>), [docs/advisor-corpus-review-pack-ontario.md:1-80](<>)
 
 ## Migration History for `advisor_guidance_chunks`
 
@@ -500,7 +500,7 @@ Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabas
 | `0059`    | Recovered `touch_advisor_guidance_updated_at` trigger (applied directly to live, committed retroactively)                                                                                    |
 | `0071`    | Add `source_changed_at`/`source_change_note` columns; create `flag_guidance_chunks_on_law_change()` trigger on `law_updates`; rewrite `match_advisor_guidance` to return `source_changed_at` |
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabase/migrations/0023_match_advisor_guidance.sql:1-43](), [supabase/migrations/0024_match_advisor_guidance_review_topic.sql:1-42](), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:1-143](), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:1-39](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-29](), [supabase/migrations/0071_corpus_source_change_flags.sql:1-150]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](<>), [supabase/migrations/0023_match_advisor_guidance.sql:1-43](<>), [supabase/migrations/0024_match_advisor_guidance_review_topic.sql:1-42](<>), [supabase/migrations/0029_bilingual_guidance_retrieval.sql:1-143](<>), [supabase/migrations/0042_corpus_amendment_tranche_2026_08_04.sql:1-39](<>), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-29](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:1-150](<>)
 
 ## Summary of Key Invariants
 
@@ -514,6 +514,6 @@ Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:1-58](), [supabas
 | Unknown/unpopulated schedule yields `null`, never a guessed figure     | `lookupStatutoryNoticeWeeks()` fail-safe return                         |
 | Point-in-time snapshot figures are never retroactively edited          | Convention; exceptions (URL corrections) are documented inline          |
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:8-11](), [docs/advisor-corpus-verification-2026-08-02.md:74-79](), [docs/advisor-guidance-corpus-2026-08-04.md:13-14](), [src/features/app/advisor/safety/statutoryNotice.ts:108-121](), [docs/advisor-guidance-corpus-2026-07-26.md:100-103]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:8-11](<>), [docs/advisor-corpus-verification-2026-08-02.md:74-79](<>), [docs/advisor-guidance-corpus-2026-08-04.md:13-14](<>), [src/features/app/advisor/safety/statutoryNotice.ts:108-121](<>), [docs/advisor-guidance-corpus-2026-07-26.md:100-103](<>)
 
 ---

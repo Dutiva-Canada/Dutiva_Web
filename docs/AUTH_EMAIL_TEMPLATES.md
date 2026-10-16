@@ -50,7 +50,7 @@ comment, was that a scanner has "no JS". That assumption was wrong.
 ## What the code does now
 
 1. **`AuthConfirm` spends the token only on a click.** Landing on
-   `/app/auth/confirm` with a `token_hash` renders a "Confirm sign-in" button
+   `/workspace/auth/confirm` with a `token_hash` renders a "Confirm sign-in" button
    and verifies nothing until it is pressed. Scanners render pages; they do not
    press buttons. (The `?code=` PKCE branch stays one-click — it already
    requires a `code_verifier` from the requesting browser's storage, which a
@@ -106,7 +106,7 @@ Identical, but `type=signup`:
 ```
 
 `{{ .RedirectTo }}` resolves to the `emailRedirectTo` set in `AuthProvider` —
-the current origin's `/app/auth/confirm`. Keep the templates pointing there
+the current origin's `/workspace/auth/confirm`. Keep the templates pointing there
 rather than at the default `{{ .ConfirmationURL }}`, which is the GET verify
 endpoint that any prefetch will spend.
 

@@ -5,7 +5,7 @@ Vercel routing over `dist/`).
 
 ## Hermetic smoke (`npm run test:e2e`)
 
-Credential-free. Asserts prerender/hydration, consent, the `/app` SPA rewrite,
+Credential-free. Asserts prerender/hydration, consent, the `/workspace` SPA rewrite,
 and CSP regressions (`e2e/csp.spec.ts` — script + style violations on load).
 Driven by [`playwright.config.ts`](../playwright.config.ts). Does
 **not** talk to Supabase (build without `VITE_SUPABASE_*`).
@@ -15,12 +15,12 @@ npm run build
 npm run test:e2e
 ```
 
-| Spec                                               | What it asserts                                         |
-| -------------------------------------------------- | ------------------------------------------------------- |
-| [`marketing.spec.ts`](marketing.spec.ts)           | Prerender + hydration on `/` and `/fr`; consent gate    |
-| [`app.spec.ts`](app.spec.ts)                       | `/app` SPA rewrite                                      |
-| [`csp.spec.ts`](csp.spec.ts)                       | No CSP script/style console violations on load          |
-| [`auth-forwarder.spec.ts`](auth-forwarder.spec.ts) | Magic-link tokens on `/` forward to `/app/auth/confirm` |
+| Spec                                               | What it asserts                                               |
+| -------------------------------------------------- | ------------------------------------------------------------- |
+| [`marketing.spec.ts`](marketing.spec.ts)           | Prerender + hydration on `/` and `/fr`; consent gate          |
+| [`app.spec.ts`](app.spec.ts)                       | `/workspace` SPA rewrite                                      |
+| [`csp.spec.ts`](csp.spec.ts)                       | No CSP script/style console violations on load                |
+| [`auth-forwarder.spec.ts`](auth-forwarder.spec.ts) | Magic-link tokens on `/` forward to `/workspace/auth/confirm` |
 
 Woodpecker: [`.woodpecker/e2e.yml`](../.woodpecker/e2e.yml).
 
@@ -39,17 +39,17 @@ server-side; no inbox / magic-link click.
 Eight tests, one worker (`fullyParallel: false`). Each test enables Production
 mode, exercises one module, and tears down created rows where applicable.
 
-| Module                   | Route                            | Operations exercised                                                            | Setup / teardown                                              |
-| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| Employees                | `/app/employees`                 | empty → create → list count → remove                                            | —                                                             |
-| Cases                    | `/app/cases`                     | empty → create → list count → remove                                            | —                                                             |
-| Tasks                    | `/app/planning/tasks`            | empty → create → toggle done → remove                                           | —                                                             |
-| Communications           | `/app/communications`            | empty → log → edit title → mark sent → confirm remove                           | —                                                             |
-| Memory manager           | `/app/settings/memory`           | add person-scoped fact → correct → forget                                       | create employee first; remove employee after                  |
-| Case memory              | `/app/settings/memory/cases/:id` | edit resume summary (English)                                                   | create case first; remove case after                          |
-| Documents                | `/app/documents`                 | honest empty state only (no CRUD yet)                                           | —                                                             |
-| Search                   | `/app/home`                      | `Ctrl+K` opens overlay                                                          | —                                                             |
-| Plan entitlements (stub) | `/app/settings`                  | skipped unless `E2E_PLAN_ENTITLEMENTS=1` + auth env; needs migrations 0107–0111 | [`plan-entitlements.spec.ts`](auth/plan-entitlements.spec.ts) |
+| Module                   | Route                                  | Operations exercised                                                            | Setup / teardown                                              |
+| ------------------------ | -------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Employees                | `/workspace/employees`                 | empty → create → list count → remove                                            | —                                                             |
+| Cases                    | `/workspace/cases`                     | empty → create → list count → remove                                            | —                                                             |
+| Tasks                    | `/workspace/planning/tasks`            | empty → create → toggle done → remove                                           | —                                                             |
+| Communications           | `/workspace/communications`            | empty → log → edit title → mark sent → confirm remove                           | —                                                             |
+| Memory manager           | `/workspace/settings/memory`           | add person-scoped fact → correct → forget                                       | create employee first; remove employee after                  |
+| Case memory              | `/workspace/settings/memory/cases/:id` | edit resume summary (English)                                                   | create case first; remove case after                          |
+| Documents                | `/workspace/documents`                 | honest empty state only (no CRUD yet)                                           | —                                                             |
+| Search                   | `/workspace/home`                      | `Ctrl+K` opens overlay                                                          | —                                                             |
+| Plan entitlements (stub) | `/workspace/settings`                  | skipped unless `E2E_PLAN_ENTITLEMENTS=1` + auth env; needs migrations 0107–0111 | [`plan-entitlements.spec.ts`](auth/plan-entitlements.spec.ts) |
 
 Shared helpers in the spec: `enableProductionMode`, `createEmployee`,
 `removeEmployee`, `createCase`, `removeCase`. Selectors use English i18n

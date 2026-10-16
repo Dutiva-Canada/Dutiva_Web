@@ -24,7 +24,7 @@ The following files were used as context for generating this wiki page:
 
 The `src/data/` directory provides a typed, bilingual fixture data layer that powers the entire demo workspace. All 17 files export statically-defined sample entities — employees, cases, tasks, compliance items, chat threads, documents, calendar events, memory facts, and more — that every workspace view imports centrally. No view ever inlines entity data; the barrel `src/data/index.ts` re-exports everything so that a future Supabase provider can replace this module wholesale.
 
-[src/data/index.ts:1-22]()
+[src/data/index.ts:1-22](<>)
 
 ## Architecture Overview
 
@@ -74,7 +74,7 @@ graph TD
     TEST -->|"validates"| IDX
 ```
 
-Sources: [src/data/index.ts:1-22](), [src/data/types.ts:1-2]()
+Sources: [src/data/index.ts:1-22](<>), [src/data/types.ts:1-2](<>)
 
 ## File Inventory
 
@@ -99,24 +99,24 @@ The fixture layer consists of 17 files (16 data modules + 1 test file):
 | `workforce.ts`      | `certifications`, `employeeDocuments`, `probationEnds`, `leaveOverview`                                                                                             | 7 certs, 3 docs, 3 probation, 4 leave                    |
 | `data.test.ts`      | (test suite)                                                                                                                                                        | —                                                        |
 
-Sources: [src/data/index.ts:7-21](), [src/data/employees.ts:19-19](), [src/data/cases.ts:19-19](), [src/data/tasks.ts:7-7](), [src/data/chats.ts:14-14](), [src/data/compliance.ts:18-18](), [src/data/documents.ts:41-41](), [src/data/policies.ts:6-6](), [src/data/calendar.ts:16-16](), [src/data/memories.ts:34-34](), [src/data/notifications.ts:6-6](), [src/data/communications.ts:10-10](), [src/data/knowledge.ts:10-10](), [src/data/analytics.ts:35-35](), [src/data/workforce.ts:19-19]()
+Sources: [src/data/index.ts:7-21](<>), [src/data/employees.ts:19-19](<>), [src/data/cases.ts:19-19](<>), [src/data/tasks.ts:7-7](<>), [src/data/chats.ts:14-14](<>), [src/data/compliance.ts:18-18](<>), [src/data/documents.ts:41-41](<>), [src/data/policies.ts:6-6](<>), [src/data/calendar.ts:16-16](<>), [src/data/memories.ts:34-34](<>), [src/data/notifications.ts:6-6](<>), [src/data/communications.ts:10-10](<>), [src/data/knowledge.ts:10-10](<>), [src/data/analytics.ts:35-35](<>), [src/data/workforce.ts:19-19](<>)
 
 ## Domain Model (`types.ts`)
 
 The type system in `types.ts` defines all entity interfaces that the fixture files implement. Every display-facing string field uses the `Bi` type (`{ en: string; fr: string }`) from `@/i18n/core`, while language-neutral fields (names, dates, numbers) stay as `string` or `number`.
 
-[src/data/types.ts:1-11]()
+[src/data/types.ts:1-11](<>)
 
 ### Tone System
 
-The `Tone` type extends the Advisor's `CardTone` (defined at [src/features/app/advisor/types.ts:13]()) with `'success'`:
+The `Tone` type extends the Advisor's `CardTone` (defined at [src/features/app/advisor/types.ts:13](<>)) with `'success'`:
 
 ```
 CardTone = 'risk' | 'warning' | 'suggestion' | 'info' | 'success'
 Tone    = CardTone | 'success'
 ```
 
-[src/data/types.ts:13-14]()
+[src/data/types.ts:13-14](<>)
 
 Every entity that needs a visual severity indicator uses this unified ramp — `Employee.tone`, `CaseFile.tone`, `ComplianceItem.tone`, `Policy.tone`, `Communication.tone`, etc. — so UI chip components can map tone to colour consistently.
 
@@ -124,28 +124,28 @@ Every entity that needs a visual severity indicator uses this unified ramp — `
 
 Fixtures never carry `onClick` handlers. Instead, actions are declarative descriptors that views translate into navigation or document-studio openings at render time:
 
-[src/data/types.ts:23-29]()
+[src/data/types.ts:23-29](<>)
 
-| `kind`              | `target` resolves to                |
-| ------------------- | ----------------------------------- |
-| `'open-case'`       | `/app/cases/:caseId`                |
-| `'open-employee'`   | `/app/employees/:employeeId`        |
-| `'open-chat'`       | Chat thread id                      |
-| `'open-compliance'` | `/app/compliance` (optional target) |
-| `'open-view'`       | Arbitrary app route                 |
-| `'draft-doc'`       | Template key → DocStudio overlay    |
+| `kind`              | `target` resolves to                      |
+| ------------------- | ----------------------------------------- |
+| `'open-case'`       | `/workspace/cases/:caseId`                |
+| `'open-employee'`   | `/workspace/employees/:employeeId`        |
+| `'open-chat'`       | Chat thread id                            |
+| `'open-compliance'` | `/workspace/compliance` (optional target) |
+| `'open-view'`       | Arbitrary app route                       |
+| `'draft-doc'`       | Template key → DocStudio overlay          |
 
 This separation ensures fixtures remain serializable and free of React dependencies.
 
-Sources: [src/data/types.ts:16-47]()
+Sources: [src/data/types.ts:16-47](<>)
 
 ### FixtureToneCard
 
 The `FixtureToneCard` interface mirrors the Advisor's `ToneCardData` shape but is purely declarative — no `onClick`, optional `confidence` line, and `FixtureAction` descriptors instead of callback actions:
 
-[src/data/types.ts:40-47]()
+[src/data/types.ts:40-47](<>)
 
-Sources: [src/data/types.ts:35-47]()
+Sources: [src/data/types.ts:35-47](<>)
 
 ### Entity Type Summary
 
@@ -174,7 +174,7 @@ erDiagram
     Communication ||--|| CommunicationDetail : "detail"
 ```
 
-Sources: [src/data/types.ts:59-73](), [src/data/types.ts:159-181](), [src/data/types.ts:210-222](), [src/data/types.ts:239-255](), [src/data/types.ts:433-443](), [src/data/types.ts:556-575]()
+Sources: [src/data/types.ts:59-73](<>), [src/data/types.ts:159-181](<>), [src/data/types.ts:210-222](<>), [src/data/types.ts:239-255](<>), [src/data/types.ts:433-443](<>), [src/data/types.ts:556-575](<>)
 
 ### Key Entity Interfaces
 
@@ -193,7 +193,7 @@ Sources: [src/data/types.ts:59-73](), [src/data/types.ts:159-181](), [src/data/t
 | `Communication`    | `id`, `title: Bi`, `audience: Bi`, `status: Bi`, `tone`                            | `cm1`–`cm6`                                      |
 | `KnowledgeItem`    | `id`, `title: Bi`, `tag: Bi`                                                       | `k1`–`k8`                                        |
 
-Sources: [src/data/types.ts:59-73](), [src/data/types.ts:159-181](), [src/data/types.ts:210-222](), [src/data/types.ts:239-255](), [src/data/types.ts:226-232](), [src/data/types.ts:265-285](), [src/data/types.ts:378-408](), [src/data/types.ts:492-502](), [src/data/types.ts:514-532](), [src/data/types.ts:556-575]()
+Sources: [src/data/types.ts:59-73](<>), [src/data/types.ts:159-181](<>), [src/data/types.ts:210-222](<>), [src/data/types.ts:239-255](<>), [src/data/types.ts:226-232](<>), [src/data/types.ts:265-285](<>), [src/data/types.ts:378-408](<>), [src/data/types.ts:492-502](<>), [src/data/types.ts:514-532](<>), [src/data/types.ts:556-575](<>)
 
 ## Cross-Entity Reference Graph
 
@@ -244,13 +244,13 @@ graph LR
     MEM -->|"entityId"| CHATS
 ```
 
-Sources: [src/data/data.test.ts:37-48](), [src/data/data.test.ts:56-60](), [src/data/data.test.ts:64-85](), [src/data/data.test.ts:87-98](), [src/data/data.test.ts:132-147]()
+Sources: [src/data/data.test.ts:37-48](<>), [src/data/data.test.ts:56-60](<>), [src/data/data.test.ts:64-85](<>), [src/data/data.test.ts:87-98](<>), [src/data/data.test.ts:132-147](<>)
 
 ## The Diorama: Northgate Logistics Inc.
 
 All fixtures model a fictional company called **Northgate Logistics Inc.**, an 82-person multi-province Canadian employer. The demo "today" is fixed at **July 5, 2026**, derived from the calendar fixture so the two can never disagree:
 
-[src/data/analytics.ts:24-27]()
+[src/data/analytics.ts:24-27](<>)
 
 The diorama includes:
 
@@ -259,7 +259,7 @@ The diorama includes:
 - **6 Advisor chat threads** covering termination, hiring, policy, performance, accommodation, and onboarding scenarios
 - **82 headcount** across 5 jurisdictions (34 ON, 21 BC, 12 QC, 9 AB, 6 Federal)
 
-[src/data/analytics.ts:50-58](), [src/data/employees.ts:19-19](), [src/data/cases.ts:19-19]()
+[src/data/analytics.ts:50-58](<>), [src/data/employees.ts:19-19](<>), [src/data/cases.ts:19-19](<>)
 
 ## Bilingual Data Pattern
 
@@ -274,7 +274,7 @@ province: bi('Ontario', 'Ontario'),
 
 Language-neutral fields (names like `'Jordan Mensah'`, dates like `'Jul 5, 2026'`, IDs like `'e1'`) remain plain `string`.
 
-Sources: [src/data/employees.ts:24-26](), [src/data/types.ts:7-10]()
+Sources: [src/data/employees.ts:24-26](<>), [src/data/types.ts:7-10](<>)
 
 ## View Consumption Pattern
 
@@ -285,12 +285,12 @@ Views import fixture data from `@/data` and never inline entity data. Each view 
 
 For example, `EmployeesView` imports the `employees` array and renders it directly in demo mode:
 
-[src/features/app/views/employees/EmployeesView.tsx:7-8]()
-[src/features/app/views/employees/EmployeesView.tsx:27-31]()
+[src/features/app/views/employees/EmployeesView.tsx:7-8](<>)
+[src/features/app/views/employees/EmployeesView.tsx:27-31](<>)
 
 Similarly, `AnalyticsView` imports a large set of fixture collections — `cases`, `complianceCategories`, `complianceItems`, `obligations`, `headcountByJurisdiction`, `scoreHistory`, `demoTodayISO`, etc. — and computes dashboard metrics against them:
 
-[src/features/app/views/analytics/AnalyticsView.tsx:5-21]()
+[src/features/app/views/analytics/AnalyticsView.tsx:5-21](<>)
 
 **Demo vs. production data flow**
 
@@ -312,7 +312,7 @@ flowchart TD
     PROD --> SUPA --> UI_PROD
 ```
 
-Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/features/app/views/analytics/AnalyticsView.tsx:69-73](), [src/features/app/views/home/HomeView.tsx:29-46]()
+Sources: [src/features/app/views/employees/EmployeesView.tsx:27-31](<>), [src/features/app/views/analytics/AnalyticsView.tsx:69-73](<>), [src/features/app/views/home/HomeView.tsx:29-46](<>)
 
 ## Document Template Resolution
 
@@ -323,13 +323,13 @@ Document references use a dual resolution system. Chat messages, employee files,
 
 The `resolveDocTitle` function implements the lookup chain: doclib first, legacy fallback, then raw key:
 
-[src/features/app/docstudio/resolveDocTitle.ts:15-19]()
+[src/features/app/docstudio/resolveDocTitle.ts:15-19](<>)
 
 The `DocStudioProvider` uses the same resolution order to open the document overlay:
 
-[src/features/app/docstudio/DocStudioProvider.tsx:116-139]()
+[src/features/app/docstudio/DocStudioProvider.tsx:116-139](<>)
 
-Sources: [src/features/app/docstudio/resolveDocTitle.ts:1-19](), [src/features/app/docstudio/DocStudioProvider.tsx:110-139]()
+Sources: [src/features/app/docstudio/resolveDocTitle.ts:1-19](<>), [src/features/app/docstudio/DocStudioProvider.tsx:110-139](<>)
 
 ## Derived Data Exports
 
@@ -345,7 +345,7 @@ Some fixture files export computed values derived from other fixtures:
 
 This ensures derived values always stay in sync with their sources.
 
-Sources: [src/data/documents.ts:389-391](), [src/data/analytics.ts:24-27](), [src/data/analytics.ts:58-58](), [src/data/analytics.ts:41-42]()
+Sources: [src/data/documents.ts:389-391](<>), [src/data/analytics.ts:24-27](<>), [src/data/analytics.ts:58-58](<>), [src/data/analytics.ts:41-42](<>)
 
 ## Advisor Chat Fixtures
 
@@ -357,25 +357,25 @@ The `chats.ts` file is the largest fixture module, containing three export group
 
 3. **`followupReplies: Record<string, FollowupReply>`** — Canned replies keyed by their English chip label. Some have `isEscalation: true` which triggers a task and toast in the UI.
 
-[src/data/chats.ts:1-10](), [src/data/types.ts:445-464]()
+[src/data/chats.ts:1-10](<>), [src/data/types.ts:445-464](<>)
 
 The `useAskAdvisorBriefing` hook demonstrates how fixtures power navigation — it looks up a case route from a chat ID by scanning the `cases` fixture array:
 
-[src/features/app/rail/useAskAdvisorBriefing.ts:19-22]()
+[src/features/app/rail/useAskAdvisorBriefing.ts:19-22](<>)
 
-Sources: [src/data/chats.ts:1-10](), [src/features/app/rail/useAskAdvisorBriefing.ts:6-6](), [src/features/app/rail/useAskAdvisorBriefing.ts:19-22]()
+Sources: [src/data/chats.ts:1-10](<>), [src/features/app/rail/useAskAdvisorBriefing.ts:6-6](<>), [src/features/app/rail/useAskAdvisorBriefing.ts:19-22](<>)
 
 ## Memory Fact Model
 
 The memory system uses three scopes — `'person'`, `'case'`, `'thread'` — and two confidence levels — `'confirmed'` (authoritative source) and `'inferred'` (Advisor-derived, never treated as fact until a human confirms):
 
-[src/data/types.ts:544-546]()
+[src/data/types.ts:544-546](<>)
 
 Each `MemoryFact` carries provenance (`source.type`: `'hris'`, `'document'`, `'chat'`, `'manual'`, `'inference'`, `'case'`) and a visibility scope (`'hr'`, `'case'`, `'restricted'`). The `sensitive` flag marks compensation and health data for access control.
 
 Memory facts reference existing entities by ID — `entityId` maps to employee IDs (`e1`), case IDs (`case1`), or chat IDs (`c1`) depending on scope.
 
-Sources: [src/data/types.ts:537-575](), [src/data/memories.ts:177-465]()
+Sources: [src/data/types.ts:537-575](<>), [src/data/memories.ts:177-465](<>)
 
 ## Referential Integrity Tests (`data.test.ts`)
 
@@ -385,7 +385,7 @@ The `data.test.ts` file enforces three categories of invariants via Vitest:
 
 Verifies that every collection has globally unique IDs within its domain — employees, cases, chats, document keys, and individual chat messages:
 
-[src/data/data.test.ts:24-33]()
+[src/data/data.test.ts:24-33](<>)
 
 ### 2. Cross-Reference Resolution
 
@@ -405,13 +405,13 @@ Nine test cases verify that every foreign-key reference resolves to an existing 
 | Communications                     | Unique IDs; each has a matching detail record                                                                                              |
 | Case notes                         | Every key resolves to an existing case                                                                                                     |
 
-[src/data/data.test.ts:36-157]()
+[src/data/data.test.ts:36-157](<>)
 
 ### 3. Bilingual Completeness
 
 A recursive walker visits every object reachable from the `data` barrel export. Any value matching the `{ en: string; fr: string }` shape has both fields checked for non-empty content. A sanity gate ensures the walker visited >500 objects to confirm coverage:
 
-[src/data/data.test.ts:159-189]()
+[src/data/data.test.ts:159-189](<>)
 
 **Test suite structure**
 
@@ -456,7 +456,7 @@ graph TD
     TEST --> BILING
 ```
 
-Sources: [src/data/data.test.ts:1-189]()
+Sources: [src/data/data.test.ts:1-189](<>)
 
 ## Design Intent: Supabase Replacement Path
 
@@ -464,7 +464,7 @@ The fixture data system is explicitly designed for wholesale replacement. The ba
 
 > "Views import from here (never inline entity data) so a future Supabase provider can replace this module wholesale."
 
-[src/data/index.ts:1-5]()
+[src/data/index.ts:1-5](<>)
 
 The current production-mode pattern already demonstrates this: each workspace module has a `productionApi.ts` boundary file (e.g. `employees/productionApi.ts`) that reads from Supabase instead of fixtures. The view checks `workspaceMode` and dispatches accordingly:
 
@@ -493,6 +493,6 @@ The two key conventions that enable this:
 1. **Views never inline entity data** — all data comes through the `@/data` import path
 2. **Fixtures are declarative** — no `onClick` handlers, no React dependencies, no side effects; `FixtureAction` descriptors are interpreted by the view layer
 
-Sources: [src/data/index.ts:1-5](), [src/features/app/views/employees/EmployeesView.tsx:27-31](), [src/data/types.ts:18-22]()
+Sources: [src/data/index.ts:1-5](<>), [src/features/app/views/employees/EmployeesView.tsx:27-31](<>), [src/data/types.ts:18-22](<>)
 
 ---

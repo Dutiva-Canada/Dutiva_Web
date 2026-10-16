@@ -100,6 +100,225 @@ CREATE TYPE "public"."signature_token_view" AS (
 ALTER TYPE "public"."signature_token_view" OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_finance_call_notify_admins"("p_call_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_org_id uuid;
+  v_amount numeric;
+  v_due date;
+  v_ref text;
+  v_currency text;
+  v_party text;
+  v_label text;
+  v_ref_suffix text;
+  v_en_body text;
+  v_fr_body text;
+begin
+  select
+    cc.organization_id,
+    cc.amount,
+    cc.due_date,
+    cc.reference,
+    c.currency,
+    p.name
+  into
+    v_org_id, v_amount, v_due, v_ref, v_currency, v_party
+  from public.finance_capital_calls cc
+  join public.finance_commitments c on c.id = cc.commitment_id
+  left join public.finance_parties p on p.id = c.party_id
+  where cc.id = p_call_id;
+
+  if v_org_id is null then
+    return;
+  end if;
+
+  v_label := coalesce(nullif(btrim(v_party), ''), 'Capital partner');
+  v_ref_suffix := case
+    when nullif(btrim(v_ref), '') is not null then ' · ' || btrim(v_ref)
+    else ''
+  end;
+  v_en_body := v_label
+    || ' — ' || v_currency || ' ' || v_amount
+    || ' · due ' || v_due
+    || v_ref_suffix;
+  v_fr_body := v_label
+    || ' — ' || v_currency || ' ' || v_amount
+    || ' · échéance le ' || v_due
+    || v_ref_suffix;
+
+  insert into public.hr_workspace_notifications (
+    organization_id, user_id, kind, title_en, title_fr, body_en, body_fr, href
+  )
+  select
+    v_org_id,
+    om.user_id,
+    'finance_call',
+    'Capital call notified',
+    'Appel de fonds notifié',
+    v_en_body,
+    v_fr_body,
+    '/app/finance/deals'
+  from public.organization_members om
+  where om.organization_id = v_org_id
+    and om.status = 'active'
+    and om.role in ('owner', 'admin');
+
+  -- The notice is the event — log it where the team audits outbound mail.
+  insert into public.hr_communications (
+    organization_id, title, audience, channel, status, sent_on, note
+  )
+  values (
+    v_org_id,
+    'Capital call notice — ' || v_label || v_ref_suffix,
+    v_label,
+    'email',
+    'sent',
+    current_date,
+    v_currency || ' ' || v_amount || ' · due ' || v_due
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_finance_call_notify_admins"("p_call_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_finance_call_notify_on_notified"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  perform public._finance_call_notify_admins(new.id);
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_finance_call_notify_on_notified"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_finance_debt_maturity_scan"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_debt_id uuid;
+begin
+  for v_debt_id in
+    select id
+    from public.finance_debts
+    where status = 'active'
+      and maturity_date <= current_date + 90
+      and (
+        maturity_notified_at is null
+        or maturity_notified_at::date < maturity_date - 90
+      )
+  loop
+    perform public._finance_debt_notify_admins(v_debt_id);
+  end loop;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_finance_debt_maturity_scan"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_finance_debt_notify_admins"("p_debt_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_org_id uuid;
+  v_label_en text;
+  v_label_fr text;
+  v_lender_en text;
+  v_lender_fr text;
+  v_balance numeric;
+  v_currency text;
+  v_maturity date;
+  v_en_body text;
+  v_fr_body text;
+begin
+  select
+    organization_id,
+    label ->> 'en',
+    label ->> 'fr',
+    lender ->> 'en',
+    lender ->> 'fr',
+    balance,
+    currency,
+    maturity_date
+  into
+    v_org_id, v_label_en, v_label_fr, v_lender_en, v_lender_fr,
+    v_balance, v_currency, v_maturity
+  from public.finance_debts
+  where id = p_debt_id;
+
+  if v_org_id is null then
+    return;
+  end if;
+
+  v_en_body := coalesce(nullif(btrim(v_label_en), ''), 'Debt facility')
+    || case when nullif(btrim(v_lender_en), '') is not null
+            then ' — ' || btrim(v_lender_en) else '' end
+    || ' · ' || v_currency || ' ' || v_balance
+    || ' · matures ' || v_maturity;
+  v_fr_body := coalesce(nullif(btrim(v_label_fr), ''), nullif(btrim(v_label_en), ''), 'Facilité de dette')
+    || case when nullif(btrim(v_lender_fr), '') is not null
+            then ' — ' || btrim(v_lender_fr)
+            when nullif(btrim(v_lender_en), '') is not null
+            then ' — ' || btrim(v_lender_en)
+            else '' end
+    || ' · ' || v_currency || ' ' || v_balance
+    || ' · échéance le ' || v_maturity;
+
+  insert into public.hr_workspace_notifications (
+    organization_id, user_id, kind, title_en, title_fr, body_en, body_fr, href
+  )
+  select
+    v_org_id,
+    om.user_id,
+    'finance_debt',
+    'Debt maturity approaching',
+    'Échéance de dette proche',
+    v_en_body,
+    v_fr_body,
+    '/app/finance/treasury'
+  from public.organization_members om
+  where om.organization_id = v_org_id
+    and om.status = 'active'
+    and om.role in ('owner', 'admin');
+
+  update public.finance_debts
+     set maturity_notified_at = now()
+   where id = p_debt_id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_finance_debt_notify_admins"("p_debt_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_health_grant_dutiva_staff"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if right(lower(coalesce(new.email, '')), 10) = '@dutiva.ca' then
+    insert into public.health_access (user_id, granted_by, note)
+    values (new.id, 'system', '@dutiva.ca staff access (0193).')
+    on conflict (user_id) do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_health_grant_dutiva_staff"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."_hr_org_admin_emails"("p_org_id" "uuid") RETURNS SETOF "text"
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -635,6 +854,24 @@ $$;
 ALTER FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."_invest_grant_owner_access"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if lower(new.email) = 'martin.constantineau@dutiva.ca' then
+    insert into public.invest_access (user_id, role, granted_by, note)
+    values (new.id, 'admin', 'system', 'Platform owner â€” permanent grant (0181).')
+    on conflict (user_id) do update set role = 'admin', granted_by = 'system';
+  end if;
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_invest_grant_owner_access"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -651,6 +888,24 @@ $$;
 
 
 ALTER FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."_pr_grant_dutiva_staff"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if right(lower(coalesce(new.email, '')), 10) = '@dutiva.ca' then
+    insert into public.pr_access (user_id, granted_by, note)
+    values (new.id, 'system', '@dutiva.ca staff access (0194).')
+    on conflict (user_id) do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."_pr_grant_dutiva_staff"() OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."ai_recommendations" (
@@ -1302,6 +1557,9 @@ CREATE TABLE IF NOT EXISTS "public"."law_updates" (
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()),
     "event_type" "text" DEFAULT 'change'::"text",
     "review_status" "text" DEFAULT 'machine_curated'::"text" NOT NULL,
+    "reference_url" "text",
+    "ai_analysis_en" "text",
+    "ai_analysis_fr" "text",
     CONSTRAINT "law_updates_event_type_check" CHECK (("event_type" = ANY (ARRAY['change'::"text", 'redirect'::"text", 'broken'::"text", 'first_seen'::"text"]))),
     CONSTRAINT "law_updates_review_status_check" CHECK (("review_status" = ANY (ARRAY['machine_curated'::"text", 'reviewed'::"text"])))
 );
@@ -3295,6 +3553,22 @@ $$;
 ALTER FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_operation" "text", "p_organization_id" "uuid", "p_provider" "text", "p_model" "text", "p_burst_window_seconds" integer, "p_burst_limit" integer, "p_daily_request_limit" integer, "p_daily_token_limit" bigint, "p_platform_daily_limit" integer, "p_metered_operations" "text"[], "p_monthly_chat_limit" integer, "p_commercial_operations" "text"[], "p_overage_monthly_cap" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."claim_candidate_ai_call"("p_user_id" "uuid") RETURNS boolean
+    LANGUAGE "sql"
+    AS $$
+  WITH upsert AS (
+    INSERT INTO candidate_ai_usage AS u (user_id, day, calls)
+    VALUES (p_user_id, CURRENT_DATE, 1)
+    ON CONFLICT (user_id, day) DO UPDATE SET calls = u.calls + 1
+    RETURNING calls
+  )
+  SELECT calls <= 30 FROM upsert;
+$$;
+
+
+ALTER FUNCTION "public"."claim_candidate_ai_call"("p_user_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -3504,6 +3778,63 @@ $$;
 
 
 ALTER FUNCTION "public"."claim_next_job"("worker_id" "text", "allowed_job_types" "text"[]) OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."claim_org_invitations"() RETURNS integer
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+declare
+  v_uid uuid := auth.uid();
+  v_email text;
+  v_count integer := 0;
+begin
+  if v_uid is null then
+    return 0;
+  end if;
+
+  select lower(email) into v_email from auth.users where id = v_uid;
+  if v_email is null then
+    return 0;
+  end if;
+
+  /* Pending + unexpired invites addressed to the caller's verified email
+     become active memberships (skipped when a membership already exists).
+     Email identity is the proof: only the mailbox owner can complete the
+     passwordless code sign-in, so address-matching is sufficient. */
+  with due as (
+    select id, organization_id, role
+    from public.organization_invitations
+    where status = 'pending'
+      and expires_at > now()
+      and lower(email) = v_email
+  ), inserted as (
+    insert into public.organization_members (organization_id, user_id, role, status)
+    select d.organization_id, v_uid, d.role, 'active'
+    from due d
+    where not exists (
+      select 1
+      from public.organization_members om
+      where om.organization_id = d.organization_id
+        and om.user_id = v_uid
+    )
+    returning organization_id
+  )
+  select count(*) into v_count from inserted;
+
+  update public.organization_invitations
+  set status = 'accepted',
+      accepted_at = now()
+  where status = 'pending'
+    and expires_at > now()
+    and lower(email) = v_email;
+
+  return v_count;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."claim_org_invitations"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."claim_signature_send"("p_organization_id" "uuid", "p_envelope_id" "uuid") RETURNS "jsonb"
@@ -4126,6 +4457,21 @@ CREATE OR REPLACE FUNCTION "public"."current_user_is_workspace_member"() RETURNS
         where id = auth.uid()
           and plan in ('starter', 'growth', 'pro')
           and subscription_status in ('active', 'trialing')
+      )
+      /* Employer cohort: anyone holding an active organization_members row
+         (create_organization is self-serve but capacity-gated) or a pending,
+         unexpired invitation addressed to their email — the invite claim runs
+         inside the workspace, so the gate has to let them reach it. */
+      or exists (
+        select 1 from public.organization_members
+        where user_id = auth.uid()
+          and status = 'active'
+      )
+      or exists (
+        select 1 from public.organization_invitations
+        where lower(email) = lower(auth.jwt() ->> 'email')
+          and status = 'pending'
+          and expires_at > now()
       )
     )
 $$;
@@ -5074,6 +5420,40 @@ $$;
 ALTER FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pack_size" integer, "p_stripe_checkout_id" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."guard_candidate_application_update"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+DECLARE
+  is_owner boolean;
+BEGIN
+  IF NEW.candidate_id IS DISTINCT FROM OLD.candidate_id
+     OR NEW.job_posting_id IS DISTINCT FROM OLD.job_posting_id
+     OR NEW.cover_letter IS DISTINCT FROM OLD.cover_letter
+     OR NEW.submitted_resume IS DISTINCT FROM OLD.submitted_resume
+     OR NEW.ai_match_score IS DISTINCT FROM OLD.ai_match_score
+     OR NEW.ai_suggestions IS DISTINCT FROM OLD.ai_suggestions
+     OR NEW.applied_at IS DISTINCT FROM OLD.applied_at THEN
+    RAISE EXCEPTION 'Only application status can be updated';
+  END IF;
+
+  IF NEW.status IS DISTINCT FROM OLD.status THEN
+    SELECT EXISTS (
+      SELECT 1 FROM candidate_profiles
+      WHERE id = NEW.candidate_id AND user_id = auth.uid()
+    ) INTO is_owner;
+    IF is_owner AND NEW.status <> 'withdrawn' THEN
+      RAISE EXCEPTION 'Candidates may only withdraw their application';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."guard_candidate_application_update"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -5400,6 +5780,48 @@ $$;
 ALTER FUNCTION "public"."ingest_support_analytics_events"("p_ip_hash" "text", "p_events" "jsonb", "p_window_seconds" integer, "p_limit" integer) OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."invest_wipe_account"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  uid uuid := auth.uid();
+begin
+  if uid is null then
+    raise exception 'not authenticated';
+  end if;
+  delete from public.invest_chat_messages where user_id = uid;
+  delete from public.invest_chat_threads where user_id = uid;
+  delete from public.invest_order_fills where user_id = uid;
+  delete from public.invest_orders where user_id = uid;
+  delete from public.invest_signals where user_id = uid;
+  delete from public.invest_bot_runs where user_id = uid;
+  delete from public.invest_strategies where user_id = uid;
+  delete from public.invest_positions where user_id = uid;
+  delete from public.invest_cash_events where user_id = uid;
+  delete from public.invest_recurring_contributions where user_id = uid;
+  delete from public.invest_book_snapshots where user_id = uid;
+  delete from public.invest_accounts where user_id = uid;
+  delete from public.invest_watchlist where user_id = uid;
+  delete from public.invest_market_snapshots where user_id = uid;
+  delete from public.invest_notification_prefs where user_id = uid;
+  delete from public.invest_user_profile where user_id = uid;
+  delete from public.invest_theses where user_id = uid;
+  delete from public.invest_goals where user_id = uid;
+  delete from public.invest_scan_items where user_id = uid;
+  delete from public.invest_memories where user_id = uid;
+  delete from public.invest_stress_scenarios where user_id = uid;
+  /* The queue is shared across portals — wipe only the invest surface so
+     PR/health suggestions for the same user survive. */
+  delete from public.agent_suggestions
+    where user_id = uid and surface = 'invest';
+end;
+$$;
+
+
+ALTER FUNCTION "public"."invest_wipe_account"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."is_admin"("check_user_id" "uuid") RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO 'public', 'auth'
@@ -5505,6 +5927,34 @@ $$;
 
 
 ALTER FUNCTION "public"."is_super_admin"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."job_posting_set_slug"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+  IF NEW.slug IS NULL OR NEW.slug = '' THEN
+    NEW.slug := public.job_posting_slug(NEW.title, NEW.id);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."job_posting_set_slug"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."job_posting_slug"("p_title" "text", "p_id" "uuid") RETURNS "text"
+    LANGUAGE "sql" IMMUTABLE
+    AS $$
+  SELECT left(
+    trim(both '-' from lower(regexp_replace(p_title, '[^a-zA-Z0-9]+', '-', 'g'))),
+    60
+  ) || '-' || left(p_id::text, 6);
+$$;
+
+
+ALTER FUNCTION "public"."job_posting_slug"("p_title" "text", "p_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."join_organization_waitlist"("requested_org_name" "text" DEFAULT NULL::"text") RETURNS "jsonb"
@@ -5750,6 +6200,35 @@ $$;
 ALTER FUNCTION "public"."normalize_document_jurisdiction_label"("p_code" "text", "p_fallback" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."org_member_directory"("p_org" "uuid") RETURNS TABLE("member_id" "uuid", "user_id" "uuid", "email" "text", "display_name" "text", "role" "text", "status" "text", "granted_modules" "text"[], "access_expires_at" timestamp with time zone, "created_at" timestamp with time zone)
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public', 'auth'
+    AS $$
+  select
+    om.id,
+    om.user_id,
+    coalesce(nullif(p.account_email, ''), u.email::text) as email,
+    coalesce(
+      nullif(p.primary_contact, ''),
+      nullif(u.raw_user_meta_data ->> 'full_name', ''),
+      u.email::text
+    ) as display_name,
+    om.role,
+    om.status,
+    om.granted_modules,
+    om.access_expires_at,
+    om.created_at
+  from public.organization_members om
+  left join public.profiles p on p.id = om.user_id
+  left join auth.users u on u.id = om.user_id
+  where om.organization_id = p_org
+    and public.is_org_admin(p_org, (select auth.uid()));
+$$;
+
+
+ALTER FUNCTION "public"."org_member_directory"("p_org" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") RETURNS "text"
     LANGUAGE "plpgsql" STABLE SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -5937,6 +6416,22 @@ $$;
 ALTER FUNCTION "public"."policy_review_scheduler_status"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."pr_keyword_check"("p_keyword_id" "uuid", "p_position" integer) RETURNS "void"
+    LANGUAGE "sql"
+    SET "search_path" TO 'public'
+    AS $$
+  update public.pr_keywords
+     set previous_position = position,
+         position = p_position,
+         checked_at = now()
+   where id = p_keyword_id
+     and user_id = auth.uid();
+$$;
+
+
+ALTER FUNCTION "public"."pr_keyword_check"("p_keyword_id" "uuid", "p_position" integer) OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."process_expired_data_deletions"() RETURNS integer
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
@@ -5979,6 +6474,24 @@ ALTER FUNCTION "public"."process_expired_data_deletions"() OWNER TO "postgres";
 
 COMMENT ON FUNCTION "public"."process_expired_data_deletions"() IS 'Processes data deletion requests that have passed their grace period. Run via pg_cron or manually.';
 
+
+
+CREATE OR REPLACE FUNCTION "public"."profile_applied_to_member_org"("p_candidate_id" "uuid") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM candidate_applications ca
+    JOIN hr_job_postings jp ON jp.id = ca.job_posting_id
+    JOIN organization_members om ON om.organization_id = jp.organization_id
+    WHERE ca.candidate_id = p_candidate_id
+      AND om.user_id = auth.uid()
+  )
+$$;
+
+
+ALTER FUNCTION "public"."profile_applied_to_member_org"("p_candidate_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."purge_ai_telemetry_data"() RETURNS "void"
@@ -6153,7 +6666,7 @@ CREATE TABLE IF NOT EXISTS "public"."ai_telemetry_events" (
     "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
     CONSTRAINT "ai_telemetry_events_completion_tokens_check" CHECK ((("completion_tokens" IS NULL) OR ("completion_tokens" >= 0))),
     CONSTRAINT "ai_telemetry_events_latency_ms_check" CHECK ((("latency_ms" IS NULL) OR ("latency_ms" >= 0))),
-    CONSTRAINT "ai_telemetry_events_operation_check" CHECK (("operation" = ANY (ARRAY['chat'::"text", 'draft'::"text", 'embed'::"text", 'classify'::"text", 'summarize'::"text", 'recommend'::"text", 'score'::"text", 'tool_call'::"text", 'support_firstline'::"text", 'safety_backstop'::"text"]))),
+    CONSTRAINT "ai_telemetry_events_operation_check" CHECK (("operation" = ANY (ARRAY['chat'::"text", 'draft'::"text", 'embed'::"text", 'classify'::"text", 'summarize'::"text", 'recommend'::"text", 'score'::"text", 'tool_call'::"text", 'support_firstline'::"text", 'safety_backstop'::"text", 'pr_ai'::"text"]))),
     CONSTRAINT "ai_telemetry_events_prompt_tokens_check" CHECK ((("prompt_tokens" IS NULL) OR ("prompt_tokens" >= 0))),
     CONSTRAINT "ai_telemetry_events_status_check" CHECK (("status" = ANY (ARRAY['started'::"text", 'completed'::"text", 'failed'::"text", 'cancelled'::"text"]))),
     CONSTRAINT "ai_telemetry_events_total_tokens_check" CHECK ((("total_tokens" IS NULL) OR ("total_tokens" >= 0)))
@@ -7270,6 +7783,146 @@ $$;
 ALTER FUNCTION "public"."trigger_attachment_scan"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."trigger_candidate_job_agent"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_key text;
+  v_secret text;
+begin
+  select decrypted_secret into v_key
+    from vault.decrypted_secrets
+   where name = 'support_scheduler_service_key';
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets
+   where name = 'support_notify_secret';
+
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[candidate-job-agent] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+
+  perform net.http_post(
+    url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/candidate-job-agent',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || coalesce(v_key, ''),
+      'x-trigger-secret', v_secret
+    ),
+    body := '{"action":"scan-all"}'::jsonb,
+    timeout_milliseconds := 300000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_candidate_job_agent"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_health_streak_notify"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_secret text;
+begin
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets where name = 'support_notify_secret';
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[health-habit-notify] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+  perform net.http_post(
+    url     := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/health-habit-notify',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-trigger-secret', v_secret
+    ),
+    body                 := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_health_streak_notify"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_invest_bot"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_key text;
+  v_secret text;
+begin
+  select decrypted_secret into v_key
+    from vault.decrypted_secrets
+   where name = 'support_scheduler_service_key';
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets
+   where name = 'support_notify_secret';
+
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[invest-bot] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+
+  perform net.http_post(
+    url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/invest-bot',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || coalesce(v_key, ''),
+      'x-trigger-secret', v_secret
+    ),
+    body := '{"action":"run-all"}'::jsonb,
+    timeout_milliseconds := 300000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_invest_bot"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_invest_market_sync"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_key text;
+  v_secret text;
+begin
+  select decrypted_secret into v_key
+    from vault.decrypted_secrets
+   where name = 'support_scheduler_service_key';
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets
+   where name = 'support_notify_secret';
+
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[invest-market-sync] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+
+  perform net.http_post(
+    url := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/invest-market-sync',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || coalesce(v_key, ''),
+      'x-trigger-secret', v_secret
+    ),
+    body := '{"action":"sync-all"}'::jsonb,
+    timeout_milliseconds := 300000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_invest_market_sync"() OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."trigger_law_monitor"() RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog', 'public'
@@ -7371,6 +8024,64 @@ $$;
 
 
 ALTER FUNCTION "public"."trigger_policy_review_scheduler"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_pr_geo_check"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_secret text;
+begin
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets where name = 'support_notify_secret';
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[pr-geo-check] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+  perform net.http_post(
+    url     := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/pr-geo-check',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-trigger-secret', v_secret
+    ),
+    body                 := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_pr_geo_check"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."trigger_pr_mentions_sync"() RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'pg_catalog', 'public'
+    AS $$
+declare
+  v_secret text;
+begin
+  select decrypted_secret into v_secret
+    from vault.decrypted_secrets where name = 'support_notify_secret';
+  if v_secret is null or length(btrim(v_secret)) = 0 then
+    raise warning '[pr-mentions-feed] vault secret "support_notify_secret" is not set; skipping run';
+    return;
+  end if;
+  perform net.http_post(
+    url     := 'https://khtwpxnvziiyplaflwru.supabase.co/functions/v1/pr-mentions-feed',
+    headers := jsonb_build_object(
+      'Content-Type',     'application/json',
+      'x-trigger-secret', v_secret
+    ),
+    body                 := '{}'::jsonb,
+    timeout_milliseconds := 120000
+  );
+end;
+$$;
+
+
+ALTER FUNCTION "public"."trigger_pr_mentions_sync"() OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."trigger_score_snapshots"() RETURNS "void"
@@ -7799,6 +8510,22 @@ COMMENT ON COLUMN "public"."advisor_guidance_chunks"."source_changed_at" IS 'Sta
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."advisor_turn_feedback" (
+    "user_id" "uuid" NOT NULL,
+    "conversation_id" "uuid" NOT NULL,
+    "turn_index" smallint NOT NULL,
+    "rating" smallint NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "reason" "text",
+    CONSTRAINT "advisor_turn_feedback_rating_check" CHECK (("rating" = ANY (ARRAY['-1'::integer, 1]))),
+    CONSTRAINT "advisor_turn_feedback_turn_index_check" CHECK (("turn_index" >= 0))
+);
+
+
+ALTER TABLE "public"."advisor_turn_feedback" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."agent_audit" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -7822,6 +8549,32 @@ CREATE TABLE IF NOT EXISTS "public"."agent_audit" (
 
 
 ALTER TABLE "public"."agent_audit" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."agent_suggestions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "surface" "text" NOT NULL,
+    "kind" "text" NOT NULL,
+    "title" "text" NOT NULL,
+    "payload" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "source" "text" DEFAULT 'model'::"text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "dedupe_key" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "resolved_at" timestamp with time zone,
+    "resolved_action" "text",
+    CONSTRAINT "agent_suggestions_source_check" CHECK (("source" = ANY (ARRAY['model'::"text", 'cron'::"text", 'rule'::"text"]))),
+    CONSTRAINT "agent_suggestions_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'accepted'::"text", 'dismissed'::"text"]))),
+    CONSTRAINT "agent_suggestions_surface_check" CHECK (("surface" = ANY (ARRAY['pr'::"text", 'health'::"text", 'invest'::"text", 'app'::"text"])))
+);
+
+
+ALTER TABLE "public"."agent_suggestions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."agent_suggestions" IS 'Agent-produced work awaiting human review — approve or dismiss; the resolution is the audit trail.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."ai_advisor_credits" (
@@ -8014,6 +8767,37 @@ CREATE TABLE IF NOT EXISTS "public"."beta_signup_intake" (
 ALTER TABLE "public"."beta_signup_intake" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."candidate_agent_settings" (
+    "user_id" "uuid" NOT NULL,
+    "enabled" boolean DEFAULT false NOT NULL,
+    "autonomy" "text" DEFAULT 'review'::"text" NOT NULL,
+    "keywords" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "locations" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "remote_ok" boolean DEFAULT true NOT NULL,
+    "min_match_score" integer DEFAULT 70 NOT NULL,
+    "boards" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "daily_apply_cap" integer DEFAULT 5 NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "candidate_agent_settings_autonomy_check" CHECK (("autonomy" = ANY (ARRAY['review'::"text", 'auto_submit'::"text"]))),
+    CONSTRAINT "candidate_agent_settings_daily_apply_cap_check" CHECK (("daily_apply_cap" > 0)),
+    CONSTRAINT "candidate_agent_settings_min_match_score_check" CHECK ((("min_match_score" >= 0) AND ("min_match_score" <= 100)))
+);
+
+
+ALTER TABLE "public"."candidate_agent_settings" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_ai_usage" (
+    "user_id" "uuid" NOT NULL,
+    "day" "date" NOT NULL,
+    "calls" integer DEFAULT 0 NOT NULL
+);
+
+
+ALTER TABLE "public"."candidate_ai_usage" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."candidate_applications" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "candidate_id" "uuid" NOT NULL,
@@ -8030,6 +8814,88 @@ CREATE TABLE IF NOT EXISTS "public"."candidate_applications" (
 
 
 ALTER TABLE "public"."candidate_applications" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_chat_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "role" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "feedback" smallint,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "thread_id" "uuid",
+    "feedback_reason" "text",
+    "reasoning" "text",
+    "sources" "jsonb",
+    CONSTRAINT "candidate_chat_messages_feedback_check" CHECK (("feedback" = ANY (ARRAY['-1'::integer, 1]))),
+    CONSTRAINT "candidate_chat_messages_role_check" CHECK (("role" = ANY (ARRAY['user'::"text", 'assistant'::"text"])))
+);
+
+
+ALTER TABLE "public"."candidate_chat_messages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."candidate_chat_messages"."sources" IS 'Grounding sources attached to this turn: [{label, url?}] — agent-discovered jobs the reply names, with their links.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_chat_threads" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."candidate_chat_threads" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_discovered_jobs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "source" "text" NOT NULL,
+    "external_id" "text" NOT NULL,
+    "company" "text" DEFAULT ''::"text" NOT NULL,
+    "title" "text" DEFAULT ''::"text" NOT NULL,
+    "location" "text" DEFAULT ''::"text" NOT NULL,
+    "url" "text" DEFAULT ''::"text" NOT NULL,
+    "apply_url" "text",
+    "description" "text" DEFAULT ''::"text" NOT NULL,
+    "match_score" integer,
+    "status" "text" DEFAULT 'discovered'::"text" NOT NULL,
+    "error" "text",
+    "discovered_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "candidate_discovered_jobs_match_score_check" CHECK ((("match_score" >= 0) AND ("match_score" <= 100))),
+    CONSTRAINT "candidate_discovered_jobs_source_check" CHECK (("source" = ANY (ARRAY['greenhouse'::"text", 'lever'::"text", 'search'::"text"]))),
+    CONSTRAINT "candidate_discovered_jobs_status_check" CHECK (("status" = ANY (ARRAY['discovered'::"text", 'needs_review'::"text", 'queued'::"text", 'submitted'::"text", 'manual_required'::"text", 'skipped'::"text", 'failed'::"text"])))
+);
+
+
+ALTER TABLE "public"."candidate_discovered_jobs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."candidate_external_applications" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "candidate_id" "uuid" NOT NULL,
+    "discovered_job_id" "uuid" NOT NULL,
+    "status" "text" DEFAULT 'needs_review'::"text" NOT NULL,
+    "tailored_resume" "text" DEFAULT ''::"text" NOT NULL,
+    "cover_letter" "text" DEFAULT ''::"text" NOT NULL,
+    "match_score" integer,
+    "channel" "text",
+    "submitted_at" timestamp with time zone,
+    "response" "text",
+    "error" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "candidate_external_applications_channel_check" CHECK (("channel" = ANY (ARRAY['greenhouse_api'::"text", 'manual'::"text"]))),
+    CONSTRAINT "candidate_external_applications_match_score_check" CHECK ((("match_score" >= 0) AND ("match_score" <= 100))),
+    CONSTRAINT "candidate_external_applications_status_check" CHECK (("status" = ANY (ARRAY['needs_review'::"text", 'queued'::"text", 'submitted'::"text", 'manual_required'::"text", 'skipped'::"text", 'failed'::"text"])))
+);
+
+
+ALTER TABLE "public"."candidate_external_applications" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."candidate_profiles" (
@@ -8055,21 +8921,6 @@ CREATE TABLE IF NOT EXISTS "public"."candidate_profiles" (
 
 
 ALTER TABLE "public"."candidate_profiles" OWNER TO "postgres";
-
-
-CREATE TABLE IF NOT EXISTS "public"."candidate_resumes" (
-    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
-    "candidate_id" "uuid" NOT NULL,
-    "title" "text" DEFAULT 'My resume'::"text" NOT NULL,
-    "content" "text" DEFAULT ''::"text" NOT NULL,
-    "is_base" boolean DEFAULT false NOT NULL,
-    "tailored_for_posting_id" "uuid",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
-);
-
-
-ALTER TABLE "public"."candidate_resumes" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."categories" (
@@ -8994,6 +9845,51 @@ CREATE TABLE IF NOT EXISTS "public"."finance_budgets" (
 ALTER TABLE "public"."finance_budgets" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."finance_capital_calls" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "commitment_id" "uuid" NOT NULL,
+    "amount" numeric(18,2) NOT NULL,
+    "due_date" "date" NOT NULL,
+    "status" "text" DEFAULT 'scheduled'::"text" NOT NULL,
+    "reference" "text",
+    "received_date" "date",
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_capital_calls_amount_check" CHECK (("amount" > (0)::numeric)),
+    CONSTRAINT "finance_capital_calls_status_check" CHECK (("status" = ANY (ARRAY['scheduled'::"text", 'notified'::"text", 'received'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_capital_calls" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."finance_cash_sweeps" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "from_account_id" "uuid" NOT NULL,
+    "to_account_id" "uuid" NOT NULL,
+    "amount" numeric(18,2) NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "status" "text" DEFAULT 'scheduled'::"text" NOT NULL,
+    "scheduled_date" "date" NOT NULL,
+    "executed_date" "date",
+    "reference" "text",
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_cash_sweeps_amount_check" CHECK (("amount" > (0)::numeric)),
+    CONSTRAINT "finance_cash_sweeps_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_cash_sweeps_distinct_accounts" CHECK (("from_account_id" <> "to_account_id")),
+    CONSTRAINT "finance_cash_sweeps_status_check" CHECK (("status" = ANY (ARRAY['scheduled'::"text", 'executed'::"text", 'cancelled'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_cash_sweeps" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."finance_categorization_feedback" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -9051,6 +9947,29 @@ CREATE TABLE IF NOT EXISTS "public"."finance_close_periods" (
 ALTER TABLE "public"."finance_close_periods" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."finance_commitments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "party_id" "uuid" NOT NULL,
+    "label" "jsonb",
+    "committed" numeric(18,2) DEFAULT 0 NOT NULL,
+    "called" numeric(18,2) DEFAULT 0 NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "next_call_date" "date",
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "notes" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_commitments_check" CHECK ((("committed" >= (0)::numeric) AND ("called" >= (0)::numeric) AND ("called" <= "committed"))),
+    CONSTRAINT "finance_commitments_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_commitments_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'closed'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_commitments" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."finance_credits" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -9075,6 +9994,32 @@ CREATE TABLE IF NOT EXISTS "public"."finance_credits" (
 ALTER TABLE "public"."finance_credits" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."finance_deals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "entity_id" "uuid" NOT NULL,
+    "name" "jsonb" NOT NULL,
+    "kind" "text" DEFAULT 'investment'::"text" NOT NULL,
+    "stage" "text" DEFAULT 'sourcing'::"text" NOT NULL,
+    "counterparty" "text",
+    "value" numeric(18,2),
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "target_date" "date",
+    "owner" "text",
+    "notes" "jsonb",
+    "watchlist_item_id" "uuid",
+    "holding_id" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_deals_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
+    CONSTRAINT "finance_deals_kind_check" CHECK (("kind" = ANY (ARRAY['acquisition'::"text", 'investment'::"text", 'divestiture'::"text", 'financing'::"text", 'other'::"text"]))),
+    CONSTRAINT "finance_deals_stage_check" CHECK (("stage" = ANY (ARRAY['sourcing'::"text", 'diligence'::"text", 'negotiation'::"text", 'agreement'::"text", 'closed'::"text", 'passed'::"text"])))
+);
+
+
+ALTER TABLE "public"."finance_deals" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."finance_debts" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -9092,6 +10037,7 @@ CREATE TABLE IF NOT EXISTS "public"."finance_debts" (
     "status" "text" DEFAULT 'active'::"text" NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "maturity_notified_at" timestamp with time zone,
     CONSTRAINT "finance_debts_currency_check" CHECK (("currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
     CONSTRAINT "finance_debts_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'paid_off'::"text", 'defaulted'::"text"])))
 );
@@ -9121,6 +10067,24 @@ CREATE TABLE IF NOT EXISTS "public"."finance_decision_entries" (
 ALTER TABLE "public"."finance_decision_entries" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."finance_document_links" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "deal_id" "uuid",
+    "holding_id" "uuid",
+    "document_id" "text" NOT NULL,
+    "document_ref" "text",
+    "title" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "finance_document_links_not_both" CHECK ((NOT (("deal_id" IS NOT NULL) AND ("holding_id" IS NOT NULL)))),
+    CONSTRAINT "finance_document_links_one_target" CHECK ((("deal_id" IS NOT NULL) OR ("holding_id" IS NOT NULL)))
+);
+
+
+ALTER TABLE "public"."finance_document_links" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."finance_entities" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -9134,8 +10098,11 @@ CREATE TABLE IF NOT EXISTS "public"."finance_entities" (
     "active" boolean DEFAULT true NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "parent_entity_id" "uuid",
+    "ownership_pct" numeric(5,2),
     CONSTRAINT "finance_entities_functional_currency_check" CHECK (("functional_currency" = ANY (ARRAY['CAD'::"text", 'USD'::"text", 'EUR'::"text", 'GBP'::"text"]))),
-    CONSTRAINT "finance_entities_legal_form_check" CHECK (("legal_form" = ANY (ARRAY['corporation'::"text", 'partnership'::"text", 'sole_proprietor'::"text", 'nonprofit'::"text"])))
+    CONSTRAINT "finance_entities_legal_form_check" CHECK (("legal_form" = ANY (ARRAY['corporation'::"text", 'partnership'::"text", 'sole_proprietor'::"text", 'nonprofit'::"text", 'trust'::"text"]))),
+    CONSTRAINT "finance_entities_ownership_pct_check" CHECK ((("ownership_pct" IS NULL) OR (("ownership_pct" >= (0)::numeric) AND ("ownership_pct" <= (100)::numeric))))
 );
 
 
@@ -9354,7 +10321,10 @@ CREATE TABLE IF NOT EXISTS "public"."finance_parties" (
     "active" boolean DEFAULT true NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "finance_parties_type_check" CHECK (("type" = ANY (ARRAY['customer'::"text", 'supplier'::"text", 'employee'::"text", 'bank'::"text", 'advisor'::"text"])))
+    "contact_name" "text",
+    "contact_email" "text",
+    "contact_phone" "text",
+    CONSTRAINT "finance_parties_type_check" CHECK (("type" = ANY (ARRAY['customer'::"text", 'supplier'::"text", 'employee'::"text", 'bank'::"text", 'advisor'::"text", 'investor'::"text", 'lender'::"text"])))
 );
 
 
@@ -9869,6 +10839,130 @@ CREATE TABLE IF NOT EXISTS "public"."guidance_sources" (
 
 
 ALTER TABLE "public"."guidance_sources" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_access" (
+    "user_id" "uuid" NOT NULL,
+    "granted_by" "text" DEFAULT ''::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."health_access" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_chat_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "role" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "action" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "feedback" smallint,
+    "thread_id" "uuid",
+    "feedback_reason" "text",
+    "reasoning" "text",
+    CONSTRAINT "health_chat_messages_feedback_check" CHECK (("feedback" = ANY (ARRAY['-1'::integer, 1]))),
+    CONSTRAINT "health_chat_messages_role_check" CHECK (("role" = ANY (ARRAY['user'::"text", 'assistant'::"text"])))
+);
+
+
+ALTER TABLE "public"."health_chat_messages" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_chat_threads" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."health_chat_threads" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_checkins" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "mood" smallint NOT NULL,
+    "energy" smallint,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "day" "date",
+    CONSTRAINT "health_checkins_energy_check" CHECK ((("energy" >= 1) AND ("energy" <= 5))),
+    CONSTRAINT "health_checkins_mood_check" CHECK ((("mood" >= 1) AND ("mood" <= 5)))
+);
+
+
+ALTER TABLE "public"."health_checkins" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."health_checkins"."day" IS 'The writer''s local calendar day (client-supplied). NULL on pre-0229 rows — read as created_at::date (UTC).';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_habit_logs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "habit_id" "uuid" NOT NULL,
+    "day" "date" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."health_habit_logs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_habits" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "weekly_target" smallint,
+    "day" "date",
+    CONSTRAINT "health_habits_weekly_target_check" CHECK ((("weekly_target" >= 1) AND ("weekly_target" <= 6)))
+);
+
+
+ALTER TABLE "public"."health_habits" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."health_habits"."weekly_target" IS 'Opt-in times-per-week goal; NULL = daily habit. A weekly habit still logs per-day — the target just reframes the progress readout.';
+
+
+
+COMMENT ON COLUMN "public"."health_habits"."day" IS 'The local calendar day the habit was created (client-supplied). NULL on pre-0229 rows — read as created_at::date (UTC).';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_journal_entries" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text" DEFAULT ''::"text" NOT NULL,
+    "body" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "shared_at" timestamp with time zone,
+    "image_path" "text"
+);
+
+
+ALTER TABLE "public"."health_journal_entries" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."health_memories" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "text" "text" NOT NULL,
+    "source" "text" DEFAULT 'manual'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "health_memories_source_check" CHECK (("source" = ANY (ARRAY['manual'::"text", 'mira'::"text"]))),
+    CONSTRAINT "health_memories_text_check" CHECK ((("char_length"("text") >= 1) AND ("char_length"("text") <= 500)))
+);
+
+
+ALTER TABLE "public"."health_memories" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."hr_advisor_case_narratives" (
@@ -10390,6 +11484,14 @@ CREATE TABLE IF NOT EXISTS "public"."hr_job_postings" (
     "closing_date" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "slug" "text" DEFAULT ''::"text" NOT NULL,
+    "salary_min" numeric,
+    "salary_max" numeric,
+    "salary_period" "text" DEFAULT 'year'::"text" NOT NULL,
+    "responsibilities" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "benefits" "text"[] DEFAULT ARRAY[]::"text"[] NOT NULL,
+    "employer_blurb" "text",
+    CONSTRAINT "hr_job_postings_salary_period_check" CHECK (("salary_period" = ANY (ARRAY['year'::"text", 'hour'::"text"]))),
     CONSTRAINT "hr_job_postings_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'closed'::"text", 'draft'::"text"])))
 );
 
@@ -10570,7 +11672,7 @@ CREATE TABLE IF NOT EXISTS "public"."hr_workspace_notifications" (
     "document_id" "uuid",
     "read_at" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text", 'integration_event'::"text", 'inbound_email'::"text"])))
+    CONSTRAINT "hr_workspace_notifications_kind_check" CHECK (("kind" = ANY (ARRAY['signing_completed'::"text", 'signing_declined'::"text", 'integration_event'::"text", 'inbound_email'::"text", 'finance_call'::"text", 'finance_debt'::"text"])))
 );
 
 
@@ -10610,6 +11712,491 @@ CREATE TABLE IF NOT EXISTS "public"."integration_events" (
 
 
 ALTER TABLE "public"."integration_events" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_access" (
+    "user_id" "uuid" NOT NULL,
+    "granted_by" "text" DEFAULT ''::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "role" "text" DEFAULT 'client'::"text" NOT NULL,
+    CONSTRAINT "invest_access_role_check" CHECK (("role" = ANY (ARRAY['client'::"text", 'admin'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_access" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_accounts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "kind" "text" DEFAULT 'paper'::"text" NOT NULL,
+    "base_currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "cash_balance" numeric(18,4) DEFAULT 0 NOT NULL,
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "seeded" boolean DEFAULT false NOT NULL,
+    CONSTRAINT "invest_accounts_kind_check" CHECK (("kind" = ANY (ARRAY['paper'::"text", 'live'::"text", 'external'::"text"]))),
+    CONSTRAINT "invest_accounts_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'archived'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_accounts" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."invest_accounts"."seeded" IS 'Auto-provisioned first-run account — one per user (0188).';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_book_snapshots" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "as_of" "date" NOT NULL,
+    "book_value" numeric(18,4) NOT NULL,
+    "cash" numeric(18,4) NOT NULL,
+    "invested" numeric(18,4) NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "account_id" "uuid"
+);
+
+
+ALTER TABLE "public"."invest_book_snapshots" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_bot_runs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "ran_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "signals_emitted" integer DEFAULT 0 NOT NULL,
+    "orders_suggested" integer DEFAULT 0 NOT NULL,
+    "orders_executed" integer DEFAULT 0 NOT NULL,
+    "summary" "text" DEFAULT ''::"text" NOT NULL,
+    "status" "text" DEFAULT 'ok'::"text" NOT NULL,
+    "strategy_id" "uuid",
+    "symbols_scanned" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "rule_hits" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "duration_ms" integer,
+    CONSTRAINT "invest_bot_runs_status_check" CHECK (("status" = ANY (ARRAY['ok'::"text", 'partial'::"text", 'failed'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_bot_runs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_cash_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "kind" "text" NOT NULL,
+    "amount" numeric(18,4) NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "occurred_at" "date" DEFAULT CURRENT_DATE NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_cash_events_amount_check" CHECK (("amount" > (0)::numeric)),
+    CONSTRAINT "invest_cash_events_kind_check" CHECK (("kind" = ANY (ARRAY['deposit'::"text", 'withdrawal'::"text", 'dividend'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_cash_events" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_chat_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "role" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "action" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "feedback" smallint,
+    "thread_id" "uuid",
+    "feedback_reason" "text",
+    "reasoning" "text",
+    "sources" "jsonb",
+    CONSTRAINT "invest_chat_messages_feedback_check" CHECK (("feedback" = ANY (ARRAY['-1'::integer, 1]))),
+    CONSTRAINT "invest_chat_messages_role_check" CHECK (("role" = ANY (ARRAY['user'::"text", 'assistant'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_chat_messages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."invest_chat_messages"."sources" IS 'Grounding sources attached to this turn: [{label, url?}] — market rows and headline links for the symbols the reply cites.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_chat_threads" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."invest_chat_threads" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_goals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text" DEFAULT ''::"text" NOT NULL,
+    "detail" "text" DEFAULT ''::"text" NOT NULL,
+    "metric" "text" NOT NULL,
+    "op" "text" NOT NULL,
+    "target" numeric NOT NULL,
+    "baseline" numeric,
+    "deadline" "date",
+    "status" "text" DEFAULT 'on_track'::"text" NOT NULL,
+    "eval_detail" "jsonb",
+    "last_evaluated_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_goals_metric_check" CHECK (("metric" = ANY (ARRAY['book_value'::"text", 'cash_pct'::"text", 'max_weight_pct'::"text", 'unrealized_gain_pct'::"text", 'thesis_coverage'::"text", 'position_count'::"text"]))),
+    CONSTRAINT "invest_goals_op_check" CHECK (("op" = ANY (ARRAY['gte'::"text", 'lte'::"text"]))),
+    CONSTRAINT "invest_goals_status_check" CHECK (("status" = ANY (ARRAY['on_track'::"text", 'behind'::"text", 'achieved'::"text", 'missed'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_goals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_market_news" (
+    "id" bigint NOT NULL,
+    "symbol" "text" DEFAULT ''::"text" NOT NULL,
+    "asset_class" "text" DEFAULT ''::"text" NOT NULL,
+    "title" "text" NOT NULL,
+    "url" "text" NOT NULL,
+    "source" "text" DEFAULT ''::"text" NOT NULL,
+    "summary" "text" DEFAULT ''::"text" NOT NULL,
+    "published_at" timestamp with time zone,
+    "fetched_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."invest_market_news" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."invest_market_news" ALTER COLUMN "id" ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME "public"."invest_market_news_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_market_snapshots" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" NOT NULL,
+    "price" numeric(18,4) NOT NULL,
+    "day_change_pct" numeric(9,4),
+    "ma50" numeric(18,4),
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "source" "text" DEFAULT 'manual'::"text" NOT NULL,
+    "as_of" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "ma200" double precision,
+    "rsi14" double precision,
+    "ret_1m" double precision,
+    "ret_3m" double precision,
+    "ret_12m" double precision,
+    "vol_20d" double precision,
+    "high_52w" double precision,
+    "low_52w" double precision,
+    "fundamentals" "jsonb",
+    "fundamentals_as_of" timestamp with time zone,
+    CONSTRAINT "invest_market_snapshots_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_market_snapshots" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_memories" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "symbol" "text",
+    "kind" "text" DEFAULT 'fact'::"text" NOT NULL,
+    "text" "text" NOT NULL,
+    "source" "text" DEFAULT 'manual'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_memories_kind_check" CHECK (("kind" = ANY (ARRAY['preference'::"text", 'plan'::"text", 'fact'::"text", 'philosophy'::"text"]))),
+    CONSTRAINT "invest_memories_source_check" CHECK (("source" = ANY (ARRAY['manual'::"text", 'tally'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_memories" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_notification_prefs" (
+    "user_id" "uuid" NOT NULL,
+    "email_cadence" "text" DEFAULT 'immediate'::"text" NOT NULL,
+    "pending_email" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "digest_last_sent_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_notification_prefs_email_cadence_check" CHECK (("email_cadence" = ANY (ARRAY['immediate'::"text", 'daily'::"text", 'weekly'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_notification_prefs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_order_fills" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "order_id" "uuid" NOT NULL,
+    "quantity" numeric(18,8) NOT NULL,
+    "price" numeric(18,8) NOT NULL,
+    "filled_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "avg_cost_at_fill" numeric(18,8),
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_order_fills_price_check" CHECK (("price" > (0)::numeric)),
+    CONSTRAINT "invest_order_fills_quantity_check" CHECK (("quantity" > (0)::numeric))
+);
+
+
+ALTER TABLE "public"."invest_order_fills" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_orders" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "signal_id" "uuid",
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "side" "text" NOT NULL,
+    "quantity" numeric(18,8) NOT NULL,
+    "order_type" "text" DEFAULT 'market'::"text" NOT NULL,
+    "limit_price" numeric(18,4),
+    "mode" "text" DEFAULT 'paper'::"text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "requested_price" numeric(18,4),
+    "executed_price" numeric(18,4),
+    "executed_at" timestamp with time zone,
+    "note" "text",
+    "error" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "strategy_id" "uuid",
+    "rule_id" "text",
+    CONSTRAINT "invest_orders_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"]))),
+    CONSTRAINT "invest_orders_mode_check" CHECK (("mode" = ANY (ARRAY['paper'::"text", 'live'::"text"]))),
+    CONSTRAINT "invest_orders_order_type_check" CHECK (("order_type" = ANY (ARRAY['market'::"text", 'limit'::"text"]))),
+    CONSTRAINT "invest_orders_quantity_check" CHECK (("quantity" > (0)::numeric)),
+    CONSTRAINT "invest_orders_side_check" CHECK (("side" = ANY (ARRAY['buy'::"text", 'sell'::"text"]))),
+    CONSTRAINT "invest_orders_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'queued'::"text", 'executed'::"text", 'cancelled'::"text", 'failed'::"text", 'expired'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_orders" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_positions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "quantity" numeric(18,8) DEFAULT 0 NOT NULL,
+    "avg_cost" numeric(18,4) DEFAULT 0 NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "last_price" numeric(18,4),
+    "last_price_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "target_weight_pct" numeric(7,4),
+    CONSTRAINT "invest_positions_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"]))),
+    CONSTRAINT "invest_positions_quantity_check" CHECK (("quantity" >= (0)::numeric))
+);
+
+
+ALTER TABLE "public"."invest_positions" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."invest_positions"."target_weight_pct" IS 'Share of book value this position should hold — the rebalance card measures drift against it. Null = untargeted.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_recurring_contributions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "account_id" "uuid" NOT NULL,
+    "amount" numeric(18,4) NOT NULL,
+    "currency" "text" DEFAULT 'CAD'::"text" NOT NULL,
+    "cadence" "text" NOT NULL,
+    "next_run_on" "date" NOT NULL,
+    "enabled" boolean DEFAULT true NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_recurring_contributions_amount_check" CHECK (("amount" > (0)::numeric)),
+    CONSTRAINT "invest_recurring_contributions_cadence_check" CHECK (("cadence" = ANY (ARRAY['weekly'::"text", 'monthly'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_recurring_contributions" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_scan_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "theme" "text" DEFAULT 'sector'::"text" NOT NULL,
+    "direction" "text" DEFAULT 'monitor'::"text" NOT NULL,
+    "title" "text" DEFAULT ''::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "symbols" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "last_reviewed_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_scan_items_direction_check" CHECK (("direction" = ANY (ARRAY['tailwind'::"text", 'headwind'::"text", 'monitor'::"text"]))),
+    CONSTRAINT "invest_scan_items_theme_check" CHECK (("theme" = ANY (ARRAY['economy'::"text", 'policy'::"text", 'sector'::"text", 'currency'::"text", 'geopolitical'::"text", 'company'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_scan_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_signals" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "strategy_id" "uuid",
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" DEFAULT ''::"text" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "kind" "text" DEFAULT 'insight'::"text" NOT NULL,
+    "title" "text" NOT NULL,
+    "body" "text" DEFAULT ''::"text" NOT NULL,
+    "score" numeric(5,1),
+    "status" "text" DEFAULT 'new'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "title_fr" "text",
+    "body_fr" "text",
+    "in_feed" boolean DEFAULT true NOT NULL,
+    "rule_id" "text",
+    CONSTRAINT "invest_signals_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"]))),
+    CONSTRAINT "invest_signals_kind_check" CHECK (("kind" = ANY (ARRAY['screen'::"text", 'insight'::"text", 'alert'::"text", 'thesis'::"text", 'goal'::"text", 'scan'::"text"]))),
+    CONSTRAINT "invest_signals_score_check" CHECK ((("score" >= (0)::numeric) AND ("score" <= (100)::numeric))),
+    CONSTRAINT "invest_signals_status_check" CHECK (("status" = ANY (ARRAY['new'::"text", 'acknowledged'::"text", 'dismissed'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_signals" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_strategies" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "enabled" boolean DEFAULT false NOT NULL,
+    "asset_classes" "text"[] DEFAULT '{equity}'::"text"[] NOT NULL,
+    "rules" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "autonomy" "text" DEFAULT 'suggest'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "cadence" "text" DEFAULT 'daily'::"text" NOT NULL,
+    "last_evaluated_at" timestamp with time zone,
+    "template" "text" DEFAULT ''::"text" NOT NULL,
+    "scope" "jsonb" DEFAULT '{"symbols": [], "watchlist": true}'::"jsonb" NOT NULL,
+    "notify" "jsonb" DEFAULT '{"email": false, "in_app": true}'::"jsonb" NOT NULL,
+    "multi_match" "text" DEFAULT 'each'::"text" NOT NULL,
+    CONSTRAINT "invest_strategies_autonomy_check" CHECK (("autonomy" = ANY (ARRAY['suggest'::"text", 'paper_execute'::"text"]))),
+    CONSTRAINT "invest_strategies_cadence_check" CHECK (("cadence" = ANY (ARRAY['daily'::"text", 'weekly'::"text", 'monthly'::"text"]))),
+    CONSTRAINT "invest_strategies_multi_match_values" CHECK (("multi_match" = ANY (ARRAY['each'::"text", 'summary'::"text"]))),
+    CONSTRAINT "invest_strategies_scope_nonempty" CHECK ((((("scope" ->> 'watchlist'::"text"))::boolean IS TRUE) OR ("jsonb_array_length"(COALESCE(("scope" -> 'symbols'::"text"), '[]'::"jsonb")) > 0)))
+);
+
+
+ALTER TABLE "public"."invest_strategies" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."invest_strategies"."autonomy" IS 'Deprecated by 0184 — per-rule type replaced strategy-level autonomy; the bot never executes on its own.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_stress_scenarios" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "shocks" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_stress_scenarios_name_check" CHECK ((("length"("btrim"("name")) > 0) AND ("length"("name") <= 80)))
+);
+
+
+ALTER TABLE "public"."invest_stress_scenarios" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_theses" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "thesis" "text" DEFAULT ''::"text" NOT NULL,
+    "intent" "text" DEFAULT 'core'::"text" NOT NULL,
+    "break_rules" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "drift_rules" "jsonb" DEFAULT '[]'::"jsonb" NOT NULL,
+    "status" "text" DEFAULT 'healthy'::"text" NOT NULL,
+    "eval_detail" "jsonb",
+    "last_evaluated_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "swot" "jsonb" DEFAULT '{"threats": [], "strengths": [], "weaknesses": [], "opportunities": []}'::"jsonb" NOT NULL,
+    CONSTRAINT "invest_theses_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"]))),
+    CONSTRAINT "invest_theses_intent_check" CHECK (("intent" = ANY (ARRAY['core'::"text", 'growth'::"text", 'income'::"text", 'speculative'::"text"]))),
+    CONSTRAINT "invest_theses_status_check" CHECK (("status" = ANY (ARRAY['healthy'::"text", 'drifting'::"text", 'broken'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_theses" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_user_profile" (
+    "user_id" "uuid" NOT NULL,
+    "risk_tolerance" "text",
+    "horizon" "text",
+    "goal" "text",
+    "experience" "text",
+    "answer_style" "text",
+    "sectors" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "exclusions" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "mandate" "text",
+    CONSTRAINT "invest_user_profile_answer_style_check" CHECK (("answer_style" = ANY (ARRAY['concise'::"text", 'balanced'::"text", 'teach'::"text"]))),
+    CONSTRAINT "invest_user_profile_experience_check" CHECK (("experience" = ANY (ARRAY['new'::"text", 'intermediate'::"text", 'experienced'::"text"]))),
+    CONSTRAINT "invest_user_profile_goal_check" CHECK (("goal" = ANY (ARRAY['growth'::"text", 'income'::"text", 'preservation'::"text", 'learn'::"text"]))),
+    CONSTRAINT "invest_user_profile_horizon_check" CHECK (("horizon" = ANY (ARRAY['short'::"text", 'medium'::"text", 'long'::"text"]))),
+    CONSTRAINT "invest_user_profile_risk_tolerance_check" CHECK (("risk_tolerance" = ANY (ARRAY['conservative'::"text", 'balanced'::"text", 'aggressive'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_user_profile" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invest_watchlist" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "asset_class" "text" NOT NULL,
+    "symbol" "text" NOT NULL,
+    "name" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "invest_watchlist_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."invest_watchlist" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."job_attempts" (
@@ -10674,7 +12261,8 @@ CREATE TABLE IF NOT EXISTS "public"."law_page_hashes" (
     "redirect_url" "text",
     "is_broken" boolean DEFAULT false,
     "last_broken_at" timestamp with time zone,
-    "consecutive_failures" integer DEFAULT 0
+    "consecutive_failures" integer DEFAULT 0,
+    "meta" "jsonb"
 );
 
 
@@ -10727,6 +12315,19 @@ CREATE TABLE IF NOT EXISTS "public"."legal_ingestion_sources" (
 
 
 ALTER TABLE "public"."legal_ingestion_sources" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."notification_log" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "kind" "text" NOT NULL,
+    "ref_date" "date" NOT NULL,
+    "sent_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "notification_log_kind_check" CHECK (("kind" = ANY (ARRAY['pr_coverage'::"text", 'pr_coverage_alert'::"text", 'health_streak_risk'::"text", 'health_checkin_reminder'::"text"])))
+);
+
+
+ALTER TABLE "public"."notification_log" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."offer_workflow_states" (
@@ -10960,6 +12561,246 @@ ALTER TABLE "public"."platform_capacity_config" OWNER TO "postgres";
 
 COMMENT ON TABLE "public"."platform_capacity_config" IS 'Single-row configuration for organization capacity and admission mode.';
 
+
+
+CREATE TABLE IF NOT EXISTS "public"."portal_notification_prefs" (
+    "user_id" "uuid" NOT NULL,
+    "surface" "text" NOT NULL,
+    "email_enabled" boolean DEFAULT true NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "reminder_enabled" boolean DEFAULT false NOT NULL,
+    "tz" "text",
+    CONSTRAINT "portal_notification_prefs_surface_check" CHECK (("surface" = ANY (ARRAY['pr'::"text", 'health'::"text"])))
+);
+
+
+ALTER TABLE "public"."portal_notification_prefs" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."portal_notification_prefs"."reminder_enabled" IS 'Opt-in daily check-in reminder (health-habit-notify evening sweep). False/absent = off.';
+
+
+
+COMMENT ON COLUMN "public"."portal_notification_prefs"."tz" IS 'Last-seen IANA timezone (e.g. America/Toronto), synced by the portal. Used by health-habit-notify to compute the user''s local today; NULL falls back to UTC.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_access" (
+    "user_id" "uuid" NOT NULL,
+    "granted_by" "text" DEFAULT ''::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "granted_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pr_access" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_campaigns" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "channel" "text" DEFAULT 'mixed'::"text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "objective" "text" DEFAULT ''::"text" NOT NULL,
+    "budget_cad" numeric(12,2),
+    "starts_on" "date",
+    "ends_on" "date",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "pr_campaigns_budget_cad_check" CHECK ((("budget_cad" IS NULL) OR ("budget_cad" >= (0)::numeric))),
+    CONSTRAINT "pr_campaigns_channel_check" CHECK (("channel" = ANY (ARRAY['mixed'::"text", 'social'::"text", 'search'::"text", 'display'::"text", 'email'::"text", 'press'::"text", 'events'::"text", 'other'::"text"]))),
+    CONSTRAINT "pr_campaigns_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'active'::"text", 'paused'::"text", 'done'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_campaigns" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_chat_messages" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "role" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "action" "jsonb",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "feedback" smallint,
+    "thread_id" "uuid",
+    "feedback_reason" "text",
+    "reasoning" "text",
+    "sources" "jsonb",
+    CONSTRAINT "pr_chat_messages_feedback_check" CHECK (("feedback" = ANY (ARRAY['-1'::integer, 1]))),
+    CONSTRAINT "pr_chat_messages_role_check" CHECK (("role" = ANY (ARRAY['user'::"text", 'assistant'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_chat_messages" OWNER TO "postgres";
+
+
+COMMENT ON COLUMN "public"."pr_chat_messages"."sources" IS 'Grounding sources attached to this turn: [{label, url?}] — coverage mentions the reply names, with links when logged.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_chat_threads" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "title" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pr_chat_threads" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_connections" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "provider" "text" NOT NULL,
+    "status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "account_label" "text" DEFAULT ''::"text" NOT NULL,
+    "connected_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "pr_connections_provider_check" CHECK (("provider" = ANY (ARRAY['buffer'::"text", 'linkedin'::"text", 'meta'::"text", 'search_console'::"text"]))),
+    CONSTRAINT "pr_connections_status_check" CHECK (("status" = ANY (ARRAY['pending'::"text", 'connected'::"text", 'error'::"text", 'disconnected'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_connections" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_content_items" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "campaign_id" "uuid",
+    "kind" "text" DEFAULT 'post'::"text" NOT NULL,
+    "title" "text" DEFAULT ''::"text" NOT NULL,
+    "body" "text" DEFAULT ''::"text" NOT NULL,
+    "channel" "text" DEFAULT ''::"text" NOT NULL,
+    "status" "text" DEFAULT 'draft'::"text" NOT NULL,
+    "scheduled_for" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "published_url" "text" DEFAULT ''::"text" NOT NULL,
+    "published_at" timestamp with time zone,
+    CONSTRAINT "pr_content_items_kind_check" CHECK (("kind" = ANY (ARRAY['post'::"text", 'release'::"text", 'ad'::"text", 'article'::"text", 'brief'::"text"]))),
+    CONSTRAINT "pr_content_items_status_check" CHECK (("status" = ANY (ARRAY['draft'::"text", 'scheduled'::"text", 'published'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_content_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_feeds" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "url" "text" NOT NULL,
+    "label" "text" DEFAULT ''::"text" NOT NULL,
+    "last_synced_at" timestamp with time zone,
+    "last_item_count" integer,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pr_feeds" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_geo_prompts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "prompt" "text" NOT NULL,
+    "engine" "text" DEFAULT 'chatgpt'::"text" NOT NULL,
+    "result" "text" DEFAULT 'unchecked'::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "checked_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "checked_via" "text" DEFAULT 'manual'::"text" NOT NULL,
+    "note_source" "text" DEFAULT 'auto'::"text" NOT NULL,
+    CONSTRAINT "pr_geo_prompts_checked_via_check" CHECK (("checked_via" = ANY (ARRAY['manual'::"text", 'auto'::"text"]))),
+    CONSTRAINT "pr_geo_prompts_engine_check" CHECK (("engine" = ANY (ARRAY['chatgpt'::"text", 'perplexity'::"text", 'gemini'::"text", 'copilot'::"text", 'other'::"text"]))),
+    CONSTRAINT "pr_geo_prompts_note_source_check" CHECK (("note_source" = ANY (ARRAY['manual'::"text", 'auto'::"text"]))),
+    CONSTRAINT "pr_geo_prompts_result_check" CHECK (("result" = ANY (ARRAY['unchecked'::"text", 'cited'::"text", 'mentioned'::"text", 'absent'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_geo_prompts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_keywords" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "keyword" "text" NOT NULL,
+    "target_url" "text" DEFAULT ''::"text" NOT NULL,
+    "position" smallint,
+    "previous_position" smallint,
+    "checked_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "pr_keywords_position_check" CHECK ((("position" IS NULL) OR (("position" >= 1) AND ("position" <= 100)))),
+    CONSTRAINT "pr_keywords_previous_position_check" CHECK ((("previous_position" IS NULL) OR (("previous_position" >= 1) AND ("previous_position" <= 100))))
+);
+
+
+ALTER TABLE "public"."pr_keywords" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_media_contacts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "outlet" "text" DEFAULT ''::"text" NOT NULL,
+    "beat" "text" DEFAULT ''::"text" NOT NULL,
+    "email" "text" DEFAULT ''::"text" NOT NULL,
+    "note" "text" DEFAULT ''::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pr_media_contacts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pr_mentions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "source" "text" DEFAULT ''::"text" NOT NULL,
+    "title" "text" NOT NULL,
+    "url" "text" DEFAULT ''::"text" NOT NULL,
+    "sentiment" "text" DEFAULT 'neutral'::"text" NOT NULL,
+    "published_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "sentiment_auto" boolean DEFAULT false NOT NULL,
+    CONSTRAINT "pr_mentions_sentiment_check" CHECK (("sentiment" = ANY (ARRAY['positive'::"text", 'neutral'::"text", 'negative'::"text"])))
+);
+
+
+ALTER TABLE "public"."pr_mentions" OWNER TO "postgres";
+
+
+CREATE OR REPLACE VIEW "public"."public_job_postings" AS
+ SELECT "jp"."id",
+    "jp"."organization_id",
+    "o"."name" AS "organization_name",
+    "jp"."title",
+    "jp"."department",
+    "jp"."location",
+    "jp"."type",
+    "jp"."description",
+    "jp"."requirements",
+    "jp"."status",
+    "jp"."posted_date",
+    "jp"."closing_date",
+    "jp"."slug",
+    "jp"."responsibilities",
+    "jp"."benefits",
+    "jp"."salary_min",
+    "jp"."salary_max",
+    "jp"."salary_period",
+    "jp"."employer_blurb"
+   FROM ("public"."hr_job_postings" "jp"
+     JOIN "public"."organizations" "o" ON (("o"."id" = "jp"."organization_id")))
+  WHERE ("jp"."status" = 'active'::"text");
+
+
+ALTER VIEW "public"."public_job_postings" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."revenue_invoices" (
@@ -11950,6 +13791,7 @@ CREATE TABLE IF NOT EXISTS "public"."workspace_preferences" (
     "user_id" "uuid" NOT NULL,
     "mode" "text" DEFAULT 'demo'::"text" NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "onboarding" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
     CONSTRAINT "workspace_preferences_mode_check" CHECK (("mode" = ANY (ARRAY['demo'::"text", 'production'::"text"])))
 );
 
@@ -12027,6 +13869,11 @@ ALTER TABLE ONLY "public"."advisor_memories"
 
 
 
+ALTER TABLE ONLY "public"."advisor_turn_feedback"
+    ADD CONSTRAINT "advisor_turn_feedback_pkey" PRIMARY KEY ("user_id", "conversation_id", "turn_index");
+
+
+
 ALTER TABLE ONLY "public"."agent_audit"
     ADD CONSTRAINT "agent_audit_pkey" PRIMARY KEY ("id");
 
@@ -12034,6 +13881,11 @@ ALTER TABLE ONLY "public"."agent_audit"
 
 ALTER TABLE ONLY "public"."agent_runs"
     ADD CONSTRAINT "agent_runs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."agent_suggestions"
+    ADD CONSTRAINT "agent_suggestions_pkey" PRIMARY KEY ("id");
 
 
 
@@ -12162,6 +14014,16 @@ ALTER TABLE ONLY "public"."billing_events"
 
 
 
+ALTER TABLE ONLY "public"."candidate_agent_settings"
+    ADD CONSTRAINT "candidate_agent_settings_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_ai_usage"
+    ADD CONSTRAINT "candidate_ai_usage_pkey" PRIMARY KEY ("user_id", "day");
+
+
+
 ALTER TABLE ONLY "public"."candidate_applications"
     ADD CONSTRAINT "candidate_applications_candidate_id_job_posting_id_key" UNIQUE ("candidate_id", "job_posting_id");
 
@@ -12172,6 +14034,36 @@ ALTER TABLE ONLY "public"."candidate_applications"
 
 
 
+ALTER TABLE ONLY "public"."candidate_chat_messages"
+    ADD CONSTRAINT "candidate_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_chat_threads"
+    ADD CONSTRAINT "candidate_chat_threads_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_discovered_jobs"
+    ADD CONSTRAINT "candidate_discovered_jobs_candidate_id_source_external_id_key" UNIQUE ("candidate_id", "source", "external_id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_discovered_jobs"
+    ADD CONSTRAINT "candidate_discovered_jobs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_external_applications"
+    ADD CONSTRAINT "candidate_external_applications_discovered_job_id_key" UNIQUE ("discovered_job_id");
+
+
+
+ALTER TABLE ONLY "public"."candidate_external_applications"
+    ADD CONSTRAINT "candidate_external_applications_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."candidate_profiles"
     ADD CONSTRAINT "candidate_profiles_pkey" PRIMARY KEY ("id");
 
@@ -12179,11 +14071,6 @@ ALTER TABLE ONLY "public"."candidate_profiles"
 
 ALTER TABLE ONLY "public"."candidate_profiles"
     ADD CONSTRAINT "candidate_profiles_user_id_key" UNIQUE ("user_id");
-
-
-
-ALTER TABLE ONLY "public"."candidate_resumes"
-    ADD CONSTRAINT "candidate_resumes_pkey" PRIMARY KEY ("id");
 
 
 
@@ -12502,6 +14389,16 @@ ALTER TABLE ONLY "public"."finance_budgets"
 
 
 
+ALTER TABLE ONLY "public"."finance_capital_calls"
+    ADD CONSTRAINT "finance_capital_calls_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_cash_sweeps"
+    ADD CONSTRAINT "finance_cash_sweeps_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."finance_categorization_feedback"
     ADD CONSTRAINT "finance_categorization_feedback_pkey" PRIMARY KEY ("id");
 
@@ -12517,8 +14414,18 @@ ALTER TABLE ONLY "public"."finance_close_periods"
 
 
 
+ALTER TABLE ONLY "public"."finance_commitments"
+    ADD CONSTRAINT "finance_commitments_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."finance_credits"
     ADD CONSTRAINT "finance_credits_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_deals"
+    ADD CONSTRAINT "finance_deals_pkey" PRIMARY KEY ("id");
 
 
 
@@ -12529,6 +14436,11 @@ ALTER TABLE ONLY "public"."finance_debts"
 
 ALTER TABLE ONLY "public"."finance_decision_entries"
     ADD CONSTRAINT "finance_decision_entries_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."finance_document_links"
+    ADD CONSTRAINT "finance_document_links_pkey" PRIMARY KEY ("id");
 
 
 
@@ -12714,6 +14626,51 @@ ALTER TABLE ONLY "public"."guidance_chunks"
 
 ALTER TABLE ONLY "public"."guidance_sources"
     ADD CONSTRAINT "guidance_sources_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_access"
+    ADD CONSTRAINT "health_access_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."health_chat_messages"
+    ADD CONSTRAINT "health_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_chat_threads"
+    ADD CONSTRAINT "health_chat_threads_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_checkins"
+    ADD CONSTRAINT "health_checkins_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_habit_logs"
+    ADD CONSTRAINT "health_habit_logs_habit_id_day_key" UNIQUE ("habit_id", "day");
+
+
+
+ALTER TABLE ONLY "public"."health_habit_logs"
+    ADD CONSTRAINT "health_habit_logs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_habits"
+    ADD CONSTRAINT "health_habits_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_journal_entries"
+    ADD CONSTRAINT "health_journal_entries_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."health_memories"
+    ADD CONSTRAINT "health_memories_pkey" PRIMARY KEY ("id");
 
 
 
@@ -12927,6 +14884,146 @@ ALTER TABLE ONLY "public"."integration_events"
 
 
 
+ALTER TABLE ONLY "public"."invest_access"
+    ADD CONSTRAINT "invest_access_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."invest_accounts"
+    ADD CONSTRAINT "invest_accounts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_book_snapshots"
+    ADD CONSTRAINT "invest_book_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_bot_runs"
+    ADD CONSTRAINT "invest_bot_runs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_cash_events"
+    ADD CONSTRAINT "invest_cash_events_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_chat_messages"
+    ADD CONSTRAINT "invest_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_chat_threads"
+    ADD CONSTRAINT "invest_chat_threads_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_goals"
+    ADD CONSTRAINT "invest_goals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_market_news"
+    ADD CONSTRAINT "invest_market_news_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_market_news"
+    ADD CONSTRAINT "invest_market_news_symbol_url_key" UNIQUE ("symbol", "url");
+
+
+
+ALTER TABLE ONLY "public"."invest_market_snapshots"
+    ADD CONSTRAINT "invest_market_snapshots_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_market_snapshots"
+    ADD CONSTRAINT "invest_market_snapshots_user_id_asset_class_symbol_key" UNIQUE ("user_id", "asset_class", "symbol");
+
+
+
+ALTER TABLE ONLY "public"."invest_memories"
+    ADD CONSTRAINT "invest_memories_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_notification_prefs"
+    ADD CONSTRAINT "invest_notification_prefs_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."invest_order_fills"
+    ADD CONSTRAINT "invest_order_fills_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_orders"
+    ADD CONSTRAINT "invest_orders_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_positions"
+    ADD CONSTRAINT "invest_positions_account_id_asset_class_symbol_key" UNIQUE ("account_id", "asset_class", "symbol");
+
+
+
+ALTER TABLE ONLY "public"."invest_positions"
+    ADD CONSTRAINT "invest_positions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_recurring_contributions"
+    ADD CONSTRAINT "invest_recurring_contributions_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_scan_items"
+    ADD CONSTRAINT "invest_scan_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_signals"
+    ADD CONSTRAINT "invest_signals_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_strategies"
+    ADD CONSTRAINT "invest_strategies_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_stress_scenarios"
+    ADD CONSTRAINT "invest_stress_scenarios_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_theses"
+    ADD CONSTRAINT "invest_theses_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_theses"
+    ADD CONSTRAINT "invest_theses_user_id_asset_class_symbol_key" UNIQUE ("user_id", "asset_class", "symbol");
+
+
+
+ALTER TABLE ONLY "public"."invest_user_profile"
+    ADD CONSTRAINT "invest_user_profile_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."invest_watchlist"
+    ADD CONSTRAINT "invest_watchlist_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invest_watchlist"
+    ADD CONSTRAINT "invest_watchlist_user_id_asset_class_symbol_key" UNIQUE ("user_id", "asset_class", "symbol");
+
+
+
 ALTER TABLE ONLY "public"."job_attempts"
     ADD CONSTRAINT "job_attempts_pkey" PRIMARY KEY ("id");
 
@@ -13004,6 +15101,16 @@ ALTER TABLE ONLY "public"."multi_agent_plans"
 
 ALTER TABLE ONLY "public"."notification_deliveries"
     ADD CONSTRAINT "notification_deliveries_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."notification_log"
+    ADD CONSTRAINT "notification_log_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."notification_log"
+    ADD CONSTRAINT "notification_log_user_id_kind_ref_date_key" UNIQUE ("user_id", "kind", "ref_date");
 
 
 
@@ -13119,6 +15226,76 @@ ALTER TABLE ONLY "public"."playbook_runs"
 
 ALTER TABLE ONLY "public"."policy_gap_analyses"
     ADD CONSTRAINT "policy_gap_analyses_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."portal_notification_prefs"
+    ADD CONSTRAINT "portal_notification_prefs_pkey" PRIMARY KEY ("user_id", "surface");
+
+
+
+ALTER TABLE ONLY "public"."pr_access"
+    ADD CONSTRAINT "pr_access_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."pr_campaigns"
+    ADD CONSTRAINT "pr_campaigns_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_chat_messages"
+    ADD CONSTRAINT "pr_chat_messages_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_chat_threads"
+    ADD CONSTRAINT "pr_chat_threads_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_connections"
+    ADD CONSTRAINT "pr_connections_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_connections"
+    ADD CONSTRAINT "pr_connections_user_id_provider_key" UNIQUE ("user_id", "provider");
+
+
+
+ALTER TABLE ONLY "public"."pr_content_items"
+    ADD CONSTRAINT "pr_content_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_feeds"
+    ADD CONSTRAINT "pr_feeds_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_feeds"
+    ADD CONSTRAINT "pr_feeds_user_id_url_key" UNIQUE ("user_id", "url");
+
+
+
+ALTER TABLE ONLY "public"."pr_geo_prompts"
+    ADD CONSTRAINT "pr_geo_prompts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_keywords"
+    ADD CONSTRAINT "pr_keywords_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_media_contacts"
+    ADD CONSTRAINT "pr_media_contacts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pr_mentions"
+    ADD CONSTRAINT "pr_mentions_pkey" PRIMARY KEY ("id");
 
 
 
@@ -13566,6 +15743,10 @@ CREATE INDEX "advisor_memories_user_id_fkey_idx" ON "public"."advisor_memories" 
 
 
 
+CREATE INDEX "advisor_turn_feedback_conversation_idx" ON "public"."advisor_turn_feedback" USING "btree" ("conversation_id");
+
+
+
 CREATE INDEX "agent_audit_created_at_idx" ON "public"."agent_audit" USING "btree" ("created_at");
 
 
@@ -13587,6 +15768,14 @@ CREATE INDEX "agent_runs_organization_id_fkey_idx" ON "public"."agent_runs" USIN
 
 
 CREATE INDEX "agent_runs_triggered_by_fkey_idx" ON "public"."agent_runs" USING "btree" ("triggered_by");
+
+
+
+CREATE UNIQUE INDEX "agent_suggestions_pending_dedupe" ON "public"."agent_suggestions" USING "btree" ("user_id", "surface", "kind", "dedupe_key") WHERE (("status" = 'pending'::"text") AND ("dedupe_key" IS NOT NULL));
+
+
+
+CREATE INDEX "agent_suggestions_user_pending_idx" ON "public"."agent_suggestions" USING "btree" ("user_id", "surface", "status", "created_at" DESC);
 
 
 
@@ -13675,6 +15864,30 @@ CREATE INDEX "billing_events_organization_id_fkey_idx" ON "public"."billing_even
 
 
 CREATE INDEX "billing_events_user_id_fkey_idx" ON "public"."billing_events" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "candidate_chat_messages_thread_idx" ON "public"."candidate_chat_messages" USING "btree" ("user_id", "thread_id", "created_at" DESC);
+
+
+
+CREATE INDEX "candidate_chat_messages_user_idx" ON "public"."candidate_chat_messages" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "candidate_chat_threads_user_idx" ON "public"."candidate_chat_threads" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "candidate_discovered_jobs_candidate_idx" ON "public"."candidate_discovered_jobs" USING "btree" ("candidate_id", "discovered_at" DESC);
+
+
+
+CREATE INDEX "candidate_discovered_jobs_status_idx" ON "public"."candidate_discovered_jobs" USING "btree" ("candidate_id", "status");
+
+
+
+CREATE INDEX "candidate_external_applications_candidate_idx" ON "public"."candidate_external_applications" USING "btree" ("candidate_id", "created_at" DESC);
 
 
 
@@ -14094,6 +16307,26 @@ CREATE INDEX "finance_budgets_organization_id_idx" ON "public"."finance_budgets"
 
 
 
+CREATE INDEX "finance_capital_calls_commitment_id_idx" ON "public"."finance_capital_calls" USING "btree" ("commitment_id");
+
+
+
+CREATE INDEX "finance_capital_calls_organization_id_idx" ON "public"."finance_capital_calls" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_cash_sweeps_from_account_id_idx" ON "public"."finance_cash_sweeps" USING "btree" ("from_account_id");
+
+
+
+CREATE INDEX "finance_cash_sweeps_organization_id_idx" ON "public"."finance_cash_sweeps" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_cash_sweeps_to_account_id_idx" ON "public"."finance_cash_sweeps" USING "btree" ("to_account_id");
+
+
+
 CREATE INDEX "finance_categorization_feedback_entity_id_idx" ON "public"."finance_categorization_feedback" USING "btree" ("entity_id");
 
 
@@ -14118,7 +16351,23 @@ CREATE INDEX "finance_close_periods_organization_id_idx" ON "public"."finance_cl
 
 
 
+CREATE INDEX "finance_commitments_organization_id_idx" ON "public"."finance_commitments" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_commitments_party_id_idx" ON "public"."finance_commitments" USING "btree" ("party_id");
+
+
+
 CREATE INDEX "finance_credits_organization_id_idx" ON "public"."finance_credits" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_deals_organization_id_idx" ON "public"."finance_deals" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "finance_deals_stage_idx" ON "public"."finance_deals" USING "btree" ("stage");
 
 
 
@@ -14131,6 +16380,18 @@ CREATE INDEX "finance_decision_entries_organization_id_idx" ON "public"."finance
 
 
 CREATE INDEX "finance_decision_entries_review_date_idx" ON "public"."finance_decision_entries" USING "btree" ("review_date") WHERE ("review_date" IS NOT NULL);
+
+
+
+CREATE INDEX "finance_document_links_deal_id_idx" ON "public"."finance_document_links" USING "btree" ("deal_id");
+
+
+
+CREATE INDEX "finance_document_links_holding_id_idx" ON "public"."finance_document_links" USING "btree" ("holding_id");
+
+
+
+CREATE INDEX "finance_document_links_organization_id_idx" ON "public"."finance_document_links" USING "btree" ("organization_id");
 
 
 
@@ -14295,6 +16556,38 @@ CREATE INDEX "guidance_chunks_organization_id_fkey_idx" ON "public"."guidance_ch
 
 
 CREATE INDEX "guidance_chunks_source_id_fkey_idx" ON "public"."guidance_chunks" USING "btree" ("source_id");
+
+
+
+CREATE INDEX "health_chat_messages_thread_idx" ON "public"."health_chat_messages" USING "btree" ("user_id", "thread_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_chat_messages_user_idx" ON "public"."health_chat_messages" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_chat_threads_user_idx" ON "public"."health_chat_threads" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_checkins_user_idx" ON "public"."health_checkins" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_habit_logs_user_idx" ON "public"."health_habit_logs" USING "btree" ("user_id", "day" DESC);
+
+
+
+CREATE INDEX "health_habits_user_idx" ON "public"."health_habits" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_journal_entries_user_idx" ON "public"."health_journal_entries" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "health_memories_user_idx" ON "public"."health_memories" USING "btree" ("user_id", "created_at" DESC);
 
 
 
@@ -14506,6 +16799,10 @@ CREATE INDEX "hr_generated_documents_updated_by_fkey_idx" ON "public"."hr_genera
 
 
 
+CREATE UNIQUE INDEX "hr_job_postings_slug_key" ON "public"."hr_job_postings" USING "btree" ("slug");
+
+
+
 CREATE INDEX "hr_leaves_created_by_fkey_idx" ON "public"."hr_leaves" USING "btree" ("created_by");
 
 
@@ -14595,14 +16892,6 @@ CREATE INDEX "idx_candidate_applications_status" ON "public"."candidate_applicat
 
 
 CREATE INDEX "idx_candidate_profiles_user" ON "public"."candidate_profiles" USING "btree" ("user_id");
-
-
-
-CREATE INDEX "idx_candidate_resumes_base" ON "public"."candidate_resumes" USING "btree" ("candidate_id", "is_base");
-
-
-
-CREATE INDEX "idx_candidate_resumes_candidate" ON "public"."candidate_resumes" USING "btree" ("candidate_id");
 
 
 
@@ -14762,6 +17051,90 @@ CREATE INDEX "integration_events_unprocessed_idx" ON "public"."integration_event
 
 
 
+CREATE UNIQUE INDEX "invest_accounts_seed_unique" ON "public"."invest_accounts" USING "btree" ("user_id") WHERE "seeded";
+
+
+
+CREATE UNIQUE INDEX "invest_book_snapshots_account_uniq" ON "public"."invest_book_snapshots" USING "btree" ("user_id", "account_id", "as_of") WHERE ("account_id" IS NOT NULL);
+
+
+
+CREATE UNIQUE INDEX "invest_book_snapshots_book_uniq" ON "public"."invest_book_snapshots" USING "btree" ("user_id", "as_of") WHERE ("account_id" IS NULL);
+
+
+
+CREATE INDEX "invest_book_snapshots_user_idx" ON "public"."invest_book_snapshots" USING "btree" ("user_id", "as_of");
+
+
+
+CREATE INDEX "invest_bot_runs_user_idx" ON "public"."invest_bot_runs" USING "btree" ("user_id", "ran_at" DESC);
+
+
+
+CREATE INDEX "invest_cash_events_user_idx" ON "public"."invest_cash_events" USING "btree" ("user_id", "occurred_at" DESC);
+
+
+
+CREATE INDEX "invest_chat_messages_thread_idx" ON "public"."invest_chat_messages" USING "btree" ("user_id", "thread_id", "created_at" DESC);
+
+
+
+CREATE INDEX "invest_chat_messages_user_idx" ON "public"."invest_chat_messages" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "invest_chat_threads_user_idx" ON "public"."invest_chat_threads" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "invest_goals_user_idx" ON "public"."invest_goals" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "invest_memories_user_idx" ON "public"."invest_memories" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "invest_order_fills_order_idx" ON "public"."invest_order_fills" USING "btree" ("order_id");
+
+
+
+CREATE INDEX "invest_order_fills_user_idx" ON "public"."invest_order_fills" USING "btree" ("user_id", "filled_at" DESC);
+
+
+
+CREATE INDEX "invest_orders_user_idx" ON "public"."invest_orders" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "invest_positions_account_idx" ON "public"."invest_positions" USING "btree" ("account_id");
+
+
+
+CREATE INDEX "invest_positions_user_idx" ON "public"."invest_positions" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "invest_recurring_due_idx" ON "public"."invest_recurring_contributions" USING "btree" ("next_run_on") WHERE "enabled";
+
+
+
+CREATE INDEX "invest_scan_items_user_idx" ON "public"."invest_scan_items" USING "btree" ("user_id");
+
+
+
+CREATE INDEX "invest_signals_rule_idx" ON "public"."invest_signals" USING "btree" ("user_id", "rule_id") WHERE ("rule_id" IS NOT NULL);
+
+
+
+CREATE INDEX "invest_signals_user_idx" ON "public"."invest_signals" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "invest_stress_scenarios_user_idx" ON "public"."invest_stress_scenarios" USING "btree" ("user_id", "created_at" DESC);
+
+
+
 CREATE INDEX "job_attempts_job_id_fkey_idx" ON "public"."job_attempts" USING "btree" ("job_id");
 
 
@@ -14823,6 +17196,10 @@ CREATE INDEX "multi_agent_plans_organization_id_fkey_idx" ON "public"."multi_age
 
 
 CREATE INDEX "notification_deliveries_notification_id_fkey_idx" ON "public"."notification_deliveries" USING "btree" ("notification_id");
+
+
+
+CREATE INDEX "notification_log_user_idx" ON "public"."notification_log" USING "btree" ("user_id", "ref_date" DESC);
 
 
 
@@ -14911,6 +17288,62 @@ CREATE INDEX "policy_gap_analyses_created_by_fkey_idx" ON "public"."policy_gap_a
 
 
 CREATE INDEX "policy_gap_analyses_organization_id_fkey_idx" ON "public"."policy_gap_analyses" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "pr_campaigns_user_idx" ON "public"."pr_campaigns" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_chat_messages_thread_idx" ON "public"."pr_chat_messages" USING "btree" ("user_id", "thread_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_chat_messages_user_idx" ON "public"."pr_chat_messages" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_chat_threads_user_idx" ON "public"."pr_chat_threads" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_content_items_campaign_idx" ON "public"."pr_content_items" USING "btree" ("campaign_id") WHERE ("campaign_id" IS NOT NULL);
+
+
+
+CREATE INDEX "pr_content_items_user_idx" ON "public"."pr_content_items" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_feeds_user_idx" ON "public"."pr_feeds" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_geo_prompts_user_idx" ON "public"."pr_geo_prompts" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE UNIQUE INDEX "pr_geo_prompts_user_prompt_uniq" ON "public"."pr_geo_prompts" USING "btree" ("user_id", "lower"("btrim"("prompt")));
+
+
+
+CREATE INDEX "pr_keywords_user_idx" ON "public"."pr_keywords" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE UNIQUE INDEX "pr_keywords_user_keyword_uniq" ON "public"."pr_keywords" USING "btree" ("user_id", "lower"("btrim"("keyword")));
+
+
+
+CREATE INDEX "pr_media_contacts_user_idx" ON "public"."pr_media_contacts" USING "btree" ("user_id", "created_at" DESC);
+
+
+
+CREATE INDEX "pr_mentions_user_idx" ON "public"."pr_mentions" USING "btree" ("user_id", "published_at" DESC);
+
+
+
+CREATE UNIQUE INDEX "pr_mentions_user_url_uniq" ON "public"."pr_mentions" USING "btree" ("user_id", "url") WHERE ("url" <> ''::"text");
 
 
 
@@ -15190,6 +17623,14 @@ CREATE OR REPLACE TRIGGER "employees_assert_capacity" BEFORE INSERT OR UPDATE OF
 
 
 
+CREATE OR REPLACE TRIGGER "finance_capital_calls_notify_insert" AFTER INSERT ON "public"."finance_capital_calls" FOR EACH ROW WHEN (("new"."status" = 'notified'::"text")) EXECUTE FUNCTION "public"."_finance_call_notify_on_notified"();
+
+
+
+CREATE OR REPLACE TRIGGER "finance_capital_calls_notify_update" AFTER UPDATE OF "status" ON "public"."finance_capital_calls" FOR EACH ROW WHEN ((("new"."status" = 'notified'::"text") AND ("old"."status" <> 'notified'::"text"))) EXECUTE FUNCTION "public"."_finance_call_notify_on_notified"();
+
+
+
 CREATE OR REPLACE TRIGGER "finance_categorization_feedback_set_updated_at" BEFORE UPDATE ON "public"."finance_categorization_feedback" FOR EACH ROW EXECUTE FUNCTION "public"."finance_categorization_feedback_set_updated_at"();
 
 
@@ -15206,6 +17647,10 @@ CREATE OR REPLACE TRIGGER "finance_workspace_settings_set_updated_at" BEFORE UPD
 
 
 
+CREATE OR REPLACE TRIGGER "guard_candidate_application_update" BEFORE UPDATE ON "public"."candidate_applications" FOR EACH ROW EXECUTE FUNCTION "public"."guard_candidate_application_update"();
+
+
+
 CREATE OR REPLACE TRIGGER "hr_cases_assert_capacity" BEFORE INSERT ON "public"."hr_cases" FOR EACH ROW EXECUTE FUNCTION "public"."assert_active_case_capacity"();
 
 
@@ -15215,6 +17660,10 @@ CREATE OR REPLACE TRIGGER "hr_document_signatures_claim_send" BEFORE INSERT ON "
 
 
 CREATE OR REPLACE TRIGGER "hr_generated_documents_claim_save" BEFORE INSERT ON "public"."hr_generated_documents" FOR EACH ROW EXECUTE FUNCTION "public"."trg_claim_document_save"();
+
+
+
+CREATE OR REPLACE TRIGGER "job_posting_set_slug" BEFORE INSERT ON "public"."hr_job_postings" FOR EACH ROW EXECUTE FUNCTION "public"."job_posting_set_slug"();
 
 
 
@@ -15319,10 +17768,6 @@ CREATE OR REPLACE TRIGGER "update_candidate_applications_updated_at" BEFORE UPDA
 
 
 CREATE OR REPLACE TRIGGER "update_candidate_profiles_updated_at" BEFORE UPDATE ON "public"."candidate_profiles" FOR EACH ROW EXECUTE FUNCTION "public"."update_candidate_updated_at"();
-
-
-
-CREATE OR REPLACE TRIGGER "update_candidate_resumes_updated_at" BEFORE UPDATE ON "public"."candidate_resumes" FOR EACH ROW EXECUTE FUNCTION "public"."update_candidate_updated_at"();
 
 
 
@@ -15466,6 +17911,16 @@ ALTER TABLE ONLY "public"."advisor_memories"
 
 
 
+ALTER TABLE ONLY "public"."advisor_turn_feedback"
+    ADD CONSTRAINT "advisor_turn_feedback_conversation_id_fkey" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."advisor_turn_feedback"
+    ADD CONSTRAINT "advisor_turn_feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."agent_audit"
     ADD CONSTRAINT "agent_audit_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id");
 
@@ -15483,6 +17938,11 @@ ALTER TABLE ONLY "public"."agent_runs"
 
 ALTER TABLE ONLY "public"."agent_runs"
     ADD CONSTRAINT "agent_runs_triggered_by_fkey" FOREIGN KEY ("triggered_by") REFERENCES "auth"."users"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."agent_suggestions"
+    ADD CONSTRAINT "agent_suggestions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -15606,6 +18066,16 @@ ALTER TABLE ONLY "public"."billing_events"
 
 
 
+ALTER TABLE ONLY "public"."candidate_agent_settings"
+    ADD CONSTRAINT "candidate_agent_settings_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_ai_usage"
+    ADD CONSTRAINT "candidate_ai_usage_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."candidate_applications"
     ADD CONSTRAINT "candidate_applications_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
 
@@ -15616,18 +18086,38 @@ ALTER TABLE ONLY "public"."candidate_applications"
 
 
 
+ALTER TABLE ONLY "public"."candidate_chat_messages"
+    ADD CONSTRAINT "candidate_chat_messages_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "public"."candidate_chat_threads"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_chat_messages"
+    ADD CONSTRAINT "candidate_chat_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_chat_threads"
+    ADD CONSTRAINT "candidate_chat_threads_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_discovered_jobs"
+    ADD CONSTRAINT "candidate_discovered_jobs_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_external_applications"
+    ADD CONSTRAINT "candidate_external_applications_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."candidate_external_applications"
+    ADD CONSTRAINT "candidate_external_applications_discovered_job_id_fkey" FOREIGN KEY ("discovered_job_id") REFERENCES "public"."candidate_discovered_jobs"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."candidate_profiles"
     ADD CONSTRAINT "candidate_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."candidate_resumes"
-    ADD CONSTRAINT "candidate_resumes_candidate_id_fkey" FOREIGN KEY ("candidate_id") REFERENCES "public"."candidate_profiles"("id") ON DELETE CASCADE;
-
-
-
-ALTER TABLE ONLY "public"."candidate_resumes"
-    ADD CONSTRAINT "candidate_resumes_tailored_for_posting_id_fkey" FOREIGN KEY ("tailored_for_posting_id") REFERENCES "public"."hr_job_postings"("id") ON DELETE SET NULL;
 
 
 
@@ -16086,6 +18576,36 @@ ALTER TABLE ONLY "public"."finance_budgets"
 
 
 
+ALTER TABLE ONLY "public"."finance_capital_calls"
+    ADD CONSTRAINT "finance_capital_calls_commitment_id_fkey" FOREIGN KEY ("commitment_id") REFERENCES "public"."finance_commitments"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_capital_calls"
+    ADD CONSTRAINT "finance_capital_calls_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_cash_sweeps"
+    ADD CONSTRAINT "finance_cash_sweeps_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_cash_sweeps"
+    ADD CONSTRAINT "finance_cash_sweeps_from_account_id_fkey" FOREIGN KEY ("from_account_id") REFERENCES "public"."finance_bank_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_cash_sweeps"
+    ADD CONSTRAINT "finance_cash_sweeps_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_cash_sweeps"
+    ADD CONSTRAINT "finance_cash_sweeps_to_account_id_fkey" FOREIGN KEY ("to_account_id") REFERENCES "public"."finance_bank_accounts"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."finance_categorization_feedback"
     ADD CONSTRAINT "finance_categorization_feedback_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
 
@@ -16121,6 +18641,21 @@ ALTER TABLE ONLY "public"."finance_close_periods"
 
 
 
+ALTER TABLE ONLY "public"."finance_commitments"
+    ADD CONSTRAINT "finance_commitments_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_commitments"
+    ADD CONSTRAINT "finance_commitments_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_commitments"
+    ADD CONSTRAINT "finance_commitments_party_id_fkey" FOREIGN KEY ("party_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."finance_credits"
     ADD CONSTRAINT "finance_credits_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
 
@@ -16133,6 +18668,26 @@ ALTER TABLE ONLY "public"."finance_credits"
 
 ALTER TABLE ONLY "public"."finance_credits"
     ADD CONSTRAINT "finance_credits_party_id_fkey" FOREIGN KEY ("party_id") REFERENCES "public"."finance_parties"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_deals"
+    ADD CONSTRAINT "finance_deals_entity_id_fkey" FOREIGN KEY ("entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_deals"
+    ADD CONSTRAINT "finance_deals_holding_id_fkey" FOREIGN KEY ("holding_id") REFERENCES "public"."finance_holdings"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."finance_deals"
+    ADD CONSTRAINT "finance_deals_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_deals"
+    ADD CONSTRAINT "finance_deals_watchlist_item_id_fkey" FOREIGN KEY ("watchlist_item_id") REFERENCES "public"."finance_watchlist_items"("id") ON DELETE SET NULL;
 
 
 
@@ -16166,8 +18721,28 @@ ALTER TABLE ONLY "public"."finance_decision_entries"
 
 
 
+ALTER TABLE ONLY "public"."finance_document_links"
+    ADD CONSTRAINT "finance_document_links_deal_id_fkey" FOREIGN KEY ("deal_id") REFERENCES "public"."finance_deals"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_document_links"
+    ADD CONSTRAINT "finance_document_links_holding_id_fkey" FOREIGN KEY ("holding_id") REFERENCES "public"."finance_holdings"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_document_links"
+    ADD CONSTRAINT "finance_document_links_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."finance_entities"
     ADD CONSTRAINT "finance_entities_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."finance_entities"
+    ADD CONSTRAINT "finance_entities_parent_entity_id_fkey" FOREIGN KEY ("parent_entity_id") REFERENCES "public"."finance_entities"("id") ON DELETE SET NULL;
 
 
 
@@ -16488,6 +19063,56 @@ ALTER TABLE ONLY "public"."guidance_chunks"
 
 ALTER TABLE ONLY "public"."guidance_chunks"
     ADD CONSTRAINT "guidance_chunks_source_id_fkey" FOREIGN KEY ("source_id") REFERENCES "public"."guidance_sources"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_access"
+    ADD CONSTRAINT "health_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_chat_messages"
+    ADD CONSTRAINT "health_chat_messages_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "public"."health_chat_threads"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_chat_messages"
+    ADD CONSTRAINT "health_chat_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_chat_threads"
+    ADD CONSTRAINT "health_chat_threads_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_checkins"
+    ADD CONSTRAINT "health_checkins_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_habit_logs"
+    ADD CONSTRAINT "health_habit_logs_habit_id_fkey" FOREIGN KEY ("habit_id") REFERENCES "public"."health_habits"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_habit_logs"
+    ADD CONSTRAINT "health_habit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_habits"
+    ADD CONSTRAINT "health_habits_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_journal_entries"
+    ADD CONSTRAINT "health_journal_entries_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."health_memories"
+    ADD CONSTRAINT "health_memories_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -16886,6 +19511,171 @@ ALTER TABLE ONLY "public"."integration_events"
 
 
 
+ALTER TABLE ONLY "public"."invest_access"
+    ADD CONSTRAINT "invest_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_accounts"
+    ADD CONSTRAINT "invest_accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_book_snapshots"
+    ADD CONSTRAINT "invest_book_snapshots_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."invest_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_book_snapshots"
+    ADD CONSTRAINT "invest_book_snapshots_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_bot_runs"
+    ADD CONSTRAINT "invest_bot_runs_strategy_id_fkey" FOREIGN KEY ("strategy_id") REFERENCES "public"."invest_strategies"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."invest_bot_runs"
+    ADD CONSTRAINT "invest_bot_runs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_cash_events"
+    ADD CONSTRAINT "invest_cash_events_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."invest_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_cash_events"
+    ADD CONSTRAINT "invest_cash_events_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_chat_messages"
+    ADD CONSTRAINT "invest_chat_messages_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "public"."invest_chat_threads"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_chat_messages"
+    ADD CONSTRAINT "invest_chat_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_chat_threads"
+    ADD CONSTRAINT "invest_chat_threads_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_goals"
+    ADD CONSTRAINT "invest_goals_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_market_snapshots"
+    ADD CONSTRAINT "invest_market_snapshots_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_memories"
+    ADD CONSTRAINT "invest_memories_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_notification_prefs"
+    ADD CONSTRAINT "invest_notification_prefs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_order_fills"
+    ADD CONSTRAINT "invest_order_fills_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "public"."invest_orders"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_order_fills"
+    ADD CONSTRAINT "invest_order_fills_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_orders"
+    ADD CONSTRAINT "invest_orders_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."invest_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_orders"
+    ADD CONSTRAINT "invest_orders_signal_id_fkey" FOREIGN KEY ("signal_id") REFERENCES "public"."invest_signals"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."invest_orders"
+    ADD CONSTRAINT "invest_orders_strategy_id_fkey" FOREIGN KEY ("strategy_id") REFERENCES "public"."invest_strategies"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."invest_orders"
+    ADD CONSTRAINT "invest_orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_positions"
+    ADD CONSTRAINT "invest_positions_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."invest_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_positions"
+    ADD CONSTRAINT "invest_positions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_recurring_contributions"
+    ADD CONSTRAINT "invest_recurring_contributions_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "public"."invest_accounts"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_recurring_contributions"
+    ADD CONSTRAINT "invest_recurring_contributions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_scan_items"
+    ADD CONSTRAINT "invest_scan_items_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_signals"
+    ADD CONSTRAINT "invest_signals_strategy_id_fkey" FOREIGN KEY ("strategy_id") REFERENCES "public"."invest_strategies"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."invest_signals"
+    ADD CONSTRAINT "invest_signals_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_strategies"
+    ADD CONSTRAINT "invest_strategies_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_stress_scenarios"
+    ADD CONSTRAINT "invest_stress_scenarios_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_theses"
+    ADD CONSTRAINT "invest_theses_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_user_profile"
+    ADD CONSTRAINT "invest_user_profile_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invest_watchlist"
+    ADD CONSTRAINT "invest_watchlist_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."job_attempts"
     ADD CONSTRAINT "job_attempts_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "public"."job_queue"("id") ON DELETE CASCADE;
 
@@ -16953,6 +19743,11 @@ ALTER TABLE ONLY "public"."multi_agent_plans"
 
 ALTER TABLE ONLY "public"."notification_deliveries"
     ADD CONSTRAINT "notification_deliveries_notification_id_fkey" FOREIGN KEY ("notification_id") REFERENCES "public"."notifications"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."notification_log"
+    ADD CONSTRAINT "notification_log_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -17133,6 +19928,76 @@ ALTER TABLE ONLY "public"."policy_gap_analyses"
 
 ALTER TABLE ONLY "public"."policy_gap_analyses"
     ADD CONSTRAINT "policy_gap_analyses_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."portal_notification_prefs"
+    ADD CONSTRAINT "portal_notification_prefs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_access"
+    ADD CONSTRAINT "pr_access_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_campaigns"
+    ADD CONSTRAINT "pr_campaigns_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_chat_messages"
+    ADD CONSTRAINT "pr_chat_messages_thread_id_fkey" FOREIGN KEY ("thread_id") REFERENCES "public"."pr_chat_threads"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_chat_messages"
+    ADD CONSTRAINT "pr_chat_messages_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_chat_threads"
+    ADD CONSTRAINT "pr_chat_threads_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_connections"
+    ADD CONSTRAINT "pr_connections_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_content_items"
+    ADD CONSTRAINT "pr_content_items_campaign_id_fkey" FOREIGN KEY ("campaign_id") REFERENCES "public"."pr_campaigns"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."pr_content_items"
+    ADD CONSTRAINT "pr_content_items_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_feeds"
+    ADD CONSTRAINT "pr_feeds_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_geo_prompts"
+    ADD CONSTRAINT "pr_geo_prompts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_keywords"
+    ADD CONSTRAINT "pr_keywords_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_media_contacts"
+    ADD CONSTRAINT "pr_media_contacts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pr_mentions"
+    ADD CONSTRAINT "pr_mentions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -17990,10 +20855,6 @@ CREATE POLICY "Admins can view webhook events" ON "public"."webhook_events" FOR 
 
 
 
-CREATE POLICY "Admins manage their own workspace preference" ON "public"."workspace_preferences" USING ((("user_id" = ( SELECT "auth"."uid"() AS "uid")) AND "public"."is_admin_user"())) WITH CHECK ((("user_id" = ( SELECT "auth"."uid"() AS "uid")) AND "public"."is_admin_user"()));
-
-
-
 CREATE POLICY "Admins read beta intake log" ON "public"."beta_signup_intake" FOR SELECT USING ("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -18039,6 +20900,10 @@ CREATE POLICY "Admins read ticket events" ON "public"."support_ticket_events" FO
 
 
 CREATE POLICY "Admins update beta signups" ON "public"."beta_signups" FOR UPDATE USING ("public"."is_admin"(( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Anon can read active job posting columns" ON "public"."hr_job_postings" FOR SELECT TO "anon" USING (("status" = 'active'::"text"));
 
 
 
@@ -18146,6 +21011,38 @@ CREATE POLICY "Authenticated users can submit feedback events" ON "public"."admi
 
 
 CREATE POLICY "Authenticated users can view enabled generator templates" ON "public"."generator_document_templates" FOR SELECT TO "authenticated" USING (("is_generator_enabled" = true));
+
+
+
+CREATE POLICY "Candidates manage their own agent settings" ON "public"."candidate_agent_settings" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Candidates read their own discovered jobs" ON "public"."candidate_discovered_jobs" FOR SELECT USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid")))));
+
+
+
+CREATE POLICY "Candidates read their own external applications" ON "public"."candidate_external_applications" FOR SELECT USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid")))));
+
+
+
+CREATE POLICY "Candidates update their own discovered jobs" ON "public"."candidate_discovered_jobs" FOR UPDATE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid")))));
+
+
+
+CREATE POLICY "Candidates update their own external applications" ON "public"."candidate_external_applications" FOR UPDATE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid"))))) WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
+   FROM "public"."candidate_profiles"
+  WHERE ("candidate_profiles"."user_id" = ( SELECT "auth"."uid"() AS "uid")))));
 
 
 
@@ -18407,6 +21304,18 @@ CREATE POLICY "Members can view workflow metrics" ON "public"."workflow_metrics_
 
 
 
+CREATE POLICY "Members manage their own workspace preference" ON "public"."workspace_preferences" USING ((("user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("public"."is_admin_user"() OR (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text"))))))) WITH CHECK ((("user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("public"."is_admin_user"() OR (EXISTS ( SELECT 1
+   FROM "public"."organization_members" "om"
+  WHERE (("om"."user_id" = ( SELECT "auth"."uid"() AS "uid")) AND ("om"."status" = 'active'::"text")))))));
+
+
+
+CREATE POLICY "Org admins can create invitations" ON "public"."organization_invitations" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete candidates" ON "public"."hr_candidates" FOR DELETE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -18475,6 +21384,14 @@ CREATE POLICY "Org admins can delete finance_budgets" ON "public"."finance_budge
 
 
 
+CREATE POLICY "Org admins can delete finance_capital_calls" ON "public"."finance_capital_calls" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_cash_sweeps" ON "public"."finance_cash_sweeps" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -18487,7 +21404,15 @@ CREATE POLICY "Org admins can delete finance_close_periods" ON "public"."finance
 
 
 
+CREATE POLICY "Org admins can delete finance_commitments" ON "public"."finance_commitments" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can delete finance_credits" ON "public"."finance_credits" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_deals" ON "public"."finance_deals" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18496,6 +21421,10 @@ CREATE POLICY "Org admins can delete finance_debts" ON "public"."finance_debts" 
 
 
 CREATE POLICY "Org admins can delete finance_decision_entries" ON "public"."finance_decision_entries" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete finance_document_links" ON "public"."finance_document_links" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18608,6 +21537,10 @@ CREATE POLICY "Org admins can delete inbound_emails" ON "public"."inbound_emails
 
 
 CREATE POLICY "Org admins can delete integration_events" ON "public"."integration_events" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can delete invitations" ON "public"."organization_invitations" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18735,6 +21668,14 @@ CREATE POLICY "Org admins can insert finance_budgets" ON "public"."finance_budge
 
 
 
+CREATE POLICY "Org admins can insert finance_capital_calls" ON "public"."finance_capital_calls" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_cash_sweeps" ON "public"."finance_cash_sweeps" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -18747,7 +21688,15 @@ CREATE POLICY "Org admins can insert finance_close_periods" ON "public"."finance
 
 
 
+CREATE POLICY "Org admins can insert finance_commitments" ON "public"."finance_commitments" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can insert finance_credits" ON "public"."finance_credits" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_deals" ON "public"."finance_deals" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -18756,6 +21705,10 @@ CREATE POLICY "Org admins can insert finance_debts" ON "public"."finance_debts" 
 
 
 CREATE POLICY "Org admins can insert finance_decision_entries" ON "public"."finance_decision_entries" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can insert finance_document_links" ON "public"."finance_document_links" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19031,7 +21984,7 @@ CREATE POLICY "Org admins can manage work samples" ON "public"."hr_work_samples"
 
 
 
-CREATE POLICY "Org admins can update candidates" ON "public"."hr_candidates" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+CREATE POLICY "Org admins can update candidates" ON "public"."hr_candidates" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19087,6 +22040,14 @@ CREATE POLICY "Org admins can update finance_budgets" ON "public"."finance_budge
 
 
 
+CREATE POLICY "Org admins can update finance_capital_calls" ON "public"."finance_capital_calls" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_cash_sweeps" ON "public"."finance_cash_sweeps" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -19099,7 +22060,15 @@ CREATE POLICY "Org admins can update finance_close_periods" ON "public"."finance
 
 
 
+CREATE POLICY "Org admins can update finance_commitments" ON "public"."finance_commitments" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update finance_credits" ON "public"."finance_credits" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_deals" ON "public"."finance_deals" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19108,6 +22077,10 @@ CREATE POLICY "Org admins can update finance_debts" ON "public"."finance_debts" 
 
 
 CREATE POLICY "Org admins can update finance_decision_entries" ON "public"."finance_decision_entries" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org admins can update finance_document_links" ON "public"."finance_document_links" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19215,6 +22188,10 @@ CREATE POLICY "Org admins can update generated documents" ON "public"."hr_genera
 
 
 
+CREATE POLICY "Org admins can update invitations" ON "public"."organization_invitations" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can update leaves" ON "public"."hr_leaves" FOR UPDATE USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))) WITH CHECK ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -19263,6 +22240,10 @@ CREATE POLICY "Org admins can view compensation records" ON "public"."hr_compens
 
 
 
+CREATE POLICY "Org admins can view invitations" ON "public"."organization_invitations" FOR SELECT TO "authenticated" USING ("public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org admins can view scheduled operations" ON "public"."scheduled_operations" FOR SELECT TO "authenticated" USING (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_admin"("organization_id", ( SELECT "auth"."uid"() AS "uid"))));
 
 
@@ -19302,6 +22283,10 @@ CREATE POLICY "Org can update document signatures" ON "public"."hr_document_sign
 
 
 CREATE POLICY "Org members can manage compliance tasks" ON "public"."compliance_tasks" TO "authenticated" USING (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")) OR ("assigned_to" = ( SELECT "auth"."uid"() AS "uid")) OR ("created_by" = ( SELECT "auth"."uid"() AS "uid")))) WITH CHECK (("public"."is_admin"(( SELECT "auth"."uid"() AS "uid")) OR "public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")) OR ("assigned_to" = ( SELECT "auth"."uid"() AS "uid")) OR ("created_by" = ( SELECT "auth"."uid"() AS "uid"))));
+
+
+
+CREATE POLICY "Org members can read applicant profiles" ON "public"."candidate_profiles" FOR SELECT USING ("public"."profile_applied_to_member_org"("id"));
 
 
 
@@ -19363,6 +22348,14 @@ CREATE POLICY "Org members can read finance_budgets" ON "public"."finance_budget
 
 
 
+CREATE POLICY "Org members can read finance_capital_calls" ON "public"."finance_capital_calls" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_cash_sweeps" ON "public"."finance_cash_sweeps" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can read finance_categorization_feedback" ON "public"."finance_categorization_feedback" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
@@ -19375,7 +22368,15 @@ CREATE POLICY "Org members can read finance_close_periods" ON "public"."finance_
 
 
 
+CREATE POLICY "Org members can read finance_commitments" ON "public"."finance_commitments" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
 CREATE POLICY "Org members can read finance_credits" ON "public"."finance_credits" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_deals" ON "public"."finance_deals" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19384,6 +22385,10 @@ CREATE POLICY "Org members can read finance_debts" ON "public"."finance_debts" F
 
 
 CREATE POLICY "Org members can read finance_decision_entries" ON "public"."finance_decision_entries" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can read finance_document_links" ON "public"."finance_document_links" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
 
 
 
@@ -19518,6 +22523,18 @@ CREATE POLICY "Org members can read work samples" ON "public"."hr_work_samples" 
 
 
 CREATE POLICY "Org members can read workspace_integrations" ON "public"."workspace_integrations" FOR SELECT TO "authenticated" USING ("public"."is_org_member"("organization_id", ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Org members can update application status" ON "public"."candidate_applications" FOR UPDATE USING (("job_posting_id" IN ( SELECT "hr_job_postings"."id"
+   FROM "public"."hr_job_postings"
+  WHERE ("hr_job_postings"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"())))))) WITH CHECK (("job_posting_id" IN ( SELECT "hr_job_postings"."id"
+   FROM "public"."hr_job_postings"
+  WHERE ("hr_job_postings"."organization_id" IN ( SELECT "organization_members"."organization_id"
+           FROM "public"."organization_members"
+          WHERE ("organization_members"."user_id" = "auth"."uid"()))))));
 
 
 
@@ -19727,10 +22744,6 @@ CREATE POLICY "Owners can read their signature audit events" ON "public"."signat
 
 
 
-CREATE POLICY "Public can read active job postings" ON "public"."hr_job_postings" FOR SELECT USING (("status" = 'active'::"text"));
-
-
-
 CREATE POLICY "Public can submit beta signups with valid email" ON "public"."beta_signups" FOR INSERT TO "anon", "authenticated" WITH CHECK ((("email" IS NOT NULL) AND ("length"("email") <= 320) AND ("email" ~* '^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}$'::"text")));
 
 
@@ -19803,12 +22816,6 @@ CREATE POLICY "Users can delete own candidate profile" ON "public"."candidate_pr
 
 
 
-CREATE POLICY "Users can delete own candidate resumes" ON "public"."candidate_resumes" FOR DELETE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
-   FROM "public"."candidate_profiles"
-  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
-
-
-
 CREATE POLICY "Users can delete their own documents" ON "public"."documents" FOR DELETE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
 
 
@@ -19828,12 +22835,6 @@ CREATE POLICY "Users can insert own candidate applications" ON "public"."candida
 
 
 CREATE POLICY "Users can insert own candidate profile" ON "public"."candidate_profiles" FOR INSERT WITH CHECK (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can insert own candidate resumes" ON "public"."candidate_resumes" FOR INSERT WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
-   FROM "public"."candidate_profiles"
-  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
 
 
 
@@ -19857,6 +22858,10 @@ CREATE POLICY "Users can insert their own workflow states" ON "public"."offer_wo
 
 
 
+CREATE POLICY "Users can manage their own advisor turn feedback" ON "public"."advisor_turn_feedback" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
 CREATE POLICY "Users can manage their own conversations" ON "public"."conversations" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
 
 
@@ -19868,12 +22873,6 @@ CREATE POLICY "Users can read own candidate applications" ON "public"."candidate
 
 
 CREATE POLICY "Users can read own candidate profile" ON "public"."candidate_profiles" FOR SELECT USING (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can read own candidate resumes" ON "public"."candidate_resumes" FOR SELECT USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
-   FROM "public"."candidate_profiles"
-  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
 
 
 
@@ -19890,14 +22889,6 @@ CREATE POLICY "Users can update own candidate applications" ON "public"."candida
 
 
 CREATE POLICY "Users can update own candidate profile" ON "public"."candidate_profiles" FOR UPDATE USING (("user_id" = "auth"."uid"())) WITH CHECK (("user_id" = "auth"."uid"()));
-
-
-
-CREATE POLICY "Users can update own candidate resumes" ON "public"."candidate_resumes" FOR UPDATE USING (("candidate_id" IN ( SELECT "candidate_profiles"."id"
-   FROM "public"."candidate_profiles"
-  WHERE ("candidate_profiles"."user_id" = "auth"."uid"())))) WITH CHECK (("candidate_id" IN ( SELECT "candidate_profiles"."id"
-   FROM "public"."candidate_profiles"
-  WHERE ("candidate_profiles"."user_id" = "auth"."uid"()))));
 
 
 
@@ -19973,7 +22964,163 @@ CREATE POLICY "Users can view their own workflow states" ON "public"."offer_work
 
 
 
+CREATE POLICY "Users delete their own agent_suggestions" ON "public"."agent_suggestions" FOR DELETE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own candidate_chat_messages" ON "public"."candidate_chat_messages" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own candidate_chat_threads" ON "public"."candidate_chat_threads" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_chat_messages" ON "public"."health_chat_messages" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_chat_threads" ON "public"."health_chat_threads" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_checkins" ON "public"."health_checkins" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_habit_logs" ON "public"."health_habit_logs" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_habits" ON "public"."health_habits" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_journal_entries" ON "public"."health_journal_entries" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own health_memories" ON "public"."health_memories" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_accounts" ON "public"."invest_accounts" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_bot_runs" ON "public"."invest_bot_runs" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_chat_messages" ON "public"."invest_chat_messages" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_chat_threads" ON "public"."invest_chat_threads" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_market_snapshots" ON "public"."invest_market_snapshots" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_memories" ON "public"."invest_memories" TO "authenticated" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_notification_prefs" ON "public"."invest_notification_prefs" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_orders" ON "public"."invest_orders" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_positions" ON "public"."invest_positions" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_signals" ON "public"."invest_signals" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_strategies" ON "public"."invest_strategies" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own invest_user_profile" ON "public"."invest_user_profile" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own portal_notification_prefs" ON "public"."portal_notification_prefs" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_campaigns" ON "public"."pr_campaigns" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_chat_messages" ON "public"."pr_chat_messages" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_chat_threads" ON "public"."pr_chat_threads" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_connections" ON "public"."pr_connections" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_content_items" ON "public"."pr_content_items" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_feeds" ON "public"."pr_feeds" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_geo_prompts" ON "public"."pr_geo_prompts" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_keywords" ON "public"."pr_keywords" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_media_contacts" ON "public"."pr_media_contacts" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users manage their own pr_mentions" ON "public"."pr_mentions" TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
 CREATE POLICY "Users read own workspace notifications" ON "public"."hr_workspace_notifications" FOR SELECT USING (("user_id" = ( SELECT "auth"."uid"() AS "uid")));
+
+
+
+CREATE POLICY "Users read their own agent_suggestions" ON "public"."agent_suggestions" FOR SELECT TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users read their own health access" ON "public"."health_access" FOR SELECT USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users read their own invest access" ON "public"."invest_access" FOR SELECT USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users read their own notification_log" ON "public"."notification_log" FOR SELECT TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users read their own pr access" ON "public"."pr_access" FOR SELECT USING ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
+
+
+
+CREATE POLICY "Users resolve their own agent_suggestions" ON "public"."agent_suggestions" FOR UPDATE TO "authenticated" USING ((( SELECT "auth"."uid"() AS "uid") = "user_id")) WITH CHECK ((( SELECT "auth"."uid"() AS "uid") = "user_id"));
 
 
 
@@ -20017,6 +23164,9 @@ ALTER TABLE "public"."advisor_guidance_chunks" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."advisor_memories" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."advisor_turn_feedback" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."agent_audit" ENABLE ROW LEVEL SECURITY;
 
 
@@ -20029,6 +23179,9 @@ CREATE POLICY "agent_audit_select" ON "public"."agent_audit" FOR SELECT TO "auth
 
 
 ALTER TABLE "public"."agent_runs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."agent_suggestions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."ai_action_runs" ENABLE ROW LEVEL SECURITY;
@@ -20085,13 +23238,28 @@ ALTER TABLE "public"."beta_signups" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."billing_events" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."candidate_agent_settings" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_ai_usage" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."candidate_applications" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."candidate_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_chat_threads" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_discovered_jobs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."candidate_external_applications" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."candidate_profiles" ENABLE ROW LEVEL SECURITY;
-
-
-ALTER TABLE "public"."candidate_resumes" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."categories" ENABLE ROW LEVEL SECURITY;
@@ -20261,6 +23429,12 @@ ALTER TABLE "public"."finance_books" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."finance_budgets" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."finance_capital_calls" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_cash_sweeps" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."finance_categorization_feedback" ENABLE ROW LEVEL SECURITY;
 
 
@@ -20270,13 +23444,22 @@ ALTER TABLE "public"."finance_category_rules" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."finance_close_periods" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."finance_commitments" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."finance_credits" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_deals" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."finance_debts" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."finance_decision_entries" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."finance_document_links" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."finance_entities" ENABLE ROW LEVEL SECURITY;
@@ -20418,6 +23601,30 @@ ALTER TABLE "public"."guidance_chunks" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."guidance_sources" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."health_access" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_chat_threads" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_checkins" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_habit_logs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_habits" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_journal_entries" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."health_memories" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."hr_advisor_case_narratives" ENABLE ROW LEVEL SECURITY;
 
 
@@ -20517,6 +23724,117 @@ ALTER TABLE "public"."inbound_emails" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."integration_events" ENABLE ROW LEVEL SECURITY;
 
 
+ALTER TABLE "public"."invest_access" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_accounts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_book_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_book_snapshots_owner" ON "public"."invest_book_snapshots" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_bot_runs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_cash_events" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_cash_events_owner" ON "public"."invest_cash_events" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_chat_threads" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_goals" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_goals_owner" ON "public"."invest_goals" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_market_news" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_market_news_read" ON "public"."invest_market_news" FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM "public"."invest_access" "a"
+  WHERE ("a"."user_id" = "auth"."uid"()))));
+
+
+
+ALTER TABLE "public"."invest_market_snapshots" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_memories" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_notification_prefs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_order_fills" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_order_fills_owner" ON "public"."invest_order_fills" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_orders" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_positions" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_recurring_contributions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_recurring_contributions_owner" ON "public"."invest_recurring_contributions" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_scan_items" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_scan_items_owner" ON "public"."invest_scan_items" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_signals" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_strategies" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_stress_scenarios" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_stress_scenarios_owner" ON "public"."invest_stress_scenarios" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_theses" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_theses_owner" ON "public"."invest_theses" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+ALTER TABLE "public"."invest_user_profile" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invest_watchlist" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "invest_watchlist_owner" ON "public"."invest_watchlist" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
 ALTER TABLE "public"."job_attempts" ENABLE ROW LEVEL SECURITY;
 
 
@@ -20551,6 +23869,9 @@ ALTER TABLE "public"."multi_agent_plans" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."notification_deliveries" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."notification_log" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."notifications" ENABLE ROW LEVEL SECURITY;
@@ -20651,6 +23972,42 @@ ALTER TABLE "public"."playbook_runs" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."policy_gap_analyses" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."portal_notification_prefs" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_access" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_campaigns" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_chat_messages" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_chat_threads" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_connections" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_content_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_feeds" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_geo_prompts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_keywords" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_media_contacts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pr_mentions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."predictive_risk_forecasts" ENABLE ROW LEVEL SECURITY;
@@ -21685,6 +25042,33 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "public"."_finance_call_notify_admins"("p_call_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_finance_call_notify_admins"("p_call_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_finance_call_notify_on_notified"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_finance_call_notify_on_notified"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_finance_debt_maturity_scan"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_finance_debt_maturity_scan"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_finance_debt_notify_admins"("p_debt_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_finance_debt_notify_admins"("p_debt_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_health_grant_dutiva_staff"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_health_grant_dutiva_staff"() TO "anon";
+GRANT ALL ON FUNCTION "public"."_health_grant_dutiva_staff"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_health_grant_dutiva_staff"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_hr_org_admin_emails"("p_org_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_hr_org_admin_emails"("p_org_id" "uuid") TO "service_role";
 
@@ -21751,8 +25135,22 @@ GRANT ALL ON FUNCTION "public"."_integration_event_notify_admins"("p_event_id" "
 
 
 
+REVOKE ALL ON FUNCTION "public"."_invest_grant_owner_access"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_invest_grant_owner_access"() TO "anon";
+GRANT ALL ON FUNCTION "public"."_invest_grant_owner_access"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_invest_grant_owner_access"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."_org_capacity_lock"("p_organization_id" "uuid") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."_pr_grant_dutiva_staff"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."_pr_grant_dutiva_staff"() TO "anon";
+GRANT ALL ON FUNCTION "public"."_pr_grant_dutiva_staff"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."_pr_grant_dutiva_staff"() TO "service_role";
 
 
 
@@ -22136,6 +25534,11 @@ GRANT ALL ON FUNCTION "public"."claim_ai_usage"("p_user_id" "uuid", "p_operation
 
 
 
+REVOKE ALL ON FUNCTION "public"."claim_candidate_ai_call"("p_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."claim_candidate_ai_call"("p_user_id" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."claim_document_save"("p_organization_id" "uuid", "p_document_id" "uuid") TO "service_role";
@@ -22149,6 +25552,13 @@ GRANT ALL ON FUNCTION "public"."claim_export_slot"("p_user_id" "uuid", "p_surfac
 
 REVOKE ALL ON FUNCTION "public"."claim_next_job"("worker_id" "text", "allowed_job_types" "text"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."claim_next_job"("worker_id" "text", "allowed_job_types" "text"[]) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."claim_org_invitations"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."claim_org_invitations"() TO "anon";
+GRANT ALL ON FUNCTION "public"."claim_org_invitations"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."claim_org_invitations"() TO "service_role";
 
 
 
@@ -22413,6 +25823,12 @@ GRANT ALL ON FUNCTION "public"."grant_ai_advisor_pack"("p_user_id" "uuid", "p_pa
 
 
 
+GRANT ALL ON FUNCTION "public"."guard_candidate_application_update"() TO "anon";
+GRANT ALL ON FUNCTION "public"."guard_candidate_application_update"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."guard_candidate_application_update"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."handle_new_user"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
 
@@ -22445,6 +25861,13 @@ GRANT ALL ON FUNCTION "public"."ingest_client_error_report"("p_ip_hash" "text", 
 
 REVOKE ALL ON FUNCTION "public"."ingest_support_analytics_events"("p_ip_hash" "text", "p_events" "jsonb", "p_window_seconds" integer, "p_limit" integer) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."ingest_support_analytics_events"("p_ip_hash" "text", "p_events" "jsonb", "p_window_seconds" integer, "p_limit" integer) TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."invest_wipe_account"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."invest_wipe_account"() TO "anon";
+GRANT ALL ON FUNCTION "public"."invest_wipe_account"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."invest_wipe_account"() TO "service_role";
 
 
 
@@ -22481,6 +25904,18 @@ GRANT ALL ON FUNCTION "public"."is_org_member"("check_org_id" "uuid", "check_use
 REVOKE ALL ON FUNCTION "public"."is_super_admin"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."is_super_admin"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_super_admin"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."job_posting_set_slug"() TO "anon";
+GRANT ALL ON FUNCTION "public"."job_posting_set_slug"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."job_posting_set_slug"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."job_posting_slug"("p_title" "text", "p_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."job_posting_slug"("p_title" "text", "p_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."job_posting_slug"("p_title" "text", "p_id" "uuid") TO "service_role";
 
 
 
@@ -22537,6 +25972,13 @@ GRANT ALL ON FUNCTION "public"."normalize_document_jurisdiction_label"("p_code" 
 
 
 
+REVOKE ALL ON FUNCTION "public"."org_member_directory"("p_org" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."org_member_directory"("p_org" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."org_member_directory"("p_org" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."org_member_directory"("p_org" "uuid") TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."organization_effective_plan"("p_organization_id" "uuid") TO "service_role";
@@ -22570,8 +26012,20 @@ GRANT ALL ON FUNCTION "public"."policy_review_scheduler_status"() TO "service_ro
 
 
 
+REVOKE ALL ON FUNCTION "public"."pr_keyword_check"("p_keyword_id" "uuid", "p_position" integer) FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."pr_keyword_check"("p_keyword_id" "uuid", "p_position" integer) TO "authenticated";
+GRANT ALL ON FUNCTION "public"."pr_keyword_check"("p_keyword_id" "uuid", "p_position" integer) TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."process_expired_data_deletions"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."process_expired_data_deletions"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."profile_applied_to_member_org"("p_candidate_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."profile_applied_to_member_org"("p_candidate_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."profile_applied_to_member_org"("p_candidate_id" "uuid") TO "service_role";
 
 
 
@@ -22838,6 +26292,26 @@ GRANT ALL ON FUNCTION "public"."trigger_attachment_scan"() TO "service_role";
 
 
 
+REVOKE ALL ON FUNCTION "public"."trigger_candidate_job_agent"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_candidate_job_agent"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_health_streak_notify"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_health_streak_notify"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_invest_bot"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_invest_bot"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_invest_market_sync"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_invest_market_sync"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."trigger_law_monitor"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."trigger_law_monitor"() TO "service_role";
 
@@ -22850,6 +26324,16 @@ GRANT ALL ON FUNCTION "public"."trigger_law_update_digest"() TO "service_role";
 
 REVOKE ALL ON FUNCTION "public"."trigger_policy_review_scheduler"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."trigger_policy_review_scheduler"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_pr_geo_check"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_pr_geo_check"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."trigger_pr_mentions_sync"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."trigger_pr_mentions_sync"() TO "service_role";
 
 
 
@@ -23001,9 +26485,33 @@ GRANT ALL ON TABLE "public"."advisor_guidance_chunks" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."advisor_turn_feedback" TO "anon";
+GRANT ALL ON TABLE "public"."advisor_turn_feedback" TO "authenticated";
+GRANT ALL ON TABLE "public"."advisor_turn_feedback" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."agent_audit" TO "anon";
 GRANT ALL ON TABLE "public"."agent_audit" TO "authenticated";
 GRANT ALL ON TABLE "public"."agent_audit" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."agent_suggestions" TO "anon";
+GRANT ALL ON TABLE "public"."agent_suggestions" TO "service_role";
+GRANT SELECT,DELETE ON TABLE "public"."agent_suggestions" TO "authenticated";
+
+
+
+GRANT UPDATE("status") ON TABLE "public"."agent_suggestions" TO "authenticated";
+
+
+
+GRANT UPDATE("resolved_at") ON TABLE "public"."agent_suggestions" TO "authenticated";
+
+
+
+GRANT UPDATE("resolved_action") ON TABLE "public"."agent_suggestions" TO "authenticated";
 
 
 
@@ -23075,21 +26583,51 @@ GRANT ALL ON TABLE "public"."beta_signup_intake" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."candidate_agent_settings" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_agent_settings" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_agent_settings" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_ai_usage" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_ai_usage" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_ai_usage" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."candidate_applications" TO "anon";
 GRANT ALL ON TABLE "public"."candidate_applications" TO "authenticated";
 GRANT ALL ON TABLE "public"."candidate_applications" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."candidate_chat_messages" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_chat_messages" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_chat_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_chat_threads" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_chat_threads" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_chat_threads" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_discovered_jobs" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_discovered_jobs" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_discovered_jobs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."candidate_external_applications" TO "anon";
+GRANT ALL ON TABLE "public"."candidate_external_applications" TO "authenticated";
+GRANT ALL ON TABLE "public"."candidate_external_applications" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."candidate_profiles" TO "anon";
 GRANT ALL ON TABLE "public"."candidate_profiles" TO "authenticated";
 GRANT ALL ON TABLE "public"."candidate_profiles" TO "service_role";
-
-
-
-GRANT ALL ON TABLE "public"."candidate_resumes" TO "anon";
-GRANT ALL ON TABLE "public"."candidate_resumes" TO "authenticated";
-GRANT ALL ON TABLE "public"."candidate_resumes" TO "service_role";
 
 
 
@@ -23355,6 +26893,18 @@ GRANT ALL ON TABLE "public"."finance_budgets" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."finance_capital_calls" TO "anon";
+GRANT ALL ON TABLE "public"."finance_capital_calls" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_capital_calls" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_cash_sweeps" TO "anon";
+GRANT ALL ON TABLE "public"."finance_cash_sweeps" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_cash_sweeps" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "anon";
 GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "authenticated";
 GRANT ALL ON TABLE "public"."finance_categorization_feedback" TO "service_role";
@@ -23373,9 +26923,21 @@ GRANT ALL ON TABLE "public"."finance_close_periods" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."finance_commitments" TO "anon";
+GRANT ALL ON TABLE "public"."finance_commitments" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_commitments" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."finance_credits" TO "anon";
 GRANT ALL ON TABLE "public"."finance_credits" TO "authenticated";
 GRANT ALL ON TABLE "public"."finance_credits" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_deals" TO "anon";
+GRANT ALL ON TABLE "public"."finance_deals" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_deals" TO "service_role";
 
 
 
@@ -23388,6 +26950,12 @@ GRANT ALL ON TABLE "public"."finance_debts" TO "service_role";
 GRANT ALL ON TABLE "public"."finance_decision_entries" TO "anon";
 GRANT ALL ON TABLE "public"."finance_decision_entries" TO "authenticated";
 GRANT ALL ON TABLE "public"."finance_decision_entries" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."finance_document_links" TO "anon";
+GRANT ALL ON TABLE "public"."finance_document_links" TO "authenticated";
+GRANT ALL ON TABLE "public"."finance_document_links" TO "service_role";
 
 
 
@@ -23595,6 +27163,54 @@ GRANT ALL ON TABLE "public"."guidance_sources" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."health_access" TO "anon";
+GRANT ALL ON TABLE "public"."health_access" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_chat_messages" TO "anon";
+GRANT ALL ON TABLE "public"."health_chat_messages" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_chat_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_chat_threads" TO "anon";
+GRANT ALL ON TABLE "public"."health_chat_threads" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_chat_threads" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_checkins" TO "anon";
+GRANT ALL ON TABLE "public"."health_checkins" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_checkins" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_habit_logs" TO "anon";
+GRANT ALL ON TABLE "public"."health_habit_logs" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_habit_logs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_habits" TO "anon";
+GRANT ALL ON TABLE "public"."health_habits" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_habits" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_journal_entries" TO "anon";
+GRANT ALL ON TABLE "public"."health_journal_entries" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_journal_entries" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."health_memories" TO "anon";
+GRANT ALL ON TABLE "public"."health_memories" TO "authenticated";
+GRANT ALL ON TABLE "public"."health_memories" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."hr_advisor_case_narratives" TO "anon";
 GRANT ALL ON TABLE "public"."hr_advisor_case_narratives" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_advisor_case_narratives" TO "service_role";
@@ -23715,9 +27331,81 @@ GRANT ALL ON TABLE "public"."hr_generated_documents" TO "service_role";
 
 
 
-GRANT ALL ON TABLE "public"."hr_job_postings" TO "anon";
+GRANT INSERT,REFERENCES,DELETE,TRIGGER,TRUNCATE,MAINTAIN,UPDATE ON TABLE "public"."hr_job_postings" TO "anon";
 GRANT ALL ON TABLE "public"."hr_job_postings" TO "authenticated";
 GRANT ALL ON TABLE "public"."hr_job_postings" TO "service_role";
+
+
+
+GRANT SELECT("id") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("organization_id") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("title") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("department") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("location") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("type") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("description") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("requirements") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("status") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("posted_date") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("closing_date") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("slug") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("salary_min") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("salary_max") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("salary_period") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("responsibilities") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("benefits") ON TABLE "public"."hr_job_postings" TO "anon";
+
+
+
+GRANT SELECT("employer_blurb") ON TABLE "public"."hr_job_postings" TO "anon";
 
 
 
@@ -23793,6 +27481,150 @@ GRANT ALL ON TABLE "public"."integration_events" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."invest_access" TO "anon";
+GRANT ALL ON TABLE "public"."invest_access" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_accounts" TO "anon";
+GRANT ALL ON TABLE "public"."invest_accounts" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_accounts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_book_snapshots" TO "anon";
+GRANT ALL ON TABLE "public"."invest_book_snapshots" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_book_snapshots" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_bot_runs" TO "anon";
+GRANT ALL ON TABLE "public"."invest_bot_runs" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_bot_runs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_cash_events" TO "anon";
+GRANT ALL ON TABLE "public"."invest_cash_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_cash_events" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_chat_messages" TO "anon";
+GRANT ALL ON TABLE "public"."invest_chat_messages" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_chat_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_chat_threads" TO "anon";
+GRANT ALL ON TABLE "public"."invest_chat_threads" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_chat_threads" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_goals" TO "anon";
+GRANT ALL ON TABLE "public"."invest_goals" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_goals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_market_news" TO "anon";
+GRANT ALL ON TABLE "public"."invest_market_news" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_market_news" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."invest_market_news_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."invest_market_news_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."invest_market_news_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_market_snapshots" TO "anon";
+GRANT ALL ON TABLE "public"."invest_market_snapshots" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_market_snapshots" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_memories" TO "anon";
+GRANT ALL ON TABLE "public"."invest_memories" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_memories" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_notification_prefs" TO "anon";
+GRANT ALL ON TABLE "public"."invest_notification_prefs" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_notification_prefs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_order_fills" TO "anon";
+GRANT ALL ON TABLE "public"."invest_order_fills" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_order_fills" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_orders" TO "anon";
+GRANT ALL ON TABLE "public"."invest_orders" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_orders" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_positions" TO "anon";
+GRANT ALL ON TABLE "public"."invest_positions" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_positions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_recurring_contributions" TO "anon";
+GRANT ALL ON TABLE "public"."invest_recurring_contributions" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_recurring_contributions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_scan_items" TO "anon";
+GRANT ALL ON TABLE "public"."invest_scan_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_scan_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_signals" TO "anon";
+GRANT ALL ON TABLE "public"."invest_signals" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_signals" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_strategies" TO "anon";
+GRANT ALL ON TABLE "public"."invest_strategies" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_strategies" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_stress_scenarios" TO "anon";
+GRANT ALL ON TABLE "public"."invest_stress_scenarios" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_stress_scenarios" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_theses" TO "anon";
+GRANT ALL ON TABLE "public"."invest_theses" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_theses" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_user_profile" TO "anon";
+GRANT ALL ON TABLE "public"."invest_user_profile" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_user_profile" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invest_watchlist" TO "anon";
+GRANT ALL ON TABLE "public"."invest_watchlist" TO "authenticated";
+GRANT ALL ON TABLE "public"."invest_watchlist" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."job_attempts" TO "anon";
 GRANT ALL ON TABLE "public"."job_attempts" TO "authenticated";
 GRANT ALL ON TABLE "public"."job_attempts" TO "service_role";
@@ -23826,6 +27658,12 @@ GRANT ALL ON TABLE "public"."law_update_notifications" TO "service_role";
 GRANT ALL ON TABLE "public"."legal_ingestion_sources" TO "anon";
 GRANT ALL ON TABLE "public"."legal_ingestion_sources" TO "authenticated";
 GRANT ALL ON TABLE "public"."legal_ingestion_sources" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."notification_log" TO "anon";
+GRANT ALL ON TABLE "public"."notification_log" TO "authenticated";
+GRANT ALL ON TABLE "public"."notification_log" TO "service_role";
 
 
 
@@ -23902,6 +27740,84 @@ GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."organization_usage_events" 
 GRANT ALL ON TABLE "public"."platform_capacity_config" TO "anon";
 GRANT ALL ON TABLE "public"."platform_capacity_config" TO "service_role";
 GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE "public"."platform_capacity_config" TO "authenticated";
+
+
+
+GRANT ALL ON TABLE "public"."portal_notification_prefs" TO "anon";
+GRANT ALL ON TABLE "public"."portal_notification_prefs" TO "authenticated";
+GRANT ALL ON TABLE "public"."portal_notification_prefs" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_access" TO "anon";
+GRANT ALL ON TABLE "public"."pr_access" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_campaigns" TO "anon";
+GRANT ALL ON TABLE "public"."pr_campaigns" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_campaigns" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_chat_messages" TO "anon";
+GRANT ALL ON TABLE "public"."pr_chat_messages" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_chat_messages" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_chat_threads" TO "anon";
+GRANT ALL ON TABLE "public"."pr_chat_threads" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_chat_threads" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_connections" TO "anon";
+GRANT ALL ON TABLE "public"."pr_connections" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_connections" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_content_items" TO "anon";
+GRANT ALL ON TABLE "public"."pr_content_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_content_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_feeds" TO "anon";
+GRANT ALL ON TABLE "public"."pr_feeds" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_feeds" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_geo_prompts" TO "anon";
+GRANT ALL ON TABLE "public"."pr_geo_prompts" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_geo_prompts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_keywords" TO "anon";
+GRANT ALL ON TABLE "public"."pr_keywords" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_keywords" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_media_contacts" TO "anon";
+GRANT ALL ON TABLE "public"."pr_media_contacts" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_media_contacts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pr_mentions" TO "anon";
+GRANT ALL ON TABLE "public"."pr_mentions" TO "authenticated";
+GRANT ALL ON TABLE "public"."pr_mentions" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."public_job_postings" TO "anon";
+GRANT ALL ON TABLE "public"."public_job_postings" TO "authenticated";
+GRANT ALL ON TABLE "public"."public_job_postings" TO "service_role";
 
 
 

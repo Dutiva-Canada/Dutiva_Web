@@ -26,7 +26,7 @@ The customer journey follows a clear deflection-first path:
 
 > Help Centre / contextual guidance → support request → automated acknowledgement → triage → written resolution → scheduled call (only when required) → written ticket summary → closure
 
-Sources: [docs/SUPPORT_ARCHITECTURE.md:1-12](), [src/config/support.ts:4-18]()
+Sources: [docs/SUPPORT_ARCHITECTURE.md:1-12](<>), [src/config/support.ts:4-18](<>)
 
 ## System Map
 
@@ -67,7 +67,7 @@ graph TB
     end
 
     subgraph "Customer View"
-        SV["SupportView.tsx\n(/app/support)"]
+        SV["SupportView.tsx\n(/workspace/support)"]
         STD["SupportTicketDetail.tsx"]
         SRL["SupportRequestsList.tsx"]
     end
@@ -90,7 +90,7 @@ graph TB
     STD --> SCC
 ```
 
-Sources: [src/config/support.ts:1-391](), [src/features/support/supportApi.ts:47-74](), [src/features/support/publicSupportApi.ts:62-86](), [supabase/functions/support-notify/index.ts:1-24](), [services/attachment-scanner/server.js:1-34]()
+Sources: [src/config/support.ts:1-391](<>), [src/features/support/supportApi.ts:47-74](<>), [src/features/support/publicSupportApi.ts:62-86](<>), [supabase/functions/support-notify/index.ts:1-24](<>), [services/attachment-scanner/server.js:1-34](<>)
 
 ## Centralized Configuration
 
@@ -106,7 +106,7 @@ All support channels, business hours, response targets, priority/status/category
 | Categories         | `SUPPORT_CATEGORIES` | 10 categories, each routing to a channel                                       |
 | Escalation reasons | `ESCALATION_REASONS` | 8 narrow reasons for scheduled phone/video                                     |
 
-Sources: [src/config/support.ts:46-107](), [src/config/support.ts:134-174](), [src/config/support.ts:185-215](), [src/config/support.ts:219-313](), [src/config/support.ts:339-373]()
+Sources: [src/config/support.ts:46-107](<>), [src/config/support.ts:134-174](<>), [src/config/support.ts:185-215](<>), [src/config/support.ts:219-313](<>), [src/config/support.ts:339-373](<>)
 
 ## Ticket Lifecycle Overview
 
@@ -131,7 +131,7 @@ stateDiagram-v2
 
 For details on the full lifecycle, priority model, Ontario business calendar, and the outbox notification pattern, see [Support Architecture & Ticket Lifecycle](#6.1).
 
-Sources: [src/config/support.ts:185-215](), [src/features/support/triage.ts:55-79](), [supabase/functions/create-support-ticket/index.ts:1-15](), [docs/SUPPORT_ARCHITECTURE.md:72-75]()
+Sources: [src/config/support.ts:185-215](<>), [src/features/support/triage.ts:55-79](<>), [supabase/functions/create-support-ticket/index.ts:1-15](<>), [docs/SUPPORT_ARCHITECTURE.md:72-75](<>)
 
 ## Ticket Creation Paths
 
@@ -148,7 +148,7 @@ Both paths insert tickets via the service role (the browser has no INSERT policy
 
 For details, see [Support Architecture & Ticket Lifecycle](#6.1).
 
-Sources: [src/features/support/supportApi.ts:47-74](), [src/features/support/publicSupportApi.ts:62-86](), [src/features/support/SupportRequestForm.tsx:24-31](), [src/features/support/diagnostics.ts:11-21](), [supabase/functions/create-support-ticket/index.ts:5-15]()
+Sources: [src/features/support/supportApi.ts:47-74](<>), [src/features/support/publicSupportApi.ts:62-86](<>), [src/features/support/SupportRequestForm.tsx:24-31](<>), [src/features/support/diagnostics.ts:11-21](<>), [supabase/functions/create-support-ticket/index.ts:5-15](<>)
 
 ## Operator Tools
 
@@ -166,7 +166,7 @@ The call scheduling flow uses `support-call-scheduler` and `support-confirm-call
 
 For details, see [Support Architecture & Ticket Lifecycle](#6.1).
 
-Sources: [src/features/app/views/support/SupportAdminView.tsx:31-57](), [supabase/functions/support-agent-action/index.ts:1-13](), [src/features/app/views/support/SupportTicketDetail.tsx:36-116](), [src/features/support/supportApi.ts:240-264]()
+Sources: [src/features/app/views/support/SupportAdminView.tsx:31-57](<>), [supabase/functions/support-agent-action/index.ts:1-13](<>), [src/features/app/views/support/SupportTicketDetail.tsx:36-116](<>), [src/features/support/supportApi.ts:240-264](<>)
 
 ## Attachment Scanning
 
@@ -176,7 +176,7 @@ The scanner is a zero-dependency Node.js HTTP server that streams files through 
 
 For details on the scanner microservice, scan_status lifecycle, and the INSTREAM protocol, see [Attachment Scanner, Help Centre & Notifications](#6.2).
 
-Sources: [src/features/support/attachmentsApi.ts:1-12](), [services/attachment-scanner/server.js:1-57](), [src/features/support/attachmentsApi.ts:35-43](), [docs/SUPPORT_ARCHITECTURE.md:111-129]()
+Sources: [src/features/support/attachmentsApi.ts:1-12](<>), [services/attachment-scanner/server.js:1-57](<>), [src/features/support/attachmentsApi.ts:35-43](<>), [docs/SUPPORT_ARCHITECTURE.md:111-129](<>)
 
 ## Help Centre & First-Line Assist
 
@@ -198,7 +198,7 @@ flowchart LR
 
 For details, see [Attachment Scanner, Help Centre & Notifications](#6.2).
 
-Sources: [src/features/support/help/helpCenterData.ts:36-91](), [src/features/support/help/helpSearch.ts:75-103](), [src/features/support/firstLineAssist.ts:23-59](), [src/features/support/FirstLineSuggestions.tsx:25-135](), [supabase/functions/support-firstline/index.ts:14-31]()
+Sources: [src/features/support/help/helpCenterData.ts:36-91](<>), [src/features/support/help/helpSearch.ts:75-103](<>), [src/features/support/firstLineAssist.ts:23-59](<>), [src/features/support/FirstLineSuggestions.tsx:25-135](<>), [supabase/functions/support-firstline/index.ts:14-31](<>)
 
 ## Notifications & Email Delivery
 
@@ -210,13 +210,13 @@ The notification system supports 18 email kinds including `ticket_received`, `ag
 
 For details, see [Attachment Scanner, Help Centre & Notifications](#6.2).
 
-Sources: [supabase/functions/support-notify/index.ts:1-24](), [supabase/functions/support-notify/index.ts:38-39](), [supabase/functions/resend-webhook/index.ts:1-19](), [src/features/support/email/templates.ts:17-32](), [docs/SUPPORT_RUNBOOK.md:104-107]()
+Sources: [supabase/functions/support-notify/index.ts:1-24](<>), [supabase/functions/support-notify/index.ts:38-39](<>), [supabase/functions/resend-webhook/index.ts:1-19](<>), [src/features/support/email/templates.ts:17-32](<>), [docs/SUPPORT_RUNBOOK.md:104-107](<>)
 
 ## Service Status Board
 
 The service status board exposes the operational state of four platform components (`platform`, `advisor`, `documents`, `support`) with four severity levels (`operational`, `degraded`, `maintenance`, `outage`). Reads are public (RLS `using (true)`); writes go through the admin-gated `set-service-status` edge function. The `overallStatus()` function rolls up the worst component status for the banner. When Supabase is unconfigured, the API returns all-`operational` defaults.
 
-Sources: [src/features/support/statusApi.ts:14-92]()
+Sources: [src/features/support/statusApi.ts:14-92](<>)
 
 ## Analytics
 
@@ -232,7 +232,7 @@ Support analytics measures the full funnel: Help Centre searches, article views,
 
 No user IDs, ticket body text, document contents, or IP addresses are collected.
 
-Sources: [src/features/support/analytics/supportAnalytics.ts:1-26](), [src/features/support/analytics/supportAnalytics.ts:32-49](), [docs/SUPPORT_ANALYTICS.md:1-56]()
+Sources: [src/features/support/analytics/supportAnalytics.ts:1-26](<>), [src/features/support/analytics/supportAnalytics.ts:32-49](<>), [docs/SUPPORT_ANALYTICS.md:1-56](<>)
 
 ## Code Organization
 
@@ -309,7 +309,7 @@ graph LR
     EF5 --> ASc
 ```
 
-Sources: [src/config/support.ts:1-391](), [src/features/support/supportApi.ts:1-265](), [src/features/support/triage.ts:1-203](), [src/features/app/views/support/SupportView.tsx:1-77]()
+Sources: [src/config/support.ts:1-391](<>), [src/features/support/supportApi.ts:1-265](<>), [src/features/support/triage.ts:1-203](<>), [src/features/app/views/support/SupportView.tsx:1-77](<>)
 
 ## Key Environment Variables
 
@@ -325,7 +325,7 @@ The support system follows the "configured or inert" pattern — no env vars are
 | `VITE_CAPTCHA_SITE_KEY`       | `PublicSupportForm`                         | Client-side CAPTCHA widget               |
 | `SUPPORT_OPERATOR_EMAIL`      | `create-support-ticket`                     | Operator alert recipient                 |
 
-Sources: [.env.example:62-104](), [docs/SUPPORT_RUNBOOK.md:109-123]()
+Sources: [.env.example:62-104](<>), [docs/SUPPORT_RUNBOOK.md:109-123](<>)
 
 ## Child Pages
 

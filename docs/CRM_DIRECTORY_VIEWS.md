@@ -1,6 +1,6 @@
 # Customer directory — filters and saved views
 
-The CRM directory (Contacts and Companies tabs, `/app/crm`) gained
+The CRM directory (Contacts and Companies tabs, `/workspace/crm`) gained
 filter-based views. Logic and tests live in
 `src/features/app/views/crm/directoryFilters.ts` / `.test.ts`; the UI is
 wired into `CrmContacts.tsx` and `CrmCompanies.tsx`.

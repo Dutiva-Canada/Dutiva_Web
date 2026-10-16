@@ -71,7 +71,7 @@ sequenceDiagram
     C-->>U: "AdvisorChatResult"
 ```
 
-Sources: [src/features/app/advisor/chatApi.ts:90-131](), [supabase/functions/advisor-chat/index.ts:538-553](), [src/features/app/advisor/safetyTelemetry.ts:1-23](), [supabase/functions/advisor-safety-event/index.ts:132-159]()
+Sources: [src/features/app/advisor/chatApi.ts:90-131](<>), [supabase/functions/advisor-chat/index.ts:538-553](<>), [src/features/app/advisor/safetyTelemetry.ts:1-23](<>), [supabase/functions/advisor-safety-event/index.ts:132-159](<>)
 
 ## Module Structure
 
@@ -88,7 +88,7 @@ The safety code is organized into a self-contained module at `src/features/app/a
 | `safetyBackstop.ts`          | `applySafetyBackstop()` — the orchestrator that runs all rules and returns a hardened response          |
 | `crisisSignalsDrift.test.ts` | Drift guard enforcing client/server phrase-list sync                                                    |
 
-Sources: [src/features/app/advisor/safety/index.ts:1-21]()
+Sources: [src/features/app/advisor/safety/index.ts:1-21](<>)
 
 ## Crisis Intercept (`detectCrisisSignal`)
 
@@ -96,7 +96,7 @@ The crisis intercept is the highest-priority safety rule. It detects first-perso
 
 ### How It Works
 
-`detectCrisisSignal` in [src/features/app/advisor/safety/crisisSignals.ts:74-78]() normalizes the input via `normalizeText()` and checks for substring matches against `CRISIS_PHRASES` — 37 phrases covering English and French:
+`detectCrisisSignal` in [src/features/app/advisor/safety/crisisSignals.ts:74-78](<>) normalizes the input via `normalizeText()` and checks for substring matches against `CRISIS_PHRASES` — 37 phrases covering English and French:
 
 ```
 kill myself, ending my life, suicidal, cant go on, ...
@@ -105,7 +105,7 @@ me suicider, suicidaire, envie de mourir, plus envie de vivre, ...
 
 All phrases are stored **pre-normalized** (lowercase, no accents, no apostrophes) so normalization is idempotent on them.
 
-Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-71](), [src/features/app/advisor/safety/text.ts:11-19]()
+Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-71](<>), [src/features/app/advisor/safety/text.ts:11-19](<>)
 
 ### Dual-Side Detection
 
@@ -120,7 +120,7 @@ Crisis detection runs on **both** client and server. The server copy is `detects
 
 The union of both detectors wins — if either side detects crisis, the flag is raised. This is the **fail-safe-on** rule: a model that fails to flag crisis cannot suppress the intercept.
 
-Sources: [src/features/app/advisor/safety/crisisSignalsDrift.test.ts:1-55](), [supabase/functions/advisor-chat/responsePayload.ts:70-130]()
+Sources: [src/features/app/advisor/safety/crisisSignalsDrift.test.ts:1-55](<>), [supabase/functions/advisor-chat/responsePayload.ts:70-130](<>)
 
 ### Server-Side Crisis Response
 
@@ -135,11 +135,11 @@ risk.safety = 'critical'
 isCrisis = true
 ```
 
-Sources: [supabase/functions/advisor-chat/responsePayload.ts:277-335]()
+Sources: [supabase/functions/advisor-chat/responsePayload.ts:277-335](<>)
 
 ## Safety Backstop (`applySafetyBackstop`)
 
-The safety backstop is the **client-side defense-in-depth layer** defined in [src/features/app/advisor/safety/safetyBackstop.ts:93-155](). It runs after the engine response is received and Zod-validated, but before the Compliance Workspace renders it. It is wired in `chatApi.ts` at [src/features/app/advisor/chatApi.ts:113-125]().
+The safety backstop is the **client-side defense-in-depth layer** defined in [src/features/app/advisor/safety/safetyBackstop.ts:93-155](<>). It runs after the engine response is received and Zod-validated, but before the Compliance Workspace renders it. It is wired in `chatApi.ts` at [src/features/app/advisor/chatApi.ts:113-125](<>).
 
 ### Core Design: Monotonic Tightening
 
@@ -153,7 +153,7 @@ The rules are **monotonic** — they can only tighten a gate, never loosen one. 
 
 When no rule fires, `applySafetyBackstop` returns the **same object reference** — the caller can cheaply check `result.response === input.response`.
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:21-37](), [src/features/app/advisor/safety/safetyBackstop.ts:93-155]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:21-37](<>), [src/features/app/advisor/safety/safetyBackstop.ts:93-155](<>)
 
 ### Rule Execution Order
 
@@ -179,19 +179,19 @@ flowchart TD
     SkipFigure --> Done
 ```
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:98-154]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:98-154](<>)
 
 ### Jurisdiction Confirmation
 
-A jurisdiction status is considered "confirmed" when it is one of: `'known'`, `'assumed'`, or `'not_applicable'`. This is defined by the `JURISDICTION_CONFIRMED` set at [src/features/app/advisor/safety/safetyBackstop.ts:40-44]().
+A jurisdiction status is considered "confirmed" when it is one of: `'known'`, `'assumed'`, or `'not_applicable'`. This is defined by the `JURISDICTION_CONFIRMED` set at [src/features/app/advisor/safety/safetyBackstop.ts:40-44](<>).
 
 The `scheduleJurisdiction` helper maps the engine's display-string jurisdiction value (e.g. `"Ontario · Provincially regulated"`) back to a schedule code (`'ON'`, `'QC'`, `'FED'`) by prefix-matching. This mapping is tested against the `JURISDICTION_VALUE` constants exported from `responsePayload.ts` — a drift test ensures changes to the server labels break the test, not silently disarm the cross-check.
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:79-87](), [src/features/app/advisor/safety/safetyBackstop.test.ts:97-123]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:79-87](<>), [src/features/app/advisor/safety/safetyBackstop.test.ts:97-123](<>)
 
 ## Statutory Figure Detection (`mentionsStatutoryFigure`)
 
-Defined in [src/features/app/advisor/safety/statutoryFigures.ts:68-72](), this function detects when a reply appears to state a statutory figure. It requires the **co-occurrence** of:
+Defined in [src/features/app/advisor/safety/statutoryFigures.ts:68-72](<>), this function detects when a reply appears to state a statutory figure. It requires the **co-occurrence** of:
 
 1. **A numeric pattern** — one of four regex patterns:
    - `DURATION`: e.g. "8 weeks", "3 mois"
@@ -203,11 +203,11 @@ Defined in [src/features/app/advisor/safety/statutoryFigures.ts:68-72](), this f
 
 Both conditions must be met — a bare number without statutory context does not trigger, and statutory context without a figure does not trigger. This prevents false positives on messages like "she started 3 months ago" or "here is some general guidance on notice".
 
-Sources: [src/features/app/advisor/safety/statutoryFigures.ts:24-72](), [src/features/app/advisor/safety/statutoryFigures.test.ts:1-50]()
+Sources: [src/features/app/advisor/safety/statutoryFigures.ts:24-72](<>), [src/features/app/advisor/safety/statutoryFigures.test.ts:1-50](<>)
 
 ## Statutory Notice Cross-Check (`crossCheckNoticeFigure`)
 
-The cross-check at [src/features/app/advisor/safety/statutoryCrossCheck.ts:158-191]() is the **verification half** of §5.2. It compares a notice-period figure stated in the model's reply against the encoded statutory schedule.
+The cross-check at [src/features/app/advisor/safety/statutoryCrossCheck.ts:158-191](<>) is the **verification half** of §5.2. It compares a notice-period figure stated in the model's reply against the encoded statutory schedule.
 
 ### Prerequisites for a Check
 
@@ -221,24 +221,24 @@ If any prerequisite is missing, the verdict is `'unverifiable'` — the system n
 
 ### Tenure Extraction (`extractTenureMonths`)
 
-`extractTenureMonths` at [src/features/app/advisor/safety/statutoryCrossCheck.ts:112-119]() pools tenure candidates from all provided texts. A tenure candidate requires:
+`extractTenureMonths` at [src/features/app/advisor/safety/statutoryCrossCheck.ts:112-119](<>) pools tenure candidates from all provided texts. A tenure candidate requires:
 
 - A duration pattern (years/months) with **tenure context** within a 40-character window: terms like `service`, `employment`, `employed`, `tenure`, `anciennete`, etc.
 - Or the `N-year employee` form where the following noun is itself the context
 
 **Ambiguity rule**: if more than one distinct tenure value is found across all texts, the result is `null`. A wrong guess is worse than no check.
 
-Sources: [src/features/app/advisor/safety/statutoryCrossCheck.ts:56-119]()
+Sources: [src/features/app/advisor/safety/statutoryCrossCheck.ts:56-119](<>)
 
 ### Notice Claim Extraction (`extractNoticeWeeksClaims`)
 
-`extractNoticeWeeksClaims` at [src/features/app/advisor/safety/statutoryCrossCheck.ts:137-153]() extracts notice period claims where a notice noun (`notice`, `termination pay`, `pay in lieu`, `preavis`) appears **adjacent** to a weeks figure — in either order. Range claims ("between 4 and 8 weeks") are supported; a range is consistent when the expected statutory value falls inside it.
+`extractNoticeWeeksClaims` at [src/features/app/advisor/safety/statutoryCrossCheck.ts:137-153](<>) extracts notice period claims where a notice noun (`notice`, `termination pay`, `pay in lieu`, `preavis`) appears **adjacent** to a weeks figure — in either order. Range claims ("between 4 and 8 weeks") are supported; a range is consistent when the expected statutory value falls inside it.
 
-Sources: [src/features/app/advisor/safety/statutoryCrossCheck.ts:122-153]()
+Sources: [src/features/app/advisor/safety/statutoryCrossCheck.ts:122-153](<>)
 
 ### Statutory Notice Schedule
 
-The Ontario ESA s.57 schedule is encoded in [src/features/app/advisor/safety/statutoryNotice.ts:52-62]():
+The Ontario ESA s.57 schedule is encoded in [src/features/app/advisor/safety/statutoryNotice.ts:52-62](<>):
 
 | Completed Tenure     | Statutory Notice  |
 | -------------------- | ----------------- |
@@ -252,19 +252,19 @@ The Ontario ESA s.57 schedule is encoded in [src/features/app/advisor/safety/sta
 | 7 to < 8 years       | 7 weeks           |
 | 8+ years             | 8 weeks (maximum) |
 
-`lookupStatutoryNoticeWeeks` at [src/features/app/advisor/safety/statutoryNotice.ts:108-121]() returns `null` for QC and FED (bands are `null` pending review documented in `docs/notice-bands-review-pack.md`), and `null` for invalid/negative tenure.
+`lookupStatutoryNoticeWeeks` at [src/features/app/advisor/safety/statutoryNotice.ts:108-121](<>) returns `null` for QC and FED (bands are `null` pending review documented in `docs/notice-bands-review-pack.md`), and `null` for invalid/negative tenure.
 
-A **server-side mirror** of the Ontario bands exists at [supabase/functions/advisor-chat/noticeSchedule.ts:29-39]() and is injected into the system prompt when the turn is an Ontario notice question (`noticeScheduleBlock` at line 81). A drift test ensures the two copies stay synchronized.
+A **server-side mirror** of the Ontario bands exists at [supabase/functions/advisor-chat/noticeSchedule.ts:29-39](<>) and is injected into the system prompt when the turn is an Ontario notice question (`noticeScheduleBlock` at line 81). A drift test ensures the two copies stay synchronized.
 
-Sources: [src/features/app/advisor/safety/statutoryNotice.ts:36-121](), [supabase/functions/advisor-chat/noticeSchedule.ts:1-102]()
+Sources: [src/features/app/advisor/safety/statutoryNotice.ts:36-121](<>), [supabase/functions/advisor-chat/noticeSchedule.ts:1-102](<>)
 
 ## Server-Side Deterministic Payload (`buildAdvisorResponse`)
 
-`buildAdvisorResponse` at [supabase/functions/advisor-chat/responsePayload.ts:277-533]() computes the entire `AdvisorResponsePayload` deterministically from the user message, retrieved corpus chunks, and reply prose. **The model is never asked for any structured field.**
+`buildAdvisorResponse` at [supabase/functions/advisor-chat/responsePayload.ts:277-533](<>) computes the entire `AdvisorResponsePayload` deterministically from the user message, retrieved corpus chunks, and reply prose. **The model is never asked for any structured field.**
 
 ### Jurisdiction Detection
 
-`detectJurisdictions` at [supabase/functions/advisor-chat/responsePayload.ts:226-229]() scans the normalized message for jurisdiction-specific terms:
+`detectJurisdictions` at [supabase/functions/advisor-chat/responsePayload.ts:226-229](<>) scans the normalized message for jurisdiction-specific terms:
 
 | Code  | Terms                                                                                      |
 | ----- | ------------------------------------------------------------------------------------------ |
@@ -276,7 +276,7 @@ Bare two-letter codes are excluded — `"on"` is a common English word and a fal
 
 The jurisdiction gate: `legalBasisAllowed` is `true` **only when** exactly one jurisdiction is detected AND corpus chunks were retrieved. Unknown or conflicting jurisdiction shuts the legal-basis surface.
 
-Sources: [supabase/functions/advisor-chat/responsePayload.ts:203-229](), [supabase/functions/advisor-chat/responsePayload.ts:340-356]()
+Sources: [supabase/functions/advisor-chat/responsePayload.ts:203-229](<>), [supabase/functions/advisor-chat/responsePayload.ts:340-356](<>)
 
 ### Risk Classification
 
@@ -289,7 +289,7 @@ Risk is computed from normalized-message term matching:
 | `low` compliance    | No matching terms                                                                                             |
 | `watch` safety      | `ESCALATION_TERMS` match — harassment, violence, assault, threat, discrimination, retaliation, whistleblow    |
 
-Sources: [supabase/functions/advisor-chat/responsePayload.ts:132-201]()
+Sources: [supabase/functions/advisor-chat/responsePayload.ts:132-201](<>)
 
 ### Legal Basis Validity
 
@@ -300,7 +300,7 @@ A citation is `valid: true` only when **both** conditions hold:
 
 Machine-curated rows honestly surface as "needs review" rather than claiming vetted authority.
 
-Sources: [supabase/functions/advisor-chat/responsePayload.ts:372-375]()
+Sources: [supabase/functions/advisor-chat/responsePayload.ts:372-375](<>)
 
 ## Safety Telemetry
 
@@ -308,11 +308,11 @@ When the client-side backstop fires, telemetry is recorded via the `advisor-safe
 
 ### Client-Side Reporter
 
-`reportSafetyEvent` at [src/features/app/advisor/safetyTelemetry.ts:11-23]() is **fire-and-forget** — it is called with `void` and never blocks the reply. If Supabase is not configured or the call throws, it silently does nothing.
+`reportSafetyEvent` at [src/features/app/advisor/safetyTelemetry.ts:11-23](<>) is **fire-and-forget** — it is called with `void` and never blocks the reply. If Supabase is not configured or the call throws, it silently does nothing.
 
 ### Edge Function
 
-The `advisor-safety-event` edge function at [supabase/functions/advisor-safety-event/index.ts:1-159]():
+The `advisor-safety-event` edge function at [supabase/functions/advisor-safety-event/index.ts:1-159](<>):
 
 1. Authenticates via bearer JWT and checks `current_user_is_workspace_member`
 2. Validates `actions` against `ALLOWED_ACTIONS`: `crisis-intercept`, `legal-basis-withheld`, `figure-mismatch`
@@ -322,11 +322,11 @@ The `advisor-safety-event` edge function at [supabase/functions/advisor-safety-e
 
 Importantly, `safety_backstop` is excluded from `METERED_OPERATIONS` — being kept safe must never consume a user's AI budget.
 
-Sources: [supabase/functions/advisor-safety-event/index.ts:31-158](), [supabase/functions/_shared/aiUsage.ts:38-39]()
+Sources: [supabase/functions/advisor-safety-event/index.ts:31-158](<>), [supabase/functions/_shared/aiUsage.ts:38-39](<>)
 
 ## AI Usage Metering
 
-During the beta, the AI surface is the only feature that costs real money per request. The metering system at [supabase/functions/_shared/aiUsage.ts:1-265]() enforces ceilings via an atomic **claim/finalize** pattern.
+During the beta, the AI surface is the only feature that costs real money per request. The metering system at [supabase/functions/_shared/aiUsage.ts:1-265](<>) enforces ceilings via an atomic **claim/finalize** pattern.
 
 ### Claim/Finalize Pattern
 
@@ -358,7 +358,7 @@ sequenceDiagram
     end
 ```
 
-Sources: [supabase/functions/_shared/aiUsage.ts:177-204](), [supabase/functions/_shared/aiUsage.ts:222-243](), [supabase/functions/advisor-chat/index.ts:469-495]()
+Sources: [supabase/functions/_shared/aiUsage.ts:177-204](<>), [supabase/functions/_shared/aiUsage.ts:222-243](<>), [supabase/functions/advisor-chat/index.ts:469-495](<>)
 
 ### Usage Ceilings
 
@@ -373,11 +373,11 @@ All ceilings are env-overridable (tuning the beta is a secret change, not a depl
 
 The daily budget is **shared** across the Advisor (`chat`) and support first-line (`support_firstline`) — moving between surfaces cannot double the budget.
 
-Sources: [supabase/functions/_shared/aiUsage.ts:74-103](), [supabase/functions/_shared/aiUsage.ts:42-51]()
+Sources: [supabase/functions/_shared/aiUsage.ts:74-103](<>), [supabase/functions/_shared/aiUsage.ts:42-51](<>)
 
 ### SQL Implementation (`claim_ai_usage`)
 
-The `claim_ai_usage` RPC at [supabase/migrations/0027_ai_usage_guardrails.sql:97-222]() uses `pg_advisory_xact_lock` to serialize all claims with a single lock key. This prevents the race condition where N concurrent requests all read a count below the limit and all proceed.
+The `claim_ai_usage` RPC at [supabase/migrations/0027_ai_usage_guardrails.sql:97-222](<>) uses `pg_advisory_xact_lock` to serialize all claims with a single lock key. This prevents the race condition where N concurrent requests all read a count below the limit and all proceed.
 
 Ceiling checks are evaluated in order: burst → daily → daily_tokens → platform_daily. Each returns a jsonb verdict with `scope`, `limit`, `used`, and `retry_after_seconds` if denied. `retry_after_seconds` is computed from when the oldest call in the window will age out.
 
@@ -388,19 +388,19 @@ Ceiling checks are evaluated in order: burst → daily → daily_tokens → plat
 - Denials are **not recorded as rows** — they would either compound the limit or need excluding from counts
 - The function is only callable by `service_role` — an authenticated caller invoking it directly could set any ceiling
 
-Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:75-232]()
+Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:75-232](<>)
 
 ### `UsageDecision` Parsing
 
-`decisionFromRpc` at [supabase/functions/_shared/aiUsage.ts:148-170]() treats anything it does not recognize as `unavailable` rather than as permission. When a decision is `unavailable`, the edge function **fails closed** — returning a 503 rather than making an unmetered call.
+`decisionFromRpc` at [supabase/functions/_shared/aiUsage.ts:148-170](<>) treats anything it does not recognize as `unavailable` rather than as permission. When a decision is `unavailable`, the edge function **fails closed** — returning a 503 rather than making an unmetered call.
 
 The `retryAfterSeconds` is clamped to ≥ 1. A `Retry-After` of 0 would invite an immediate retry, which is the behavior the burst ceiling exists to stop.
 
-Sources: [supabase/functions/_shared/aiUsage.ts:148-170](), [supabase/functions/advisor-chat/index.ts:489-494]()
+Sources: [supabase/functions/_shared/aiUsage.ts:148-170](<>), [supabase/functions/advisor-chat/index.ts:489-494](<>)
 
 ### Client-Side Error Handling (`AdvisorUsageLimitError`)
 
-When the edge function returns 429, `chatApi.ts` parses the response into an `AdvisorUsageLimitError` at [src/features/app/advisor/chatApi.ts:35-44](). This is a typed error the UI can match on to show an appropriate message rather than a generic retry prompt:
+When the edge function returns 429, `chatApi.ts` parses the response into an `AdvisorUsageLimitError` at [src/features/app/advisor/chatApi.ts:35-44](<>). This is a typed error the UI can match on to show an appropriate message rather than a generic retry prompt:
 
 ```typescript
 export class AdvisorUsageLimitError extends Error {
@@ -413,11 +413,11 @@ export class AdvisorUsageLimitError extends Error {
 
 The four scopes (`burst`, `daily`, `daily_tokens`, `platform_daily`) let the UI distinguish "you personally hit a limit" from "the whole beta platform is saturated".
 
-Sources: [src/features/app/advisor/chatApi.ts:33-46](), [src/features/app/advisor/chatApi.ts:54-73]()
+Sources: [src/features/app/advisor/chatApi.ts:33-46](<>), [src/features/app/advisor/chatApi.ts:54-73](<>)
 
 ## Integration Point: `sendAdvisorMessage`
 
-`sendAdvisorMessage` at [src/features/app/advisor/chatApi.ts:90-131]() is the single integration point that wires together the edge function call, contract validation, safety backstop, and telemetry:
+`sendAdvisorMessage` at [src/features/app/advisor/chatApi.ts:90-131](<>) is the single integration point that wires together the edge function call, contract validation, safety backstop, and telemetry:
 
 1. Invokes `advisor-chat` edge function with message, conversation_id, timezone
 2. On 429, throws `AdvisorUsageLimitError`; on other errors, re-throws
@@ -427,9 +427,9 @@ Sources: [src/features/app/advisor/chatApi.ts:33-46](), [src/features/app/adviso
 6. If any safety actions fired, calls `reportSafetyEvent` (fire-and-forget)
 7. Returns `{ reply, conversationId, response }` — `response` is `null` if the engine didn't send one or validation failed
 
-The rendering layer uses `allowedSurfaces(response)` from [src/features/app/advisor/contract.ts:161-170]() as the single gating check — when `isCrisis` is `true`, all surfaces return `false`.
+The rendering layer uses `allowedSurfaces(response)` from [src/features/app/advisor/contract.ts:161-170](<>) as the single gating check — when `isCrisis` is `true`, all surfaces return `false`.
 
-Sources: [src/features/app/advisor/chatApi.ts:90-131](), [src/features/app/advisor/contract.ts:161-170]()
+Sources: [src/features/app/advisor/chatApi.ts:90-131](<>), [src/features/app/advisor/contract.ts:161-170](<>)
 
 ## Test Coverage
 
@@ -446,6 +446,6 @@ The safety module has extensive test coverage across multiple test files:
 | `safetyTelemetry.test.ts`     | Fire-and-forget behavior, Supabase-unconfigured, swallowed failures                        |
 | `aiUsage.test.ts`             | RPC verdict parsing, fail-closed on errors, shared daily budget, metered operations        |
 
-Sources: [src/features/app/advisor/safety/crisisSignals.test.ts:1-32](), [src/features/app/advisor/safety/crisisSignalsDrift.test.ts:1-55](), [src/features/app/advisor/safety/safetyBackstop.test.ts:1-185](), [src/features/app/advisor/safetyTelemetry.test.ts:1-58](), [supabase/functions/_shared/aiUsage.test.ts:1-275]()
+Sources: [src/features/app/advisor/safety/crisisSignals.test.ts:1-32](<>), [src/features/app/advisor/safety/crisisSignalsDrift.test.ts:1-55](<>), [src/features/app/advisor/safety/safetyBackstop.test.ts:1-185](<>), [src/features/app/advisor/safetyTelemetry.test.ts:1-58](<>), [supabase/functions/_shared/aiUsage.test.ts:1-275](<>)
 
 ---

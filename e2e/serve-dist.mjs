@@ -5,8 +5,11 @@
  * routes differently from what actually ships.
  *
  * The routing contract it mirrors:
- *   - /app and /app/*  → app.html          (the client-rendered SPA shell)
+ *   - /workspace and /workspace/*  → app.html  (the client-rendered SPA shell)
+ *   - /app and /app/*              → app.html  (legacy alias; app redirects to /workspace)
  *   - /demo/* and /fr/demo/* (subpaths)   → app.html ( /demo roots stay prerendered )
+ *   - /wellness/*, /health/*, /invest/*, /pr/*, /careers/*, /fr/carrieres/*,
+ *     /employer, /fr/employeur, /sign/*, /fr/sign/* → index.html (portal/marketing SPA shell)
  *   - trailingSlash:false clean URLs        (/about → dist/about/index.html)
  *   - real files served directly            (/assets/*, /robots.txt, /sw.js)
  *   - /assets, /brand, /.well-known indexes → 404 (no directory listing)
@@ -95,14 +98,46 @@ async function resolve(pathname) {
     return { ...resolved, robotsTag: 'noindex, nofollow' }
   }
 
-  // /app and /app/* are rewritten to the SPA shell (vercel.json rewrites).
-  if (pathname === '/app' || pathname.startsWith('/app/')) {
+  // /workspace and /workspace/* are rewritten to the SPA shell; /app and /app/*
+  // are the legacy alias serving the same shell (vercel.json rewrites).
+  if (
+    pathname === '/workspace' ||
+    pathname.startsWith('/workspace/') ||
+    pathname === '/app' ||
+    pathname.startsWith('/app/')
+  ) {
     return { file: join(DIST, 'app.html'), status: 200 }
   }
 
   // /demo/home, /fr/demo/advisor, … — subpaths only; /demo itself is prerendered.
   if (pathname.startsWith('/demo/') || pathname.startsWith('/fr/demo/')) {
     return { file: join(DIST, 'app.html'), status: 200 }
+  }
+
+  // Standalone portals and token surfaces are rewritten to the marketing shell
+  // (index.html) — vercel.json rewrites. Only subpaths for the portal trees
+  // whose roots are prerendered would hit the file lookup first, but none of
+  // these roots are prerendered today.
+  if (
+    pathname === '/invest' ||
+    pathname.startsWith('/invest/') ||
+    pathname === '/health' ||
+    pathname.startsWith('/health/') ||
+    pathname === '/wellness' ||
+    pathname.startsWith('/wellness/') ||
+    pathname === '/pr' ||
+    pathname.startsWith('/pr/') ||
+    pathname === '/employer' ||
+    pathname === '/fr/employeur' ||
+    pathname.startsWith('/sign/') ||
+    pathname.startsWith('/fr/sign/')
+  ) {
+    return { file: join(DIST, 'index.html'), status: 200 }
+  }
+  // /careers and /fr/carrieres subpaths rewrite to index.html; the bare roots
+  // are prerendered SEO pages (both are indexable static routes).
+  if (pathname.startsWith('/careers/') || pathname.startsWith('/fr/carrieres/')) {
+    return { file: join(DIST, 'index.html'), status: 200 }
   }
 
   // Decode and strip any traversal before joining, then confirm the result is

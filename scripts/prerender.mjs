@@ -322,7 +322,7 @@ await writeFile(
     '- Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal advice.',
     '- Dutiva is HR compliance and documentation software. It is not a payroll provider or payroll processor: it does not run payroll, remit source deductions, or issue pay.',
     `- Founder: ${FOUNDER.name}, ${FOUNDER.jobTitle.en}.`,
-    `- The authenticated application (${SITE_ORIGIN}/app) is private customer workspace content and is not part of the public documentation.`,
+    `- The authenticated application (${SITE_ORIGIN}/workspace) is private customer workspace content and is not part of the public documentation.`,
     '',
     '## Common questions',
     '',

@@ -15,7 +15,7 @@ import { PlanProvider } from './billing/PlanProvider'
  * ToastsProvider (it fires "draft ready" toasts). AuthProvider tracks the
  * Supabase session — both for features that read real backend data (e.g.
  * Knowledge's legal-sources panel) and, via RequireAdminSession wrapping
- * the /app route, as the actual gate keeping the workspace invite-only.
+ * the /workspace route, as the actual gate keeping the workspace invite-only.
  * WorkspaceModeProvider reads that session to resolve the demo/production
  * toggle, so it must stay inside AuthProvider. PlanProvider reads the
  * signed-in account's plan from `profiles` — it must stay inside

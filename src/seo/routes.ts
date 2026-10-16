@@ -405,7 +405,7 @@ const ALL_PUBLIC_PATHS: readonly Record<Lang, string>[] = [
 /**
  * The same page's pathname in the other locale, for the language toggle and
  * for reciprocal hreflang links. Returns undefined off the public surface
- * (e.g. /app), where language is a client preference rather than a URL.
+ * (e.g. /workspace), where language is a client preference rather than a URL.
  */
 export function alternatePathFor(pathname: string, target: Lang): string | undefined {
   const normalized = pathname !== '/' ? pathname.replace(/\/+$/, '') : '/'

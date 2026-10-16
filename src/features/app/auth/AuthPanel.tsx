@@ -23,7 +23,7 @@ const primaryBtnClass =
   'flex h-[46px] w-full cursor-pointer items-center justify-center gap-[8px] rounded-[11px] border-none bg-navy text-[14px] font-semibold text-white transition-opacity disabled:cursor-default disabled:opacity-60'
 
 /**
- * The dedicated sign in / sign up card rendered on /app/welcome (see
+ * The dedicated sign in / sign up card rendered on /workspace/welcome (see
  * EntryStage). Passwordless throughout: both tabs email a magic link (the
  * sign-up tab also captures a display name). Renders three states — the
  * form, the "check your inbox" confirmation, and a "signed in on the wrong

@@ -39,11 +39,11 @@ The same surface serves different roles. A manager sees team priorities and appr
 
 - Sidebar section restructure and new module routing.
 - Executive cockpit (Home) redesign.
-- Revenue overview surface (`/app/revenue`) — unifies CRM and Comms.
-- Governance module (`/app/governance`) — corporate records, decisions, officers, shareholders.
-- Security module (`/app/security`) — asset register, access reviews, incidents, risks, vendor/privacy controls.
-- Operations module (`/app/operations`) — projects, vendors, quality, technology/systems, logistics.
-- External specialists directory (`/app/specialists`) — reuses CRM/Finance party data with an engagement log.
+- Revenue overview surface (`/workspace/revenue`) — unifies CRM and Comms.
+- Governance module (`/workspace/governance`) — corporate records, decisions, officers, shareholders.
+- Security module (`/workspace/security`) — asset register, access reviews, incidents, risks, vendor/privacy controls.
+- Operations module (`/workspace/operations`) — projects, vendors, quality, technology/systems, logistics.
+- External specialists directory (`/workspace/specialists`) — reuses CRM/Finance party data with an engagement log.
 - Bilingual strings and design-token compliance.
 
 ### Out of scope
@@ -70,7 +70,7 @@ This creates room for **professional employees** — employees who do real work 
 | **Manager**                 | Department lead, operations or people manager                             | Team view in People; tasks, projects, quality, and vendor records in Operations; read or limited write access to Finance and Security; access to Revenue (CRM/Comms) if in scope for their function.                                                                                                                    |
 | **Professional employee**   | In-house HR, finance, operations, security, or IT lead                    | Performs work in the app: processes cases, runs payroll checks, completes and reviews quality checks, manages projects, triages security incidents, owns vendor records. May see more than a self-service member but less than a manager in modules outside their function.                                             |
 | **Member**                  | Employee, individual contributor                                          | Self-service: own employee profile, assigned tasks and calendar events, policies, wellbeing resources. Can complete operational work only when explicitly assigned (a quality check, a project task, a security training). No access to governance, finance, revenue, or sensitive HR records unless explicitly shared. |
-| **Consultant / Freelancer** | External bookkeeper, HR consultant, IT/security contractor, legal counsel | Scoped, time-limited access to one or more modules (e.g., Finance, Security, People). Appears in `/app/specialists` and can be granted a workspace seat with an expiry date. No access to governance or executive features unless explicitly granted.                                                                   |
+| **Consultant / Freelancer** | External bookkeeper, HR consultant, IT/security contractor, legal counsel | Scoped, time-limited access to one or more modules (e.g., Finance, Security, People). Appears in `/workspace/specialists` and can be granted a workspace seat with an expiry date. No access to governance or executive features unless explicitly granted.                                                             |
 | **Viewer**                  | Board observer, auditor, external advisor                                 | Read-only access to selected governance records, policies, and analytics. No write access; no access to compensation, cases, or personal employee data unless granted.                                                                                                                                                  |
 
 ### What changes per role
@@ -95,22 +95,22 @@ This does not turn Dutiva into a full employee portal, but it makes the platform
 
 ## Module map
 
-| Org layer  | Module       | Route                | Current state | New or changed                                            |
-| ---------- | ------------ | -------------------- | ------------- | --------------------------------------------------------- |
-| Executive  | Home         | `/app/home`          | exists        | redesign to cockpit                                       |
-| Revenue    | Revenue      | `/app/revenue`       | new           | overview pulling from CRM + Comms                         |
-| Revenue    | CRM          | `/app/crm`           | exists        | keep, link from Revenue                                   |
-| Revenue    | Comms        | `/app/comms/*`       | exists        | keep, link from Revenue                                   |
-| Operations | Operations   | `/app/operations/*`  | new           | projects, vendors, quality, tech, logistics               |
-| People     | Employees    | `/app/employees`     | exists        | unchanged                                                 |
-| People     | Cases        | `/app/cases`         | exists        | unchanged                                                 |
-| People     | Hiring       | `/app/hiring`        | exists        | unchanged                                                 |
-| People     | Wellbeing    | `/app/wellbeing`     | exists        | unchanged                                                 |
-| Finance    | Finance      | `/app/finance/*`     | exists        | unchanged; links to Operations vendors and Payroll        |
-| Finance    | Compensation | `/app/compensation`  | exists        | unchanged                                                 |
-| Governance | Governance   | `/app/governance/*`  | new           | records, decisions, officers, shareholders                |
-| Security   | Security     | `/app/security/*`    | new           | asset register, access reviews, incidents, risks, vendors |
-| External   | Specialists  | `/app/specialists/*` | new           | directory and engagement log                              |
+| Org layer  | Module       | Route                      | Current state | New or changed                                            |
+| ---------- | ------------ | -------------------------- | ------------- | --------------------------------------------------------- |
+| Executive  | Home         | `/workspace/home`          | exists        | redesign to cockpit                                       |
+| Revenue    | Revenue      | `/workspace/revenue`       | new           | overview pulling from CRM + Comms                         |
+| Revenue    | CRM          | `/workspace/crm`           | exists        | keep, link from Revenue                                   |
+| Revenue    | Comms        | `/workspace/comms/*`       | exists        | keep, link from Revenue                                   |
+| Operations | Operations   | `/workspace/operations/*`  | new           | projects, vendors, quality, tech, logistics               |
+| People     | Employees    | `/workspace/employees`     | exists        | unchanged                                                 |
+| People     | Cases        | `/workspace/cases`         | exists        | unchanged                                                 |
+| People     | Hiring       | `/workspace/hiring`        | exists        | unchanged                                                 |
+| People     | Wellbeing    | `/workspace/wellbeing`     | exists        | unchanged                                                 |
+| Finance    | Finance      | `/workspace/finance/*`     | exists        | unchanged; links to Operations vendors and Payroll        |
+| Finance    | Compensation | `/workspace/compensation`  | exists        | unchanged                                                 |
+| Governance | Governance   | `/workspace/governance/*`  | new           | records, decisions, officers, shareholders                |
+| Security   | Security     | `/workspace/security/*`    | new           | asset register, access reviews, incidents, risks, vendors |
+| External   | Specialists  | `/workspace/specialists/*` | new           | directory and engagement log                              |
 
 ## Sidebar restructure
 
@@ -171,7 +171,7 @@ The Home production view becomes a role-aware business cockpit. It adapts to the
 
 ## New module summaries
 
-### Revenue (`/app/revenue`)
+### Revenue (`/workspace/revenue`)
 
 A unified overview, not a replacement for CRM or Comms.
 
@@ -180,9 +180,9 @@ A unified overview, not a replacement for CRM or Comms.
 - Campaigns card: active Comms initiatives and their status.
 - Customer activity card: recent contacts, companies, and communications.
 - Quick actions: add deal, add contact, add campaign, log communication.
-- Links to `/app/crm` and `/app/comms/overview`.
+- Links to `/workspace/crm` and `/workspace/comms/overview`.
 
-### Governance (`/app/governance`)
+### Governance (`/workspace/governance`)
 
 Lightweight corporate governance register.
 
@@ -192,7 +192,7 @@ Lightweight corporate governance register.
 - **Officers** — directors, officers, roles, appointment dates.
 - **Shareholders** — share structure, issued shares, cap table (simple).
 
-### Security (`/app/security`)
+### Security (`/workspace/security`)
 
 Security and privacy cockpit for SMBs.
 
@@ -203,7 +203,7 @@ Security and privacy cockpit for SMBs.
 - **Risks** — cyber-risk register with likelihood, impact, owner, mitigation.
 - **Vendors / Privacy** — third-party service reviews, privacy agreements, subprocessor tracking.
 
-### Operations (`/app/operations`)
+### Operations (`/workspace/operations`)
 
 Operational command register, not an ERP.
 
@@ -214,7 +214,7 @@ Operational command register, not an ERP.
 - **Technology / Systems** — systems inventory, ownership, renewal dates, integrations.
 - **Logistics** — delivery/fulfilment notes, warehouse/logistics tracker (light).
 
-### External (`/app/specialists`)
+### External (`/workspace/specialists`)
 
 Directory of external advisors, specialists, consultants, and freelancers.
 

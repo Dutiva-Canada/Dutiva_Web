@@ -465,12 +465,12 @@ function PricingPageInner() {
 
     /* Annual checkout is now wired in code — create-checkout-session resolves
        STRIPE_PRICE_*_ANNUAL, the webhook's price lookup knows the annual ids,
-       and migration 0043 widens profiles.billing_period to accept 'annual'.
-       What is still missing is outside this repo: the annual Price objects do
-       not exist in Stripe and the env vars are unset (TODO.md OA11), and
-       migration 0043 is unapplied. The function fails closed with a 503 in that
-       state, so this guard is what turns that into an intelligible notice
-       instead of a failed request. Remove it once OA11 is done — not before. */
+       and migration 0043 (applied; EF4b) widened profiles.billing_period to
+       accept 'annual'. What is still missing is outside this repo: the annual
+       Price objects do not exist in Stripe and the env vars are unset
+       (TODO.md EF4a). The function fails closed with a 503 in that state, so
+       this guard is what turns that into an intelligible notice instead of a
+       failed request. Remove it once EF4a is done — not before. */
     if (effectivePeriod === 'annual') {
       setNotice({ tone: 'error', text: t('pricing_annual_soon') })
       return

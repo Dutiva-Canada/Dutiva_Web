@@ -209,7 +209,7 @@ describe('WorkflowsView in production mode', () => {
         <LocationProbe />
       </>,
       /* '*' keeps the probe mounted after the tile navigates away from
-         /app/workflows — an exact path would unmount it mid-assertion. */
+         /workspace/workflows — an exact path would unmount it mid-assertion. */
       { route: '/workspace/workflows', path: '*' },
     )
 

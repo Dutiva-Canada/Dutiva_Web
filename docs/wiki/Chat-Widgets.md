@@ -31,7 +31,7 @@ Chat widgets ("Intelligent UI") let an assistant reply carry **structured, inter
 
 The spec schema is the security boundary: **no widget type receives raw markup, a URL, or executable code** — it admits data only. Invalid JSON or a spec that fails validation renders a quiet one-line `WidgetFallback` note, so a malformed fence degrades gracefully instead of breaking the message.
 
-Sources: [src/components/chatWidgets/fence.ts:1-9](), [src/components/chatWidgets/ChatWidget.tsx:7-20](), [src/components/chatWidgets/widgetSpec.ts:286-310]()
+Sources: [src/components/chatWidgets/fence.ts:1-9](<>), [src/components/chatWidgets/ChatWidget.tsx:7-20](<>), [src/components/chatWidgets/widgetSpec.ts:286-310](<>)
 
 ---
 
@@ -44,14 +44,14 @@ Widgets only parse on surfaces the flag covers — off, a `dutiva-widget` fence 
 
 Values: `"1"` / `"true"` / `"all"` enables every surface; otherwise a **comma-separated surface list** (`"advisor,invest,health,pr"`) enables just those, so each chatbot opts in independently.
 
-| Surface   | Chat surface          | Entry point                                   |
-| --------- | --------------------- | --------------------------------------------- |
-| `advisor` | Workspace Advisor     | `ChatMarkdown` fence override                 |
-| `invest`  | Tally (`/invest`)     | `WidgetContent` in `InvestChatPage`           |
-| `health`  | Mira (`/wellness`)      | `WidgetContent` in `HealthChatPage`           |
-| `pr`      | Paige (`/pr`)         | `WidgetContent` in `PrChatPage`               |
+| Surface   | Chat surface       | Entry point                         |
+| --------- | ------------------ | ----------------------------------- |
+| `advisor` | Workspace Advisor  | `ChatMarkdown` fence override       |
+| `invest`  | Tally (`/invest`)  | `WidgetContent` in `InvestChatPage` |
+| `health`  | Mira (`/wellness`) | `WidgetContent` in `HealthChatPage` |
+| `pr`      | Paige (`/pr`)      | `WidgetContent` in `PrChatPage`     |
 
-Sources: [src/components/chatWidgets/flags.ts:1-36](), [src/components/advisor/ChatMarkdown.tsx:241-263](), [src/features/invest/portal/InvestChatPage.tsx:185-285]()
+Sources: [src/components/chatWidgets/flags.ts:1-36](<>), [src/components/advisor/ChatMarkdown.tsx:241-263](<>), [src/features/invest/portal/InvestChatPage.tsx:185-285](<>)
 
 ---
 
@@ -80,7 +80,7 @@ Two paths parse fences:
 
 **Lazy loading.** `CalculatorWidget` is the only statically imported widget — it's small and the most common case. Chart/Table/Checklist/Timeline/Comparison each lazy-load so a reply with one widget type doesn't pay for all six, and the `chatWidgets` code (zod + components) is only fetched when a fence actually renders.
 
-Sources: [src/components/chatWidgets/WidgetContent.tsx:6-45](), [src/components/chatWidgets/specBlocks.ts](), [src/components/chatWidgets/ChatWidget.tsx:16-91](), [src/components/advisor/ChatMarkdown.tsx:241-310]()
+Sources: [src/components/chatWidgets/WidgetContent.tsx:6-45](<>), [src/components/chatWidgets/specBlocks.ts](<>), [src/components/chatWidgets/ChatWidget.tsx:16-91](<>), [src/components/advisor/ChatMarkdown.tsx:241-310](<>)
 
 ---
 
@@ -88,14 +88,14 @@ Sources: [src/components/chatWidgets/WidgetContent.tsx:6-45](), [src/components/
 
 `widgetSpecSchema` is a `z.discriminatedUnion('type', …)` — six strict-object specs. Every visible string is an `LText` (`{en,fr}` or a plain string), so every widget renders bilingually through the viewer's current language.
 
-| Type         | Component            | Purpose                                                        | Key schema bounds                                                        |
-| ------------ | -------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `calculator` | `CalculatorWidget`   | Numeric estimator with editable inputs + live result           | 1–8 inputs; `formula` is a bounded expression (depth + node caps, refs must be declared inputs); optional ≤4 breakdown rows; `regulated` flag forces an "estimate — verify" line |
-| `chart`      | `ChartWidget`        | `bar` or `pie` chart over labelled values                      | 1–12 items; pie items must be non-negative                                |
-| `table`      | `TableWidget`        | Small tabular data                                             | 1–8 columns; 1–500 rows; cells are string/number/LText ≤200 chars        |
-| `checklist`  | `ChecklistWidget`    | Interactive check-off list                                     | 1–60 items; unique item ids                                               |
-| `timeline`   | `TimelineWidget`     | Ordered events/steps                                           | 2–14 steps, optional date labels                                          |
-| `comparison` | `ComparisonWidget`   | Side-by-side option cards                                      | strict-object spec, LText labels                                         |
+| Type         | Component          | Purpose                                              | Key schema bounds                                                                                                                                                                |
+| ------------ | ------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `calculator` | `CalculatorWidget` | Numeric estimator with editable inputs + live result | 1–8 inputs; `formula` is a bounded expression (depth + node caps, refs must be declared inputs); optional ≤4 breakdown rows; `regulated` flag forces an "estimate — verify" line |
+| `chart`      | `ChartWidget`      | `bar` or `pie` chart over labelled values            | 1–12 items; pie items must be non-negative                                                                                                                                       |
+| `table`      | `TableWidget`      | Small tabular data                                   | 1–8 columns; 1–500 rows; cells are string/number/LText ≤200 chars                                                                                                                |
+| `checklist`  | `ChecklistWidget`  | Interactive check-off list                           | 1–60 items; unique item ids                                                                                                                                                      |
+| `timeline`   | `TimelineWidget`   | Ordered events/steps                                 | 2–14 steps, optional date labels                                                                                                                                                 |
+| `comparison` | `ComparisonWidget` | Side-by-side option cards                            | strict-object spec, LText labels                                                                                                                                                 |
 
 ### Calculator formulas
 
@@ -105,7 +105,7 @@ The calculator's `formula` is a parsed expression tree (`formula.ts`), not `eval
 
 `prebuiltWidgets.ts` ships typed factory functions for the two HR examples in the catalogue — `ontarioTerminationPaySpec()` and `ontarioOvertimeSpec()` — so tests can pin ESA math to a canonical spec. A bot emitting the same JSON gets the identical widget.
 
-Sources: [src/components/chatWidgets/widgetSpec.ts:72-282](), [src/components/chatWidgets/formula.ts](), [src/components/chatWidgets/prebuiltWidgets.ts:1-40]()
+Sources: [src/components/chatWidgets/widgetSpec.ts:72-282](<>), [src/components/chatWidgets/formula.ts](<>), [src/components/chatWidgets/prebuiltWidgets.ts:1-40](<>)
 
 ---
 
@@ -116,22 +116,22 @@ Sources: [src/components/chatWidgets/widgetSpec.ts:72-282](), [src/components/ch
 - `WidgetErrorBoundary` catches render exceptions inside a widget so a broken widget can't take down the whole message.
 - Render telemetry is a dev-only `console.debug` naming the widget **type** — never spec contents; server-side render analytics are a deliberate non-goal for v1.
 
-Sources: [src/components/chatWidgets/widgetSpec.ts:306-310](), [src/components/chatWidgets/WidgetFallback.tsx](), [src/components/chatWidgets/WidgetErrorBoundary.tsx](), [src/components/chatWidgets/ChatWidget.tsx:39-48]()
+Sources: [src/components/chatWidgets/widgetSpec.ts:306-310](<>), [src/components/chatWidgets/WidgetFallback.tsx](<>), [src/components/chatWidgets/WidgetErrorBoundary.tsx](<>), [src/components/chatWidgets/ChatWidget.tsx:39-48](<>)
 
 ---
 
 ## Demo / Reviewer Route
 
-`ChatWidgetsView` at `/app/chat-widgets` (also `/demo/chat-widgets` and `/fr/demo/chat-widgets`) is an **unlinked showcase route** — it renders every widget type from `demoSpecs.ts` plus mixed-reply and broken-spec fallbacks, so a reviewer can see the whole catalogue and each surface's flag status in one place without flipping a flag.
+`ChatWidgetsView` at `/workspace/chat-widgets` (also `/demo/chat-widgets` and `/fr/demo/chat-widgets`) is an **unlinked showcase route** — it renders every widget type from `demoSpecs.ts` plus mixed-reply and broken-spec fallbacks, so a reviewer can see the whole catalogue and each surface's flag status in one place without flipping a flag.
 
-Sources: [src/features/app/views/chatwidgets/ChatWidgetsView.tsx:19-75](), [src/app/appViews.tsx:307-309]()
+Sources: [src/features/app/views/chatwidgets/ChatWidgetsView.tsx:19-75](<>), [src/app/appViews.tsx:307-309](<>)
 
 ---
 
 ## Child Pages
 
-| Page | What it covers |
-| ---- | -------------- |
-| [Portal Assistants](Portal-Assistants) | Mira, Paige, Tally — the three chat surfaces that render widgets |
-| [AI Advisor System](AI-Advisor-System) | The workspace Advisor's chat surface (`ChatMarkdown` path) |
-| [Advisor Chat Interface & Demo Flows](Advisor-Chat-Interface-Demo-Flows) | Advisor chat UI including markdown/fence rendering |
+| Page                                                                     | What it covers                                                   |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| [Portal Assistants](Portal-Assistants)                                   | Mira, Paige, Tally — the three chat surfaces that render widgets |
+| [AI Advisor System](AI-Advisor-System)                                   | The workspace Advisor's chat surface (`ChatMarkdown` path)       |
+| [Advisor Chat Interface & Demo Flows](Advisor-Chat-Interface-Demo-Flows) | Advisor chat UI including markdown/fence rendering               |

@@ -443,7 +443,7 @@ self-authorize; `claim_ai_usage` is service-role only).
 no CSP / X-Frame-Options / HSTS / nosniff / Referrer-Policy. Every route now
 carries the enforcing safe set **plus a full, enforcing CSP** in
 `Content-Security-Policy`. A Playwright signed-in click-through (marketing
-pages, `/fr`, `/app`, Advisor, Documents, Knowledge, Support, People, Cases)
+pages, `/fr`, `/workspace`, Advisor, Documents, Knowledge, Support, People, Cases)
 logged **zero CSP console violations**; the report-only header was promoted by
 renaming it to `Content-Security-Policy` in `vercel.json`. `*.challenges.cloudflare.com`
 was added defensively to `img-src`, `connect-src`, and `frame-src` for
@@ -596,7 +596,7 @@ section against the live consolidated texts and runs on the
 _Decision (2026-08-23)._ Qualified legal sign-off has not been obtained.
 `NOTICE_SCHEDULES` keeps `bands: null` for QC and FED; Document Studio and
 Advisor continue to hedge. Hedge-only QC/FED _workflows_ ship under EF11
-(`/app/workflows/statutory-notice-quebec|federal`) — they do not populate
+(`/workspace/workflows/statutory-notice-quebec|federal`) — they do not populate
 bands. The research pack is complete
 ([notice-bands-review-pack.md](notice-bands-review-pack.md)); the interim
 product decision is recorded in
@@ -674,7 +674,7 @@ Ontario health checks beyond the per-fetch verdict. (PRs #105, #106)
 **EF3 — Done.** Three follow-ups from the export protection system, all
 closed 2026-08-06:
 
-1. **Admin viewer.** Live at `/app/support/admin/exports` — reads
+1. **Admin viewer.** Live at `/workspace/support/admin/exports` — reads
    `export_events` through the `export-audit-trail` edge function
    (service-role, `is_admin`-gated server-side). The table stays
    service-role-only with zero client policies — the edge function is the
@@ -762,7 +762,7 @@ documents in a compliance product and need review budget — the `review` field
 on each is set to `hr_review_required` or `not_reviewed` as appropriate, and
 none are marked `approved_for_use`. (PR #159)
 
-**EF8 — Done (engineering half).** Plan gating is now wired into `/app`:
+**EF8 — Done (engineering half).** Plan gating is now wired into `/workspace`:
 `PlanProvider` is in `AppProviders` (reads the signed-in account's plan from
 `profiles`), `PlanGate` enforces plan requirements in production mode, and two
 premium features are gated:
@@ -801,7 +801,7 @@ intentional. `Star` remains in use for pinned threads (matching the handoff)
 and workflow impact indicators. (PR #160)
 
 **EF11 — Workspace entitlement calculators.** _Engineering complete 2026-08-24._
-Interactive entitlement tools live as guided flows under `/app/workflows/`
+Interactive entitlement tools live as guided flows under `/workspace/workflows/`
 (not as public marketing pages). A **public** termination-notice calculator
 that publishes statutory figures remains barred (D6 /
 [SEO_AUTHORITY_PLAYBOOK.md](SEO_AUTHORITY_PLAYBOOK.md)).
@@ -813,16 +813,16 @@ unattended eng sprints — they are explicitly blocked.
 
 **Shipped**
 
-| Flow                                 | Route                                          | What it does                                                                              |
-| ------------------------------------ | ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| Ontario statutory notice (ESA floor) | `/app/workflows/statutory-notice-ontario`      | Tenure band **or** typed completed months → ESA s. 57 floor weeks; T03                    |
-| Québec termination notice (hedge)    | `/app/workflows/statutory-notice-quebec`       | Process shape + LNT / CCQ pointers; **no week figures** while L6 keeps `bands: null`; T03 |
-| Federal termination notice (hedge)   | `/app/workflows/statutory-notice-federal`      | Process shape + CLC Part III pointers; **no week figures**; T03                           |
-| Ontario ESA severance eligibility    | `/app/workflows/severance-eligibility-ontario` | Option B gate; points at amount workflow when gates met; T03                              |
-| Ontario ESA severance amount         | `/app/workflows/severance-amount-ontario`      | Option A formula from user-entered tenure + weekly wages (26-week cap); T03               |
-| ROE filing checklist                 | `/app/workflows/roe-filing-checklist`          | Interruption → gather → file; employer records deadline; T29                              |
-| Temporary layoff awareness           | `/app/workflows/temporary-layoff-awareness`    | Contract + statute-cap shape; T32                                                         |
-| Leave return tracker                 | `/app/workflows/leave-return-tracker`          | Return prep / restore / contested path; no invented leave lengths; T27                    |
+| Flow                                 | Route                                                | What it does                                                                              |
+| ------------------------------------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Ontario statutory notice (ESA floor) | `/workspace/workflows/statutory-notice-ontario`      | Tenure band **or** typed completed months → ESA s. 57 floor weeks; T03                    |
+| Québec termination notice (hedge)    | `/workspace/workflows/statutory-notice-quebec`       | Process shape + LNT / CCQ pointers; **no week figures** while L6 keeps `bands: null`; T03 |
+| Federal termination notice (hedge)   | `/workspace/workflows/statutory-notice-federal`      | Process shape + CLC Part III pointers; **no week figures**; T03                           |
+| Ontario ESA severance eligibility    | `/workspace/workflows/severance-eligibility-ontario` | Option B gate; points at amount workflow when gates met; T03                              |
+| Ontario ESA severance amount         | `/workspace/workflows/severance-amount-ontario`      | Option A formula from user-entered tenure + weekly wages (26-week cap); T03               |
+| ROE filing checklist                 | `/workspace/workflows/roe-filing-checklist`          | Interruption → gather → file; employer records deadline; T29                              |
+| Temporary layoff awareness           | `/workspace/workflows/temporary-layoff-awareness`    | Contract + statute-cap shape; T32                                                         |
+| Leave return tracker                 | `/workspace/workflows/leave-return-tracker`          | Return prep / restore / contested path; no invented leave lengths; T27                    |
 
 Building blocks: `statutoryNotice.ts` lookup, `ontarioEsaSeverance.ts` formula,
 FlowRunner `input` + `formula` step kinds, Document Studio handoffs, Disclaimer.

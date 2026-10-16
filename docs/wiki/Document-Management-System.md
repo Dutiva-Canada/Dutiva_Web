@@ -91,25 +91,25 @@ flowchart TD
     AUTH --> WORD
 ```
 
-Sources: [src/features/app/documents/DocumentsLayout.tsx:1-95](), [src/features/app/documents/catalogue.ts:1-25](), [src/lib/exportProtection/index.ts:1-45]()
+Sources: [src/features/app/documents/DocumentsLayout.tsx:1-95](<>), [src/features/app/documents/catalogue.ts:1-25](<>), [src/lib/exportProtection/index.ts:1-45](<>)
 
 ## Routing & Layout
 
-All document routes are nested under `/app/documents` within a shared `DocumentsLayout`. This layout mounts the `DoclibProvider` (the feature-scoped state provider) and renders three navigation tabs — HR Library, Documents, and Document Studio — followed by a "Viewing as" role selector for the demo permission model.
+All document routes are nested under `/workspace/documents` within a shared `DocumentsLayout`. This layout mounts the `DoclibProvider` (the feature-scoped state provider) and renders three navigation tabs — HR Library, Documents, and Document Studio — followed by a "Viewing as" role selector for the demo permission model.
 
-| Route                                  | Screen                 | Purpose                                                 |
-| -------------------------------------- | ---------------------- | ------------------------------------------------------- |
-| `/app/documents/hr-library`            | `TemplatesView`        | Public template catalogue (read-only browsing)          |
-| `/app/documents/studio`                | `StudioScreen`         | Template library with org-profile applicability engine  |
-| `/app/documents/studio/templates/:tid` | `TemplateDetailScreen` | Single template detail + sample preview                 |
-| `/app/documents/studio/generate/:tid`  | `GenerateScreen`       | Wizard-driven document generation                       |
-| `/app/documents`                       | `RepositoryScreen`     | Generated document register (8-column filterable table) |
-| `/app/documents/:docId`                | `DocumentDetailScreen` | Document detail with status chips, 5 tabs, actions      |
-| `/app/documents/sign/:envelopeId`      | `SigningScreen`        | E-signature capture for a specific envelope             |
+| Route                                        | Screen                 | Purpose                                                 |
+| -------------------------------------------- | ---------------------- | ------------------------------------------------------- |
+| `/workspace/documents/hr-library`            | `TemplatesView`        | Public template catalogue (read-only browsing)          |
+| `/workspace/documents/studio`                | `StudioScreen`         | Template library with org-profile applicability engine  |
+| `/workspace/documents/studio/templates/:tid` | `TemplateDetailScreen` | Single template detail + sample preview                 |
+| `/workspace/documents/studio/generate/:tid`  | `GenerateScreen`       | Wizard-driven document generation                       |
+| `/workspace/documents`                       | `RepositoryScreen`     | Generated document register (8-column filterable table) |
+| `/workspace/documents/:docId`                | `DocumentDetailScreen` | Document detail with status chips, 5 tabs, actions      |
+| `/workspace/documents/sign/:envelopeId`      | `SigningScreen`        | E-signature capture for a specific envelope             |
 
 The Document Studio screens are **ungated** — the template catalogue is real product content available in both demo and production modes. Only the fixture repository data is demo-scoped.
 
-Sources: [src/app/appViews.tsx:62-69](), [src/app/appViews.tsx:115-131](), [src/features/app/documents/DocumentsLayout.tsx:57-95]()
+Sources: [src/app/appViews.tsx:62-69](<>), [src/app/appViews.tsx:115-131](<>), [src/features/app/documents/DocumentsLayout.tsx:57-95](<>)
 
 ## Template Catalogue
 
@@ -121,7 +121,7 @@ Each template is typed as `DocTemplate`, carrying bilingual `name`/`desc`, `juri
 
 For details, see [Template Catalogue & Engine](#4.1).
 
-Sources: [src/features/app/documents/catalogue.ts:1-25](), [src/features/app/documents/data/templates/index.ts:1-122](), [src/features/app/documents/data/types.ts:1-210](), [docs/FOUR_RING_FRAMEWORK.md:1-60](), [src/features/app/documents/data/meta.ts:56-210]()
+Sources: [src/features/app/documents/catalogue.ts:1-25](<>), [src/features/app/documents/data/templates/index.ts:1-122](<>), [src/features/app/documents/data/types.ts:1-210](<>), [docs/FOUR_RING_FRAMEWORK.md:1-60](<>), [src/features/app/documents/data/meta.ts:56-210](<>)
 
 ## Template Engine
 
@@ -134,13 +134,13 @@ The template engine in `engine.ts` is a pure-function library handling four conc
 
 For details, see [Template Catalogue & Engine](#4.1).
 
-Sources: [src/features/app/documents/engine.ts:1-50](), [src/features/app/documents/engine.ts:51-120](), [src/features/app/documents/engine.ts:157-178]()
+Sources: [src/features/app/documents/engine.ts:1-50](<>), [src/features/app/documents/engine.ts:51-120](<>), [src/features/app/documents/engine.ts:157-178](<>)
 
 ### Production repository (mobile)
 
 `RepositoryProductionView` lists persisted documents for the signed-in organization. On `≥768px` it renders the full filterable table; below `md`, the same rows appear as stacked cards via `useMdUp()` so operators can triage without horizontal scroll.
 
-Sources: [src/features/app/documents/screens/RepositoryProductionView.tsx](), [src/lib/useMediaQuery.ts]()
+Sources: [src/features/app/documents/screens/RepositoryProductionView.tsx](<>), [src/lib/useMediaQuery.ts](<>)
 
 ## State Management: DoclibProvider
 
@@ -156,7 +156,7 @@ The context type `DoclibContextValue` is defined in `doclibContext.ts` and consu
 
 For details, see [Document Studio, Signing & Export Protection](#4.2).
 
-Sources: [src/features/app/documents/doclibContext.ts:1-38](), [src/features/app/documents/DoclibProvider.tsx:1-60](), [src/features/app/documents/DoclibProvider.tsx:62-105](), [src/features/app/documents/api.ts:1-52]()
+Sources: [src/features/app/documents/doclibContext.ts:1-38](<>), [src/features/app/documents/DoclibProvider.tsx:1-60](<>), [src/features/app/documents/DoclibProvider.tsx:62-105](<>), [src/features/app/documents/api.ts:1-52](<>)
 
 ## E-Signature Workflow
 
@@ -177,7 +177,7 @@ sequenceDiagram
     User->>SM: "Click Send"
     SM->>DLP: "sendForSignature(docId, recipients)"
     DLP-->>DDS: "Updated doc (status=sent_for_signature)"
-    User->>SS: "Navigate to /app/documents/sign/:envelopeId"
+    User->>SS: "Navigate to /workspace/documents/sign/:envelopeId"
     SS->>SP: "Render SignaturePad (draw or type mode)"
     User->>SP: "Draw/type signature + enter name"
     SP-->>SS: "SignatureValue {image, signedName}"
@@ -190,7 +190,7 @@ sequenceDiagram
 
 For details, see [Document Studio, Signing & Export Protection](#4.2).
 
-Sources: [src/features/app/documents/components/SignatureModal.tsx:34-76](), [src/features/app/documents/components/SignaturePad.tsx:1-50](), [src/features/app/documents/screens/SigningScreen.tsx:12-98](), [src/features/app/documents/DoclibProvider.tsx:100-155]()
+Sources: [src/features/app/documents/components/SignatureModal.tsx:34-76](<>), [src/features/app/documents/components/SignaturePad.tsx:1-50](<>), [src/features/app/documents/screens/SigningScreen.tsx:12-98](<>), [src/features/app/documents/DoclibProvider.tsx:100-155](<>)
 
 ## Export Protection Subsystem
 
@@ -224,7 +224,7 @@ The system is deliberately **fail-open for offline use**: if the server is unrea
 
 For details, see [Document Studio, Signing & Export Protection](#4.2).
 
-Sources: [src/lib/exportProtection/authorize.ts:1-141](), [src/lib/exportProtection/fingerprint.ts:1-131](), [src/lib/exportProtection/watermark.ts:1-62](), [src/lib/exportProtection/localAudit.ts:1-70](), [src/lib/exportProtection/artifacts/textPdf.ts:1-30](), [src/lib/exportProtection/artifacts/wordDoc.ts:1-65]()
+Sources: [src/lib/exportProtection/authorize.ts:1-141](<>), [src/lib/exportProtection/fingerprint.ts:1-131](<>), [src/lib/exportProtection/watermark.ts:1-62](<>), [src/lib/exportProtection/localAudit.ts:1-70](<>), [src/lib/exportProtection/artifacts/textPdf.ts:1-30](<>), [src/lib/exportProtection/artifacts/wordDoc.ts:1-65](<>)
 
 ## Domain Type Model
 
@@ -294,13 +294,13 @@ Key enumerations:
 | `TemplateCategoryId` | `hiring`, `changes`, `agreements`, `policies`, `discipline`, `termination`, `accommodation`, `wellbeing`, `compensation`, `communications`          |
 | `PreviewBlockType`   | `title`, `meta`, `para`, `clause`, `sig`, `ack`, `note`, `fill`                                                                                     |
 
-Sources: [src/features/app/documents/data/types.ts:1-280](), [src/features/app/documents/data/meta.ts:56-210]()
+Sources: [src/features/app/documents/data/types.ts:1-280](<>), [src/features/app/documents/data/meta.ts:56-210](<>)
 
 ## Internationalization
 
 The document system's 215+ bilingual message keys live in `doclibMessages` under the `doclib_` prefix, organized by surface: `doclib_studio_*` for Document Studio, `doclib_detail_*` for template detail, `doclib_gen_*` for the generation wizard, `doclib_docd_*` for document detail, `doclib_sign_*` for signing, and `doclib_modal_*` for the signature modal. Export protection has its own message module at `src/i18n/messages/exportProtection.ts`.
 
-Sources: [src/i18n/messages/doclib.ts:1-70](), [src/i18n/messages/exportProtection.ts:1-1]()
+Sources: [src/i18n/messages/doclib.ts:1-70](<>), [src/i18n/messages/exportProtection.ts:1-1](<>)
 
 ## Quality Guards
 
@@ -313,7 +313,7 @@ Authored templates (T21+) are covered by `authoredTemplates.test.ts`, which enfo
 - **Clause numbering**: no duplicate clause numbers within a jurisdiction's resolved blocks
 - **Disclaimer consistency**: note blocks use the centralized `DOC_DISCLAIMER_NOTE` from `meta.ts`
 
-Sources: [src/features/app/documents/data/templates/authoredTemplates.test.ts:1-50](), [src/features/app/documents/data/templates/authoredTemplates.test.ts:113-145](), [src/features/app/documents/data/meta.ts:25-48]()
+Sources: [src/features/app/documents/data/templates/authoredTemplates.test.ts:1-50](<>), [src/features/app/documents/data/templates/authoredTemplates.test.ts:113-145](<>), [src/features/app/documents/data/meta.ts:25-48](<>)
 
 ## Child Pages
 

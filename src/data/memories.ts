@@ -19,7 +19,7 @@ export interface MemoryPersonChip {
 }
 
 export interface MemoryPerson {
-  /** Employee id (routes /app/memory/people/:personId, /app/employees/:id). */
+  /** Employee id (routes /app/settings/memory/people/:personId, /app/employees/:id). */
   id: string
   firstName: Bi
   navSub: Bi
@@ -74,7 +74,7 @@ export const memoryPeople: MemoryPerson[] = [
 
 /* Cases with a memory picture (memory nav "Cases" group). */
 export interface MemoryCase {
-  /** Case id (routes /app/memory/cases/:caseId, /app/cases/:caseId). */
+  /** Case id (routes /app/settings/memory/cases/:caseId, /app/cases/:caseId). */
   id: string
   personId: string
   navLabel: Bi
@@ -107,7 +107,7 @@ export const memoryCases: MemoryCase[] = [
 
 /* Recall conversations (memory nav "Conversations" group). */
 export interface MemoryThread {
-  /** Chat id (routes /app/memory/conversations/:threadId). */
+  /** Chat id (routes /app/settings/memory/conversations/:threadId). */
   id: string
   personId: string
   caseId: string

@@ -42,7 +42,7 @@ export interface AuthContextValue {
    * `next` is the path AuthConfirm lands on after the link verifies —
    * callers outside the workspace (the candidate portal) pass their own
    * route so link-clickers return to the surface they started on instead of
-   * being dropped into /app. Root-relative only; anything else is ignored.
+   * being dropped into /workspace. Root-relative only; anything else is ignored.
    */
   signInWithEmail: (
     email: string,
