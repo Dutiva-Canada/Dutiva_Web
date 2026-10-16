@@ -471,7 +471,12 @@ export function HealthHabitsPage() {
                  pre-tracking. Counts and streaks only ever run over days
                  the habit lived, so a backfilled mark can't invent history. */
               const createdDay = habitSinceDay(h)
-              const doneDays = habitDoneDays(logs, h.id, createdDay)
+              /* doneDays stays UNFILTERED — a mark on a pre-tracking day is
+                 a real user assertion ("the practice predates the tracking")
+                 and its dot must light. The COUNTS are protected separately:
+                 streak/best floor at createdDay, week/month counts only ever
+                 intersect weekLive/monthLive (all >= createdDay). */
+              const doneDays = habitDoneDays(logs, h.id)
               const streak = habitStreak(logs, h.id, undefined, createdDay)
               const best = habitBestRun(logs, h.id, createdDay)
               const doneToday = doneDays.has(today)

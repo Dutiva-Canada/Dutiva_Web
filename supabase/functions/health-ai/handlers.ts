@@ -383,11 +383,16 @@ export function buildHabitStatuses(
       streak += 1
       cursor = prevDay(cursor)
     }
-    /* Stopping exactly at the floor means the data ran out, not the streak —
-       the day-stepping walk can only pass through the floor, so reaching
-       prevDay(floorDay) proves it consumed the window's last day. The flag
+    /* Stopping exactly at the fetch floor means the data ran out, not the
+       streak — reaching prevDay(floorDay) proves it consumed the window's
+       last day. Unless the habit's own start day sits at the floor: that
+       floor stops the walk at the same cursor by DESIGN (marks can't
+       predate the habit), so the streak is exact, not truncated. The flag
        only ships when true — an exact streak carries no noise key. */
-    const capped = floorDay != null && cursor === prevDay(floorDay)
+    const capped =
+      floorDay != null &&
+      cursor === prevDay(floorDay) &&
+      (floor == null || floor < floorDay)
     return {
       id: h.id,
       name: h.name,

@@ -37,7 +37,6 @@ import {
   checkInStreak,
   dailyMoods,
   habitDoneDays,
-  habitSinceDay,
   habitsDoneToday,
   hasCheckInToday,
   todayDayKey,
@@ -413,7 +412,7 @@ function TodayHabits() {
       </div>
       <div className="hb-rows">
         {habits.map((h) => {
-          const doneToday = habitDoneDays(logs, h.id, habitSinceDay(h)).has(today)
+          const doneToday = habitDoneDays(logs, h.id).has(today)
           return (
             <div key={h.id} className="hb-row" style={{ alignItems: 'center' }}>
               <div className="hb-row-main">

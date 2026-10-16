@@ -453,6 +453,25 @@ describe('buildHabitStatuses', () => {
     expect(buildHabitStatuses(HABITS, logs, TODAY)[0].streakCapped).toBeUndefined()
   })
 
+  it('reads exact, not capped, when the habit\'s own start day is the fetch floor', () => {
+    /* The walk dies at prevDay(floorDay) whether the fetch truncated or
+       the creation floor clipped — but a habit created ON the floor can
+       never extend past it, so the streak is genuinely exact. */
+    const statuses = buildHabitStatuses(
+      [{ id: 'h1', name: 'Walk', day: '2026-09-29' }],
+      [
+        { habit_id: 'h1', day: '2026-10-02' },
+        { habit_id: 'h1', day: '2026-10-01' },
+        { habit_id: 'h1', day: '2026-09-30' },
+        { habit_id: 'h1', day: '2026-09-29' },
+      ],
+      TODAY,
+      '2026-09-29',
+    )
+    expect(statuses[0].streak).toBe(4)
+    expect(statuses[0].streakCapped).toBeUndefined()
+  })
+
   it('renders a capped streak as "N+" in the prompt, never a bare count', () => {
     const capped = buildHabitStatuses(
       [{ id: 'h1', name: 'Walk' }],
