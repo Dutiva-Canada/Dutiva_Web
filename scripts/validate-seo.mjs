@@ -328,7 +328,7 @@ for (const url of sitemapUrls) {
     fail(`sitemap.xml: ${url} not on canonical origin`)
   }
   const route = url.replace(ORIGIN, '') || '/'
-  if (route.startsWith('/app')) fail(`sitemap.xml: private URL ${url}`)
+  if (route.startsWith('/app') || route.startsWith('/workspace')) fail(`sitemap.xml: private URL ${url}`)
   if (/[?#]/.test(url)) fail(`sitemap.xml: URL with query/fragment ${url}`)
   const file = route === '/' ? path.join(dist, 'index.html') : path.join(dist, route, 'index.html')
   if (!existsSync(file)) {
@@ -379,15 +379,19 @@ if (!robotsTxt.includes('Content-Signal: search=yes, ai-input=yes, ai-train=yes'
 }
 // Training crawlers (decided 2026-08-06, D4): opted in. All listed training
 // bots must be present with Content-Signal + the same private-path exclusions.
+const CONTENT_SIGNAL_LINE = 'Content-Signal: search=yes, ai-input=yes, ai-train=yes'
+const PRIVATE_DISALLOWS = ['Disallow: /workspace\n', 'Disallow: /app\n']
+const groupHasPrivatePaths = (bot) => {
+  const m = new RegExp(
+    String.raw`User-agent: ${bot === '*' ? '\\*' : bot}\n${CONTENT_SIGNAL_LINE}\n((?:Disallow: [^\n]+\n)+)`,
+  ).exec(robotsTxt)
+  return m && PRIVATE_DISALLOWS.every((d) => m[1].includes(d))
+}
 for (const bot of ['GPTBot', 'ClaudeBot', 'CCBot', 'Amazonbot', 'Google-Extended']) {
   if (!robotsTxt.includes(`User-agent: ${bot}`))
     fail(`robots.txt: missing group for training bot ${bot}`)
-  if (
-    !new RegExp(
-      String.raw`User-agent: ${bot}\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: /app\n`,
-    ).test(robotsTxt)
-  ) {
-    fail(`robots.txt: training bot ${bot} group must repeat Content-Signal + /app exclusions`)
+  if (!groupHasPrivatePaths(bot)) {
+    fail(`robots.txt: training bot ${bot} group must repeat Content-Signal + /workspace + /app exclusions`)
   }
 }
 const searchAndFetchBots = [
@@ -406,34 +410,27 @@ const searchAndFetchBots = [
 for (const bot of searchAndFetchBots) {
   if (!robotsTxt.includes(`User-agent: ${bot}`)) fail(`robots.txt: missing group for ${bot}`)
 }
-// Named groups replace * entirely, so each must repeat Content-Signal + /app.
+// Named groups replace * entirely, so each must repeat Content-Signal + the
+// private-path exclusions (/workspace canonical, /app legacy).
 for (const bot of searchAndFetchBots.filter((b) => b !== '*')) {
-  if (
-    !new RegExp(
-      String.raw`User-agent: ${bot}\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: /app\n`,
-    ).test(robotsTxt)
-  ) {
-    fail(`robots.txt: ${bot} group must repeat Content-Signal + /app exclusions`)
+  if (!groupHasPrivatePaths(bot)) {
+    fail(`robots.txt: ${bot} group must repeat Content-Signal + /workspace + /app exclusions`)
   }
 }
-if (
-  !/User-agent: \*\nContent-Signal: search=yes, ai-input=yes, ai-train=yes\nDisallow: \/app\n/.test(
-    robotsTxt,
-  )
-) {
-  fail('robots.txt: general group must declare Content-Signal and disallow /app')
+if (!groupHasPrivatePaths('*')) {
+  fail('robots.txt: general group must declare Content-Signal and disallow /workspace + /app')
 }
 
 /* ---------- llms.txt ---------- */
 
 const llms = await readFile(path.join(dist, 'llms.txt'), 'utf8')
-/* Only markdown links count as navigation; prose may mention /app to state
-   that it is private. */
+/* Only markdown links count as navigation; prose may mention /app or
+   /workspace to state that it is private. */
 for (const m of llms.matchAll(/\]\((https?:\/\/[^)]+)\)/g)) {
   const url = m[1]
   if (!url.startsWith(ORIGIN)) fail(`llms.txt: off-origin URL ${url}`)
   const route = url.replace(ORIGIN, '') || '/'
-  if (route.startsWith('/app')) fail(`llms.txt: private URL ${url}`)
+  if (route.startsWith('/app') || route.startsWith('/workspace')) fail(`llms.txt: private URL ${url}`)
   const file = route === '/' ? path.join(dist, 'index.html') : path.join(dist, route, 'index.html')
   if (!existsSync(file)) fail(`llms.txt: ${url} has no prerendered page`)
 }
@@ -464,7 +461,7 @@ for (const { route, file } of pages) {
        the param), not a route of its own — matching the raw href would
        report every deep link as a broken one. */
     const target = m[1].split('?')[0].replace(/\/$/, '') || '/'
-    if (target.startsWith('/app')) continue // client-rendered surface
+    if (target.startsWith('/app') || target.startsWith('/workspace')) continue // client-rendered surface
     if (target.startsWith('/careers/portal') || target.startsWith('/fr/carrieres/portal')) continue // candidate portal (auth-gated, noindex)
     if (target === '/employer' || target === '/fr/employeur') continue // employer sign-in door (auth-gated, noindex)
     if (target === '/invest' || target.startsWith('/invest/')) continue // invest portal (auth-gated, noindex)
