@@ -59,7 +59,7 @@ const STATE: HealthState = {
   lastLoadedAt: new Date().toISOString(),
 }
 
-function renderTools(lang: Lang = 'en', entry = '/health/tools') {
+function renderTools(lang: Lang = 'en', entry = '/wellness/tools') {
   const health: HealthDataContextValue = {
     state: STATE,
     loading: false,
@@ -72,8 +72,8 @@ function renderTools(lang: Lang = 'en', entry = '/health/tools') {
         <ToastsProvider>
           <MemoryRouter initialEntries={[entry]}>
             <Routes>
-              <Route path="/health/tools" element={<Tools />} />
-              <Route path="/health/chat" element={<div>chat surface</div>} />
+              <Route path="/wellness/tools" element={<Tools />} />
+              <Route path="/wellness/chat" element={<div>chat surface</div>} />
             </Routes>
             <ToastHost />
           </MemoryRouter>
@@ -211,7 +211,7 @@ describe('HealthToolsPage — tools', () => {
     const link = await screen.findByRole('link', {
       name: 'If you’re struggling, the Resources page lists real people to reach.',
     })
-    expect(link).toHaveAttribute('href', '/health/resources')
+    expect(link).toHaveAttribute('href', '/wellness/resources')
   })
 
   it('grounding offers a back step once past the first item', async () => {
@@ -272,7 +272,7 @@ describe('HealthToolsPage — tabs', () => {
 
   it('#practices lands on the library tab', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
-    renderTools('en', '/health/tools#practices')
+    renderTools('en', '/wellness/tools#practices')
     expect(
       await screen.findByRole('heading', { name: 'Practices with Mira' }),
     ).toBeInTheDocument()

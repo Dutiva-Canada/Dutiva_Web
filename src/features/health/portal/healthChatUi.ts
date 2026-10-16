@@ -36,13 +36,13 @@ export function actionRoute(action: HealthChatAction): string | null {
     case 'mark_habit_done':
     case 'unmark_habit_done':
     case 'add_habit':
-      return '/health/habits'
+      return '/wellness/habits'
     case 'add_checkin':
-      return '/health/check-in'
+      return '/wellness/check-in'
     case 'add_journal_entry':
-      return '/health/journal'
+      return '/wellness/journal'
     case 'propose_memory':
-      return '/health/review'
+      return '/wellness/review'
     default:
       return null
   }

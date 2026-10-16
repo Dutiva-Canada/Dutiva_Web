@@ -14,7 +14,7 @@ to run it), [AGENTS.md](../AGENTS.md) (AI coding agents start here),
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [wiki/README.md](wiki/README.md) | **In-repo mirror** of the [GitHub wiki](https://github.com/Dutiva-Canada/Dutiva_Web/wiki) — how to sync, and how this folder relates to `docs/`. |
 | [wiki/Home.md](wiki/Home.md)     | Platform overview: marketing + workspace + standalone portals, tech stack, module index. Start here for the big picture.                          |
-| [wiki/Portal-Assistants.md](wiki/Portal-Assistants.md) | Mira (`/health`), Paige (`/pr`), Tally (`/invest`) — portal shells, access grants, edge-function APIs, safety postures.                      |
+| [wiki/Portal-Assistants.md](wiki/Portal-Assistants.md) | Mira (`/wellness`), Paige (`/pr`), Tally (`/invest`) — portal shells, access grants, edge-function APIs, safety postures.                      |
 | [wiki/Chat-Widgets.md](wiki/Chat-Widgets.md) | `dutiva-widget` fenced-block protocol, widget types, feature flags, showcase routes. See also [chat-widgets/README.md](chat-widgets/README.md). |
 | [wiki/Advisor-Evaluation-Statute-Drift.md](wiki/Advisor-Evaluation-Statute-Drift.md) | Golden evaluation (64 cases), statute registry, corpus snapshot, and the network-bound drift checker.                                         |
 

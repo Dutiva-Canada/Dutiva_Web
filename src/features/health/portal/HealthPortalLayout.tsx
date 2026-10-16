@@ -22,15 +22,15 @@ const NAV = [
   /* Daily surfaces lead, companion/oversight tail — the strip reads
      "do your day" left to right: log, toggle, write, practice, then
      talk, reflect, review, get help. */
-  { to: '/health', end: true, label: HM.health_tab_overview },
-  { to: '/health/check-in', end: false, label: HM.health_tab_checkin },
-  { to: '/health/habits', end: false, label: HM.health_tab_habits },
-  { to: '/health/journal', end: false, label: HM.health_tab_journal },
-  { to: '/health/tools', end: false, label: HM.health_tab_tools },
-  { to: '/health/chat', end: false, label: HM.health_tab_chat },
-  { to: '/health/insights', end: false, label: HM.health_tab_insights },
-  { to: '/health/review', end: false, label: HM.health_tab_review },
-  { to: '/health/resources', end: false, label: HM.health_tab_resources },
+  { to: '/wellness', end: true, label: HM.health_tab_overview },
+  { to: '/wellness/check-in', end: false, label: HM.health_tab_checkin },
+  { to: '/wellness/habits', end: false, label: HM.health_tab_habits },
+  { to: '/wellness/journal', end: false, label: HM.health_tab_journal },
+  { to: '/wellness/tools', end: false, label: HM.health_tab_tools },
+  { to: '/wellness/chat', end: false, label: HM.health_tab_chat },
+  { to: '/wellness/insights', end: false, label: HM.health_tab_insights },
+  { to: '/wellness/review', end: false, label: HM.health_tab_review },
+  { to: '/wellness/resources', end: false, label: HM.health_tab_resources },
 ] as const
 
 /* whitespace-nowrap — French labels run longer ("Aperçu du jour", "À
@@ -150,28 +150,28 @@ export function HealthPortalLayout() {
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
             <div className="flex min-w-0 items-center gap-[16px]">
               <NavLink
-                to="/health"
-                className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
+                to="/wellness"
+                className="hb-wordmark shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy no-underline"
               >
                 {x(HM.health_portal_title)}
               </NavLink>
-              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[1080px]:flex">
                 {NAV.map((item) => (
                   <NavLink
                     key={item.to}
                     to={item.to}
                     end={item.end}
                     className={navLinkClass}
-                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
+                    title={item.to === '/wellness/chat' ? x(HM.health_home_mira_open) : undefined}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
-                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
+                    {item.to === '/wellness/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
               </nav>
             </div>
-            <div className="hidden items-center gap-[8px] min-[820px]:flex">
+            <div className="hidden items-center gap-[8px] min-[1080px]:flex">
               <ThemeCycleButton className="inline-flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-border bg-transparent text-text-2 transition-colors hover:bg-inset" />
               <button
                 type="button"
@@ -191,7 +191,7 @@ export function HealthPortalLayout() {
                 {x(HM.health_sign_out)}
               </button>
             </div>
-            <div className="flex items-center gap-[8px] min-[820px]:hidden">
+            <div className="flex items-center gap-[8px] min-[1080px]:hidden">
               <ThemeCycleButton className="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-[8px] border border-border text-text-2 hover:bg-inset" />
               <button
                 type="button"
@@ -225,7 +225,7 @@ export function HealthPortalLayout() {
           {mobileMenuOpen && (
             <nav
               id="health-portal-mobile-nav"
-              className="hb-mobile-menu border-t border-border bg-surface px-[20px] py-[8px] min-[820px]:hidden"
+              className="hb-mobile-menu border-t border-border bg-surface px-[20px] py-[8px] min-[1080px]:hidden"
             >
               <div className="flex flex-col gap-[4px]">
                 {NAV.map((item) => (
@@ -236,12 +236,12 @@ export function HealthPortalLayout() {
                     className={(p) =>
                       `${navLinkClass(p)} flex min-h-[44px] items-center justify-between`
                     }
-                    title={item.to === '/health/chat' ? x(HM.health_home_mira_open) : undefined}
+                    title={item.to === '/wellness/chat' ? x(HM.health_home_mira_open) : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     {...viewIntentProps(portalNavKey(item.to))}
                   >
                     {x(item.label)}
-                    {item.to === '/health/review' && access === 'yes' && <ReviewBadge />}
+                    {item.to === '/wellness/review' && access === 'yes' && <ReviewBadge />}
                   </NavLink>
                 ))}
                 {session?.user?.email && (

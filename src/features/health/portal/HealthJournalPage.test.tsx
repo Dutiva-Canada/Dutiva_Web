@@ -64,7 +64,7 @@ function stateWith(over: Partial<HealthState> = {}): HealthState {
   }
 }
 
-function renderJournal(state: HealthState | undefined, url = '/health/journal') {
+function renderJournal(state: HealthState | undefined, url = '/wellness/journal') {
   const health: HealthDataContextValue = {
     state,
     loading: false,
@@ -95,13 +95,13 @@ describe('HealthJournalPage', () => {
   })
 
   it('opens the composer for ?new=1 and consumes the param', async () => {
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     expect(await screen.findByPlaceholderText(/Give it a name/)).toBeInTheDocument()
   })
 
   it('saves a trimmed entry and toasts', async () => {
     vi.mocked(api.addJournalEntry).mockResolvedValue(entry('e1'))
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), {
       target: { value: '  A hard day.  ' },
     })
@@ -111,7 +111,7 @@ describe('HealthJournalPage', () => {
   })
 
   it('guards a written draft behind a second cancel press', async () => {
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'draft words' } })
     const cancel = screen.getByRole('button', { name: /Cancel/i })
     fireEvent.click(cancel)
@@ -184,31 +184,31 @@ describe('HealthJournalPage', () => {
 
   it('keeps a compose draft across close-and-reopen, clears it on save', async () => {
     vi.mocked(api.addJournalEntry).mockResolvedValue(entry('e1'))
-    const view = renderJournal(stateWith(), '/health/journal?new=1')
+    const view = renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), {
       target: { value: 'kept words' },
     })
     view.unmount()
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     /* Reopened composer restores the abandoned draft. */
     expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('kept words')
     fireEvent.change(screen.getByLabelText(/^Entry$/), { target: { value: 'final words' } })
     fireEvent.click(screen.getByRole('button', { name: /Save entry/i }))
     await screen.findByText(/Entry saved/)
     view.unmount()
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     /* A saved entry leaves no draft residue. */
     expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('')
   })
 
   it('a confirmed discard clears the stored draft', async () => {
-    const view = renderJournal(stateWith(), '/health/journal?new=1')
+    const view = renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'let it go' } })
     const cancel = screen.getByRole('button', { name: /Cancel/i })
     fireEvent.click(cancel)
     fireEvent.click(cancel)
     view.unmount()
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     expect(await screen.findByLabelText(/^Entry$/)).toHaveValue('')
   })
 
@@ -345,7 +345,7 @@ describe('HealthJournalPage', () => {
 
   it('hides the photo control until the storage bucket exists', async () => {
     vi.mocked(api.journalImagesAvailable).mockResolvedValue(false)
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     await screen.findByLabelText(/^Entry$/)
     await vi.waitFor(() => expect(api.journalImagesAvailable).toHaveBeenCalled())
     expect(
@@ -363,7 +363,7 @@ describe('HealthJournalPage', () => {
     Object.defineProperty(URL, 'createObjectURL', { value: create, configurable: true })
     Object.defineProperty(URL, 'revokeObjectURL', { value: revoke, configurable: true })
 
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'photo day' } })
     fireEvent.change(await screen.findByLabelText(/Add a photo/), {
       target: { files: [new File(['x'], 'walk.jpg', { type: 'image/jpeg' })] },
@@ -383,7 +383,7 @@ describe('HealthJournalPage', () => {
       value: vi.fn().mockReturnValue('blob:preview'),
       configurable: true,
     })
-    renderJournal(stateWith(), '/health/journal?new=1')
+    renderJournal(stateWith(), '/wellness/journal?new=1')
     fireEvent.change(await screen.findByLabelText(/^Entry$/), { target: { value: 'x' } })
     fireEvent.change(await screen.findByLabelText(/Add a photo/), {
       target: { files: [new File(['x'], 'p.jpg', { type: 'image/jpeg' })] },

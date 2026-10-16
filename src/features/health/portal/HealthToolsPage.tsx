@@ -256,7 +256,7 @@ function BreathingCard() {
             <p className="hb-row-meta m-0">{x(HM.health_tool_breath_nudge)}</p>
           )}
           {!running && cycles > 0 && (
-            <Link className="hb-quiet-link" to="/health/check-in">
+            <Link className="hb-quiet-link" to="/wellness/check-in">
               {x(HM.health_tool_checkin_link)}
             </Link>
           )}
@@ -323,7 +323,7 @@ function GroundingCard() {
                 <RotateCcw size={13} aria-hidden="true" />
                 {x(HM.health_tool_ground_restart)}
               </button>
-              <Link className="hb-quiet-link" to="/health/check-in">
+              <Link className="hb-quiet-link" to="/wellness/check-in">
                 {x(HM.health_tool_checkin_link)}
               </Link>
             </>
@@ -405,7 +405,7 @@ function GratitudeCard() {
       setBody('')
       showToast(HM.health_tool_grat_saved, 'ok', {
         label: HM.health_tool_grat_view,
-        to: '/health/journal',
+        to: '/wellness/journal',
       })
     } catch {
       showToast(HM.health_tool_grat_failed)
@@ -507,7 +507,7 @@ function PracticesSection() {
       /* storage blocked — the chat opens empty; the question is still
          readable on the card */
     }
-    navigate('/health/chat')
+    navigate('/wellness/chat')
   }
 
   const guided = healthModalities.filter((m) => m.guided)
@@ -688,7 +688,7 @@ export function HealthToolsPage() {
       <div className="sb-note" style={{ marginTop: 18 }}>
         <p className="m-0">
           {x(HM.health_tools_note)}{' '}
-          <Link to="/health/resources">{x(HM.health_tools_note_link)}</Link>
+          <Link to="/wellness/resources">{x(HM.health_tools_note_link)}</Link>
         </p>
       </div>
     </div>

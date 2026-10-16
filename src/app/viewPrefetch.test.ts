@@ -113,7 +113,7 @@ describe('portalNavKey', () => {
   it('maps portal paths to preload keys', () => {
     expect(portalNavKey('/invest')).toBe('invest.home')
     expect(portalNavKey('/invest/chat')).toBe('invest.chat')
-    expect(portalNavKey('/health/check-in')).toBe('health.check-in')
+    expect(portalNavKey('/wellness/check-in')).toBe('wellness.check-in')
     expect(portalNavKey('/pr/answers')).toBe('pr.answers')
   })
 

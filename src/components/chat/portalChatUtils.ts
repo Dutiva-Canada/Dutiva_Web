@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type DependencyList, type RefObject } from
 
 /* Shared bits for the four standalone portal chats (Tally, Mira, Paige,
    Claire). Each page keeps its own styling system — the sb-* sheets for
-   invest/health/pr, Tailwind for careers — so this module only carries the
+   invest/wellness/pr, Tailwind for careers — so this module only carries the
    pieces that are identical everywhere: time/day formatting, the
    stick-to-bottom scroll model, and textarea auto-grow. Components that
    share the pages (e.g. the copy control) live in portalChat.tsx so this

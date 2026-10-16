@@ -61,7 +61,7 @@ function LocationProbe() {
 
 function renderInsights(
   state: HealthState | undefined,
-  url = '/health/insights',
+  url = '/wellness/insights',
   loading = false,
   auth?: AuthContextValue,
 ) {
@@ -116,7 +116,7 @@ describe('HealthInsightsPage', () => {
 
   it('fires ?recap=1 once and consumes the param', async () => {
     vi.mocked(healthAiRecap).mockResolvedValue('A steady week.')
-    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/health/insights?recap=1')
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/wellness/insights?recap=1')
     expect(await screen.findByText('A steady week.')).toBeInTheDocument()
     expect(healthAiRecap).toHaveBeenCalledTimes(1)
     await vi.waitFor(() =>
@@ -138,7 +138,7 @@ describe('HealthInsightsPage', () => {
     vi.mocked(healthAiRecap).mockResolvedValue('A steady stretch.')
     renderInsights(
       stateWith({ checkIns: [ci('c1', 4)] }),
-      '/health/insights?recap=1',
+      '/wellness/insights?recap=1',
       false,
       authAs('staff@dutiva.ca'),
     )
@@ -149,7 +149,7 @@ describe('HealthInsightsPage', () => {
 
   it('keeps the reflection note when there is no internal session', async () => {
     vi.mocked(healthAiRecap).mockResolvedValue('A steady stretch.')
-    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/health/insights?recap=1')
+    renderInsights(stateWith({ checkIns: [ci('c1', 4)] }), '/wellness/insights?recap=1')
     expect(await screen.findByText('A steady stretch.')).toBeInTheDocument()
     expect(screen.getByText(/A reflection, not advice/)).toBeInTheDocument()
   })
@@ -158,8 +158,8 @@ describe('HealthInsightsPage', () => {
     renderInsights(stateWith({ checkIns: [ci('c1', 4)] }))
     const links = screen.getAllByRole('link')
     const hrefs = links.map((l) => l.getAttribute('href'))
-    expect(hrefs.filter((h) => h === '/health/check-in').length).toBeGreaterThanOrEqual(2)
-    expect(hrefs).toContain('/health/journal')
+    expect(hrefs.filter((h) => h === '/wellness/check-in').length).toBeGreaterThanOrEqual(2)
+    expect(hrefs).toContain('/wellness/journal')
   })
 
   it('flags a streak whose today is still pending', () => {
@@ -171,7 +171,7 @@ describe('HealthInsightsPage', () => {
   it('leads the empty state to the check-in', () => {
     renderInsights(stateWith())
     const cta = screen.getByRole('link', { name: /Check in now/ })
-    expect(cta).toHaveAttribute('href', '/health/check-in')
+    expect(cta).toHaveAttribute('href', '/wellness/check-in')
   })
 
   it('drops the pending qualifier once today is logged', () => {

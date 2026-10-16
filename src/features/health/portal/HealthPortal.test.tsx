@@ -90,7 +90,7 @@ const STATE: HealthState = {
   lastLoadedAt: new Date().toISOString(),
 }
 
-function renderPortal(ui: ReactElement, route = '/health') {
+function renderPortal(ui: ReactElement, route = '/wellness') {
   return render(
     <ThemeProvider>
       <LangProvider>
@@ -98,13 +98,13 @@ function renderPortal(ui: ReactElement, route = '/health') {
           <ToastsProvider>
             <MemoryRouter initialEntries={[route]}>
               <Routes>
-                <Route path="/health" element={ui}>
+                <Route path="/wellness" element={ui}>
                   <Route index element={<div>home</div>} />
                 </Route>
-                <Route path="/health/check-in" element={ui} />
-                <Route path="/health/journal" element={ui} />
-                <Route path="/health/insights" element={ui} />
-                <Route path="/health/resources" element={ui} />
+                <Route path="/wellness/check-in" element={ui} />
+                <Route path="/wellness/journal" element={ui} />
+                <Route path="/wellness/insights" element={ui} />
+                <Route path="/wellness/resources" element={ui} />
               </Routes>
             </MemoryRouter>
           </ToastsProvider>
@@ -125,7 +125,7 @@ describe('HealthPortalLayout', () => {
     renderPortal(<HealthPortalLayout />)
 
     expect(
-      await screen.findByText('Sign in to Dutiva Health', {}, { timeout: 3000 }),
+      await screen.findByText('Sign in to Dutiva Wellness', {}, { timeout: 3000 }),
     ).toBeInTheDocument()
     expect(screen.getByLabelText(/Email/i)).toBeInTheDocument()
     expect(screen.getByText(/9-8-8/)).toBeInTheDocument()
@@ -165,7 +165,7 @@ describe('HealthResourcesPage', () => {
     vi.mocked(hasHealthAccess).mockResolvedValue(true)
     vi.mocked(loadHealthState).mockResolvedValue(STATE)
     const { HealthResourcesPage } = await import('./HealthResourcesPage')
-    renderPortal(<HealthResourcesPage />, '/health/resources')
+    renderPortal(<HealthResourcesPage />, '/wellness/resources')
 
     expect(
       await screen.findByText('9-8-8: Suicide Crisis Helpline', {}, { timeout: 3000 }),

@@ -1,4 +1,4 @@
-/* Dutiva Health portal styles — sits on top of the shared `.sb` design
+/* Dutiva Wellness portal styles — sits on top of the shared `.sb` design
    system (invest/portal/strategies.css, imported by each page). `.hb`
    overrides only the token palette: a calmer sage/forest accent instead of
    the invest gold, same surfaces and components. Pages mount `.hb` beside
@@ -1083,6 +1083,24 @@ a > .hb-jthumb:hover {
   background: color-mix(in srgb, var(--surface) 86%, transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+}
+/* The wordmark grew with the Wellness rename — MIEUX-ÊTRE is nearly twice
+   SANTÉ's width, and the FR tab bar clipped mid-label. The header's max-w is
+   fixed at 1100px, so the overflow exists at every desktop width, not just
+   narrow ones — the tightened cluster applies from the desktop breakpoint up. */
+@media (min-width: 1080px) {
+  .hb-topbar .hb-wordmark {
+    font-size: 13.5px;
+    letter-spacing: 0.02em;
+  }
+  .hb-topbar nav a {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 12px;
+  }
+  .hb-topbar .flex.min-w-0 {
+    gap: 8px;
+  }
 }
 .hb-mobile-menu {
   box-shadow: 0 16px 28px -18px rgba(13, 27, 42, 0.4);

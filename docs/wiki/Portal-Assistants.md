@@ -38,7 +38,7 @@ Beyond the workspace Advisor, Dutiva ships **three standalone, invite-only porta
 
 | Portal | Route  | Assistant | Voice | Edge function | Access grant   | Chat table               |
 | ------ | ------ | --------- | ----- | ------------- | -------------- | ------------------------ |
-| Health | `/health` | **Mira**  | Warm, non-clinical emotional companion | `health-ai` | `health_access` | `health_chat_messages` |
+| Health | `/wellness` | **Mira**  | Warm, non-clinical emotional companion | `health-ai` | `health_access` | `health_chat_messages` |
 | PR     | `/pr`     | **Paige** | Media-literate press-office specialist | `pr-ai`     | `pr_access`     | `pr_chat_messages`     |
 | Invest | `/invest` | **Tally** | Plain, numbers-first watch clerk       | `invest-ai` | `invest_access` | `invest_chat_messages` |
 
@@ -55,12 +55,12 @@ Each portal is a top-level route branch wrapped in its own lazily-loaded surface
 ```mermaid
 graph TD
     subgraph Public["Public leaf routes (outside the gate)"]
-        HL["/health/legal/:slug"]
+        HL["/wellness/legal/:slug"]
         IL["/invest/legal/:slug"]
         PL["/pr/legal/:slug"]
     end
 
-    subgraph Health["/health — Mira"]
+    subgraph Health["/wellness — Mira"]
         HGate["HealthPortalLayout<br>health_access grant"]
         HGate --> HH["Home"] & HC["Chat"] & HCI["Check-in"] & HHab["Habits"]
         HGate --> HJ["Journal"] & HT["Tools"] & HI["Insights"] & HR["Review"] & HRes["Resources"]
@@ -142,7 +142,7 @@ Sources: [src/features/invest/portal/InvestChatPage.tsx:17-25](), [src/features/
 
 ---
 
-## Mira — `/health` (health-ai)
+## Mira — `/wellness` (health-ai)
 
 Mira is the wellness portal's companion: a warm, non-clinical presence over the person's own check-ins, habits, journal, and conversation. She is deliberately **not** clinical — her system prompt bars diagnosis, illness, treatment, medication, therapy, and crisis content beyond a single resource line.
 
@@ -165,7 +165,7 @@ Mira is the wellness portal's companion: a warm, non-clinical presence over the 
 
 **Pattern suggestions.** One deterministic rule rides the check-in events (`checkin_saved`/`checkin_edited`, in `runReact`): when the facts show a sustained low patch (5+ check-ins, average mood ≤ 2.4), a gentle habit proposal files to `agent_suggestions` with `source: 'rule'` — deduped while pending, cooled 30 days after any resolution, and skipped when the person already tracks a walk. She proposes; the review queue decides. Nothing is added silently and no unsolicited chat turn is written.
 
-**Memories.** `health_memories` (owner-only RLS, migration 0225+) holds durable facts the person confirmed — added by hand from the Overview's "What Mira remembers" card, or proposed by Mira via the `propose_memory` chat action and accepted on `/health/review`. Rows carry a `source` (`manual` | `mira`); the card labels a Mira-proposed one. Accepted memories inject into every prompt as a labeled block — durable context, never permission. `propose_memory` is the only chat action that never writes directly: the executor files a pending suggestion, and its undo dismisses that row while it's still pending.
+**Memories.** `health_memories` (owner-only RLS, migration 0225+) holds durable facts the person confirmed — added by hand from the Overview's "What Mira remembers" card, or proposed by Mira via the `propose_memory` chat action and accepted on `/wellness/review`. Rows carry a `source` (`manual` | `mira`); the card labels a Mira-proposed one. Accepted memories inject into every prompt as a labeled block — durable context, never permission. `propose_memory` is the only chat action that never writes directly: the executor files a pending suggestion, and its undo dismisses that row while it's still pending.
 
 Sources: [supabase/functions/health-ai/index.ts:70-80](), [supabase/functions/health-ai/handlers.ts:99-115](), [supabase/functions/health-ai/handlers.ts:330-340](), [src/features/health/data/types.ts:22-45](), [supabase/functions/health-habit-notify/index.ts]()
 

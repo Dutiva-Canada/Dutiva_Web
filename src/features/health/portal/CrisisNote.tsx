@@ -21,7 +21,7 @@ export function CrisisNote({ more = false }: { more?: boolean }) {
       {more && (
         <>
           {' · '}
-          <Link to="/health/resources#crisis">{x(HM.health_cn_more)}</Link>
+          <Link to="/wellness/resources#crisis">{x(HM.health_cn_more)}</Link>
         </>
       )}
     </span>

@@ -741,7 +741,7 @@ export function HealthChatPage() {
                   chipClass="sbchat-starter"
                   onPick={(s) => void sendText(s)}
                 />
-                <Link className="sbchat-recap" to="/health/insights?recap=1">
+                <Link className="sbchat-recap" to="/wellness/insights?recap=1">
                   {x(HM.health_chat_recap_link)}
                 </Link>
               </>

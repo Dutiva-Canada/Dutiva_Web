@@ -73,7 +73,7 @@ function renderReview(state: HealthState | undefined) {
     <LangContext value={langValue('en')}>
       <HealthDataContext value={health}>
         <ToastsProvider>
-          <MemoryRouter initialEntries={['/health/review']}>
+          <MemoryRouter initialEntries={['/wellness/review']}>
             <HealthReviewPage />
             <ToastHost />
           </MemoryRouter>

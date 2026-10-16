@@ -64,7 +64,7 @@ function renderPage(lang: Lang = 'en') {
       <LangContext value={langValue(lang)}>
         <HealthDataContext value={health}>
           <ToastsProvider>
-            <MemoryRouter initialEntries={['/health/data']}>
+            <MemoryRouter initialEntries={['/wellness/data']}>
               <HealthDataPage />
               <ToastHost />
             </MemoryRouter>
@@ -193,7 +193,7 @@ describe('HealthDataPage', () => {
     expect(await screen.findByText('Vos données')).toBeInTheDocument()
     expect(screen.getByText('Emportez vos données')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Effacer toutes mes données Santé' }),
+      screen.getByRole('button', { name: 'Effacer toutes mes données Mieux-être' }),
     ).toBeInTheDocument()
   })
 })

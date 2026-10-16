@@ -151,24 +151,24 @@ const handler = async (req: Request) => {
             'No check-in logged today — a quiet minute still counts:',
             '',
             ...streakEn,
-            'Check in: https://dutiva.ca/health/check-in',
+            'Check in: https://dutiva.ca/wellness/check-in',
           ]
-        : [...streakEn, 'Check them off: https://dutiva.ca/health/habits']
+        : [...streakEn, 'Check them off: https://dutiva.ca/wellness/habits']
       const fr = reminded
         ? [
             'Aucun point du jour enregistré — une minute au calme compte aussi :',
             '',
             ...streakFr,
-            'Faire le point : https://dutiva.ca/health/check-in',
+            'Faire le point : https://dutiva.ca/wellness/check-in',
           ]
-        : [...streakFr, 'Cochez-les : https://dutiva.ca/health/habits']
+        : [...streakFr, 'Cochez-les : https://dutiva.ca/wellness/habits']
       outcomes[userId] = await sendPortalEmail(admin, {
         userId,
         kind: reminded ? 'health_checkin_reminder' : 'health_streak_risk',
         refDate: today,
         subject: reminded
-          ? 'Dutiva Health — check-in reminder / rappel du point du jour'
-          : `Dutiva Health — streak at risk / suite à protéger (${names?.length ?? 0})`,
+          ? 'Dutiva Wellness — check-in reminder / rappel du point du jour'
+          : `Dutiva Wellness — streak at risk / suite à protéger (${names?.length ?? 0})`,
         text: bilingualBody(en, fr),
       })
     }

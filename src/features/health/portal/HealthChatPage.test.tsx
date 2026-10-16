@@ -82,7 +82,7 @@ function renderPage(lang: Lang = 'en', state?: HealthState, auth: Partial<AuthCo
       <AuthContext.Provider value={authValue}>
         <HealthDataContext value={health}>
           <ToastsProvider>
-            <MemoryRouter initialEntries={['/health/chat']}>
+            <MemoryRouter initialEntries={['/wellness/chat']}>
               <HealthChatPage />
             </MemoryRouter>
             <ToastHost />

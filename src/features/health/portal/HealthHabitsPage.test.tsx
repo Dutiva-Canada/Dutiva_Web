@@ -75,7 +75,7 @@ function renderHabits(state: HealthState | undefined) {
     <LangContext value={langValue('en')}>
       <HealthDataContext value={health}>
         <ToastsProvider>
-          <MemoryRouter initialEntries={['/health/habits']}>
+          <MemoryRouter initialEntries={['/wellness/habits']}>
             <Habits />
             <ToastHost />
           </MemoryRouter>

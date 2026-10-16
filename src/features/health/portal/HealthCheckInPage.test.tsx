@@ -58,7 +58,7 @@ function renderCheckIn(state: HealthState | undefined, loading = false, refresh 
     <LangContext value={langValue('en')}>
       <HealthDataContext value={health}>
         <ToastsProvider>
-          <MemoryRouter initialEntries={['/health/check-in']}>
+          <MemoryRouter initialEntries={['/wellness/check-in']}>
             <CheckIn />
             <ToastHost />
           </MemoryRouter>

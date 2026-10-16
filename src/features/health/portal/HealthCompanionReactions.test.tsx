@@ -484,7 +484,7 @@ describe('overview — Mira noticed strip', () => {
     expect(screen.getByText(/days running/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Chat with Mira' })).toHaveAttribute(
       'href',
-      '/health/chat',
+      '/wellness/chat',
     )
   })
 

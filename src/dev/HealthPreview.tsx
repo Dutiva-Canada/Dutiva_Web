@@ -1,4 +1,4 @@
-/* TEMPORARY dev-only preview harness for the /health portal — mounts the
+/* TEMPORARY dev-only preview harness for the /wellness portal — mounts the
    real page components on fixture data inside the real providers so the
    visual state can be reviewed without auth. Not routed in production
    builds (routes.tsx gates the route on import.meta.env.DEV). */
@@ -358,13 +358,13 @@ function Shell() {
   return (
     <HealthDataContext value={health}>
       <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
-        <header className="sticky top-0 z-10 border-b border-border bg-surface">
+        <header className="hb-topbar sticky top-0 z-10 border-b border-border bg-surface">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
             <div className="flex min-w-0 items-center gap-[16px]">
-              <span className="shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy">
+              <span className="hb-wordmark shrink-0 font-display text-[17px] font-bold tracking-[-0.01em] text-navy">
                 {x(HM.health_portal_title)}
               </span>
-              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[820px]:flex">
+              <nav className="hidden items-center gap-[2px] overflow-x-auto rounded-[10px] bg-inset p-[3px] min-[1080px]:flex">
                 {NAV.map((item) => (
                   <Link
                     key={item.p}

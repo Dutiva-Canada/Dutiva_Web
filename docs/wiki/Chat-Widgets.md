@@ -48,7 +48,7 @@ Values: `"1"` / `"true"` / `"all"` enables every surface; otherwise a **comma-se
 | --------- | --------------------- | --------------------------------------------- |
 | `advisor` | Workspace Advisor     | `ChatMarkdown` fence override                 |
 | `invest`  | Tally (`/invest`)     | `WidgetContent` in `InvestChatPage`           |
-| `health`  | Mira (`/health`)      | `WidgetContent` in `HealthChatPage`           |
+| `health`  | Mira (`/wellness`)      | `WidgetContent` in `HealthChatPage`           |
 | `pr`      | Paige (`/pr`)         | `WidgetContent` in `PrChatPage`               |
 
 Sources: [src/components/chatWidgets/flags.ts:1-36](), [src/components/advisor/ChatMarkdown.tsx:241-263](), [src/features/invest/portal/InvestChatPage.tsx:185-285]()

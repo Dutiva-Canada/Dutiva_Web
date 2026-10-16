@@ -312,7 +312,7 @@ function QuickCheckIn() {
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_quick_title)}</h2>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
           style={headerLinkStyle}
         >
@@ -403,7 +403,7 @@ function TodayHabits() {
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_habits)}</h2>
         <Link
-          to="/health/habits"
+          to="/wellness/habits"
           className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
           style={headerLinkStyle}
         >
@@ -504,10 +504,10 @@ export function HealthHomePage() {
       <div className="sb-head-row">
         <h1>{x(HM.health_ov_title)}</h1>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link to="/health/check-in" className="sb-btn sb-btn-primary">
+          <Link to="/wellness/check-in" className="sb-btn sb-btn-primary">
             {x(HM.health_ov_new_checkin)}
           </Link>
-          <Link to="/health/journal?new=1" className="sb-btn sb-btn-secondary">
+          <Link to="/wellness/journal?new=1" className="sb-btn sb-btn-secondary">
             {x(HM.health_ov_new_entry)}
           </Link>
         </div>
@@ -528,7 +528,7 @@ export function HealthHomePage() {
           <p className="hb-crisis-title">{x(HM.health_ov_crisis_title)}</p>
           <p className="hb-crisis-body">
             {x(HM.health_ov_crisis_body)}{' '}
-            <Link to="/health/resources#crisis">{x(HM.health_ov_crisis_link)}</Link>
+            <Link to="/wellness/resources#crisis">{x(HM.health_ov_crisis_link)}</Link>
           </p>
         </div>
       </div>
@@ -565,7 +565,7 @@ export function HealthHomePage() {
           </ol>
           <div className="mt-[14px]">
             <Link
-              to="/health/check-in"
+              to="/wellness/check-in"
               className="sb-btn sb-btn-primary"
               onClick={dismissWelcome}
             >
@@ -580,7 +580,7 @@ export function HealthHomePage() {
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
             <strong>{x(HM.health_home_mira_label)}</strong> — {noticed}{' '}
-            <Link to="/health/chat" style={{ color: 'inherit', fontWeight: 600 }}>
+            <Link to="/wellness/chat" style={{ color: 'inherit', fontWeight: 600 }}>
               {x(HM.health_home_mira_open)}
             </Link>
           </span>
@@ -596,7 +596,7 @@ export function HealthHomePage() {
               String(pending),
             )}{' '}
             —{' '}
-            <Link to="/health/review" style={{ color: 'inherit', fontWeight: 600 }}>
+            <Link to="/wellness/review" style={{ color: 'inherit', fontWeight: 600 }}>
               {x(HM.health_ov_review_link)}
             </Link>
           </span>
@@ -605,7 +605,7 @@ export function HealthHomePage() {
 
       <div className="sb-stats">
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={statAria(
             HM.health_ov_today,
@@ -618,7 +618,7 @@ export function HealthHomePage() {
           </div>
         </Link>
         <Link
-          to="/health/insights"
+          to="/wellness/insights"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_mood_7d, moodValue)}
         >
@@ -641,7 +641,7 @@ export function HealthHomePage() {
           </div>
         </Link>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={statAria(
             HM.health_ov_streak,
@@ -657,7 +657,7 @@ export function HealthHomePage() {
           )}
         </Link>
         <Link
-          to="/health/journal"
+          to="/wellness/journal"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_entries, String(entryTotal))}
         >
@@ -665,7 +665,7 @@ export function HealthHomePage() {
           <div className="v">{entryTotal}</div>
         </Link>
         <Link
-          to="/health/habits"
+          to="/wellness/habits"
           className="sb-stat sb-stat-link"
           aria-label={statAria(HM.health_ov_habits, habitsValue)}
         >
@@ -678,7 +678,7 @@ export function HealthHomePage() {
 
       {state.checkIns.length > 0 && (
         <p style={{ margin: '10px 2px 0', textAlign: 'right' }}>
-          <Link to="/health/insights?recap=1" className="sb-btn sb-btn-secondary sb-btn-sm">
+          <Link to="/wellness/insights?recap=1" className="sb-btn sb-btn-secondary sb-btn-sm">
             <Sparkles size={13} aria-hidden="true" />
             {x(HM.health_ai_recap_btn)}
           </Link>
@@ -692,7 +692,7 @@ export function HealthHomePage() {
           <div className="sb-section-head" style={{ marginTop: 0 }}>
             <h2 className="m-0 text-[16px]">{x(HM.health_ov_recent)}</h2>
             <Link
-              to="/health/check-in"
+              to="/wellness/check-in"
               className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
               style={headerLinkStyle}
             >
@@ -704,7 +704,7 @@ export function HealthHomePage() {
             <div className="sb-empty">
               <p style={{ margin: 0 }}>{x(HM.health_ov_empty)}</p>
               <Link
-                to="/health/check-in"
+                to="/wellness/check-in"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
                 style={{ marginTop: 12 }}
               >
@@ -734,7 +734,7 @@ export function HealthHomePage() {
           <div className="sb-section-head" style={{ marginTop: 0 }}>
             <h2 className="m-0 text-[16px]">{x(HM.health_ov_latest_entry)}</h2>
             <Link
-              to="/health/journal"
+              to="/wellness/journal"
               className="inline-flex items-center gap-[4px] text-[12.5px] font-semibold no-underline"
               style={headerLinkStyle}
             >
@@ -746,7 +746,7 @@ export function HealthHomePage() {
             <div className="sb-empty">
               <p style={{ margin: 0 }}>{x(HM.health_journal_empty)}</p>
               <Link
-                to="/health/journal?new=1"
+                to="/wellness/journal?new=1"
                 className="sb-btn sb-btn-secondary sb-btn-sm"
                 style={{ marginTop: 12 }}
               >

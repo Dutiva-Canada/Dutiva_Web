@@ -335,7 +335,7 @@ export function HealthResourcesPage() {
           thing Dutiva actually is. */}
       <p className="hb-res-mira">
         {x(HM.health_res_mira_line)}{' '}
-        <Link to="/health/chat">{x(HM.health_res_mira_link)}</Link>
+        <Link to="/wellness/chat">{x(HM.health_res_mira_link)}</Link>
       </p>
     </div>
   )

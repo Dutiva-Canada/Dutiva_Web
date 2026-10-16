@@ -242,7 +242,7 @@ export function HealthInsightsPage() {
           </div>
         </div>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={`${x(HM.health_ins_total)}: ${checkInTotal}`}
         >
@@ -250,7 +250,7 @@ export function HealthInsightsPage() {
           <div className="v">{checkInTotal}</div>
         </Link>
         <Link
-          to="/health/check-in"
+          to="/wellness/check-in"
           className="sb-stat sb-stat-link"
           aria-label={`${x(HM.health_ins_streak)}: ${streak === 1 ? x(HM.health_ov_streak_day) : x(HM.health_ov_streak_days).replace('{count}', String(streak))}${streakPending ? ` — ${x(HM.health_ov_streak_pending)}` : ''}`}
         >
@@ -267,7 +267,7 @@ export function HealthInsightsPage() {
           )}
         </Link>
         <Link
-          to="/health/journal"
+          to="/wellness/journal"
           className="sb-stat sb-stat-link"
           aria-label={`${x(HM.health_ins_entries)}: ${entryTotal}`}
         >
@@ -291,7 +291,7 @@ export function HealthInsightsPage() {
                 : HM.health_ins_no_data_window,
             )}
             <div style={{ marginTop: 10 }}>
-              <Link to="/health/check-in" className="sb-btn sb-btn-sm sb-btn-secondary">
+              <Link to="/wellness/check-in" className="sb-btn sb-btn-sm sb-btn-secondary">
                 {x(HM.health_ins_checkin_cta)}
               </Link>
             </div>

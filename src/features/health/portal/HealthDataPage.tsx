@@ -223,7 +223,7 @@ export function HealthDataPage() {
       </section>
 
       <p className="mt-[20px]">
-        <Link className="hb-quiet-link" to="/health">
+        <Link className="hb-quiet-link" to="/wellness">
           {x(HM.health_data_back)}
         </Link>
       </p>

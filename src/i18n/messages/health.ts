@@ -1,8 +1,8 @@
 import { defineMessages } from '../core'
 
 /**
- * Dutiva Health portal chrome — the standalone, invite-only mental-wellness
- * surface under `/health`: daily check-ins, a private journal, gentle trend
+ * Dutiva Wellness portal chrome — the standalone, invite-only mental-wellness
+ * surface under `/wellness`: daily check-ins, a private journal, gentle trend
  * views, and a curated list of real support resources.
  *
  * Positioning is strict because Dutiva is not a licensed provider: this is a
@@ -15,15 +15,15 @@ import { defineMessages } from '../core'
  * [FR self-authored — not from a design handoff; hedge strength matched.]
  */
 export const healthMessages = defineMessages({
-  health_title: { en: 'Health', fr: 'Santé' },
-  health_portal_title: { en: 'HEALTH', fr: 'SANTÉ' },
+  health_title: { en: 'Wellness', fr: 'Mieux-être' },
+  health_portal_title: { en: 'WELLNESS', fr: 'MIEUX-ÊTRE' },
   health_subtitle: {
     en: 'A private space to check in with yourself, keep a journal, and notice patterns over time.',
     fr: 'Un espace privé pour faire le point avec vous-même, tenir un journal et repérer des tendances au fil du temps.',
   },
   health_info_note: {
-    en: 'Dutiva Health is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment — and it is not a crisis service.',
-    fr: 'Dutiva Santé est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement — et ce n’est pas un service de crise.',
+    en: 'Dutiva Wellness is a self-tracking and reflection tool. It does not provide medical or mental-health advice, diagnosis, or treatment — and it is not a crisis service.',
+    fr: 'Dutiva Mieux-être est un outil d’autosurveillance et de réflexion. Il n’offre ni conseil médical ou en santé mentale, ni diagnostic, ni traitement — et ce n’est pas un service de crise.',
   },
   health_crisis_note: {
     en: 'In crisis or thinking about suicide? Call or text 9-8-8 (Canada, 24/7) — or 911 if you’re in immediate danger.',
@@ -60,7 +60,7 @@ export const healthMessages = defineMessages({
   health_tab_resources: { en: 'Resources', fr: 'Ressources' },
 
   /* Sign-in wall + access gate */
-  health_signin_title: { en: 'Sign in to Dutiva Health', fr: 'Se connecter à Dutiva Santé' },
+  health_signin_title: { en: 'Sign in to Dutiva Wellness', fr: 'Se connecter à Dutiva Mieux-être' },
   health_signin_body: {
     en: 'Enter your email and we’ll send you a one-time sign-in code. No password needed.',
     fr: 'Entrez votre courriel et nous vous enverrons un code de connexion à usage unique. Aucun mot de passe requis.',
@@ -85,8 +85,8 @@ export const healthMessages = defineMessages({
   },
   health_access_title: { en: 'Access required', fr: 'Accès requis' },
   health_access_body: {
-    en: 'Dutiva Health is invite-only while it’s in early access. Your account doesn’t have a Health grant yet — contact support to request one.',
-    fr: 'Dutiva Santé est sur invitation pendant son accès anticipé. Votre compte n’a pas encore d’accès Santé — contactez le soutien pour en faire la demande.',
+    en: 'Dutiva Wellness is invite-only while it’s in early access. Your account doesn’t have a Wellness grant yet — contact support to request one.',
+    fr: 'Dutiva Mieux-être est sur invitation pendant son accès anticipé. Votre compte n’a pas encore accès à Mieux-être — contactez le soutien pour en faire la demande.',
   },
   health_access_contact: { en: 'Contact support', fr: 'Contacter le soutien' },
   health_back_site: { en: 'Back to dutiva.ca', fr: 'Retour à dutiva.ca' },
@@ -409,8 +409,8 @@ export const healthMessages = defineMessages({
   /* Resources — real services only; Dutiva never presents as one */
   health_res_title: { en: 'Resources', fr: 'Ressources' },
   health_res_sub: {
-    en: 'Real places to reach people. Dutiva Health is a reflection tool, not a support service — these are.',
-    fr: 'De vrais endroits pour joindre des gens. Dutiva Santé est un outil de réflexion, pas un service de soutien — eux le sont.',
+    en: 'Real places to reach people. Dutiva Wellness is a reflection tool, not a support service — these are.',
+    fr: 'De vrais endroits pour joindre des gens. Dutiva Mieux-être est un outil de réflexion, pas un service de soutien — eux le sont.',
   },
   health_res_crisis_title: { en: 'If you’re in crisis right now', fr: 'Si vous êtes en crise en ce moment' },
   health_res_988_name: { en: '9-8-8: Suicide Crisis Helpline', fr: '9-8-8 : Ligne d’aide en cas de crise suicide' },
@@ -450,8 +450,8 @@ export const healthMessages = defineMessages({
     fr: 'Dans la plupart des provinces, le 8-1-1 vous met en contact avec une infirmière qui peut vous orienter vers des services de santé mentale locaux.',
   },
   health_res_note: {
-    en: 'Dutiva Health isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
-    fr: 'Dutiva Santé n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
+    en: 'Dutiva Wellness isn’t a care provider and can’t respond to anything you write here — including entries about feeling unsafe. If that’s where you are, please use one of the services above.',
+    fr: 'Dutiva Mieux-être n’est pas un fournisseur de soins et ne peut pas répondre à ce que vous écrivez ici — y compris aux entrées où vous ne vous sentez pas en sécurité. Si c’est votre cas, utilisez l’un des services ci-dessus.',
   },
   /* Link-chip labels — the contact methods are tappable, not just printed.
      [FR self-authored] */
@@ -682,7 +682,7 @@ export const healthMessages = defineMessages({
     en: 'Nothing waiting — agent suggestions land here when there’s something worth a look.',
     fr: 'Rien en attente — les suggestions des agents arrivent ici quand quelque chose mérite un regard.',
   },
-  /* On Health only Mira files suggestions — name her, not "an agent". */
+  /* On Wellness only Mira files suggestions — name her, not "an agent". */
   health_review_filed_by: { en: 'Mira suggested this', fr: 'Suggestion de Mira' },
   health_review_dismissed: { en: 'Dismissed.', fr: 'Ignorée.' },
   health_review_load_failed: {
@@ -768,7 +768,7 @@ export const healthMessages = defineMessages({
     en: 'That didn’t save — try again.',
     fr: 'Ça n’a pas enregistré — réessayez.',
   },
-  health_seo_title_review: { en: 'For review — Dutiva Health', fr: 'À valider — Dutiva Santé' },
+  health_seo_title_review: { en: 'For review — Dutiva Wellness', fr: 'À valider — Dutiva Mieux-être' },
   /* Queue write didn't land upstream — the suggestion works but won't
      survive leaving the page. [FR self-authored] */
   health_ai_not_filed: {
@@ -939,10 +939,10 @@ export const healthMessages = defineMessages({
   health_signed_in_as: { en: 'Signed in as {email}', fr: 'Connecté : {email}' },
 
   /* Footer + legal */
-  health_footer_nav: { en: 'Dutiva Health links', fr: 'Liens Dutiva Santé' },
+  health_footer_nav: { en: 'Dutiva Wellness links', fr: 'Liens Dutiva Mieux-être' },
   health_footer_terms: { en: 'Terms', fr: 'Conditions' },
   health_footer_privacy: { en: 'Privacy', fr: 'Confidentialité' },
-  health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de bien-être' },
+  health_footer_wellness: { en: 'Wellness notice', fr: 'Avis de mieux-être' },
   health_footer_support: { en: 'Support', fr: 'Soutien' },
   health_legal_back: { en: 'Back to Health', fr: 'Retour à Santé' },
   health_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
@@ -1005,7 +1005,7 @@ export const healthMessages = defineMessages({
   },
   health_data_delete_btn: {
     en: 'Delete all my health data',
-    fr: 'Effacer toutes mes données Santé',
+    fr: 'Effacer toutes mes données Mieux-être',
   },
   health_data_delete_armed: {
     en: 'No undo — click again to delete',
@@ -1013,7 +1013,7 @@ export const healthMessages = defineMessages({
   },
   health_data_delete_done: {
     en: 'Your health data is deleted.',
-    fr: 'Vos données Santé sont effacées.',
+    fr: 'Vos données Mieux-être sont effacées.',
   },
   health_data_delete_failed: {
     en: 'Couldn’t delete everything — try again.',
@@ -1023,14 +1023,14 @@ export const healthMessages = defineMessages({
   health_footer_data: { en: 'Your data', fr: 'Vos données' },
 
   /* SEO/head titles */
-  health_seo_title: { en: 'Dutiva Health', fr: 'Dutiva Santé' },
-  health_seo_title_data: { en: 'Your data — Dutiva Health', fr: 'Vos données — Dutiva Santé' },
-  health_seo_title_terms: { en: 'Terms — Dutiva Health', fr: 'Conditions — Dutiva Santé' },
-  health_seo_title_privacy: { en: 'Privacy — Dutiva Health', fr: 'Confidentialité — Dutiva Santé' },
-  health_seo_title_support: { en: 'Support — Dutiva Health', fr: 'Soutien — Dutiva Santé' },
-  health_seo_title_wellness: { en: 'Wellness notice — Dutiva Health', fr: 'Avis de bien-être — Dutiva Santé' },
-  health_seo_title_habits: { en: 'Habits — Dutiva Health', fr: 'Habitudes — Dutiva Santé' },
-  health_seo_title_tools: { en: 'Tools — Dutiva Health', fr: 'Outils — Dutiva Santé' },
+  health_seo_title: { en: 'Dutiva Wellness', fr: 'Dutiva Mieux-être' },
+  health_seo_title_data: { en: 'Your data — Dutiva Wellness', fr: 'Vos données — Dutiva Mieux-être' },
+  health_seo_title_terms: { en: 'Terms — Dutiva Wellness', fr: 'Conditions — Dutiva Mieux-être' },
+  health_seo_title_privacy: { en: 'Privacy — Dutiva Wellness', fr: 'Confidentialité — Dutiva Mieux-être' },
+  health_seo_title_support: { en: 'Support — Dutiva Wellness', fr: 'Soutien — Dutiva Mieux-être' },
+  health_seo_title_wellness: { en: 'Wellness notice — Dutiva Wellness', fr: 'Avis de mieux-être — Dutiva Mieux-être' },
+  health_seo_title_habits: { en: 'Habits — Dutiva Wellness', fr: 'Habitudes — Dutiva Mieux-être' },
+  health_seo_title_tools: { en: 'Tools — Dutiva Wellness', fr: 'Outils — Dutiva Mieux-être' },
   health_seo_desc_habits: {
     en: 'Small daily habits you track yourself.',
     fr: 'De petites habitudes quotidiennes à suivre vous-même.',
@@ -1040,20 +1040,20 @@ export const healthMessages = defineMessages({
     fr: 'Des pauses guidées — respiration, ancrage, gratitude.',
   },
   health_seo_desc_terms: {
-    en: 'Terms of use for Dutiva Health.',
-    fr: 'Conditions d’utilisation de Dutiva Santé.',
+    en: 'Terms of use for Dutiva Wellness.',
+    fr: 'Conditions d’utilisation de Dutiva Mieux-être.',
   },
   health_seo_desc_privacy: {
-    en: 'How Dutiva Health handles your data.',
-    fr: 'Comment Dutiva Santé traite vos données.',
+    en: 'How Dutiva Wellness handles your data.',
+    fr: 'Comment Dutiva Mieux-être traite vos données.',
   },
   health_seo_desc_support: {
     en: 'How to reach Dutiva support.',
     fr: 'Comment joindre le soutien Dutiva.',
   },
   health_seo_desc_wellness: {
-    en: 'What Dutiva Health is and is not — a reflection tool, not medical care.',
-    fr: 'Ce qu’est et n’est pas Dutiva Santé — un outil de réflexion, pas des soins médicaux.',
+    en: 'What Dutiva Wellness is and is not — a reflection tool, not medical care.',
+    fr: 'Ce qu’est et n’est pas Dutiva Mieux-être — un outil de réflexion, pas des soins médicaux.',
   },
 
   /* Chat — Mira, the portal companion. She sees the aggregate numbers, the
@@ -1430,7 +1430,7 @@ export const healthMessages = defineMessages({
     en: 'Your voice becomes text through a speech service — Mira never receives the recording itself. The conversation saves like typed chat.',
     fr: 'Votre voix devient du texte par un service de transcription — Mira ne reçoit jamais l’enregistrement lui-même. La discussion se sauvegarde comme à l’écrit.',
   },
-  health_seo_title_chat: { en: 'Mira — Dutiva Health', fr: 'Mira — Dutiva Santé' },
+  health_seo_title_chat: { en: 'Mira — Dutiva Wellness', fr: 'Mira — Dutiva Mieux-être' },
   health_seo_desc_chat: {
     en: 'Chat with Mira — the wellness companion who listens and keeps track with you.',
     fr: 'Discutez avec Mira — la compagne de bien-être qui vous écoute et suit le fil avec vous.',
