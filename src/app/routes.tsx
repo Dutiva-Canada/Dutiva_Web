@@ -93,6 +93,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
 /* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
+/* prettier-ignore */ const HealthDataPage = lazy(() => import('@/features/health/portal/HealthDataPage').then((m) => ({ default: m.HealthDataPage })))
 /* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
 /* Dev-only visual preview of the health portal on fixture data — never routed in prod builds. */
 const HealthPreview = import.meta.env.DEV
@@ -461,6 +462,7 @@ function routeTree(): RouteObject[] {
             { path: 'insights', element: <HealthInsightsPage /> },
             { path: 'review', element: <HealthReviewPage /> },
             { path: 'resources', element: <HealthResourcesPage /> },
+            { path: 'data', element: <HealthDataPage /> },
           ],
         },
       ],

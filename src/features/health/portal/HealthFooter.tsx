@@ -7,6 +7,9 @@ const LINKS = [
   { to: '/health/legal/privacy', label: HM.health_footer_privacy },
   { to: '/health/legal/wellness', label: HM.health_footer_wellness },
   { to: '/health/legal/support', label: HM.health_footer_support },
+  /* Gated — a signed-out click lands on the sign-in wall, which is the
+     honest answer to "where is my data" anyway. */
+  { to: '/health/data', label: HM.health_footer_data },
 ] as const
 
 /**

@@ -37,9 +37,11 @@ import { HealthToolsPage } from '@/features/health/portal/HealthToolsPage'
 import { HealthInsightsPage } from '@/features/health/portal/HealthInsightsPage'
 import { HealthResourcesPage } from '@/features/health/portal/HealthResourcesPage'
 import { HealthReviewPage } from '@/features/health/portal/HealthReviewPage'
+import { HealthDataPage } from '@/features/health/portal/HealthDataPage'
 import { HealthChatComposer } from '@/features/health/portal/HealthChatComposer'
 import { HealthChatTurnRow } from '@/features/health/portal/HealthChatTurnRow'
 import { HealthVoiceCall } from '@/features/health/portal/HealthVoiceCall'
+import { primeHabitTargetsProbe } from '@/features/health/data/api'
 import '@/features/health/portal/health.css'
 
 const NAV = [
@@ -259,6 +261,7 @@ function ChatPreview({
           engine={callServer ? 'server' : 'speech'}
           liveText=""
           lastText="Can you add a habit for an evening wind-down?"
+          level={0.55}
           micOff={false}
           voiceOff={false}
           x={x}
@@ -284,6 +287,10 @@ const PAGES: Record<string, ComponentType<{ callOverlay?: boolean; callServer?: 
   insights: HealthInsightsPage,
   resources: HealthResourcesPage,
   review: HealthReviewPage,
+  /* Footer-linked, not in the pill nav — reachable via ?p=data. The
+     reminder card probes for migration 0227 and hides in the fixture
+     (no live Supabase), which is exactly its unapplied behavior. */
+  data: HealthDataPage,
   chat: ChatPreview,
 }
 
@@ -321,6 +328,12 @@ function Shell() {
      so tier-gated surfaces (e.g. "Practice with Mira") render. Pages that
      call useAuth (tools/practices) crash without this context. */
   const internal = params.get('internal') === '1'
+  /* ?caps=1 poses as a fully migrated project — capability probes (habit
+     weekly targets) answer true so the gated controls render. */
+  const caps = params.get('caps') === '1'
+  useEffect(() => {
+    if (caps) primeHabitTargetsProbe(true)
+  }, [caps])
   const auth: AuthContextValue = useMemo(
     () => ({
       status: internal ? 'signed-in' : 'signed-out',
