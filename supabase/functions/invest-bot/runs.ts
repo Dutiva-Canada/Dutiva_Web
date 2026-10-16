@@ -103,13 +103,17 @@ export async function runUser(
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
-      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency, last_price')
       .eq('user_id', userId),
     adminClient
       .from('invest_accounts')
       .select('id, cash_balance, base_currency')
       .eq('user_id', userId)
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      /* Oldest-first: accounts[0] picks the book currency — an unordered
+         read could flip it between sweeps and print a phantom crash into
+         the track record. */
+      .order('created_at', { ascending: true }),
     adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
   ])
   for (const res of [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes]) {
@@ -292,6 +296,7 @@ export async function runUser(
     .eq('user_id', userId)
     .eq('kind', 'paper')
     .eq('status', 'active')
+    .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
 
@@ -544,8 +549,11 @@ export async function runUser(
           const snap = snapshots.find(
             (s) => s.asset_class === p.asset_class && s.symbol === p.symbol,
           )
-          if (!snap) return sum
-          return sum + (convertFx(p.quantity * snap.price, snap.currency, cur, fx) ?? 0)
+          /* Same chain as thesisBookContext — a missing snapshot falls
+             back to last_price then cost basis, never to zero. */
+          const px = snap?.price ?? p.last_price ?? (p.avg_cost > 0 ? p.avg_cost : null)
+          if (px === null) return sum
+          return sum + (convertFx(p.quantity * px, snap?.currency ?? p.currency ?? cur, cur, fx) ?? 0)
         }, 0)
       const cash = Number(acc.cash_balance)
       rows.push({

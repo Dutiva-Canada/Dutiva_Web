@@ -244,4 +244,37 @@ describe('thesisBookContext', () => {
     )
     expect(c.bookValue).toBe(1_000)
   })
+
+  it('falls back snapshot → last_price → cost for unpriced positions', () => {
+    const fx = { date: 'd', rates: { CAD: 1, USD: 0.72 } }
+    const noSnap = thesisBookContext(
+      [{ account_id: 'a', asset_class: 'equity', symbol: 'ARM', quantity: 2, avg_cost: 80, last_price: 100, currency: 'USD' }],
+      [],
+      1_000,
+      fx,
+      'CAD',
+    )
+    /* last_price wins over cost: 2 × 100 USD → CAD. */
+    expect(noSnap.bookValue).toBeCloseTo(1_000 + 200 / 0.72, 1)
+
+    const costOnly = thesisBookContext(
+      [{ account_id: 'a', asset_class: 'equity', symbol: 'ARM', quantity: 2, avg_cost: 80, currency: 'USD' }],
+      [],
+      1_000,
+      fx,
+      'CAD',
+    )
+    /* No snapshot, no last_price → cost basis, still converted. */
+    expect(costOnly.bookValue).toBeCloseTo(1_000 + 160 / 0.72, 1)
+
+    /* Truly unknown (no price anywhere) still drops out. */
+    const nothing = thesisBookContext(
+      [{ account_id: 'a', asset_class: 'equity', symbol: 'ARM', quantity: 2, avg_cost: 0 }],
+      [],
+      1_000,
+      fx,
+      'CAD',
+    )
+    expect(nothing.bookValue).toBe(1_000)
+  })
 })

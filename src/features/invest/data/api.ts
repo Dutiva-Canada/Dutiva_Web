@@ -103,7 +103,9 @@ export async function loadInvestState(): Promise<InvestState> {
   if (!client) throw new Error('Supabase is not configured')
   const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts, fillsRes, scenariosRes, recurringRes] =
     await Promise.all([
-      client.from('invest_accounts').select('*'),
+      /* Oldest-first — accounts[0] is the book-currency/headline default
+         everywhere, so the read must be deterministic. */
+      client.from('invest_accounts').select('*').order('created_at', { ascending: true }),
       client.from('invest_positions').select('*'),
       client.from('invest_market_snapshots').select('*').order('as_of', { ascending: false }),
       client.from('invest_strategies').select('*'),

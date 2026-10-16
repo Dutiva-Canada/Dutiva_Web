@@ -111,6 +111,9 @@ export interface Position {
       snapshot price quoted in a different currency. Optional: rows and tests
       predating the column read as same-currency as the quote. */
   currency?: string
+  /** The sync's last write-back (quote currency) — the book-mark fallback
+      between the live snapshot and cost basis. */
+  last_price?: number | null
 }
 
 export interface NewSignal {
