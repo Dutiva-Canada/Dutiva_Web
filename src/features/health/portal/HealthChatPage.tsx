@@ -842,6 +842,7 @@ export function HealthChatPage() {
           engine={voice.engine}
           liveText={voice.liveText}
           lastText={voice.lastText}
+          level={voice.level}
           micOff={voice.micOff}
           voiceOff={voice.voiceOff}
           x={x}

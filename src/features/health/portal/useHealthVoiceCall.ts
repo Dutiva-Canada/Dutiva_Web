@@ -119,6 +119,14 @@ export function useHealthVoiceCall({
   const streamRef = useRef<MediaStream | null>(null)
   const mediaRecRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
+  /* The confidence meter — an AnalyserNode on the held mic stream while
+     the server engine records, answering "is it hearing me?" with a live
+     level instead of a bare status word. Speech engine can't feed it
+     (no MediaStream ever crosses our hands), and its interim transcript
+     already answers the question — so the bar only exists server-side. */
+  const [level, setLevel] = useState(0)
+  const meterCtxRef = useRef<AudioContext | null>(null)
+  const meterRafRef = useRef(0)
   /* sendMessage/onError close over fresh page state every render — the
      refs keep the recognition/recorder callbacks on the latest. */
   const sendRef = useRef(sendMessage)
@@ -252,20 +260,65 @@ export function useHealthVoiceCall({
 
   /* ---- server engine -------------------------------------------------- */
 
+  const stopMeter = () => {
+    cancelAnimationFrame(meterRafRef.current)
+    meterRafRef.current = 0
+    void meterCtxRef.current?.close().catch(() => {})
+    meterCtxRef.current = null
+    setLevel(0)
+  }
+
+  /* Reads RMS off the mic stream ~15x/s — enough for the bar to feel
+     alive without re-rendering every frame. Source is never wired to the
+     destination, so monitoring stays silent. */
+  const startMeter = (stream: MediaStream) => {
+    try {
+      const ctx = new AudioContext()
+      const src = ctx.createMediaStreamSource(stream)
+      const an = ctx.createAnalyser()
+      an.fftSize = 256
+      src.connect(an)
+      meterCtxRef.current = ctx
+      const buf = new Uint8Array(an.fftSize)
+      let lastSet = 0
+      const tick = () => {
+        if (meterCtxRef.current !== ctx) return
+        an.getByteTimeDomainData(buf)
+        let sum = 0
+        for (const v of buf) {
+          const d = (v - 128) / 128
+          sum += d * d
+        }
+        const now = performance.now()
+        if (now - lastSet > 66) {
+          lastSet = now
+          setLevel(Math.min(1, Math.sqrt(sum / buf.length) * 4))
+        }
+        meterRafRef.current = requestAnimationFrame(tick)
+      }
+      meterRafRef.current = requestAnimationFrame(tick)
+    } catch {
+      /* no WebAudio — the recorder works fine without a meter */
+    }
+  }
+
   /* The mic stream is acquired once per call and held — re-prompting
      getUserMedia every turn would make each utterance a permission dance.
      A fresh MediaRecorder wraps each utterance so chunks don't mix. */
   const beginRecording = async () => {
     if (!activeRef.current || mediaRecRef.current) return
     try {
-      streamRef.current ??= await navigator.mediaDevices.getUserMedia({ audio: true })
+      const stream = (streamRef.current ??= await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      }))
       chunksRef.current = []
-      const rec = new MediaRecorder(streamRef.current)
+      const rec = new MediaRecorder(stream)
       rec.ondataavailable = (e: BlobEvent) => {
         if (e.data.size > 0) chunksRef.current.push(e.data)
       }
       rec.onstop = () => {
         mediaRecRef.current = null
+        stopMeter()
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' })
         chunksRef.current = []
         if (!activeRef.current) return
@@ -277,6 +330,7 @@ export function useHealthVoiceCall({
       }
       mediaRecRef.current = rec
       rec.start()
+      startMeter(stream)
       mark('recording')
     } catch (e) {
       /* getUserMedia denials read as permission-blocked; missing hardware
@@ -386,6 +440,7 @@ export function useHealthVoiceCall({
       /* teardown */
     }
     mediaRecRef.current = null
+    stopMeter()
     try {
       streamRef.current?.getTracks().forEach((t) => t.stop())
     } catch {
@@ -505,6 +560,7 @@ export function useHealthVoiceCall({
       } catch {
         /* nothing */
       }
+      stopMeter()
       try {
         streamRef.current?.getTracks().forEach((t) => t.stop())
       } catch {
@@ -527,6 +583,7 @@ export function useHealthVoiceCall({
     engine,
     liveText,
     lastText,
+    level,
     micOff,
     voiceOff,
     start,

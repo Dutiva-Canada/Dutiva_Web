@@ -44,6 +44,18 @@ const BREATH_MODES: readonly BreathMode[] = [
       ['out', 8],
     ],
   },
+  /* Physiological sigh — a double inhale then one long exhale. The disc
+     stays expanded across the two 'in' beats, which reads as a topped-up
+     breath; the "Breathe in" label repeating is the point. */
+  {
+    id: 'sigh',
+    labelKey: HM.health_tool_breath_mode_sigh,
+    steps: [
+      ['in', 2],
+      ['in', 1],
+      ['out', 6],
+    ],
+  },
 ]
 
 /* Phase cues — a soft WebAudio chime plus a short haptic pulse mark each
@@ -244,7 +256,7 @@ function BreathingCard() {
             <p className="hb-row-meta m-0">{x(HM.health_tool_breath_nudge)}</p>
           )}
           {!running && cycles > 0 && (
-            <Link className="hb-quiet-link" to="/health/checkin">
+            <Link className="hb-quiet-link" to="/health/check-in">
               {x(HM.health_tool_checkin_link)}
             </Link>
           )}
@@ -311,7 +323,7 @@ function GroundingCard() {
                 <RotateCcw size={13} aria-hidden="true" />
                 {x(HM.health_tool_ground_restart)}
               </button>
-              <Link className="hb-quiet-link" to="/health/checkin">
+              <Link className="hb-quiet-link" to="/health/check-in">
                 {x(HM.health_tool_checkin_link)}
               </Link>
             </>

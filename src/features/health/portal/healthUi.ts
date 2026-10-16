@@ -191,6 +191,49 @@ export function miraNoticed(
       moodLabel(todayCheckIn.mood, lang).toLowerCase(),
     )
   }
+  /* Weekly rhythm — "your Sundays run low." Only fires when one weekday
+     has 3+ check-ins in the last 6 weeks AND averages clearly below the
+     person's own norm (≥0.5 under their mean, ≤2.8 absolute): a single
+     rough Tuesday never earns the line. Observational, never causal —
+     Mira names the pattern, she doesn't explain it. */
+  const windowStart = now.getTime() - 42 * DAY_MS
+  const byWeekday = new Map<number, number[]>()
+  let moodTotal = 0
+  let moodCount = 0
+  for (const c of state.checkIns) {
+    const t = Date.parse(c.createdAt)
+    if (Number.isNaN(t) || t < windowStart) continue
+    const day = new Date(t).getDay()
+    const list = byWeekday.get(day) ?? []
+    list.push(c.mood)
+    byWeekday.set(day, list)
+    moodTotal += c.mood
+    moodCount += 1
+  }
+  if (moodCount >= 8) {
+    const overall = moodTotal / moodCount
+    let lowDay: number | null = null
+    let lowAvg = Infinity
+    for (const [day, moods] of byWeekday) {
+      if (moods.length < 3) continue
+      const avg = moods.reduce((a, b) => a + b, 0) / moods.length
+      if (avg <= overall - 0.5 && avg <= 2.8 && avg < lowAvg) {
+        lowAvg = avg
+        lowDay = day
+      }
+    }
+    if (lowDay !== null) {
+      /* Any real date on that weekday names it in the reader's locale —
+         no hardcoded table. */
+      const sample = state.checkIns.find(
+        (c) => new Date(c.createdAt).getDay() === lowDay,
+      )
+      const name = dateFmt(lang, { weekday: 'long' }).format(
+        new Date(sample?.createdAt ?? now),
+      )
+      return pick(HM.health_home_mira_weekday, lang).replace('{day}', name)
+    }
+  }
   const weekCount = state.checkIns.filter(
     (c) => Date.parse(c.createdAt) >= now.getTime() - WEEK_MS,
   ).length

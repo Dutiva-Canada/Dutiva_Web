@@ -238,6 +238,62 @@ describe('miraNoticed — the Overview strip', () => {
     }
     expect(miraNoticed(recent, 'en', NOW)).not.toContain('door')
   })
+
+  /* NOW is a Monday — days-ago 7/14/21 are Mondays too. */
+  const checkIn = (ago: number, mood: number, i: number) => ({
+    id: `c${ago}-${i}`,
+    mood,
+    energy: null,
+    note: '',
+    createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
+  })
+
+  it('names the weekday that keeps running low', () => {
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        /* Mondays: three low ones (avg 2.0). */
+        ...[7, 14, 21].map((a, i) => checkIn(a, 2, i)),
+        /* Wednesdays + Fridays: fine. Overall ≈ 3.3 — Mondays sit 1.3
+           under it. */
+        ...[5, 12, 19].map((a, i) => checkIn(a, 4, i)),
+        ...[3, 10, 17].map((a, i) => checkIn(a, 4, i)),
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).toBe(
+      'Lately, your Mondays have been running lower than the rest of your week.',
+    )
+    expect(miraNoticed(state, 'fr', NOW)).toBe(
+      'Ces temps-ci, vos lundis tirent un peu plus bas que le reste de la semaine.',
+    )
+  })
+
+  it('won’t call a weekday pattern on thin or flat data', () => {
+    /* Only two Mondays — the three-occurrence floor isn't met, so the
+       weekday line must not fire whichever fallback speaks instead.
+       (Newest first, like the real query.) */
+    const thin: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        ...[5, 12, 19, 26, 33, 40].map((a, i) => checkIn(a, 4, i)),
+        ...[7, 14].map((a, i) => checkIn(a, 1, i)),
+      ],
+    }
+    expect(miraNoticed(thin, 'en', NOW)).not.toContain('Mondays')
+    expect(miraNoticed(thin, 'fr', NOW)).not.toContain('lundis')
+
+    /* Same shape but the "low" weekday averages 4 like everyone else —
+       no dip, no line. */
+    const flat: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        ...[3, 10, 17].map((a, i) => checkIn(a, 4, i)),
+        ...[5, 12, 19].map((a, i) => checkIn(a, 4, i)),
+        ...[7, 14, 21].map((a, i) => checkIn(a, 4, i)),
+      ],
+    }
+    expect(miraNoticed(flat, 'en', NOW)).not.toContain('Mondays')
+  })
 })
 
 describe('companionGreeting', () => {

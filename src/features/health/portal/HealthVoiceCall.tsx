@@ -44,6 +44,7 @@ export function HealthVoiceCall({
   engine,
   liveText,
   lastText,
+  level,
   micOff,
   voiceOff,
   x,
@@ -56,6 +57,10 @@ export function HealthVoiceCall({
   engine: VoiceCallEngine | null
   liveText: string
   lastText: string
+  /** Mic RMS 0..1 while the server engine records — the live "it hears
+      you" the tap-to-talk loop otherwise lacks. Unused on the speech
+      engine (its interim transcript already answers that). */
+  level: number
   micOff: boolean
   voiceOff: boolean
   x: (m: { en: string; fr: string }) => string
@@ -81,6 +86,15 @@ export function HealthVoiceCall({
         <p className="hbcall-status" role="status">
           {statusText}
         </p>
+        {/* The level bar is visual confirmation only — aria-hidden; the
+            status word already says "recording". */}
+        {status === 'recording' && (
+          <div className="hbcall-meter" aria-hidden="true">
+            <span
+              style={{ transform: `scaleX(${Math.min(1, Math.max(0.04, level))})` }}
+            />
+          </div>
+        )}
         {/* Live transcript — interim words while you speak, then the
             utterance you sent while she thinks and answers. */}
         <p className="hbcall-live" aria-live="polite">

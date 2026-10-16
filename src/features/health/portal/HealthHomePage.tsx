@@ -9,8 +9,11 @@ import {
   Inbox,
   ListChecks,
   Loader2,
+  PenLine,
   Pencil,
   Sparkles,
+  Sun,
+  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Bi } from '@/i18n/core'
@@ -57,6 +60,10 @@ import { useHealthHead } from './useHealthHead'
    queue and show their provenance — nothing lands here without a human
    hand. Same 3-char floor as the server-side propose_memory parse. */
 const MEM_MIN = 3
+
+/* First-run welcome — one card explaining the loop, shown only while the
+   account is genuinely empty, dismissed forever by any path out of it. */
+const WELCOME_KEY = 'dutiva:health:welcomed'
 
 const headerLinkStyle = { color: 'var(--sb-accent-ink)' } as const
 
@@ -436,6 +443,13 @@ export function HealthHomePage() {
   const { x, lang } = useI18n()
   const { state, loading } = useHealthData()
   useHealthHead(HM.health_seo_title, HM.health_subtitle)
+  const [welcomed, setWelcomed] = useState(
+    () => localStorage.getItem(WELCOME_KEY) === '1',
+  )
+  const dismissWelcome = () => {
+    localStorage.setItem(WELCOME_KEY, '1')
+    setWelcomed(true)
+  }
 
   if (loading) {
     return <HealthLoading />
@@ -458,6 +472,10 @@ export function HealthHomePage() {
   const entryTotal = state.entriesTotal ?? state.entries.length
   const pending = state.pendingReview ?? 0
   const isEmpty = state.checkIns.length === 0 && state.entries.length === 0
+  /* Truly fresh account — nothing in any surface, so the welcome card can
+     introduce the loop instead of the page greeting someone who's already
+     started elsewhere. */
+  const isFresh = isEmpty && state.habits.length === 0 && state.memories.length === 0
   /* Mira's presence outside the chat tab — one noticed thing, built locally
      from the same state the stats read. No model call. */
   const noticed = miraNoticed(state, lang)
@@ -514,6 +532,48 @@ export function HealthHomePage() {
           </p>
         </div>
       </div>
+
+      {isFresh && !welcomed && (
+        <section className="sb-card sb-card-pad hb-welcome" aria-labelledby="hb-welcome-t">
+          <button
+            type="button"
+            className="hb-welcome-x"
+            aria-label={x(HM.health_welcome_dismiss)}
+            onClick={dismissWelcome}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+          <h2 id="hb-welcome-t" className="m-0 text-[16px]">
+            {x(HM.health_welcome_title)}
+          </h2>
+          <p className="sb-body-text" style={{ marginTop: 6 }}>
+            {x(HM.health_welcome_sub)}
+          </p>
+          <ol className="hb-welcome-steps">
+            <li>
+              <Sun size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step1)}</span>
+            </li>
+            <li>
+              <PenLine size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step2)}</span>
+            </li>
+            <li>
+              <Sparkles size={15} aria-hidden="true" />
+              <span>{x(HM.health_welcome_step3)}</span>
+            </li>
+          </ol>
+          <div className="mt-[14px]">
+            <Link
+              to="/health/check-in"
+              className="sb-btn sb-btn-primary"
+              onClick={dismissWelcome}
+            >
+              {x(HM.health_welcome_cta)}
+            </Link>
+          </div>
+        </section>
+      )}
 
       {noticed && (
         <div className="sb-note" style={{ marginTop: 14, alignItems: 'center' }}>
