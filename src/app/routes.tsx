@@ -81,7 +81,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
-/* Health surface — standalone invite-only wellness portal (/health), see healthSurface.tsx. */
+/* Health surface — standalone invite-only wellness portal (/wellness), see healthSurface.tsx. */
 /* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
 /* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
 /* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))

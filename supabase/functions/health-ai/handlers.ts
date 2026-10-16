@@ -81,7 +81,11 @@ export function buildHealthFacts(
      one, which shifts a bucket edge, not the story the numbers tell. */
   const todayUtc = nowIso.slice(0, 10)
   const cutoffDay = shiftDay(todayUtc, -(days - 1))
-  const midDay = shiftDay(todayUtc, -Math.floor(days / 2))
+  /* Half the WINDOW, not half measured back from today — `today−7` would
+     leave an 8-date newer half against 6 older dates on a 14-day window.
+     Anchoring to the cutoff splits 14 dates evenly (odd windows give the
+     recent half the extra day). */
+  const midDay = shiftDay(cutoffDay, Math.floor(days / 2))
 
   /* Per-day averaging — the same weighting the Insights page uses, so the
      recap can't cite an average the displayed card disagrees with. */
@@ -115,7 +119,11 @@ export function buildHealthFacts(
   const newerVals = moodAvgs.filter((m) => m.day >= midDay).map((m) => m.v)
   let moodTrend: HealthFacts['moodTrend'] = null
   if (olderVals.length >= 2 && newerVals.length >= 2) {
-    const diff = avg(newerVals)! - avg(olderVals)!
+    /* The diff runs on raw means — rounding each half to a tenth first
+       would let a real 0.34 shift collapse to a rounded 0.3 and read
+       "flat". (avg()'s rounding stays for the reported stats.) */
+    const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length
+    const diff = mean(newerVals) - mean(olderVals)
     moodTrend = diff > 0.3 ? 'up' : diff < -0.3 ? 'down' : 'flat'
   }
 
@@ -315,12 +323,19 @@ export interface HabitStatus {
       mark doesn't break a streak started yesterday — same leniency as the
       client-side habitStreak). */
   streak: number
+  /** The walk reached the fetched window's floor still running — the true
+     streak is `streak` OR LONGER. Prompts must say "N+", never "N". */
+  streakCapped?: boolean
 }
 
 export function buildHabitStatuses(
   habits: HabitRowLite[],
   logs: HabitLogRowLite[],
   today: string,
+  /** Oldest day the log slice covers. When a streak's walk consumes it, the
+     run may continue past the fetch — the status flags itself rather than
+     narrating the window edge as the streak's real length. */
+  floorDay?: string,
 ): HabitStatus[] {
   const doneToday = new Set(logs.filter((l) => l.day === today).map((l) => l.habit_id))
   const prevDay = (ymd: string): string => {
@@ -336,7 +351,18 @@ export function buildHabitStatuses(
       streak += 1
       cursor = prevDay(cursor)
     }
-    return { id: h.id, name: h.name, doneToday: doneToday.has(h.id), streak }
+    /* Stopping exactly at the floor means the data ran out, not the streak —
+       the day-stepping walk can only pass through the floor, so reaching
+       prevDay(floorDay) proves it consumed the window's last day. The flag
+       only ships when true — an exact streak carries no noise key. */
+    const capped = floorDay != null && cursor === prevDay(floorDay)
+    return {
+      id: h.id,
+      name: h.name,
+      doneToday: doneToday.has(h.id),
+      streak,
+      ...(capped ? { streakCapped: true } : {}),
+    }
   })
 }
 
@@ -389,6 +415,16 @@ const oneLine = (s: string, max: number): string =>
     journal. Newest first; empty notes and entries are dropped, and journal
     excerpts come only from entries the person explicitly shared — consent
     is enforced here too, not just in the query that fetched the rows. */
+/** Gate for the automatic "short evening walk" proposal. "Sustained" means
+    days, not entries — five check-ins across two days is a bad weekend, not
+    a low patch — and a tracked walk (in either language) already covers the
+    suggestion. Pure so the boundary is testable; the runtime adds dedupe and
+    cooldown on top. */
+export function lowMoodPatchEligible(facts: HealthFacts, statuses: HabitStatus[]): boolean {
+  if (facts.loggedDays < 5 || facts.avgMood == null || facts.avgMood > 2.4) return false
+  return !statuses.some((h) => /walk|marche/i.test(h.name))
+}
+
 export function buildCompanionSignals(
   checkIns: CheckInNoteRow[],
   journals: JournalExcerptRow[],
@@ -430,7 +466,7 @@ export function chatPrompt(
           .map(
             (s) =>
               `  - "${s.name}" — ${s.doneToday ? 'done today' : 'not done today'}, ` +
-              `streak ${s.streak} day${s.streak === 1 ? '' : 's'}`,
+              `streak ${s.streak}${s.streakCapped ? '+' : ''} day${s.streak === 1 ? '' : 's'}`,
           )
           .join('\n')
   const signalLines = signals.length === 0 ? '  (nothing shared yet)' : signals.join('\n')
@@ -625,7 +661,9 @@ export function parseReactEvent(raw: unknown): ReactEvent | null {
 }
 
 /** One or two sentences reacting to something the person just did. `habitStreak`
-    is the streak the server already computed — the client only names the habit. */
+    is the streak the server already computed — the client only names the habit.
+    `streakCapped` marks a floor value (the fetched window ran out): the prompt
+    says "N+" and never claims a round mark it can't verify. */
 export function reactPrompt(
   event: ReactEvent,
   habitStreak: number | null,
@@ -634,6 +672,7 @@ export function reactPrompt(
   lang: 'en' | 'fr',
   advice = false,
   memories: string[] = [],
+  streakCapped = false,
 ): string {
   const eventLine =
     event.type === 'checkin_saved' || event.type === 'checkin_edited'
@@ -645,12 +684,16 @@ export function reactPrompt(
         : event.type === 'habit_added'
           ? `started tracking a new habit — "${oneLine(event.habit, 120)}"`
           : `marked the habit "${oneLine(event.habit, 120)}" done today` +
-            (habitStreak != null ? ` — streak now ${habitStreak} day${habitStreak === 1 ? '' : 's'}` : '')
+            (habitStreak != null
+              ? ` — streak now ${habitStreak}${streakCapped ? '+' : ''} day${habitStreak === 1 ? '' : 's'}`
+              : '')
   /* A streak lands differently at a round mark — a week, two weeks, a month,
      a round ten. Tell her once, so she can name the milestone plainly rather
      than recite a number every day. */
   const milestone =
-    habitStreak != null && (habitStreak % 10 === 0 || habitStreak === 7 || habitStreak === 14 || habitStreak === 21 || habitStreak === 28)
+    habitStreak != null &&
+    !streakCapped &&
+    (habitStreak % 10 === 0 || habitStreak === 7 || habitStreak === 14 || habitStreak === 21 || habitStreak === 28)
       ? ` This is day ${habitStreak} — a round mark; you may name it in a few words (e.g. "a week of it", "a month straight").`
       : ''
   return [

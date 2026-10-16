@@ -1053,7 +1053,7 @@ a > .hb-jthumb:hover {
 /* Health shell retune — the portal's dark theme joins the forest family of
    its cards instead of borrowing the workspace's navy ramp (dark canvas +
    navy chrome behind green cards read as two products stacked). Scoped to
-   .hb-shell so only /health's chrome moves; light keeps the shared ivory
+   .hb-shell so only /wellness's chrome moves; light keeps the shared ivory
    ramp, which already reads warm. The navy wordmark and gold note tokens
    stay — those are the Dutiva thread that anchors the personality layer. */
 [data-theme='dark'] .surface-app.hb-shell {

@@ -21,6 +21,7 @@ import {
   HEALTH_FALLBACK_FR,
   HEALTH_REACT_FALLBACK_EN,
   HEALTH_REACT_FALLBACK_FR,
+  lowMoodPatchEligible,
   parseChatReply,
   reactPrompt,
   resolveHabitRef,
@@ -150,7 +151,7 @@ export async function loadCompanionContext(
   const noteRows = (checkIns ?? []) as CheckInNoteRow[]
   return {
     facts: buildHealthFacts(noteRows, habitRows, logRows, FACTS_DAYS, new Date().toISOString()),
-    statuses: buildHabitStatuses(habitRows, logRows, today),
+    statuses: buildHabitStatuses(habitRows, logRows, today, logsSince),
     habitNames: habitRows.map((h) => h.name),
     signals: buildCompanionSignals(noteRows, (journals ?? []) as JournalExcerptRow[]),
     memories: ((memories ?? []) as { text: string }[]).map((m) => m.text),
@@ -806,10 +807,10 @@ async function maybeFilePatternSuggestion(
   statuses: HabitStatus[],
   lang: 'en' | 'fr',
 ): Promise<void> {
-  /* Needs enough days to mean a pattern, not a bad afternoon — and never
-     proposes a walk when they already track one. */
-  if (facts.checkInCount < 5 || facts.avgMood == null || facts.avgMood > 2.4) return
-  if (statuses.some((h) => /walk|marche/i.test(h.name))) return
+  /* The eligibility rule itself lives in handlers (pure, tested) — what
+     stays here is the filing machinery: resolved-cooldown lookup, dedupe,
+     best-effort insert. */
+  if (!lowMoodPatchEligible(facts, statuses)) return
   try {
     const since = new Date(Date.now() - LOW_MOOD_COOLDOWN_MS).toISOString()
     const { data: resolved } = await admin
@@ -859,15 +860,22 @@ export async function runReact(
     await maybeFilePatternSuggestion(admin, userId, ctx.facts, ctx.statuses, lang)
   }
   /* The client names the habit; the streak is resolved server-side from the
-     rows already fetched, so the reaction can say "three days running". */
-  const streak =
-    event.type === 'habit_marked'
-      ? (resolveHabitRef(event.habit, ctx.statuses)?.streak ?? null)
-      : null
+     rows already fetched, so the reaction can say "three days running" —
+     or "90+", honestly, when the run outlives the fetched window. */
+  const marked = event.type === 'habit_marked' ? resolveHabitRef(event.habit, ctx.statuses) : null
   return await reactToModel(
     admin,
     userId,
-    reactPrompt(event, streak, ctx.signals, today, lang, advice, ctx.memories),
+    reactPrompt(
+      event,
+      marked?.streak ?? null,
+      ctx.signals,
+      today,
+      lang,
+      advice,
+      ctx.memories,
+      marked?.streakCapped ?? false,
+    ),
     160,
     stream,
     lang,

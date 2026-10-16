@@ -1,7 +1,7 @@
 import type { Bi, Lang } from '@/i18n/core'
 import { pick } from '@/i18n/core'
 import { healthMessages as HM } from '@/i18n/messages/health'
-import { brokeStreak, habitStreak } from '../data/healthStats'
+import { brokeStreak, dayKey, habitStreak, recentDayKeys } from '../data/healthStats'
 import type { HealthState } from '../data/types'
 
 /** Localized 1–5 labels for the mood and energy scales. */
@@ -90,7 +90,14 @@ export function fmtRelativeDateTime(iso: string, lang: Lang, now: Date = new Dat
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const WEEK_MS = 7 * DAY_MS
+
+/* "This week" in the greetings is the same last-7-calendar-days window the
+   stats and charts use — a rolling 7×24h cutoff would quietly disagree with
+   the numbers on the page it sits next to. */
+function weekCheckIns(state: HealthState, now: Date): number {
+  const weekDays = new Set(recentDayKeys(7, now))
+  return state.checkIns.filter((c) => weekDays.has(dayKey(c.createdAt))).length
+}
 
 /* A fresh break is a change; a live streak is a standing state — the change
    is the thing worth noticing. The 3-day floor keeps a two-day dabble from
@@ -137,8 +144,7 @@ export function companionGreeting(
           .replace('{days}', String(best.streak)),
       )
     } else {
-      const cutoff = now.getTime() - WEEK_MS
-      const count = state.checkIns.filter((c) => Date.parse(c.createdAt) >= cutoff).length
+      const count = weekCheckIns(state, now)
       if (count >= 2) {
         parts.push(pick(HM.health_chat_hi_checkins, lang).replace('{count}', String(count)))
       }
@@ -192,26 +198,35 @@ export function miraNoticed(
     )
   }
   /* Weekly rhythm — "your Sundays run low." Only fires when one weekday
-     has 3+ check-ins in the last 6 weeks AND averages clearly below the
+     has 3+ logged days in the last 6 weeks AND averages clearly below the
      person's own norm (≥0.5 under their mean, ≤2.8 absolute): a single
-     rough Tuesday never earns the line. Observational, never causal —
-     Mira names the pattern, she doesn't explain it. */
-  const windowStart = now.getTime() - 42 * DAY_MS
-  const byWeekday = new Map<number, number[]>()
-  let moodTotal = 0
-  let moodCount = 0
+     rough Tuesday never earns the line, and neither do three check-ins
+     all taken on the same Tuesday — the count is days, not entries, and
+     both sides of the comparison weight days equally. Observational,
+     never causal — Mira names the pattern, she doesn't explain it. */
+  const windowDays = new Set(recentDayKeys(42, now))
+  const dayMoods = new Map<string, number[]>()
   for (const c of state.checkIns) {
-    const t = Date.parse(c.createdAt)
-    if (Number.isNaN(t) || t < windowStart) continue
-    const day = new Date(t).getDay()
-    const list = byWeekday.get(day) ?? []
+    const key = dayKey(c.createdAt)
+    if (!windowDays.has(key)) continue
+    const list = dayMoods.get(key) ?? []
     list.push(c.mood)
-    byWeekday.set(day, list)
-    moodTotal += c.mood
-    moodCount += 1
+    dayMoods.set(key, list)
   }
-  if (moodCount >= 8) {
-    const overall = moodTotal / moodCount
+  if (dayMoods.size >= 8) {
+    const byWeekday = new Map<number, number[]>()
+    let overallTotal = 0
+    for (const [key, moods] of dayMoods) {
+      const dayMean = moods.reduce((a, b) => a + b, 0) / moods.length
+      /* Noon anchors the weekday to the calendar date regardless of DST —
+         the key is already a local day, so this can't drift a day. */
+      const day = new Date(`${key}T12:00:00`).getDay()
+      const list = byWeekday.get(day) ?? []
+      list.push(dayMean)
+      byWeekday.set(day, list)
+      overallTotal += dayMean
+    }
+    const overall = overallTotal / dayMoods.size
     let lowDay: number | null = null
     let lowAvg = Infinity
     for (const [day, moods] of byWeekday) {
@@ -234,9 +249,7 @@ export function miraNoticed(
       return pick(HM.health_home_mira_weekday, lang).replace('{day}', name)
     }
   }
-  const weekCount = state.checkIns.filter(
-    (c) => Date.parse(c.createdAt) >= now.getTime() - WEEK_MS,
-  ).length
+  const weekCount = weekCheckIns(state, now)
   if (weekCount >= 2) {
     /* The Overview strip's own wording — the greeting's "already" reads as
        a hello, not an observation. */

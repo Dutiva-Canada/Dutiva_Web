@@ -26,7 +26,9 @@ function todayKey(now: Date): string {
   ).padStart(2, '0')}`
 }
 
-/** Check-ins grouped by calendar day, most recent day first. */
+/** Check-ins grouped by local calendar day. Iteration order follows the
+    input's first-seen order — callers sort or look days up by key, so the
+    map itself promises grouping, not ordering. */
 function byDay(checkIns: HealthCheckIn[]): Map<string, HealthCheckIn[]> {
   const map = new Map<string, HealthCheckIn[]>()
   for (const c of checkIns) {

@@ -44,7 +44,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   }`
 
 /**
- * Layout for the standalone health portal (/health). Two gates: shared auth
+ * Layout for the standalone health portal (/wellness). Two gates: shared auth
  * (same email-code flow as the invest portal), then the health_access
  * grant — a signed-in user without a row sees a localized "access required"
  * card instead of the app. No demo mode; everything is real user data.

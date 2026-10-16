@@ -112,7 +112,7 @@ export function HealthInsightsPage() {
     }
   }
 
-  /* /health/insights?recap=1 — the Overview's "Summarize my week" link is
+  /* /wellness/insights?recap=1 — the Overview's "last two weeks" link is
      the click; arriving fires the recap once, only when there's data to
      narrate, then the param is consumed so a refresh or Back-press doesn't
      silently spend another model call. Recap draws on shared journal text

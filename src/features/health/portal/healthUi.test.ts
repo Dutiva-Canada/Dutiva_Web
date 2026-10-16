@@ -248,6 +248,50 @@ describe('miraNoticed — the Overview strip', () => {
     createdAt: new Date(Date.parse(localDay(ago) + 'T12:00:00')).toISOString(),
   })
 
+  it('counts "this week" in calendar days — the rolling-168h tail can\'t leak in', () => {
+    /* NOW is Mon Oct 5 15:00. A check-in the previous Monday evening is
+       inside a rolling 168h window but outside the last 7 calendar days —
+       the same boundary the charts and stat cards draw. With it wrongly
+       counted, the greeting would claim "2 times this week". */
+    const evening = new Date(Date.parse(localDay(7) + 'T20:00:00')).toISOString()
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        { id: 'c1', mood: 3, energy: null, note: '', createdAt: new Date(Date.parse(localDay(3) + 'T12:00:00')).toISOString() },
+        { id: 'c2', mood: 3, energy: null, note: '', createdAt: evening },
+      ],
+    }
+    /* Nothing worth noticing at all — the wrong count would have spoken. */
+    expect(miraNoticed(state, 'en', NOW)).toBeNull()
+    expect(companionGreeting(state, 'en', NOW)).not.toContain('this week')
+  })
+
+  it('needs three logged DAYS on a weekday — three check-ins on one Monday don\'t count', () => {
+    /* One rough Monday logged three times, plus eight other healthy days.
+       Entries-weighted, that Monday would carry three votes and "your
+       Mondays run low" would fire on a single morning. */
+    const monday = localDay(7)
+    const at = (h: number) => new Date(Date.parse(`${monday}T${String(h).padStart(2, '0')}:00:00`)).toISOString()
+    const state: HealthState = {
+      ...EMPTY,
+      checkIns: [
+        /* Newest first, like the real query. */
+        checkIn(3, 4, 0),
+        checkIn(5, 4, 1),
+        { id: 'm1', mood: 1, energy: null, note: '', createdAt: at(21) },
+        { id: 'm2', mood: 1, energy: null, note: '', createdAt: at(13) },
+        { id: 'm3', mood: 1, energy: null, note: '', createdAt: at(8) },
+        checkIn(8, 4, 2),
+        checkIn(10, 4, 3),
+        checkIn(12, 4, 4),
+        checkIn(17, 4, 5),
+        checkIn(19, 4, 6),
+      ],
+    }
+    expect(miraNoticed(state, 'en', NOW)).not.toContain('Mondays')
+    expect(miraNoticed(state, 'fr', NOW)).not.toContain('lundis')
+  })
+
   it('names the weekday that keeps running low', () => {
     const state: HealthState = {
       ...EMPTY,
