@@ -44,7 +44,7 @@
  */
 
 /** Operations that call a model and therefore draw on the budget. */
-export type MeteredOperation = 'chat' | 'support_firstline'
+export type MeteredOperation = 'chat' | 'support_firstline' | 'pr_ai'
 
 /**
  * Passed to the RPC as the set it counts over. `safety_backstop` is
@@ -52,11 +52,12 @@ export type MeteredOperation = 'chat' | 'support_firstline'
  * client-side, costs nothing upstream, and must never consume a user's
  * budget — being kept safe is not usage.
  */
-export const METERED_OPERATIONS: MeteredOperation[] = ['chat', 'support_firstline']
+export const METERED_OPERATIONS: MeteredOperation[] = ['chat', 'support_firstline', 'pr_ai']
 
 /**
  * Operations that draw on the monthly included budget and pack credits.
- * Support first-line stays on abuse rails only — it is not a pack SKU.
+ * Support first-line and the invite-only PR portal stay on abuse rails
+ * only — neither is a pack SKU.
  */
 export const COMMERCIAL_OPERATIONS: MeteredOperation[] = ['chat']
 
@@ -152,6 +153,22 @@ export function supportFirstLinePolicy(): UsagePolicy {
     operation: 'support_firstline',
     burstWindowSeconds: envInt('AI_BURST_WINDOW_SECONDS', 300),
     burstLimit: envInt('AI_BURST_LIMIT_SUPPORT', 6),
+    ...sharedCeilings(),
+  }
+}
+
+/**
+ * The PR portal's model calls (Paige chat + drafts, GEO checks, feed tone
+ * tagging). Abuse rails only — the portal is invite-only and buys nothing,
+ * so `pr_ai` is deliberately absent from COMMERCIAL_OPERATIONS. The burst
+ * is looser than chat's: one cron sweep claims once per user and a feed
+ * sync claims once per feed, and both legitimately cluster in minutes.
+ */
+export function prAiPolicy(): UsagePolicy {
+  return {
+    operation: 'pr_ai',
+    burstWindowSeconds: envInt('AI_BURST_WINDOW_SECONDS', 300),
+    burstLimit: envInt('AI_BURST_LIMIT_PR', 20),
     ...sharedCeilings(),
   }
 }
@@ -331,5 +348,10 @@ export function usageLimitBody(decision: Extract<UsageDecision, { kind: 'denied'
     code: AI_USAGE_LIMIT_CODE,
     scope: decision.scope,
     retry_after_seconds: decision.retryAfterSeconds,
+    /* Commercial refusals echo the org's plan-tiered monthly allowance
+       (`limit: v_monthly_limit` in the verdict) so the client quotes the
+       number the refusal was actually computed against — not a flat default.
+       Other scopes' limits stay server-side (internal ceilings). */
+    ...(decision.scope === 'commercial' ? { monthly_included: decision.limit } : {}),
   }
 }

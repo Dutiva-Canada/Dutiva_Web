@@ -115,11 +115,13 @@ export function createRealChatFailureHandler(options: {
   updateExtras: (
     updater: (prev: Record<string, MessageExtras>) => Record<string, MessageExtras>,
   ) => void
+  /** Plan-tiered monthly included replies — quoted in the commercial refusal. */
+  advisorRepliesIncluded?: number
 }) {
-  const { pushAdvisor, updateExtras } = options
+  const { pushAdvisor, updateExtras, advisorRepliesIncluded } = options
   return (error: unknown) => {
     if (error instanceof AdvisorUsageLimitError) {
-      const turnId = pushAdvisor({ text: usageLimitReply(error) })
+      const turnId = pushAdvisor({ text: usageLimitReply(error, advisorRepliesIncluded) })
       if (error.scope === 'commercial') {
         updateExtras((prev) => ({ ...prev, [turnId]: { advisorPackOffer: true } }))
       }

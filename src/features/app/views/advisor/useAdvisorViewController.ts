@@ -21,6 +21,7 @@ import type {
   ToneCardData,
 } from '@/features/app/advisor/types'
 import { useAuth } from '@/features/app/auth/authContext'
+import { usePlan } from '@/features/app/billing/planContext'
 import { startAdvisorPackCheckout } from '@/features/app/advisor/packCheckout'
 import type { AdvisorPackSize } from '@/config/advisorUsage'
 import { usePayRail, useWellbeingRail } from '@/features/app/rail/useEntityRails'
@@ -62,6 +63,7 @@ export function useAdvisorViewController() {
   const openCatalogueDocument = useOpenCatalogueDocument()
   const auth = useAuth()
   const { status: authStatus } = auth
+  const { entitlements } = usePlan()
   const workspaceModeCtx = useWorkspaceMode()
   const { mode: workspaceMode, organizationId } = workspaceModeCtx
   const { isPublicDemo } = useWorkspaceRoot()
@@ -318,7 +320,11 @@ export function useAdvisorViewController() {
     conversationIdRef,
   })
 
-  const handleRealChatFailure = createRealChatFailureHandler({ pushAdvisor, updateExtras })
+  const handleRealChatFailure = createRealChatFailureHandler({
+    pushAdvisor,
+    updateExtras,
+    advisorRepliesIncluded: entitlements.limits.advisorRepliesPerMonth,
+  })
 
   const { startFlow } = createAdvisorFlowHandlers({
     authStatus,

@@ -39,6 +39,13 @@ export class AdvisorUsageLimitError extends Error {
     readonly scope: AdvisorUsageScope,
     /** Seconds until the ceiling frees up; always ≥ 1. */
     readonly retryAfterSeconds: number,
+    /**
+     * The org's plan-tiered monthly included replies, echoed back by the
+     * edge function on a commercial refusal (claim_ai_usage's
+     * `limit: v_monthly_limit`). Undefined on older deployments — callers
+     * fall back to the plan entitlement.
+     */
+    readonly monthlyIncluded?: number,
   ) {
     super(`advisor usage limit reached (${scope})`)
     this.name = 'AdvisorUsageLimitError'
@@ -92,6 +99,7 @@ async function usageLimitFrom(error: unknown): Promise<AdvisorUsageLimitError | 
 
   let scope: AdvisorUsageScope = 'daily'
   let retryAfterSeconds = 60
+  let monthlyIncluded: number | undefined
   try {
     const body = (await context.json?.()) as Record<string, unknown> | undefined
     const rawScope = body?.scope
@@ -100,10 +108,14 @@ async function usageLimitFrom(error: unknown): Promise<AdvisorUsageLimitError | 
     }
     const rawRetry = Number(body?.retry_after_seconds)
     if (Number.isFinite(rawRetry) && rawRetry > 0) retryAfterSeconds = Math.ceil(rawRetry)
+    const rawIncluded = Number(body?.monthly_included)
+    if (Number.isFinite(rawIncluded) && rawIncluded > 0) {
+      monthlyIncluded = Math.floor(rawIncluded)
+    }
   } catch {
     /* Body already consumed or not JSON — the status alone is enough. */
   }
-  return new AdvisorUsageLimitError(scope, retryAfterSeconds)
+  return new AdvisorUsageLimitError(scope, retryAfterSeconds, monthlyIncluded)
 }
 
 const advisorChatResponseSchema = z.object({
