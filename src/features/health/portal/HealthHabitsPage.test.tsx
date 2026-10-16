@@ -100,7 +100,7 @@ describe('HealthHabitsPage', () => {
     fireEvent.change(screen.getByLabelText(/New habit/i), { target: { value: 'Walk' } })
     fireEvent.click(screen.getByRole('button', { name: /Add habit/i }))
     await screen.findByText(/Habit added/)
-    expect(api.addHabit).toHaveBeenCalledWith('Walk')
+    expect(api.addHabit).toHaveBeenCalledWith('Walk', undefined)
   })
 
   it('rejects a duplicate name instead of writing a twin', async () => {

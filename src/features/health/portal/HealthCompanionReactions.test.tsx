@@ -40,6 +40,7 @@ vi.mock('@/features/health/data/api', () => ({
   shareEntryWithMira: vi.fn(),
   unshareEntryFromMira: vi.fn(),
   listSharedJournalEntries: vi.fn().mockResolvedValue([]),
+  habitTargetsAvailable: vi.fn().mockResolvedValue(false),
   journalImagesAvailable: vi.fn().mockResolvedValue(false),
   signJournalImage: vi.fn(),
   removeJournalImage: vi.fn(),
@@ -241,7 +242,7 @@ describe('habits → Mira reacts to a new habit', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Add habit' }))
 
-    await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Stretch'))
+    await waitFor(() => expect(addHabit).toHaveBeenCalledWith('Stretch', undefined))
     await waitFor(() =>
       expect(sendHealthReaction).toHaveBeenCalledWith(
         { type: 'habit_added', habit: 'Stretch' },

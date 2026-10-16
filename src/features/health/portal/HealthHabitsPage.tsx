@@ -8,9 +8,11 @@ import { useHealthData } from '@/features/health/data/HealthDataContext'
 import {
   addHabit,
   deleteHabit,
+  habitTargetsAvailable,
   healthAiHabit,
   sendHealthReaction,
   setHabitDone,
+  setHabitTarget,
   updateHabit,
   type HabitSuggestion,
 } from '@/features/health/data/api'
@@ -67,6 +69,10 @@ export function HealthHabitsPage() {
   const [suggestBusy, setSuggestBusy] = useState(false)
   const [acceptBusy, setAcceptBusy] = useState<string | null>(null)
   const [miraLine, setMiraLine] = useState<string | null>(null)
+  /* Weekly cadence — the column ships in migration 0228; until it's
+     applied the probe hides both selects and every habit stays daily. */
+  const [targetsCapable, setTargetsCapable] = useState(false)
+  const [cadence, setCadence] = useState('daily')
 
   const setBusy = (key: string, on: boolean) =>
     setBusyIds((cur) => {
@@ -84,6 +90,9 @@ export function HealthHabitsPage() {
        display an optimistic "on" that was never persisted. */
     loadNotifyPref('health')
       .then((v) => { if (!cancelled) setNotifyOn(v) })
+      .catch(() => {})
+    void habitTargetsAvailable()
+      .then((ok) => { if (!cancelled) setTargetsCapable(ok) })
       .catch(() => {})
     return () => { cancelled = true }
   }, [])
@@ -123,7 +132,8 @@ export function HealthHabitsPage() {
     }
     setSaving(true)
     try {
-      await addHabit(trimmed)
+      const weeklyTarget = cadence === 'daily' ? undefined : Number(cadence.slice(1))
+      await addHabit(trimmed, weeklyTarget)
       setName('')
       showToast(HM.health_habit_added)
       await refresh()
@@ -281,6 +291,21 @@ export function HealthHabitsPage() {
       onCommitted: () => void refresh(),
     })
 
+  /** Cadence change on an existing row — null hands it back to the
+      daily-streak model. The pill stays optimistic only after the write
+      lands; a failure keeps the row's real cadence. */
+  const changeTarget = async (id: string, value: string) => {
+    setBusy(`target:${id}`, true)
+    try {
+      await setHabitTarget(id, value === 'daily' ? null : Number(value.slice(1)))
+      await refresh()
+    } catch {
+      showToast(HM.health_save_failed)
+    } finally {
+      setBusy(`target:${id}`, false)
+    }
+  }
+
   const saveRename = async (h: { id: string; name: string }) => {
     const trimmed = renameValue.trim()
     if (!trimmed || trimmed === h.name) {
@@ -335,6 +360,26 @@ export function HealthHabitsPage() {
               }}
             />
           </div>
+          {targetsCapable && (
+            <div className="sb-field" style={{ marginBottom: 0, minWidth: 130 }}>
+              <label className="sb-flabel" htmlFor="hb-habit-cadence">
+                {x(HM.health_habit_cadence)}
+              </label>
+              <select
+                id="hb-habit-cadence"
+                className="sb-input"
+                value={cadence}
+                onChange={(e) => setCadence(e.target.value)}
+              >
+                <option value="daily">{x(HM.health_habit_cadence_daily)}</option>
+                {[1, 2, 3, 4, 5, 6].map((n) => (
+                  <option key={n} value={`w${n}`}>
+                    {x(HM.health_habit_cadence_weekly).replace('{n}', String(n))}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <button
             type="button"
             className="sb-btn sb-btn-primary"
@@ -465,22 +510,36 @@ export function HealthHabitsPage() {
                       <span className="hb-row-title">{h.name}</span>
                     )}
                     <div className="flex flex-wrap items-center gap-[8px]">
-                      {streak > 0 && (
-                        <span className="sb-pill sb-pill-ok">
-                          {x(
-                            streak === 1
-                              ? HM.health_habit_streak_one
-                              : HM.health_habit_streak_many,
-                          ).replace('{count}', String(streak))}
+                      {h.weeklyTarget != null ? (
+                        /* Weekly cadence — the fraction of its own target,
+                           not a daily streak. No streak pill, no "best"
+                           line: the point of opting in is that a quiet
+                           day isn't a failure. */
+                        <span
+                          className={`sb-pill${weekDone >= h.weeklyTarget ? ' sb-pill-ok' : ''}`}
+                        >
+                          {x(HM.health_habit_week_progress)
+                            .replace('{done}', String(weekDone))
+                            .replace('{target}', String(h.weeklyTarget))}
                         </span>
+                      ) : (
+                        streak > 0 && (
+                          <span className="sb-pill sb-pill-ok">
+                            {x(
+                              streak === 1
+                                ? HM.health_habit_streak_one
+                                : HM.health_habit_streak_many,
+                            ).replace('{count}', String(streak))}
+                          </span>
+                        )
                       )}
-                      {streak > 0 && !doneToday && (
+                      {h.weeklyTarget == null && streak > 0 && !doneToday && (
                         <span className="hb-row-meta">{x(HM.health_ov_streak_pending)}</span>
                       )}
                       {/* The record a live streak stands against — shows
                           only when it adds information beyond the current
                           run. */}
-                      {best > streak && best >= 2 && (
+                      {h.weeklyTarget == null && best > streak && best >= 2 && (
                         <span className="hb-row-meta">
                           {x(HM.health_habit_best).replace('{count}', String(best))}
                         </span>
@@ -526,6 +585,22 @@ export function HealthHabitsPage() {
                           .replace('{done}', String(weekDone))
                           .replace('{total}', String(weekLive.length))}
                       </span>
+                      {targetsCapable && (
+                        <select
+                          className="sb-input hb-cadence"
+                          aria-label={`${x(HM.health_habit_cadence)} — ${h.name}`}
+                          value={h.weeklyTarget ? `w${h.weeklyTarget}` : 'daily'}
+                          disabled={busyIds.has(`target:${h.id}`)}
+                          onChange={(e) => void changeTarget(h.id, e.target.value)}
+                        >
+                          <option value="daily">{x(HM.health_habit_cadence_daily)}</option>
+                          {[1, 2, 3, 4, 5, 6].map((n) => (
+                            <option key={n} value={`w${n}`}>
+                              {x(HM.health_habit_cadence_weekly).replace('{n}', String(n))}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                     <span className="hb-row-meta">
                       {monthLive.length === 1
