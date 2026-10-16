@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import {
   useWorkspaceNavigate,
@@ -42,17 +42,22 @@ export function ChatRecallProductionView() {
   const [turns, setTurns] = useState<ConversationTurn[] | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !threadId) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
       const [factRows, conversation] = await Promise.all([
         listFactsByEntity(organizationId, 'thread', threadId),
         getOwnConversation(threadId).catch(() => null),
       ])
+      if (requestRef.current !== request) return
       setFacts(factRows)
       setTurns(conversation?.messages ?? [])
     } catch {
+      if (requestRef.current !== request) return
       setFacts([])
       setTurns([])
       setLoadFailed(true)

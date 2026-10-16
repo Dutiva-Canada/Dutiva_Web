@@ -7,6 +7,7 @@ import { useFinanceData } from '../data/useFinanceData'
 import { BUDGET_STATUS_LABEL, CURRENCY_LABEL, SCENARIO_TYPE_LABEL } from '../financeLabels'
 import { BudgetForm, ScenarioForm, ForecastForm } from './PlanForms'
 import type { FinanceBudgetLine, FinanceForecastPeriod } from '../data/types'
+import { localDayOfISO, localTodayISO } from '@/lib/format'
 
 export function Plans() {
   const { x } = useI18n()
@@ -467,7 +468,7 @@ export function Plans() {
                     <div className="text-[12px] text-text-muted">
                       {fc.type} · {x(CURRENCY_LABEL[fc.currency])} · {x(M.finance_owner)}:{' '}
                       {fc.owner}
-                      {fc.frozenAt && ` · ${fc.frozenAt.slice(0, 10)}`}
+                      {fc.frozenAt && ` · ${localDayOfISO(fc.frozenAt)}`}
                     </div>
                   </div>
                   {fc.frozenAt && (
@@ -501,8 +502,8 @@ export function Plans() {
                             : [
                                 {
                                   label: '',
-                                  startDate: new Date().toISOString().slice(0, 10),
-                                  endDate: new Date().toISOString().slice(0, 10),
+                                  startDate: localTodayISO(),
+                                  endDate: localTodayISO(),
                                   inflow: '0.00',
                                   outflow: '0.00',
                                   net: '0.00',
@@ -625,8 +626,8 @@ export function Plans() {
                             ...prev,
                             {
                               label: '',
-                              startDate: new Date().toISOString().slice(0, 10),
-                              endDate: new Date().toISOString().slice(0, 10),
+                              startDate: localTodayISO(),
+                              endDate: localTodayISO(),
                               inflow: '0.00',
                               outflow: '0.00',
                               net: '0.00',

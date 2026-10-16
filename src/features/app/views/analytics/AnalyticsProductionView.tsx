@@ -131,6 +131,7 @@ import {
 import { buildScoreComponents } from './scoreComponents'
 import { formatDayISO, intlLocale } from './format'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { localDayOfISO, localTodayISO } from '@/lib/format'
 
 /**
  * Analytics in production mode. The monthly snapshot table
@@ -155,7 +156,7 @@ export function AnalyticsProductionView() {
   const { organizationId, memberRole, isOrgAdmin } = useWorkspaceMode()
   const { plan, isAdmin: isBillingAdmin } = usePlan()
 
-  const todayISO = new Date().toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
   const currentMonthISO = monthStartISO(todayISO)
 
   const employees = useModuleRows<ProductionEmployee>(organizationId, listEmployees)
@@ -428,7 +429,7 @@ export function AnalyticsProductionView() {
 
   const openCases = rowsOf(hrCases.state).filter((c) => c.status !== 'resolved')
   const aging = caseAging(
-    openCases.map((c) => ({ ...c, openedISO: c.createdAt.slice(0, 10) })),
+    openCases.map((c) => ({ ...c, openedISO: localDayOfISO(c.createdAt) })),
     todayISO,
   )
 

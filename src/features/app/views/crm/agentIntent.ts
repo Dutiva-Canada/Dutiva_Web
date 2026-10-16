@@ -5,6 +5,7 @@ import './agentTools'
 import { createProposal } from '@/features/app/agent/propose'
 import type { AgentToolProposal } from '@/features/app/agent/types'
 import type { CrmActivityType } from './types'
+import { localDatePlusDaysISO } from '@/lib/format'
 
 /**
  * Deterministic CRM intent parser — the stand-in proposer.
@@ -71,7 +72,7 @@ const ADD_CONTACT_RE = new RegExp(
 
 /** One week out — lands inside the dashboard's upcoming-followups window. */
 function defaultFollowUpDate(): string {
-  return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  return localDatePlusDaysISO(7)
 }
 
 function stripTrailingDate(subject: string): string {

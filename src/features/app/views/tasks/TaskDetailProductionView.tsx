@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { ArrowLeft, Check, Handshake, Sparkle } from 'lucide-react'
@@ -48,15 +48,20 @@ export function TaskDetailProductionView() {
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'failed'>('loading')
   const [draft, setDraft] = useState('')
   const [generating, setGenerating] = useState(false)
+  const requestRef = useRef(0)
   const [savingNote, setSavingNote] = useState(false)
 
   const load = useCallback(async () => {
     if (!taskId) return
+    const request = ++requestRef.current
     setLoadState('loading')
     try {
-      setTask(await getTask(taskId))
+      const t = await getTask(taskId)
+      if (requestRef.current !== request) return
+      setTask(t)
       setLoadState('ready')
     } catch {
+      if (requestRef.current !== request) return
       setTask(null)
       setLoadState('failed')
     }

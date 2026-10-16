@@ -7,7 +7,7 @@ import { defineMessages } from '../core'
  * (studio.title -> doclib_studio_title). Regenerate via scripts/generate-doclib.mjs.
  */
 export const doclibMessages = defineMessages({
-  doclib_app_workspace: { en: 'HR workspace', fr: 'Espace RH' },
+  doclib_app_workspace: { en: 'Workspace', fr: 'Espace de travail' },
   doclib_app_poweredBy: { en: 'Powered by', fr: 'Propulsé par' },
   doclib_app_search: {
     en: 'Search documents, people, templates…',

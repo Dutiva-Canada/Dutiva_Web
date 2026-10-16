@@ -29,7 +29,7 @@ import { listEntityLinks } from '@/features/app/entityLinks/data/productionApi'
 import { entityLinks as fixtureLinks } from '@/features/app/entityLinks/data/fixtures'
 import type { EntityLink } from '@/features/app/entityLinks/data/types'
 import { useRevenueData } from '../RevenueDataContext'
-import { fill, formatCurrency } from '@/lib/format'
+import { fill, formatCurrency, localTodayISO } from '@/lib/format'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
 const STAGE_ORDER = ['lead', 'qualified', 'proposal', 'negotiation', 'won', 'lost'] as const
@@ -84,7 +84,7 @@ export function Overview() {
   const { root } = useWorkspaceRoot()
   const { streams, invoices } = useRevenueData()
 
-  const todayISO = new Date().toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
 
   const crm = useCrmData(mode, organizationId ?? undefined)
   const crmState = crm.state

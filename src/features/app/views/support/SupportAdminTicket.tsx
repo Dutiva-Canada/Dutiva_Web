@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 
@@ -69,9 +69,13 @@ function ProposeCallPanel({
   const [duration, setDuration] = useState(30)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(false)
+  const requestRef = useRef(0)
 
   const load = useCallback(async () => {
-    setCall(await adminGetScheduledCall(ticketId))
+    const request = ++requestRef.current
+    const next = await adminGetScheduledCall(ticketId)
+    if (requestRef.current !== request) return
+    setCall(next)
   }, [ticketId])
 
   useEffect(() => {
@@ -204,6 +208,7 @@ export function SupportAdminTicket() {
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState(false)
+  const requestRef = useRef(0)
 
   useEffect(() => {
     isCurrentUserAdmin()
@@ -213,7 +218,9 @@ export function SupportAdminTicket() {
 
   const load = useCallback(async () => {
     if (!ticketId) return
+    const request = ++requestRef.current
     const t = await adminGetTicket(ticketId)
+    if (requestRef.current !== request) return
     setTicket(t ?? 'missing')
   }, [ticketId])
 

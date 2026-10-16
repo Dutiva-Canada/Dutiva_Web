@@ -19,10 +19,12 @@ const labelClass = 'block text-[12px] text-text-muted'
 /**
  * Step 1 of the setup path made immediate: an inline "the basics" card on the
  * empty production Home while the org has no jurisdictions configured. Saves
- * name/province/city to the user's profile (same fields as Settings) and maps
- * province onto organizations.jurisdictions — which flips the checklist's
- * "Confirm your company profile" step to done on the same render. Org-admin
- * only; once jurisdictions exist the card disappears entirely.
+ * name/province/city to the user's profile (same fields as Settings), writes
+ * the name onto organizations.name (the value the workspace actually
+ * displays), and maps province onto organizations.jurisdictions — which flips
+ * the checklist's "Confirm your company profile" step to done on the same
+ * render. Org-admin only; once jurisdictions exist the card disappears
+ * entirely.
  * See docs/EMPTY_WORKSPACE_ONBOARDING.md.
  */
 export function HomeOrgProfileSetup() {
@@ -68,16 +70,19 @@ export function HomeOrgProfileSetup() {
         showToast(M.home_setup_profile_failed, 'info')
         return
       }
+      /* The workspace displays organizations.name, not profiles.company_name —
+         the org write is what makes the edited name stick (RLS: org admins).
+         The profile write above stays as the pre-org fallback identity. */
       const code = PROVINCE_TO_JURISDICTION[province]
-      if (code) {
-        const merged = [...new Set([...(organization?.jurisdictions ?? []), code])]
-        const savedOrg = await updateOrganizationSettings(organizationId, {
-          jurisdictions: merged,
-        })
-        if (!savedOrg) {
-          showToast(M.home_setup_profile_failed, 'info')
-          return
-        }
+      const savedOrg = await updateOrganizationSettings(organizationId, {
+        name: companyName,
+        ...(code
+          ? { jurisdictions: [...new Set([...(organization?.jurisdictions ?? []), code])] }
+          : {}),
+      })
+      if (!savedOrg) {
+        showToast(M.home_setup_profile_failed, 'info')
+        return
       }
       await Promise.all([refreshIdentity(), refreshOrganization()])
       showToast(M.home_setup_profile_saved, 'ok')

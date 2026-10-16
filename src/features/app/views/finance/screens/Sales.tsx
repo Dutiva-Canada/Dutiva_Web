@@ -6,6 +6,7 @@ import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { CURRENCY_LABEL, INVOICE_STATUS_LABEL } from '../financeLabels'
 import type { FinanceCurrency, FinanceInvoiceStatus } from '../data/types'
+import { localTodayISO } from '@/lib/format'
 
 const FILTERS: ('all' | FinanceInvoiceStatus)[] = [
   'all',
@@ -218,7 +219,7 @@ function InvoiceForm({
   const [entityId, setEntityId] = useState(entities[0]?.id ?? '')
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? '')
   const [number, setNumber] = useState('')
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10))
+  const [issueDate, setIssueDate] = useState(localTodayISO)
   const [dueDate, setDueDate] = useState('')
   const [subtotal, setSubtotal] = useState('0.00')
   const [taxTotal, setTaxTotal] = useState('0.00')

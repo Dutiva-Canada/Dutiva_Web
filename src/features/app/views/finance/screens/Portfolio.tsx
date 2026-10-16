@@ -15,6 +15,7 @@ import {
   WATCHLIST_STATUS_LABEL,
 } from '../financeLabels'
 import type { FinanceAssetClass, FinanceDecisionKind, FinanceWatchlistStatus } from '../data/types'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Finance → Portfolio — company investment tracking adapted from the
@@ -511,7 +512,7 @@ function DecisionForm({
   const { x } = useI18n()
   const [subjectKey, setSubjectKey] = useState('')
   const [decision, setDecision] = useState<FinanceDecisionKind>('review')
-  const [decidedAt, setDecidedAt] = useState(() => new Date().toISOString().slice(0, 10))
+  const [decidedAt, setDecidedAt] = useState(localTodayISO)
   const [summary, setSummary] = useState('')
   const [rationale, setRationale] = useState('')
   const [reviewDate, setReviewDate] = useState('')

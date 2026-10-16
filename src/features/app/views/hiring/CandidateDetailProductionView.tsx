@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -54,6 +54,7 @@ export function CandidateDetailProductionView() {
   const [state, setState] = useState<LoadState>('loading')
   const [candidate, setCandidate] = useState<ProductionCandidate | null>(null)
   const [evidence, setEvidence] = useState<ProductionEvidenceScreening | null>(null)
+  const requestRef = useRef(0)
   const [workSample, setWorkSample] = useState<ProductionWorkSample | null>(null)
   const [interview, setInterview] = useState<ProductionDefenseInterview | null>(null)
   const [scores, setScores] = useState<ProductionAuthenticityScores | null>(null)
@@ -62,6 +63,7 @@ export function CandidateDetailProductionView() {
 
   const load = useCallback(async () => {
     if (!candidateId) return
+    const request = ++requestRef.current
     setState('loading')
     try {
       const [c, e, w, i, s] = await Promise.all([
@@ -71,6 +73,7 @@ export function CandidateDetailProductionView() {
         getDefenseInterview(candidateId),
         getAuthenticityScores(candidateId),
       ])
+      if (requestRef.current !== request) return
       setCandidate(c)
       setEvidence(e)
       setWorkSample(w)
@@ -78,6 +81,7 @@ export function CandidateDetailProductionView() {
       setScores(s)
       setState('ready')
     } catch {
+      if (requestRef.current !== request) return
       setState('failed')
     }
   }, [candidateId])

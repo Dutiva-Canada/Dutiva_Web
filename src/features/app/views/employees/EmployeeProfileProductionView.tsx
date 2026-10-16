@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Brain, CheckCircle2, ClipboardX } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -47,6 +47,7 @@ import { EmployeeOverviewTab } from './EmployeeOverviewTab'
 import { EmployeeDocumentsTab } from './EmployeeDocumentsTab'
 import { EmployeeLeaveTab } from './EmployeeLeaveTab'
 import { EmployeeCasesTab } from './EmployeeCasesTab'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Employee profile in production mode — the real record for one
@@ -80,7 +81,7 @@ const initialsOf = (name: string): string =>
     .slice(0, 2)
     .toUpperCase()
 
-const todayISO = (): string => new Date().toISOString().slice(0, 10)
+const todayISO = (): string => localTodayISO()
 
 const inputClass =
   'rounded-[10px] border border-border bg-surface px-[12px] py-[8px] font-sans text-[13px] text-text'
@@ -103,8 +104,11 @@ export function EmployeeProfileProductionView() {
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'failed'>('loading')
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview')
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !employeeId) return
+    const request = ++requestRef.current
     setState('loading')
     try {
       const [loaded, loadedNotes, allCases, loadedRecords, loadedLeaves, allTasks, loadedRoster] =
@@ -117,6 +121,7 @@ export function EmployeeProfileProductionView() {
           listTasks(organizationId),
           listEmployees(organizationId),
         ])
+      if (requestRef.current !== request) return
       if (!loaded) {
         setState('missing')
         return
@@ -130,6 +135,7 @@ export function EmployeeProfileProductionView() {
       setRoster(loadedRoster)
       setState('ready')
     } catch {
+      if (requestRef.current !== request) return
       setState('failed')
     }
   }, [organizationId, employeeId])

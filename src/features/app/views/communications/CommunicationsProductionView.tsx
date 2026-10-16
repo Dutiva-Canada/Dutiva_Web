@@ -27,6 +27,7 @@ import type {
 import { AppPage } from '@/features/app/shell/AppPage'
 import { bindModuleContext } from '@/features/app/agent/runtime'
 import type { CommunicationsAgentContext } from './agentTools'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Internal communications in production mode — real persistence on
@@ -81,7 +82,7 @@ const EMPTY_FORM = {
 }
 
 /** Today as YYYY-MM-DD (local) — the stamp a "mark as sent" writes. */
-const today = (): string => new Date().toISOString().slice(0, 10)
+const today = (): string => localTodayISO()
 
 /** Ring 3's category is where a communications draft comes from. */
 const commsTemplates = docTemplates.filter((t) => t.category === 'communications')

@@ -6,6 +6,7 @@ import { statementFileToCsv } from '../data/statementParser'
 import { suggestCategoryRules, type RuleSuggestion } from '../data/ruleSuggestion'
 import type { FinanceImportRowError, FinanceImportSession } from '../data/types'
 import type { FinanceDataContextValue } from '../data/FinanceDataContext'
+import { localTodayISO } from '@/lib/format'
 
 interface UseImportExportActionsArgs {
   finance: Pick<
@@ -154,7 +155,7 @@ export function useImportExportActions({ finance }: UseImportExportActionsArgs) 
     const csv = [header.join(','), ...lines.map((l) => l.join(','))].join('\n')
     downloadFile(
       csv,
-      `import-errors-${selectedAccountId}-${new Date().toISOString().slice(0, 10)}.csv`,
+      `import-errors-${selectedAccountId}-${localTodayISO()}.csv`,
       'text/csv',
     )
   }

@@ -5,6 +5,7 @@ import { findByName, ok, str, today } from '@/features/app/agent/match'
 import { CRM_ACTIVITY_TYPES, CRM_CONTACT_STATUSES, CRM_DEAL_STAGES } from './crmUtils'
 import type { UseCrmDataReturn } from './useCrmData'
 import type { CrmActivityType, CrmContactStatus, CrmDealStage } from './types'
+import { localDatePlusDaysISO } from '@/lib/format'
 
 /**
  * CRM agent tools — the first module wired end-to-end (docs/AGENT_LAYER.md).
@@ -100,7 +101,7 @@ defineTool<CrmCtx>({
   params: [],
   run: (crm) => {
     const now = today()
-    const horizon = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+    const horizon = localDatePlusDaysISO(7)
     const due = crm.state.activities.filter(
       (activity) =>
         activity.followUpDate && activity.followUpDate >= now && activity.followUpDate <= horizon,

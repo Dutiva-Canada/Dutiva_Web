@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import type { FinanceCurrency, FinanceScenarioType } from '../data/types'
+import { localTodayISO } from '@/lib/format'
 
 /* Create-forms for budgets, scenarios and forecasts — extracted from
    Plans.tsx to keep the screen file under the size budget. */
@@ -168,7 +169,7 @@ export function ScenarioForm({
   const [label, setLabel] = useState('')
   const [type, setType] = useState<FinanceScenarioType>('baseline')
   const [assumptions, setAssumptions] = useState('')
-  const [cutoffDate, setCutoffDate] = useState(new Date().toISOString().slice(0, 10))
+  const [cutoffDate, setCutoffDate] = useState(localTodayISO)
   const [currency] = useState<FinanceCurrency>('CAD')
   const [projectedRevenue, setProjectedRevenue] = useState('0.00')
   const [projectedExpense, setProjectedExpense] = useState('0.00')

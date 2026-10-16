@@ -3,7 +3,7 @@ import { useI18n } from '@/i18n/context'
 import { useAuth } from '@/features/app/auth/authContext'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
-import { updateAdminProfile } from '@/features/app/workspaceMode/api'
+import { updateAdminProfile, updateOrganizationSettings } from '@/features/app/workspaceMode/api'
 import { JURISDICTION_OPTIONS } from '@/features/app/workspaceMode/jurisdictionOptions'
 import { settingsMessages as M } from '@/i18n/messages/settings'
 
@@ -17,7 +17,14 @@ export function WorkspaceProfileEditor() {
   const { x } = useI18n()
   const { status, session } = useAuth()
   const { showToast } = useToasts()
-  const { identity, refreshIdentity, isAdmin } = useWorkspaceMode()
+  const {
+    identity,
+    refreshIdentity,
+    refreshOrganization,
+    isAdmin,
+    isOrgAdmin,
+    organizationId,
+  } = useWorkspaceMode()
   const [companyName, setCompanyName] = useState(identity.companyName)
   const [province, setProvince] = useState(identity.province ?? 'Ontario')
   const [city, setCity] = useState(identity.city ?? 'Ottawa')
@@ -43,7 +50,21 @@ export function WorkspaceProfileEditor() {
         showToast(M.settings_profile_failed, 'info')
         return
       }
-      await refreshIdentity()
+      /* The displayed company name is organizations.name when an org exists
+         (identity.companyName prefers it), so the edit has to land there too —
+         profile fields alone would leave the workspace showing the old name. */
+      if (organizationId && isOrgAdmin) {
+        const savedOrg = await updateOrganizationSettings(organizationId, {
+          name: companyName,
+        })
+        if (!savedOrg) {
+          showToast(M.settings_profile_failed, 'info')
+          return
+        }
+        await Promise.all([refreshIdentity(), refreshOrganization()])
+      } else {
+        await refreshIdentity()
+      }
       showToast(M.settings_profile_saved, 'ok')
     } finally {
       setSaving(false)

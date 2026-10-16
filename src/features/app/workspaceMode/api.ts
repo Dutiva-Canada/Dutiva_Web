@@ -494,15 +494,19 @@ export async function updateOrganizationSettings(
   patch: Partial<
     Pick<
       WorkspaceOrganizationSettings,
-      'industry' | 'jurisdictions' | 'enabledModules' | 'financeFeatures'
+      'name' | 'industry' | 'jurisdictions' | 'enabledModules' | 'financeFeatures'
     >
   >,
 ): Promise<WorkspaceOrganizationSettings | null> {
   if (!supabase) return null
+  /* Unset/blank keys serialize as `undefined` and drop out of the JSON body —
+     a patch that only names `name` must not wipe industry or jurisdictions. */
+  const name = patch.name?.trim()
   try {
     const { data, error } = await supabase
       .from('organizations')
       .update({
+        name: name || undefined,
         industry: patch.industry,
         jurisdictions: patch.jurisdictions,
         enabled_modules: patch.enabledModules as unknown as Json,

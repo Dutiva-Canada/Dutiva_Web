@@ -1,4 +1,5 @@
 import { bi } from '@/i18n/core'
+import { localDatePlusDaysISO } from '@/lib/format'
 import type { FinanceWorkspaceState } from './types'
 
 /**
@@ -80,11 +81,7 @@ export const decisionEntry2: FinanceWorkspaceState['decisionEntries'][number] = 
 /* The notified tranche anchors to "now" — an absolute due date drifts out
    of the overview's 30-day "due soon" window and silently re-buckets as
    overdue, which is exactly what the attention test asserts against. */
-const daysFromNow = (n: number) => {
-  const d = new Date()
-  d.setUTCDate(d.getUTCDate() + n)
-  return d.toISOString().slice(0, 10)
-}
+const daysFromNow = (n: number) => localDatePlusDaysISO(n)
 const notifiedTrancheDue = daysFromNow(12)
 
 /* Capital commitments — the investor's subscription is partially called;

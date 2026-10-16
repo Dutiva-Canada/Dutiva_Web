@@ -16,6 +16,7 @@ import {
 } from './productionApi'
 import type { ProductionPolicy, ProductionPolicyStatus } from './productionApi'
 import { AppPage } from '@/features/app/shell/AppPage'
+import { localTodayISO } from '@/lib/format'
 
 /**
  * Policy register in production mode — real persistence on
@@ -49,7 +50,7 @@ const EMPTY_FORM = {
 }
 
 /** Today as YYYY-MM-DD (local) — the "reviewed on" stamp for up_to_date transitions. */
-const today = (): string => new Date().toISOString().slice(0, 10)
+const today = (): string => localTodayISO()
 
 export function PoliciesProductionView() {
   const { x } = useI18n()

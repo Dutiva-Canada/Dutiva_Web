@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Brain } from 'lucide-react'
@@ -6,6 +6,7 @@ import { useI18n } from '@/i18n/context'
 import { casesMessages as M } from '@/i18n/messages/cases'
 import { memoryMessages as MEM } from '@/i18n/messages/memory'
 import { statusChipClass } from '@/components/chips'
+import { localDayOfISO } from '@/lib/format'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { ProductionEmptyState } from '@/features/app/workspaceMode/ProductionEmptyState'
@@ -80,11 +81,15 @@ export function CaseDetailProductionView() {
   const [saving, setSaving] = useState(false)
   const [tab, setTab] = useState<CaseTab>('overview')
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !caseId) return
+    const request = ++requestRef.current
     setState('loading')
     try {
       const [loaded, loadedNotes] = await Promise.all([getCase(caseId), listCaseNotes(caseId)])
+      if (requestRef.current !== request) return
       if (!loaded) {
         setState('missing')
         return
@@ -93,12 +98,14 @@ export function CaseDetailProductionView() {
       setNotes(loadedNotes)
       if (loaded.employeeId) {
         const employees = await listEmployees(organizationId)
+        if (requestRef.current !== request) return
         setEmployeeName(employees.find((e) => e.id === loaded.employeeId)?.name ?? null)
       } else {
         setEmployeeName(null)
       }
       setState('ready')
     } catch {
+      if (requestRef.current !== request) return
       setState('failed')
     }
   }, [organizationId, caseId])
@@ -147,7 +154,7 @@ export function CaseDetailProductionView() {
         },
         { label: M.cases_prod_detail_jurisdiction, value: caze.jurisdiction },
         { label: M.cases_prod_detail_due, value: caze.dueDate },
-        { label: M.cases_prod_detail_created, value: caze.createdAt.slice(0, 10) },
+        { label: M.cases_prod_detail_created, value: localDayOfISO(caze.createdAt) },
       ]
     : []
 
@@ -299,7 +306,7 @@ export function CaseDetailProductionView() {
                       {note.body}
                     </div>
                     <div className="mt-[2px] text-[11.5px] text-text-muted">
-                      {note.createdAt.slice(0, 10)}
+                      {localDayOfISO(note.createdAt)}
                     </div>
                   </div>
                 </div>
@@ -325,7 +332,7 @@ export function CaseDetailProductionView() {
                       {note.body}
                     </div>
                     <div className="mt-[4px] text-[11.5px] text-text-faint">
-                      {note.createdAt.slice(0, 10)}
+                      {localDayOfISO(note.createdAt)}
                     </div>
                   </div>
                 ))}

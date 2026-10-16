@@ -13,14 +13,15 @@ import { statusChipClass } from '@/components/chips'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { useSecurityData } from '../SecurityDataContext'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { localDatePlusDaysISO, localTodayISO } from '@/lib/format'
 
 export function Overview() {
   const { x } = useI18n()
   const { root } = useWorkspaceRoot()
   const { assets, accessReviews, incidents, risks, vendorReviews } = useSecurityData()
 
-  const todayISO = new Date().toISOString().slice(0, 10)
-  const in7ISO = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10)
+  const todayISO = localTodayISO()
+  const in7ISO = localDatePlusDaysISO(7)
 
   const atRisk = assets.filter((a) => a.status === 'at_risk').length
   const criticalAssets = assets.filter((a) => a.criticality === 'critical').length

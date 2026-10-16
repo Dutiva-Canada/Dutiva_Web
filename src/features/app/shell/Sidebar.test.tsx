@@ -158,7 +158,7 @@ describe('Sidebar', () => {
   it('shows Demo workspace under the company name in demo mode', () => {
     renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
     expect(screen.getByText('Demo workspace')).toBeInTheDocument()
-    expect(screen.queryByText('HR workspace')).not.toBeInTheDocument()
+    expect(screen.queryByText('Workspace')).not.toBeInTheDocument()
   })
 
   it('shows the module count on a collapsed People & HR heading', async () => {

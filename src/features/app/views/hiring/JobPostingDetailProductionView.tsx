@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -27,15 +27,19 @@ export function JobPostingDetailProductionView() {
 
   const [state, setState] = useState<LoadState>('loading')
   const [posting, setPosting] = useState<ProductionJobPosting | null>(null)
+  const requestRef = useRef(0)
 
   const load = useCallback(async () => {
     if (!postingId) return
+    const request = ++requestRef.current
     setState('loading')
     try {
       const p = await getJobPosting(postingId)
+      if (requestRef.current !== request) return
       setPosting(p)
       setState('ready')
     } catch {
+      if (requestRef.current !== request) return
       setState('failed')
     }
   }, [postingId])

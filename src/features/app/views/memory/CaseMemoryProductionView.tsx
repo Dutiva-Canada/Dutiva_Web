@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import {
@@ -64,8 +64,11 @@ export function CaseMemoryProductionView() {
     nextStepsText: '',
   })
 
+  const requestRef = useRef(0)
+
   const load = useCallback(async () => {
     if (!organizationId || !caseId) return
+    const request = ++requestRef.current
     setLoadFailed(false)
     try {
       const [c, factRows, narr, events, notes] = await Promise.all([
@@ -75,6 +78,7 @@ export function CaseMemoryProductionView() {
         listCaseTimeline(organizationId, caseId),
         listCaseNotes(caseId).catch(() => []),
       ])
+      if (requestRef.current !== request) return
       setCaseRow(c)
       setFacts(factRows)
       setNarrative(narr)
@@ -96,6 +100,7 @@ export function CaseMemoryProductionView() {
         })
       }
     } catch {
+      if (requestRef.current !== request) return
       setCaseRow(null)
       setFacts([])
       setNarrative(null)

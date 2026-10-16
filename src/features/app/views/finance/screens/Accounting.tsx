@@ -5,6 +5,7 @@ import { useI18n } from '@/i18n/context'
 import { financeMessages as M } from '@/i18n/messages/finance'
 import { useFinanceData } from '../data/useFinanceData'
 import { JOURNAL_STATUS_LABEL } from '../financeLabels'
+import { localTodayISO } from '@/lib/format'
 import type {
   FinanceClosePeriod,
   FinanceCurrency,
@@ -313,7 +314,7 @@ function JournalForm({
   const { x } = useI18n()
   const [bookId, setBookId] = useState(books[0]?.id ?? '')
   const [number, setNumber] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(localTodayISO)
   const [description, setDescription] = useState('')
   const [currency] = useState<FinanceCurrency>('CAD')
   const [lines, setLines] = useState<FinanceJournalLine[]>([

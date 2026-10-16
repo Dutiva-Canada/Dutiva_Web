@@ -327,7 +327,7 @@ export function SettingsView() {
               <a
                 href={lang === 'fr' ? '/fr/demo' : '/demo'}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="mt-[8px] inline-flex items-center gap-[5px] text-[12px] font-semibold text-accent transition-opacity hover:opacity-80"
               >
                 {x(M.settings_workspace_demo_link)}
@@ -599,7 +599,7 @@ export function SettingsView() {
           <a
             href={helpCentrePath}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="flex items-center justify-between gap-[14px] border-t border-inset px-[18px] py-[13px] no-underline first:border-t-0 hover:bg-inset"
           >
             <span className="min-w-0">
