@@ -23,6 +23,7 @@ const corsHeaders = makeCorsHeaders()
 
 const FETCH_TIMEOUT_MS = 8_000
 const MAX_BYTES = 512 * 1024
+const MAX_REDIRECTS = 5
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -75,24 +76,37 @@ const handler = async (req: Request) => {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        /* A plain browser-ish UA — some outlets 403 bare fetch agents. */
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    })
-    if (!res.ok) return json({ error: 'fetch_failed', status: res.status }, 400)
-    /* Redirects land on res.url — re-check the final host so a shortener
-       can't bounce the fetch into a private address. */
-    try {
-      assertPublicHttpUrl(res.url)
-    } catch {
-      return json({ error: 'private_url' }, 400)
+    /* Redirects are followed manually — every hop goes back through
+       assertPublicHttpUrl, not just the final URL, so a bounce can't
+       launder a private address through a public one. */
+    let target = url
+    let res: Response | null = null
+    for (let hops = 0; hops < MAX_REDIRECTS; hops++) {
+      const r = await fetch(target, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: {
+          /* A plain browser-ish UA — some outlets 403 bare fetch agents. */
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      })
+      const loc = r.headers.get('location')
+      if (r.status >= 300 && r.status < 400 && loc) {
+        await r.body?.cancel()
+        try {
+          target = assertPublicHttpUrl(new URL(loc, target).toString())
+        } catch {
+          return json({ error: 'private_url' }, 400)
+        }
+        continue
+      }
+      res = r
+      break
     }
+    if (!res) return json({ error: 'fetch_failed' }, 400)
+    if (!res.ok) return json({ error: 'fetch_failed', status: res.status }, 400)
     const type = res.headers.get('content-type') ?? ''
     if (type && !type.includes('text/html') && !type.includes('application/xhtml')) {
       return json({ error: 'not_html' }, 400)
@@ -111,7 +125,7 @@ const handler = async (req: Request) => {
     const html = new TextDecoder().decode(
       chunks.length === 1 ? chunks[0] : concat(chunks),
     )
-    return json(extractPageMeta(html, res.url || url.toString()))
+    return json(extractPageMeta(html, target.toString()))
   } catch {
     return json({ error: 'fetch_failed' }, 400)
   } finally {

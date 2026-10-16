@@ -12,6 +12,15 @@ function requireClient() {
   return supabase
 }
 
+/** True when pr-ai refused on the usage guardrail (429 ai_usage_limit).
+   The transport differs — FunctionsHttpError carries a context Response,
+   the SSE path encodes the status in its message — so check both. */
+export function isUsageLimited(err: unknown): boolean {
+  if (err instanceof Error && /\b429\b/.test(err.message)) return true
+  const ctx = (err as { context?: { status?: number } } | null)?.context
+  return ctx?.status === 429
+}
+
 /** A write Paige executed on the user's own rows during a turn —
     additive and undoable by design (see pr-ai's action grammar): campaigns
     and content land as drafts, contacts/mentions/keywords/GEO prompts as
@@ -182,6 +191,21 @@ export async function newPrChatThread(): Promise<PrChatThread> {
     title: typeof t.title === 'string' ? t.title : null,
     createdAt: String(t.created_at ?? ''),
   }
+}
+
+/** Rename a named conversation — an empty title resets it to untitled so
+    the next first message names it again. */
+export async function renamePrChatThread(threadId: string, title: string): Promise<void> {
+  await invokeEdgeFn(requireClient(), 'pr-ai', {
+    kind: 'chat_thread_rename',
+    threadId,
+    title,
+  })
+}
+
+/** Delete a named conversation and its turns. */
+export async function deletePrChatThread(threadId: string): Promise<void> {
+  await invokeEdgeFn(requireClient(), 'pr-ai', { kind: 'chat_thread_delete', threadId })
 }
 
 /** Reverses the write an assistant turn's action made — deletes the row it

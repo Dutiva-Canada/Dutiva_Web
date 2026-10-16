@@ -25,6 +25,7 @@ import {
   prChatSources,
   prReactPrompt,
   resolveNameRef,
+  rowMatchesWrote,
   type PrChatContext,
 } from './handlers'
 
@@ -106,13 +107,24 @@ describe('parsePrChatReply', () => {
     expect(out?.action).toMatchObject({ type: 'add_media_contact', name: 'Jo', outlet: 'CBC' })
     expect(out?.action && (out.action as { email?: string }).email).toBeUndefined()
   })
-  it('rejects unknown actions and missing required fields', () => {
-    expect(
-      parsePrChatReply(JSON.stringify({ reply: 'x', action: { type: 'delete_campaign', name: 'x' } })),
-    ).toBeNull()
-    expect(
-      parsePrChatReply(JSON.stringify({ reply: 'x', action: { type: 'add_mention' } })),
-    ).toBeNull()
+  it('keeps the reply when the action is unknown or missing fields', () => {
+    /* A bad action must not sink a good reply — it degrades to a failed
+       chip (actionError) instead of executing a half-understood write. */
+    const unknown = parsePrChatReply(
+      JSON.stringify({ reply: 'x', action: { type: 'delete_campaign', name: 'x' } }),
+    )
+    expect(unknown?.reply).toBe('x')
+    expect(unknown?.action).toBeNull()
+    expect(unknown?.actionError).toEqual({ type: 'delete_campaign', detail: 'x' })
+    const missing = parsePrChatReply(
+      JSON.stringify({ reply: 'x', action: { type: 'add_mention' } }),
+    )
+    expect(missing?.action).toBeNull()
+    expect(missing?.actionError).toEqual({ type: 'add_mention', detail: '' })
+    /* A non-object action is equally a failed chip, never an execution. */
+    const nonObject = parsePrChatReply('{"reply":"x","action":"delete everything"}')
+    expect(nonObject?.action).toBeNull()
+    expect(nonObject?.actionError).toEqual({ type: 'malformed', detail: '' })
   })
   it('rejects non-JSON replies, empty replies, and fenced garbage', () => {
     expect(parsePrChatReply('just prose')).toBeNull()
@@ -209,9 +221,25 @@ describe('parseToneList', () => {
   it('strips numbering per line', () => {
     expect(parseToneList('1. positive\n2. negative', 2)).toEqual(['positive', 'negative'])
   })
-  it('pads missing lines with neutral', () => {
-    expect(parseToneList('positive', 3)).toEqual(['positive', 'neutral', 'neutral'])
-    expect(parseToneList('garbled junk\npositive', 2)).toEqual(['positive', 'neutral'])
+  it('pads missing lines with null — the caller decides the fallback', () => {
+    expect(parseToneList('positive', 3)).toEqual(['positive', null, null])
+  })
+  it('keeps positions: a garbled line is a null slot, not a shift', () => {
+    /* 'positive' must stay on headline 2 — sliding it onto headline 1 would
+       tag the wrong article (and could fire the negative-coverage alert on
+       the wrong story). */
+    expect(parseToneList('garbled junk\npositive', 2)).toEqual([null, 'positive'])
+    expect(parseToneList('positive\ngarbled junk\nnegative', 3)).toEqual([
+      'positive',
+      null,
+      'negative',
+    ])
+  })
+  it('skips a preamble/sign-off by choosing the best count-window', () => {
+    expect(parseToneList('Here are the tones:\npositive\nnegative\nthanks!', 2)).toEqual([
+      'positive',
+      'negative',
+    ])
   })
   it('caps at the requested count', () => {
     expect(parseToneList('positive\nnegative\nneutral\npositive', 2)).toEqual([
@@ -228,9 +256,21 @@ describe('cleanDraft', () => {
   it('strips code fences', () => {
     expect(cleanDraft('```markdown\nDraft text here.\n```')).toBe('Draft text here.')
   })
-  it('strips a one-line preamble', () => {
+  it('strips a one-line preamble — colon required', () => {
     expect(cleanDraft('Here is a draft:\nActual content.')).toBe('Actual content.')
     expect(cleanDraft("Voici une ébauche :\nContenu réel.")).toBe('Contenu réel.')
+    expect(cleanDraft('Voilà :\nContenu réel.')).toBe('Contenu réel.')
+  })
+  it('keeps a first line that starts with here/voici but is real content', () => {
+    /* "Here at Dutiva…" is prose, not a preamble — stripping it used to
+       delete the draft's opening sentence. */
+    const en = 'Here at Dutiva we built a compliance toolkit for Canadian employers.'
+    expect(cleanDraft(en)).toBe(en)
+    const fr = 'Voici une offre pour les employeurs canadiens.'
+    expect(cleanDraft(fr)).toBe(fr)
+    /* A colon mid-line is not a lead-in either. */
+    const mid = 'Here is what matters: the deadline moved to March.'
+    expect(cleanDraft(mid)).toBe(mid)
   })
   it('strips markdown headers but keeps body', () => {
     expect(cleanDraft('# Press release\n\nDutiva today announced…')).toBe('Dutiva today announced…')
@@ -435,17 +475,17 @@ describe('parsePrChatReply — update_campaign_status', () => {
     })
   })
 
-  it('rejects an out-of-vocab status or a missing campaign', () => {
-    expect(
-      parsePrChatReply(
-        JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', campaign: 'c', status: 'archived' } }),
-      ),
-    ).toBeNull()
-    expect(
-      parsePrChatReply(
-        JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', status: 'done' } }),
-      ),
-    ).toBeNull()
+  it('fails the chip, not the turn, on an out-of-vocab status or a missing campaign', () => {
+    const badStatus = parsePrChatReply(
+      JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', campaign: 'c', status: 'archived' } }),
+    )
+    expect(badStatus?.action).toBeNull()
+    expect(badStatus?.actionError).toEqual({ type: 'update_campaign_status', detail: 'c' })
+    const noCampaign = parsePrChatReply(
+      JSON.stringify({ reply: 'x', action: { type: 'update_campaign_status', status: 'done' } }),
+    )
+    expect(noCampaign?.action).toBeNull()
+    expect(noCampaign?.actionError).toEqual({ type: 'update_campaign_status', detail: '' })
   })
 })
 
@@ -662,5 +702,44 @@ describe('detectPrFlags (desk-boundary backstop)', () => {
       expect(detectPrFlags(PR_REACT_FALLBACK_EN, 'en', advice)).toEqual([])
       expect(detectPrFlags(PR_REACT_FALLBACK_FR, 'fr', advice)).toEqual([])
     }
+  })
+})
+
+describe('rowMatchesWrote', () => {
+  /* chat_undo's safety predicate — undo may only reverse a row that still
+     looks exactly like what the action wrote. */
+  it('matches a row untouched since the write', () => {
+    expect(
+      rowMatchesWrote(
+        { id: 'k1', keyword: 'OSB', target_url: 'https://osb.ca', position: 3 },
+        { keyword: 'OSB', target_url: 'https://osb.ca' },
+      ),
+    ).toBe(true)
+  })
+
+  it('rejects a row the person edited afterwards', () => {
+    expect(
+      rowMatchesWrote(
+        { title: 'Better headline', source: 'CBC', url: 'https://cbc.ca/a', sentiment: 'positive' },
+        { title: 'Old headline', source: 'CBC', url: 'https://cbc.ca/a', sentiment: 'positive' },
+      ),
+    ).toBe(false)
+  })
+
+  it('rejects a status flip that moved again since the action', () => {
+    expect(rowMatchesWrote({ status: 'live' }, { status: 'planned' })).toBe(false)
+  })
+
+  it('treats null and empty the way the schema does — absent text', () => {
+    expect(rowMatchesWrote({ campaign_id: null, body: '' }, { campaign_id: null, body: '' })).toBe(true)
+    expect(rowMatchesWrote({ campaign_id: null }, { campaign_id: 'c-9' })).toBe(false)
+  })
+
+  it('levels JSONB type drift — numbers vs strings compare equal', () => {
+    expect(rowMatchesWrote({ position: 0 }, { position: '0' })).toBe(true)
+  })
+
+  it('an empty snapshot matches anything — nothing was written to compare', () => {
+    expect(rowMatchesWrote({ anything: 'goes' }, {})).toBe(true)
   })
 })

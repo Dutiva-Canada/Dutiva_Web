@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodeEntities, negativeAutoItems, parseFeedItems, toneCounts, unwrapGoogleRedirect } from './handlers'
+import { decodeEntities, dedupeFeedItems, negativeAutoItems, parseFeedItems, toneCounts, unwrapGoogleRedirect } from './handlers'
 
 describe('decodeEntities', () => {
   it('decodes named and numeric entities', () => {
@@ -76,6 +76,39 @@ describe('parseFeedItems', () => {
     expect(parseFeedItems(xml)).toHaveLength(0)
   })
 
+  it('uses a permalink <guid> when an RSS item has no <link>', () => {
+    const xml = `<rss><channel><title>T</title>
+      <item>
+        <title>Guid story</title>
+        <guid isPermaLink="true">https://outlet.example/story-9</guid>
+      </item>
+      <item>
+        <title>Non-url guid stays linkless</title>
+        <guid isPermaLink="false">tag:example.com,2025:x1</guid>
+      </item>
+    </channel></rss>`
+    const items = parseFeedItems(xml)
+    expect(items[0].link).toBe('https://outlet.example/story-9')
+    expect(items[1].link).toBe('')
+    expect(items[1].title).toBe('Non-url guid stays linkless')
+  })
+
+  it('uses a URL-shaped <id> when an Atom entry has no alternate link', () => {
+    const xml = `<feed xmlns="http://www.w3.org/2005/Atom"><title>T</title>
+      <entry>
+        <title>Id story</title>
+        <id>https://site.example/entry-1</id>
+      </entry>
+      <entry>
+        <title>Uuid id stays linkless</title>
+        <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+      </entry>
+    </feed>`
+    const items = parseFeedItems(xml)
+    expect(items[0].link).toBe('https://site.example/entry-1')
+    expect(items[1].link).toBe('')
+  })
+
   it('returns nothing for non-feed input', () => {
     expect(parseFeedItems('<html><body>not a feed</body></html>')).toHaveLength(0)
     expect(parseFeedItems('')).toHaveLength(0)
@@ -125,5 +158,40 @@ describe('negativeAutoItems', () => {
     expect(
       negativeAutoItems([{ sentiment: 'negative' }, { sentiment: 'neutral' }]),
     ).toEqual([])
+  })
+})
+
+describe('dedupeFeedItems', () => {
+  const item = (link: string, title = 'Story'): { link: string; title: string; publishedAt: null; source: string } =>
+    ({ link, title, publishedAt: null, source: 'Outlet' })
+  const known = (urls: string[] = [], titles: string[] = []) => ({
+    urls: new Set(urls),
+    linklessTitles: new Set(titles.map((t) => t.trim().toLowerCase())),
+  })
+
+  it('keeps fresh urls, drops desk-known and in-batch repeat links', () => {
+    const out = dedupeFeedItems(
+      [item('https://a.ca/1'), item('https://b.ca/2'), item('https://a.ca/1'), item('https://c.ca/3')],
+      known(['https://c.ca/3']),
+    )
+    expect(out.map((i) => i.link)).toEqual(['https://a.ca/1', 'https://b.ca/2'])
+  })
+
+  it('linkless items log once — deduped on their normalized title', () => {
+    const out = dedupeFeedItems(
+      [item('', 'Trade deal signed'), item('', 'trade deal SIGNED'), item('', 'Other piece')],
+      known(),
+    )
+    expect(out.map((i) => i.title)).toEqual(['Trade deal signed', 'Other piece'])
+  })
+
+  it('drops a linkless item whose title the desk already logged', () => {
+    const out = dedupeFeedItems([item('', 'Known headline')], known([], ['known headline']))
+    expect(out).toEqual([])
+  })
+
+  it('an item with no link and no title has no dedupe key — dropped', () => {
+    const out = dedupeFeedItems([item('', '  ')], known())
+    expect(out).toEqual([])
   })
 })

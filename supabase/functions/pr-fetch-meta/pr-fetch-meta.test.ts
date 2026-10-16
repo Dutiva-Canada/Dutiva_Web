@@ -23,9 +23,22 @@ describe('assertPublicHttpUrl', () => {
       'https://metadata.google.internal/',
       'http://router.local/',
       'http://[::1]/',
+      /* 0.0.0.0/8 — "this host"; CGNAT 100.64/10; 198.18/15 benchmark */
+      'http://0.1.2.3/',
+      'http://100.64.0.1/',
+      'http://100.127.255.254/',
+      'http://198.18.0.1/',
+      'http://198.19.255.1/',
     ]) {
       expect(() => assertPublicHttpUrl(host), host).toThrow('private_url')
     }
+  })
+
+  it('bounds the new ranges exactly — neighbours stay public', () => {
+    expect(assertPublicHttpUrl('http://100.63.255.1/').hostname).toBe('100.63.255.1')
+    expect(assertPublicHttpUrl('http://100.128.0.1/').hostname).toBe('100.128.0.1')
+    expect(assertPublicHttpUrl('http://198.17.0.1/').hostname).toBe('198.17.0.1')
+    expect(assertPublicHttpUrl('http://198.20.0.1/').hostname).toBe('198.20.0.1')
   })
 
   it('bounds the 172.16-31 private range exactly', () => {

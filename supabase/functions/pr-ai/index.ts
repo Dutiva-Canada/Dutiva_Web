@@ -23,12 +23,14 @@ import {
   type PromptsInput,
 } from './handlers.ts'
 import {
+  claimPrCall,
   json,
   modelRoute,
   parsePrReactEvent,
   runChat,
   runChatUndo,
   runReact,
+  settlePrCall,
   UPSTREAM_TIMEOUT_MS,
 } from './runtime.ts'
 
@@ -60,6 +62,10 @@ import {
  *   POST { kind:'chat_history', limit?, before?, threadId? } → { turns }
  *   POST { kind:'chat_threads' }            → { threads } — named conversations
  *   POST { kind:'chat_thread_new' }         → { thread } — starts a named one
+ *   POST { kind:'chat_thread_rename', threadId, title } → { ok }
+ *   POST { kind:'chat_thread_delete', threadId }        → { deleted: true }
+ *                                             — removes the thread's turns
+ *                                             with it.
  *   POST { kind:'chat_regenerate', threadId? } → same payload as 'chat'
  *                                             — re-runs the thread's last
  *                                             user turn after deleting the
@@ -151,6 +157,25 @@ async function modelText(
   return { text: payload.choices?.[0]?.message?.content ?? '' }
 }
 
+/** modelText with the usage guardrail around it — every one-shot kind
+   claims a pr_ai slot first; the call stops on a 429/503 the same way an
+   upstream failure stops on its own Response. */
+async function meteredText(
+  admin: SupabaseClient,
+  userId: string,
+  found: ResolvedRoute,
+  apiKey: string | null,
+  prompt: string,
+  maxTokens: number,
+): Promise<{ text: string } | { error: Response }> {
+  const meter = await claimPrCall(admin, userId, found)
+  if (meter instanceof Response) return { error: meter }
+  const t0 = Date.now()
+  const out = await modelText(found.provider, apiKey, found.modelName, prompt, maxTokens)
+  settlePrCall(admin, meter.claimId, !('error' in out), t0)
+  return out
+}
+
 const handler = async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok')
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
@@ -217,6 +242,36 @@ const handler = async (req: Request) => {
     if (error) return json({ error: error.message }, 500)
     return json({ thread: data })
   }
+  /* threadId is already validated + ownership-checked above, so these two
+     kinds just do the write. An empty title resets to null — the thread
+     takes its name from the next first message. */
+  if (body.kind === 'chat_thread_rename') {
+    if (!threadId) return json({ error: 'threadId required' }, 400)
+    const title = typeof body.title === 'string' ? body.title.trim().slice(0, 80) : ''
+    const { error } = await admin
+      .from('pr_chat_threads')
+      .update({ title: title || null })
+      .eq('id', threadId)
+      .eq('user_id', portal.userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ ok: true })
+  }
+  if (body.kind === 'chat_thread_delete') {
+    if (!threadId) return json({ error: 'threadId required' }, 400)
+    const { error: messagesError } = await admin
+      .from('pr_chat_messages')
+      .delete()
+      .eq('user_id', portal.userId)
+      .eq('thread_id', threadId)
+    if (messagesError) return json({ error: messagesError.message }, 500)
+    const { error } = await admin
+      .from('pr_chat_threads')
+      .delete()
+      .eq('id', threadId)
+      .eq('user_id', portal.userId)
+    if (error) return json({ error: error.message }, 500)
+    return json({ deleted: true })
+  }
 
   /* History read/clear/feedback/undo need no model — they run through this
      function so the table's only writer is this code path (a client can't
@@ -234,7 +289,10 @@ const handler = async (req: Request) => {
       .select('id, role, content, action, reasoning, sources, feedback, feedback_reason, created_at')
       .eq('user_id', portal.userId)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
-    if (before) q = q.lt('created_at', before)
+    /* lte, not lt — two turns can share a created_at (a pair written in
+       the same insert), and lt would silently skip the twin. The client
+       dedupes the boundary row it already has. */
+    if (before) q = q.lte('created_at', before)
     const { data, error } = await q.order('created_at', { ascending: false }).limit(limit)
     if (error) return json({ error: error.message }, 500)
     return json({ turns: (data ?? []).reverse() })
@@ -332,7 +390,7 @@ const handler = async (req: Request) => {
     const title = clip(body.title, MAX_TITLE_CHARS)
     const source = clip(body.source, MAX_SOURCE_CHARS)
     if (!title) return json({ error: 'title is required' }, 400)
-    const out = await modelText(found.provider, keyResult.apiKey, found.modelName, singleTonePrompt(title, source), 16)
+    const out = await meteredText(admin, portal.userId, found, keyResult.apiKey, singleTonePrompt(title, source), 16)
     if ('error' in out) return out.error
     const sentiment = parseTone(out.text)
     if (!sentiment) return json({ error: 'Model returned no usable tone', code: 'unparseable' }, 502)
@@ -350,7 +408,7 @@ const handler = async (req: Request) => {
     if (!input.title && !input.notes) {
       return json({ error: 'title or notes is required — give the draft something to work from' }, 400)
     }
-    const out = await modelText(found.provider, keyResult.apiKey, found.modelName, draftPrompt(input), 900)
+    const out = await meteredText(admin, portal.userId, found, keyResult.apiKey, draftPrompt(input), 900)
     if ('error' in out) return out.error
     const draft = cleanDraft(out.text)
     if (!draft) return json({ error: 'Model returned an empty draft', code: 'empty' }, 502)
@@ -360,8 +418,8 @@ const handler = async (req: Request) => {
   if (body.kind === 'summary') {
     const month = clip(body.month, 40)
     const statsJson = JSON.stringify(body.stats ?? {}).slice(0, MAX_STATS_CHARS)
-    const out = await modelText(
-      found.provider, keyResult.apiKey, found.modelName,
+    const out = await meteredText(
+      admin, portal.userId, found, keyResult.apiKey,
       summaryPrompt(statsJson, month, lang, advice), 220,
     )
     if ('error' in out) return out.error
@@ -379,8 +437,8 @@ const handler = async (req: Request) => {
     if (items.length < 3) {
       return json({ error: 'at least 3 coverage items are needed to find themes' }, 400)
     }
-    const out = await modelText(
-      found.provider, keyResult.apiKey, found.modelName,
+    const out = await meteredText(
+      admin, portal.userId, found, keyResult.apiKey,
       clustersPrompt(items), 200,
     )
     if ('error' in out) return out.error
@@ -400,8 +458,8 @@ const handler = async (req: Request) => {
       existing: list(body.existing),
       lang,
     }
-    const out = await modelText(
-      found.provider, keyResult.apiKey, found.modelName,
+    const out = await meteredText(
+      admin, portal.userId, found, keyResult.apiKey,
       promptsPrompt(input), 300,
     )
     if ('error' in out) return out.error
@@ -439,8 +497,8 @@ const handler = async (req: Request) => {
       lang,
     }
     if (!input.name) return json({ error: 'name is required' }, 400)
-    const out = await modelText(
-      found.provider, keyResult.apiKey, found.modelName,
+    const out = await meteredText(
+      admin, portal.userId, found, keyResult.apiKey,
       pitchPrompt(input), 500,
     )
     if ('error' in out) return out.error
@@ -471,7 +529,7 @@ const handler = async (req: Request) => {
     return json({ subject: parsed.subject, pitch: parsed.body, suggestionId: filed?.id ?? null })
   }
 
-  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", "pitch", "chat", "react", "chat_history", "chat_clear", "chat_feedback", or "chat_undo"' }, 400)
+  return json({ error: 'kind must be "tone", "draft", "summary", "clusters", "prompts", "pitch", "chat", "react", "chat_history", "chat_threads", "chat_thread_new", "chat_thread_rename", "chat_thread_delete", "chat_clear", "chat_feedback", or "chat_undo"' }, 400)
 }
 
 const CORS = {

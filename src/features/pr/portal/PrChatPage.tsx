@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Check,
@@ -21,11 +21,14 @@ import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import {
   clearPrChat,
+  deletePrChatThread,
+  isUsageLimited,
   listPrChatThreads,
   loadPrChatHistory,
   newPrChatThread,
   ratePrChatTurn,
   regeneratePrChat,
+  renamePrChatThread,
   sendPrChat,
   undoPrChatAction,
   type PrChatAction,
@@ -138,6 +141,9 @@ export function PrChatPage() {
   usePrHead(PM.pr_seo_title_chat, PM.pr_seo_desc_chat)
 
   const [turns, setTurns] = useState<PrChatTurn[] | null>(null)
+  /* True when the last history load failed — the log shows a retry line
+     instead of an empty conversation that looks like a fresh start. */
+  const [historyFailed, setHistoryFailed] = useState(false)
   const [sending, setSending] = useState(false)
   const [streamed, setStreamed] = useState('')
   /* The in-flight thinking trace — reasoning pieces land ahead of the
@@ -176,18 +182,26 @@ export function PrChatPage() {
   const isInternal = isInternalDutivaAccount(session?.user?.email)
 
   /* History reloads whenever the thread changes — skeleton shows while the
-     scoped page loads. The thread list loads once. */
-  useEffect(() => {
-    setTurns(null)
-    setSuggests([])
-    loadPrChatHistory(HISTORY_PAGE, undefined, threadId)
+     scoped page loads. The thread list loads once. A failed load sets
+     historyFailed so the empty log reads as an error, not a fresh start. */
+  const reloadHistory = useCallback((tid: string | null) => {
+    setHistoryFailed(false)
+    return loadPrChatHistory(HISTORY_PAGE, undefined, tid)
       .then((rows) => {
         setTurns(rows)
         /* A full page back means older turns probably exist. */
         setHasMore(rows.length === HISTORY_PAGE)
       })
-      .catch(() => setTurns([]))
-  }, [threadId])
+      .catch(() => {
+        setTurns([])
+        setHistoryFailed(true)
+      })
+  }, [])
+  useEffect(() => {
+    setTurns(null)
+    setSuggests([])
+    void reloadHistory(threadId)
+  }, [threadId, reloadHistory])
 
   useEffect(() => {
     listPrChatThreads()
@@ -207,7 +221,25 @@ export function PrChatPage() {
           if (!prev) return prev
           const seen = new Set(prev.map((t) => t.id))
           const fresh = rows.filter((r) => !seen.has(r.id))
-          return fresh.length ? [...prev, ...fresh] : prev
+          if (fresh.length === 0) return prev
+          /* A persisted row can arrive for a turn the client already shows
+             under an optimistic id — an aborted send keeps its u-/a-
+             bubbles while the server may still have stored the pair.
+             Matching role+content reconciles the id instead of duplicating
+             the bubble. */
+          const merged = [...prev]
+          for (const r of fresh) {
+            const twin = merged.findIndex(
+              (t) =>
+                (t.id.startsWith('u-') || t.id.startsWith('a-')) &&
+                t.role === r.role &&
+                t.content === r.content,
+            )
+            const prevTwin = merged[twin]
+            if (twin >= 0 && prevTwin) merged[twin] = { ...prevTwin, id: r.id }
+            else merged.push(r)
+          }
+          return merged
         })
       } catch {
         /* The poll is best-effort — a miss just means next tick. */
@@ -226,7 +258,12 @@ export function PrChatPage() {
     try {
       const rows = await loadPrChatHistory(HISTORY_PAGE, oldest, threadId)
       capturePrepend()
-      setTurns((prev) => [...rows, ...(prev ?? [])])
+      /* The cursor is lte-inclusive — the oldest already-loaded row comes
+         back in the page, so dedupe on ids before prepending. */
+      setTurns((prev) => {
+        const seen = new Set((prev ?? []).map((t) => t.id))
+        return [...rows.filter((r) => !seen.has(r.id)), ...(prev ?? [])]
+      })
       setHasMore(rows.length === HISTORY_PAGE)
     } catch {
       showToast(PM.pr_chat_error)
@@ -320,9 +357,9 @@ export function PrChatPage() {
       await adoptReply(result, userTurn.id)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
-        /* Stop pressed — keep whatever streamed in as a local turn (the
-           server may still persist the full reply; reload reconciles). The
-           partial thinking trace rides the turn so it isn't lost. */
+        /* Stop pressed — keep whatever streamed in as a local turn. The
+           server may still persist the pair; the history poll reconciles
+           these optimistic bubbles onto their real row ids. */
         const partialReasoning = reasoningSoFar || null
         setStreamed((partial) => {
           if (partial) {
@@ -342,7 +379,7 @@ export function PrChatPage() {
           return ''
         })
       } else {
-        showToast(PM.pr_chat_error)
+        showToast(isUsageLimited(err) ? PM.pr_chat_limit : PM.pr_chat_error)
         /* Keep the turn in the log flagged failed — the text stays visible
            and a Retry affordance resends it in place. */
         setTurns((prev) =>
@@ -417,7 +454,7 @@ export function PrChatPage() {
       await adoptReply(result, reuserId)
     } catch (err) {
       if (!(isAbort(err) || ctrl.signal.aborted)) {
-        showToast(PM.pr_chat_error)
+        showToast(isUsageLimited(err) ? PM.pr_chat_limit : PM.pr_chat_error)
         /* The server never deleted the stale pair on failure — reload the
            thread so it returns instead of leaving a bare re-asked line. */
         loadPrChatHistory(HISTORY_PAGE, undefined, threadId)
@@ -544,6 +581,28 @@ export function PrChatPage() {
       showToast(PM.pr_chat_error)
     }
   }
+  /* Switcher ops — rename keeps an empty string meaningful (resets to
+     untitled, so the next message names it again); delete returns the
+     reader to main if they were inside the removed thread. */
+  const renameThread = async (id: string, title: string) => {
+    try {
+      await renamePrChatThread(id, title)
+      setThreads((prev) =>
+        (prev ?? []).map((t) => (t.id === id ? { ...t, title: title || null } : t)),
+      )
+    } catch {
+      showToast(PM.pr_chat_error)
+    }
+  }
+  const removeThread = async (id: string) => {
+    try {
+      await deletePrChatThread(id)
+      setThreads((prev) => (prev ?? []).filter((t) => t.id !== id))
+      if (threadId === id) setThreadId(null)
+    } catch {
+      showToast(PM.pr_chat_error)
+    }
+  }
 
   /* Empty-state starters — the third slot differs by tier so staff see an
      advice-shaped ask instead of a teaching one. */
@@ -585,8 +644,19 @@ export function PrChatPage() {
             listClass="sbchat-thread-list"
             itemClass="sbchat-thread-item"
             newItemClass="sbchat-thread-new"
+            opsLabels={{
+              rename: x(PM.pr_chat_thread_rename),
+              delete: x(PM.pr_chat_thread_delete),
+              confirmDelete: x(PM.pr_chat_sure),
+              name: x(PM.pr_chat_thread_name),
+            }}
+            rowClass="sbchat-thread-row"
+            opClass="sbchat-thread-op"
+            renameInputClass="sbchat-thread-rename"
             onOpen={openThread}
             onNew={() => void startThread()}
+            onRename={(id, title) => void renameThread(id, title)}
+            onDelete={(id) => void removeThread(id)}
           />
           {turns !== null && turns.length > 0 && (
             <button
@@ -641,6 +711,19 @@ export function PrChatPage() {
                 <div className="sbchat-bubble assistant sbchat-ghost sbchat-g-a" aria-hidden="true" />
                 <div className="sbchat-bubble user sbchat-ghost sbchat-g-b" aria-hidden="true" />
               </>
+            ) : historyFailed ? (
+              /* The load failed — an empty log with a retry line, not the
+                 greeting that reads as a wiped conversation. */
+              <div className="sb-note" role="alert">
+                <span>{x(PM.pr_load_error)}</span>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary sb-btn-sm"
+                  onClick={() => void reloadHistory(threadId)}
+                >
+                  {x(PM.pr_retry)}
+                </button>
+              </div>
             ) : turns.length === 0 ? (
               /* She speaks first — a greeting built locally from PrState, not
                  a stored turn, so clearing history brings it back. The chips

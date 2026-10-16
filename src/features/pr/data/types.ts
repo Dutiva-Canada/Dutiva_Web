@@ -102,6 +102,10 @@ export interface PrGeoPrompt {
   /** What the assistant did with the brand the last time it was checked. */
   result: PrGeoResult
   note: string
+  /** Who wrote `note` — 'manual' = the person's own spot-check words
+      (auto checks preserve it); 'auto' = the last answer's machine
+      excerpt (auto checks refresh it). */
+  noteSource: PrGeoCheckVia
   checkedAt: string | null
   /** 'auto' = the scheduled model check; 'manual' = a human spot-check. */
   checkedVia: PrGeoCheckVia
@@ -220,6 +224,9 @@ export function geoPromptFromRow(row: GeoPromptRow): PrGeoPrompt {
     engine: row.engine as PrGeoEngine,
     result: row.result as PrGeoResult,
     note: row.note,
+    /* Pre-0232 rows carry no provenance — their note came from the auto
+       excerpt, which is what 'auto' already means. */
+    noteSource: (row.note_source ?? 'auto') as PrGeoCheckVia,
     checkedAt: row.checked_at,
     checkedVia: row.checked_via as PrGeoCheckVia,
     createdAt: row.created_at,

@@ -1,5 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { resetPrReactionThrottle, sendPrReaction } from './chatApi'
+import { isUsageLimited, resetPrReactionThrottle, sendPrReaction } from './chatApi'
+
+/* The 429 surfaces differently by transport — the SSE path throws an Error
+   with the status in its message, invokeEdgeFn throws FunctionsHttpError
+   carrying the Response. Either shape must read as the usage limit. */
+describe('isUsageLimited', () => {
+  it('reads the stream transport error', () => {
+    expect(isUsageLimited(new Error('pr-ai 429'))).toBe(true)
+    expect(isUsageLimited(new Error('pr-ai 502'))).toBe(false)
+  })
+
+  it('reads a FunctionsHttpError-style context', () => {
+    expect(isUsageLimited({ context: { status: 429 } })).toBe(true)
+    expect(isUsageLimited({ context: { status: 503 } })).toBe(false)
+    expect(isUsageLimited(null)).toBe(false)
+    expect(isUsageLimited('oops')).toBe(false)
+  })
+})
 
 /* The reaction throttle is a floor between model calls — a skipped call
    resolves reply:null and the page stays quiet. In the test env supabase

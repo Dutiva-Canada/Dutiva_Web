@@ -73,7 +73,6 @@ export const prMessages = defineMessages({
   pr_ov_answers: { en: 'AI answers cited', fr: 'Réponses IA citées' },
   pr_ov_upcoming: { en: 'Coming up', fr: 'À venir' },
   pr_ov_latest_mentions: { en: 'Latest coverage', fr: 'Dernières retombées' },
-  pr_ov_new_campaign: { en: 'New campaign', fr: 'Nouvelle campagne' },
   pr_ov_new_content: { en: 'Draft content', fr: 'Rédiger du contenu' },
   pr_ov_empty_mentions: {
     en: 'No coverage logged yet. Add the first mention.',
@@ -291,6 +290,20 @@ export const prMessages = defineMessages({
     en: 'Couldn’t read that page. Fill in the details yourself.',
     fr: 'Impossible de lire cette page. Remplissez les détails vous-même.',
   },
+  /* Meta-fetch failures the edge function names — shown instead of the
+     generic "couldn't read" so the fix is obvious. [FR self-authored] */
+  pr_men_meta_bad_url: {
+    en: 'That doesn’t look like a URL the desk can read.',
+    fr: 'Cette adresse ne semble pas lisible par le bureau.',
+  },
+  pr_men_meta_private: {
+    en: 'That link points at a private or local address — the desk can’t read it.',
+    fr: 'Ce lien pointe vers une adresse privée ou locale — le bureau ne peut pas le lire.',
+  },
+  pr_men_meta_not_html: {
+    en: 'That link didn’t return a readable page — fill in the details yourself.',
+    fr: 'Ce lien n’a pas renvoyé de page lisible — remplissez les détails vous-même.',
+  },
 
   /* Coverage feeds — paste a Google Alerts RSS link; new items land as
      mentions on their own. Neutral tone until you review them. */
@@ -305,15 +318,21 @@ export const prMessages = defineMessages({
   pr_men_feed_label_ph: { en: 'e.g. “Dutiva” alerts', fr: 'p. ex. alertes « Dutiva »' },
   pr_men_feed_add: { en: 'Add feed', fr: 'Ajouter le fil' },
   pr_men_feed_added: { en: 'Feed saved.', fr: 'Fil enregistré.' },
-  pr_men_feed_invalid: {
-    en: 'That doesn’t look like a feed URL — paste the RSS link.',
-    fr: 'Cette adresse ne ressemble pas à un fil — collez le lien RSS.',
-  },
   pr_men_feed_sync: { en: 'Sync now', fr: 'Synchroniser' },
   pr_men_feed_syncing: { en: 'Syncing…', fr: 'Synchronisation…' },
   pr_men_feed_synced_one: { en: 'Sync done — 1 new mention added.', fr: 'Synchronisation terminée — 1 nouvelle retombée ajoutée.' },
   pr_men_feed_synced_many: { en: 'Sync done — {count} new mentions added.', fr: 'Synchronisation terminée — {count} nouvelles retombées ajoutées.' },
   pr_men_feed_synced_none: { en: 'Sync done — nothing new.', fr: 'Synchronisation terminée — rien de nouveau.' },
+  /* Appended to the sync toast when some feeds couldn't be read — a dead
+     feed must not look like a quiet one. [FR self-authored] */
+  pr_men_feed_fail_one: {
+    en: '1 feed couldn’t be read',
+    fr: '1 flux n’a pas pu être lu',
+  },
+  pr_men_feed_fail_many: {
+    en: '{count} feeds couldn’t be read',
+    fr: '{count} flux n’ont pas pu être lus',
+  },
   pr_men_feed_last: { en: 'Last synced {date}', fr: 'Synchronisé le {date}' },
   pr_men_feed_never: {
     en: 'Not synced yet — runs daily and on demand.',
@@ -389,6 +408,16 @@ export const prMessages = defineMessages({
     en: 'Checks didn’t run — the model may be unavailable. Try again in a bit.',
     fr: 'La vérification a échoué — le modèle est peut-être indisponible. Réessayez dans un moment.',
   },
+  /* Appended to the run toast when some prompts errored upstream.
+     [FR self-authored] */
+  pr_ans_check_fail_one: {
+    en: '1 check failed',
+    fr: '1 vérification a échoué',
+  },
+  pr_ans_check_fail_many: {
+    en: '{count} checks failed',
+    fr: '{count} vérifications ont échoué',
+  },
   pr_ans_via_auto: { en: 'Auto-check', fr: 'Vérif. auto' },
   pr_ans_via_manual: { en: 'Manual', fr: 'Manuelle' },
   pr_ans_auto_note: {
@@ -437,7 +466,6 @@ export const prMessages = defineMessages({
   pr_rep_coverage_empty: { en: 'Nothing logged this month.', fr: 'Rien de consigné ce mois-ci.' },
   pr_rep_top_outlets: { en: 'Top outlets', fr: 'Médias principaux' },
   pr_rep_content: { en: 'Published content', fr: 'Contenus publiés' },
-  pr_rep_content_line: { en: '{count} piece(s) marked published', fr: '{count} contenu(s) marqué(s) publié(s)' },
   pr_rep_content_empty: { en: 'Nothing marked published this month.', fr: 'Rien de marqué publié ce mois-ci.' },
   pr_rep_campaigns: { en: 'Campaigns now', fr: 'Campagnes actuelles' },
   pr_rep_campaigns_line: {
@@ -513,7 +541,6 @@ export const prMessages = defineMessages({
   pr_ai_add: { en: 'Add', fr: 'Ajouter' },
   pr_ai_dismiss: { en: 'Dismiss', fr: 'Ignorer' },
   pr_ai_pitch_btn: { en: 'Draft a pitch', fr: 'Rédiger un pitch' },
-  pr_ai_pitch_working: { en: 'Drafting…', fr: 'Rédaction…' },
   pr_ai_pitch_note: {
     en: 'AI draft — edit it and send it yourself; nothing goes out from here.',
     fr: 'Ébauche IA — modifiez-la et envoyez-la vous-même ; rien ne part d’ici.',
@@ -562,7 +589,6 @@ export const prMessages = defineMessages({
   pr_review_saved: { en: 'Added.', fr: 'Ajouté.' },
 
   /* Layout chrome */
-  pr_loading: { en: 'Loading…', fr: 'Chargement…' },
   pr_load_error: {
     en: 'Couldn’t load your data. Check your connection and try again.',
     fr: 'Impossible de charger vos données. Vérifiez votre connexion et réessayez.',
@@ -630,10 +656,6 @@ export const prMessages = defineMessages({
     en: 'What are we working on today?',
     fr: 'Sur quoi travaille-t-on aujourd’hui ?',
   },
-  pr_chat_empty: {
-    en: 'Nothing yet. Try “what campaigns are active?” or “add a contact at a trade outlet.”',
-    fr: 'Rien pour l’instant. Essayez « quelles campagnes sont actives ? » ou « ajoute un contact dans un média spécialisé ».',
-  },
   pr_chat_placeholder: {
     en: 'Ask Paige about the desk, or tell her what to record…',
     fr: 'Demandez à Paige sur vos données, ou dites-lui quoi noter…',
@@ -648,6 +670,11 @@ export const prMessages = defineMessages({
   pr_chat_error: {
     en: 'That didn’t go through — try again.',
     fr: 'Ça n’a pas fonctionné — réessayez.',
+  },
+  /* The AI usage guardrail's 429 — a wait, not a failure. */
+  pr_chat_limit: {
+    en: 'You’ve hit the AI limit for now — give it a few minutes and try again.',
+    fr: 'Vous avez atteint la limite IA pour le moment — réessayez dans quelques minutes.',
   },
   /* Confirmation chips under a reply that did something. The {name} slot is
      the subject the action touched. [FR self-authored] */
@@ -751,10 +778,18 @@ export const prMessages = defineMessages({
   pr_chat_reason_tone: { en: 'Wrong tone', fr: 'Mauvais ton' },
   /* Named conversations — the switcher lists them; the default thread is
      always selectable as the main one. [FR self-authored] */
-  pr_chat_threads: { en: 'Conversations', fr: 'Conversations' },
   pr_chat_thread_new: { en: 'New conversation', fr: 'Nouvelle conversation' },
   pr_chat_thread_default: { en: 'Main conversation', fr: 'Conversation principale' },
   pr_chat_thread_untitled: { en: 'Untitled conversation', fr: 'Conversation sans titre' },
+  /* Thread ops in the switcher — rename opens an inline input; delete is
+     two-step, so the second tap shortens. [FR self-authored] */
+  pr_chat_thread_rename: { en: 'Rename', fr: 'Renommer' },
+  pr_chat_thread_delete: { en: 'Delete', fr: 'Supprimer' },
+  pr_chat_sure: { en: 'Sure?', fr: 'Confirmer ?' },
+  pr_chat_thread_name: {
+    en: 'Conversation name',
+    fr: 'Nom de la conversation',
+  },
   /* Follow-up chips the model offers with a reply — tapping one sends it.
      [FR self-authored] */
   pr_chat_followup_label: { en: 'Follow up', fr: 'Suite possible' },

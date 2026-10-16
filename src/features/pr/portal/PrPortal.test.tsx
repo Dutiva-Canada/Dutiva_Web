@@ -143,6 +143,7 @@ const STATE: PrState = {
       engine: 'chatgpt',
       result: 'cited',
       note: '',
+      noteSource: 'manual',
       checkedAt: '2026-10-02T14:00:00Z',
       checkedVia: 'manual',
       createdAt: '2026-10-01T14:00:00Z',

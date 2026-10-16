@@ -1,10 +1,16 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { assertPublicHttpUrl } from '../pr-fetch-meta/handlers.ts'
-import { negativeAutoItems, parseFeedItems, toneCounts, type FeedItem } from './handlers.ts'
+import { dedupeFeedItems, negativeAutoItems, parseFeedItems, toneCounts, type FeedItem } from './handlers.ts'
 import { bilingualBody, sendPortalEmail } from '../_shared/portalNotify.ts'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import {
+  claimAiUsage,
+  finalizeAiUsage,
+  prAiPolicy,
+  type UsageDbClient,
+} from '../_shared/aiUsage.ts'
 import { parseToneList, tonePrompt, type PrSentiment } from '../pr-ai/handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
@@ -79,21 +85,34 @@ async function fetchFeedXml(url: URL): Promise<string | null> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
   try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      redirect: 'follow',
-      headers: {
-        'User-Agent': 'DutivaCoverageBot/1.0 (+https://dutiva.ca)',
-        Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.8, */*;q=0.5',
-      },
-    })
-    if (!res.ok) return null
-    /* Redirects land on res.url — a feed must not bounce into a private host. */
-    try {
-      assertPublicHttpUrl(res.url)
-    } catch {
-      return null
+    /* Manual redirect loop — every hop re-validates through
+       assertPublicHttpUrl, so a feed can't bounce into a private host on
+       an intermediate leg. */
+    let target = url
+    let res: Response | null = null
+    for (let hops = 0; hops < 5; hops++) {
+      const r = await fetch(target, {
+        signal: controller.signal,
+        redirect: 'manual',
+        headers: {
+          'User-Agent': 'DutivaCoverageBot/1.0 (+https://dutiva.ca)',
+          Accept: 'application/rss+xml, application/atom+xml, application/xml, text/xml, text/html;q=0.8, */*;q=0.5',
+        },
+      })
+      const loc = r.headers.get('location')
+      if (r.status >= 300 && r.status < 400 && loc) {
+        await r.body?.cancel()
+        try {
+          target = assertPublicHttpUrl(new URL(loc, target).toString())
+        } catch {
+          return null
+        }
+        continue
+      }
+      res = r
+      break
     }
+    if (!res || !res.ok) return null
     const reader = res.body?.getReader()
     if (!reader) return null
     const chunks: Uint8Array[] = []
@@ -135,21 +154,37 @@ interface SyncResult {
 
 /* ---------- tone tagging ------------------------------------------------ */
 
-type ToneClassifier = (titles: string[]) => Promise<PrSentiment[] | null>
+type ToneClassifier = (userId: string, titles: string[]) => Promise<(PrSentiment | null)[] | null>
 
 /** One model call per feed batch — headlines go in numbered, one tone word
     per line comes back. Returns null when no route/key/upstream cooperates;
-    callers treat that as "leave neutral", never an error. */
+    callers treat that as "leave neutral", never an error. Each classify call
+   claims a pr_ai usage slot — a denied or unreachable guardrail degrades
+   the same way (untagged ingest beats an unmetered call). */
 async function makeToneClassifier(admin: SupabaseClient): Promise<ToneClassifier | null> {
   const found = await activeModelRoute(admin, ['pr_ai', 'advisor_chat'])
   if ('error' in found) return null
   const key = routeApiKey(found)
   if ('missingSecret' in key) return null
-  const { provider } = found
+  const { provider, providerKey } = found
   const apiKey = key.apiKey
   const model = found.modelName
-  return async (titles) => {
+  return async (userId, titles) => {
     if (titles.length === 0) return []
+    const decision = await claimAiUsage(admin as unknown as UsageDbClient, prAiPolicy(), {
+      userId,
+      organizationId: null,
+      provider: providerKey,
+      model,
+    })
+    if (decision.kind !== 'allowed') {
+      if (decision.kind === 'unavailable') {
+        console.error('[pr-mentions-feed] usage guardrail unavailable:', decision.reason)
+      }
+      return null
+    }
+    const t0 = Date.now()
+    let ok = false
     try {
       const upstream = await postChatCompletion(
         provider,
@@ -166,9 +201,16 @@ async function makeToneClassifier(admin: SupabaseClient): Promise<ToneClassifier
       const payload = (await upstream.json()) as {
         choices?: { message?: { content?: string } }[]
       }
-      return parseToneList(payload.choices?.[0]?.message?.content ?? '', titles.length)
+      const tones = parseToneList(payload.choices?.[0]?.message?.content ?? '', titles.length)
+      ok = true
+      return tones
     } catch {
       return null
+    } finally {
+      void finalizeAiUsage(admin as unknown as UsageDbClient, decision.claimId, {
+        status: ok ? 'completed' : 'failed',
+        latencyMs: Date.now() - t0,
+      })
     }
   }
 }
@@ -189,41 +231,62 @@ async function syncFeed(
 
   const items = parseFeedItems(xml).slice(0, MAX_ITEMS_PER_FEED)
 
-  /* Dedupe: one select of this user's stored URLs, compared in memory. */
+  /* Dedupe: one select of this user's stored urls + linkless titles,
+     compared in memory; dedupeFeedItems also drops dupes inside the batch
+     itself (two items sharing a link or a linkless title). */
   const { data: existing } = await admin
     .from('pr_mentions')
-    .select('url')
+    .select('url, title')
     .eq('user_id', feed.user_id)
-  const known = new Set((existing ?? []).map((r: { url: string }) => r.url))
-  const fresh = items.filter((i) => i.link !== '' && !known.has(i.link))
+  const urls = new Set<string>()
+  const linklessTitles = new Set<string>()
+  for (const r of (existing ?? []) as { url: string; title: string }[]) {
+    if (r.url !== '') urls.add(r.url)
+    else linklessTitles.add(r.title.trim().toLowerCase())
+  }
+  const fresh = dedupeFeedItems(items, { urls, linklessTitles })
 
+  const landed: FeedItem[] = []
+  let syncError: string | undefined
   if (fresh.length > 0) {
     /* Best-effort tone guess — tagged sentiment_auto so the desk shows it
-       as a suggestion, not a read. null classifier → all neutral/manual. */
-    const tones = classify ? await classify(fresh.map((i) => i.title || i.link)) : null
+       as a suggestion, not a read. null classifier or a null slot → neutral
+       and NOT auto-tagged: a padded guess is not a machine read. */
+    const tones = classify
+      ? await classify(feed.user_id, fresh.map((i) => i.title || i.link))
+      : null
     fresh.forEach((i, idx) => {
       i.sentiment = tones?.[idx] ?? 'neutral'
       i.sentimentAuto = tones?.[idx] != null
     })
-    const rows = fresh.map((i: FeedItem, idx: number) => ({
-      user_id: feed.user_id,
-      source: i.source || feed.label || 'Feed',
-      title: i.title || i.link,
-      url: i.link,
-      sentiment: tones?.[idx] ?? 'neutral',
-      sentiment_auto: tones !== null,
-      published_at: i.publishedAt ?? new Date().toISOString(),
-    }))
-    const { error } = await admin.from('pr_mentions').insert(rows)
-    if (error) return { feed: feed.id, added: 0, fresh: [], error: error.message }
+    for (const [idx, i] of fresh.entries()) {
+      const { error } = await admin.from('pr_mentions').insert({
+        user_id: feed.user_id,
+        source: i.source || feed.label || 'Feed',
+        title: i.title || i.link,
+        url: i.link,
+        sentiment: tones?.[idx] ?? 'neutral',
+        sentiment_auto: tones?.[idx] != null,
+        published_at: i.publishedAt ?? new Date().toISOString(),
+      })
+      if (error) {
+        /* A racing sync (manual "Sync now" vs the cron sweep) can land the
+           same URL after the dedupe read — the unique index rejects it;
+           skip the row rather than failing the feed. */
+        if (error.code === '23505') continue
+        syncError = error.message
+        break
+      }
+      landed.push(i)
+    }
   }
 
   await admin
     .from('pr_feeds')
-    .update({ last_synced_at: new Date().toISOString(), last_item_count: fresh.length })
+    .update({ last_synced_at: new Date().toISOString(), last_item_count: landed.length })
     .eq('id', feed.id)
 
-  return { feed: feed.id, added: fresh.length, fresh }
+  return { feed: feed.id, added: landed.length, fresh: landed, error: syncError }
 }
 
 /**
@@ -238,15 +301,16 @@ async function sendNegativeAlerts(
   byUser: Map<string, { items: FeedItem[] }>,
 ): Promise<Record<string, string>> {
   const outcomes: Record<string, string> = {}
-  const refDate = new Date().toISOString().slice(0, 10)
   for (const [userId, { items }] of byUser) {
     const negatives = negativeAutoItems(items)
     if (negatives.length === 0) continue
     const shown = negatives.slice(0, 5)
+    const itemLine = (i: FeedItem) =>
+      `• ${i.title || i.link}\n  ${i.source || ''}${i.link ? ` — ${i.link}` : ''}`
     const en = [
       `${negatives.length} coverage item${negatives.length === 1 ? '' : 's'} just landed that the desk tagged negative:`,
       '',
-      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      ...shown.map(itemLine),
       '',
       'Auto-tagged — a first guess, not a read. Worth a look now rather than in tomorrow\'s digest.',
       'Review it: https://dutiva.ca/pr/mentions',
@@ -254,7 +318,7 @@ async function sendNegativeAlerts(
     const fr = [
       `${negatives.length} retombée${negatives.length === 1 ? '' : 's'} vient${negatives.length === 1 ? '' : 'nent'} d’arriver, étiquetée${negatives.length === 1 ? '' : 's'} négative${negatives.length === 1 ? '' : 's'} par le bureau :`,
       '',
-      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      ...shown.map(itemLine),
       '',
       'Étiquette automatique — une première estimation, pas un verdict. À regarder maintenant plutôt que dans le résumé de demain.',
       'Voir le bureau : https://dutiva.ca/pr/mentions',
@@ -262,7 +326,6 @@ async function sendNegativeAlerts(
     outcomes[userId] = await sendPortalEmail(admin, {
       userId,
       kind: 'pr_coverage_alert',
-      refDate,
       subject: `Dutiva PR — coverage to check now / retombées à regarder (${negatives.length})`,
       text: bilingualBody(en, fr),
     })
@@ -279,7 +342,6 @@ async function sendCoverageDigests(
   byUser: Map<string, { items: FeedItem[] }>,
 ): Promise<Record<string, string>> {
   const outcomes: Record<string, string> = {}
-  const refDate = new Date().toISOString().slice(0, 10)
   for (const [userId, { items }] of byUser) {
     const shown = items.slice(0, 10)
     /* Tone summary line — only when the model actually tagged this batch.
@@ -292,11 +354,13 @@ async function sendCoverageDigests(
     const frTone = tone.positive + tone.neutral + tone.negative > 0
       ? [`Ton en un coup d’œil : ${tone.positive} positif · ${tone.neutral} neutre · ${tone.negative} négatif (étiquettes automatiques — une première estimation).`, '']
       : []
+    const itemLine = (i: FeedItem) =>
+      `• ${i.title || i.link}\n  ${i.source || ''}${i.link ? ` — ${i.link}` : ''}`
     const en = [
       `${items.length} new coverage item${items.length === 1 ? '' : 's'} landed in your Dutiva PR desk:`,
       '',
       ...enTone,
-      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      ...shown.map(itemLine),
       '',
       'Open the desk: https://dutiva.ca/pr/mentions',
     ]
@@ -304,14 +368,13 @@ async function sendCoverageDigests(
       `${items.length} nouvelle${items.length === 1 ? '' : 's'} retombée${items.length === 1 ? '' : 's'} dans votre bureau Dutiva PR :`,
       '',
       ...frTone,
-      ...shown.map((i) => `• ${i.title || i.link}\n  ${i.source || ''} — ${i.link}`),
+      ...shown.map(itemLine),
       '',
       'Ouvrir le bureau : https://dutiva.ca/pr/mentions',
     ]
     outcomes[userId] = await sendPortalEmail(admin, {
       userId,
       kind: 'pr_coverage',
-      refDate,
       subject: `Dutiva PR — new coverage / nouvelles retombées (${items.length})`,
       text: bilingualBody(en, fr),
     })
@@ -379,8 +442,12 @@ const handler = async (req: Request) => {
         byUser.set(feed.user_id, bucket)
       }
     }
-    const alerts = await sendNegativeAlerts(admin, byUser)
-    const emails = await sendCoverageDigests(admin, byUser)
+    /* Emails only fire on the cron sweep, never on "Sync now" — the person
+       pressing it is already looking at the desk, and a 1-item manual
+       digest would burn the day's dedupe slot before the sweep can report
+       coverage they haven't seen. */
+    const alerts = scheduled ? await sendNegativeAlerts(admin, byUser) : {}
+    const emails = scheduled ? await sendCoverageDigests(admin, byUser) : {}
     return json({
       feeds: results.length,
       added: results.reduce((n, r) => n + r.added, 0),

@@ -2,6 +2,14 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { postChatCompletion } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import {
+  claimAiUsage,
+  finalizeAiUsage,
+  prAiPolicy,
+  usageLimitBody,
+  type UsageDbClient,
+  type UsageDecision,
+} from '../_shared/aiUsage.ts'
 import { answerExcerpt, classifyGeoAnswer } from './handlers.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
@@ -78,6 +86,10 @@ interface PromptRow {
   id: string
   user_id: string
   prompt: string
+  note: string
+  checked_via: string
+  /** Absent when 0232 hasn't been applied — hasNoteSource is the flag. */
+  note_source?: string
 }
 
 const handler = async (req: Request) => {
@@ -136,18 +148,83 @@ const handler = async (req: Request) => {
       return json({ error: `Provider secret ${keyResult.missingSecret} not configured`, code: 'no_key' }, 503)
     }
 
-    let q = admin
-      .from('pr_geo_prompts')
-      .select('id, user_id, prompt')
-      .order('checked_at', { ascending: true, nullsFirst: true })
-    if (userId) q = q.eq('user_id', userId)
-    if (promptId) q = q.eq('id', promptId)
-    const { data: prompts, error } = await q
-      .limit(scheduled ? MAX_PROMPTS_SCHEDULED : MAX_PROMPTS_MANUAL)
-    if (error) return json({ error: error.message }, 500)
+    const selectFor = <T extends string>(cols: T) => {
+      let q = admin
+        .from('pr_geo_prompts')
+        .select(cols)
+        .order('checked_at', { ascending: true, nullsFirst: true })
+      if (userId) q = q.eq('user_id', userId)
+      if (promptId) q = q.eq('id', promptId)
+      return q.limit(scheduled ? MAX_PROMPTS_SCHEDULED : MAX_PROMPTS_MANUAL)
+    }
+    /* 0232 not applied yet — the column doesn't exist (42703). Fall back to
+       the pre-migration shape: every row reads as machine-noted, so auto
+       excerpts overwrite notes the way they always did, and the update
+       writes no note_source. */
+    let prompts: PromptRow[] | null
+    let hasNoteSource = true
+    const first = await selectFor('id, user_id, prompt, note, checked_via, note_source')
+    if (first.error && (first.error.code === '42703' || /note_source/.test(first.error.message))) {
+      hasNoteSource = false
+      const retry = await selectFor('id, user_id, prompt, note, checked_via')
+      prompts = (retry.data ?? null) as PromptRow[] | null
+      if (retry.error) return json({ error: retry.error.message }, 500)
+    } else {
+      if (first.error) return json({ error: first.error.message }, 500)
+      prompts = first.data
+    }
+
+    /* One usage claim per user per sweep — the batch of upstream calls is
+       one billable operation, not 25 separate requests. A denied or
+       unreachable guardrail stops that user's checks this run; they retry
+       on the next sweep. */
+    const claims = new Map<string, { claimId: string; t0: number } | UsageDecision>()
+    const claimFor = async (uid: string) => {
+      const cached = claims.get(uid)
+      if (cached) return cached
+      const decision = await claimAiUsage(admin as unknown as UsageDbClient, prAiPolicy(), {
+        userId: uid,
+        organizationId: null,
+        provider: route.providerKey,
+        model: route.modelName,
+      })
+      const entry = decision.kind === 'allowed' ? { claimId: decision.claimId, t0: Date.now() } : decision
+      if (decision.kind === 'unavailable') {
+        console.error(`[pr-geo-check] guardrail unavailable for ${uid}: ${decision.reason}`)
+      }
+      claims.set(uid, entry)
+      return entry
+    }
+    const settleClaims = () => {
+      for (const m of claims.values()) {
+        if (!('kind' in m)) {
+          void finalizeAiUsage(admin as unknown as UsageDbClient, m.claimId, {
+            status: 'completed',
+            latencyMs: Date.now() - m.t0,
+          })
+        }
+      }
+    }
+
+    /* The manual path claims up front so a limit surfaces as a clean 429
+       instead of a results row per skipped prompt. */
+    if (userId) {
+      const m = await claimFor(userId)
+      if ('kind' in m) {
+        settleClaims()
+        return m.kind === 'denied'
+          ? json(usageLimitBody(m), 429)
+          : json({ error: 'AI temporarily unavailable', code: 'usage_unavailable' }, 503)
+      }
+    }
 
     const results = []
     for (const p of (prompts ?? []) as PromptRow[]) {
+      const m = await claimFor(p.user_id)
+      if ('kind' in m) {
+        results.push({ id: p.id, error: 'usage_limited' })
+        continue
+      }
       try {
         const upstream = await postChatCompletion(
           route.provider,
@@ -175,11 +252,20 @@ const handler = async (req: Request) => {
           brands: BRAND_NAMES,
         })
         const now = new Date().toISOString()
+        /* note_source, not checked_via, decides whose words survive:
+           checked_via records how the last CHECK ran (it flips to 'auto'
+           here), while note_source records who wrote the note — a manual
+           spot-check observation is preserved through every sweep, and a
+           machine excerpt refreshes each run. hasNoteSource=false means
+           0232 isn't applied — every row behaves as an auto note, the
+           pre-migration semantics. */
+        const manualNote = hasNoteSource && p.note_source === 'manual'
         const { error: upErr } = await admin
           .from('pr_geo_prompts')
           .update({
             result,
-            note: answerExcerpt(answer),
+            note: manualNote ? p.note : answerExcerpt(answer),
+            ...(hasNoteSource ? { note_source: manualNote ? 'manual' : 'auto' } : {}),
             checked_at: now,
             checked_via: 'auto',
             updated_at: now,
@@ -192,6 +278,7 @@ const handler = async (req: Request) => {
       }
     }
 
+    settleClaims()
     return json({
       checked: results.filter((r) => 'result' in r).length,
       prompts: (prompts ?? []).length,

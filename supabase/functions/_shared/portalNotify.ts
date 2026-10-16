@@ -1,4 +1,5 @@
 import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
+import { localDay } from '../health-habit-notify/handlers.ts'
 import { resendSend } from './resendSend.ts'
 
 /**
@@ -30,8 +31,10 @@ function kindSurface(kind: PortalNotifyKind): 'pr' | 'health' {
 export interface PortalEmail {
   userId: string
   kind: PortalNotifyKind
-  /** Calendar day this notification covers — the dedupe key. */
-  refDate: string
+  /** Calendar day this notification covers — the dedupe key. When omitted,
+     the recipient's own day (portal_notification_prefs.tz, UTC fallback);
+     pass an explicit value only for non-"today" keys. */
+  refDate?: string
   subject: string
   text: string
 }
@@ -42,18 +45,21 @@ export async function sendPortalEmail(
 ): Promise<'sent' | 'pref_off' | 'already_sent' | 'no_email' | 'no_provider' | 'send_failed' | 'log_failed'> {
   const { data: pref } = await admin
     .from('portal_notification_prefs')
-    .select('email_enabled')
+    .select('email_enabled, tz')
     .eq('user_id', email.userId)
     .eq('surface', kindSurface(email.kind))
     .maybeSingle()
   if (pref && pref.email_enabled === false) return 'pref_off'
 
+  /* "Today" is the recipient's day, not UTC's — a coverage item logged at
+     11pm ET belongs to the day they were awake for. */
+  const refDate = email.refDate ?? localDay(new Date(), pref?.tz)
   const { data: already } = await admin
     .from('notification_log')
     .select('id')
     .eq('user_id', email.userId)
     .eq('kind', email.kind)
-    .eq('ref_date', email.refDate)
+    .eq('ref_date', refDate)
     .maybeSingle()
   if (already) return 'already_sent'
 
@@ -73,7 +79,7 @@ export async function sendPortalEmail(
 
   const { error: logError } = await admin
     .from('notification_log')
-    .insert({ user_id: email.userId, kind: email.kind, ref_date: email.refDate })
+    .insert({ user_id: email.userId, kind: email.kind, ref_date: refDate })
   if (logError) {
     /* The email already went out; an unlogged send risks one duplicate
        tomorrow, which is the acceptable direction (matching

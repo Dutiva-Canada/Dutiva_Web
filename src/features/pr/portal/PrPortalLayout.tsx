@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Globe, Loader2, LogOut, Menu, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
@@ -41,30 +41,28 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function PrPortalLayout() {
   const { x, L, lang, setLang } = useI18n()
   const { status, signOut } = useAuth()
-  const [access, setAccess] = useState<'checking' | 'yes' | 'no'>('checking')
+  const [access, setAccess] = useState<'checking' | 'yes' | 'no' | 'error'>('checking')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const other: Lang = lang === 'fr' ? 'en' : 'fr'
   const label = lang === 'en' ? 'FR' : 'EN'
 
-  useEffect(() => {
+  /* A failed pr_access read is not a "no grant" — it lands on 'error' so a
+     transient failure offers a retry instead of the access-required wall. */
+  const checkAccess = useCallback(() => {
     if (status !== 'signed-in') {
       setAccess('checking')
       return
     }
-    let cancelled = false
     setAccess('checking')
     void hasPrAccess()
-      .then((ok) => {
-        if (!cancelled) setAccess(ok ? 'yes' : 'no')
-      })
-      .catch(() => {
-        if (!cancelled) setAccess('no')
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((ok) => setAccess(ok ? 'yes' : 'no'))
+      .catch(() => setAccess('error'))
   }, [status])
+
+  useEffect(() => {
+    checkAccess()
+  }, [checkAccess])
 
   if (status !== 'signed-in') {
     return (
@@ -219,6 +217,8 @@ export function PrPortalLayout() {
             <div className="flex items-center justify-center py-[80px]">
               <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
             </div>
+          ) : access === 'error' ? (
+            <AccessCheckFailed onRetry={checkAccess} />
           ) : access === 'no' ? (
             <AccessRequired />
           ) : (
@@ -230,6 +230,26 @@ export function PrPortalLayout() {
   )
 
   return access === 'yes' ? <PrDataProvider>{shell}</PrDataProvider> : shell
+}
+
+/** The pr_access read itself failed — a retry card, not the "access
+    required" wall a missing grant correctly shows. */
+function AccessCheckFailed({ onRetry }: { onRetry: () => void }) {
+  const { x } = useI18n()
+  return (
+    <div className="mx-auto max-w-[420px] rounded-[18px] border border-border bg-surface p-[28px] text-center shadow-[0_20px_50px_-24px_rgba(13,27,42,0.35)]">
+      <p role="alert" className="m-0 text-[13.5px] leading-[1.55] text-text-3">
+        {x(PM.pr_load_error)}
+      </p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-[18px] inline-flex h-[42px] cursor-pointer items-center justify-center rounded-[11px] border-none bg-navy px-[18px] text-[14px] font-semibold text-white transition-opacity"
+      >
+        {x(PM.pr_retry)}
+      </button>
+    </div>
+  )
 }
 
 function AccessRequired() {

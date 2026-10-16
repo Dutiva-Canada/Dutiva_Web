@@ -30,18 +30,31 @@ export function parseTone(raw: string): PrSentiment | null {
 }
 
 /** Batch version for feed ingest — the model gets numbered headlines and
-    answers one tone per line. Missing/garbled lines fall back to 'neutral'
-    so a flaky reply never blocks an insert. */
-export function parseToneList(raw: string, count: number): PrSentiment[] {
-  const tones: PrSentiment[] = []
-  const lines = raw.split('\n')
-  for (const line of lines) {
-    if (tones.length >= count) break
-    const t = parseTone(line)
-    if (t) tones.push(t)
+    answers one tone per line. Positions must survive: a garbled line yields
+    null in place rather than shifting every later tone onto the wrong
+    headline. Extra lines (a preamble, a sign-off) are trimmed by picking
+    the count-window with the most real verdicts. Null = "no usable verdict
+    for this headline", so the caller stores neutral without claiming the
+    model tagged it. */
+export function parseToneList(raw: string, count: number): (PrSentiment | null)[] {
+  const lines = raw
+    .split('\n')
+    .filter((l) => l.trim() !== '')
+    .map((l) => parseTone(l))
+  if (lines.length <= count) {
+    while (lines.length < count) lines.push(null)
+    return lines
   }
-  while (tones.length < count) tones.push('neutral')
-  return tones
+  let best = lines.slice(0, count)
+  let bestNulls = best.filter((t) => t === null).length
+  for (let i = 1; i + count <= lines.length; i++) {
+    const nulls = lines.slice(i, i + count).filter((t) => t === null).length
+    if (nulls < bestNulls) {
+      best = lines.slice(i, i + count)
+      bestNulls = nulls
+    }
+  }
+  return best
 }
 
 export function tonePrompt(headlines: string[]): string {
@@ -75,7 +88,10 @@ export function cleanDraft(raw: string): string {
     if (
       first === '' ||
       /^#+\s/.test(first) ||
-      /^(here|voici|voilà)\b.*[:：]?\s*$/i.test(first) && first.length < 80
+      /* \b can't anchor after the non-word à — lookahead for the boundary
+         instead. The colon is required: "Voici une offre…" or "Here at
+         Dutiva…" is real content, not scaffolding. */
+      /^(here|voici|voil[aà])(?=[\s:：]|$).*[:：]\s*$/i.test(first) && first.length < 80
     ) {
       lines.shift()
       continue
@@ -336,6 +352,10 @@ export interface PrChatReply {
      runs it; the model never sees or emits a URL. Null on every final
      reply. */
   search: string | null
+  /* The model emitted an "action" object that failed validation — the reply
+     still lands, but the caller surfaces it as a failed action chip rather
+     than dropping the whole turn or executing a half-understood write. */
+  actionError?: { type: string; detail: string }
 }
 
 export const PR_CHAT_ACTION_TYPES = new Set([
@@ -459,9 +479,11 @@ export function prChatSources(
   return sources.slice(0, 8)
 }
 
-/** Strict JSON reply from the model. Anything unparseable or with a
-    malformed/unknown action returns null — the caller files a plain-text
-    fallback rather than executing something it half-understood. */
+/** Strict JSON reply from the model. Fully unparseable output returns null —
+    the caller files a plain-text fallback. A reply with a malformed/unknown
+    action survives: the action is dropped, actionError is set, and the caller
+    reports it as a failed write rather than executing something it
+    half-understood. */
 export function parsePrChatReply(raw: string | null | undefined): PrChatReply | null {
   if (!raw) return null
   const text = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
@@ -492,21 +514,35 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
           .filter((s) => s !== '')
           .slice(0, 3)
       : []
-    const finish = (action: PrChatAction | null): PrChatReply => ({
+    const finish = (
+      action: PrChatAction | null,
+      actionError?: { type: string; detail: string },
+    ): PrChatReply => ({
       reply,
       suggests,
       search,
       action,
+      ...(actionError ? { actionError } : {}),
     })
+    /* A malformed action must not sink the whole turn — the reply text is
+       fine on its own, so the action degrades to a failed chip. */
+    const failed = (a: Record<string, unknown>): PrChatReply =>
+      finish(null, {
+        type: optStr(a.type, 40) ?? 'malformed',
+        detail:
+          optStr(a.name ?? a.title ?? a.keyword ?? a.prompt ?? a.campaign, 120) ?? '',
+      })
     const a = obj.action
     if (a === null || a === undefined) return finish(null)
-    if (typeof a !== 'object') return null
+    if (typeof a !== 'object') return failed({})
     const action = a as Record<string, unknown>
-    if (typeof action.type !== 'string' || !PR_CHAT_ACTION_TYPES.has(action.type)) return null
+    if (typeof action.type !== 'string' || !PR_CHAT_ACTION_TYPES.has(action.type)) {
+      return failed(action)
+    }
     switch (action.type) {
       case 'add_campaign': {
         const name = optStr(action.name, 120)
-        if (!name) return null
+        if (!name) return failed(action)
         return finish({
           type: 'add_campaign',
           name,
@@ -516,7 +552,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       }
       case 'add_content_item': {
         const title = optStr(action.title, 200)
-        if (!title) return null
+        if (!title) return failed(action)
         return finish({
           type: 'add_content_item',
           title,
@@ -528,7 +564,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       }
       case 'add_media_contact': {
         const name = optStr(action.name, 120)
-        if (!name) return null
+        if (!name) return failed(action)
         return finish({
           type: 'add_media_contact',
           name,
@@ -540,7 +576,7 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       }
       case 'add_mention': {
         const title = optStr(action.title, 300)
-        if (!title) return null
+        if (!title) return failed(action)
         return finish({
           type: 'add_mention',
           title,
@@ -551,22 +587,24 @@ export function parsePrChatReply(raw: string | null | undefined): PrChatReply | 
       }
       case 'add_keyword': {
         const keyword = optStr(action.keyword, 120)
-        if (!keyword) return null
+        if (!keyword) return failed(action)
         return finish({ type: 'add_keyword', keyword, targetUrl: optUrl(action.targetUrl) })
       }
       case 'add_geo_prompt': {
         const prompt = optStr(action.prompt, 300)
-        if (!prompt || prompt.length < 8) return null
+        if (!prompt || prompt.length < 8) return failed(action)
         return finish({ type: 'add_geo_prompt', prompt, engine: optEnum(action.engine, ENGINES) })
       }
       case 'update_campaign_status': {
         const campaign = optStr(action.campaign, 120)
         const status = optEnum(action.status, CAMPAIGN_STATUSES)
-        if (!campaign || !status) return null
+        if (!campaign || !status) return failed(action)
         return finish({ type: 'update_campaign_status', campaign, status: status as 'draft' | 'active' | 'paused' | 'done' })
       }
     }
-    return null
+    /* A Set member without a case above (a future type) still degrades to a
+       failed chip — never a swallowed turn. */
+    return failed(action)
   } catch {
     return null
   }
@@ -739,3 +777,26 @@ export const PR_FALLBACK_FR =
 /** One-liner for flagged reaction replies — they are too small to repair. */
 export const PR_REACT_FALLBACK_EN = 'Noted on the desk — the next move is yours.'
 export const PR_REACT_FALLBACK_FR = 'C’est noté au desk — la prochaine décision vous revient.'
+
+/* ── undo snapshot ────────────────────────────────────────────────────────
+   chat_undo must only reverse what the action itself wrote. Each executed
+   action records the fields it set (`wrote`); before deleting or restoring,
+   the live row is compared to that snapshot so an undo never destroys an
+   edit the person made in between. */
+
+/** True when every `wrote` field still equals the live row's value.
+   Comparison is by string after null/undefined collapse — the snapshot
+   travels through JSONB, so Postgres-native types (ints, timestamptz)
+   come back as whatever the serializer produced; String() levels that.
+   Missing/null writes match a null column; '' and null both read as
+   absent on this schema's text columns. */
+export function rowMatchesWrote(
+  row: Record<string, unknown>,
+  wrote: Record<string, unknown>,
+): boolean {
+  for (const [key, want] of Object.entries(wrote)) {
+    const live = row[key]
+    if (String(live ?? '') !== String(want ?? '')) return false
+  }
+  return true
+}

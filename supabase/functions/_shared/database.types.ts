@@ -12910,6 +12910,7 @@ export type Database = {
           engine: string
           id: string
           note: string
+          note_source: string
           prompt: string
           result: string
           updated_at: string
@@ -12922,6 +12923,7 @@ export type Database = {
           engine?: string
           id?: string
           note?: string
+          note_source?: string
           prompt: string
           result?: string
           updated_at?: string
@@ -12934,6 +12936,7 @@ export type Database = {
           engine?: string
           id?: string
           note?: string
+          note_source?: string
           prompt?: string
           result?: string
           updated_at?: string
@@ -17506,6 +17509,10 @@ export type Database = {
           orgs_awaiting_reminder: number
           secret_configured: boolean
         }[]
+      }
+      pr_keyword_check: {
+        Args: { p_keyword_id: string; p_position?: number | null }
+        Returns: undefined
       }
       process_expired_data_deletions: { Args: never; Returns: number }
       profile_applied_to_member_org: {

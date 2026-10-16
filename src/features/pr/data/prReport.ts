@@ -66,23 +66,33 @@ export interface PrReport {
   }
 }
 
+/** 'YYYY-MM' a timestamp falls in for the reader — a mention at 11pm on the
+    31st in their zone belongs to that month, not the next UTC one. A bare
+    'YYYY-MM-DD' keeps its calendar day as written (the user typed it). */
+function monthOf(iso: string): string {
+  if (iso.length <= 10) return iso.slice(0, 7)
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
 function inMonth(iso: string | null | undefined, month: string): boolean {
-  return typeof iso === 'string' && iso.slice(0, 7) === month
+  return typeof iso === 'string' && monthOf(iso) === month
 }
 
 /** Months that contain any desk data, newest first — plus the current month
     so an empty fresh month is still selectable. */
 export function reportMonths(state: PrState, nowIso = new Date().toISOString()): string[] {
-  const months = new Set<string>([nowIso.slice(0, 7)])
-  for (const m of state.mentions) months.add(m.publishedAt.slice(0, 7))
+  const months = new Set<string>([monthOf(nowIso)])
+  for (const m of state.mentions) months.add(monthOf(m.publishedAt))
   for (const c of state.contentItems) {
-    if (c.publishedAt) months.add(c.publishedAt.slice(0, 7))
+    if (c.publishedAt) months.add(monthOf(c.publishedAt))
   }
   for (const g of state.geoPrompts) {
-    if (g.checkedAt) months.add(g.checkedAt.slice(0, 7))
+    if (g.checkedAt) months.add(monthOf(g.checkedAt))
   }
   for (const k of state.keywords) {
-    if (k.checkedAt) months.add(k.checkedAt.slice(0, 7))
+    if (k.checkedAt) months.add(monthOf(k.checkedAt))
   }
   return [...months].filter((m) => /^\d{4}-\d{2}$/.test(m)).sort().reverse()
 }

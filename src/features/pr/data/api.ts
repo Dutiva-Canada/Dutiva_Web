@@ -271,41 +271,85 @@ export async function addKeyword(input: {
 }): Promise<PrKeyword> {
   const client = requireSupabase()
   const userId = await requireUserId()
+  const keyword = input.keyword.trim()
+  /* Tracked keywords are matched case-insensitively everywhere — adding one
+     that already exists returns the row instead of a twin. ilike is a
+     case-insensitive exact match once % and _ are escaped. */
+  const escaped = keyword.replace(/[\\%_]/g, (m) => `\\${m}`)
+  const { data: existing } = await client
+    .from('pr_keywords')
+    .select('*')
+    .eq('user_id', userId)
+    .ilike('keyword', escaped)
+    .limit(1)
+  const existingRow = existing?.[0]
+  if (existingRow) return keywordFromRow(existingRow)
   const { data, error } = await client
     .from('pr_keywords')
     .insert({
       user_id: userId,
-      keyword: input.keyword.trim(),
+      keyword,
       target_url: (input.targetUrl ?? '').trim(),
     })
     .select()
     .single()
-  if (error) throw error
+  if (error) {
+    /* Lost the read-then-insert race — the unique index caught a twin
+       landing first; re-read and return it. */
+    if (error.code === '23505') {
+      const { data: winner } = await client
+        .from('pr_keywords')
+        .select('*')
+        .eq('user_id', userId)
+        .ilike('keyword', escaped)
+        .limit(1)
+      const winnerRow = winner?.[0]
+      if (winnerRow) return keywordFromRow(winnerRow)
+    }
+    throw error
+  }
   return keywordFromRow(data)
 }
 
 /** Record a fresh position check — the old position becomes the baseline so
-    the UI can show which direction the keyword moved. */
+    the UI can show which direction the keyword moved. One UPDATE inside
+    pr_keyword_check: two racing checks can't each snapshot the same
+    baseline and overwrite the other's delta the way read-then-write did. */
 export async function updateKeywordPosition(
   id: string,
   position: number | null,
 ): Promise<void> {
   const client = requireSupabase()
-  const { data: current, error: readError } = await client
-    .from('pr_keywords')
-    .select('position')
-    .eq('id', id)
-    .single()
-  if (readError) throw readError
-  const { error } = await client
-    .from('pr_keywords')
-    .update({
-      previous_position: current?.position ?? null,
-      position,
-      checked_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-  if (error) throw error
+  const { error } = await client.rpc('pr_keyword_check', {
+    p_keyword_id: id,
+    p_position: position,
+  })
+  if (error) {
+    /* PGRST202 = the 0234 function isn't applied to this project yet —
+       fall back to the read-then-write it replaced (functional, just
+       racier until the migration lands). */
+    if (
+      error.code === 'PGRST202' ||
+      /pr_keyword_check/.test(error.message ?? '')
+    ) {
+      const { data: prev } = await client
+        .from('pr_keywords')
+        .select('position')
+        .eq('id', id)
+        .maybeSingle()
+      const { error: upErr } = await client
+        .from('pr_keywords')
+        .update({
+          previous_position: prev?.position ?? null,
+          position,
+          checked_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+      if (upErr) throw upErr
+      return
+    }
+    throw error
+  }
 }
 
 export async function deleteKeyword(id: string): Promise<void> {
@@ -327,20 +371,48 @@ export async function addMention(input: {
 }): Promise<PrMention> {
   const client = requireSupabase()
   const userId = await requireUserId()
+  const url = (input.url ?? '').trim()
+  /* Mentions dedupe by URL like prompts dedupe by text — logging the same
+     coverage twice returns the existing row instead of a 23505 the caller
+     would render as an unexplained failure. The unique index is partial
+     (url <> ''), so linkless mentions always insert. */
+  if (url !== '') {
+    const { data: existing } = await client
+      .from('pr_mentions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('url', url)
+      .limit(1)
+    const existingMention = existing?.[0]
+    if (existingMention) return mentionFromRow(existingMention)
+  }
   const { data, error } = await client
     .from('pr_mentions')
     .insert({
       user_id: userId,
       source: (input.source ?? '').trim(),
       title: input.title.trim(),
-      url: (input.url ?? '').trim(),
+      url,
       sentiment: input.sentiment ?? 'neutral',
       sentiment_auto: input.sentimentAuto ?? false,
       published_at: input.publishedAt ?? new Date().toISOString(),
     })
     .select()
     .single()
-  if (error) throw error
+  if (error) {
+    /* Lost the read-then-insert race — re-read the twin and return it. */
+    if (error.code === '23505' && url !== '') {
+      const { data: winner } = await client
+        .from('pr_mentions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('url', url)
+        .limit(1)
+      const winnerMention = winner?.[0]
+      if (winnerMention) return mentionFromRow(winnerMention)
+    }
+    throw error
+  }
   return mentionFromRow(data)
 }
 
@@ -358,19 +430,47 @@ export async function addGeoPrompt(input: {
 }): Promise<PrGeoPrompt> {
   const client = requireSupabase()
   const userId = await requireUserId()
+  const prompt = input.prompt.trim()
+  /* Tracked questions are a set, not a list — a re-ask (suggestion retry,
+     a review accept whose resolve call failed, a chat re-request) returns
+     the existing row instead of duplicating it. ilike is a case-insensitive
+     exact match once % and _ are escaped. */
+  const { data: existing } = await client
+    .from('pr_geo_prompts')
+    .select('*')
+    .eq('user_id', userId)
+    .ilike('prompt', prompt.replace(/[\\%_]/g, (m) => `\\${m}`))
+    .limit(1)
+  const existingPrompt = existing?.[0]
+  if (existingPrompt) return geoPromptFromRow(existingPrompt)
   const now = new Date().toISOString()
   const { data, error } = await client
     .from('pr_geo_prompts')
     .insert({
       user_id: userId,
-      prompt: input.prompt.trim(),
+      prompt,
       engine: input.engine ?? 'chatgpt',
       created_at: now,
       updated_at: now,
     })
     .select()
     .single()
-  if (error) throw error
+  if (error) {
+    /* Lost the read-then-insert race — the unique index caught a twin
+       landing first. Re-read and return it: the caller's intent (one
+       tracked prompt) is already satisfied. */
+    if (error.code === '23505') {
+      const { data: winner } = await client
+        .from('pr_geo_prompts')
+        .select('*')
+        .eq('user_id', userId)
+        .ilike('prompt', prompt.replace(/[\\%_]/g, (m) => `\\${m}`))
+        .limit(1)
+      const winnerPrompt = winner?.[0]
+      if (winnerPrompt) return geoPromptFromRow(winnerPrompt)
+    }
+    throw error
+  }
   return geoPromptFromRow(data)
 }
 
@@ -382,17 +482,39 @@ export async function recordGeoCheck(
   note: string,
 ): Promise<void> {
   const client = requireSupabase()
+  const fields = {
+    result,
+    checked_at: new Date().toISOString(),
+    checked_via: 'manual',
+    updated_at: new Date().toISOString(),
+  }
+  /* Only non-empty words are someone's note — overwriting with '' would
+     blank the current excerpt and, under note_source 'manual', freeze it
+     blank so no auto check could ever refresh it. A blank note leaves the
+     existing note and its provenance alone. */
+  const noteText = note.trim()
+  const withNote = noteText !== '' ? { ...fields, note: noteText } : fields
+  /* The words are the person's — auto checks must preserve them, not treat
+     them as a machine excerpt to refresh. note_source ships in 0232; on a
+     project where it isn't applied yet (42703) the check still lands —
+     provenance just can't be marked until the migration runs. */
   const { error } = await client
     .from('pr_geo_prompts')
-    .update({
-      result,
-      note: note.trim(),
-      checked_at: new Date().toISOString(),
-      checked_via: 'manual',
-      updated_at: new Date().toISOString(),
-    })
+    .update(
+      noteText !== '' ? { ...withNote, note_source: 'manual' } : withNote,
+    )
     .eq('id', id)
-  if (error) throw error
+  if (error) {
+    if (error.code === '42703' || /note_source/.test(error.message)) {
+      const { error: retryError } = await client
+        .from('pr_geo_prompts')
+        .update(withNote)
+        .eq('id', id)
+      if (retryError) throw retryError
+      return
+    }
+    throw error
+  }
 }
 
 export async function deleteGeoPrompt(id: string): Promise<void> {
@@ -412,18 +534,53 @@ export async function bulkAddKeywords(
   const client = requireSupabase()
   const userId = await requireUserId()
   const now = new Date().toISOString()
-  const { error } = await client.from('pr_keywords').insert(
-    rows.map((r) => ({
-      user_id: userId,
-      keyword: r.keyword.trim(),
-      target_url: (r.targetUrl ?? '').trim(),
-      position: r.position ?? null,
-      previous_position: null,
-      checked_at: r.position != null ? now : null,
-    })),
+  /* Re-importing the same export must not double the list — skip keywords
+     already tracked (case-insensitive) and repeats inside the paste. Cap
+     the paste: a desk import is a handful of terms, not a bulk-load tool. */
+  const { data: existingRows } = await client
+    .from('pr_keywords')
+    .select('keyword')
+    .eq('user_id', userId)
+  const seen = new Set(
+    (existingRows ?? []).map((k: { keyword: string }) => k.keyword.trim().toLowerCase()),
   )
-  if (error) throw error
-  return rows.length
+  const fresh = rows.slice(0, 500).filter((r) => {
+    const key = r.keyword.trim().toLowerCase()
+    if (key === '' || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+  if (fresh.length === 0) return 0
+  const insert = (batch: typeof fresh) =>
+    client.from('pr_keywords').insert(
+      batch.map((r) => ({
+        user_id: userId,
+        keyword: r.keyword.trim(),
+        target_url: (r.targetUrl ?? '').trim(),
+        position: r.position ?? null,
+        previous_position: null,
+        checked_at: r.position != null ? now : null,
+      })),
+    )
+  const { error } = await insert(fresh)
+  if (error) {
+    /* 23505 = a parallel import won the race on at least one keyword —
+       re-diff against what landed and insert only what's still missing. */
+    if (error.code !== '23505') throw error
+    const { data: landed } = await client
+      .from('pr_keywords')
+      .select('keyword')
+      .eq('user_id', userId)
+    const taken = new Set(
+      (landed ?? []).map((k: { keyword: string }) => k.keyword.trim().toLowerCase()),
+    )
+    const still = fresh.filter((r) => !taken.has(r.keyword.trim().toLowerCase()))
+    if (still.length === 0) return 0
+    const { error: retryError } = await insert(still)
+    if (retryError) throw retryError
+    return still.length
+  }
+  return fresh.length
 }
 
 /* ---------- mention metadata fetch ---------- */
@@ -432,6 +589,18 @@ export interface MentionMeta {
   title: string
   source: string
   publishedAt: string | null
+}
+
+/** A fetch failure with the edge function's own code — private_url,
+    not_html, invalid_url, fetch_failed — so the toast can say why instead
+    of guessing. */
+export class MentionMetaError extends Error {
+  code: string
+  constructor(code: string) {
+    super(code)
+    this.name = 'MentionMetaError'
+    this.code = code
+  }
 }
 
 /** Ask the pr-fetch-meta edge function for a page's headline/site/date so
@@ -443,7 +612,19 @@ export async function fetchMentionMeta(url: string): Promise<MentionMeta> {
   const { data, error } = await client.functions.invoke('pr-fetch-meta', {
     body: { url },
   })
-  if (error) throw error
+  if (error) {
+    /* FunctionsHttpError carries the function's Response as context — the
+       {error:"code"} body names what actually failed. */
+    try {
+      const body = (await (error as {
+        context?: { json?: () => Promise<unknown> }
+      }).context?.json?.()) as { error?: string } | undefined
+      if (typeof body?.error === 'string') throw new MentionMetaError(body.error)
+    } catch (e) {
+      if (e instanceof MentionMetaError) throw e
+    }
+    throw error
+  }
   const raw = (data as Partial<MentionMeta> | null) ?? {}
   const parsed = raw.publishedAt ? Date.parse(raw.publishedAt) : NaN
   return {
@@ -467,7 +648,21 @@ export async function addPrFeed(input: { url: string; label?: string }): Promise
     })
     .select()
     .single()
-  if (error) throw error
+  if (error) {
+    /* pr_feeds is unique on (user_id, url) — re-adding a feed you already
+       track returns the existing row rather than erroring the click. */
+    if (error.code === '23505') {
+      const { data: winner } = await client
+        .from('pr_feeds')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('url', input.url.trim())
+        .limit(1)
+      const winnerFeed = winner?.[0]
+      if (winnerFeed) return feedFromRow(winnerFeed)
+    }
+    throw error
+  }
   return feedFromRow(data)
 }
 
@@ -480,6 +675,9 @@ export async function deletePrFeed(id: string): Promise<void> {
 export interface FeedSyncResult {
   feeds: number
   added: number
+  /** Feeds the server couldn't read (bad URL, fetch failure, unparseable
+      XML) — a dead feed must not look like a quiet one. */
+  failed: number
 }
 
 /** Ask pr-mentions-feed to poll the caller's feeds now (or one feed when
@@ -490,8 +688,16 @@ export async function syncPrFeeds(feedId?: string): Promise<FeedSyncResult> {
     body: feedId ? { feedId } : {},
   })
   if (error) throw error
-  const raw = (data as Partial<FeedSyncResult> | null) ?? {}
-  return { feeds: raw.feeds ?? 0, added: raw.added ?? 0 }
+  const raw = (data as {
+    feeds?: number
+    added?: number
+    results?: { error?: string }[]
+  } | null) ?? {}
+  return {
+    feeds: raw.feeds ?? 0,
+    added: raw.added ?? 0,
+    failed: (raw.results ?? []).filter((r) => r.error).length,
+  }
 }
 
 /* ---------- GEO auto-check ---------- */
@@ -499,6 +705,9 @@ export async function syncPrFeeds(feedId?: string): Promise<FeedSyncResult> {
 export interface GeoCheckSummary {
   checked: number
   prompts: number
+  /** Prompts whose check errored upstream — a failed check must not count
+      as a quiet pass. */
+  failed: number
 }
 
 /** Ask pr-geo-check to run the caller's tracked prompts through the
@@ -511,8 +720,16 @@ export async function runGeoChecks(promptId?: string): Promise<GeoCheckSummary> 
     body: promptId ? { promptId } : {},
   })
   if (error) throw error
-  const raw = (data as Partial<GeoCheckSummary> | null) ?? {}
-  return { checked: raw.checked ?? 0, prompts: raw.prompts ?? 0 }
+  const raw = (data as {
+    checked?: number
+    prompts?: number
+    results?: { error?: string }[]
+  } | null) ?? {}
+  return {
+    checked: raw.checked ?? 0,
+    prompts: raw.prompts ?? 0,
+    failed: (raw.results ?? []).filter((r) => r.error).length,
+  }
 }
 
 /* ---------- pr-ai: model suggestions (tone tag, content draft) ---------- */

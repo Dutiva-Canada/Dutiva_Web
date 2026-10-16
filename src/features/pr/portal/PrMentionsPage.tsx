@@ -5,7 +5,7 @@ import { ExternalLink, Link2, Loader2, Rss, Sparkles, Trash2, X } from 'lucide-r
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
-import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, prMentionClusters, suggestMentionTone, syncPrFeeds, type PrMentionCluster } from '@/features/pr/data/api'
+import { addMention, addPrFeed, deleteMention, deletePrFeed, fetchMentionMeta, MentionMetaError, prMentionClusters, suggestMentionTone, syncPrFeeds, type PrMentionCluster } from '@/features/pr/data/api'
 import { sendPrReaction } from '@/features/pr/data/chatApi'
 import { PaigeNote } from './PaigeNote'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
@@ -101,8 +101,17 @@ export function PrMentionsPage() {
         date: d.date || (meta.publishedAt ? meta.publishedAt.slice(0, 10) : ''),
       }))
       showToast(PM.pr_men_fetched)
-    } catch {
-      showToast(PM.pr_men_fetch_fail)
+    } catch (e) {
+      const code = e instanceof MentionMetaError ? e.code : ''
+      showToast(
+        code === 'private_url'
+          ? PM.pr_men_meta_private
+          : code === 'not_html'
+            ? PM.pr_men_meta_not_html
+            : code === 'invalid_url'
+              ? PM.pr_men_meta_bad_url
+              : PM.pr_men_fetch_fail,
+      )
     } finally {
       setFetching(false)
     }
@@ -195,20 +204,22 @@ export function PrMentionsPage() {
     try {
       const res = await syncPrFeeds()
       await refresh()
-      showToast(
+      const base =
         res.added === 0
           ? PM.pr_men_feed_synced_none
-          : {
-              en: (res.added === 1 ? PM.pr_men_feed_synced_one : PM.pr_men_feed_synced_many).en.replace(
-                '{count}',
-                String(res.added),
-              ),
-              fr: (res.added === 1 ? PM.pr_men_feed_synced_one : PM.pr_men_feed_synced_many).fr.replace(
-                '{count}',
-                String(res.added),
-              ),
-            },
-      )
+          : res.added === 1
+            ? PM.pr_men_feed_synced_one
+            : PM.pr_men_feed_synced_many
+      const fail =
+        res.failed === 0
+          ? null
+          : res.failed === 1
+            ? PM.pr_men_feed_fail_one
+            : PM.pr_men_feed_fail_many
+      showToast({
+        en: `${base.en.replace('{count}', String(res.added))}${fail ? ` — ${fail.en.replace('{count}', String(res.failed))}` : ''}`,
+        fr: `${base.fr.replace('{count}', String(res.added))}${fail ? ` — ${fail.fr.replace('{count}', String(res.failed))}` : ''}`,
+      })
     } catch {
       showToast(PM.pr_men_fetch_fail)
     } finally {
@@ -246,13 +257,6 @@ export function PrMentionsPage() {
     }
   }
 
-  if (loading || !state) {
-    return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="sb prx sb-page">
@@ -260,6 +264,13 @@ export function PrMentionsPage() {
         <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
           {x(PM.pr_retry)}
         </button>
+      </div>
+    )
+  }
+  if (loading || !state) {
+    return (
+      <div className="flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
       </div>
     )
   }

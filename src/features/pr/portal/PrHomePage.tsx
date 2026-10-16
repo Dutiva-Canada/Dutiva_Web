@@ -42,13 +42,6 @@ export function PrHomePage() {
   const { state, loading, error, refresh } = usePrData()
   usePrHead(PM.pr_seo_doc_title, PM.pr_subtitle)
 
-  if (loading || !state) {
-    return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
-      </div>
-    )
-  }
   if (error) {
     return (
       <div className="sb prx sb-page">
@@ -56,6 +49,13 @@ export function PrHomePage() {
         <button type="button" className="sb-btn sb-btn-secondary" onClick={() => void refresh()}>
           {x(PM.pr_retry)}
         </button>
+      </div>
+    )
+  }
+  if (loading || !state) {
+    return (
+      <div className="flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
       </div>
     )
   }

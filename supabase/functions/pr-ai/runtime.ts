@@ -9,6 +9,13 @@ import {
   type UpstreamMessage,
 } from '../_shared/modelUpstream.ts'
 import { activeModelRoute, routeApiKey, type ResolvedRoute } from '../_shared/aiRoute.ts'
+import {
+  claimAiUsage,
+  finalizeAiUsage,
+  prAiPolicy,
+  usageLimitBody,
+  type UsageDbClient,
+} from '../_shared/aiUsage.ts'
 import { createReplyDeltaExtractor } from '../_shared/replyDelta.ts'
 import {
   buildPrRepairNote,
@@ -22,6 +29,7 @@ import {
   prChatSources,
   prReactPrompt,
   resolveNameRef,
+  rowMatchesWrote,
   type PrChatAction,
   type PrChatContext,
   type PrChatReply,
@@ -64,6 +72,10 @@ interface ExecutedAction {
   /** For update_campaign_status: the status the row had before — what undo
       restores instead of deleting the row. */
   prevStatus?: string
+  /** The values the action wrote (for status flips, the status it set).
+     Undo compares them to the live row and refuses to destroy edits the
+     person made in between — an edited row isn't this action's to remove. */
+  wrote?: Record<string, unknown>
   /** Set once chat_undo reverses the write — the client hides the chip. */
   undone?: boolean
 }
@@ -162,6 +174,49 @@ export async function modelRoute(
     }
   }
   return { found, keyResult }
+}
+
+/* ── usage guardrail ──────────────────────────────────────────────────────
+   pr-ai had no cap at all — an invite holder could drive unlimited model
+   calls. Every model path claims a slot on the shared abuse rails first,
+   then finalizes the claim once the work resolves. Denied → 429 the client
+   maps to its own copy; guardrail unreachable → fail closed, because an
+   unmetered free call is the leak. */
+
+/** Claim one usage slot. A Response return means stop and send it back. */
+export async function claimPrCall(
+  admin: SupabaseClient,
+  userId: string,
+  route: ResolvedRoute,
+): Promise<{ claimId: string } | Response> {
+  const decision = await claimAiUsage(admin as unknown as UsageDbClient, prAiPolicy(), {
+    userId,
+    organizationId: null,
+    provider: route.providerKey,
+    model: route.modelName,
+  })
+  if (decision.kind === 'denied') {
+    console.warn(`pr-ai usage limit (scope=${decision.scope})`)
+    return json(usageLimitBody(decision), 429)
+  }
+  if (decision.kind === 'unavailable') {
+    console.error(`pr-ai usage guardrail unavailable: ${decision.reason}`)
+    return json({ error: 'AI is temporarily unavailable', code: 'usage_unavailable' }, 503)
+  }
+  return { claimId: decision.claimId }
+}
+
+/** Stamp the claimed row — best-effort; the reply is already paid for. */
+export function settlePrCall(
+  admin: SupabaseClient,
+  claimId: string,
+  ok: boolean,
+  startedAt: number,
+): void {
+  void finalizeAiUsage(admin as unknown as UsageDbClient, claimId, {
+    status: ok ? 'completed' : 'failed',
+    latencyMs: Date.now() - startedAt,
+  })
 }
 
 /** One Server-Sent-Events channel: send() emits `data: {…}` events, close()
@@ -304,6 +359,13 @@ export async function runChat(
     { role: 'user', content: message },
   ]
   const extras = routeBodyExtras(found.config)
+
+  /* Claim once per turn — the search hop and the boundary repair round are
+     part of the same billable answer, not new requests. */
+  const meter = await claimPrCall(admin, userId, found)
+  if (meter instanceof Response) return meter
+  const meterT0 = Date.now()
+  let meterOk = false
 
   /* One upstream call, repeatable — round two carries the live search
      results the model asked for, injected as clearly-marked untrusted
@@ -474,10 +536,15 @@ export async function runChat(
         const screened = await screenReply(parsed)
         parsed = screened.reply
         if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
+        /* The paid-for work is done — a persist hiccup below isn't the
+           model's failure. */
+        meterOk = true
         sse.send({ type: 'delta', text: parsed.reply })
         const executed = parsed.action
           ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
-          : null
+          : parsed.actionError
+            ? { type: parsed.actionError.type, detail: parsed.actionError.detail, ok: false }
+            : null
         const sources = mergeSources(prChatSources(desk.ctx, parsed.reply), webSources(webResults))
         const ids = await persistChatTurns(
           admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
@@ -495,6 +562,7 @@ export async function runChat(
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
+        settlePrCall(admin, meter.claimId, meterOk, meterT0)
         sse.close()
       }
     })()
@@ -503,54 +571,61 @@ export async function runChat(
 
   let reasoning = ''
   let webResults: WebResult[] = []
-  let res1: Response
   try {
-    res1 = await callUpstream(null, false)
-  } catch (e) {
-    return json({ error: upstreamErr(e), code: 'upstream' }, 502)
-  }
-  if (!res1.ok) return json({ error: `Upstream returned ${res1.status}`, code: 'upstream' }, 502)
-  let round = await readRound(res1)
-  reasoning = round.reasoning
-  let parsed = round.parsed
-  if (parsed && parsed.reply === '' && parsed.search) {
-    webResults = await webSearch(parsed.search)
-    let res2: Response
+    let res1: Response
     try {
-      res2 = await callUpstream({ query: parsed.search, results: webResults }, false)
+      res1 = await callUpstream(null, false)
     } catch (e) {
       return json({ error: upstreamErr(e), code: 'upstream' }, 502)
     }
-    if (!res2.ok) return json({ error: `Upstream returned ${res2.status}`, code: 'upstream' }, 502)
-    round = await readRound(res2)
-    if (round.reasoning) reasoning += `\n\n${round.reasoning}`
-    parsed = round.parsed
+    if (!res1.ok) return json({ error: `Upstream returned ${res1.status}`, code: 'upstream' }, 502)
+    let round = await readRound(res1)
+    reasoning = round.reasoning
+    let parsed = round.parsed
+    if (parsed && parsed.reply === '' && parsed.search) {
+      webResults = await webSearch(parsed.search)
+      let res2: Response
+      try {
+        res2 = await callUpstream({ query: parsed.search, results: webResults }, false)
+      } catch (e) {
+        return json({ error: upstreamErr(e), code: 'upstream' }, 502)
+      }
+      if (!res2.ok) return json({ error: `Upstream returned ${res2.status}`, code: 'upstream' }, 502)
+      round = await readRound(res2)
+      if (round.reasoning) reasoning += `\n\n${round.reasoning}`
+      parsed = round.parsed
+    }
+    if (!parsed || parsed.reply === '') {
+      return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
+    }
+
+    const screened = await screenReply(parsed)
+    parsed = screened.reply
+    if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
+    meterOk = true
+
+    const executed = parsed.action
+      ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
+      : parsed.actionError
+        ? { type: parsed.actionError.type, detail: parsed.actionError.detail, ok: false }
+        : null
+    const sources = mergeSources(prChatSources(desk.ctx, parsed.reply), webSources(webResults))
+    const ids = await persistChatTurns(
+      admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
+    )
+    await runAfterPersist()
+
+    return json({
+      reply: parsed.reply,
+      action: executed,
+      suggests: parsed.suggests,
+      reasoning: reasoning || null,
+      sources,
+      ...ids,
+    })
+  } finally {
+    settlePrCall(admin, meter.claimId, meterOk, meterT0)
   }
-  if (!parsed || parsed.reply === '') {
-    return json({ error: 'Model returned no usable reply', code: 'unparseable' }, 502)
-  }
-
-  const screened = await screenReply(parsed)
-  parsed = screened.reply
-  if (screened.reasoning) reasoning += `\n\n${screened.reasoning}`
-
-  const executed = parsed.action
-    ? await executeChatAction(admin, userId, parsed.action, desk.campaigns)
-    : null
-  const sources = mergeSources(prChatSources(desk.ctx, parsed.reply), webSources(webResults))
-  const ids = await persistChatTurns(
-    admin, userId, message, parsed.reply, executed, threadId, reasoning, sources,
-  )
-  await runAfterPersist()
-
-  return json({
-    reply: parsed.reply,
-    action: executed,
-    suggests: parsed.suggests,
-    reasoning: reasoning || null,
-    sources,
-    ...ids,
-  })
 }
 
 /** Execute a whitelisted additive write on the caller's own rows. Nothing
@@ -576,7 +651,13 @@ async function executeChatAction(
         })
         .select('id')
         .single()
-      return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
+      return {
+        type: action.type,
+        detail: action.name,
+        ok: !error,
+        refId: data?.id,
+        wrote: { name: action.name, channel: action.channel ?? 'mixed', status: 'draft', objective: action.objective ?? '' },
+      }
     }
     case 'add_content_item': {
       /* Status is forced — chat can only file drafts, never publish. */
@@ -597,7 +678,20 @@ async function executeChatAction(
         })
         .select('id')
         .single()
-      return { type: action.type, detail: action.title, ok: !error, refId: data?.id }
+      return {
+        type: action.type,
+        detail: action.title,
+        ok: !error,
+        refId: data?.id,
+        wrote: {
+          campaign_id: campaignRef?.id ?? null,
+          kind: action.kind ?? 'post',
+          title: action.title,
+          body: action.body ?? '',
+          channel: action.channel ?? '',
+          status: 'draft',
+        },
+      }
     }
     case 'add_media_contact': {
       const { data, error } = await admin
@@ -612,38 +706,128 @@ async function executeChatAction(
         })
         .select('id')
         .single()
-      return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
+      return {
+        type: action.type,
+        detail: action.name,
+        ok: !error,
+        refId: data?.id,
+        wrote: {
+          name: action.name,
+          outlet: action.outlet ?? '',
+          beat: action.beat ?? '',
+          email: action.email ?? '',
+          note: action.note ?? '',
+        },
+      }
     }
     case 'add_mention': {
+      /* The url unique index makes a re-filed mention a 23505 — logged
+         coverage is a set too, so an existing row satisfies the request
+         (with no refId for undo, same as the keyword/prompt cases). */
+      const url = action.url ?? ''
+      if (url !== '') {
+        const { data: existing } = await admin
+          .from('pr_mentions')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('url', url)
+          .limit(1)
+        if (existing?.[0]) {
+          return { type: action.type, detail: action.title, ok: true }
+        }
+      }
       const { data, error } = await admin
         .from('pr_mentions')
         .insert({
           user_id: userId,
           title: action.title,
           source: action.source ?? '',
-          url: action.url ?? '',
+          url,
           sentiment: action.sentiment ?? 'neutral',
+          /* The tone word came from the model's action JSON, not a human
+             read — mark it auto like every other machine-suggested tone. */
+          sentiment_auto: true,
           published_at: new Date().toISOString(),
         })
         .select('id')
         .single()
-      return { type: action.type, detail: action.title, ok: !error, refId: data?.id }
+      if (error?.code === '23505') {
+        return { type: action.type, detail: action.title, ok: true }
+      }
+      return {
+        type: action.type,
+        detail: action.title,
+        ok: !error,
+        refId: data?.id,
+        wrote: { title: action.title, source: action.source ?? '', url, sentiment: action.sentiment ?? 'neutral' },
+      }
     }
     case 'add_keyword': {
+      /* Idempotent like add_geo_prompt — a tracked keyword that already
+         exists returns ok without a refId, so undo can't delete a row the
+         person filed themselves. */
+      const escaped = action.keyword.replace(/[\\%_]/g, (m) => `\\${m}`)
+      const { data: existing } = await admin
+        .from('pr_keywords')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('keyword', escaped)
+        .limit(1)
+      if (existing?.[0]) {
+        return { type: action.type, detail: action.keyword, ok: true }
+      }
       const { data, error } = await admin
         .from('pr_keywords')
         .insert({ user_id: userId, keyword: action.keyword, target_url: action.targetUrl ?? '' })
         .select('id')
         .single()
-      return { type: action.type, detail: action.keyword, ok: !error, refId: data?.id }
+      /* 23505 = a twin landed between the read and the insert — the intent
+         (one tracked keyword) is already satisfied. */
+      const violated = error?.code === '23505'
+      return {
+        type: action.type,
+        detail: action.keyword,
+        ok: violated ? true : !error,
+        refId: violated ? undefined : data?.id,
+        wrote: violated ? undefined : { keyword: action.keyword, target_url: action.targetUrl ?? '' },
+      }
     }
     case 'add_geo_prompt': {
+      /* Idempotent — re-asking Paige to track a question it already filed
+         returns the existing row instead of duplicating the prompt. ilike
+         gives a case-insensitive exact match; % and _ are escaped first. */
+      const escaped = action.prompt.replace(/[\\%_]/g, (m) => `\\${m}`)
+      const { data: existing } = await admin
+        .from('pr_geo_prompts')
+        .select('id')
+        .eq('user_id', userId)
+        .ilike('prompt', escaped)
+        .limit(1)
+      const found = existing?.[0]
+      if (found) {
+        /* No refId — undo must only ever delete a row THIS action created;
+           handing back a pre-existing id would let chat_undo destroy a
+           prompt the person filed themselves. */
+        return { type: action.type, detail: action.prompt, ok: true }
+      }
       const { data, error } = await admin
         .from('pr_geo_prompts')
         .insert({ user_id: userId, prompt: action.prompt, engine: action.engine ?? 'chatgpt' })
         .select('id')
         .single()
-      return { type: action.type, detail: action.prompt, ok: !error, refId: data?.id }
+      /* 23505 = the dedupe read lost a race to a twin insert — same as the
+         pre-check finding it: tracked already, and nothing this action
+         created, so no refId for undo. */
+      if (error?.code === '23505') {
+        return { type: action.type, detail: action.prompt, ok: true }
+      }
+      return {
+        type: action.type,
+        detail: action.prompt,
+        ok: !error,
+        refId: data?.id,
+        wrote: { prompt: action.prompt, engine: action.engine ?? 'chatgpt' },
+      }
     }
     case 'update_campaign_status': {
       /* The grammar's one non-additive action — it flips a status field on
@@ -662,11 +846,18 @@ async function executeChatAction(
       if (prevStatus === action.status) {
         /* Already there — nothing moved; still stamp prevStatus so an undo
            restores (harmlessly) rather than reporting "nothing to undo". */
-        return { type: action.type, detail: action.campaign, ok: true, refId: target.id, prevStatus }
+        return {
+          type: action.type,
+          detail: action.campaign,
+          ok: true,
+          refId: target.id,
+          prevStatus,
+          wrote: { status: action.status },
+        }
       }
       const { error } = await admin
         .from('pr_campaigns')
-        .update({ status: action.status })
+        .update({ status: action.status, updated_at: new Date().toISOString() })
         .eq('id', target.id)
         .eq('user_id', userId)
       return {
@@ -675,6 +866,7 @@ async function executeChatAction(
         ok: !error,
         refId: target.id,
         prevStatus,
+        wrote: { status: action.status },
       }
     }
   }
@@ -697,29 +889,94 @@ const ACTION_TABLE: Record<string, string> = {
 }
 
 /** Reverse one executed action: additive writes delete their row; a status
-    flip restores prevStatus. False when the action has nothing reversible. */
+    flip restores prevStatus. False when the action has nothing reversible —
+   including when the live row no longer matches what the action wrote —
+   or, for pre-`wrote` actions, what each table's own untouched signal
+   proves — because the person has edited it since and the row isn't ours
+   to clobber. */
 async function undoChatAction(
   admin: SupabaseClient,
   userId: string,
   action: ExecutedAction,
 ): Promise<boolean> {
+  const refId = action.refId
+  if (!refId) return false
+  /* 'same' → untouched, safe to reverse. 'edited' → the live row carries
+     someone's changes; undo must not destroy them. 'gone' → the write is
+     already reversed. 'unknown' → the read failed, so nothing is proven —
+     an additive undo must not claim "reversed" for a row it couldn't see. */
+  const rowState = async (
+    table: string,
+    intact: (row: Record<string, unknown>) => boolean,
+  ) => {
+    const { data: row, error } = await admin
+      .from(table)
+      .select('*')
+      .eq('id', refId)
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) return 'unknown' as const
+    if (!row) return 'gone' as const
+    return intact(row as Record<string, unknown>) ? ('same' as const) : ('edited' as const)
+  }
+
   if (action.type === 'update_campaign_status') {
-    if (typeof action.prevStatus !== 'string') return false
+    if (typeof action.prevStatus !== 'string' || action.wrote?.status == null) return false
+    const state = await rowState('pr_campaigns', (row) =>
+      rowMatchesWrote(row, { status: action.wrote?.status }),
+    )
+    /* The row moved again since (or can't be read) — restoring prevStatus
+       would erase the later change; a deleted row has no status to put back.
+       No `wrote` → no way to prove the row is still the action's own work. */
+    if (state !== 'same') return false
     const { error } = await admin
       .from('pr_campaigns')
-      .update({ status: action.prevStatus })
-      .eq('id', action.refId as string)
+      .update({ status: action.prevStatus, updated_at: new Date().toISOString() })
+      .eq('id', refId)
       .eq('user_id', userId)
     return !error
   }
   const table = ACTION_TABLE[action.type]
   if (!table) return false
+  /* An action persisted before `wrote` existed carries no snapshot — the
+     fallback is each table's own "never touched since" signal: mentions
+     and contacts are immutable post-insert (the portal has no update path
+     for them at all), and keywords/prompts/campaigns/content wear their
+     first use in fields the action didn't write. */
+  const intact = action.wrote
+    ? (row: Record<string, unknown>) => rowMatchesWrote(row, action.wrote as Record<string, unknown>)
+    : (LEGACY_UNTOUCHED[table] ?? (() => false))
+  const state = await rowState(table, intact)
+  if (state === 'edited' || state === 'unknown') return false
+  /* Already deleted — the reversal this undo exists to perform is done. */
+  if (state === 'gone') return true
   const { error } = await admin
     .from(table)
     .delete()
-    .eq('id', action.refId as string)
+    .eq('id', refId)
     .eq('user_id', userId)
   return !error
+}
+
+/* For actions persisted before `wrote` existed: true when the live row can
+   only be the action's own untouched write. Every ACTION_TABLE member must
+   appear — a missing table fails closed at the `?? (() => false)` above. */
+const LEGACY_UNTOUCHED: Record<string, (row: Record<string, unknown>) => boolean> = {
+  /* updated_at still equals created_at → nothing edited the row since the
+     action wrote it (every update path bumps updated_at). */
+  pr_campaigns: (r) => String(r.updated_at ?? '') === String(r.created_at ?? ''),
+  pr_content_items: (r) => String(r.updated_at ?? '') === String(r.created_at ?? ''),
+  /* Mentions and contacts have no client update path — an existing row is
+     untouched by construction. */
+  pr_media_contacts: () => true,
+  pr_mentions: () => true,
+  /* Chat files a bare keyword — position fields and checked_at stay null
+     until a real check runs. */
+  pr_keywords: (r) =>
+    r.position == null && r.previous_position == null && r.checked_at == null,
+  /* A check stamps result + checked_at together; 'unchecked' + no stamp is
+     the file-and-wait state the action left. */
+  pr_geo_prompts: (r) => (r.result ?? 'unchecked') === 'unchecked' && r.checked_at == null,
 }
 
 export async function runChatUndo(
@@ -818,6 +1075,11 @@ export async function runReact(
   const { found, keyResult } = route
   const desk = await loadDeskContext(admin, userId)
 
+  const meter = await claimPrCall(admin, userId, found)
+  if (meter instanceof Response) return meter
+  const meterT0 = Date.now()
+  let meterOk = false
+
   let upstream: Response
   try {
     upstream = await postChatCompletion(
@@ -833,12 +1095,16 @@ export async function runReact(
       UPSTREAM_TIMEOUT_MS,
     )
   } catch (e) {
+    settlePrCall(admin, meter.claimId, false, meterT0)
     return json(
       { error: `Upstream call failed: ${e instanceof Error ? e.message : 'timeout'}`, code: 'upstream' },
       502,
     )
   }
-  if (!upstream.ok) return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
+  if (!upstream.ok) {
+    settlePrCall(admin, meter.claimId, false, meterT0)
+    return json({ error: `Upstream returned ${upstream.status}`, code: 'upstream' }, 502)
+  }
 
   /* A flagged reaction goes straight to the fixed one-liner — no repair
      round for a two-sentence reply. The text buffers through the screen
@@ -860,6 +1126,7 @@ export async function runReact(
           return
         }
         const reply = screenText(draft)
+        meterOk = true
         sse.send({ type: 'delta', text: reply })
         const { data: row } = await admin
           .from('pr_chat_messages')
@@ -870,6 +1137,7 @@ export async function runReact(
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
       } finally {
+        settlePrCall(admin, meter.claimId, meterOk, meterT0)
         sse.close()
       }
     })()
@@ -878,7 +1146,10 @@ export async function runReact(
 
   const payload = (await upstream.json()) as { choices?: { message?: { content?: string } }[] }
   const draft = (payload.choices?.[0]?.message?.content ?? '').trim()
-  if (!draft) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  if (!draft) {
+    settlePrCall(admin, meter.claimId, false, meterT0)
+    return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  }
   const reply = screenText(draft)
 
   const { data: row } = await admin
@@ -886,5 +1157,6 @@ export async function runReact(
     .insert({ user_id: userId, role: 'assistant', content: reply })
     .select('id')
     .single()
+  settlePrCall(admin, meter.claimId, true, meterT0)
   return json({ reply, assistantId: row?.id ?? null })
 }
