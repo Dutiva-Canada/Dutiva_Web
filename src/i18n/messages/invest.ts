@@ -316,6 +316,12 @@ const investCoreMessages = defineMessages({
   invest_ov_cash: { en: 'Cash', fr: 'Encaisse' },
   invest_ov_open_signals: { en: 'Open signals', fr: 'Signaux ouverts' },
   invest_ov_last_run: { en: 'Last agent run', fr: 'Dernière exécution de l’agent' },
+  /* Tile qualifier — what kind of run the timestamp belongs to. A sweep
+     evaluated nothing (heartbeat); an evaluation ran a strategy. */
+  /* [FR self-authored] */
+  invest_ov_last_run_sweep: { en: 'sweep', fr: 'balayage' },
+  /* [FR self-authored] */
+  invest_ov_last_run_eval: { en: 'evaluation', fr: 'évaluation' },
   invest_ov_allocation: { en: 'Allocation by asset class', fr: 'Répartition par classe d’actifs' },
   invest_ov_recent_signals: { en: 'Latest signals', fr: 'Derniers signaux' },
   invest_ov_never_run: { en: 'Not run yet', fr: 'Jamais exécuté' },

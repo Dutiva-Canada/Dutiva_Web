@@ -401,12 +401,22 @@ export function InvestHomePage() {
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_last_run)}</p>
           <p className="v small" style={{ margin: '8px 0 0' }}>
-            {lastRun
-              ? new Date(lastRun.ranAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+            {lastRun ? (
+              <>
+                {new Date(lastRun.ranAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
                   dateStyle: 'medium',
                   timeStyle: 'short',
-                })
-              : x(IM.invest_ov_never_run)}
+                })}
+                {' · '}
+                {/* Sweep = heartbeat, nothing due; evaluation = a strategy
+                    actually ran — say which the timestamp belongs to. */}
+                <span className="dim">
+                  {x(lastRun.strategyId ? IM.invest_ov_last_run_eval : IM.invest_ov_last_run_sweep)}
+                </span>
+              </>
+            ) : (
+              x(IM.invest_ov_never_run)
+            )}
           </p>
         </div>
       </div>
