@@ -438,7 +438,7 @@ export function PublicSupportForm({ initialTopic }: { readonly initialTopic?: Su
         </button>
         <span className="text-[12.5px] text-text-3">
           {x(M.support_public_account_note)}{' '}
-          <Link to="/app/welcome" className="font-semibold text-gold-strong hover:opacity-80">
+          <Link to="/workspace/welcome" className="font-semibold text-gold-strong hover:opacity-80">
             {x(M.support_public_account_link)}
           </Link>
         </span>

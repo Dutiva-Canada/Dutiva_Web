@@ -2,7 +2,7 @@ import { defineMessages } from '../core'
 
 /**
  * Communications workspace chrome. These keys are workspace-scoped and used by
- * the new `/app/comms` feature area only.
+ * the new `/workspace/comms` feature area only.
  *
  * [FR self-authored — not from a design handoff; reviewed against the blueprint.]
  */

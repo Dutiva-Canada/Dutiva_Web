@@ -15,7 +15,10 @@ import { FlowRunner } from './FlowRunner'
  * because the wiring worth guarding is the wiring users hit.
  */
 const renderFlow = (slug = 'duty-to-accommodate') =>
-  renderApp(<FlowRunner />, { route: `/app/workflows/${slug}`, path: '/app/workflows/:slug' })
+  renderApp(<FlowRunner />, {
+    route: `/workspace/workflows/${slug}`,
+    path: '/workspace/workflows/:slug',
+  })
 
 describe('FlowRunner', () => {
   it('opens on the flow’s first step', () => {
@@ -44,7 +47,7 @@ describe('FlowRunner', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 3 weeks' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Termination letter/ })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t03',
+      '/workspace/documents/generate/tpl_t03',
     )
   })
 
@@ -95,11 +98,11 @@ describe('FlowRunner', () => {
        the file. */
     expect(screen.getByRole('link', { name: /Accommodation request response/ })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t22',
+      '/workspace/documents/generate/tpl_t22',
     )
     expect(screen.getByRole('link', { name: /Accommodation plan/ })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t23',
+      '/workspace/documents/generate/tpl_t23',
     )
   })
 
@@ -180,7 +183,7 @@ describe('FlowRunner', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'ESA floor: 2 weeks' })).toBeVisible()
     expect(screen.getByRole('link', { name: /Termination letter/i })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t03',
+      '/workspace/documents/generate/tpl_t03',
     )
   })
 
@@ -199,8 +202,8 @@ describe('FlowRunner', () => {
 describe('FlowRunner — a scored assessment', () => {
   const renderCheck = () =>
     renderApp(<FlowRunner />, {
-      route: '/app/workflows/psychological-safety-check',
-      path: '/app/workflows/:slug',
+      route: '/workspace/workflows/psychological-safety-check',
+      path: '/workspace/workflows/:slug',
     })
 
   /**
@@ -256,7 +259,7 @@ describe('FlowRunner — a scored assessment', () => {
     expect(t13).toBeDefined()
     expect(screen.getByRole('link', { name: new RegExp(t13!.name.en) })).toHaveAttribute(
       'href',
-      `/app/documents/generate/${t13!.id}`,
+      `/workspace/documents/generate/${t13!.id}`,
     )
   })
 

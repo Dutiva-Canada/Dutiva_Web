@@ -19,10 +19,10 @@ describe('useOpenCreateFormFromQuery', () => {
   it('opens the form when ?new=1 is present and strips the query', async () => {
     const { result } = renderHook(() => useOpenCreateFormFromQuery(true), {
       wrapper: ({ children }) => (
-        <MemoryRouter initialEntries={['/app/employees?new=1']}>
+        <MemoryRouter initialEntries={['/workspace/employees?new=1']}>
           <Routes>
             <Route
-              path="/app/employees"
+              path="/workspace/employees"
               element={
                 <>
                   {children}
@@ -38,16 +38,16 @@ describe('useOpenCreateFormFromQuery', () => {
     await waitFor(() => {
       expect(result.current.formOpen).toBe(true)
     })
-    expect(screen.getByTestId('search')).toHaveTextContent('/app/employees')
+    expect(screen.getByTestId('search')).toHaveTextContent('/workspace/employees')
     expect(screen.getByTestId('search').textContent).not.toContain('new=1')
   })
 
   it('does not open when enabled is false', async () => {
     const { result } = renderHook(() => useOpenCreateFormFromQuery(false), {
       wrapper: ({ children }) => (
-        <MemoryRouter initialEntries={['/app/employees?new=1']}>
+        <MemoryRouter initialEntries={['/workspace/employees?new=1']}>
           <Routes>
-            <Route path="/app/employees" element={children} />
+            <Route path="/workspace/employees" element={children} />
           </Routes>
         </MemoryRouter>
       ),
@@ -63,7 +63,7 @@ describe('useOpenCreateFormFromQuery via renderApp', () => {
       const { formOpen } = useOpenCreateFormFromQuery(true)
       return <div>{formOpen ? 'open' : 'closed'}</div>
     }
-    renderApp(<Probe />, { route: '/app/employees' })
+    renderApp(<Probe />, { route: '/workspace/employees' })
     expect(screen.getByText('closed')).toBeInTheDocument()
   })
 })

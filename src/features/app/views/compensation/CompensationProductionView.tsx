@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Banknote, Lock, Pencil, Plus, Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { useI18n } from '@/i18n/context'
 import { compensationMessages as M } from '@/i18n/messages/compensation'
 import { money } from '@/lib/money'

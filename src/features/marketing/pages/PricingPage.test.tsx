@@ -115,15 +115,15 @@ describe('PricingPage', () => {
     )
     expect(screen.getByRole('link', { name: /Sign in to continue — Starter/ })).toHaveAttribute(
       'href',
-      '/app/welcome',
+      '/workspace/welcome',
     )
     expect(screen.getByRole('link', { name: /Sign in to continue — Growth/ })).toHaveAttribute(
       'href',
-      '/app/welcome',
+      '/workspace/welcome',
     )
     expect(
       screen.getByRole('link', { name: /Sign in to continue — Professional/ }),
-    ).toHaveAttribute('href', '/app/welcome')
+    ).toHaveAttribute('href', '/workspace/welcome')
   })
 
   it('shows a success card with plan name and workspace link for a Stripe return', () => {
@@ -137,7 +137,7 @@ describe('PricingPage', () => {
     expect(card.querySelector('.badge')!.textContent).toBe('Growth')
     /* A CTA links the user back to their workspace. */
     const workspaceLink = screen.getByRole('link', { name: /go to your workspace/i })
-    expect(workspaceLink).toHaveAttribute('href', '/app/welcome')
+    expect(workspaceLink).toHaveAttribute('href', '/workspace/welcome')
   })
 
   it('shows a plain success notice when no plan param is present', () => {

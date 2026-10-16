@@ -25,7 +25,7 @@ function setup() {
         }}
       />
     </DoclibProvider>,
-    { route: '/app/documents', path: '/app/documents' },
+    { route: '/workspace/documents', path: '/workspace/documents' },
   )
   return { get: () => captured }
 }

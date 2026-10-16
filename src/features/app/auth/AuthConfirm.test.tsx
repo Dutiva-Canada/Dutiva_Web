@@ -26,11 +26,11 @@ afterEach(() => {
 function renderAt(search: string) {
   render(
     <LangProvider>
-      <MemoryRouter initialEntries={[`/app/auth/confirm${search}`]}>
+      <MemoryRouter initialEntries={[`/workspace/auth/confirm${search}`]}>
         <Routes>
-          <Route path="/app/auth/confirm" element={<AuthConfirm />} />
-          <Route path="/app/home" element={<div>WORKSPACE HOME</div>} />
-          <Route path="/app/welcome" element={<div>WELCOME</div>} />
+          <Route path="/workspace/auth/confirm" element={<AuthConfirm />} />
+          <Route path="/workspace/home" element={<div>WORKSPACE HOME</div>} />
+          <Route path="/workspace/welcome" element={<div>WELCOME</div>} />
           <Route path="/careers/portal" element={<div>CANDIDATE PORTAL</div>} />
         </Routes>
       </MemoryRouter>

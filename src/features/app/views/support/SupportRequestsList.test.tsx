@@ -29,7 +29,7 @@ describe('SupportRequestsList', () => {
     expect(await screen.findByText(/haven’t sent any support requests/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /send your first request/i })).toHaveAttribute(
       'href',
-      '/app/support',
+      '/workspace/support',
     )
   })
 
@@ -51,7 +51,7 @@ describe('SupportRequestsList', () => {
     expect(screen.getByText(/DUT-2026-000001/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Cannot generate a document/i })).toHaveAttribute(
       'href',
-      '/app/support/requests/t1',
+      '/workspace/support/requests/t1',
     )
   })
 

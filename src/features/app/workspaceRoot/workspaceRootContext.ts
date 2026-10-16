@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { NavigateOptions, To } from 'react-router-dom'
 
-export type WorkspaceRoot = '/app' | '/demo' | '/fr/demo'
+export type WorkspaceRoot = '/workspace' | '/demo' | '/fr/demo'
 
 interface WorkspaceRootContextValue {
   root: WorkspaceRoot
@@ -13,7 +13,7 @@ interface WorkspaceRootContextValue {
 }
 
 const DEFAULT_ROOT: WorkspaceRootContextValue = {
-  root: '/app',
+  root: '/workspace',
   isPublicDemo: false,
   readOnly: false,
 }
@@ -24,25 +24,32 @@ export function useWorkspaceRoot(): WorkspaceRootContextValue {
   return useContext(WorkspaceRootContext)
 }
 
-/** `/app/home` or `/demo/workflows/statutory-notice-ontario` from a suffix. */
+/** `/workspace/home` or `/demo/workflows/statutory-notice-ontario` from a suffix. */
 export function workspacePath(root: WorkspaceRoot, suffix: string): string {
   const clean = suffix.replace(/^\//, '')
   return `${root}/${clean}`
 }
 
-/** Strip `/app`, `/demo`, or `/fr/demo` prefix for segment parsing. */
+/** Strip `/workspace`, `/demo`, `/fr/demo` (or legacy `/app`) prefix for
+    segment parsing. */
 export function workspaceSegments(pathname: string): string[] {
   return pathname
-    .replace(/^\/(?:app|demo|fr\/demo)\/?/, '')
+    .replace(/^\/(?:app|workspace|demo|fr\/demo)\/?/, '')
     .split('/')
     .filter(Boolean)
 }
 
-/** Rewrite hardcoded /app paths when rendering inside /demo. `/app/welcome`
-    stays put — the sign-in gate lives only there; that hop is the intended
-    conversion, and `/demo/welcome` does not exist. */
+/** Canonical internal link targets keep the `/app/…` spelling — a virtual
+    prefix rewriteAppPath maps onto the active root: `/workspace` in the
+    signed-in product, `/demo`/`/fr/demo` in the public preview. The sign-in
+    gate and magic-link landing are the exception: they exist only on the
+    production root, so `/app/welcome` and `/app/auth/*` always land on
+    `/workspace` even from inside the demo. */
 export function rewriteAppPath(path: string, root: WorkspaceRoot): string {
-  if (root === '/app' || !path.startsWith('/app/') || path.startsWith('/app/welcome')) return path
+  if (!path.startsWith('/app/')) return path
+  if (path.startsWith('/app/welcome') || path.startsWith('/app/auth/')) {
+    return path.replace(/^\/app/, '/workspace')
+  }
   return path.replace(/^\/app/, root)
 }
 

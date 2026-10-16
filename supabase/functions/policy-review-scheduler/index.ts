@@ -10,7 +10,9 @@ import { secretEquals } from '../_shared/secretEqual.ts'
  * Scheduled by trigger_policy_review_scheduler() (migration 0117).
  */
 
-const CORS = { allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret' }
+const CORS = {
+  allowHeaders: 'authorization, x-client-info, apikey, content-type, x-trigger-secret',
+}
 const corsHeaders = makeCorsHeaders(CORS)
 
 function json(body: unknown, status = 200) {
@@ -25,7 +27,8 @@ const CRON_LOCK_TTL_SECONDS = 300
 
 function isAuthorizedTrigger(req: Request): boolean {
   const sharedSecret = Deno.env.get('SUPPORT_NOTIFY_SECRET') ?? ''
-  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret)) return true
+  if (sharedSecret !== '' && secretEquals(req.headers.get('x-trigger-secret') ?? '', sharedSecret))
+    return true
 
   const auth = req.headers.get('Authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return false
@@ -34,7 +37,10 @@ function isAuthorizedTrigger(req: Request): boolean {
 
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? ''
-  return (serviceKey !== '' && secretEquals(token, serviceKey)) || (secretKey !== '' && secretEquals(token, secretKey))
+  return (
+    (serviceKey !== '' && secretEquals(token, serviceKey)) ||
+    (secretKey !== '' && secretEquals(token, secretKey))
+  )
 }
 
 function policyReminderEmail(input: {
@@ -149,7 +155,7 @@ const handler = async (req: Request) => {
     const message = policyReminderEmail({
       organizationName,
       policyNames,
-      policiesUrl: `${siteUrl}/app/policies`,
+      policiesUrl: `${siteUrl}/workspace/policies`,
     })
 
     try {

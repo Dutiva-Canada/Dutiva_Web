@@ -23,7 +23,7 @@ function renderWorkflows() {
       <WorkflowsView />
       <LocationProbe />
     </>,
-    { route: '/app/workflows' },
+    { route: '/workspace/workflows' },
   )
 }
 
@@ -36,7 +36,7 @@ describe('WorkflowsView', () => {
       expect(
         screen.getByRole('link', { name: new RegExp(flow.summary.en.slice(0, 40), 's') }),
         flow.slug,
-      ).toHaveAttribute('href', `/app/workflows/${flow.slug}`)
+      ).toHaveAttribute('href', `/workspace/workflows/${flow.slug}`)
     }
   })
 
@@ -45,7 +45,9 @@ describe('WorkflowsView', () => {
     renderWorkflows()
     const tile = screen.getByRole('button', { name: /^Leave/ })
     await user.click(tile)
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/leave-of-absence')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/workspace/workflows/leave-of-absence',
+    )
   })
 
   it('routes the accommodation catalogue tile to the flow, not the Advisor', async () => {
@@ -55,7 +57,9 @@ describe('WorkflowsView', () => {
        Accommodation row is a separate button. */
     const tile = screen.getByRole('button', { name: /Accommodation\s*Guided/ })
     await user.click(tile)
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/duty-to-accommodate')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/workspace/workflows/duty-to-accommodate',
+    )
   })
 
   it('renders the header, in-flight rows, flagship map, and catalog', () => {
@@ -120,7 +124,7 @@ describe('WorkflowsView', () => {
 
     /* The whole in-flight row is the button; 'Continue' is its styled affordance. */
     await user.click(screen.getByRole('button', { name: /Jordan Mensah · Ontario/ }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/cases/case1')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/cases/case1')
   })
 
   it('continues the hiring workflow into its Advisor thread (chatId state)', async () => {
@@ -128,7 +132,7 @@ describe('WorkflowsView', () => {
     renderWorkflows()
 
     await user.click(screen.getByRole('button', { name: /Senior Analyst · Ontario/ }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/advisor')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/advisor')
     expect(screen.getByTestId('state')).toHaveTextContent('{"chatId":"c2"}')
   })
 
@@ -137,7 +141,7 @@ describe('WorkflowsView', () => {
     renderWorkflows()
 
     await user.click(screen.getByRole('button', { name: 'Investigation Intake → findings' }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/advisor')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/advisor')
   })
 
   it('renders the prototype French strings when the language is FR', async () => {
@@ -174,7 +178,7 @@ describe('WorkflowsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { WorkflowsView: View } = await import('./WorkflowsView')
 
-    renderFresh(<View />, { route: '/app/workflows', path: '/app/workflows' })
+    renderFresh(<View />, { route: '/workspace/workflows', path: '/workspace/workflows' })
 
     /* Anchor on the production-only copy first: the workspace-resolution
        pass swaps the demo fixtures for the production view async, and under
@@ -206,7 +210,7 @@ describe('WorkflowsView in production mode', () => {
       </>,
       /* '*' keeps the probe mounted after the tile navigates away from
          /app/workflows — an exact path would unmount it mid-assertion. */
-      { route: '/app/workflows', path: '*' },
+      { route: '/workspace/workflows', path: '*' },
     )
 
     /* Wait for the production pass to settle first — grabbing the tile while
@@ -216,6 +220,8 @@ describe('WorkflowsView in production mode', () => {
 
     /* Leave carries a flowSlug — the real guided-flow runner. */
     await user.setup().click(screen.getByRole('button', { name: /^Leave/ }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/workflows/leave-of-absence')
+    expect(screen.getByTestId('pathname')).toHaveTextContent(
+      '/workspace/workflows/leave-of-absence',
+    )
   })
 })

@@ -32,7 +32,7 @@ const renderStudio = () =>
       <StudioScreen />
       <AdvisorRail />
     </DoclibProvider>,
-    { route: '/app/documents/studio', path: '/app/documents/studio' },
+    { route: '/workspace/documents/studio', path: '/workspace/documents/studio' },
   )
 
 describe('StudioScreen', () => {
@@ -89,7 +89,9 @@ describe('StudioScreen', () => {
 
   it('maps review level and opens Advisor with safe template context', async () => {
     renderStudio()
-    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText(
+      'Offer of employment letter',
+    )
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -107,7 +109,9 @@ describe('StudioScreen', () => {
 
   it('updates the detail panel when a template is selected', async () => {
     renderStudio()
-    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText(
+      'Offer of employment letter',
+    )
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -121,17 +125,19 @@ describe('StudioScreen', () => {
     ).toBeInTheDocument()
     expect(within(detail).getByRole('link', { name: 'Create document' })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t05',
+      '/workspace/documents/generate/tpl_t05',
     )
     expect(within(detail).getByRole('link', { name: 'Preview full template' })).toHaveAttribute(
       'href',
-      '/app/documents/templates/T05',
+      '/workspace/documents/templates/T05',
     )
   })
 
   it('reselects deterministically when filters remove the current template', async () => {
     renderStudio()
-    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Offer of employment letter')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText(
+      'Offer of employment letter',
+    )
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -155,7 +161,9 @@ describe('StudioScreen', () => {
 
   it('shows Required in the detail panel only when the size trigger fires', async () => {
     renderStudio()
-    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText('Group termination notice')
+    await within(await screen.findByRole('listbox', { name: 'Templates' })).findByText(
+      'Group termination notice',
+    )
 
     fireEvent.click(
       within(screen.getByRole('listbox')).getByRole('option', {
@@ -183,12 +191,12 @@ describe('DocumentsLayout tabs', () => {
   it('shows Templates and My documents with correct selected state', async () => {
     renderApp(
       <Routes>
-        <Route path="/app/documents" element={<DocumentsLayout />}>
+        <Route path="/workspace/documents" element={<DocumentsLayout />}>
           <Route index element={<div>My documents body</div>} />
           <Route path="studio" element={<StudioScreen />} />
         </Route>
       </Routes>,
-      { route: '/app/documents/studio', path: '*' },
+      { route: '/workspace/documents/studio', path: '*' },
     )
 
     const templatesTab = await screen.findByRole('link', { name: 'Templates' })

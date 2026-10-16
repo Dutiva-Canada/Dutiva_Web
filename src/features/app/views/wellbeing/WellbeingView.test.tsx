@@ -19,7 +19,7 @@ function renderView() {
       <AdvisorRail />
       <LocationProbe />
     </>,
-    { route: '/app/wellbeing' },
+    { route: '/workspace/wellbeing' },
   )
 }
 
@@ -86,7 +86,7 @@ describe('WellbeingView', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Draft a check-in message' }))
     })
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/communications')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/communications')
   })
 
   it('routes team-level signals straight to Communications', () => {
@@ -98,7 +98,7 @@ describe('WellbeingView', () => {
     expect(teamDraft).toBeDefined()
     fireEvent.click(teamDraft as HTMLElement)
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/communications')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/communications')
   })
 })
 
@@ -158,7 +158,7 @@ describe('WellbeingView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { WellbeingView: View } = await import('./WellbeingView')
 
-    renderFresh(<View />, { route: '/app/wellbeing', path: '/app/wellbeing' })
+    renderFresh(<View />, { route: '/workspace/wellbeing', path: '/workspace/wellbeing' })
 
     expect(await screen.findByText('Employee assistance programme')).toBeInTheDocument()
     expect(screen.getByText('1 initiative')).toBeInTheDocument()
@@ -177,7 +177,7 @@ describe('WellbeingView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { WellbeingView: View } = await import('./WellbeingView')
 
-    renderFresh(<View />, { route: '/app/wellbeing', path: '/app/wellbeing' })
+    renderFresh(<View />, { route: '/workspace/wellbeing', path: '/workspace/wellbeing' })
     await screen.findByText('Employee assistance programme')
 
     /* Fixture people and the signal vocabulary are both gone. */
@@ -197,7 +197,7 @@ describe('WellbeingView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { WellbeingView: View } = await import('./WellbeingView')
 
-    renderFresh(<View />, { route: '/app/wellbeing', path: '/app/wellbeing' })
+    renderFresh(<View />, { route: '/workspace/wellbeing', path: '/workspace/wellbeing' })
 
     expect(await screen.findByText('No initiatives recorded yet')).toBeInTheDocument()
 
@@ -233,7 +233,7 @@ describe('WellbeingView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { WellbeingView: View } = await import('./WellbeingView')
 
-    renderFresh(<View />, { route: '/app/wellbeing', path: '/app/wellbeing' })
+    renderFresh(<View />, { route: '/workspace/wellbeing', path: '/workspace/wellbeing' })
     await screen.findByText('Employee assistance programme')
 
     expect(screen.getByText('Support signals')).toBeInTheDocument()

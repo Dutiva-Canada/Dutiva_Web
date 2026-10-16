@@ -10,7 +10,7 @@ function renderProfile(employeeId = 'e1') {
       <EmployeeProfileView />
       <DocStudioOverlay />
     </>,
-    { route: `/app/employees/${employeeId}`, path: '/app/employees/:employeeId' },
+    { route: `/workspace/employees/${employeeId}`, path: '/workspace/employees/:employeeId' },
   )
 }
 

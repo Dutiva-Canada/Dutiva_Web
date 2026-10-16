@@ -50,6 +50,9 @@ export function registerServiceWorker(): void {
  *  - `reloaded` latch: one reload per page load, so it can never loop.
  */
 const NO_TAKEOVER_RELOAD = [
+  '/workspace',
+  /* Same both-spellings rule as /health: /app redirects client-side, but a
+     client sitting on the old URL still holds drafts worth protecting. */
   '/app',
   '/invest',
   /* Both spellings — /health redirects client-side now, but a client

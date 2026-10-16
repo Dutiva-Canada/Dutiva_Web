@@ -126,7 +126,7 @@ export function DocumentDetailProductionView() {
     return (
       <div className="px-[18px] py-[24px]">
         <Link
-          to="/app/documents"
+          to="/workspace/documents"
           className="mb-4 inline-flex items-center gap-1 text-[13px] font-semibold text-text-muted hover:text-text"
         >
           <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" />
@@ -405,7 +405,7 @@ export function DocumentDetailProductionView() {
   return (
     <div className="px-[18px] pb-[48px] pt-[8px] max-[640px]:px-[12px]">
       <Link
-        to="/app/documents"
+        to="/workspace/documents"
         className="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-text-muted hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={1.8} aria-hidden="true" />

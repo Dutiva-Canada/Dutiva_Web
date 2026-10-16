@@ -5,7 +5,7 @@ import { Topbar } from './Topbar'
 
 describe('Topbar', () => {
   it('renders the route title and workspace controls', () => {
-    renderApp(<Topbar title="Home" />, { route: '/app/home' })
+    renderApp(<Topbar title="Home" />, { route: '/workspace/home' })
 
     expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ask Advisor' })).toBeInTheDocument()
@@ -14,13 +14,13 @@ describe('Topbar', () => {
   })
 
   it('hides Ask Advisor on the advisor route', () => {
-    renderApp(<Topbar title="AI Advisor" />, { route: '/app/advisor' })
+    renderApp(<Topbar title="AI Advisor" />, { route: '/workspace/advisor' })
 
     expect(screen.queryByRole('button', { name: 'Ask Advisor' })).not.toBeInTheDocument()
   })
 
   it('opens demo notifications and marks all read', () => {
-    renderApp(<Topbar title="Home" />, { route: '/app/home' })
+    renderApp(<Topbar title="Home" />, { route: '/workspace/home' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Notifications' }))
     expect(screen.getByRole('dialog', { name: 'Notifications' })).toBeInTheDocument()

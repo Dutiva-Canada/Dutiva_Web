@@ -11,7 +11,7 @@ const noop = () => {}
 function renderWorkspace(props: Partial<React.ComponentProps<typeof ComplianceWorkspace>>) {
   return renderApp(
     <ComplianceWorkspace state={{ kind: 'idle' }} open={true} onClose={noop} {...props} />,
-    { route: '/app/advisor' },
+    { route: '/workspace/advisor' },
   )
 }
 

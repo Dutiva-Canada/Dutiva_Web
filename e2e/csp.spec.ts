@@ -46,7 +46,7 @@ test.describe('content security policy', () => {
   test('app welcome shell loads without CSP violations', async ({ page }) => {
     const { cspViolations, pageErrors } = attachCspListeners(page)
 
-    const response = await page.goto('/app/welcome')
+    const response = await page.goto('/workspace/welcome')
     expect(response?.status()).toBe(200)
     await expect(page.locator('#root')).not.toBeEmpty()
 

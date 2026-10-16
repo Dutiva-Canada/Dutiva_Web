@@ -72,7 +72,7 @@ export function DemoTourRail() {
             {x(M.demo_tour_eyebrow)}
           </p>
           <Link
-            to="/app/welcome"
+            to="/workspace/welcome"
             className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-gold-strong transition-opacity hover:opacity-80"
           >
             {x(M.demo_tour_signin)}

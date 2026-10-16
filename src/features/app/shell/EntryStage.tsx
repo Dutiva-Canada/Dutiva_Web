@@ -11,7 +11,7 @@ import { peekPendingCheckout } from '@/features/app/billing/pendingCheckout'
 import { AuthPanel } from '@/features/app/auth/AuthPanel'
 import { LangToggle, ThemeToggle } from './ShellControls'
 
-/** Where an unauthorized visit to /app/* wanted to end up (see RequireAdminSession). */
+/** Where an unauthorized visit to /workspace/* wanted to end up (see RequireAdminSession). */
 interface EntryLocationState {
   from?: { pathname: string }
 }
@@ -118,7 +118,7 @@ function EnterWorkspaceCard() {
         {x(M.auth_welcome_sub)}
       </p>
       <Link
-        to="/app/home"
+        to="/workspace/home"
         className="flex h-11.5 w-full items-center justify-center rounded-[11px] bg-navy text-[14px] font-semibold text-white"
       >
         {x(M.auth_enter_workspace)}
@@ -166,7 +166,7 @@ function FormColumn({ children }: { readonly children: ReactNode }) {
 }
 
 /**
- * App entry stage (/app/welcome) — the dedicated sign in / sign up page. A
+ * App entry stage (/workspace/welcome) — the dedicated sign in / sign up page. A
  * two-panel layout: a dark navy brand rail (hidden below `lg`) beside the
  * auth form. With Supabase configured the workspace is gated — invite-only,
  * for the admin account or anyone on the beta list (see
@@ -195,7 +195,7 @@ export function EntryStage() {
   useEffect(() => {
     if (!authorized) return
     const from = (location.state as EntryLocationState | null)?.from
-    navigate(from?.pathname ?? '/app/home', { replace: true })
+    navigate(from?.pathname ?? '/workspace/home', { replace: true })
   }, [authorized, location.state, navigate])
 
   useEffect(() => {

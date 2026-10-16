@@ -7,7 +7,7 @@ import { fillProgress, templateTokens } from '../engine'
 import { templateByTid } from '../data'
 import { GenerateScreen } from './GenerateScreen'
 
-const PATH = '/app/documents/generate/:templateId'
+const PATH = '/workspace/documents/generate/:templateId'
 
 function LocationProbe() {
   const location = useLocation()
@@ -28,9 +28,9 @@ const renderWizard = (templateId: string) =>
           </>
         }
       />
-      <Route path="/app/documents" element={<div>Repository landing</div>} />
+      <Route path="/workspace/documents" element={<div>Repository landing</div>} />
     </Routes>,
-    { route: `/app/documents/generate/${templateId}`, path: '*' },
+    { route: `/workspace/documents/generate/${templateId}`, path: '*' },
   )
 
 /**

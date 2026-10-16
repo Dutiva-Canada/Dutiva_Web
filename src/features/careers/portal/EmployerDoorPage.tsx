@@ -80,10 +80,10 @@ export function EmployerDoorPage() {
         if (session) await saveStoredMode(session.user.id, 'production')
         /* The workspace gate (RequireAdminSession → authorized) evaluated at
            sign-in, before this org existed — re-check now that the membership
-           is real so the navigation doesn't bounce to /app/welcome. */
+           is real so the navigation doesn't bounce to /workspace/welcome. */
         await refreshAuthorization()
         showToast(M.careers_employer_created, 'ok')
-        navigate('/app/home')
+        navigate('/workspace/home')
         return
       }
       setCreateError(result.status === 'capacity' ? 'capacity' : result.status)
@@ -101,7 +101,7 @@ export function EmployerDoorPage() {
        hold the sign-in-time `authorized=false` verdict. */
     if (session) await saveStoredMode(session.user.id, 'production')
     await refreshAuthorization()
-    navigate('/app/home')
+    navigate('/workspace/home')
   }
 
   return (
@@ -188,7 +188,11 @@ export function EmployerDoorPage() {
                 )}
               </p>
             )}
-            <button type="submit" disabled={creating || !orgName.trim()} className={primaryBtnClass}>
+            <button
+              type="submit"
+              disabled={creating || !orgName.trim()}
+              className={primaryBtnClass}
+            >
               {creating && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
               {creating ? x(M.careers_employer_creating) : x(M.careers_employer_create_cta)}
             </button>

@@ -11,6 +11,8 @@
     },
     { "source": "/app", "destination": "/app.html" },
     { "source": "/app/:path*", "destination": "/app.html" },
+    { "source": "/workspace", "destination": "/app.html" },
+    { "source": "/workspace/:path*", "destination": "/app.html" },
     { "source": "/demo/:path+", "destination": "/app.html" },
     { "source": "/fr/demo/:path+", "destination": "/app.html" },
     { "source": "/careers/:path+", "destination": "/index.html" },
@@ -93,6 +95,14 @@
     },
     {
       "source": "/app",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/workspace/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/workspace",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     },
     {

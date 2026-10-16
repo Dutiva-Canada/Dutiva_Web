@@ -12,8 +12,8 @@ import { TemplatesView } from './TemplatesView'
 describe('TemplatesView', () => {
   it('renders one gallery tile per fixture template with title and category', () => {
     renderApp(<TemplatesView />, {
-      route: '/app/documents/hr-library',
-      path: '/app/documents/hr-library',
+      route: '/workspace/documents/hr-library',
+      path: '/workspace/documents/hr-library',
     })
 
     expect(
@@ -31,7 +31,7 @@ describe('TemplatesView', () => {
         <TemplatesView />
         <DocStudioOverlay />
       </>,
-      { route: '/app/documents/hr-library', path: '/app/documents/hr-library' },
+      { route: '/workspace/documents/hr-library', path: '/workspace/documents/hr-library' },
     )
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
@@ -50,13 +50,13 @@ describe('TemplatesView', () => {
         <LangProvider>
           <MemoryRouter
             initialEntries={[
-              { pathname: '/app/documents/hr-library', state: { docKey: 'Offer Letter' } },
+              { pathname: '/workspace/documents/hr-library', state: { docKey: 'Offer Letter' } },
             ]}
           >
             <AppProviders>
               <Routes>
                 <Route
-                  path="/app/documents/hr-library"
+                  path="/workspace/documents/hr-library"
                   element={
                     <>
                       <TemplatesView />

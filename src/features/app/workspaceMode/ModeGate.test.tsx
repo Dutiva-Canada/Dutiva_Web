@@ -20,7 +20,7 @@ describe('ModeGate', () => {
       <ModeGate>
         <div data-testid="fixture-view">Northgate fixture content</div>
       </ModeGate>,
-      { route: '/app/cases', path: '/app/cases' },
+      { route: '/workspace/cases', path: '/workspace/cases' },
     )
 
     expect(screen.getByTestId('fixture-view')).toBeInTheDocument()
@@ -40,7 +40,7 @@ describe('ModeGate', () => {
       <ModeGateFresh>
         <div data-testid="fixture-view">Northgate fixture content</div>
       </ModeGateFresh>,
-      { route: '/app/cases', path: '/app/cases' },
+      { route: '/workspace/cases', path: '/workspace/cases' },
     )
 
     /* Empty state, titled with the module's own label. */

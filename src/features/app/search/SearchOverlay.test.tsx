@@ -42,7 +42,7 @@ function renderHarness() {
       <AuthProvider>
         <WorkspaceModeProvider>
           <SearchProvider>
-            <MemoryRouter initialEntries={['/app/home']}>
+            <MemoryRouter initialEntries={['/workspace/home']}>
               <OpenTrigger />
               <SearchOverlay />
               <LocationProbe />
@@ -159,7 +159,7 @@ describe('SearchOverlay', () => {
 
     await user.keyboard('Priya')
     await user.keyboard('{Enter}')
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/employees/e2')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/employees/e2')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
@@ -172,7 +172,7 @@ describe('SearchOverlay', () => {
     await user.keyboard('Jordan')
     await user.keyboard('{ArrowDown}')
     await user.keyboard('{Enter}')
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/cases/case1')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/cases/case1')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
@@ -183,7 +183,7 @@ describe('SearchOverlay', () => {
 
     await user.keyboard('policy refresh')
     await user.keyboard('{Enter}')
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/advisor')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/advisor')
     expect(screen.getByTestId('state')).toHaveTextContent('{"chatId":"c3"}')
   })
 
@@ -194,7 +194,7 @@ describe('SearchOverlay', () => {
 
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/home')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/home')
     expect(screen.getByRole('button', { name: 'open-search' })).toHaveFocus()
   })
 
@@ -264,7 +264,7 @@ describe('SearchOverlay in production mode', () => {
         <Auth>
           <Wsm>
             <Search>
-              <MemoryRouter initialEntries={['/app/home']}>
+              <MemoryRouter initialEntries={['/workspace/home']}>
                 <ProductionOpenTrigger />
                 <Overlay />
               </MemoryRouter>

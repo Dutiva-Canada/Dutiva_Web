@@ -19,7 +19,7 @@ function isEmailOtpType(value: string | null): value is EmailOtpType {
 }
 
 /**
- * Magic-link landing route (/app/auth/confirm). The sign-in email links here
+ * Magic-link landing route (/workspace/auth/confirm). The sign-in email links here
  * with a `token_hash` (and `type`) in the query string; we exchange it for a
  * session with verifyOtp, then enter the workspace.
  *
@@ -49,7 +49,7 @@ function isEmailOtpType(value: string | null): value is EmailOtpType {
  * Requires the Supabase email template to point here, e.g.
  *   {{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=magiclink
  * (RedirectTo is the emailRedirectTo set in AuthProvider — the current origin's
- * /app/auth/confirm). See docs/AUTH_EMAIL_TEMPLATES.md.
+ * /workspace/auth/confirm). See docs/AUTH_EMAIL_TEMPLATES.md.
  */
 export function AuthConfirm() {
   const { x } = useI18n()
@@ -65,14 +65,14 @@ export function AuthConfirm() {
   /* `?next=` is the surface the sign-in started from (e.g. the candidate
      portal passes /careers/portal). Validated to root-relative only; anything
      else falls back to the workspace home. */
-  const destination = safeNextPath(params.get('next')) ?? '/app/home'
+  const destination = safeNextPath(params.get('next')) ?? '/workspace/home'
 
   useEffect(() => {
     if (ran.current) return
     ran.current = true
 
     if (!supabase) {
-      navigate('/app/welcome', { replace: true })
+      navigate('/workspace/welcome', { replace: true })
       return
     }
     const client = supabase
@@ -154,7 +154,7 @@ export function AuthConfirm() {
             </h1>
             <p className="m-0 text-[13.5px] text-text-muted">{x(M.auth_confirm_error_body)}</p>
             <Link
-              to={destination === '/app/home' ? '/app/welcome' : destination}
+              to={destination === '/workspace/home' ? '/workspace/welcome' : destination}
               className="self-center rounded-[8px] bg-navy px-[16px] py-[9px] text-[13.5px] font-semibold text-white"
             >
               {x(M.auth_confirm_retry)}

@@ -3,6 +3,7 @@ import type { Bi } from '@/i18n/core'
 import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceContext } from '@/features/app/workspaceContext/workspaceContextStore'
+import { workspaceSegments } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 /**
  * "Advisor mode" module banner — prototype `moduleContext` (markup 328–333,
@@ -24,7 +25,7 @@ export function ModuleContextBanner() {
   const { pathname } = useLocation()
   const { context } = useWorkspaceContext()
 
-  const parts = pathname.replace(/^\/app\/?/, '').split('/')
+  const parts = workspaceSegments(pathname)
   const segment = parts[0] ?? ''
   /* Prototype: module banner only without a pinned workspace context and
      without an active case (list, not detail). */

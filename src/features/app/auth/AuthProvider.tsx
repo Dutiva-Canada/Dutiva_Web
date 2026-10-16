@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
            visitor to the surface they signed in from (the candidate portal)
            rather than always entering the workspace. */
         options: {
-          emailRedirectTo: `${window.location.origin}/app/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ''}`,
+          emailRedirectTo: `${window.location.origin}/workspace/auth/confirm${next ? `?next=${encodeURIComponent(next)}` : ''}`,
           ...(name ? { data: { full_name: name } } : {}),
         },
       })
@@ -182,15 +182,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       signOut,
       refreshAuthorization,
     }),
-    [
-      status,
-      session,
-      authorized,
-      signInWithEmail,
-      verifyEmailCode,
-      signOut,
-      refreshAuthorization,
-    ],
+    [status, session, authorized, signInWithEmail, verifyEmailCode, signOut, refreshAuthorization],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

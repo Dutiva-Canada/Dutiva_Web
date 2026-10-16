@@ -141,7 +141,7 @@ export function SigningProductionView() {
         </h1>
         <button
           type="button"
-          onClick={() => navigate('/app/documents')}
+          onClick={() => navigate('/workspace/documents')}
           className="mt-4 rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white"
         >
           {t('doclib_sign_back')}
@@ -163,7 +163,7 @@ export function SigningProductionView() {
         <p className="text-[13px] text-text-muted">{x(M.doclib_sign_wrongAccountBody)}</p>
         <button
           type="button"
-          onClick={() => navigate(`/app/documents/${pkg.detail.id}`)}
+          onClick={() => navigate(`/workspace/documents/${pkg.detail.id}`)}
           className="mt-4 rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white"
         >
           {x(M.doclib_prod_back)}
@@ -185,7 +185,7 @@ export function SigningProductionView() {
         <p className="text-[13px] text-text-muted">{x(M.doclib_sign_alreadySigned_body)}</p>
         <button
           type="button"
-          onClick={() => navigate(`/app/documents/${pkg.detail.id}`)}
+          onClick={() => navigate(`/workspace/documents/${pkg.detail.id}`)}
           className="mt-4 rounded-[9px] bg-navy px-3.5 py-2 text-[12.5px] font-semibold text-white"
         >
           {x(M.doclib_prod_back)}
@@ -210,7 +210,7 @@ export function SigningProductionView() {
         result.signatureStatus === 'signed' ? M.doclib_prod_status_signed : M.doclib_prod_sent_sign,
         result.signatureStatus === 'signed' ? 'ok' : 'info',
       )
-      navigate(`/app/documents/${result.documentId}`)
+      navigate(`/workspace/documents/${result.documentId}`)
     } catch {
       showToast(M.doclib_prod_send_sign_failed, 'info')
     } finally {
@@ -224,7 +224,7 @@ export function SigningProductionView() {
     try {
       const result = await declineDocumentSignature(envelopeId)
       showToast(M.doclib_sign_declined, 'info')
-      navigate(`/app/documents/${result.documentId}`)
+      navigate(`/workspace/documents/${result.documentId}`)
     } catch {
       showToast(M.doclib_prod_send_sign_failed, 'info')
     } finally {
@@ -236,7 +236,7 @@ export function SigningProductionView() {
     <div className="mx-auto max-w-300 px-7 pt-1 pb-16 max-[640px]:px-4">
       <button
         type="button"
-        onClick={() => navigate(`/app/documents/${pkg.detail.id}`)}
+        onClick={() => navigate(`/workspace/documents/${pkg.detail.id}`)}
         className="mb-3.5 inline-flex items-center gap-1.5 py-1 text-[13px] font-semibold text-text-muted transition-colors hover:text-text"
       >
         <ChevronLeft size={15} strokeWidth={2} aria-hidden="true" />

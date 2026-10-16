@@ -9,7 +9,7 @@ import { ToastHost } from '@/features/app/toasts/ToastHost'
  * Lazily composed /pr route element — the standalone, invite-only Dutiva PR
  * communications surface. Same standalone pattern as the invest and health
  * portals: preference-scoped language, shared AuthProvider, its own shell —
- * separate from both the marketing chrome and the /app workspace sidebar.
+ * separate from both the marketing chrome and the /workspace workspace sidebar.
  *
  * Renders the child route's element: the gated PrPortalLayout for app pages,
  * or the standalone PrLegalPage for /pr/legal/* (public so the sign-in

@@ -153,7 +153,7 @@ interface PageCtaProps {
   readonly title: string
   readonly body: string
   readonly action: string
-  /** Router destination (e.g. /app/welcome). Mutually exclusive with `href`. */
+  /** Router destination (e.g. /workspace/welcome). Mutually exclusive with `href`. */
   readonly to?: string
   /** External destination (e.g. mailto:support@dutiva.ca). */
   readonly href?: string

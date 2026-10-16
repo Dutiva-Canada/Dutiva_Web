@@ -31,7 +31,7 @@ describe('createSupportTicket', () => {
       urgency: 'soon',
       language: 'en',
       preferredResponseMethod: 'email',
-      diagnostics: { route: '/app/home', browser: 'Chrome' },
+      diagnostics: { route: '/workspace/home', browser: 'Chrome' },
     })
 
     expect(invoke).toHaveBeenCalledWith(
@@ -41,7 +41,7 @@ describe('createSupportTicket', () => {
           category: 'technical',
           subject: 'Cannot generate',
           preferred_response_method: 'email',
-          diagnostics: { route: '/app/home', browser: 'Chrome' },
+          diagnostics: { route: '/workspace/home', browser: 'Chrome' },
         }),
       }),
     )

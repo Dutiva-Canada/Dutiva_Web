@@ -28,77 +28,86 @@ describe('Sidebar', () => {
   })
 
   it('renders the new hierarchy and labels in English', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
 
-    expect(within(nav).getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/app/home')
+    expect(within(nav).getByRole('link', { name: 'Home' })).toHaveAttribute(
+      'href',
+      '/workspace/home',
+    )
     expect(within(nav).getByRole('link', { name: 'AI Advisor' })).toHaveAttribute(
       'href',
-      '/app/advisor',
+      '/workspace/advisor',
     )
     expect(within(nav).getByRole('link', { name: /Workflows/ })).toHaveAttribute(
       'href',
-      '/app/workflows',
+      '/workspace/workflows',
     )
 
     /* Revenue */
     expect(within(nav).getByRole('button', { name: /Revenue/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: /Revenue$/ })).toHaveAttribute(
       'href',
-      '/app/revenue',
+      '/workspace/revenue',
     )
-    expect(within(nav).getByRole('link', { name: 'CRM' })).toHaveAttribute('href', '/app/crm')
+    expect(within(nav).getByRole('link', { name: 'CRM' })).toHaveAttribute('href', '/workspace/crm')
     expect(within(nav).getByRole('link', { name: 'Comms planner' })).toHaveAttribute(
       'href',
-      '/app/comms/overview',
+      '/workspace/comms/overview',
     )
 
     /* Operations & library */
     expect(within(nav).getByRole('button', { name: /Operations/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: /Operations$/ })).toHaveAttribute(
       'href',
-      '/app/operations',
+      '/workspace/operations',
     )
     expect(within(nav).getByRole('link', { name: 'Documents' })).toHaveAttribute(
       'href',
-      '/app/documents/studio',
+      '/workspace/documents/studio',
     )
     expect(within(nav).getByRole('link', { name: 'Knowledge' })).toHaveAttribute(
       'href',
-      '/app/knowledge',
+      '/workspace/knowledge',
     )
     expect(within(nav).getByRole('link', { name: /Planning/ })).toHaveAttribute(
       'href',
-      '/app/planning/tasks',
+      '/workspace/planning/tasks',
     )
 
     /* People & HR */
     expect(within(nav).getByRole('button', { name: /People & HR/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'People' })).toHaveAttribute(
       'href',
-      '/app/employees',
+      '/workspace/employees',
     )
-    expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute('href', '/app/cases')
-    expect(within(nav).getByRole('link', { name: 'Hiring' })).toHaveAttribute('href', '/app/hiring')
+    expect(within(nav).getByRole('link', { name: /Cases/ })).toHaveAttribute(
+      'href',
+      '/workspace/cases',
+    )
+    expect(within(nav).getByRole('link', { name: 'Hiring' })).toHaveAttribute(
+      'href',
+      '/workspace/hiring',
+    )
     expect(within(nav).getByRole('link', { name: /Wellbeing/ })).toHaveAttribute(
       'href',
-      '/app/wellbeing',
+      '/workspace/wellbeing',
     )
     expect(within(nav).getByRole('link', { name: /Message log/ })).toHaveAttribute(
       'href',
-      '/app/communications',
+      '/workspace/communications',
     )
 
     /* Pay & finance */
     expect(within(nav).getByRole('button', { name: /Pay & finance/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: /Compensation/ })).toHaveAttribute(
       'href',
-      '/app/compensation',
+      '/workspace/compensation',
     )
     expect(within(nav).getByRole('link', { name: /Finance$/ })).toHaveAttribute(
       'href',
-      '/app/finance/overview',
+      '/workspace/finance/overview',
     )
 
     /* Governance, Security, External */
@@ -107,17 +116,20 @@ describe('Sidebar', () => {
     expect(within(nav).getByRole('button', { name: /External/i })).toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: /Specialists/ })).toHaveAttribute(
       'href',
-      '/app/specialists',
+      '/workspace/specialists',
     )
 
     /* Analytics is a top-level item — no section wraps it. */
     expect(within(nav).queryByRole('button', { name: /Insights/i })).not.toBeInTheDocument()
     expect(within(nav).getByRole('link', { name: 'Analytics' })).toHaveAttribute(
       'href',
-      '/app/analytics',
+      '/workspace/analytics',
     )
 
-    expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute('href', '/app/settings')
+    expect(screen.getByRole('link', { name: 'Settings' })).toHaveAttribute(
+      'href',
+      '/workspace/settings',
+    )
   })
 
   it('renders French labels when the language is FR', async () => {
@@ -127,7 +139,7 @@ describe('Sidebar', () => {
         <FrenchToggle />
         <Sidebar mode="expanded" />
       </>,
-      { route: '/app/home' },
+      { route: '/workspace/home' },
     )
 
     await user.click(screen.getByRole('button', { name: 'FR' }))
@@ -146,7 +158,7 @@ describe('Sidebar', () => {
   })
 
   it('marks the active route with aria-current="page"', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/cases' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/cases' })
 
     const casesLink = screen.getByRole('link', { name: /Cases/ })
     expect(casesLink).toHaveAttribute('aria-current', 'page')
@@ -156,14 +168,14 @@ describe('Sidebar', () => {
   })
 
   it('shows Demo workspace under the company name in demo mode', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
     expect(screen.getByText('Demo workspace')).toBeInTheDocument()
     expect(screen.queryByText('Workspace')).not.toBeInTheDocument()
   })
 
   it('shows the module count on a collapsed People & HR heading', async () => {
     const user = userEvent.setup()
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const peopleToggle = screen.getByRole('button', { name: /^People & HR$/i })
     await user.click(peopleToggle)
@@ -173,13 +185,13 @@ describe('Sidebar', () => {
   })
 
   it('renders Collapse control aligned with nav density', () => {
-    renderApp(<Sidebar mode="expanded" onToggleExpanded={() => {}} />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" onToggleExpanded={() => {}} />, { route: '/workspace/home' })
     expect(screen.getByRole('button', { name: 'Collapse' })).toBeInTheDocument()
   })
 
   it('expands and collapses People & HR and Operations sections', async () => {
     const user = userEvent.setup()
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const peopleToggle = screen.getByRole('button', { name: /People & HR/i })
     const operationsToggle = screen.getByRole('button', { name: /Operations/i })
@@ -197,7 +209,7 @@ describe('Sidebar', () => {
     /* Analytics is promoted to top level and must stay visible even with
        every section collapsed. */
     const user = userEvent.setup()
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     await user.click(screen.getByRole('button', { name: /People & HR/i }))
     await user.click(screen.getByRole('button', { name: /Operations/i }))
@@ -207,7 +219,7 @@ describe('Sidebar', () => {
   })
 
   it('auto-expands the People & HR group when a nested route is active', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/cases/case1' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/cases/case1' })
 
     const peopleToggle = screen.getByRole('button', { name: /People & HR/i })
     expect(peopleToggle).toHaveAttribute('aria-expanded', 'true')
@@ -215,7 +227,7 @@ describe('Sidebar', () => {
 
   it('renders the Create menu with functional items including guided processes', async () => {
     const user = userEvent.setup()
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const createButton = screen.getByRole('button', { name: /Create/i })
     expect(createButton).toHaveAttribute('aria-haspopup', 'menu')
@@ -269,18 +281,18 @@ describe('Sidebar', () => {
         <Sidebar mode="expanded" />
         <LocationProbe />
       </>,
-      { route: '/app/home' },
+      { route: '/workspace/home' },
     )
 
     await user.click(screen.getByRole('button', { name: /Create/i }))
     await user.click(screen.getByRole('menuitem', { name: /Employee record/i }))
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/app/employees?new=1')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/employees?new=1')
   })
 
   it('supports keyboard operation inside the Create menu', async () => {
     const user = userEvent.setup()
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const createButton = screen.getByRole('button', { name: /Create/i })
     createButton.focus()
@@ -300,7 +312,7 @@ describe('Sidebar', () => {
   })
 
   it('renders semantic badge variants and accessible descriptions', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const casesLink = screen.getByRole('link', { name: /Cases/ })
     const badge = within(casesLink).getByText('3')
@@ -309,19 +321,19 @@ describe('Sidebar', () => {
 
   it('switches between expanded and compact modes', () => {
     const { unmount } = renderApp(<Sidebar mode="expanded" onToggleExpanded={() => {}} />, {
-      route: '/app/home',
+      route: '/workspace/home',
     })
 
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
 
     unmount()
-    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/app/home' })
+    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/workspace/home' })
 
     expect(screen.getByRole('button', { name: /Create/i })).not.toHaveTextContent('Create')
   })
 
   it('shows all section nav items in compact mode', () => {
-    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/app/home' })
+    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/workspace/home' })
 
     const people = screen.getByRole('link', { name: 'People' })
     const cases = screen.getByRole('link', { name: /Cases/ })
@@ -337,7 +349,9 @@ describe('Sidebar', () => {
   })
 
   it('uses accent active styling in compact mode', () => {
-    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, { route: '/app/settings' })
+    renderApp(<Sidebar mode="compact" onToggleExpanded={() => {}} />, {
+      route: '/workspace/settings',
+    })
 
     const settings = screen.getByRole('link', { name: /Settings/ })
     expect(settings).toHaveAttribute('aria-current', 'page')
@@ -348,7 +362,7 @@ describe('Sidebar', () => {
   it('drawer mode shows a close button and calls onClose on route click', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
-    renderApp(<Sidebar mode="drawer" onCloseDrawer={onClose} />, { route: '/app/home' })
+    renderApp(<Sidebar mode="drawer" onCloseDrawer={onClose} />, { route: '/workspace/home' })
 
     const closeButton = screen.getByRole('button', { name: /Close menu/i })
     expect(closeButton).toBeInTheDocument()
@@ -358,7 +372,7 @@ describe('Sidebar', () => {
   })
 
   it('keeps Settings and profile controls outside the scrollable nav region', () => {
-    renderApp(<Sidebar mode="expanded" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="expanded" />, { route: '/workspace/home' })
 
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     const settingsLink = screen.getByRole('link', { name: 'Settings' })

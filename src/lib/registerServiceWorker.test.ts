@@ -71,7 +71,7 @@ describe('reloadOnWorkerTakeover', () => {
     const container = fakeContainer({})
     const reload = vi.fn()
 
-    reloadOnWorkerTakeover(asContainer(container), { pathname: '/app/cases', reload })
+    reloadOnWorkerTakeover(asContainer(container), { pathname: '/workspace/cases', reload })
     container.fire()
 
     expect(reload).not.toHaveBeenCalled()

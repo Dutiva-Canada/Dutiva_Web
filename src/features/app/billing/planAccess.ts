@@ -1,6 +1,6 @@
 /**
  * App-facing re-exports of plan entitlement helpers. Prefer importing from
- * here inside `/app` so call sites stay stable if the config module moves.
+ * here inside `/workspace` so call sites stay stable if the config module moves.
  */
 export {
   getPlanEntitlements,

@@ -27,10 +27,10 @@ describe('AdvisorView', () => {
   })
 
   it('renders the advisor home empty state with brief, radar and composer', () => {
-    renderApp(<AdvisorView />, { route: '/app/advisor' })
+    renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
     expect(screen.getByText('Good to see you, Riley.')).toBeInTheDocument()
-    expect(screen.getByText("Here’s what Advisor noticed since yesterday.")).toBeInTheDocument()
+    expect(screen.getByText('Here’s what Advisor noticed since yesterday.')).toBeInTheDocument()
 
     /* Conversation-first home: the daily brief + radar watch list stay, the
        duplicated Home metric tiles and action queue do not. */
@@ -48,7 +48,7 @@ describe('AdvisorView', () => {
   })
 
   it('starts a conversation from a radar row using its ask prompt', () => {
-    renderApp(<AdvisorView />, { route: '/app/advisor' })
+    renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
     fireEvent.click(
       screen.getByRole('button', { name: /Jordan Mensah — counsel response outstanding/ }),
@@ -59,7 +59,7 @@ describe('AdvisorView', () => {
   })
 
   it('toggles a priority "Why" expander', () => {
-    renderApp(<AdvisorView />, { route: '/app/advisor' })
+    renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
     const whyButtons = screen.getAllByRole('button', { name: 'Why' })
     expect(whyButtons.length).toBeGreaterThan(0)
@@ -68,7 +68,7 @@ describe('AdvisorView', () => {
   })
 
   it('opens a seeded thread and renders its transcript without re-streaming', () => {
-    renderApp(<AdvisorView />, { route: '/app/advisor' })
+    renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
     fireEvent.click(screen.getByRole('button', { name: /Offer letter — Senior Analyst, Ontario/ }))
@@ -98,7 +98,7 @@ describe('AdvisorView', () => {
     })
 
     it('streams the canned acknowledgement after a free-form send in a thread', () => {
-      renderApp(<AdvisorView />, { route: '/app/advisor' })
+      renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
       fireEvent.click(screen.getByRole('button', { name: 'Open conversations' }))
       fireEvent.click(screen.getByRole('button', { name: /Remote work policy refresh/ }))
@@ -122,7 +122,7 @@ describe('AdvisorView', () => {
     })
 
     it('routes a signed-out home-composer crisis message to the support thread, not a scenario', () => {
-      renderApp(<AdvisorView />, { route: '/app/advisor' })
+      renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
       const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, { target: { value: 'I feel suicidal' } })
@@ -142,7 +142,7 @@ describe('AdvisorView', () => {
       /* Same navigation contract as the intake test below — but the prompt
          carries a crisis signal, so the quick form must never render. */
       renderApp(<AdvisorView />, {
-        route: '/app/advisor',
+        route: '/workspace/advisor',
         state: {
           prompt: 'They want to terminate me and I feel suicidal',
           flowKey: 'termination',
@@ -167,7 +167,7 @@ describe('AdvisorView', () => {
       /* The intake flow is started by its navigation contract (Home /
          Workflows dispatch { prompt, flowKey } router state). */
       renderApp(<AdvisorView />, {
-        route: '/app/advisor',
+        route: '/workspace/advisor',
         state: {
           prompt: 'I need to terminate an employee in Ontario.',
           flowKey: 'termination',
@@ -199,7 +199,7 @@ describe('AdvisorView', () => {
       act(() => {
         vi.advanceTimersByTime(849 + 12000)
       })
-      expect(screen.getByText("Here’s the assessment for this case.")).toBeInTheDocument()
+      expect(screen.getByText('Here’s the assessment for this case.')).toBeInTheDocument()
       expect(screen.getByText('Notice exposure risk')).toBeInTheDocument()
       expect(screen.getByText('ESA s.57 — Notice of termination')).toBeInTheDocument()
       expect(screen.getByText('Termination Letter')).toBeInTheDocument()
@@ -210,7 +210,7 @@ describe('AdvisorView', () => {
     })
 
     it('routes home-composer text to a demo response mode and lists the thread under Today', () => {
-      renderApp(<AdvisorView />, { route: '/app/advisor' })
+      renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
       const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, {
@@ -237,11 +237,11 @@ describe('AdvisorView', () => {
     })
 
     it('asks for jurisdiction first when no province cue is given (never assumes Ontario)', () => {
-      renderApp(<AdvisorView />, { route: '/app/advisor' })
+      renderApp(<AdvisorView />, { route: '/workspace/advisor' })
 
       const composer = screen.getByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, {
-        target: { value: "What’s the notice period we owe an employee?" },
+        target: { value: 'What’s the notice period we owe an employee?' },
       })
       fireEvent.keyDown(composer, { key: 'Enter' })
 
@@ -323,7 +323,7 @@ describe('AdvisorView', () => {
       const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
       resetAdvisorSessionFresh()
 
-      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+      renderAppFresh(<AdvisorViewFresh />, { route: '/workspace/advisor' })
 
       const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, { target: { value: 'I need to terminate an employee' } })
@@ -371,7 +371,7 @@ describe('AdvisorView', () => {
       const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
       resetAdvisorSessionFresh()
 
-      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+      renderAppFresh(<AdvisorViewFresh />, { route: '/workspace/advisor' })
 
       const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
       /* Signed-in home-composer path: the crisis signal must stop the turn
@@ -427,7 +427,7 @@ describe('AdvisorView', () => {
       const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
       resetAdvisorSessionFresh()
 
-      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+      renderAppFresh(<AdvisorViewFresh />, { route: '/workspace/advisor' })
 
       const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, { target: { value: 'What notice does a 3-year employee get?' } })
@@ -485,7 +485,7 @@ describe('AdvisorView', () => {
       const { resetAdvisorSession: resetAdvisorSessionFresh } = await import('./advisorSession')
       resetAdvisorSessionFresh()
 
-      renderAppFresh(<AdvisorViewFresh />, { route: '/app/advisor' })
+      renderAppFresh(<AdvisorViewFresh />, { route: '/workspace/advisor' })
 
       const composer = await screen.findByPlaceholderText('Ask Advisor anything about your team…')
       fireEvent.change(composer, { target: { value: 'What notice does a 3-year employee get?' } })
@@ -552,7 +552,7 @@ describe('AdvisorView', () => {
       resetAdvisorSessionFresh()
 
       renderAppFresh(<AdvisorViewFresh />, {
-        route: '/app/advisor',
+        route: '/workspace/advisor',
         state: { chatId: convId },
       })
 

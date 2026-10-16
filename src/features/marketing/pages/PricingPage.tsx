@@ -459,7 +459,7 @@ function PricingPageInner() {
 
     if (status !== 'signed-in') {
       setPendingCheckout(plan.id)
-      window.location.href = '/app/welcome'
+      window.location.href = '/workspace/welcome'
       return
     }
 
@@ -563,7 +563,7 @@ function PricingPageInner() {
                   <p className="mt-1.5 text-sm leading-6 text-text-2">{notice.text}</p>
                 </div>
                 <Link
-                  to="/app/welcome"
+                  to="/workspace/welcome"
                   className="gold-button inline-flex items-center gap-2 px-5 py-3 text-sm"
                 >
                   {t('pricing_checkout_return_go')}
@@ -628,7 +628,7 @@ function PricingPageInner() {
               onCheckout={handleCheckout}
               onPrepareSignIn={(next) => setPendingCheckout(next.id)}
               waitlistHref={home('start')}
-              signInHref="/app/welcome"
+              signInHref="/workspace/welcome"
               isLoading={checkoutPlanId === plan.id}
               signedIn={status === 'signed-in'}
             />

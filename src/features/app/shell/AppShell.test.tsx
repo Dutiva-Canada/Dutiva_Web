@@ -32,14 +32,14 @@ function stubLayoutMode(mode: LayoutMode) {
   )
 }
 
-function renderShell(route = '/app/home') {
+function renderShell(route = '/workspace/home') {
   return render(
     <ThemeProvider>
       <LangProvider>
         <MemoryRouter initialEntries={[route]}>
           <AppProviders>
             <Routes>
-              <Route path="/app" element={<AppShell />}>
+              <Route path="/workspace" element={<AppShell />}>
                 <Route path="home" element={<div>Home outlet</div>} />
                 <Route path="employees" element={<div>People outlet</div>} />
               </Route>
@@ -63,7 +63,7 @@ describe('AppShell', () => {
   })
 
   it('renders desktop chrome with route title, topbar, and outlet content', () => {
-    renderShell('/app/home')
+    renderShell('/workspace/home')
 
     expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: 'Primary navigation' })).toBeInTheDocument()
@@ -74,7 +74,7 @@ describe('AppShell', () => {
   it('persists sidebar expanded preference on desktop', async () => {
     localStorage.setItem(SIDEBAR_EXPANDED_KEY, 'true')
     const user = userEvent.setup()
-    renderShell('/app/home')
+    renderShell('/workspace/home')
 
     expect(screen.getByRole('button', { name: /Create/i })).toHaveTextContent('Create')
 
@@ -88,7 +88,7 @@ describe('AppShell', () => {
     localStorage.setItem(SIDEBAR_EXPANDED_KEY, 'false')
     stubLayoutMode('tablet')
     const user = userEvent.setup()
-    renderShell('/app/home')
+    renderShell('/workspace/home')
 
     expect(screen.getAllByRole('button', { name: /Expand/i })[0]).toBeInTheDocument()
     await user.click(screen.getAllByRole('button', { name: 'Expand' })[0]!)
@@ -98,15 +98,15 @@ describe('AppShell', () => {
 
   it('opens and closes the mobile drawer around primary navigation', async () => {
     stubLayoutMode('mobile')
-    renderShell('/app/home')
+    renderShell('/workspace/home')
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
     const mobileNav = within(screen.getAllByRole('navigation', { name: 'Primary navigation' })[0]!)
-    expect(mobileNav.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/app/home')
+    expect(mobileNav.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/workspace/home')
     expect(mobileNav.getByRole('link', { name: 'Planning' })).toHaveAttribute(
       'href',
-      '/app/planning/tasks',
+      '/workspace/planning/tasks',
     )
     expect(screen.getByRole('button', { name: 'Ask AI' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ask' })).toBeInTheDocument()
@@ -120,7 +120,7 @@ describe('AppShell', () => {
 
   it('closes the mobile drawer when the scrim is clicked', async () => {
     stubLayoutMode('mobile')
-    renderShell('/app/home')
+    renderShell('/workspace/home')
 
     fireEvent.click(screen.getByRole('button', { name: 'Open menu' }))
     expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()

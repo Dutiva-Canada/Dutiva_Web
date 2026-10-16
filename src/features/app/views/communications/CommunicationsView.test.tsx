@@ -12,7 +12,7 @@ function renderView() {
       <CommunicationsView />
       <AdvisorRail />
     </>,
-    { route: '/app/communications' },
+    { route: '/workspace/communications' },
   )
 }
 
@@ -170,13 +170,13 @@ describe('CommunicationsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CommunicationsView: View } = await import('./CommunicationsView')
 
-    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    renderFresh(<View />, { route: '/workspace/communications', path: '/workspace/communications' })
 
     expect(await screen.findByText('Restructuring announcement')).toBeInTheDocument()
     expect(screen.getByText('1 message')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Team restructuring announcement/ })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t36',
+      '/workspace/documents/generate/tpl_t36',
     )
   })
 
@@ -188,7 +188,7 @@ describe('CommunicationsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CommunicationsView: View } = await import('./CommunicationsView')
 
-    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    renderFresh(<View />, { route: '/workspace/communications', path: '/workspace/communications' })
     await screen.findByText('Restructuring announcement')
 
     for (const dim of [/^Tone ·/, /^Legal ·/, /^Clarity ·/, /^Policy ·/]) {
@@ -202,7 +202,7 @@ describe('CommunicationsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CommunicationsView: View } = await import('./CommunicationsView')
 
-    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    renderFresh(<View />, { route: '/workspace/communications', path: '/workspace/communications' })
     await screen.findByText('Restructuring announcement')
 
     expect(
@@ -223,7 +223,7 @@ describe('CommunicationsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CommunicationsView: View } = await import('./CommunicationsView')
 
-    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    renderFresh(<View />, { route: '/workspace/communications', path: '/workspace/communications' })
 
     expect(await screen.findByText('No messages logged yet')).toBeInTheDocument()
 
@@ -249,7 +249,7 @@ describe('CommunicationsView in production mode', () => {
     const { renderApp: renderFresh } = await import('@/test/renderApp')
     const { CommunicationsView: View } = await import('./CommunicationsView')
 
-    renderFresh(<View />, { route: '/app/communications', path: '/app/communications' })
+    renderFresh(<View />, { route: '/workspace/communications', path: '/workspace/communications' })
     await screen.findByText('Restructuring announcement')
 
     expect(screen.getByText('Advisor review')).toBeInTheDocument()

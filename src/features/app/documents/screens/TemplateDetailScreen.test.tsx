@@ -4,14 +4,14 @@ import { renderApp } from '@/test/renderApp'
 import { DoclibProvider } from '../DoclibProvider'
 import { TemplateDetailScreen } from './TemplateDetailScreen'
 
-const PATH = '/app/documents/templates/:tid'
+const PATH = '/workspace/documents/templates/:tid'
 
 function renderDetail(tid: string) {
   return renderApp(
     <DoclibProvider>
       <TemplateDetailScreen />
     </DoclibProvider>,
-    { route: `/app/documents/templates/${tid}`, path: PATH },
+    { route: `/workspace/documents/templates/${tid}`, path: PATH },
   )
 }
 
@@ -42,11 +42,11 @@ describe('TemplateDetailScreen', () => {
     /* Back link + Generate CTA targets. */
     expect(screen.getByRole('link', { name: 'Back to templates' })).toHaveAttribute(
       'href',
-      '/app/documents/studio',
+      '/workspace/documents/studio',
     )
     expect(screen.getByRole('link', { name: 'Create document' })).toHaveAttribute(
       'href',
-      '/app/documents/generate/tpl_t01',
+      '/workspace/documents/generate/tpl_t01',
     )
   })
 

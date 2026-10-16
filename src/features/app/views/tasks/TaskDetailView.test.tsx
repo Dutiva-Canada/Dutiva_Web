@@ -5,8 +5,8 @@ import { TaskDetailView } from './TaskDetailView'
 
 function renderDetail(taskId = 'tk1') {
   return renderApp(<TaskDetailView />, {
-    route: `/app/planning/tasks/${taskId}`,
-    path: '/app/planning/tasks/:taskId',
+    route: `/workspace/planning/tasks/${taskId}`,
+    path: '/workspace/planning/tasks/:taskId',
   })
 }
 
@@ -37,7 +37,7 @@ describe('TaskDetailView (demo)', () => {
     expect(screen.getByText('This task isn’t in the list anymore.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute(
       'href',
-      '/app/planning/tasks',
+      '/workspace/planning/tasks',
     )
   })
 
@@ -50,9 +50,7 @@ describe('TaskDetailView (demo)', () => {
     })
     fireEvent.click(screen.getByRole('button', { name: 'Add note' }))
 
-    expect(
-      screen.getByText('Spoke with Devon — milestone review Friday.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Spoke with Devon — milestone review Friday.')).toBeInTheDocument()
     expect(screen.queryByText(/No notes yet/)).not.toBeInTheDocument()
   })
 })

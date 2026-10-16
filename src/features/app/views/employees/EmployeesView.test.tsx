@@ -12,7 +12,7 @@ function renderEmployees() {
       <EmployeesView />
       <AdvisorRail />
     </>,
-    { route: '/app/employees', path: '/app/employees' },
+    { route: '/workspace/employees', path: '/workspace/employees' },
   )
 }
 
@@ -214,7 +214,10 @@ describe('EmployeesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
 
-    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
 
     expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
     expect(screen.getByText('1 employee')).toBeInTheDocument()
@@ -227,7 +230,10 @@ describe('EmployeesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
 
-    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
 
     expect(await screen.findByText('No employees yet')).toBeInTheDocument()
 
@@ -251,8 +257,8 @@ describe('EmployeesView in production mode', () => {
     const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
 
     const first = renderAppFresh(<EmployeesViewFresh />, {
-      route: '/app/employees',
-      path: '/app/employees',
+      route: '/workspace/employees',
+      path: '/workspace/employees',
     })
     expect(await screen.findByText('No employees yet')).toBeInTheDocument()
     fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
@@ -263,9 +269,12 @@ describe('EmployeesView in production mode', () => {
 
     /* The "reload": a fresh mount re-queries the employees table — the row
        must come back from the backend, not from surviving component state. */
-    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
     const link = await screen.findByRole('link', { name: /Ana Souza/ })
-    expect(link).toHaveAttribute('href', '/app/employees/emp-1')
+    expect(link).toHaveAttribute('href', '/workspace/employees/emp-1')
   })
 
   it('does not insert when the required name is blank', async () => {
@@ -273,7 +282,10 @@ describe('EmployeesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
 
-    renderAppFresh(<EmployeesViewFresh />, { route: '/app/employees', path: '/app/employees' })
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
     expect(await screen.findByText('No employees yet')).toBeInTheDocument()
     fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
     fireEvent.change(screen.getByLabelText('Full name'), { target: { value: '   ' } })
@@ -438,8 +450,8 @@ describe('EmployeeProfileView in production mode', () => {
     const { EmployeeProfileView: ProfileFresh } = await import('./EmployeeProfileView')
 
     renderAppFresh(<ProfileFresh />, {
-      route: '/app/employees/emp-1',
-      path: '/app/employees/:employeeId',
+      route: '/workspace/employees/emp-1',
+      path: '/workspace/employees/:employeeId',
     })
 
     /* Real facts header. */
@@ -452,7 +464,7 @@ describe('EmployeeProfileView in production mode', () => {
     /* Cases tab — the employee's open case linking to its detail. */
     fireEvent.click(screen.getByRole('tab', { name: 'Cases' }))
     const caseLink = screen.getByRole('link', { name: /Accommodation — ergonomic assessment/ })
-    expect(caseLink).toHaveAttribute('href', '/app/cases/case-1')
+    expect(caseLink).toHaveAttribute('href', '/workspace/cases/case-1')
 
     /* Overview tab — add a note through the real path. */
     fireEvent.click(screen.getByRole('tab', { name: 'Overview' }))
@@ -574,7 +586,7 @@ describe('EmployeeProfileProductionView for a non-admin member', () => {
       >
         <ProfileFresh />
       </WorkspaceModeContext.Provider>,
-      { route: '/app/employees/emp-1', path: '/app/employees/:employeeId' },
+      { route: '/workspace/employees/emp-1', path: '/workspace/employees/:employeeId' },
     )
 
     /* The record itself is fully readable… */

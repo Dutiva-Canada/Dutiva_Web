@@ -305,7 +305,7 @@ function createAppViewRoutes(root: string): RouteObject[] {
     { path: 'hiring/candidates/:candidateId', element: <CandidateDetailView /> },
     { path: 'hiring/postings/:postingId', element: <JobPostingDetailView /> },
     /* Unlinked showcase route for the interactive chat-widget catalog —
-       /app/chat-widgets, /demo/chat-widgets, /fr/demo/chat-widgets. */
+       /workspace/chat-widgets, /demo/chat-widgets, /fr/demo/chat-widgets. */
     { path: 'chat-widgets', element: <ChatWidgetsView /> },
     { path: 'tasks', loader: () => redirect(r('planning/tasks')) },
     { path: 'calendar', loader: () => redirect(r('planning/calendar')) },
@@ -353,6 +353,6 @@ function createAppViewRoutes(root: string): RouteObject[] {
   ]
 }
 
-export const appViewRoutes = createAppViewRoutes('/app')
+export const appViewRoutes = createAppViewRoutes('/workspace')
 export const demoViewRoutes = createAppViewRoutes('/demo')
 export const frDemoViewRoutes = createAppViewRoutes('/fr/demo')

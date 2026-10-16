@@ -211,6 +211,17 @@ function HealthLegacyRedirect() {
   return <Navigate to={`/wellness${rest}${loc.search}${loc.hash}`} replace />
 }
 
+/* The workspace surface launched at /app and was renamed Workspace — old
+   links (signing-notification emails, Stripe return URLs, bookmarks) keep
+   working via a path-preserving redirect: /app/documents/x →
+   /workspace/documents/x. Search and hash ride along — the magic-link token
+   lands in the hash on /app/auth/confirm. */
+function AppLegacyRedirect() {
+  const loc = useLocation()
+  const rest = loc.pathname.replace(/^\/app/, '')
+  return <Navigate to={`/workspace${rest}${loc.search}${loc.hash}`} replace />
+}
+
 /**
  * Route map (see CONVENTIONS.md):
  *   /  /about /faq /blog /pricing /templates /guides
@@ -218,14 +229,16 @@ function HealthLegacyRedirect() {
  *   /help /help/:slug /contact /status /changelog /vs/hrdownloads /vs/sixfifty   public marketing surface (English)
  *   /fr /fr/a-propos …     the same pages in French (localized slugs,
  *                          see src/seo/routes.ts)
- *   /app/welcome           app entry stage — sign-in gate (invite-only)
- *   /app/auth/confirm      magic-link landing — verifies the token, then enters
- *   /app                   workspace shell → redirects to /app/home
+ *   /workspace/welcome     app entry stage — sign-in gate (invite-only)
+ *   /workspace/auth/confirm magic-link landing — verifies the token, then enters
+ *   /workspace             workspace shell → redirects to /workspace/home
  *                          (gated: RequireAdminSession bounces anyone who
- *                          isn't the one allowed account back to /app/welcome)
- *   /app/<view>            the 16 workspace views
- *   /app/cases/:caseId     case detail
- *   /app/employees/:employeeId  employee profile
+ *                          isn't the one allowed account back to /workspace/welcome)
+ *   /workspace/<view>      the workspace views
+ *   /workspace/cases/:caseId     case detail
+ *   /workspace/employees/:employeeId  employee profile
+ *   /app/*                 legacy — path-preserving redirect to /workspace/*
+ *                          (signing emails + Stripe URLs already sent use it)
  *   /careers               public job board — browse active postings
  *   /careers/jobs/:postingId   job detail (public, no login)
  *   /fr/carrieres          French job board (URL-scoped language)
@@ -295,7 +308,7 @@ function routeTree(): RouteObject[] {
     publicRoutes('en'),
     publicRoutes('fr'),
     {
-      path: '/app/welcome',
+      path: '/workspace/welcome',
       element: (
         <Suspense fallback={null}>
           <AppWelcome />
@@ -303,12 +316,19 @@ function routeTree(): RouteObject[] {
       ),
     },
     {
-      path: '/app/auth/confirm',
+      path: '/workspace/auth/confirm',
       element: (
         <Suspense fallback={null}>
           <AppAuthConfirm />
         </Suspense>
       ),
+    },
+    {
+      /* Legacy /app/* — everything below it redirects to /workspace/*
+         (welcome, auth/confirm, and every view). Kept forever: signing
+         emails and Stripe return URLs already sent point there. */
+      path: '/app/*',
+      element: <AppLegacyRedirect />,
     },
     {
       path: '/sign/:token',
@@ -349,13 +369,13 @@ function routeTree(): RouteObject[] {
       children: [{ index: true, loader: () => redirect('/fr/demo/home') }, ...frDemoViewRoutes],
     },
     {
-      path: '/app',
+      path: '/workspace',
       element: (
         <Suspense fallback={null}>
           <Workspace />
         </Suspense>
       ),
-      children: [{ index: true, loader: () => redirect('/app/home') }, ...appViewRoutes],
+      children: [{ index: true, loader: () => redirect('/workspace/home') }, ...appViewRoutes],
     },
     {
       path: '/careers',
@@ -382,7 +402,7 @@ function routeTree(): RouteObject[] {
       ],
     },
     /* The employer door — same public careers chrome, but the sign-in leads
-       into the /app production workspace (org bootstrap or claimed invite). */
+       into the /workspace production workspace (org bootstrap or claimed invite). */
     {
       path: '/employer',
       element: (

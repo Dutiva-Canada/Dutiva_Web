@@ -5,7 +5,7 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 // eager-graph invariant test requires navLabels to import only i18n modules.
 function workspaceSegments(pathname: string): string[] {
   return pathname
-    .replace(/^\/(?:app|demo|fr\/demo)\/?/, '')
+    .replace(/^\/(?:app|workspace|demo|fr\/demo)\/?/, '')
     .split('/')
     .filter(Boolean)
 }

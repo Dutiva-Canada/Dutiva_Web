@@ -11,7 +11,7 @@ import { ThemeProvider } from '@/lib/theme'
 import { AppProviders } from '@/features/app/AppProviders'
 
 interface RenderAppOptions {
-  /** Initial URL, e.g. '/app/cases/case1'. Defaults to '/app/home'. */
+  /** Initial URL, e.g. '/workspace/cases/case1'. Defaults to '/workspace/home'. */
   route?: string
   /**
    * Route pattern the component is mounted at (for params), e.g.
@@ -29,7 +29,7 @@ interface RenderAppOptions {
  */
 export function renderApp(
   ui: ReactElement,
-  { route = '/app/home', path = '*', state }: RenderAppOptions = {},
+  { route = '/workspace/home', path = '*', state }: RenderAppOptions = {},
 ): RenderResult {
   return render(
     <ThemeProvider>

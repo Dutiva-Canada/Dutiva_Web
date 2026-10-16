@@ -13,7 +13,7 @@ function renderPlanning(route: string) {
         <MemoryRouter initialEntries={[route]}>
           <AppProviders>
             <Routes>
-              <Route path="/app/planning" element={<PlanningLayout />}>
+              <Route path="/workspace/planning" element={<PlanningLayout />}>
                 <Route path="tasks" element={<div>Tasks pane</div>} />
                 <Route path="calendar" element={<div>Calendar pane</div>} />
               </Route>
@@ -27,14 +27,14 @@ function renderPlanning(route: string) {
 
 describe('PlanningLayout', () => {
   it('marks Tasks active on /app/planning/tasks and renders the child outlet', () => {
-    renderPlanning('/app/planning/tasks')
+    renderPlanning('/workspace/planning/tasks')
     expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Calendar' })).not.toHaveAttribute('aria-current')
     expect(screen.getByText('Tasks pane')).toBeInTheDocument()
   })
 
   it('marks Calendar active on /app/planning/calendar', () => {
-    renderPlanning('/app/planning/calendar')
+    renderPlanning('/workspace/planning/calendar')
     expect(screen.getByRole('link', { name: 'Calendar' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Tasks' })).not.toHaveAttribute('aria-current')
     expect(screen.getByText('Calendar pane')).toBeInTheDocument()

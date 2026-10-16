@@ -111,7 +111,7 @@ const handler = async (req: Request) => {
     `You've been invited to join ${orgName} on Dutiva.`,
     ``,
     `Sign in with this email address to get access:`,
-    `${siteUrl}/app/welcome`,
+    `${siteUrl}/workspace/welcome`,
     ``,
     `No password needed — we'll email you a one-time sign-in code.`,
     `This invitation expires on ${new Date(invitation.expires_at).toDateString()}.`,

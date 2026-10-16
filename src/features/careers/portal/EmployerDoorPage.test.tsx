@@ -41,7 +41,7 @@ function renderDoor(ui: ReactElement, auth: Partial<AuthContextValue> = {}) {
             <MemoryRouter initialEntries={['/employer']}>
               <Routes>
                 <Route path="/employer" element={ui} />
-                <Route path="/app/home" element={<div data-testid="workspace" />} />
+                <Route path="/workspace/home" element={<div data-testid="workspace" />} />
               </Routes>
             </MemoryRouter>
           </ToastsProvider>
@@ -94,10 +94,7 @@ describe('EmployerDoorPage', () => {
     const user = userEvent.setup()
     renderDoor(<EmployerDoorPage />, SIGNED_IN)
 
-    await user.type(
-      await screen.findByLabelText(/Organization name/i),
-      'Acme Manufacturing',
-    )
+    await user.type(await screen.findByLabelText(/Organization name/i), 'Acme Manufacturing')
     await user.click(screen.getByRole('button', { name: /Create workspace/i }))
 
     expect(vi.mocked(api.bootstrapOrganization)).toHaveBeenCalledWith(
@@ -138,8 +135,6 @@ describe('EmployerDoorPage', () => {
     })
     const { default: userEvent } = await import('@testing-library/user-event')
     await userEvent.setup().click(screen.getByRole('button', { name: /Try again/i }))
-    expect(
-      await screen.findByRole('button', { name: /Open your workspace/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Open your workspace/i })).toBeInTheDocument()
   })
 })

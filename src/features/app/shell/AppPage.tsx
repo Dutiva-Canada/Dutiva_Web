@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { cx } from './cx'
 
 /**
- * Shared scroll chrome for `/app` list and detail views. Topbar already owns
+ * Shared scroll chrome for `/workspace` list and detail views. Topbar already owns
  * the route title (as the page `h1`); views should lead with subtitle copy via
  * `AppPageLead` rather than repeating the title.
  */

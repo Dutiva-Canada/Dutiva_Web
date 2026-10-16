@@ -15,7 +15,7 @@ describe('useProductionNavBadges (via Sidebar)', () => {
     const { renderApp } = await import('@/test/renderApp')
     const { Sidebar } = await import('@/features/app/shell/Sidebar')
 
-    renderApp(<Sidebar mode="drawer" />, { route: '/app/home' })
+    renderApp(<Sidebar mode="drawer" />, { route: '/workspace/home' })
 
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     /* Fixture counts: 3 open cases, compliance '3', workflows '3'. Expanded
@@ -116,7 +116,7 @@ describe('useProductionNavBadges (via Sidebar)', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { Sidebar: SidebarFresh } = await import('@/features/app/shell/Sidebar')
 
-    renderAppFresh(<SidebarFresh mode="drawer" />, { route: '/app/home' })
+    renderAppFresh(<SidebarFresh mode="drawer" />, { route: '/workspace/home' })
 
     const nav = await screen.findByRole('navigation', { name: 'Primary navigation' })
     const casesLink = within(nav).getByRole('link', { name: /Cases/ })

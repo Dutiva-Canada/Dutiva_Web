@@ -1,19 +1,19 @@
 # Magic-link sign-in — how it works and how to configure Supabase
 
-The `/app` workspace is invite-only and signs in with a Supabase **magic link**
+The `/workspace` workspace is invite-only and signs in with a Supabase **magic link**
 (passwordless email OTP). There is no password path. The single allowed account
-is defined in `src/features/app/auth/allowedEmail.ts`.
+is defined in `src/features/workspace/auth/allowedEmail.ts`.
 
 ## The intended flow
 
-1. On `/app/welcome`, the user enters their email. `AuthProvider.signInWithEmail`
+1. On `/workspace/welcome`, the user enters their email. `AuthProvider.signInWithEmail`
    calls `supabase.auth.signInWithOtp({ email, options: { emailRedirectTo:
-\`${window.location.origin}/app/auth/confirm\` } })`.
+\`${window.location.origin}/workspace/auth/confirm\` } })`.
 2. Supabase emails a link. The user clicks it and lands on
-   **`/app/auth/confirm`** with a one-time `token_hash` in the query string.
-3. `AuthConfirm` (`src/features/app/auth/AuthConfirm.tsx`) calls
+   **`/workspace/auth/confirm`** with a one-time `token_hash` in the query string.
+3. `AuthConfirm` (`src/features/workspace/auth/AuthConfirm.tsx`) calls
    `verifyOtp({ token_hash, type })` **in the browser**, which mints the
-   session and navigates to `/app/home`.
+   session and navigates to `/workspace/home`.
 
 Verifying in the browser (rather than via Supabase's default
 `/auth/v1/verify` GET link) is deliberate: email-provider link scanners
@@ -47,7 +47,7 @@ https://dutiva-*-…-dutiva-canada.vercel.app/**  # preview deployments
 **Wildcards match paths only if you ask them to.** `*` stops at `/`; `**`
 spans separators; an entry with no path segment matches only the bare origin.
 So `http://localhost:5173/auth` does _not_ allow
-`http://localhost:5173/app/auth/confirm`, and neither does a bare
+`http://localhost:5173/workspace/auth/confirm`, and neither does a bare
 `https://dutiva-*-dutiva-canada.vercel.app`. This is exactly how the project
 drifted: the allow-list still held exact-path entries from an older `/auth`
 callback route, so local dev and the `dutiva.vercel.app` alias silently fell
@@ -76,7 +76,7 @@ Change the template body so the link points at the confirm route with a
 ```
 
 `{{ .RedirectTo }}` resolves to the `emailRedirectTo` we pass
-(`…/app/auth/confirm`). Using `{{ .ConfirmationURL }}` instead keeps the
+(`…/workspace/auth/confirm`). Using `{{ .ConfirmationURL }}` instead keeps the
 scanner-prefetch failure mode described above.
 
 Verified 2026-08-06: the live template is on `.RedirectTo` / `.TokenHash`.
@@ -86,8 +86,8 @@ Verified 2026-08-06: the live template is on `.RedirectTo` / `.TokenHash`.
 Even with the config correct, a redirect can still land on the site root (an
 older email, an implicit-flow fragment, a not-yet-allow-listed preview origin).
 An inline script in `index.html` catches any auth artifact
-(`token_hash` / `access_token` / `error…`) that lands on a non-`/app` URL and
-forwards it — query and fragment intact — to `/app/auth/confirm`. This makes the
+(`token_hash` / `access_token` / `error…`) that lands on a non-`/workspace` URL (legacy `/app` aliases redirect) and
+forwards it — query and fragment intact — to `/workspace/auth/confirm`. This makes the
 link resilient, but it is a net, not a substitute for the config above (it can't
 stop a scanner from burning a `{{ .ConfirmationURL }}` token before the click).
 

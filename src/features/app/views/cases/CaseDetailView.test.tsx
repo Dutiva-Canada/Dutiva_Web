@@ -4,7 +4,7 @@ import { renderApp } from '@/test/renderApp'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { CaseDetailView } from './CaseDetailView'
 
-const CASE1 = { route: '/app/cases/case1', path: '/app/cases/:caseId' }
+const CASE1 = { route: '/workspace/cases/case1', path: '/workspace/cases/:caseId' }
 
 describe('CaseDetailView', () => {
   it('renders the case1 overview: header, recommendation, risk, workflow, linked records', () => {
@@ -65,12 +65,15 @@ describe('CaseDetailView', () => {
   })
 
   it('shows a gentle empty state for an unknown case id', () => {
-    renderApp(<CaseDetailView />, { route: '/app/cases/unknown', path: '/app/cases/:caseId' })
+    renderApp(<CaseDetailView />, {
+      route: '/workspace/cases/unknown',
+      path: '/workspace/cases/:caseId',
+    })
 
     expect(screen.getByText('Case not found')).toBeInTheDocument()
     const links = screen.getAllByRole('link', { name: 'All cases' })
     expect(links.length).toBeGreaterThan(0)
-    expect(links[0]).toHaveAttribute('href', '/app/cases')
+    expect(links[0]).toHaveAttribute('href', '/workspace/cases')
   })
 
   describe('Ask Advisor rail', () => {

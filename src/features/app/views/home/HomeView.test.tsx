@@ -20,7 +20,7 @@ describe('HomeView', () => {
   })
 
   it('renders the daily brief, fixture-derived metric chips and the priority queue', () => {
-    renderApp(<HomeView />, { route: '/app/home' })
+    renderApp(<HomeView />, { route: '/workspace/home' })
 
     /* Header + Advisor's daily brief hero. */
     expect(screen.getByText('Good to see you, Riley.')).toBeInTheDocument()
@@ -56,12 +56,12 @@ describe('HomeView', () => {
         <HomeView />
         <LocationProbe />
       </>,
-      { route: '/app/home' },
+      { route: '/workspace/home' },
     )
 
     /* pr1 — "Open case" → /app/cases/case1 (prototype openCase('case1')). */
     fireEvent.click(screen.getByRole('button', { name: 'Open case' }))
-    expect(screen.getByTestId('pathname')).toHaveTextContent('/app/cases/case1')
+    expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/cases/case1')
   })
 
   it('opens the supportive wellbeing rail from the Watching row', () => {
@@ -71,7 +71,7 @@ describe('HomeView', () => {
         <HomeView />
         <AdvisorRail />
       </>,
-      { route: '/app/home' },
+      { route: '/workspace/home' },
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Grace Osei — wellbeing trending down' }))
@@ -119,7 +119,7 @@ describe('HomeView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { HomeView: HomeViewFresh } = await import('./HomeView')
 
-    renderAppFresh(<HomeViewFresh />, { route: '/app/home' })
+    renderAppFresh(<HomeViewFresh />, { route: '/workspace/home' })
 
     expect(await screen.findByText('Your workspace is ready.')).toBeInTheDocument()
     expect(screen.getByText(/Dutiva Canada Inc\./)).toBeInTheDocument()
@@ -128,11 +128,11 @@ describe('HomeView in production mode', () => {
     expect(screen.getByText('Your setup path')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Confirm your company profile/ })).toHaveAttribute(
       'href',
-      '/app/settings',
+      '/workspace/settings',
     )
     expect(screen.getByRole('link', { name: /Add your first person/ })).toHaveAttribute(
       'href',
-      '/app/employees?new=1',
+      '/workspace/employees?new=1',
     )
     expect(
       screen.getByRole('button', { name: /Add the remaining steps to Tasks/ }),
@@ -297,7 +297,7 @@ describe('HomeView production command centre', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { HomeView: HomeViewFresh } = await import('./HomeView')
 
-    renderAppFresh(<HomeViewFresh />, { route: '/app/home' })
+    renderAppFresh(<HomeViewFresh />, { route: '/workspace/home' })
 
     expect(await screen.findByText('Welcome back.')).toBeInTheDocument()
     expect(screen.getByText('Dutiva Canada Inc.')).toBeInTheDocument()
@@ -305,9 +305,12 @@ describe('HomeView production command centre', () => {
     /* Stat tiles deep-link to their modules. */
     expect(screen.getByRole('link', { name: /1 Employees/ })).toHaveAttribute(
       'href',
-      '/app/employees',
+      '/workspace/employees',
     )
-    expect(screen.getByRole('link', { name: /1 Open cases/ })).toHaveAttribute('href', '/app/cases')
+    expect(screen.getByRole('link', { name: /1 Open cases/ })).toHaveAttribute(
+      'href',
+      '/workspace/cases',
+    )
 
     /* Due soon: the 2020 case is overdue, the 2099 task is not. */
     expect(screen.getByText('Due soon')).toBeInTheDocument()
@@ -320,7 +323,7 @@ describe('HomeView production command centre', () => {
     expect(screen.getByText(/policy needs attention/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Open policies/ })).toHaveAttribute(
       'href',
-      '/app/policies',
+      '/workspace/policies',
     )
 
     /* Keep-going card — the setup path survives graduation while steps
@@ -328,7 +331,7 @@ describe('HomeView production command centre', () => {
     expect(screen.getByText('Finish setting up')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Confirm your company profile/ })).toHaveAttribute(
       'href',
-      '/app/settings',
+      '/workspace/settings',
     )
     expect(screen.queryByRole('link', { name: /Add your first person/ })).not.toBeInTheDocument()
 

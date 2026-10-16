@@ -22,7 +22,7 @@ import { capitalCallScheduled, commitmentInvestor } from './data/fixtureInvest'
 function renderAt(route: string) {
   return renderApp(
     <Routes>
-      <Route path="/app/finance/*" element={<FinanceView />}>
+      <Route path="/workspace/finance/*" element={<FinanceView />}>
         <Route path="overview" element={<Overview />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="sales" element={<Sales />} />
@@ -45,7 +45,7 @@ function renderAt(route: string) {
 
 describe('FinanceView', () => {
   it('renders the workspace shell with all navigation tabs', () => {
-    renderAt('/app/finance/overview')
+    renderAt('/workspace/finance/overview')
 
     expect(screen.getByRole('heading', { name: 'Finance' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument()
@@ -63,13 +63,13 @@ describe('FinanceView', () => {
   })
 
   it('offers a refresh control that reloads the workspace data', () => {
-    renderAt('/app/finance/portfolio')
+    renderAt('/workspace/finance/portfolio')
 
     expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeDisabled()
   })
 
   it('shows cash position and upcoming obligations on the overview', () => {
-    renderAt('/app/finance/overview')
+    renderAt('/workspace/finance/overview')
 
     // Account names can also appear in the exceptions list — allow multiples.
     expect(screen.getAllByText('Operating account').length).toBeGreaterThan(0)
@@ -77,49 +77,47 @@ describe('FinanceView', () => {
   })
 
   it('lists invoices on the sales tab', () => {
-    renderAt('/app/finance/sales')
+    renderAt('/workspace/finance/sales')
 
     expect(screen.getByText('INV-2026-0042')).toBeInTheDocument()
     expect(screen.getByText('INV-2026-0038')).toBeInTheDocument()
   })
 
   it('lists spend requests on the purchases tab', () => {
-    renderAt('/app/finance/purchases')
+    renderAt('/workspace/finance/purchases')
 
     expect(screen.getByText('New warehouse laptops (3 units)')).toBeInTheDocument()
   })
 
   it('lists pay runs on the payroll tab', () => {
-    renderAt('/app/finance/payroll')
+    renderAt('/workspace/finance/payroll')
 
     expect(screen.getByText('Pay period 18 — Aug 24 to Sep 6')).toBeInTheDocument()
   })
 
   it('lists journals on the accounting tab', () => {
-    renderAt('/app/finance/accounting')
+    renderAt('/workspace/finance/accounting')
 
     expect(screen.getByText(/JE-2026-0150/)).toBeInTheDocument()
   })
 
   it('lists budgets on the plans tab', () => {
-    renderAt('/app/finance/plans')
+    renderAt('/workspace/finance/plans')
 
     expect(screen.getByText('2026 annual budget')).toBeInTheDocument()
   })
 
   it('lists reserve goals on the treasury tab', () => {
-    renderAt('/app/finance/treasury')
+    renderAt('/workspace/finance/treasury')
 
     expect(screen.getByText('Q3 tax instalment reserve')).toBeInTheDocument()
     expect(screen.getByText('Payroll reserve — 2 cycles')).toBeInTheDocument()
   })
 
   it('surfaces derived attention items on the overview', () => {
-    renderAt('/app/finance/overview')
+    renderAt('/workspace/finance/overview')
 
-    expect(
-      screen.getByRole('heading', { name: 'Needs attention' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Needs attention' })).toBeInTheDocument()
     // The notified tranche is due inside 30 days (fixture anchors to now).
     expect(screen.getByText('Call due soon')).toBeInTheDocument()
     expect(
@@ -133,16 +131,16 @@ describe('FinanceView', () => {
     // Links resolve to the tab that owns each item.
     expect(screen.getAllByRole('link', { name: 'Growth equity commitment' })[0]).toHaveAttribute(
       'href',
-      '/app/finance/deals',
+      '/workspace/finance/deals',
     )
     expect(screen.getByRole('link', { name: 'Business line of credit' })).toHaveAttribute(
       'href',
-      '/app/finance/treasury',
+      '/workspace/finance/treasury',
     )
   })
 
   it('lists cash sweeps on the treasury tab with their lifecycle', () => {
-    renderAt('/app/finance/treasury')
+    renderAt('/workspace/finance/treasury')
 
     expect(screen.getByRole('heading', { name: 'Cash sweeps' })).toBeInTheDocument()
     // Executed + scheduled fixture sweeps, both operating → tax reserve.
@@ -159,7 +157,7 @@ describe('FinanceView', () => {
   })
 
   it('shows covenant, notice, and the maturing marker on treasury debt', () => {
-    renderAt('/app/finance/treasury')
+    renderAt('/workspace/finance/treasury')
 
     expect(screen.getByText('Business line of credit')).toBeInTheDocument()
     // Covenant + notice columns render together on the terms line.
@@ -170,7 +168,7 @@ describe('FinanceView', () => {
   })
 
   it('renders the deal pipeline grouped by stage with capital partners', () => {
-    renderAt('/app/finance/deals')
+    renderAt('/workspace/finance/deals')
 
     // Summary strip + section heading share the same label — target the h2.
     expect(screen.getByRole('heading', { name: 'Deal pipeline' })).toBeInTheDocument()
@@ -206,7 +204,7 @@ describe('FinanceView', () => {
   })
 
   it('renders the board governance view: cap table, partner roster, audit trail', () => {
-    renderAt('/app/finance/governance')
+    renderAt('/workspace/finance/governance')
 
     expect(screen.getByRole('heading', { name: 'Cap table' })).toBeInTheDocument()
     // Both entities render; the child carries its ownership edge.
@@ -231,30 +229,32 @@ describe('FinanceView', () => {
   })
 
   it('renders linked documents on deal cards and holding rows', () => {
-    renderAt('/app/finance/deals')
+    renderAt('/workspace/finance/deals')
 
     // The deal card's Documents block shows the snapshot + deep link.
-    expect(screen.getByText('Employment agreement — Grace Osei · DOC-2026-0151')).toBeInTheDocument()
+    expect(
+      screen.getByText('Employment agreement — Grace Osei · DOC-2026-0151'),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'Employment agreement — Grace Osei · DOC-2026-0151' }),
-    ).toHaveAttribute('href', '/app/documents/doc_002')
+    ).toHaveAttribute('href', '/workspace/documents/doc_002')
   })
 
   it('renders linked documents under holdings on the portfolio tab', () => {
-    renderAt('/app/finance/portfolio')
+    renderAt('/workspace/finance/portfolio')
 
-    expect(screen.getByText('Termination letter — Jordan Mensah · DOC-2026-0138')).toBeInTheDocument()
+    expect(
+      screen.getByText('Termination letter — Jordan Mensah · DOC-2026-0138'),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'Termination letter — Jordan Mensah · DOC-2026-0138' }),
-    ).toHaveAttribute('href', '/app/documents/doc_003')
+    ).toHaveAttribute('href', '/workspace/documents/doc_003')
   })
 
   it('renders the ownership structure tree on the entities tab', () => {
-    renderAt('/app/finance/entities')
+    renderAt('/workspace/finance/entities')
 
-    expect(
-      screen.getByRole('heading', { name: 'Ownership structure' }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Ownership structure' })).toBeInTheDocument()
     // Both entities appear once in the registry list and once in the tree.
     expect(screen.getAllByText('Northgate Holdings Inc.').length).toBe(2)
     expect(screen.getAllByText('Northgate Logistics Inc.').length).toBe(2)
@@ -263,14 +263,14 @@ describe('FinanceView', () => {
   })
 
   it('lists tax obligations on the tax tab', () => {
-    renderAt('/app/finance/tax')
+    renderAt('/workspace/finance/tax')
 
     expect(screen.getByText('GST/HST — Q3 2026')).toBeInTheDocument()
     expect(screen.getByText('Income tax — 2026 T2')).toBeInTheDocument()
   })
 
   it('shows the tax scenario disclaimer on the tax tab', () => {
-    renderAt('/app/finance/tax')
+    renderAt('/workspace/finance/tax')
 
     expect(
       screen.getByText(
@@ -280,7 +280,7 @@ describe('FinanceView', () => {
   })
 
   it('renders the evidence checklist on the evidence tab', () => {
-    renderAt('/app/finance/evidence')
+    renderAt('/workspace/finance/evidence')
 
     expect(screen.getByText('Evidence checklist')).toBeInTheDocument()
   })

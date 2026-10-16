@@ -10,8 +10,8 @@ import { resetCreatedCases } from './caseModel'
 /** List + detail mounted together so row clicks / case creation can navigate. */
 const casesRoutes = (
   <Routes>
-    <Route path="/app/cases" element={<CasesView />} />
-    <Route path="/app/cases/:caseId" element={<CaseDetailView />} />
+    <Route path="/workspace/cases" element={<CasesView />} />
+    <Route path="/workspace/cases/:caseId" element={<CaseDetailView />} />
   </Routes>
 )
 
@@ -21,7 +21,7 @@ describe('CasesView', () => {
   })
 
   it('renders the fixture case files with the open count and progress', () => {
-    renderApp(casesRoutes, { route: '/app/cases' })
+    renderApp(casesRoutes, { route: '/workspace/cases' })
 
     expect(screen.getByText('3 open of 4 cases')).toBeInTheDocument()
     expect(screen.getByText('Termination — Jordan Mensah')).toBeInTheDocument()
@@ -36,7 +36,7 @@ describe('CasesView', () => {
   })
 
   it('navigates to the case detail when a row is opened', () => {
-    renderApp(casesRoutes, { route: '/app/cases' })
+    renderApp(casesRoutes, { route: '/workspace/cases' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Open case Termination — Jordan Mensah' }))
 
@@ -47,7 +47,7 @@ describe('CasesView', () => {
   })
 
   it('creates an Intake case through the New case modal and opens it', () => {
-    renderApp(casesRoutes, { route: '/app/cases' })
+    renderApp(casesRoutes, { route: '/workspace/cases' })
 
     fireEvent.click(screen.getByRole('button', { name: 'New case' }))
     const dialog = screen.getByRole('dialog', { name: 'New case' })
@@ -232,7 +232,7 @@ describe('CasesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { CasesView: CasesViewFresh } = await import('./CasesView')
 
-    renderAppFresh(<CasesViewFresh />, { route: '/app/cases', path: '/app/cases' })
+    renderAppFresh(<CasesViewFresh />, { route: '/workspace/cases', path: '/workspace/cases' })
 
     expect(await screen.findByText('Accommodation — ergonomic assessment')).toBeInTheDocument()
     expect(screen.getByText('1 case')).toBeInTheDocument()
@@ -245,7 +245,7 @@ describe('CasesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { CasesView: CasesViewFresh } = await import('./CasesView')
 
-    renderAppFresh(<CasesViewFresh />, { route: '/app/cases', path: '/app/cases' })
+    renderAppFresh(<CasesViewFresh />, { route: '/workspace/cases', path: '/workspace/cases' })
 
     expect(await screen.findByText('No cases yet')).toBeInTheDocument()
 
@@ -287,7 +287,7 @@ describe('CasesView in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { CasesView: CasesViewFresh } = await import('./CasesView')
 
-    renderAppFresh(<CasesViewFresh />, { route: '/app/cases', path: '/app/cases' })
+    renderAppFresh(<CasesViewFresh />, { route: '/workspace/cases', path: '/workspace/cases' })
 
     const statusSelect = await screen.findByLabelText(
       'Case status — Accommodation — ergonomic assessment',
@@ -423,8 +423,8 @@ describe('CaseDetailView in production mode', () => {
     const { CaseDetailView: CaseDetailViewFresh } = await import('./CaseDetailView')
 
     renderAppFresh(<CaseDetailViewFresh />, {
-      route: '/app/cases/case-1',
-      path: '/app/cases/:caseId',
+      route: '/workspace/cases/case-1',
+      path: '/workspace/cases/:caseId',
     })
 
     /* Real facts header is always visible above the tab strip. */

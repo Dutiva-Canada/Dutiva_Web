@@ -28,8 +28,8 @@ describe('Advisor Memory surfaces', () => {
   describe('PersonMemoryView', () => {
     const renderPerson = () =>
       renderApp(<PersonMemoryView />, {
-        route: '/app/settings/memory/people/e1',
-        path: '/app/settings/memory/people/:personId',
+        route: '/workspace/settings/memory/people/e1',
+        path: '/workspace/settings/memory/people/:personId',
       })
 
     it('links Open case to the case record and Review case memory to Memory', () => {
@@ -97,8 +97,8 @@ describe('Advisor Memory surfaces', () => {
   describe('CaseMemoryView', () => {
     it('renders the resume banner, case memory, timeline, and what-I-know rail', () => {
       renderApp(<CaseMemoryView />, {
-        route: '/app/settings/memory/cases/case1',
-        path: '/app/settings/memory/cases/:caseId',
+        route: '/workspace/settings/memory/cases/case1',
+        path: '/workspace/settings/memory/cases/:caseId',
       })
 
       expect(screen.getByText('Picking up where you left off')).toBeInTheDocument()
@@ -119,8 +119,8 @@ describe('Advisor Memory surfaces', () => {
   describe('ChatRecallView', () => {
     it('renders the resumed pill, sourced highlights, and the recall accordion', () => {
       renderApp(<ChatRecallView />, {
-        route: '/app/settings/memory/conversations/c1',
-        path: '/app/settings/memory/conversations/:threadId',
+        route: '/workspace/settings/memory/conversations/c1',
+        path: '/workspace/settings/memory/conversations/:threadId',
       })
 
       expect(screen.getByText(/Resumed from Jul 5/)).toBeInTheDocument()
@@ -136,7 +136,8 @@ describe('Advisor Memory surfaces', () => {
   })
 
   describe('MemoryManagerView (new four-tab workspace)', () => {
-    const renderManager = () => renderApp(<MemoryManagerView />, { route: '/app/settings/memory' })
+    const renderManager = () =>
+      renderApp(<MemoryManagerView />, { route: '/workspace/settings/memory' })
 
     it('renders the four primary tabs with the Memories tab active', () => {
       renderManager()
@@ -318,7 +319,7 @@ describe('Advisor Memory in production mode', () => {
     const { renderApp: renderAppFresh } = await import('@/test/renderApp')
     const { MemoryManagerView: MemoryManagerViewFresh } = await import('./MemoryManagerView')
 
-    renderAppFresh(<MemoryManagerViewFresh />, { route: '/app/settings/memory' })
+    renderAppFresh(<MemoryManagerViewFresh />, { route: '/workspace/settings/memory' })
 
     /* The new four-tab workspace renders the Memories tab empty state. */
     expect(

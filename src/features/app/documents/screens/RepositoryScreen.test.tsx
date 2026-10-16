@@ -9,7 +9,7 @@ function renderRepository() {
     <DoclibProvider>
       <RepositoryScreen />
     </DoclibProvider>,
-    { route: '/app/documents', path: '/app/documents' },
+    { route: '/workspace/documents', path: '/workspace/documents' },
   )
 }
 
@@ -27,7 +27,7 @@ describe('RepositoryScreen', () => {
     expect(links).toHaveLength(13)
 
     /* Fixture order — doc_001 first; its row link targets the detail route. */
-    expect(links[0]).toHaveAttribute('href', '/app/documents/doc_001')
+    expect(links[0]).toHaveAttribute('href', '/workspace/documents/doc_001')
     expect(within(table).getByText('Offer of employment — Gabriel Dubois')).toBeInTheDocument()
 
     /* Count card mirrors the visible set. */
@@ -38,7 +38,7 @@ describe('RepositoryScreen', () => {
 
     expect(screen.getByRole('link', { name: 'Create from a template' })).toHaveAttribute(
       'href',
-      '/app/documents/studio',
+      '/workspace/documents/studio',
     )
 
     /* The archived fixture stays hidden until the toggle is on. */

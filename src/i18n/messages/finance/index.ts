@@ -19,7 +19,7 @@ import { financeTreasury } from './treasury'
 
 /**
  * Finance workspace chrome. These keys are workspace-scoped and used by
- * the `/app/finance` feature area only — split by screen for
+ * the `/workspace/finance` feature area only — split by screen for
  * maintainability, same convention as `messages/landing/`.
  *
  * [FR self-authored — not from a design handoff; reviewed against the blueprint.]

@@ -6,28 +6,28 @@ import { listChain, mockProductionWorkspace, PRODUCTION_ORG_ID } from '@/test/pr
 
 describe('HiringView', () => {
   it('renders the hiring module with candidates tab', () => {
-    renderApp(<HiringView />, { route: '/app/hiring', path: '/app/hiring' })
+    renderApp(<HiringView />, { route: '/workspace/hiring', path: '/workspace/hiring' })
 
     // Check that the main title is rendered (h1)
     expect(screen.getByRole('heading', { name: /Hiring|Recrutement/i })).toBeInTheDocument()
   })
 
   it('displays candidate list in demo mode', () => {
-    renderApp(<HiringView />, { route: '/app/hiring', path: '/app/hiring' })
+    renderApp(<HiringView />, { route: '/workspace/hiring', path: '/workspace/hiring' })
 
     // Check that candidates are displayed (rendered in both desktop table and mobile cards)
     expect(screen.getAllByText(/Sarah Chen/).length).toBeGreaterThan(0)
   })
 
   it('shows funnel analytics tab', () => {
-    renderApp(<HiringView />, { route: '/app/hiring', path: '/app/hiring' })
+    renderApp(<HiringView />, { route: '/workspace/hiring', path: '/workspace/hiring' })
 
     // Check that funnel tab is available
     expect(screen.getByRole('tab', { name: /Funnel|Entonnoir/i })).toBeInTheDocument()
   })
 
   it('shows job postings tab', () => {
-    renderApp(<HiringView />, { route: '/app/hiring', path: '/app/hiring' })
+    renderApp(<HiringView />, { route: '/workspace/hiring', path: '/workspace/hiring' })
 
     // Check that postings tab is available
     expect(screen.getByRole('tab', { name: /Job postings|Offres d'emploi/i })).toBeInTheDocument()
@@ -128,7 +128,10 @@ describe('HiringView in production mode', () => {
     const { default: userEvent } = await import('@testing-library/user-event')
     const user = userEvent.setup()
 
-    renderAppFresh(<HiringViewFresh />, { route: '/app/hiring?tab=postings', path: '/app/hiring' })
+    renderAppFresh(<HiringViewFresh />, {
+      route: '/workspace/hiring?tab=postings',
+      path: '/workspace/hiring',
+    })
 
     // Wait for production data to load and the postings tab to render
     const createBtn = await screen.findByRole('button', { name: /Create posting|Créer une offre/i })
@@ -155,8 +158,8 @@ describe('HiringView in production mode', () => {
     const { HiringView: HiringViewFresh } = await import('./HiringView')
 
     renderAppFresh(<HiringViewFresh />, {
-      route: '/app/hiring?tab=candidates',
-      path: '/app/hiring',
+      route: '/workspace/hiring?tab=candidates',
+      path: '/workspace/hiring',
     })
 
     // Wait for the candidate to appear (rendered in both desktop table and mobile cards)

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { Link as LinkIcon, Pencil, Plus, Send, Sparkle, Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
 import { useI18n } from '@/i18n/context'
 import { communicationsMessages as M } from '@/i18n/messages/communications'
 import { statusChipClass } from '@/components/chips'
