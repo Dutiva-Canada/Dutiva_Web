@@ -14,6 +14,13 @@
   --sb-ok-soft: #dcece1;
   --sb-ink: #234036;
   --sb-ink-soft: #4c6a5c;
+  /* Body + muted join the sage family too — the invest navy body and warm
+     taupe muted read as two palettes at once. The deeper muted also lifts
+     small secondary text past the contrast the old taupe missed. */
+  --sb-body: #3d4a40;
+  --sb-muted: #6f7057;
+  --sb-line: #e1dcc8;
+  --sb-input: #fffdf6;
   /* Card lifts a step lighter than the page so surfaces read as raised
      panels instead of flat wells; the deeper shadow carries the height. */
   --sb-card: #f9f4e6;
@@ -47,7 +54,14 @@
   --sb-ok-soft: #1e3026;
   --sb-ink: #e6ecdf;
   --sb-ink-soft: #b9c9bb;
-  --sb-card: #202a43;
+  /* Dark moves off the invest navy onto the same forest family as light —
+     a wellness portal's dark theme should feel like the same room with the
+     lights low, not a different product. */
+  --sb-body: #d5ddd0;
+  --sb-muted: #98a59a;
+  --sb-line: #2f3f37;
+  --sb-input: #131a16;
+  --sb-card: #222e27;
   --sb-card-deep: #22312a;
   --sb-shadow: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 30px rgba(0, 0, 0, 0.34);
   --hb-mood-1: #d08a72;
@@ -83,11 +97,11 @@
    invest portal. */
 .sb.hb .sb-btn {
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease;
 }
 .sb.hb .sb-btn:not([disabled]):hover {
   transform: translateY(-1px);
@@ -127,12 +141,113 @@
   @keyframes hb-rise {
     from {
       opacity: 0;
-      transform: translateY(6px);
+      transform: translateY(8px);
     }
   }
   .sb.hb > * {
-    animation: hb-rise 0.28s ease both;
+    animation: hb-rise 0.45s ease-out both;
   }
+}
+
+/* Ambient breathing rings — the portal's signature motif, echoed faintly
+   behind the top of every page like a slow exhale fading into the canvas.
+   isolation: isolate keeps the decoration under the content without
+   z-index gymnastics leaking to ancestors. */
+.sb.hb.sb-page {
+  position: relative;
+  isolation: isolate;
+}
+.sb.hb.sb-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 440px;
+  height: 330px;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    transparent 0 30px,
+    color-mix(in srgb, var(--sb-accent) 13%, transparent) 30px 31.5px,
+    transparent 31.5px 64px,
+    color-mix(in srgb, var(--sb-accent) 10%, transparent) 64px 65.5px,
+    transparent 65.5px 100px,
+    color-mix(in srgb, var(--sb-accent) 7%, transparent) 100px 101.5px,
+    transparent 101.5px 138px,
+    color-mix(in srgb, var(--sb-accent) 5%, transparent) 138px 139.5px,
+    transparent 139.5px 200px
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    #000 0%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    circle at calc(100% - 66px) 54px,
+    #000 0%,
+    transparent 72%
+  );
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-aura-breathe {
+    to {
+      opacity: 0.45;
+    }
+  }
+  .sb.hb.sb-page::before {
+    animation: hb-aura-breathe 9s ease-in-out infinite alternate;
+  }
+}
+@media (max-width: 560px) {
+  .sb.hb.sb-page::before {
+    width: 280px;
+    height: 220px;
+    background: repeating-radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      transparent 0 22px,
+      color-mix(in srgb, var(--sb-accent) 12%, transparent) 22px 23.5px,
+      transparent 23.5px 46px,
+      color-mix(in srgb, var(--sb-accent) 9%, transparent) 46px 47.5px,
+      transparent 47.5px 72px,
+      color-mix(in srgb, var(--sb-accent) 6%, transparent) 72px 73.5px,
+      transparent 73.5px 140px
+    );
+    -webkit-mask-image: radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      #000 0%,
+      transparent 75%
+    );
+    mask-image: radial-gradient(
+      circle at calc(100% - 40px) 34px,
+      #000 0%,
+      transparent 75%
+    );
+  }
+}
+
+/* Breathing room — this portal's rhythm is unhurried: deeper card padding,
+   a wider page column edge, and a little more air between the pieces.
+   Mobile keeps the tighter density. */
+.sb.hb .sb-card-pad {
+  padding: 22px 20px;
+}
+.sb.hb.sb-page {
+  padding: 0 20px 56px;
+}
+.sb.hb .sb-stats {
+  gap: 14px;
+  margin-top: 22px;
+}
+.sb.hb .sb-duo {
+  gap: 18px;
+  margin-top: 18px;
+}
+.sb.hb .sb-head-row h1 {
+  margin-top: 28px;
+}
+.sb.hb .sb-note {
+  padding: 13px 16px;
 }
 
 /* Mood / energy pickers — a row of five labelled buttons. */
@@ -154,11 +269,11 @@
   cursor: pointer;
   font: inherit;
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    border-color 0.22s ease,
+    background 0.22s ease,
+    color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
 }
 .hb-scale-btn:hover {
   border-color: var(--sb-accent);
@@ -309,7 +424,7 @@ a.sb-stat-link .hb-spark {
   color: var(--hb-mood);
 }
 a.sb-stat-link {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
 }
 a.sb-stat-link:hover {
   border-color: var(--sb-accent);
@@ -440,7 +555,7 @@ a.sb-stat-link:focus-visible {
   border: 1px solid var(--sb-line);
   border-radius: 12px;
   background: var(--sb-input);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
 }
 /* The hover affordance belongs to rows that act — resource cards hold real
    links. Static rows (the grounding countdown) opt out: nothing happens on
@@ -529,7 +644,7 @@ a.sb-stat-link:focus-visible {
   color: var(--sb-accent-ink);
   background: var(--sb-accent-soft);
   text-decoration: none;
-  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
 }
 .hb-res-link:hover {
   text-decoration: none;
@@ -601,8 +716,8 @@ a.sb-stat-link:focus-visible {
   border: 1px solid var(--sb-line);
   object-fit: cover;
   transition:
-    transform 120ms ease,
-    box-shadow 120ms ease;
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 a > .hb-jthumb:hover {
   transform: translateY(-1px);
@@ -682,7 +797,7 @@ a > .hb-jthumb:hover {
   display: inline-block;
   padding: 0;
   cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
 .hb-dot:not(:disabled):hover {
   transform: scale(1.3);
@@ -935,6 +1050,33 @@ a > .hb-jthumb:hover {
 /* These use the app-wide surface tokens, not the .sb palette, because they
    render in HealthPortalLayout above/beside the page content. */
 
+/* Health shell retune — the portal's dark theme joins the forest family of
+   its cards instead of borrowing the workspace's navy ramp (dark canvas +
+   navy chrome behind green cards read as two products stacked). Scoped to
+   .hb-shell so only /health's chrome moves; light keeps the shared ivory
+   ramp, which already reads warm. The navy wordmark and gold note tokens
+   stay — those are the Dutiva thread that anchors the personality layer. */
+[data-theme='dark'] .surface-app.hb-shell {
+  --bg: #0d130f;
+  --desk: #080d0a;
+  --inset: #151f18;
+  --surface: #1a241e;
+  --surface-2: #233028;
+  --border: #33463b;
+  --border-soft: #223028;
+  --text: #eef1ea;
+  --text-2: #c7d0c2;
+  --text-3: #a2af9f;
+  --text-muted: #93a08f;
+  --text-faint: #7f8d7f;
+  /* Chrome focus + accent follow the sage accent, not workspace teal. */
+  --accent: #7fc4a2;
+  --accent-soft: rgba(127, 196, 162, 0.13);
+  --accent-soft-border: rgba(127, 196, 162, 0.32);
+  --focus: rgba(127, 196, 162, 0.6);
+  --sel: #1c322a;
+}
+
 /* Sticky portal header — translucent so scrolled content shows a soft blur
    instead of a hard edge. */
 .hb-topbar {
@@ -995,7 +1137,7 @@ a > .hb-jthumb:hover {
   box-shadow: 0 0 0 3px var(--sb-accent-soft);
 }
 .sb.hb .sbchat-send {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
 }
 .sb.hb .sbchat-send:not(:disabled):hover {
   transform: translateY(-1px);
@@ -1023,16 +1165,45 @@ a > .hb-jthumb:hover {
 }
 
 /* Roomier empty states — the dashed box is the only thing on the card, so
-   it earns a bit more air. */
+   it earns a bit more air plus the portal's quiet signature: a small
+   breathing orb (soft disc + accent ring + halo) that slowly swells and
+   settles. Alert variants (load failures) keep the plain box — an ornament
+   on an error reads as decoration, not calm. */
 .sb.hb .sb-empty {
-  padding: 28px 18px;
+  padding: 30px 18px 26px;
+}
+.sb.hb .sb-empty:not([role='alert'])::before {
+  content: '';
+  display: block;
+  width: 34px;
+  height: 34px;
+  margin: 2px auto 12px;
+  border-radius: 50%;
+  background: var(--sb-accent-soft);
+  border: 1.5px solid color-mix(in srgb, var(--sb-accent) 45%, transparent);
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--sb-accent) 12%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes hb-orb-breathe {
+    0%,
+    100% {
+      transform: scale(0.84);
+    }
+    45%,
+    55% {
+      transform: scale(1);
+    }
+  }
+  .sb.hb .sb-empty:not([role='alert'])::before {
+    animation: hb-orb-breathe 7s ease-in-out infinite;
+  }
 }
 
 .hb-pace {
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition: border-color 0.22s ease, background 0.22s ease, color 0.22s ease;
 }
 .hb-quiet-link {
-  transition: color 0.15s ease;
+  transition: color 0.22s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1053,6 +1224,14 @@ a > .hb-jthumb:hover {
 }
 
 @media (max-width: 560px) {
+  /* Warmth pass keeps tighter density on phones — the extra air is a
+     desktop luxury. */
+  .sb.hb .sb-card-pad {
+    padding: 18px 16px;
+  }
+  .sb.hb.sb-page {
+    padding: 0 16px 44px;
+  }
   .hb-scale {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
@@ -1137,7 +1316,7 @@ a > .hb-jthumb:hover {
   background: var(--sb-card-deep);
   color: var(--sb-ink);
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: transform 0.22s ease, border-color 0.22s ease, color 0.22s ease;
 }
 .hbcall-btn:disabled {
   opacity: 0.45;

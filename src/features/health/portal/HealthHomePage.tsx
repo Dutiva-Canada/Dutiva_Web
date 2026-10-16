@@ -140,7 +140,7 @@ function MemoriesCard() {
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_mem_title)}</h2>
       </div>
@@ -301,7 +301,7 @@ function QuickCheckIn() {
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_quick_title)}</h2>
         <Link
@@ -392,7 +392,7 @@ function TodayHabits() {
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad" style={{ marginTop: 20 }}>
       <div className="sb-section-head" style={{ marginTop: 0 }}>
         <h2 className="m-0 text-[16px]">{x(HM.health_ov_habits)}</h2>
         <Link

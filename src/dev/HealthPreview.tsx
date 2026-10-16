@@ -343,7 +343,7 @@ function Shell() {
 
   return (
     <HealthDataContext value={health}>
-      <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+      <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
         <header className="sticky top-0 z-10 border-b border-border bg-surface">
           <div className="mx-auto flex min-h-[56px] max-w-[1100px] items-center justify-between gap-[16px] px-[20px]">
             <div className="flex min-w-0 items-center gap-[16px]">

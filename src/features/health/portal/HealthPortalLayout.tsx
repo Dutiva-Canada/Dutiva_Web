@@ -102,7 +102,7 @@ export function HealthPortalLayout() {
 
   if (status !== 'signed-in') {
     return (
-      <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+      <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
         <header className="border-b border-border bg-bg-elevated">
           <div className="mx-auto flex max-w-[960px] items-center justify-between gap-[16px] px-[20px] py-3">
             <span className="shrink-0 font-display text-lg font-bold text-text">
@@ -142,7 +142,7 @@ export function HealthPortalLayout() {
   /* The data provider wraps the whole shell — but only once the grant is
      confirmed, so a user without access never fires health_* queries. */
   const shell = (
-    <div className="surface-app flex min-h-[100dvh] flex-col bg-bg text-text">
+    <div className="surface-app hb-shell flex min-h-[100dvh] flex-col bg-bg text-text">
       <a href="#hb-main" className="hb-skip">
         {x(HM.health_skip)}
       </a>
