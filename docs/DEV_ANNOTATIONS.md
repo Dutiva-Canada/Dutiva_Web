@@ -30,7 +30,7 @@ annotate the live page, and copy the brief.
    ```markdown
    # Requested changes (2 annotations)
 
-   ## /app/cases
+   ## /workspace/cases
 
    - `src/features/app/views/cases/CasesView.tsx:88` · `button "New case"` — Make this bigger and move it left
 

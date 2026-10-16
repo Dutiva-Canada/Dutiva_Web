@@ -82,13 +82,13 @@ graph TD
     seoRoutes -->|"imports"| LEGAL_HUB_GROUPS
 ```
 
-Sources: [src/features/marketing/pages/LegalHubPage.tsx:1-55](), [src/features/marketing/pages/PolicyPage.tsx:1-57](), [src/features/marketing/legal/policyContent.ts:48-65](), [src/seo/routes.ts:239-265]()
+Sources: [src/features/marketing/pages/LegalHubPage.tsx:1-55](<>), [src/features/marketing/pages/PolicyPage.tsx:1-57](<>), [src/features/marketing/legal/policyContent.ts:48-65](<>), [src/seo/routes.ts:239-265](<>)
 
 ## The 26 Policy Documents
 
 All 26 documents are registered in `LEGAL_HUB_GROUPS`, organized into six sections. Each row carries an English `slug`, a localized French `frSlug`, and i18n message keys for title/description.
 
-[src/features/marketing/legal/legalHubData.ts:27-214]()
+[src/features/marketing/legal/legalHubData.ts:27-214](<>)
 
 | #   | Section (`titleKey`)                  | Slug                        | EN Title                               |
 | --- | ------------------------------------- | --------------------------- | -------------------------------------- |
@@ -119,7 +119,7 @@ All 26 documents are registered in `LEGAL_HUB_GROUPS`, organized into six sectio
 | 25  | `legalHub_s6`                         | `trademark-policy`          | Trademark Usage Policy                 |
 | 26  | `legalHub_s6`                         | `dmca-takedown`             | Content Takedown Procedure             |
 
-Sources: [src/features/marketing/legal/legalHubData.ts:27-214](), [src/i18n/messages/legalHub.ts:19-24]()
+Sources: [src/features/marketing/legal/legalHubData.ts:27-214](<>), [src/i18n/messages/legalHub.ts:19-24](<>)
 
 ## Data Model
 
@@ -138,7 +138,7 @@ LegalHubRow {
 
 `LegalHubGroup` bundles rows under a section heading key (`titleKey`), e.g. `legalHub_s1` for "Core legal".
 
-[src/features/marketing/legal/legalHubData.ts:5-21]()
+[src/features/marketing/legal/legalHubData.ts:5-21](<>)
 
 ### Policy Content Types
 
@@ -153,7 +153,7 @@ The content pipeline is defined in `policyContent.ts` with these core types:
 | `ResolvedPolicyEdition` | `{ edition: PolicyEdition, lang: Lang }` — the loaded edition with its actual language                                       |
 | `PolicyBlockGroup`      | Rendering helper: consecutive `li` blocks grouped into `{ kind: 'list', items[] }`, `p` blocks stay as `{ kind: 'p', text }` |
 
-[src/features/marketing/legal/policyContent.ts:21-46](), [src/features/marketing/legal/policyContent.ts:114-128]()
+[src/features/marketing/legal/policyContent.ts:21-46](<>), [src/features/marketing/legal/policyContent.ts:114-128](<>)
 
 ## Content Loading Pipeline
 
@@ -184,13 +184,13 @@ sequenceDiagram
     PolicyPage-->>Browser: "render PolicyArticle"
 ```
 
-Sources: [src/features/marketing/legal/policyContent.ts:48-108](), [src/features/marketing/pages/PolicyPage.tsx:32-57]()
+Sources: [src/features/marketing/legal/policyContent.ts:48-108](<>), [src/features/marketing/pages/PolicyPage.tsx:32-57](<>)
 
 ### `buildCollection()` — Glob-based Document Discovery
 
 At module load time, `buildCollection()` uses Vite's `import.meta.glob` to discover all `./content/*.ts` files. It parses each filename with the regex `/([a-z0-9-]+)\.(en|fr)\.ts$/` to extract slug and language, then builds a `Map<string, PolicyDoc>` where each entry holds lazy `EditionLoader` functions.
 
-[src/features/marketing/legal/policyContent.ts:48-63]()
+[src/features/marketing/legal/policyContent.ts:48-63](<>)
 
 This approach means no manual registration of content files is needed — dropping a new `<slug>.en.ts` and `<slug>.fr.ts` pair into the `content/` directory is sufficient (assuming a matching `LEGAL_HUB_GROUPS` row exists).
 
@@ -200,13 +200,13 @@ Each edition is loaded lazily via dynamic import rather than bundled eagerly. Th
 
 The `policyEditionResource()` function maintains a stable per-`(slug, lang)` promise cache (`editionCache` Map) so that React's `use()` hook can suspend without re-triggering imports on re-renders. This cache is also used by the prerenderer, which waits for suspended trees to resolve and emits full document text in static HTML.
 
-[src/features/marketing/legal/policyContent.ts:89-108]()
+[src/features/marketing/legal/policyContent.ts:89-108](<>)
 
 ### Language Fallback
 
 `loadPolicyEdition()` prefers the requested language but falls back to the other edition when one side is missing. If neither exists, it returns `undefined`. Currently all 26 documents ship both EN and FR editions (enforced by test), but the fallback mechanism supports French-first documents during development — the `PolicyPage` renders a notice banner with `lang="fr"` on the `<article>` element when an edition language differs from the active UI language.
 
-[src/features/marketing/legal/policyContent.ts:78-87](), [src/features/marketing/pages/PolicyPage.tsx:137-142]()
+[src/features/marketing/legal/policyContent.ts:78-87](<>), [src/features/marketing/pages/PolicyPage.tsx:137-142](<>)
 
 ## Content File Structure
 
@@ -230,7 +230,7 @@ src/features/marketing/legal/content/
 
 EN and FR editions are **not structurally parallel** — most pairs differ in section count, block count, or callout wording because the French editions were drafted as independent documents rather than sentence-by-sentence translations.
 
-[src/features/marketing/legal/policyContent.ts:6-18]()
+[src/features/marketing/legal/policyContent.ts:6-18](<>)
 
 Example edition structure (from `privacy.en.ts`):
 
@@ -248,7 +248,7 @@ export default {
 } satisfies PolicyEdition
 ```
 
-Sources: [src/features/marketing/legal/content/privacy.en.ts:1-10](), [src/features/marketing/legal/content/privacy.fr.ts:1-10]()
+Sources: [src/features/marketing/legal/content/privacy.en.ts:1-10](<>), [src/features/marketing/legal/content/privacy.fr.ts:1-10](<>)
 
 ## Page Components
 
@@ -258,7 +258,7 @@ Sources: [src/features/marketing/legal/content/privacy.en.ts:1-10](), [src/featu
 
 The page renders `<Seo route="legal" pageType="CollectionPage" />` for metadata and wraps in `MarketingPageShell` (shared `Header` + `Footer` chrome).
 
-[src/features/marketing/pages/LegalHubPage.tsx:1-55]()
+[src/features/marketing/pages/LegalHubPage.tsx:1-55](<>)
 
 ### `PolicyPage` — Individual Document Renderer
 
@@ -270,7 +270,7 @@ The page renders `<Seo route="legal" pageType="CollectionPage" />` for metadata 
 4. **Suspends** on `policyEditionResource(doc, lang)` using React `use()`, wrapped in `<Suspense>`.
 5. **Renders `PolicyArticle`** — the inner component that resolves the edition and renders the full document.
 
-[src/features/marketing/pages/PolicyPage.tsx:32-57]()
+[src/features/marketing/pages/PolicyPage.tsx:32-57](<>)
 
 The `PolicyArticle` component:
 
@@ -281,13 +281,13 @@ The `PolicyArticle` component:
 - Renders each `PolicySection` as an `<h2>` + blocks, using `groupPolicyBlocks()` to merge consecutive `li` blocks into semantic `<ul>` lists.
 - Appends a disclaimer footer (styled for the marketing surface, distinct from the workspace `Disclaimer.tsx`).
 
-[src/features/marketing/pages/PolicyPage.tsx:59-192]()
+[src/features/marketing/pages/PolicyPage.tsx:59-192](<>)
 
 ### `groupPolicyBlocks()` — Block Grouping Utility
 
 This pure function transforms a flat array of `PolicyBlock[]` into `PolicyBlockGroup[]` by coalescing consecutive `type: 'li'` blocks into `{ kind: 'list', items: string[] }` groups while keeping `type: 'p'` blocks as standalone `{ kind: 'p', text: string }` groups.
 
-[src/features/marketing/legal/policyContent.ts:116-128]()
+[src/features/marketing/legal/policyContent.ts:116-128](<>)
 
 ## Routing & SEO Integration
 
@@ -310,7 +310,7 @@ graph LR
 
 The routes are registered in `src/app/routes.tsx` via the `publicRoutes()` function. `LegalHubPage` is lazy-loaded at the `legal` SEO route path, and `PolicyPage` at `${p('legal')}/:slug`.
 
-[src/app/routes.tsx:25-26](), [src/app/routes.tsx:90-92]()
+[src/app/routes.tsx:25-26](<>), [src/app/routes.tsx:90-92](<>)
 
 ### SEO Route Registry
 
@@ -320,11 +320,11 @@ The `legal` route is registered in `SEO_ROUTES` with:
 - Title: `Legal & compliance documentation | Dutiva`
 - Description covering PIPEDA, Quebec Law 25, CASL, AI governance
 
-[src/seo/routes.ts:162-174]()
+[src/seo/routes.ts:162-174](<>)
 
 Individual documents are included in `allPublicPages()` as dynamic pages keyed `legalDoc:<slug>`, each with bilingual paths, titles (from `legalDocTitle()`), and descriptions (from `legalDocDescription()` which appends "official Dutiva Canada Inc. policy document."). All 26 documents are `indexable: true` and appear in the sitemap and `llms.txt`.
 
-[src/seo/routes.ts:327-339]()
+[src/seo/routes.ts:327-339](<>)
 
 ### URL Helpers
 
@@ -336,7 +336,7 @@ Individual documents are included in `allPublicPages()` as dynamic pages keyed `
 | `legalDocTitle(row, lang)`       | Localized title from `marketingMessages[row.titleKey]`          |
 | `legalDocDescription(row, lang)` | Localized description with appended attribution                 |
 
-Sources: [src/seo/routes.ts:240-265]()
+Sources: [src/seo/routes.ts:240-265](<>)
 
 ## i18n Messages
 
@@ -349,7 +349,7 @@ The `legalHubMessages` message module (registered in `src/i18n/messages/index.ts
 | `legalHub_eyebrow`, `_h1`, `_intro`                                  | 3         | Hub page hero copy                 |
 | `legalHub_back`, `_viewAll`, `_lastUpdated`, `_effective`, `_frOnly` | 5         | PolicyPage chrome strings          |
 
-[src/i18n/messages/legalHub.ts:1-208]()
+[src/i18n/messages/legalHub.ts:1-208](<>)
 
 ## Test Coverage
 
@@ -363,7 +363,7 @@ Three test groups validate the content collection:
 
 Additional tests cover `loadPolicyEdition()` language fallback behavior and `groupPolicyBlocks()` coalescing logic.
 
-[src/features/marketing/legal/policyContent.test.ts:1-88]()
+[src/features/marketing/legal/policyContent.test.ts:1-88](<>)
 
 ### `PolicyPage.test.tsx`
 
@@ -377,7 +377,7 @@ Five test cases exercise the renderer:
 | Cross-locale slug     | FR slug under EN UI still resolves the document                                            |
 | Unknown slug redirect | No `<main>` rendered; redirect to hub                                                      |
 
-[src/features/marketing/pages/PolicyPage.test.tsx:1-82]()
+[src/features/marketing/pages/PolicyPage.test.tsx:1-82](<>)
 
 ## Document Content Categories
 
@@ -391,7 +391,7 @@ The privacy-related documents are designed with PIPEDA awareness:
 - **CASL Compliance** (`casl-compliance`) — Anti-spam law and commercial electronic messages.
 - **Cross-Border Transfer** (`cross-border-transfer`) — Disclosure of data processing outside Canada (Supabase US, Vercel US, DigitalOcean Toronto, Stripe US).
 
-Sources: [src/features/marketing/legal/content/privacy.en.ts:1-10](), [src/features/marketing/legal/content/pipeda-compliance.en.ts:1-11]()
+Sources: [src/features/marketing/legal/content/privacy.en.ts:1-10](<>), [src/features/marketing/legal/content/pipeda-compliance.en.ts:1-11](<>)
 
 ### AI Governance Documents
 
@@ -402,7 +402,7 @@ Four documents form the AI transparency framework:
 - **AI Risk Disclosure Framework** (`ai-risk-disclosure`) — Accuracy limitations, hallucination risk, bias/fairness, outdated information, scenarios requiring human review.
 - **Human Review Escalation Policy** (`human-review-escalation`) — Automatic escalation triggers (safety concerns, flagged content), user-initiated escalation mechanisms, review standards, response timelines.
 
-Sources: [src/features/marketing/legal/content/ai-technology.en.ts:1-10](), [src/features/marketing/legal/content/ai-risk-disclosure.en.ts:1-9](), [src/features/marketing/legal/content/human-review-escalation.en.ts:1-9]()
+Sources: [src/features/marketing/legal/content/ai-technology.en.ts:1-10](<>), [src/features/marketing/legal/content/ai-risk-disclosure.en.ts:1-9](<>), [src/features/marketing/legal/content/human-review-escalation.en.ts:1-9](<>)
 
 ### Data & Security Documents
 
@@ -411,7 +411,7 @@ Sources: [src/features/marketing/legal/content/ai-technology.en.ts:1-10](), [src
 - **Incident and Breach Response** (`incident-response-policy`) — 8-phase response process (Detect → Triage → Contain → Investigate → Assess → Notify → Recover → Improve), PIPEDA breach reporting, Quebec confidentiality incident requirements.
 - **Subprocessor List** (`subprocessors`) — Current third-party processors: Supabase, Vercel, DigitalOcean Gradient AI, Stripe, Resend, Cloudflare, hCaptcha, Google Analytics.
 
-Sources: [src/features/marketing/legal/content/incident-response-policy.en.ts:1-10](), [src/features/marketing/legal/content/subprocessors.en.ts:1-72]()
+Sources: [src/features/marketing/legal/content/incident-response-policy.en.ts:1-10](<>), [src/features/marketing/legal/content/subprocessors.en.ts:1-72](<>)
 
 ## SECURITY.md & security.txt
 
@@ -429,7 +429,7 @@ The repo-root `SECURITY.md` defines the coordinated vulnerability disclosure pol
 
 The safe harbour section permits good-faith security research with constraints: access only your own data, no DoS, no exfiltration, reasonable remediation time before disclosure.
 
-[SECURITY.md:1-62]()
+[SECURITY.md:1-62](<>)
 
 ### `public/.well-known/security.txt` — RFC 9116
 
@@ -445,7 +445,7 @@ Policy: https://github.com/Dutiva-Canada/Dutiva-Website-Final-Design/blob/main/S
 
 The `Expires` field must be updated annually before it lapses.
 
-[public/.well-known/security.txt:1-9]()
+[public/.well-known/security.txt:1-9](<>)
 
 ## Full Request Lifecycle
 
@@ -474,7 +474,7 @@ sequenceDiagram
 
 Because policy pages are prerendered by `scripts/prerender.mjs`, the first paint delivers full document text in static HTML. The React hydration then re-attaches interactivity (language toggle, navigation) without a visible flash.
 
-Sources: [src/features/marketing/legal/policyContent.ts:92-96](), [src/features/marketing/pages/PolicyPage.tsx:52-54]()
+Sources: [src/features/marketing/legal/policyContent.ts:92-96](<>), [src/features/marketing/pages/PolicyPage.tsx:52-54](<>)
 
 ## Bundle Impact
 
@@ -485,6 +485,6 @@ The legal content system is designed to minimize bundle impact:
 3. **Each of the 52 content editions** is a separate dynamic-import chunk — visiting `/legal/privacy` downloads only `privacy.en.ts`, not all 26 documents.
 4. The `editionCache` prevents redundant imports when the user toggles language or React re-renders.
 
-[src/app/routes.tsx:25-26](), [src/features/marketing/legal/policyContent.ts:48](), [src/features/marketing/legal/policyContent.ts:89-108]()
+[src/app/routes.tsx:25-26](<>), [src/features/marketing/legal/policyContent.ts:48](<>), [src/features/marketing/legal/policyContent.ts:89-108](<>)
 
 ---

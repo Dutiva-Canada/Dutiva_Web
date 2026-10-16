@@ -21,7 +21,7 @@ Then, in the browser:
    fills the offline cache (watch `Application → Service Workers` in DevTools).
 2. Go offline — DevTools **Network → Offline**, or literally turn off wifi.
 3. Reload and click around. Marketing pages, `/pricing`, `/templates`, and the
-   whole `/app` workspace all render from cache, populated with the built-in
+   whole `/workspace` workspace all render from cache, populated with the built-in
    demo data.
 
 To **install** it: use the browser's install icon in the address bar (Chrome/
@@ -34,7 +34,7 @@ using the existing `public/site.webmanifest`.
 
 ## What works offline vs. what doesn't
 
-- **Works:** every public page and the full `/app` workspace in **demo mode**
+- **Works:** every public page and the full `/workspace` workspace in **demo mode**
   (the bundled fixtures in `src/data/`). This is the same graceful fallback the
   app uses whenever `VITE_SUPABASE_*` is unset — no backend required.
 - **Doesn't (by design):** anything that needs the live backend — signing in,

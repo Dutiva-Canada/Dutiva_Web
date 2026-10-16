@@ -47,11 +47,11 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 209 numbered migration files under `supabase/migrations/` (sequence through `0208`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
+The Dutiva platform stores all workspace state in a single Supabase-managed PostgreSQL database. The full schema snapshot lives in `supabase/schema.sql`, while incremental changes are tracked by 234 numbered migration files under `supabase/migrations/` (sequence through `0234`) and 6 archived legacy migrations under `supabase/legacy-migrations/`. This page documents the schema design conventions, table taxonomy, key functions, RLS security model, migration lifecycle, and drift-detection tooling.
 
 ## Schema Overview
 
-The schema is a single-schema (`public`) design running on Supabase's managed Postgres. It uses 9 extensions, defines 1 custom composite type (`signature_token_view`), and follows a consistent set of conventions across all tables.
+The schema is a single-schema (`public`) design running on Supabase's managed Postgres. It uses 11 extensions (10 `CREATE EXTENSION` statements in `schema.sql` plus the built-in `plpgsql`), defines 1 custom composite type (`signature_token_view`), and follows a consistent set of conventions across all tables.
 
 ### PostgreSQL Extensions
 
@@ -68,7 +68,7 @@ The schema is a single-schema (`public`) design running on Supabase's managed Po
 | `vector`             | `extensions` | Vector similarity search (future RAG embedding)             |
 | `wrappers`           | `extensions` | Foreign data wrappers                                       |
 
-Sources: [supabase/schema.sql:16-83]()
+Sources: [supabase/schema.sql:16-83](<>)
 
 ### Design Conventions
 
@@ -86,7 +86,7 @@ Every table in the schema follows a strict set of conventions:
 
 **RLS on every table** — `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` appears on every table. Tables with no explicit policies (e.g. `cron_locks`, `export_events`) intentionally deny all non-service-role access.
 
-Sources: [supabase/schema.sql:107-128](), [supabase/schema.sql:197-210](), [supabase/schema.sql:647-670](), [supabase/migrations/0006_add_employees.sql:11-23]()
+Sources: [supabase/schema.sql:107-128](<>), [supabase/schema.sql:197-210](<>), [supabase/schema.sql:647-670](<>), [supabase/migrations/0006_add_employees.sql:11-23](<>)
 
 ## Table Taxonomy
 
@@ -150,7 +150,7 @@ erDiagram
     employees ||--o{ hr_cases : "employee_id"
 ```
 
-Sources: [supabase/schema.sql:478-496](), [supabase/migrations/0013_add_billing_profiles.sql:12-25](), [supabase/migrations/0006_add_employees.sql:11-23](), [supabase/migrations/0007_add_hr_cases.sql:9-22](), [supabase/migrations/0008_add_hr_policies.sql:9-19]()
+Sources: [supabase/schema.sql:478-496](<>), [supabase/migrations/0013_add_billing_profiles.sql:12-25](<>), [supabase/migrations/0006_add_employees.sql:11-23](<>), [supabase/migrations/0007_add_hr_cases.sql:9-22](<>), [supabase/migrations/0008_add_hr_policies.sql:9-19](<>)
 
 ### Table Domain Reference
 
@@ -158,12 +158,12 @@ The tables are organized into nine domains:
 
 **Identity & Multi-Tenancy**
 
-| Table                   | Migration     | Purpose                                                                      |
-| ----------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `profiles`              | Legacy + 0013 | User account, billing columns (plan, stripe_customer_id)                     |
-| `organizations`         | Pre-repo      | Tenant entity with compliance profile                                        |
-| `organization_members`  | Pre-repo      | Join table: profile ↔ organization + role (owner/hr/manager/viewer/external) |
-| `user_roles`            | Pre-repo      | Global platform roles (admin)                                                |
+| Table                   | Migration     | Purpose                                                                                                |
+| ----------------------- | ------------- | ------------------------------------------------------------------------------------------------------ |
+| `profiles`              | Legacy + 0013 | User account, billing columns (plan, stripe_customer_id)                                               |
+| `organizations`         | Pre-repo      | Tenant entity with compliance profile                                                                  |
+| `organization_members`  | Pre-repo      | Join table: profile ↔ organization + role (owner/hr/manager/viewer/external)                           |
+| `user_roles`            | Pre-repo      | Global platform roles (admin)                                                                          |
 | `workspace_preferences` | 0005          | Per-workspace user settings (mode; `onboarding` marks jsonb added in 0169; member-writable since 0170) |
 
 **HR Records**
@@ -302,7 +302,7 @@ The tables are organized into nine domains:
 | `notifications`           | schema.sql | In-app notification records               |
 | `external_integrations`   | schema.sql | Third-party integration config            |
 
-Sources: [supabase/schema.sql:107-670](), [supabase/migrations/0014_support_system.sql:33-144](), [supabase/migrations/0022_advisor_guidance_chunks.sql:13-58](), [supabase/migrations/0034_cron_locks.sql:16-84](), [supabase/migrations/0055_beta_signups.sql:12-72](), [supabase/migrations/0033_export_audit.sql:27-153](), [supabase/migrations/0062_add_compliance_score_snapshots.sql:10-51]()
+Sources: [supabase/schema.sql:107-670](<>), [supabase/migrations/0014_support_system.sql:33-144](<>), [supabase/migrations/0022_advisor_guidance_chunks.sql:13-58](<>), [supabase/migrations/0034_cron_locks.sql:16-84](<>), [supabase/migrations/0055_beta_signups.sql:12-72](<>), [supabase/migrations/0033_export_audit.sql:27-153](<>), [supabase/migrations/0062_add_compliance_score_snapshots.sql:10-51](<>)
 
 ## CHECK Constraint Patterns
 
@@ -324,7 +324,7 @@ Status and type columns use CHECK constraints rather than Postgres ENUM types. T
 | `ai_telemetry_events`   | `status`     | `started`, `completed`, `failed`, `cancelled`                                                                       |
 | `support_notifications` | `kind`       | Ticket/call/ack kinds plus `beta_signup`, `beta_confirmation`, `account_signup`, `plan_signup` (0093)               |
 
-Sources: [supabase/schema.sql:125-128](), [supabase/schema.sql:545-547](), [supabase/schema.sql:584-587](), [supabase/schema.sql:665-669](), [supabase/schema.sql:740-742](), [supabase/migrations/0014_support_system.sql:44-48](), [supabase/migrations/0027_ai_usage_guardrails.sql:40-64](), [supabase/migrations/0093_all_plan_signup_notifications.sql:8-18]()
+Sources: [supabase/schema.sql:125-128](<>), [supabase/schema.sql:545-547](<>), [supabase/schema.sql:584-587](<>), [supabase/schema.sql:665-669](<>), [supabase/schema.sql:740-742](<>), [supabase/migrations/0014_support_system.sql:44-48](<>), [supabase/migrations/0027_ai_usage_guardrails.sql:40-64](<>), [supabase/migrations/0093_all_plan_signup_notifications.sql:8-18](<>)
 
 ## RLS Security Model
 
@@ -390,7 +390,7 @@ flowchart TD
     ANON -.->|"DENIED"| AdminTables
 ```
 
-Sources: [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:43-51](), [supabase/migrations/0006_add_employees.sql:34-49](), [supabase/migrations/0034_cron_locks.sql:26-28]()
+Sources: [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:43-51](<>), [supabase/migrations/0006_add_employees.sql:34-49](<>), [supabase/migrations/0034_cron_locks.sql:26-28](<>)
 
 ### Per-Tenant RLS Pattern
 
@@ -403,7 +403,7 @@ The standard per-tenant table pattern (used by `employees`, `hr_cases`, `hr_poli
 
 This pattern is established in migration 0006 and replicated exactly in 0007, 0008, 0062, and others.
 
-Sources: [supabase/migrations/0006_add_employees.sql:34-49](), [supabase/migrations/0008_add_hr_policies.sql:27-43](), [supabase/migrations/0062_add_compliance_score_snapshots.sql:35-51]()
+Sources: [supabase/migrations/0006_add_employees.sql:34-49](<>), [supabase/migrations/0008_add_hr_policies.sql:27-43](<>), [supabase/migrations/0062_add_compliance_score_snapshots.sql:35-51](<>)
 
 ### Security Hardening History
 
@@ -418,11 +418,11 @@ The schema's security posture was iteratively hardened through several migration
 | 0073      | Close 3 anonymous-read RLS holes on `beta_signups`, `hr_documents`, `signatures`            |
 | 0074      | Revoke public execute on `flag_guidance_chunks_on_law_change`                               |
 
-Sources: [supabase/migrations/0004_revoke_anon_execute_security_definer.sql:1-67](), [supabase/migrations/0020_harden_definer_execute_revoke_public.sql:1-70](), [supabase/migrations/0073_close_anon_rls_holes.sql:1-55]()
+Sources: [supabase/migrations/0004_revoke_anon_execute_security_definer.sql:1-67](<>), [supabase/migrations/0020_harden_definer_execute_revoke_public.sql:1-70](<>), [supabase/migrations/0073_close_anon_rls_holes.sql:1-55](<>)
 
 ## Key Functions
 
-The schema defines 187+ functions/RPCs. They fall into several categories:
+The schema defines 206 functions/RPCs. They fall into several categories:
 
 ### Authorization Helpers
 
@@ -472,7 +472,7 @@ sequenceDiagram
 
 All claim functions use `pg_advisory_xact_lock` to serialize concurrent requests, preventing race conditions where multiple requests all read a count below the limit.
 
-Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](), [supabase/migrations/0033_export_audit.sql:68-153](), [supabase/migrations/0019_client_error_reports.sql:105-168]()
+Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](<>), [supabase/migrations/0033_export_audit.sql:68-153](<>), [supabase/migrations/0019_client_error_reports.sql:105-168](<>)
 
 ### Cron Lock Functions
 
@@ -483,7 +483,7 @@ Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](), [supabase/
 
 The cron lock pattern uses a `cron_locks` table rather than `pg_advisory_lock` because advisory locks are session-scoped and don't survive pgbouncer's transaction pooling. The UPSERT atomically acquires or steals an expired lease.
 
-Sources: [supabase/migrations/0034_cron_locks.sql:32-84](), [supabase/schema.sql:170-194]()
+Sources: [supabase/migrations/0034_cron_locks.sql:32-84](<>), [supabase/schema.sql:170-194](<>)
 
 ### Advisor Guidance Retrieval
 
@@ -499,7 +499,7 @@ Sources: [supabase/migrations/0034_cron_locks.sql:32-84](), [supabase/schema.sql
 
 The final version returns up to `k` (max 8) active chunks, ranked by the greater of English and French `ts_rank` scores. It is restricted to `service_role` only.
 
-Sources: [supabase/migrations/0023_match_advisor_guidance.sql:14-43](), [supabase/migrations/0071_corpus_source_change_flags.sql:96-151]()
+Sources: [supabase/migrations/0023_match_advisor_guidance.sql:14-43](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:96-151](<>)
 
 ### Admin RPC Functions
 
@@ -512,7 +512,7 @@ Most tables have a corresponding `admin_list_*` function that gates on `is_admin
 - `admin_reporting_overview()` — aggregate counts for dashboard
 - `admin_runtime_overview()` — queue depth, AI latency
 
-Sources: [supabase/schema.sql:462-1028]()
+Sources: [supabase/schema.sql:462-1028](<>)
 
 ## Triggers
 
@@ -528,7 +528,7 @@ The schema uses triggers for three purposes:
 
 **Auth user creation** — `on_auth_user_created` fires `AFTER INSERT` on `auth.users`, calling `handle_new_user()` to auto-create a `profiles` row and enqueue an operator `account_signup` row on `support_notifications` (migration 0093). A failure to enqueue is swallowed with a warning so profile creation still succeeds.
 
-Sources: [supabase/legacy-migrations/202604070001_initial_schema.sql:70-86](), [supabase/migrations/0014_support_system.sql:147-165](), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:17-29](), [supabase/migrations/0093_all_plan_signup_notifications.sql:20-61]()
+Sources: [supabase/legacy-migrations/202604070001_initial_schema.sql:70-86](<>), [supabase/migrations/0014_support_system.sql:147-165](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:44-89](<>), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:17-29](<>), [supabase/migrations/0093_all_plan_signup_notifications.sql:20-61](<>)
 
 ## Migration System
 
@@ -536,11 +536,11 @@ Sources: [supabase/legacy-migrations/202604070001_initial_schema.sql:70-86](), [
 
 Migrations follow the pattern `NNNN_lower_snake_case.sql` where `NNNN` is a zero-padded four-digit sequence number. The `scripts/check-migrations.mjs` script enforces this with the regex `/^(\d{4})_([a-z0-9_]+)\.sql$/`.
 
-Sources: [scripts/check-migrations.mjs:47]()
+Sources: [scripts/check-migrations.mjs:47](<>)
 
 ### Migration Timeline
 
-The migrations span from the initial doclib schema (0001) through the portal-assistant persistence layer (0204–0208). Selected milestones:
+The migrations span from the initial doclib schema (0001) through the portal-depth and PR-keyword-check layer (0209–0234; `0212` is a sequence gap). Selected milestones:
 
 ```mermaid
 timeline
@@ -582,25 +582,26 @@ timeline
         0171 : "finance_deals"
         0173 : "finance_capital_calls"
         0178 : "finance_call_comms_log"
-    section "Portals & Chat (0179–0208)"
+    section "Portals & Chat (0179–0234)"
         0179 : "candidate_job_agent"
         0180 : "invest_platform"
         0191 : "health_portal"
         0192 : "dutiva_pr"
         0198 : "agent_suggestions"
-        0202 : "health_chat"
-        0203 : "pr_chat"
         0204 : "invest_chat"
         0208 : "advisor_turn_feedback"
+        0210 : "portal_chat_threads"
+        0227 : "health_data_and_reminders"
+        0234 : "pr_keyword_check"
 ```
 
-Sources: [supabase/migrations/0001_doclib_schema.sql](), [supabase/migrations/0074_revoke_flag_guidance_public_execute.sql]()
+Sources: [supabase/migrations/0001_doclib_schema.sql](<>), [supabase/migrations/0074_revoke_flag_guidance_public_execute.sql](<>)
 
 ### Known Sequence Duplicates
 
 Sequence number `0024` is used by two migrations (`0024_match_advisor_guidance_review_topic.sql` and `0024_reconcile_billing_schema.sql`). Both are already applied to the live project, so renaming would cause `supabase db push` to re-run them. This is tracked in the `ACCEPTED_DUPLICATES` set in `check-migrations.mjs`.
 
-Sources: [scripts/check-migrations.mjs:56]()
+Sources: [scripts/check-migrations.mjs:56](<>)
 
 ### Legacy Migrations
 
@@ -617,19 +618,19 @@ Six SQL files under `supabase/legacy-migrations/` predate this repository. They 
 
 These fill a gap identified as OA10 in `docs/TODO.md`: three live tables (`documents`, `signatures`, `conversations`) had no `CREATE TABLE` in the repository's migration history.
 
-Sources: [supabase/legacy-migrations/README.md:1-52](), [supabase/legacy-migrations/202604070001_initial_schema.sql:1-144](), [supabase/legacy-migrations/202604080001_law_monitoring.sql:1-50]()
+Sources: [supabase/legacy-migrations/README.md:1-52](<>), [supabase/legacy-migrations/202604070001_initial_schema.sql:1-144](<>), [supabase/legacy-migrations/202604080001_law_monitoring.sql:1-50](<>)
 
 ### Recovered Migrations (0055–0061)
 
 Several migrations were applied directly to the live project without committing files, then recovered from `supabase_migrations.schema_migrations`. These are marked `ALREADY APPLIED` in their headers and were surfaced by the reverse drift check.
 
-Sources: [supabase/migrations/0055_beta_signups.sql:1-11](), [supabase/migrations/0057_beta_signup_confirmation.sql:1-9](), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-13]()
+Sources: [supabase/migrations/0055_beta_signups.sql:1-11](<>), [supabase/migrations/0057_beta_signup_confirmation.sql:1-9](<>), [supabase/migrations/0059_advisor_guidance_chunks_touch_updated_at.sql:1-13](<>)
 
 ### Signup notification vocabulary (0093)
 
 Migration `0093_all_plan_signup_notifications` widens `support_notifications_kind_check` with `account_signup` and `plan_signup` (keeping the existing ticket, call, ack, and beta kinds) and replaces `handle_new_user()` so auth signups enqueue an operator alert. Applied on the live project as slug `all_plan_signup_notifications` (version `20260829014442`).
 
-Sources: [supabase/migrations/0093_all_plan_signup_notifications.sql:1-61]()
+Sources: [supabase/migrations/0093_all_plan_signup_notifications.sql:1-61](<>)
 
 ## Drift Detection & CI Guards
 
@@ -645,7 +646,7 @@ This script has two halves:
 
 When credentials are absent, the script exits 0 but emits a `::warning` annotation (GitHub Actions format; a loud log line on Woodpecker) and a `GITHUB_STEP_SUMMARY` entry when set, so the skip is never mistaken for a pass.
 
-Sources: [scripts/check-migrations.mjs:1-95](), [scripts/check-migrations.mjs:156-176]()
+Sources: [scripts/check-migrations.mjs:1-95](<>), [scripts/check-migrations.mjs:156-176](<>)
 
 ### RLS Regression: `check-rls.mjs`
 
@@ -656,7 +657,7 @@ Probes the live database as the anonymous PostgREST role using the public anon k
 
 This catches out-of-band policy changes that would not show up in the migration history. The check was written after a 2026-08-08 audit found three tables with world-open `USING(true)` SELECT policies.
 
-Sources: [scripts/check-rls.mjs:1-95](), [scripts/check-rls.mjs:120-213]()
+Sources: [scripts/check-rls.mjs:1-95](<>), [scripts/check-rls.mjs:120-213](<>)
 
 ### CI Integration Diagram
 
@@ -690,7 +691,7 @@ flowchart LR
     CHK_RLS -->|"positive + negative controls"| REST
 ```
 
-Sources: [scripts/check-migrations.mjs:180-210](), [scripts/check-rls.mjs:92-157]()
+Sources: [scripts/check-migrations.mjs:180-210](<>), [scripts/check-rls.mjs:92-157](<>)
 
 ## Key Table Deep Dives
 
@@ -715,7 +716,7 @@ source    CHECK (source in ('app_form', 'public_form', 'email',
 
 The `public_reference` column is auto-populated by the `set_support_ticket_reference()` trigger, generating human-readable IDs like `DUT-2026-000005`. Eight indexes cover the most common query patterns (requester, workspace, status, priority, category, assigned agent, open tickets by date).
 
-Sources: [supabase/migrations/0014_support_system.sql:33-80]()
+Sources: [supabase/migrations/0014_support_system.sql:33-80](<>)
 
 ### `advisor_guidance_chunks`
 
@@ -728,7 +729,7 @@ Key columns:
 - `status` — `'active'` or `'retired'`
 - `fts tsvector GENERATED ALWAYS AS (to_tsvector('english', title || ' ' || content)) STORED`
 
-Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:13-58](), [supabase/migrations/0071_corpus_source_change_flags.sql:34-89]()
+Sources: [supabase/migrations/0022_advisor_guidance_chunks.sql:13-58](<>), [supabase/migrations/0071_corpus_source_change_flags.sql:34-89](<>)
 
 ### `cron_locks`
 
@@ -743,7 +744,7 @@ ON CONFLICT (job_name) DO UPDATE
 
 Access is restricted to `service_role` only — `anon`, `authenticated`, and `PUBLIC` are all revoked.
 
-Sources: [supabase/migrations/0034_cron_locks.sql:16-84]()
+Sources: [supabase/migrations/0034_cron_locks.sql:16-84](<>)
 
 ### `beta_signups`
 
@@ -755,7 +756,7 @@ Carries CASL (Canada's Anti-Spam Legislation) consent evidence:
 
 The `beta_signup_intake` sibling table holds peppered IP hashes for rate limiting, decoupled from the actual signup data. The capacity check function `beta_cohort_remaining()` (migration 0067) enforces the 5-seat beta cohort limit.
 
-Sources: [supabase/schema.sql:478-511](), [supabase/migrations/0055_beta_signups.sql:12-72](), [supabase/migrations/0037_beta_signups_consent_record.sql]()
+Sources: [supabase/schema.sql:478-511](<>), [supabase/migrations/0055_beta_signups.sql:12-72](<>), [supabase/migrations/0037_beta_signups_consent_record.sql](<>)
 
 ### `job_queue`
 
@@ -768,7 +769,7 @@ A general-purpose async job queue with pessimistic locking:
 - `locked_by` / `locked_at` for pessimistic locking
 - `run_after` for delayed execution
 
-Sources: [supabase/schema.sql:647-670]()
+Sources: [supabase/schema.sql:647-670](<>)
 
 ## Config & Deployment
 
@@ -784,7 +785,7 @@ The `supabase/config.toml` file pins `verify_jwt` settings for every edge functi
 | `monitor-law-changes`, `support-notify`, `send-law-updates` | `false`          | In-handler shared secret        |
 | All other functions                                         | `true` (default) | JWT from Supabase auth          |
 
-Sources: [supabase/config.toml:1-72]()
+Sources: [supabase/config.toml:1-72](<>)
 
 ### Vault Secrets
 
@@ -795,7 +796,7 @@ Secrets are stored in the Supabase Vault (`supabase_vault` extension) rather tha
 - `CAPTCHA_SECRET_KEY` — Turnstile CAPTCHA verification
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — billing integration
 
-Sources: [supabase/config.toml:1-72](), [docs/TODO.md:42-66]()
+Sources: [supabase/config.toml:1-72](<>), [docs/TODO.md:42-66](<>)
 
 ## Schema Evolution Patterns
 
@@ -812,7 +813,7 @@ else
 end if;
 ```
 
-Sources: [supabase/migrations/0003_restrict_guidance_law_updates_to_dutiva_domain.sql:20-54]()
+Sources: [supabase/migrations/0003_restrict_guidance_law_updates_to_dutiva_domain.sql:20-54](<>)
 
 ### Constraint Evolution
 
@@ -827,7 +828,7 @@ ALTER TABLE public.ai_telemetry_events
   CHECK (operation IN ('chat', 'draft', ..., 'support_firstline', 'safety_backstop'));
 ```
 
-Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:41-64]()
+Sources: [supabase/migrations/0027_ai_usage_guardrails.sql:41-64](<>)
 
 ### Function Signature Evolution
 
@@ -840,7 +841,7 @@ CREATE FUNCTION public.match_advisor_guidance(q text, k integer default 4)
 RETURNS TABLE (..., source_changed_at timestamptz) ...
 ```
 
-Sources: [supabase/migrations/0071_corpus_source_change_flags.sql:94-151]()
+Sources: [supabase/migrations/0071_corpus_source_change_flags.sql:94-151](<>)
 
 ## Data Flow: Edge Function → Database
 
@@ -864,6 +865,6 @@ flowchart TD
     EF -->|"RPC call"| MATCH
 ```
 
-Sources: [supabase/config.toml:22-72](), [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](), [supabase/migrations/0023_match_advisor_guidance.sql:14-43]()
+Sources: [supabase/config.toml:22-72](<>), [supabase/migrations/0027_ai_usage_guardrails.sql:97-220](<>), [supabase/migrations/0023_match_advisor_guidance.sql:14-43](<>)
 
 ---

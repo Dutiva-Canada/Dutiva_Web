@@ -39,7 +39,7 @@ docker compose -f deploy/self-host/docker-compose.yml \
   "Local models" below.
 
 Any static host works instead of the container — nginx, Caddy, a bucket +
-CDN. Reproduce three things from `vercel.json`: the `/app*`/`/demo*` rewrites
+CDN. Reproduce three things from `vercel.json`: the `/workspace*`/`/demo*` rewrites
 to `app.html`, the security headers (adjust CSP connect-src to your Supabase
 origin), and immutable caching for `/assets/`.
 

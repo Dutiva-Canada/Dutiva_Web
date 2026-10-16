@@ -65,7 +65,7 @@ The following files were used as context for generating this wiki page:
 
 Dutiva's support system is a digital-first, asynchronous model with no routine inbound phone channel and no 24/7 staffed support. The customer journey progresses through self-service (Help Centre), written ticket-based resolution, and — only when required — a scheduled telephone/video call. All configuration is centralized in `src/config/support.ts`, which is the single source of truth for channels, business hours, response targets, and status/priority enumerations.
 
-Sources: [docs/SUPPORT_ARCHITECTURE.md:1-12](), [src/config/support.ts:4-18]()
+Sources: [docs/SUPPORT_ARCHITECTURE.md:1-12](<>), [src/config/support.ts:4-18](<>)
 
 ## System Overview
 
@@ -79,12 +79,12 @@ graph TB
     end
 
     subgraph "App Surface"
-        SupportView["SupportView /app/support"]
+        SupportView["SupportView /workspace/support"]
         SupportRequestForm["SupportRequestForm"]
-        SupportRequestsList["SupportRequestsList /app/support/requests"]
-        SupportTicketDetail["SupportTicketDetail /app/support/requests/:ticketId"]
-        SupportAdminView["SupportAdminView /app/support/admin"]
-        SupportAdminTicket["SupportAdminTicket /app/support/admin/:ticketId"]
+        SupportRequestsList["SupportRequestsList /workspace/support/requests"]
+        SupportTicketDetail["SupportTicketDetail /workspace/support/requests/:ticketId"]
+        SupportAdminView["SupportAdminView /workspace/support/admin"]
+        SupportAdminTicket["SupportAdminTicket /workspace/support/admin/:ticketId"]
     end
 
     subgraph "Edge Functions"
@@ -126,7 +126,7 @@ graph TB
     supportCallScheduler --> support_notifications
 ```
 
-Sources: [src/app/appViews.tsx:43-48](), [src/app/appViews.tsx:101-110](), [docs/SUPPORT_ARCHITECTURE.md:245-280]()
+Sources: [src/app/appViews.tsx:43-48](<>), [src/app/appViews.tsx:101-110](<>), [docs/SUPPORT_ARCHITECTURE.md:245-280](<>)
 
 ## Configured-or-Inert Activation
 
@@ -142,7 +142,7 @@ The support system follows the platform-wide "configured-or-inert" pattern. No n
 
 This design means merging code never arms a feature — the operator enables it by setting secrets, and the backlog accumulated while unconfigured is processed on first activation.
 
-Sources: [.env.example:62-104](), [docs/SUPPORT_ARCHITECTURE.md:130-148](), [supabase/functions/support-notify/index.ts:299-303](), [supabase/functions/support-confirm-call/index.ts:17-25]()
+Sources: [.env.example:62-104](<>), [docs/SUPPORT_ARCHITECTURE.md:130-148](<>), [supabase/functions/support-notify/index.ts:299-303](<>), [supabase/functions/support-confirm-call/index.ts:17-25](<>)
 
 ## Support Channels
 
@@ -159,7 +159,7 @@ Six channels are defined in `SUPPORT_CHANNELS` in `src/config/support.ts`. Each 
 
 Each `SupportCategoryDef` in `SUPPORT_CATEGORIES` maps a ticket category to a channel via `channel: SupportChannelId`. Categories with `restrictedHandling: true` (privacy, security, accessibility, complaint) are hidden from workspace peers and excluded from ordinary analytics.
 
-Sources: [src/config/support.ts:22-107](), [src/config/support.ts:218-313]()
+Sources: [src/config/support.ts:22-107](<>), [src/config/support.ts:218-313](<>)
 
 ## Ticket Status Lifecycle
 
@@ -183,7 +183,7 @@ stateDiagram-v2
 
 Status transitions are enforced server-side through the `support-agent-action` edge function, which validates the status value against the `STATUSES` array before updating. The `resolved_at` and `closed_at` timestamps are set automatically when transitioning to those states.
 
-Sources: [src/config/support.ts:184-214](), [supabase/functions/support-agent-action/index.ts:27-30](), [supabase/functions/support-agent-action/index.ts:133-147]()
+Sources: [src/config/support.ts:184-214](<>), [supabase/functions/support-agent-action/index.ts:27-30](<>), [supabase/functions/support-agent-action/index.ts:133-147](<>)
 
 ## Priority Model
 
@@ -201,7 +201,7 @@ The algorithm:
 
 The function is duplicated (kept in sync) in `create-support-ticket` and `create-public-support-ticket` edge functions.
 
-Sources: [src/features/support/triage.ts:55-79](), [supabase/functions/create-support-ticket/index.ts:65-77](), [supabase/functions/create-public-support-ticket/index.ts:64-76]()
+Sources: [src/features/support/triage.ts:55-79](<>), [supabase/functions/create-support-ticket/index.ts:65-77](<>), [supabase/functions/create-public-support-ticket/index.ts:64-76](<>)
 
 ### Ontario Business Calendar
 
@@ -221,7 +221,7 @@ Response due dates are computed using the Ontario statutory holiday calendar. Th
 
 The `isBusinessDay()` function checks that the day is a configured weekday (Mon–Fri from `SUPPORT_HOURS.businessDays`) and not in the holiday set. `initialResponseDueDate()` computes the target date at business-day granularity.
 
-Sources: [src/features/support/triage.ts:100-203](), [src/config/support.ts:117-130]()
+Sources: [src/features/support/triage.ts:100-203](<>), [src/config/support.ts:117-130](<>)
 
 ### Response Targets
 
@@ -234,7 +234,7 @@ Defined in `RESPONSE_TARGETS` — service targets, not contractual guarantees:
 | `standard` | 2      | `business_days`  |
 | `low`      | 5      | `business_days`  |
 
-Sources: [src/config/support.ts:149-174]()
+Sources: [src/config/support.ts:149-174](<>)
 
 ## Ticket Creation
 
@@ -269,20 +269,20 @@ sequenceDiagram
 
 Key implementation details:
 
-- **Auth**: JWT bearer token verified via `userClient.auth.getUser()` — [supabase/functions/create-support-ticket/index.ts:113-122]()
-- **Workspace verification**: a browser-supplied `workspace_id` is honoured only after `is_org_member` RPC check — [supabase/functions/create-support-ticket/index.ts:145-152]()
-- **Rate limit**: max 5 tickets per user per 10-minute window — [supabase/functions/create-support-ticket/index.ts:155-162]()
-- **Restricted flag**: `privacy`, `security`, `accessibility`, `complaint` categories are auto-flagged `restricted` — [supabase/functions/create-support-ticket/index.ts:43]()
-- **Diagnostics**: stripped to an allowlist (`DIAGNOSTIC_KEYS`: plan, route, app_version, browser, os, locale, feature, correlation_id, error_code) — [supabase/functions/create-support-ticket/index.ts:57-59](), [src/features/support/diagnostics.ts:11-21]()
-- **Notifications**: two outbox rows are enqueued — a customer acknowledgement (category-aware: `privacy_ack`, `security_ack`, `accessibility_ack`, `complaint_ack`, or `ticket_received`) and an `operator_alert` — [supabase/functions/create-support-ticket/index.ts:48-54](), [supabase/functions/create-support-ticket/index.ts:186-214]()
+- **Auth**: JWT bearer token verified via `userClient.auth.getUser()` — [supabase/functions/create-support-ticket/index.ts:113-122](<>)
+- **Workspace verification**: a browser-supplied `workspace_id` is honoured only after `is_org_member` RPC check — [supabase/functions/create-support-ticket/index.ts:145-152](<>)
+- **Rate limit**: max 5 tickets per user per 10-minute window — [supabase/functions/create-support-ticket/index.ts:155-162](<>)
+- **Restricted flag**: `privacy`, `security`, `accessibility`, `complaint` categories are auto-flagged `restricted` — [supabase/functions/create-support-ticket/index.ts:43](<>)
+- **Diagnostics**: stripped to an allowlist (`DIAGNOSTIC_KEYS`: plan, route, app_version, browser, os, locale, feature, correlation_id, error_code) — [supabase/functions/create-support-ticket/index.ts:57-59](<>), [src/features/support/diagnostics.ts:11-21](<>)
+- **Notifications**: two outbox rows are enqueued — a customer acknowledgement (category-aware: `privacy_ack`, `security_ack`, `accessibility_ack`, `complaint_ack`, or `ticket_received`) and an `operator_alert` — [supabase/functions/create-support-ticket/index.ts:48-54](<>), [supabase/functions/create-support-ticket/index.ts:186-214](<>)
 
 Client-side:
 
-- `SupportRequestForm` at [src/features/support/SupportRequestForm.tsx:71-168]() collects category, subject, description, impact/urgency, language, response method, and optional diagnostics
-- `supportApi.ts` at [src/features/support/supportApi.ts:47-74]() invokes the edge function and validates the response with a Zod schema
-- `gatherDiagnostics()` at [src/features/support/diagnostics.ts:57-82]() produces a coarse browser/OS label (never the full UA string), app version, route, and a `randomUUID` correlation ID
+- `SupportRequestForm` at [src/features/support/SupportRequestForm.tsx:71-168](<>) collects category, subject, description, impact/urgency, language, response method, and optional diagnostics
+- `supportApi.ts` at [src/features/support/supportApi.ts:47-74](<>) invokes the edge function and validates the response with a Zod schema
+- `gatherDiagnostics()` at [src/features/support/diagnostics.ts:57-82](<>) produces a coarse browser/OS label (never the full UA string), app version, route, and a `randomUUID` correlation ID
 
-Sources: [supabase/functions/create-support-ticket/index.ts:1-214](), [src/features/support/supportApi.ts:47-74](), [src/features/support/SupportRequestForm.tsx:71-168]()
+Sources: [supabase/functions/create-support-ticket/index.ts:1-214](<>), [src/features/support/supportApi.ts:47-74](<>), [src/features/support/SupportRequestForm.tsx:71-168](<>)
 
 ### Public Path: `create-public-support-ticket`
 
@@ -300,20 +300,20 @@ The unauthenticated intake serves the marketing-surface Contact page (`/contact`
 
 **Anti-abuse layers** (checked in order):
 
-1. **Honeypot**: a hidden `contact_fax` field — if non-empty, the function returns fake success `{ ok: true }` without writing — [supabase/functions/create-public-support-ticket/index.ts:194-196]()
-2. **Category gate**: only `PUBLIC_CATEGORIES` are accepted — [supabase/functions/create-public-support-ticket/index.ts:48-49](), [supabase/functions/create-public-support-ticket/index.ts:199-201]()
-3. **Rate limits**: per-IP (3 per 15 min) and per-email (3 per 60 min), backed by `support_public_intake` storing **only salted SHA-256 hashes** — [supabase/functions/create-public-support-ticket/index.ts:114-117](), [supabase/functions/create-public-support-ticket/index.ts:220-236]()
-4. **CAPTCHA** (Turnstile or hCaptcha): skipped when `CAPTCHA_SECRET_KEY` is unset; hard 403 when it is set and verification fails — [supabase/functions/create-public-support-ticket/index.ts:250-262]()
+1. **Honeypot**: a hidden `contact_fax` field — if non-empty, the function returns fake success `{ ok: true }` without writing — [supabase/functions/create-public-support-ticket/index.ts:194-196](<>)
+2. **Category gate**: only `PUBLIC_CATEGORIES` are accepted — [supabase/functions/create-public-support-ticket/index.ts:48-49](<>), [supabase/functions/create-public-support-ticket/index.ts:199-201](<>)
+3. **Rate limits**: per-IP (3 per 15 min) and per-email (3 per 60 min), backed by `support_public_intake` storing **only salted SHA-256 hashes** — [supabase/functions/create-public-support-ticket/index.ts:114-117](<>), [supabase/functions/create-public-support-ticket/index.ts:220-236](<>)
+4. **CAPTCHA** (Turnstile or hCaptcha): skipped when `CAPTCHA_SECRET_KEY` is unset; hard 403 when it is set and verification fails — [supabase/functions/create-public-support-ticket/index.ts:250-262](<>)
 
-Client-side `PublicSupportForm` at [src/features/support/PublicSupportForm.tsx:71-179]() filters categories to `allowPublic` only, maps `honeypot` to `contact_fax` via `publicSupportApi.ts` at [src/features/support/publicSupportApi.ts:62-86](), and renders a `CaptchaField` only when `isCaptchaConfigured()` returns true (i.e., `VITE_CAPTCHA_SITE_KEY` is set) — [src/features/support/captcha.ts:78-79]().
+Client-side `PublicSupportForm` at [src/features/support/PublicSupportForm.tsx:71-179](<>) filters categories to `allowPublic` only, maps `honeypot` to `contact_fax` via `publicSupportApi.ts` at [src/features/support/publicSupportApi.ts:62-86](<>), and renders a `CaptchaField` only when `isCaptchaConfigured()` returns true (i.e., `VITE_CAPTCHA_SITE_KEY` is set) — [src/features/support/captcha.ts:78-79](<>).
 
-Sources: [supabase/functions/create-public-support-ticket/index.ts:1-330](), [src/features/support/publicSupportApi.ts:1-86](), [src/features/support/captcha.ts:1-157]()
+Sources: [supabase/functions/create-public-support-ticket/index.ts:1-330](<>), [src/features/support/publicSupportApi.ts:1-86](<>), [src/features/support/captcha.ts:1-157](<>)
 
 ## Notification Outbox Pattern
 
 Notifications are decoupled from ticket creation via an **outbox table** (`support_notifications`, migration 0015). Edge functions insert rows with `status: 'pending'`; a separate `support-notify` worker drains them.
 
-**Schema** ([supabase/migrations/0015_support_notifications.sql:14-31]()):
+**Schema** ([supabase/migrations/0015_support_notifications.sql:14-31](<>)):
 
 | Column                | Type         | Purpose                                                                                                                                                   |
 | --------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -351,11 +351,11 @@ sequenceDiagram
 
 Key design decisions:
 
-- **No provider → no-op**: when `RESEND_API_KEY` is unset, the worker returns `{ note: 'no_provider' }` and leaves rows `pending` — wiring the key later flushes the backlog — [supabase/functions/support-notify/index.ts:299-303]()
-- **Fail closed**: if a provider key is set but `SUPPORT_NOTIFY_SECRET` is missing, the worker returns 403 — [supabase/functions/support-notify/index.ts:283-286]()
-- **Batch size**: `BATCH_SIZE = 50`, `MAX_ATTEMPTS = 5` — [supabase/functions/support-notify/index.ts:38-39]()
-- **Template rendering**: `renderNotificationEmail()` mirrors the client-side `renderSupportEmail()` from `src/features/support/email/templates.ts` — [supabase/functions/support-notify/index.ts:109-227]()
-- **Delivery tracking**: `provider_message_id` is stored so the `resend-webhook` function can correlate delivery/bounce events — [supabase/functions/support-notify/index.ts:325]()
+- **No provider → no-op**: when `RESEND_API_KEY` is unset, the worker returns `{ note: 'no_provider' }` and leaves rows `pending` — wiring the key later flushes the backlog — [supabase/functions/support-notify/index.ts:299-303](<>)
+- **Fail closed**: if a provider key is set but `SUPPORT_NOTIFY_SECRET` is missing, the worker returns 403 — [supabase/functions/support-notify/index.ts:283-286](<>)
+- **Batch size**: `BATCH_SIZE = 50`, `MAX_ATTEMPTS = 5` — [supabase/functions/support-notify/index.ts:38-39](<>)
+- **Template rendering**: `renderNotificationEmail()` mirrors the client-side `renderSupportEmail()` from `src/features/support/email/templates.ts` — [supabase/functions/support-notify/index.ts:109-227](<>)
+- **Delivery tracking**: `provider_message_id` is stored so the `resend-webhook` function can correlate delivery/bounce events — [supabase/functions/support-notify/index.ts:325](<>)
 
 The 18 notification kinds span the ticket lifecycle plus signup alerts:
 
@@ -363,7 +363,7 @@ The 18 notification kinds span the ticket lifecycle plus signup alerts:
 
 Signup producers: `create-beta-signup` (`beta_signup` + `beta_confirmation`), `handle_new_user()` after `auth.users` insert (`account_signup`, migration 0093), and `stripe-webhook` after paid `checkout.session.completed` (`plan_signup`).
 
-Sources: [supabase/functions/support-notify/index.ts:1-345](), [supabase/migrations/0015_support_notifications.sql:1-45](), [src/features/support/email/templates.ts:17-31](), [src/features/support/email/notifications.ts:21-58]()
+Sources: [supabase/functions/support-notify/index.ts:1-345](<>), [supabase/migrations/0015_support_notifications.sql:1-45](<>), [src/features/support/email/templates.ts:17-31](<>), [src/features/support/email/notifications.ts:21-58](<>)
 
 ## Data Model & RLS
 
@@ -424,7 +424,7 @@ erDiagram
     }
 ```
 
-**`public_reference`** is the human-readable ID (`DUT-YYYY-NNNNNN`), generated by a `BEFORE INSERT` trigger using `support_ticket_ref_seq` — [supabase/migrations/0014_support_system.sql:147-165]().
+**`public_reference`** is the human-readable ID (`DUT-YYYY-NNNNNN`), generated by a `BEFORE INSERT` trigger using `support_ticket_ref_seq` — [supabase/migrations/0014_support_system.sql:147-165](<>).
 
 **RLS summary** (helpers `is_admin(uuid)`, `is_org_member(org, uuid)`):
 
@@ -440,42 +440,42 @@ erDiagram
 
 All privileged writes (triage, status changes, priority, internal notes) go through service-role edge functions and bypass RLS. The browser cannot forge tickets, spoof `workspace_id`, or insert directly into `support_tickets`.
 
-Sources: [supabase/migrations/0014_support_system.sql:1-167](), [supabase/migrations/0015_support_notifications.sql:1-45](), [docs/SUPPORT_ARCHITECTURE.md:78-109]()
+Sources: [supabase/migrations/0014_support_system.sql:1-167](<>), [supabase/migrations/0015_support_notifications.sql:1-45](<>), [docs/SUPPORT_ARCHITECTURE.md:78-109](<>)
 
 ## Operator Dashboard
 
 ### `SupportAdminView`
 
-The operator dashboard at `/app/support/admin` is rendered by `SupportAdminView`, which is admin-gated client-side via `isCurrentUserAdmin()` (calls the `is_admin` RPC) — [src/features/support/supportAdminApi.ts:107-114]().
+The operator dashboard at `/workspace/support/admin` is rendered by `SupportAdminView`, which is admin-gated client-side via `isCurrentUserAdmin()` (calls the `is_admin` RPC) — [src/features/support/supportAdminApi.ts:107-114](<>).
 
 Features:
 
-- **Filters**: status, priority, category, restricted-only toggle, and text search (subject/reference) — [src/features/app/views/support/SupportAdminView.tsx:95-151]()
-- **Ticket list**: table with subject, requester, priority, status, and date columns; links to detail view — [src/features/app/views/support/SupportAdminView.tsx:162-193]()
-- **Open count**: tickets not in `resolved` or `closed` — [src/features/app/views/support/SupportAdminView.tsx:69]()
-- **Service status control**: inline `ServiceStatusControl` for the status board — [src/features/app/views/support/SupportAdminView.tsx:84]()
-- **Export audit link**: to `/app/support/admin/exports` — [src/features/app/views/support/SupportAdminView.tsx:87-93]()
+- **Filters**: status, priority, category, restricted-only toggle, and text search (subject/reference) — [src/features/app/views/support/SupportAdminView.tsx:95-151](<>)
+- **Ticket list**: table with subject, requester, priority, status, and date columns; links to detail view — [src/features/app/views/support/SupportAdminView.tsx:162-193](<>)
+- **Open count**: tickets not in `resolved` or `closed` — [src/features/app/views/support/SupportAdminView.tsx:69](<>)
+- **Service status control**: inline `ServiceStatusControl` for the status board — [src/features/app/views/support/SupportAdminView.tsx:84](<>)
+- **Export audit link**: to `/workspace/support/admin/exports` — [src/features/app/views/support/SupportAdminView.tsx:87-93](<>)
 
-The `adminListTickets()` function at [src/features/support/supportAdminApi.ts:116-130]() builds a filtered Supabase query with a 200-row limit.
+The `adminListTickets()` function at [src/features/support/supportAdminApi.ts:116-130](<>) builds a filtered Supabase query with a 200-row limit.
 
-Sources: [src/features/app/views/support/SupportAdminView.tsx:31-193](), [src/features/support/supportAdminApi.ts:107-130]()
+Sources: [src/features/app/views/support/SupportAdminView.tsx:31-193](<>), [src/features/support/supportAdminApi.ts:107-130](<>)
 
 ### `SupportAdminTicket`
 
-The detail view at `/app/support/admin/:ticketId` is rendered by `SupportAdminTicket` — [src/features/app/views/support/SupportAdminTicket.tsx:175-330](). It provides:
+The detail view at `/workspace/support/admin/:ticketId` is rendered by `SupportAdminTicket` — [src/features/app/views/support/SupportAdminTicket.tsx:175-330](<>). It provides:
 
-- **Agent reply**: customer-visible message via `runAgentAction(ticketId, { action: 'reply', body })` — [src/features/app/views/support/SupportAdminTicket.tsx:230-250]()
-- **Internal note**: founder-only note via `{ action: 'note', body }` — [src/features/app/views/support/SupportAdminTicket.tsx:260-285]()
-- **Status change**: dropdown with all 8 statuses via `{ action: 'status', status }` — [src/features/app/views/support/SupportAdminTicket.tsx:290-310]()
-- **Priority change**: dropdown allowing `critical` (unlike customer intake) via `{ action: 'priority', priority }` — [src/features/app/views/support/SupportAdminTicket.tsx:310-325]()
-- **Call scheduling**: `ProposeCallPanel` for proposing up to 3 time slots — [src/features/app/views/support/SupportAdminTicket.tsx:38-172]()
-- **Attachments**: `SupportAttachments` component for viewing/uploading — [src/features/app/views/support/SupportAdminTicket.tsx:21]()
+- **Agent reply**: customer-visible message via `runAgentAction(ticketId, { action: 'reply', body })` — [src/features/app/views/support/SupportAdminTicket.tsx:230-250](<>)
+- **Internal note**: founder-only note via `{ action: 'note', body }` — [src/features/app/views/support/SupportAdminTicket.tsx:260-285](<>)
+- **Status change**: dropdown with all 8 statuses via `{ action: 'status', status }` — [src/features/app/views/support/SupportAdminTicket.tsx:290-310](<>)
+- **Priority change**: dropdown allowing `critical` (unlike customer intake) via `{ action: 'priority', priority }` — [src/features/app/views/support/SupportAdminTicket.tsx:310-325](<>)
+- **Call scheduling**: `ProposeCallPanel` for proposing up to 3 time slots — [src/features/app/views/support/SupportAdminTicket.tsx:38-172](<>)
+- **Attachments**: `SupportAttachments` component for viewing/uploading — [src/features/app/views/support/SupportAdminTicket.tsx:21](<>)
 
-Sources: [src/features/app/views/support/SupportAdminTicket.tsx:1-330](), [src/features/support/supportAdminApi.ts:165-178]()
+Sources: [src/features/app/views/support/SupportAdminTicket.tsx:1-330](<>), [src/features/support/supportAdminApi.ts:165-178](<>)
 
 ## Agent Actions: `support-agent-action`
 
-The `support-agent-action` edge function is the single mutation endpoint for operator actions. It is gated by `is_admin` server-side — [supabase/functions/support-agent-action/index.ts:63-64]().
+The `support-agent-action` edge function is the single mutation endpoint for operator actions. It is gated by `is_admin` server-side — [supabase/functions/support-agent-action/index.ts:63-64](<>).
 
 Five action types are defined in `ACTIONS`:
 
@@ -487,19 +487,19 @@ Five action types are defined in `ACTIONS`:
 | `priority`     | `{ priority }`                  | Update priority (may set `critical` — unlike customer intake)                                                                                                   |
 | `propose_call` | `{ slots[], duration_minutes }` | Upsert `support_scheduled_calls`; update ticket status to `scheduled_call`; enqueue `call_proposed` notification                                                |
 
-Every action writes an `support_ticket_events` audit row — [supabase/functions/support-agent-action/index.ts:113-117]().
+Every action writes an `support_ticket_events` audit row — [supabase/functions/support-agent-action/index.ts:113-117](<>).
 
-The `reply` action has automatic side effects: if the ticket has no `first_response_at`, it's set to the current timestamp; if status is `new` or `triaged`, it advances to `waiting_on_customer` — [supabase/functions/support-agent-action/index.ts:105-112]().
+The `reply` action has automatic side effects: if the ticket has no `first_response_at`, it's set to the current timestamp; if status is `new` or `triaged`, it advances to `waiting_on_customer` — [supabase/functions/support-agent-action/index.ts:105-112](<>).
 
-Sources: [supabase/functions/support-agent-action/index.ts:1-210]()
+Sources: [supabase/functions/support-agent-action/index.ts:1-210](<>)
 
 ## Customer Ticket View: `SupportTicketDetail`
 
-At `/app/support/requests/:ticketId`, the customer sees their ticket details and message thread. Reads go directly through Supabase client (RLS controls visibility) — [src/features/support/supportApi.ts:150-168](). Customer replies use `replyToSupportTicket()` which inserts a `customer`-role, non-internal message via RLS — [src/features/support/supportApi.ts:171-192]().
+At `/workspace/support/requests/:ticketId`, the customer sees their ticket details and message thread. Reads go directly through Supabase client (RLS controls visibility) — [src/features/support/supportApi.ts:150-168](<>). Customer replies use `replyToSupportTicket()` which inserts a `customer`-role, non-internal message via RLS — [src/features/support/supportApi.ts:171-192](<>).
 
-The `ScheduledCallPanel` component renders within the ticket detail when a call has been proposed. It shows proposed time slots and allows the customer to confirm one — [src/features/app/views/support/SupportTicketDetail.tsx:36-116]().
+The `ScheduledCallPanel` component renders within the ticket detail when a call has been proposed. It shows proposed time slots and allows the customer to confirm one — [src/features/app/views/support/SupportTicketDetail.tsx:36-116](<>).
 
-Sources: [src/features/app/views/support/SupportTicketDetail.tsx:118-232](), [src/features/support/supportApi.ts:140-192]()
+Sources: [src/features/app/views/support/SupportTicketDetail.tsx:118-232](<>), [src/features/support/supportApi.ts:140-192](<>)
 
 ## Call Scheduling Flow
 
@@ -549,39 +549,39 @@ sequenceDiagram
 
 Pure functions shared across the three edge functions:
 
-- `parseProposedSlots(input, now)` — validates 1–3 future `{start, end}` ranges — [supabase/functions/_shared/scheduledCalls.ts:26-41]()
-- `parseSlotIndex(value, slotCount)` — validates customer-chosen index — [supabase/functions/_shared/scheduledCalls.ts:54-58]()
-- `rowsNeedingReminder(rows, now)` — confirmed calls starting within 24h, not yet reminded — [supabase/functions/_shared/scheduledCalls.ts:69-78]()
-- `rowsNeedingFollowup(rows, now)` — confirmed calls ended 2+ hours ago, not yet flagged — [supabase/functions/_shared/scheduledCalls.ts:81-86]()
-- Constants: `MIN_SLOTS=1`, `MAX_SLOTS=3`, `MIN_DURATION_MINUTES=10`, `MAX_DURATION_MINUTES=120`, `REMINDER_WINDOW_HOURS=24`, `FOLLOWUP_GRACE_HOURS=2` — [supabase/functions/_shared/scheduledCalls.ts:10-18]()
+- `parseProposedSlots(input, now)` — validates 1–3 future `{start, end}` ranges — [supabase/functions/_shared/scheduledCalls.ts:26-41](<>)
+- `parseSlotIndex(value, slotCount)` — validates customer-chosen index — [supabase/functions/_shared/scheduledCalls.ts:54-58](<>)
+- `rowsNeedingReminder(rows, now)` — confirmed calls starting within 24h, not yet reminded — [supabase/functions/_shared/scheduledCalls.ts:69-78](<>)
+- `rowsNeedingFollowup(rows, now)` — confirmed calls ended 2+ hours ago, not yet flagged — [supabase/functions/_shared/scheduledCalls.ts:81-86](<>)
+- Constants: `MIN_SLOTS=1`, `MAX_SLOTS=3`, `MIN_DURATION_MINUTES=10`, `MAX_DURATION_MINUTES=120`, `REMINDER_WINDOW_HOURS=24`, `FOLLOWUP_GRACE_HOURS=2` — [supabase/functions/_shared/scheduledCalls.ts:10-18](<>)
 
 ### `support-confirm-call`
 
-Deliberately separate from `support-agent-action` because it uses a different authorization rule: it checks `requester_user_id === user.id` (own-ticket only), not `is_admin` — [supabase/functions/support-confirm-call/index.ts:86]().
+Deliberately separate from `support-agent-action` because it uses a different authorization rule: it checks `requester_user_id === user.id` (own-ticket only), not `is_admin` — [supabase/functions/support-confirm-call/index.ts:86](<>).
 
-Google Calendar integration uses a service-account JWT-bearer flow (RFC 7523) via Web Crypto in `_shared/googleCalendar.ts` — [supabase/functions/_shared/googleCalendar.ts:1-15](). Calendar creation is **never blocking**: if secrets are unconfigured, the function records a `calendar_sync_skipped` event; if the API call fails, it records `calendar_sync_failed`. Confirmation always succeeds — [supabase/functions/support-confirm-call/index.ts:113-142]().
+Google Calendar integration uses a service-account JWT-bearer flow (RFC 7523) via Web Crypto in `_shared/googleCalendar.ts` — [supabase/functions/_shared/googleCalendar.ts:1-15](<>). Calendar creation is **never blocking**: if secrets are unconfigured, the function records a `calendar_sync_skipped` event; if the API call fails, it records `calendar_sync_failed`. Confirmation always succeeds — [supabase/functions/support-confirm-call/index.ts:113-142](<>).
 
 ### `support-call-scheduler`
 
-A cron sweep scheduled every 15 minutes. Uses `acquire_cron_lock`/`release_cron_lock` to prevent concurrent runs — [supabase/functions/support-call-scheduler/index.ts:76-86](). Authentication uses `x-trigger-secret` (matching `SUPPORT_NOTIFY_SECRET`) or exact-match service-role key — [supabase/functions/support-call-scheduler/index.ts:47-61]().
+A cron sweep scheduled every 15 minutes. Uses `acquire_cron_lock`/`release_cron_lock` to prevent concurrent runs — [supabase/functions/support-call-scheduler/index.ts:76-86](<>). Authentication uses `x-trigger-secret` (matching `SUPPORT_NOTIFY_SECRET`) or exact-match service-role key — [supabase/functions/support-call-scheduler/index.ts:47-61](<>).
 
-Sources: [supabase/functions/support-confirm-call/index.ts:1-182](), [supabase/functions/support-call-scheduler/index.ts:1-158](), [supabase/functions/_shared/scheduledCalls.ts:1-86](), [supabase/functions/_shared/googleCalendar.ts:1-160]()
+Sources: [supabase/functions/support-confirm-call/index.ts:1-182](<>), [supabase/functions/support-call-scheduler/index.ts:1-158](<>), [supabase/functions/_shared/scheduledCalls.ts:1-86](<>), [supabase/functions/_shared/googleCalendar.ts:1-160](<>)
 
 ## Route Structure
 
 All support routes are registered in `appViewRoutes` and are lazy-loaded. Support views dispatch on mode internally — they are real features, not demo fixtures.
 
-| Route                             | Component                 | Access                          |
-| --------------------------------- | ------------------------- | ------------------------------- |
-| `/app/support`                    | `SupportView`             | Authenticated                   |
-| `/app/support/requests`           | `SupportRequestsList`     | Authenticated                   |
-| `/app/support/requests/:ticketId` | `SupportTicketDetail`     | Authenticated (RLS: own ticket) |
-| `/app/support/admin`              | `SupportAdminView`        | Admin (`is_admin`)              |
-| `/app/support/admin/exports`      | `ExportAuditView`         | Admin                           |
-| `/app/support/admin/:ticketId`    | `SupportAdminTicket`      | Admin                           |
-| `/contact`                        | `ContactPage` (marketing) | Public                          |
+| Route                                   | Component                 | Access                          |
+| --------------------------------------- | ------------------------- | ------------------------------- |
+| `/workspace/support`                    | `SupportView`             | Authenticated                   |
+| `/workspace/support/requests`           | `SupportRequestsList`     | Authenticated                   |
+| `/workspace/support/requests/:ticketId` | `SupportTicketDetail`     | Authenticated (RLS: own ticket) |
+| `/workspace/support/admin`              | `SupportAdminView`        | Admin (`is_admin`)              |
+| `/workspace/support/admin/exports`      | `ExportAuditView`         | Admin                           |
+| `/workspace/support/admin/:ticketId`    | `SupportAdminTicket`      | Admin                           |
+| `/contact`                              | `ContactPage` (marketing) | Public                          |
 
-Sources: [src/app/appViews.tsx:100-110](), [src/app/appViews.tsx:43-48]()
+Sources: [src/app/appViews.tsx:100-110](<>), [src/app/appViews.tsx:43-48](<>)
 
 ## Edge Functions Summary
 
@@ -615,7 +615,7 @@ graph LR
 | `support-notify`               | `x-notify-secret` header               | Outbox drain → Resend email delivery                                 |
 | `support-call-scheduler`       | `x-trigger-secret` or service-role key | Cron: call reminders and follow-up flags                             |
 
-Sources: [supabase/functions/create-support-ticket/index.ts:102-123](), [supabase/functions/create-public-support-ticket/index.ts:177-183](), [supabase/functions/support-agent-action/index.ts:38-64](), [supabase/functions/support-confirm-call/index.ts:43-86](), [supabase/functions/support-notify/index.ts:259-286](), [supabase/functions/support-call-scheduler/index.ts:47-69]()
+Sources: [supabase/functions/create-support-ticket/index.ts:102-123](<>), [supabase/functions/create-public-support-ticket/index.ts:177-183](<>), [supabase/functions/support-agent-action/index.ts:38-64](<>), [supabase/functions/support-confirm-call/index.ts:43-86](<>), [supabase/functions/support-notify/index.ts:259-286](<>), [supabase/functions/support-call-scheduler/index.ts:47-69](<>)
 
 ## Client API Layer
 
@@ -623,34 +623,34 @@ Two API modules mediate between UI components and edge functions:
 
 **`supportApi.ts`** (authenticated customer operations):
 
-- `createSupportTicket()` — invoke `create-support-ticket` — [src/features/support/supportApi.ts:47-74]()
-- `listMySupportTickets()` — direct Supabase query (RLS) — [src/features/support/supportApi.ts:140-148]()
-- `getSupportTicket()` — ticket + messages via RLS — [src/features/support/supportApi.ts:150-168]()
-- `replyToSupportTicket()` — direct INSERT (RLS allows customer non-internal reply) — [src/features/support/supportApi.ts:171-192]()
-- `getScheduledCall()` — direct query on `support_scheduled_calls` — [src/features/support/supportApi.ts:240-248]()
-- `confirmScheduledCall()` — invoke `support-confirm-call` — [src/features/support/supportApi.ts:251-264]()
+- `createSupportTicket()` — invoke `create-support-ticket` — [src/features/support/supportApi.ts:47-74](<>)
+- `listMySupportTickets()` — direct Supabase query (RLS) — [src/features/support/supportApi.ts:140-148](<>)
+- `getSupportTicket()` — ticket + messages via RLS — [src/features/support/supportApi.ts:150-168](<>)
+- `replyToSupportTicket()` — direct INSERT (RLS allows customer non-internal reply) — [src/features/support/supportApi.ts:171-192](<>)
+- `getScheduledCall()` — direct query on `support_scheduled_calls` — [src/features/support/supportApi.ts:240-248](<>)
+- `confirmScheduledCall()` — invoke `support-confirm-call` — [src/features/support/supportApi.ts:251-264](<>)
 
 **`supportAdminApi.ts`** (operator operations):
 
-- `isCurrentUserAdmin()` — calls `is_admin` RPC — [src/features/support/supportAdminApi.ts:107-114]()
-- `adminListTickets()` — filtered query (RLS grants admin read-all) — [src/features/support/supportAdminApi.ts:116-130]()
-- `adminGetTicket()` — ticket + all messages (incl. internal notes) — [src/features/support/supportAdminApi.ts:132-158]()
-- `runAgentAction()` — invoke `support-agent-action` — [src/features/support/supportAdminApi.ts:172-178]()
-- `adminGetScheduledCall()` — read-only scheduled call state — [src/features/support/supportAdminApi.ts:207-226]()
+- `isCurrentUserAdmin()` — calls `is_admin` RPC — [src/features/support/supportAdminApi.ts:107-114](<>)
+- `adminListTickets()` — filtered query (RLS grants admin read-all) — [src/features/support/supportAdminApi.ts:116-130](<>)
+- `adminGetTicket()` — ticket + all messages (incl. internal notes) — [src/features/support/supportAdminApi.ts:132-158](<>)
+- `runAgentAction()` — invoke `support-agent-action` — [src/features/support/supportAdminApi.ts:172-178](<>)
+- `adminGetScheduledCall()` — read-only scheduled call state — [src/features/support/supportAdminApi.ts:207-226](<>)
 
 Both modules return `[]` or `null` when `supabase` is `null` (configured-or-inert pattern).
 
-Sources: [src/features/support/supportApi.ts:1-264](), [src/features/support/supportAdminApi.ts:1-226]()
+Sources: [src/features/support/supportApi.ts:1-264](<>), [src/features/support/supportAdminApi.ts:1-226](<>)
 
 ## Support Analytics
 
-Client-side analytics is handled by `trackEvent()` in `supportAnalytics.ts`. Events are batched (threshold: 10 events or 2-second timeout) and flushed to the `support-analytics-event` edge function, pinned to `ca-central-1` for PIPEDA data residency — [src/features/support/analytics/supportAnalytics.ts:52-74]().
+Client-side analytics is handled by `trackEvent()` in `supportAnalytics.ts`. Events are batched (threshold: 10 events or 2-second timeout) and flushed to the `support-analytics-event` edge function, pinned to `ca-central-1` for PIPEDA data residency — [src/features/support/analytics/supportAnalytics.ts:52-74](<>).
 
-Analytics is consent-gated: `trackEvent()` checks `hasAnalyticsConsent()` and records nothing until the visitor opts in (Quebec Law 25 s. 8.1 compliance) — [src/features/support/analytics/supportAnalytics.ts:79-80]().
+Analytics is consent-gated: `trackEvent()` checks `hasAnalyticsConsent()` and records nothing until the visitor opts in (Quebec Law 25 s. 8.1 compliance) — [src/features/support/analytics/supportAnalytics.ts:79-80](<>).
 
-Event types: `helpfulness_vote`, `help_search`, `help_article_view`, `ticket_submitted`, `ticket_status_changed` — [src/features/support/analytics/supportAnalytics.ts:32-37]().
+Event types: `helpfulness_vote`, `help_search`, `help_article_view`, `ticket_submitted`, `ticket_status_changed` — [src/features/support/analytics/supportAnalytics.ts:32-37](<>).
 
-Sources: [src/features/support/analytics/supportAnalytics.ts:1-137]()
+Sources: [src/features/support/analytics/supportAnalytics.ts:1-137](<>)
 
 ## Email Template System
 
@@ -658,17 +658,17 @@ The `renderSupportEmail()` function in `src/features/support/email/templates.ts`
 
 Templates follow strict rules:
 
-- Support-ticket subjects carry **only** the public reference — never description or PII — [src/features/support/email/templates.ts:8-9]()
+- Support-ticket subjects carry **only** the public reference — never description or PII — [src/features/support/email/templates.ts:8-9](<>)
 - Signup alert subjects name the event only, with customer details kept out of the outbox subject.
-- Customer ticket bodies link to the authenticated ticket URL; beta signup alerts link to the operator workspace — [src/features/support/email/templates.ts:36-37]()
-- Customer-facing templates include the legal disclaimer; ticket acknowledgements also include the sensitive-info warning — [src/features/support/email/templates.ts:56-69]()
-- Category-aware acknowledgements exist for privacy, security, accessibility, and complaint — [src/features/support/email/templates.ts:95-120]()
+- Customer ticket bodies link to the authenticated ticket URL; beta signup alerts link to the operator workspace — [src/features/support/email/templates.ts:36-37](<>)
+- Customer-facing templates include the legal disclaimer; ticket acknowledgements also include the sensitive-info warning — [src/features/support/email/templates.ts:56-69](<>)
+- Category-aware acknowledgements exist for privacy, security, accessibility, and complaint — [src/features/support/email/templates.ts:95-120](<>)
 
 The notification rule engine in `notifications.ts` determines:
 
-- `acknowledgementKind(category)` — which ack template to use — [src/features/support/email/notifications.ts:21-33]()
-- `operatorChannel(category, priority)` — `immediate` for security or critical/high; `digest` otherwise — [src/features/support/email/notifications.ts:41-48]()
+- `acknowledgementKind(category)` — which ack template to use — [src/features/support/email/notifications.ts:21-33](<>)
+- `operatorChannel(category, priority)` — `immediate` for security or critical/high; `digest` otherwise — [src/features/support/email/notifications.ts:41-48](<>)
 
-Sources: [src/features/support/email/templates.ts:1-170](), [src/features/support/email/notifications.ts:1-75]()
+Sources: [src/features/support/email/templates.ts:1-170](<>), [src/features/support/email/notifications.ts:1-75](<>)
 
 ---

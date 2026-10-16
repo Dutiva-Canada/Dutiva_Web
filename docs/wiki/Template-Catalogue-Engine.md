@@ -93,7 +93,7 @@ graph TD
     COMP --> ENG
 ```
 
-Sources: [src/features/app/documents/catalogue.ts:1-24](), [src/features/app/documents/engine.ts:1-16](), [src/features/app/documents/api.ts:1-51](), [src/features/app/documents/DoclibProvider.tsx:1-8](), [src/features/app/documents/doclibContext.ts:1-36]()
+Sources: [src/features/app/documents/catalogue.ts:1-24](<>), [src/features/app/documents/engine.ts:1-16](<>), [src/features/app/documents/api.ts:1-51](<>), [src/features/app/documents/DoclibProvider.tsx:1-8](<>), [src/features/app/documents/doclibContext.ts:1-36](<>)
 
 ## Template Data Model
 
@@ -127,7 +127,7 @@ Defined in `data/types.ts`, `DocTemplate` is the schema for every template in th
 | `subject`                     | `TemplateSubject`                   | Who the document is about: `'candidate'`, `'employee'`, `'org'`, `'external'`         |
 | `bodyHtmlEn?`                 | `string`                            | Optional full HTML body (handoff-era, EN-only)                                        |
 
-Sources: [src/features/app/documents/data/types.ts:169-201]()
+Sources: [src/features/app/documents/data/types.ts:169-201](<>)
 
 ### `PreviewBlock` — Document Body Units
 
@@ -146,7 +146,7 @@ Each `PreviewBlock` is one rendered block in the document. The `type` field dete
 
 Every block may carry a `when?: ClauseGate` for conditional rendering.
 
-Sources: [src/features/app/documents/data/types.ts:82-83](), [src/features/app/documents/data/types.ts:148-167]()
+Sources: [src/features/app/documents/data/types.ts:82-83](<>), [src/features/app/documents/data/types.ts:148-167](<>)
 
 ### `ClauseGate` — Conditional Clause Gates
 
@@ -163,7 +163,7 @@ interface ClauseGate {
 
 The `answer` gate was added in PR #128 for T40 (policy update notification), which asks whether a fresh acknowledgement is required and conditionally includes or omits the signature block.
 
-Sources: [src/features/app/documents/data/types.ts:111-130]()
+Sources: [src/features/app/documents/data/types.ts:111-130](<>)
 
 ### `TemplateQuestion` — Wizard Inputs
 
@@ -179,7 +179,7 @@ Each question drives a merge field in the document body:
 | `placeholder?` / `hint?` | `Bi`                       | Input guidance                                                      |
 | `options?`               | `TemplateQuestionOption[]` | For select/radio: `{ value, label: Bi }`                            |
 
-Sources: [src/features/app/documents/data/types.ts:132-146]()
+Sources: [src/features/app/documents/data/types.ts:132-146](<>)
 
 ## Template Catalogue Organisation
 
@@ -194,7 +194,7 @@ Templates are organized by an employment lifecycle category scheme, not by ring 
 | 3    | Internal Communications           | "How do I communicate this to my team?"   | `communications`                                                                            |
 | 4    | Compensation & Financial Literacy | "Am I paying fairly?"                     | `compensation`                                                                              |
 
-Sources: [docs/FOUR_RING_FRAMEWORK.md:22-27](), [docs/FOUR_RING_FRAMEWORK.md:35-64]()
+Sources: [docs/FOUR_RING_FRAMEWORK.md:22-27](<>), [docs/FOUR_RING_FRAMEWORK.md:35-64](<>)
 
 ### Category Definitions
 
@@ -213,7 +213,7 @@ Ten categories are defined in `data/meta.ts`, ordered by the employment lifecycl
 | 9     | `compensation`   | 4    | T45, T46                                    |
 | 10    | `communications` | 3    | T35–T43                                     |
 
-Sources: [src/features/app/documents/data/meta.ts:56-224](), [src/features/app/documents/data/templates/index.ts:1-122]()
+Sources: [src/features/app/documents/data/meta.ts:56-224](<>), [src/features/app/documents/data/templates/index.ts:1-122](<>)
 
 ### Template Sources
 
@@ -232,7 +232,7 @@ export const allTemplates: DocTemplate[] = [...docTemplates, ...customTemplates]
 
 The tid numbering gap (T17–T20 in `customTemplates.ts`, T21+ in `data/templates/`) exists because the barrel file wins the `templateByTid.get(k) ?? customTemplateByTid.get(k)` lookup, so reusing a tid would silently shadow the custom template.
 
-Sources: [src/features/app/documents/catalogue.ts:1-24](), [src/features/app/documents/data/templates/index.ts:1-122](), [src/features/app/documents/customTemplates.ts:1-527]()
+Sources: [src/features/app/documents/catalogue.ts:1-24](<>), [src/features/app/documents/data/templates/index.ts:1-122](<>), [src/features/app/documents/customTemplates.ts:1-527](<>)
 
 ## Engine: `engine.ts` Resolution Pipeline
 
@@ -287,7 +287,7 @@ flowchart LR
     AP --> APV
 ```
 
-Sources: [src/features/app/documents/engine.ts:1-295]()
+Sources: [src/features/app/documents/engine.ts:1-295](<>)
 
 ### `gatePasses()` and `resolveBlocks()`
 
@@ -306,7 +306,7 @@ export function resolveBlocks(template: DocTemplate, ctx: ClauseContext): Previe
 }
 ```
 
-Sources: [src/features/app/documents/engine.ts:43-60](), [src/features/app/documents/engine.test.ts:25-96]()
+Sources: [src/features/app/documents/engine.ts:43-60](<>), [src/features/app/documents/engine.test.ts:25-96](<>)
 
 ### `computedTokens()`
 
@@ -335,19 +335,19 @@ export function computedTokens(
 }
 ```
 
-Sources: [src/features/app/documents/engine.ts:73-85]()
+Sources: [src/features/app/documents/engine.ts:73-85](<>)
 
 ### `answerLabels()`
 
 Converts wizard answers from stored `option.value` keys to localized `option.label` text for select-type questions. Without this, a French document would render the English stored value (e.g. "2 weeks" instead of "2 semaines"). Free-text answers and unknown option values pass through unchanged.
 
-Sources: [src/features/app/documents/engine.ts:87-117](), [src/features/app/documents/engine.test.ts:148-194]()
+Sources: [src/features/app/documents/engine.ts:87-117](<>), [src/features/app/documents/engine.test.ts:148-194](<>)
 
 ### `splitProseParagraphs()`
 
 Splits template prose on `\n\n` first; when that yields a single chunk, splits on single newlines unless any line starts with `* ` (bullet list). Used by `DocPaper` for `'para'` and `'clause'` bodies and by `documentPlainText.ts` for export — so letter-style line breaks render as separate paragraphs without manual block splitting in template data.
 
-Sources: [src/features/app/documents/engine.ts:161-178](), [src/features/app/documents/components.tsx:166-180](), [src/features/app/documents/engine.test.ts:318-335]()
+Sources: [src/features/app/documents/engine.ts:161-178](<>), [src/features/app/documents/components.tsx:166-180](<>), [src/features/app/documents/engine.test.ts:318-335](<>)
 
 ### `mergeSegments()`
 
@@ -365,7 +365,7 @@ const TOKEN_RE = /\{\{([a-z0-9_]+)\}\}/g
 
 Unfilled tokens render the token name with underscores replaced by spaces (e.g. `{{candidate_name}}` → "candidate name").
 
-Sources: [src/features/app/documents/engine.ts:119-144](), [src/features/app/documents/engine.test.ts:127-139]()
+Sources: [src/features/app/documents/engine.ts:119-144](<>), [src/features/app/documents/engine.test.ts:127-139](<>)
 
 ### `fillProgress()`
 
@@ -378,7 +378,7 @@ export function fillProgress(
 ): { filled: number; total: number }
 ```
 
-Sources: [src/features/app/documents/engine.ts:162-170]()
+Sources: [src/features/app/documents/engine.ts:162-170](<>)
 
 ### `applicability()`
 
@@ -391,7 +391,7 @@ Determines how a template applies to the current `OrgProfile`. Precedence:
 
 The `TEMPLATE_SIZE_TRIGGERS` map is: `{ T15: 50 }`.
 
-Sources: [src/features/app/documents/engine.ts:172-235](), [src/features/app/documents/engine.test.ts:98-125]()
+Sources: [src/features/app/documents/engine.ts:172-235](<>), [src/features/app/documents/engine.test.ts:98-125](<>)
 
 ### Role & Document Action Gating
 
@@ -408,7 +408,7 @@ Sources: [src/features/app/documents/engine.ts:172-235](), [src/features/app/doc
 | `restore`            | `restore`            | Only from archived                               |
 | `void`               | `void`               | Not from voided/deleted/archived                 |
 
-Sources: [src/features/app/documents/engine.ts:237-294](), [src/features/app/documents/engine.test.ts:205-240]()
+Sources: [src/features/app/documents/engine.ts:237-294](<>), [src/features/app/documents/engine.test.ts:205-240](<>)
 
 ## Statutory Floor Checking
 
@@ -428,7 +428,7 @@ The `appliesToNoticeField` function gates applicability: the check only fires wh
 
 The system deliberately advises rather than autofills: pre-filling the statutory floor would nudge employers toward the legal minimum when common-law reasonable notice is often much higher.
 
-Sources: [src/features/app/documents/statutoryFloor.ts:1-105]()
+Sources: [src/features/app/documents/statutoryFloor.ts:1-105](<>)
 
 ## DoclibProvider & Data Loading
 
@@ -443,7 +443,7 @@ Sources: [src/features/app/documents/statutoryFloor.ts:1-105]()
 - `cases` — from `docCases` (cases.ts)
 - `source: 'fixtures'`
 
-Sources: [src/features/app/documents/api.ts:1-51]()
+Sources: [src/features/app/documents/api.ts:1-51](<>)
 
 ### `DoclibProvider`
 
@@ -451,7 +451,7 @@ Sources: [src/features/app/documents/api.ts:1-51]()
 
 The initial role is read from `sessionStorage` under key `'dutiva-doclib-role'` (defaults to `'hr'`). The org profile starts from `defaultOrgProfile` (38 employees, non-union, Ontario, technology sector).
 
-Sources: [src/features/app/documents/DoclibProvider.tsx:1-234](), [src/features/app/documents/doclibContext.ts:1-36]()
+Sources: [src/features/app/documents/DoclibProvider.tsx:1-234](<>), [src/features/app/documents/doclibContext.ts:1-36](<>)
 
 ### `DoclibContext`
 
@@ -468,17 +468,17 @@ interface DoclibContextValue {
 }
 ```
 
-Sources: [src/features/app/documents/doclibContext.ts:11-28]()
+Sources: [src/features/app/documents/doclibContext.ts:11-28](<>)
 
 ## Routing & Screen Architecture
 
 ### Route Table
 
-All document screens are nested under `DocumentsLayout` at `/app/documents`:
+All document screens are nested under `DocumentsLayout` at `/workspace/documents`:
 
 ```mermaid
 graph TD
-    DL["/app/documents\nDocumentsLayout"]
+    DL["/workspace/documents\nDocumentsLayout"]
 
     DL --> IDX["index\nRepositoryScreen\n(gated)"]
     DL --> HR["/hr-library\nTemplatesView\n(gated)"]
@@ -488,12 +488,12 @@ graph TD
     DL --> SIGN["/sign/:envelopeId\nSigningScreen\n(gated)"]
     DL --> DOC["/:docId\nDocumentDetailScreen\n(gated)"]
 
-    LEGACY["/app/templates"] -- "redirect" --> HR
+    LEGACY["/workspace/templates"] -- "redirect" --> HR
 ```
 
 `StudioScreen`, `TemplateDetailScreen`, and `GenerateScreen` are real product content in both modes. The repository, document-detail, and signing screens also have production behaviour now — `documents/*` routes render real records scoped to the org — and the legacy hr-library gallery redirects to Document Studio in production via `HrLibraryRoute`.
 
-Sources: [src/app/appViews.tsx:153-166](), [src/app/appViews.tsx:9-22]()
+Sources: [src/app/appViews.tsx:153-166](<>), [src/app/appViews.tsx:9-22](<>)
 
 ### `DocumentsLayout`
 
@@ -503,11 +503,11 @@ Provides three shared concerns:
 2. **`DocumentsTabs`** — three-tab nav: HR Library → Document Library → Document Studio
 3. **`ViewingAsBar`** — role-switching control (prototype-only permission demo)
 
-Sources: [src/features/app/documents/DocumentsLayout.tsx:1-103]()
+Sources: [src/features/app/documents/DocumentsLayout.tsx:1-103](<>)
 
 ## Screen: StudioScreen (Document Studio)
 
-`StudioScreen` at `/app/documents/studio` is the primary template library. It renders:
+`StudioScreen` at `/workspace/documents/studio` is the primary template library. It renders:
 
 1. **Header** — eyebrow, title ("Template library"), count badges for templates and jurisdictions
 2. **OrgProfileBar** — live-editable org compliance profile (headcount slider, sector select, union toggle) that drives applicability chips on every card
@@ -518,14 +518,14 @@ The search placeholder dynamically includes the catalogue size: `"Search 50 temp
 
 Each `TemplateCard` links to:
 
-- **Open** → `/app/documents/templates/:tid` (TemplateDetailScreen)
-- **Generate** → `/app/documents/generate/:id` (GenerateScreen)
+- **Open** → `/workspace/documents/templates/:tid` (TemplateDetailScreen)
+- **Generate** → `/workspace/documents/generate/:id` (GenerateScreen)
 
-Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/features/app/documents/screens/StudioScreen.tsx:150-221]()
+Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](<>), [src/features/app/documents/screens/StudioScreen.tsx:150-221](<>)
 
 ## Screen: TemplateDetailScreen
 
-`TemplateDetailScreen` at `/app/documents/templates/:tid` shows a two-column layout:
+`TemplateDetailScreen` at `/workspace/documents/templates/:tid` shows a two-column layout:
 
 **Left column:**
 
@@ -540,16 +540,16 @@ Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/f
 **Right rail (sticky):**
 
 - Sample preview rendered via `DocPaper` using `resolveBlocks()` and `computedTokens()`
-- "Generate document" CTA linking to `/app/documents/generate/:id`
+- "Generate document" CTA linking to `/workspace/documents/generate/:id`
 - `Disclaimer` component
 
 On the template detail preview, no `answers` are passed to `resolveBlocks`, so answer-gated blocks render (showing everything the template can produce).
 
-Sources: [src/features/app/documents/screens/TemplateDetailScreen.tsx:145-351]()
+Sources: [src/features/app/documents/screens/TemplateDetailScreen.tsx:145-351](<>)
 
 ## Screen: GenerateScreen (Wizard)
 
-`GenerateScreen` at `/app/documents/generate/:templateId` implements a 3-step wizard with sticky live preview.
+`GenerateScreen` at `/workspace/documents/generate/:templateId` implements a 3-step wizard with sticky live preview.
 
 ### Wizard State
 
@@ -565,7 +565,7 @@ interface WizardState {
 }
 ```
 
-Sources: [src/features/app/documents/screens/GenerateScreen.tsx:50-58]()
+Sources: [src/features/app/documents/screens/GenerateScreen.tsx:50-58](<>)
 
 ### Three-step wizard flow:
 
@@ -597,15 +597,15 @@ A sticky right-column `DocPaper` renders `resolveBlocks()` output with merged va
 
 Each answer change triggers a simulated autosave cycle: `unsaved` → 800ms debounce → `saving` → 650ms settle → `saved`. This is prototype-only; no data persists.
 
-Sources: [src/features/app/documents/screens/GenerateScreen.tsx:610-928](), [src/features/app/documents/screens/GenerateScreen.tsx:321-335]()
+Sources: [src/features/app/documents/screens/GenerateScreen.tsx:610-928](<>), [src/features/app/documents/screens/GenerateScreen.tsx:321-335](<>)
 
 ## Screen: TemplatesView (HR Library)
 
-`TemplatesView` at `/app/documents/hr-library` is the legacy template gallery from the original prototype. It renders a responsive auto-fill grid of template tiles from the `documentTemplates` fixture data. Clicking a tile calls `openDocFromLibrary()` on the `DocStudioProvider`, opening the `DocStudioOverlay` drawer.
+`TemplatesView` at `/workspace/documents/hr-library` is the legacy template gallery from the original prototype. It renders a responsive auto-fill grid of template tiles from the `documentTemplates` fixture data. Clicking a tile calls `openDocFromLibrary()` on the `DocStudioProvider`, opening the `DocStudioOverlay` drawer.
 
 This view honours global-search navigation: arriving with `location.state` containing `TemplatesSearchNavState { docKey }` auto-opens that template on mount, then clears the state via `navigate(path, { replace: true, state: null })`.
 
-Sources: [src/features/app/views/templates/TemplatesView.tsx:1-74](), [src/features/app/views/templates/TemplatesView.test.tsx:1-70]()
+Sources: [src/features/app/views/templates/TemplatesView.tsx:1-74](<>), [src/features/app/views/templates/TemplatesView.test.tsx:1-70](<>)
 
 ## DocPaper — Rendered Document Component
 
@@ -624,7 +624,7 @@ Merge fields are rendered via `MergeSegmentSpan`: filled tokens get an accent ba
 
 The `docLang` prop controls which language branch of `Bi` values to render. When omitted (as in `TemplateDetailScreen`), it falls back to the UI locale.
 
-Sources: [src/features/app/documents/components.tsx:183-312](), [src/features/app/documents/components.tsx:137-161]()
+Sources: [src/features/app/documents/components.tsx:183-312](<>), [src/features/app/documents/components.tsx:137-161](<>)
 
 ## Jurisdiction-Conditional Clauses in Practice
 
@@ -639,7 +639,7 @@ Conditional clauses are a key feature of the bilingual template engine. Here are
 
 The test suite in `engine.test.ts` exercises these patterns with a `(template × jurisdiction × headcount × union)` matrix, including snapshot tests for T03's clause text stability.
 
-Sources: [src/features/app/documents/engine.test.ts:25-96]()
+Sources: [src/features/app/documents/engine.test.ts:25-96](<>)
 
 ## Test Coverage
 
@@ -660,7 +660,7 @@ Whole-catalogue guards (T01–T50):
 - **Disclaimer presence** — every template carries `DOC_DISCLAIMER_NOTE` as a `note` block
 - **Disclaimer purity** — the disclaimer note is exactly the canonical text, not appended to
 
-Sources: [src/features/app/documents/data/templates/authoredTemplates.test.ts:1-145](), [src/features/app/documents/data/templates/authoredTemplates.test.ts:149-260]()
+Sources: [src/features/app/documents/data/templates/authoredTemplates.test.ts:1-145](<>), [src/features/app/documents/data/templates/authoredTemplates.test.ts:149-260](<>)
 
 ### `engine.test.ts`
 
@@ -672,7 +672,7 @@ Covers the core engine functions:
 - `answerLabels` select resolution across the whole catalogue
 - Role/status action gating
 
-Sources: [src/features/app/documents/engine.test.ts:1-240]()
+Sources: [src/features/app/documents/engine.test.ts:1-240](<>)
 
 ## Complete Data Flow: Template to Generated Document
 
@@ -685,17 +685,17 @@ sequenceDiagram
     participant E as "engine.ts"
     participant DP as "DocPaper"
 
-    U->>SS: "Browse /app/documents/studio"
+    U->>SS: "Browse /workspace/documents/studio"
     SS->>SS: "Filter templates by category/jurisdiction/risk"
     SS->>E: "applicability(template, org)"
     E-->>SS: "ApplicabilityKind verdict per card"
 
-    U->>TD: "Click Open → /app/documents/templates/:tid"
+    U->>TD: "Click Open → /workspace/documents/templates/:tid"
     TD->>E: "resolveBlocks(template, ctx) — no answers"
     TD->>E: "computedTokens(jurisdiction, lang, today)"
     TD->>DP: "Render preview (all possible clauses)"
 
-    U->>GS: "Click Generate → /app/documents/generate/:id"
+    U->>GS: "Click Generate → /workspace/documents/generate/:id"
     Note over GS: "Step 0: Context (employee, jurisdiction, language)"
     Note over GS: "Step 1: Guided questions → answers{}"
 
@@ -710,10 +710,10 @@ sequenceDiagram
     E-->>GS: "{ filled, total }"
 
     U->>GS: "Save to repository"
-    GS->>GS: "showToast(doclib_toast_created) → navigate(/app/documents)"
+    GS->>GS: "showToast(doclib_toast_created) → navigate(/workspace/documents)"
 ```
 
-Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](), [src/features/app/documents/screens/TemplateDetailScreen.tsx:145-351](), [src/features/app/documents/screens/GenerateScreen.tsx:610-928]()
+Sources: [src/features/app/documents/screens/StudioScreen.tsx:247-448](<>), [src/features/app/documents/screens/TemplateDetailScreen.tsx:145-351](<>), [src/features/app/documents/screens/GenerateScreen.tsx:610-928](<>)
 
 ## Custom Templates (T17–T20)
 
@@ -728,7 +728,7 @@ Four templates in `customTemplates.ts` port content from the legacy `src/data/do
 
 T19 and T20 were moved from `discipline` to `accommodation` to correct a categorical error. They were rewritten for ON/QC/FED coverage (originally BC-only content) since the `Jurisdiction` type only models `'ON' | 'QC' | 'FED'`.
 
-Sources: [src/features/app/documents/customTemplates.ts:1-527]()
+Sources: [src/features/app/documents/customTemplates.ts:1-527](<>)
 
 ## Shared Disclaimer Pattern
 
@@ -743,7 +743,7 @@ export const DOC_DISCLAIMER_NOTE: Bi = {
 
 The `authoredTemplates.test.ts` test suite enforces that every template includes this exact note and does not append additional text to it.
 
-Sources: [src/features/app/documents/data/meta.ts:26-48](), [src/features/app/documents/data/templates/authoredTemplates.test.ts:173-220]()
+Sources: [src/features/app/documents/data/meta.ts:26-48](<>), [src/features/app/documents/data/templates/authoredTemplates.test.ts:173-220](<>)
 
 ## Key File Inventory
 

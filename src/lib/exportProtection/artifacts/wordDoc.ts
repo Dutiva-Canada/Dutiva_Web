@@ -2,7 +2,7 @@ import { Document, Footer, HeadingLevel, Packer, Paragraph, TextRun, BorderStyle
 import type { Lang } from '@/i18n/core'
 
 /**
- * Word (.docx) export — OOXML via the `docx` package (lazy /app boundary only).
+ * Word (.docx) export — OOXML via the `docx` package (lazy /workspace boundary only).
  *
  * Fingerprint channels in this artifact (fingerprint.ts):
  *   - the invisible zero-width tag, inline at the end of the body text —

@@ -92,27 +92,27 @@ Demo remains useful for walkthroughs. It must not be the primary answer to
 
 ### Out (later)
 
-| Item                                          | Why later                                              |
-| --------------------------------------------- | ------------------------------------------------------ |
-| Open production mode to beta members          | Access policy / capacity; tracked in gap audit.        |
-| Org mini-setup after `bootstrapOrganization`  | Superseded by "In" #6 — the inline Home card covers orgs that predate the feature too, without a provisioning-time modal. |
-| Durable flow-run records                      | Would make the explore step live-data like the others. |
-| Advisor-generated setup plans                 | Chips send fixed prompts; generated plans are bigger.  |
-| Sample-data import into production            | Conflicts with principle 1.                            |
-| Full product tour / coach marks               | Noise; the path is the tour.                           |
-| Help Centre "Your empty workspace" article    | Follow-up after this ships.                            |
+| Item                                         | Why later                                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Open production mode to beta members         | Access policy / capacity; tracked in gap audit.                                                                           |
+| Org mini-setup after `bootstrapOrganization` | Superseded by "In" #6 — the inline Home card covers orgs that predate the feature too, without a provisioning-time modal. |
+| Durable flow-run records                     | Would make the explore step live-data like the others.                                                                    |
+| Advisor-generated setup plans                | Chips send fixed prompts; generated plans are bigger.                                                                     |
+| Sample-data import into production           | Conflicts with principle 1.                                                                                               |
+| Full product tour / coach marks              | Noise; the path is the tour.                                                                                              |
+| Help Centre "Your empty workspace" article   | Follow-up after this ships.                                                                                               |
 
 ---
 
 ## Progress rules (v2 — no new table)
 
-| Step                        | Done when                                              |
-| --------------------------- | ------------------------------------------------------ |
+| Step                         | Done when                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
 | Confirm your company profile | `organizations.jurisdictions` non-empty — inline form on the empty Home, or Settings |
-| Prepare first-hire documents | ≥ 1 `hr_generated_documents` row                       |
-| Start your policy register   | ≥ 1 `hr_policies` row (written policy or flagged gap)  |
-| See a guided process         | Workflows catalog or flow runner visited (localStorage, org-scoped) |
-| Add your first person        | ≥ 1 employee (usually graduates Home off empty state)  |
+| Prepare first-hire documents | ≥ 1 `hr_generated_documents` row                                                     |
+| Start your policy register   | ≥ 1 `hr_policies` row (written policy or flagged gap)                                |
+| See a guided process         | Workflows catalog or flow runner visited (localStorage, org-scoped)                  |
+| Add your first person        | ≥ 1 employee (usually graduates Home off empty state)                                |
 
 Empty Home shows the full path while `totalRecords === 0`. Once any record
 exists, the Keep-going card shows the remaining steps on the dashboard until
@@ -128,7 +128,7 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 
 ## Empty → create
 
-- Path step 5 → `/app/employees?new=1`
+- Path step 5 → `/workspace/employees?new=1`
 - Sidebar Create → Employee / Case → same `?new=1` contract
 - Employees / Cases / Tasks: `useOpenCreateFormFromQuery` opens the form and
   strips `new` (replace)
@@ -138,19 +138,19 @@ Copy lives in `src/i18n/messages/home.ts` and `workspaceMode.ts`.
 
 ## Implementation map
 
-| Piece              | Path                                                        |
-| ------------------ | ----------------------------------------------------------- |
-| Step derivation    | `views/home/setupPath.ts` (`computeSetupSteps`)             |
-| Profile mini-setup | `views/home/HomeOrgProfileSetup.tsx`                        |
-| Province→org codes | `workspaceMode/jurisdictionOptions.ts`                      |
-| Soft marks + dismiss | `workspaceMode/emptyWorkspaceOnboarding.ts` (localStorage + server sync) |
-| Server marks         | `workspace_preferences.onboarding` jsonb (0169; member RLS 0170), `api.ts` `fetchOnboardingMarks`/`saveOnboardingMarks` |
-| Keep-going card    | `views/home/HomeSetupCard.tsx`                              |
-| Home empty         | `views/home/HomeProductionEmptyState.tsx`                   |
-| Card wiring + plan→Tasks | `views/home/HomeProductionView.tsx` (`addStepsAsTasks`) |
-| Live signals       | `views/home/useHomeProductionStats.ts` (+ `listDocuments`)  |
-| Mark Studio        | `StudioScreen.tsx` (production)                             |
-| Mark workflows     | `WorkflowsView.tsx`, `FlowRunner.tsx` (production)          |
+| Piece                    | Path                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Step derivation          | `views/home/setupPath.ts` (`computeSetupSteps`)                                                                         |
+| Profile mini-setup       | `views/home/HomeOrgProfileSetup.tsx`                                                                                    |
+| Province→org codes       | `workspaceMode/jurisdictionOptions.ts`                                                                                  |
+| Soft marks + dismiss     | `workspaceMode/emptyWorkspaceOnboarding.ts` (localStorage + server sync)                                                |
+| Server marks             | `workspace_preferences.onboarding` jsonb (0169; member RLS 0170), `api.ts` `fetchOnboardingMarks`/`saveOnboardingMarks` |
+| Keep-going card          | `views/home/HomeSetupCard.tsx`                                                                                          |
+| Home empty               | `views/home/HomeProductionEmptyState.tsx`                                                                               |
+| Card wiring + plan→Tasks | `views/home/HomeProductionView.tsx` (`addStepsAsTasks`)                                                                 |
+| Live signals             | `views/home/useHomeProductionStats.ts` (+ `listDocuments`)                                                              |
+| Mark Studio              | `StudioScreen.tsx` (production)                                                                                         |
+| Mark workflows           | `WorkflowsView.tsx`, `FlowRunner.tsx` (production)                                                                      |
 
 ---
 

@@ -44,7 +44,7 @@ The site is a Vite + React SPA whose **public pages are prerendered to static HT
 3. `scripts/validate-seo.mjs` — crawls `dist/` and fails the build on any SEO violation
 4. `scripts/check-entry-graph.mjs` — enforces the eager bundle size budget
 
-Sources: [package.json:8-8](), [docs/SEO_GEO_IMPLEMENTATION.md:10-33]()
+Sources: [package.json:8-8](<>), [docs/SEO_GEO_IMPLEMENTATION.md:10-33](<>)
 
 **SEO build pipeline**
 
@@ -62,7 +62,7 @@ flowchart LR
     C --> K["404.html"]
 ```
 
-Sources: [package.json:8-8](), [scripts/prerender.mjs:1-18]()
+Sources: [package.json:8-8](<>), [scripts/prerender.mjs:1-18](<>)
 
 ## Route Registry (`src/seo/routes.ts`)
 
@@ -70,7 +70,7 @@ The `SEO_ROUTES` array is the **single source of truth** for every public URL. T
 
 ### Static Routes (14)
 
-The `SeoRouteId` union type defines 20 static route identifiers:
+The `SeoRouteId` union type defines 21 static route identifiers:
 
 | Route ID           | EN Path                     | FR Path                               |
 | ------------------ | --------------------------- | ------------------------------------- |
@@ -97,11 +97,11 @@ The `SeoRouteId` union type defines 20 static route identifiers:
 
 Each `SeoRoute` carries bilingual `path`, `title`, `description`, and an `indexable` boolean.
 
-Sources: [src/seo/routes.ts:29-227]()
+Sources: [src/seo/routes.ts:29-227](<>)
 
 ### Dynamic Page Collections
 
-Beyond the 20 static routes, the registry dynamically incorporates three content collections into `allPublicPages()`:
+Beyond the 21 static routes, the registry dynamically incorporates three content collections into `allPublicPages()`:
 
 | Collection             | Count                  | Source data                               | Key prefix                           |
 | ---------------------- | ---------------------- | ----------------------------------------- | ------------------------------------ |
@@ -109,9 +109,9 @@ Beyond the 20 static routes, the registry dynamically incorporates three content
 | Help Centre articles   | 13                     | `HELP_ARTICLES` from `helpCenterData.ts`  | `helpDoc:<slug>`                     |
 | Editorial articles     | 12 (6 guides + 6 blog) | `ALL_ARTICLES` from `articles/index.ts`   | `guideDoc:<slug>` / `blogDoc:<slug>` |
 
-The `allPublicPages()` function merges all four sources into a single `PublicPage[]` array that drives prerendering and the sitemap. Total indexable page count: **71 pages × 2 locales = 142 URLs** (20 static + 26 policy documents + 13 help articles + 12 editorial articles).
+The `allPublicPages()` function merges all four sources into a single `PublicPage[]` array that drives prerendering and the sitemap. Total indexable page count: **72 pages × 2 locales = 144 URLs** (21 static + 26 policy documents + 13 help articles + 12 editorial articles).
 
-Sources: [src/seo/routes.ts:319-369](), [src/seo/seo.test.ts:29-35](), [docs/SEO_ROUTE_MATRIX.md:14-21]()
+Sources: [src/seo/routes.ts:319-369](<>), [src/seo/seo.test.ts:29-35](<>), [docs/SEO_ROUTE_MATRIX.md:14-21](<>)
 
 ### Bilingual URL Model
 
@@ -121,13 +121,13 @@ Sources: [src/seo/routes.ts:319-369](), [src/seo/seo.test.ts:29-35](), [docs/SEO
 - `langOfPath()` determines locale: `/fr…` → `fr`, everything else → `en`
 - `alternatePathFor()` resolves the same page's pathname in the other locale
 
-Sources: [src/seo/routes.ts:376-387](), [docs/SEO_GEO_IMPLEMENTATION.md:59-77]()
+Sources: [src/seo/routes.ts:376-387](<>), [docs/SEO_GEO_IMPLEMENTATION.md:59-77](<>)
 
 **Route registry to build artifact data flow**
 
 ```mermaid
 flowchart TD
-    REG["SEO_ROUTES\n(20 static routes)"]
+    REG["SEO_ROUTES\n(21 static routes)"]
     LEGAL["LEGAL_HUB_GROUPS\n(26 policy docs)"]
     HELP["HELP_ARTICLES\n(13 help articles)"]
     ART["ALL_ARTICLES\n(12 editorial articles)"]
@@ -153,7 +153,7 @@ flowchart TD
     REG --> SEO_COMP
 ```
 
-Sources: [src/seo/routes.ts:319-369](), [src/entry-server.tsx:88-106](), [scripts/prerender.mjs:77-194]()
+Sources: [src/seo/routes.ts:319-369](<>), [src/entry-server.tsx:88-106](<>), [scripts/prerender.mjs:77-194](<>)
 
 ## Seo Component & Head Management
 
@@ -168,7 +168,7 @@ The component accepts either a `route` prop (referencing a `SeoRouteId` from the
 
 For indexable pages, `Seo` assembles a JSON-LD `@graph` containing `organizationNode`, `webSiteNode`, and `webPageNode`, plus optional `breadcrumbNode` and `faqPageEntities`.
 
-Sources: [src/seo/Seo.tsx:62-112]()
+Sources: [src/seo/Seo.tsx:62-112](<>)
 
 ### `head.ts` — Framework-Independent Head Model
 
@@ -182,19 +182,19 @@ The `HeadData` interface represents a complete set of managed head elements. Thr
 
 All managed elements carry a `data-seo` attribute marker. Noindex pages receive only title + description + robots — no canonical, hreflang, social tags, or JSON-LD, because those would invite indexing signals that contradict the robots directive.
 
-Sources: [src/seo/head.ts:42-172]()
+Sources: [src/seo/head.ts:42-172](<>)
 
 ### `site.ts` — Canonical Identity
 
 `SITE_ORIGIN` centralizes the production origin (`https://dutiva.ca`), overridable via `VITE_SITE_ORIGIN`. The `ORG` constant holds verified organization facts (legal name, brand name, support email, logo path). `absoluteUrl()` joins a pathname with the origin.
 
-Sources: [src/seo/site.ts:1-61]()
+Sources: [src/seo/site.ts:1-61](<>)
 
 ### `dates.ts` — Content Date Parsing
 
 `parseDisplayDate()` converts human-readable policy dates ("June 1, 2026" / "1er juin 2026") to ISO 8601 for JSON-LD `datePublished`/`dateModified` and sitemap `lastmod`. Returns `undefined` for unparseable input — metadata omits the date rather than guessing.
 
-Sources: [src/seo/dates.ts:1-44]()
+Sources: [src/seo/dates.ts:1-44](<>)
 
 ## JSON-LD Structured Data
 
@@ -213,7 +213,7 @@ The `jsonld.ts` module provides schema.org builders with stable `@id`s anchored 
 
 Rules: only verified, visible facts. No ratings, reviews, awards, addresses, founding dates, or social profiles.
 
-Sources: [src/seo/jsonld.ts:1-164]()
+Sources: [src/seo/jsonld.ts:1-164](<>)
 
 ### Graph Composition in `Seo.tsx`
 
@@ -225,7 +225,7 @@ For each indexable page, the JSON-LD graph is composed as follows:
 
 The FAQ page switches `webPageNode` to type `FAQPage` and attaches `mainEntity` from `faqPageEntities()` — built from the exact `GROUPS` rendered on the page, so the markup can never diverge from the structured data.
 
-Sources: [src/seo/Seo.tsx:73-89](), [src/features/marketing/pages/FaqPage.tsx:44-53]()
+Sources: [src/seo/Seo.tsx:73-89](<>), [src/features/marketing/pages/FaqPage.tsx:44-53](<>)
 
 ## Prerendering Pipeline (`scripts/prerender.mjs`)
 
@@ -241,19 +241,19 @@ For each entry in the manifest (from `buildPrerenderManifest()`), `renderPage(pa
 - Injects optional verification tags (`GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`)
 - Fills `<div id="root">` with the rendered body
 
-Sources: [scripts/prerender.mjs:77-97](), [src/entry-server.tsx:37-55]()
+Sources: [scripts/prerender.mjs:77-97](<>), [src/entry-server.tsx:37-55](<>)
 
 ### 2. App Shell (`app.html`)
 
-An empty-body, noindex shell for `/app/*` routes. Vercel rewrites workspace paths to this file. No canonical or hreflang tags.
+An empty-body, noindex shell for `/workspace/*` routes (legacy `/app/*` lands here too). Vercel rewrites workspace paths to this file. No canonical or hreflang tags.
 
-Sources: [scripts/prerender.mjs:99-110]()
+Sources: [scripts/prerender.mjs:99-110](<>)
 
 ### 3. 404 Page
 
 Rendered by navigating to `/__not-found__`, which hits the router's catch-all `NotFoundPage`. Served with a real 404 status by static hosting. Carries `noindex`.
 
-Sources: [scripts/prerender.mjs:116-122]()
+Sources: [scripts/prerender.mjs:116-122](<>)
 
 ### 4. `sitemap.xml`
 
@@ -265,27 +265,27 @@ Generated from the indexable subset of the manifest. Each `<url>` entry includes
 
 Element order follows the sitemaps.org 0.9 schema sequence: `loc`, `lastmod`, then xhtml extensions.
 
-Sources: [scripts/prerender.mjs:128-154]()
+Sources: [scripts/prerender.mjs:128-154](<>)
 
 ### 5. `robots.txt`
 
 Generated with a deliberate crawler policy:
 
-| Category           | Bots                                                           | Policy                                                           |
-| ------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------- |
-| General            | `*`                                                            | Allow public, disallow `/app`, `/app/`, `/app.html`, `/404.html` |
-| AI search crawlers | `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`           | Same as general (welcome, with private-path exclusions)          |
-| Training crawlers  | `GPTBot`, `ClaudeBot`, `CCBot`, `Amazonbot`, `Google-Extended` | Opted in (decided 2026-08-06), same private-path exclusions      |
+| Category           | Bots                                                           | Policy                                                                       |
+| ------------------ | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| General            | `*`                                                            | Allow public, disallow `/workspace`, `/workspace/`, `/app.html`, `/404.html` |
+| AI search crawlers | `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot`           | Same as general (welcome, with private-path exclusions)                      |
+| Training crawlers  | `GPTBot`, `ClaudeBot`, `CCBot`, `Amazonbot`, `Google-Extended` | Opted in (decided 2026-08-06), same private-path exclusions                  |
 
 Each named bot group repeats the private-path exclusions because a bot-specific group replaces the `*` group entirely.
 
-Sources: [scripts/prerender.mjs:160-194]()
+Sources: [scripts/prerender.mjs:160-194](<>)
 
 ### 6. `llms.txt`
 
 A markdown-formatted file for LLM consumption, structured into sections (Product, Resources, Legal & trust, Contact, Version française). Links point only to indexable public pages on the canonical origin. Includes the organization description and an explicit statement that the authenticated application is private.
 
-Sources: [scripts/prerender.mjs:199-257]()
+Sources: [scripts/prerender.mjs:199-257](<>)
 
 ### `entry-server.tsx` — SSR Entry Point
 
@@ -295,13 +295,13 @@ The server entry exports `renderPage()` and `buildPrerenderManifest()`. The mani
 - Editorial articles: from the `updated` field on the `Article` record
 - All other pages: no `lastmod` (a date that moves on every build teaches crawlers to ignore it)
 
-Sources: [src/entry-server.tsx:88-128]()
+Sources: [src/entry-server.tsx:88-128](<>)
 
 ### Client Hydration
 
 `src/main.tsx` detects whether the root element has children. Prerendered pages hydrate via `hydrateRoot()`; the empty app shell creates a fresh root via `createRoot()`. Suspense boundaries keep server HTML visible until lazy chunks arrive.
 
-Sources: [src/main.tsx:36-39]()
+Sources: [src/main.tsx:36-39](<>)
 
 ## SEO Validation (`scripts/validate-seo.mjs`)
 
@@ -321,7 +321,7 @@ The post-build validator crawls the built `dist/` output (not React state) and *
 | JSON-LD       | Exactly one block per page; parses as valid JSON; no placeholders; all URLs on canonical origin             |
 | Structure     | Exactly one `<h1>`; a `<main>` landmark; ≥ 500 chars of visible text                                        |
 
-Sources: [scripts/validate-seo.mjs:83-190]()
+Sources: [scripts/validate-seo.mjs:83-190](<>)
 
 ### Cross-Page Checks
 
@@ -334,12 +334,12 @@ Sources: [scripts/validate-seo.mjs:83-190]()
 | Sitemap ↔ file ↔ canonical  | Every sitemap URL has a prerendered file; every indexable page is in the sitemap; no private or noindex URLs in sitemap |
 | Sitemap `lastmod` order     | `<lastmod>` precedes `<xhtml:link>` in each `<url>`                                                                     |
 | Internal links              | Every `href="/<path>"` in page bodies resolves to a known route or existing asset                                       |
-| robots.txt                  | Sitemap reference present; all named bot groups present with `/app` exclusions                                          |
+| robots.txt                  | Sitemap reference present; all named bot groups present with `/workspace` exclusions                                    |
 | llms.txt                    | No off-origin URLs; no private URLs; all linked pages exist                                                             |
 | App shell                   | `app.html` is noindex, has no canonical                                                                                 |
 | 404                         | `404.html` is noindex                                                                                                   |
 
-Sources: [scripts/validate-seo.mjs:192-348]()
+Sources: [scripts/validate-seo.mjs:192-348](<>)
 
 ### Unit Tests (`seo.test.ts`)
 
@@ -355,7 +355,7 @@ The `seo.test.ts` test suite enforces additional invariants at the type/data lev
 - `buildHead` output correctness (canonical, hreflang, og:locale, noindex behavior)
 - JSON-LD builder correctness (stable @ids, verified facts only)
 
-Sources: [src/seo/seo.test.ts:26-277]()
+Sources: [src/seo/seo.test.ts:26-277](<>)
 
 ## Content Marketing: Articles
 
@@ -374,7 +374,7 @@ The `Article` interface in `articleModel.ts` defines the metadata for editorial 
 | `title`          | `Bi`                | Page title                           |
 | `summary`        | `Bi`                | Blurb for cards and meta description |
 
-Sources: [src/features/marketing/articles/articleModel.ts:57-88]()
+Sources: [src/features/marketing/articles/articleModel.ts:57-88](<>)
 
 ### Collection Split
 
@@ -387,7 +387,7 @@ The two collections are deliberately disjoint in topic and purpose:
 
 The rule: "Is this about a document they are writing, or about a rule they are under?" The SEO constraint is that both indexes once listed the same topics — giving each a URL under both prefixes ships duplicate competing pages. `seo.test.ts` fails the build if the collections converge.
 
-Sources: [src/features/marketing/articles/articleModel.ts:14-37](), [src/seo/seo.test.ts:37-47]()
+Sources: [src/features/marketing/articles/articleModel.ts:14-37](<>), [src/seo/seo.test.ts:37-47](<>)
 
 ### Prose Body Split
 
@@ -403,13 +403,13 @@ Article prose is deliberately **not** a field on `Article`. The SEO registry rea
 
 `ArticlePage` is a lazy route, so the prose rides its chunk. The `articles.test.ts` test verifies that metadata and content cover the same slugs in both directions — metadata with no sections or sections with no metadata both fail.
 
-Sources: [src/features/marketing/articles/articleModel.ts:90-108](), [src/features/marketing/articles/content.ts:1-31](), [src/features/marketing/articles/articles.test.ts:77-109]()
+Sources: [src/features/marketing/articles/articleModel.ts:90-108](<>), [src/features/marketing/articles/content.ts:1-31](<>), [src/features/marketing/articles/articles.test.ts:77-109](<>)
 
 ### Editorial Figure Guard
 
 Articles deliberately do **not** publish statutory figures (notice-week tables, dollar thresholds, deadline counts). The `editorialFigureIn()` detector in `editorialFigures.ts` is checked by `articles.test.ts` against every authored string in every article. This rule exists because the pages are prerendered, indexed, and GEO-targeted at answer engines — a wrong figure gets quoted onward by machines without the disclaimer.
 
-Sources: [src/features/marketing/articles/articles.test.ts:7-30]()
+Sources: [src/features/marketing/articles/articles.test.ts:7-30](<>)
 
 ### `ArticlePage` Component
 
@@ -423,7 +423,7 @@ The `ArticlePage` component renders one editorial article. It:
 6. Includes a "Put this into practice" CTA linking to `/templates` and `/pricing`
 7. Shows related articles from the same collection
 
-Sources: [src/features/marketing/pages/ArticlePage.tsx:28-180]()
+Sources: [src/features/marketing/pages/ArticlePage.tsx:28-180](<>)
 
 ## `usePublicPath` — Locale-Aware Link Helper
 
@@ -437,7 +437,7 @@ The `usePublicPath()` hook provides three helpers for internal links on the publ
 
 English pages link to unprefixed URLs, French pages to `/fr` equivalents — crawlers see locale-consistent link graphs.
 
-Sources: [src/seo/usePublicPath.ts:1-28]()
+Sources: [src/seo/usePublicPath.ts:1-28](<>)
 
 ## Entry Graph Budget Enforcement (`check-entry-graph.mjs`)
 
@@ -447,7 +447,7 @@ This post-build script enforces what a first-time visitor to a public page downl
 
 The workspace is route-split and every view is `lazy()`, so the split _looks_ right in source but drifts silently in the output. By 2026-08, `routes.tsx` → `appViews.tsx` → `ModeGate` → `navConfig` → `@/data` had dragged 113kB of demo HR fixtures, and the `vendor` group brought a 157kB Markdown parser, onto the marketing critical path. Nothing failed because nothing looked.
 
-Sources: [scripts/check-entry-graph.mjs:1-25]()
+Sources: [scripts/check-entry-graph.mjs:1-25](<>)
 
 ### Budget Ceilings
 
@@ -458,7 +458,7 @@ Sources: [scripts/check-entry-graph.mjs:1-25]()
 
 These are a **ratchet, not a target** — going over requires a deliberate decision recorded in the source.
 
-Sources: [scripts/check-entry-graph.mjs:48-49]()
+Sources: [scripts/check-entry-graph.mjs:48-49](<>)
 
 ### What It Checks
 
@@ -482,7 +482,7 @@ flowchart TD
     APPMOD --> FAIL
 ```
 
-Sources: [scripts/check-entry-graph.mjs:86-199]()
+Sources: [scripts/check-entry-graph.mjs:86-199](<>)
 
 Membership analysis reads from the build's own source maps (not by grepping minified output). For each eager chunk, it:
 
@@ -501,7 +501,7 @@ Membership analysis reads from the build's own source maps (not by grepping mini
    - `src/features/app/workspaceMode/ProductionEmptyState.tsx`
    - `src/features/app/workspaceMode/workspaceModeContext.ts`
 
-Sources: [scripts/check-entry-graph.mjs:57-77](), [scripts/check-entry-graph.mjs:87-103](), [scripts/check-entry-graph.mjs:156-210]()
+Sources: [scripts/check-entry-graph.mjs:57-77](<>), [scripts/check-entry-graph.mjs:87-103](<>), [scripts/check-entry-graph.mjs:156-210](<>)
 
 ## System Integration: Code Entity Map
 
@@ -553,7 +553,7 @@ flowchart TD
     ENTRY_SERVER --> VALIDATE
 ```
 
-Sources: [src/seo/Seo.tsx:7-17](), [src/seo/head.ts:2-4](), [src/seo/routes.ts:1-9](), [src/entry-server.tsx:3-16]()
+Sources: [src/seo/Seo.tsx:7-17](<>), [src/seo/head.ts:2-4](<>), [src/seo/routes.ts:1-9](<>), [src/entry-server.tsx:3-16](<>)
 
 ## Router Integration
 
@@ -573,23 +573,23 @@ publicRoutes('fr')  →  /fr        → LandingPage
 
 All marketing page components are `lazy()` imported, so marketing visitors never download workspace chunks. The `PricingShell` wraps `PricingPage` in `AuthProvider` + `PlanProvider` to isolate Supabase from the marketing entry chunk.
 
-Sources: [src/app/routes.tsx:16-99](), [src/features/marketing/pages/PricingShell.tsx:1-20]()
+Sources: [src/app/routes.tsx:16-99](<>), [src/features/marketing/pages/PricingShell.tsx:1-20](<>)
 
 ## Indexing Policy Summary
 
 | Surface                              | Robots                                      | Canonical      | Sitemap | Delivery                           |
 | ------------------------------------ | ------------------------------------------- | -------------- | ------- | ---------------------------------- |
 | Public marketing/legal/help/articles | `index, follow, max-image-preview:large`    | Self-canonical | Yes     | Prerendered static HTML            |
-| `/app/*` (workspace)                 | `noindex, nofollow` + `X-Robots-Tag` header | None           | No      | Client-rendered `app.html`         |
+| `/workspace/*` (workspace)           | `noindex, nofollow` + `X-Robots-Tag` header | None           | No      | Client-rendered `app.html`         |
 | Unknown URLs                         | `noindex`                                   | None           | No      | `404.html` with 404 status         |
 | Preview deployments (`*.vercel.app`) | `X-Robots-Tag: noindex, nofollow` header    | —              | —       | Same build, header blocks indexing |
 
-Sources: [docs/SEO_GEO_IMPLEMENTATION.md:79-95]()
+Sources: [docs/SEO_GEO_IMPLEMENTATION.md:79-95](<>)
 
 ## Canonical Strategy
 
 HTTPS + apex host only (`https://dutiva.ca`); `www` 308-redirects to apex; trailing slashes normalized off; paths lowercase. The origin is centralized in `SITE_ORIGIN` (`src/seo/site.ts`) and overridable via `VITE_SITE_ORIGIN`. Canonical URLs never carry query parameters.
 
-Sources: [src/seo/site.ts:13-16](), [docs/SEO_GEO_IMPLEMENTATION.md:98-106]()
+Sources: [src/seo/site.ts:13-16](<>), [docs/SEO_GEO_IMPLEMENTATION.md:98-106](<>)
 
 ---

@@ -369,7 +369,7 @@ second product to try WebGPU.
 
 - Shipping GGUF/ONNX in the Vite bundle or service worker as the Advisor.
 - Calling Apple Foundation Models or Windows AI from the marketing site or
-  `/app` SPA.
+  `/workspace` SPA.
 - Moving document generation onto a local LLM (forbidden by
   `AI_USAGE_STRATEGY.md` — documents stay merge tokens + ClauseGate).
 - Using DigitalOcean Knowledge Bases as a substitute for

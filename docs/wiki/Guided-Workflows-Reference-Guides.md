@@ -64,8 +64,8 @@ graph TD
     end
 
     subgraph "Routes"
-        R1["/app/workflows"]
-        R2["/app/workflows/:slug"]
+        R1["/workspace/workflows"]
+        R2["/workspace/workflows/:slug"]
     end
 
     FM --> FE
@@ -84,11 +84,11 @@ graph TD
     R2 --> FR
 ```
 
-Sources: [src/features/app/flows/flowModel.ts:1-193](), [src/features/app/flows/flowEngine.ts:1-259](), [src/features/app/flows/FlowRunner.tsx:1-48](), [src/features/app/flows/data/index.ts:1-19](), [src/app/appViews.tsx:77-78]()
+Sources: [src/features/app/flows/flowModel.ts:1-193](<>), [src/features/app/flows/flowEngine.ts:1-259](<>), [src/features/app/flows/FlowRunner.tsx:1-48](<>), [src/features/app/flows/data/index.ts:1-19](<>), [src/app/appViews.tsx:77-78](<>)
 
 ## Flow Data Model (`flowModel.ts`)
 
-The `Flow` interface represents a graph of bilingual steps routed at `/app/workflows/<slug>`.
+The `Flow` interface represents a graph of bilingual steps routed at `/workspace/workflows/<slug>`.
 
 ### `Flow` Interface
 
@@ -103,7 +103,7 @@ The `Flow` interface represents a graph of bilingual steps routed at `/app/workf
 | `start`         | `FlowStepId`       | Entry step id                |
 | `steps`         | `FlowStep[]`       | All steps in the graph       |
 
-[src/features/app/flows/flowModel.ts:153-166]()
+[src/features/app/flows/flowModel.ts:153-166](<>)
 
 ### `FlowStep` Union
 
@@ -116,11 +116,11 @@ The `Flow` interface represents a graph of bilingual steps routed at `/app/workf
 | `outcome` | `FlowOutcomeStep` | Terminal step from branching             | `tone`, `documents?: string[]`, `noDocument?: Bi` |
 | `result`  | `FlowResultStep`  | Terminal step from scoring               | `bands: FlowBand[]`                               |
 
-[src/features/app/flows/flowModel.ts:71-151]()
+[src/features/app/flows/flowModel.ts:71-151](<>)
 
 All steps share a `FlowStepBase` with `id`, `title`, `body`, and optional `caution` (all `Bi`). The `caution` field is for warnings about common mistakes at that stage — there is deliberately no per-jurisdiction gate on steps because the runner never asks for a jurisdiction.
 
-[src/features/app/flows/flowModel.ts:48-65]()
+[src/features/app/flows/flowModel.ts:48-65](<>)
 
 ### `FlowOption` and `FlowBand`
 
@@ -134,7 +134,7 @@ All steps share a `FlowStepBase` with `id`, `title`, `body`, and optional `cauti
 | `to`      | `FlowStepId \| null` | Target step (null ends run)           |
 | `value?`  | `number`             | Score contribution on rated questions |
 
-[src/features/app/flows/flowModel.ts:34-46]()
+[src/features/app/flows/flowModel.ts:34-46](<>)
 
 `FlowBand` defines a score bracket on a `result` step:
 
@@ -146,20 +146,20 @@ All steps share a `FlowStepBase` with `id`, `title`, `body`, and optional `cauti
 | `title` / `body` | `Bi`                          | Bilingual reading                   |
 | `documents?`     | `string[]`                    | Document Studio TIDs to hand off to |
 
-[src/features/app/flows/flowModel.ts:124-136]()
+[src/features/app/flows/flowModel.ts:124-136](<>)
 
 ### Type Guard Functions
 
 Three type guards discriminate step kinds:
 
-- `isOutcome(step)` — returns `true` for `kind === 'outcome'` [src/features/app/flows/flowModel.ts:168]()
-- `isResult(step)` — returns `true` for `kind === 'result'` [src/features/app/flows/flowModel.ts:170]()
-- `isTerminal(step)` — returns `true` for outcome or result [src/features/app/flows/flowModel.ts:173-174]()
-- `isScored(step)` — returns `true` only when every option carries a `value` **and** all options lead to the same destination [src/features/app/flows/flowModel.ts:187-192]()
+- `isOutcome(step)` — returns `true` for `kind === 'outcome'` [src/features/app/flows/flowModel.ts:168](<>)
+- `isResult(step)` — returns `true` for `kind === 'result'` [src/features/app/flows/flowModel.ts:170](<>)
+- `isTerminal(step)` — returns `true` for outcome or result [src/features/app/flows/flowModel.ts:173-174](<>)
+- `isScored(step)` — returns `true` only when every option carries a `value` **and** all options lead to the same destination [src/features/app/flows/flowModel.ts:187-192](<>)
 
 The `isScored` guard enforces two invariants: a step where only some options are valued is neither scored nor a clean branch, and a step whose valued options diverge is scoring and branching at once (making percentages across runs incomparable). Both shapes are rejected by tests.
 
-Sources: [src/features/app/flows/flowModel.ts:1-193]()
+Sources: [src/features/app/flows/flowModel.ts:1-193](<>)
 
 ## Three Flow Shapes
 
@@ -201,9 +201,9 @@ graph LR
 
 A rated `choice` step is just a `choice` whose options all carry a `value` and lead to the same place — no separate step kind.
 
-[src/features/app/flows/flowModel.ts:15-29]()
+[src/features/app/flows/flowModel.ts:15-29](<>)
 
-Sources: [src/features/app/flows/flowModel.ts:15-29](), [src/features/app/flows/data/dutyToAccommodate.ts:23-369](), [src/features/app/flows/data/psychologicalSafety.ts:62-290](), [src/features/app/flows/data/mentalHealthResponse.ts:30-40](), [src/features/app/flows/data/leaveOfAbsence.ts:23-34]()
+Sources: [src/features/app/flows/flowModel.ts:15-29](<>), [src/features/app/flows/data/dutyToAccommodate.ts:23-369](<>), [src/features/app/flows/data/psychologicalSafety.ts:62-290](<>), [src/features/app/flows/data/mentalHealthResponse.ts:30-40](<>), [src/features/app/flows/data/leaveOfAbsence.ts:23-34](<>)
 
 ## Flow Engine (`flowEngine.ts`)
 
@@ -222,7 +222,7 @@ interface FlowRun {
 }
 ```
 
-[src/features/app/flows/flowEngine.ts:15-24]()
+[src/features/app/flows/flowEngine.ts:15-24](<>)
 
 The run keeps the whole path rather than just a cursor. This is what makes `back` honest — stepping back off a branch must forget the answers that branch produced, and a cursor cannot tell you which those were.
 
@@ -245,29 +245,29 @@ The run keeps the whole path rather than just a cursor. This is what makes `back
 | `scoreRun`         | `(flow, run) → FlowScore`                             | Scores only the rated questions actually answered                   |
 | `bandFor`          | `(step, percent) → FlowBand \| null`                  | Highest band whose `minPercent` the score reaches                   |
 
-Sources: [src/features/app/flows/flowEngine.ts:26-258]()
+Sources: [src/features/app/flows/flowEngine.ts:26-258](<>)
 
 ### Key Behaviors
 
 **`advance`** records the chosen option on the current step, then appends the next step. If the current step is terminal, or the option ID is unknown, the run is returned unchanged — a double-click or stale option cannot corrupt the path.
 
-[src/features/app/flows/flowEngine.ts:60-72]()
+[src/features/app/flows/flowEngine.ts:60-72](<>)
 
 **`back`** drops the last path entry and clears the `option` on the new tail entry. This forces a clean choice on re-display: a retained answer would render the branch as already taken.
 
-[src/features/app/flows/flowEngine.ts:80-87]()
+[src/features/app/flows/flowEngine.ts:80-87](<>)
 
 **`longestPath`** uses DFS with a visited set and deduplicates outgoing edges. Deduplication is load-bearing: a rated question has four options all leading to the same step, so without dedup the traversal is 4^13 for a 13-question assessment.
 
-[src/features/app/flows/flowEngine.ts:111-131]()
+[src/features/app/flows/flowEngine.ts:111-131](<>)
 
 **`scoreRun`** sums `value` on answered `isScored` steps and computes the percentage against what was available on those questions. This means a run that branches past some rated questions is not penalized for questions it could never have reached.
 
-[src/features/app/flows/flowEngine.ts:207-245]()
+[src/features/app/flows/flowEngine.ts:207-245](<>)
 
 **`bandFor`** sorts bands descending by `minPercent` and returns the first the score reaches. Returns null only if no band covers `minPercent: 0`, which is an authoring error caught by tests.
 
-[src/features/app/flows/flowEngine.ts:253-258]()
+[src/features/app/flows/flowEngine.ts:253-258](<>)
 
 **Flow engine state machine**
 
@@ -290,13 +290,13 @@ stateDiagram-v2
     "on result" --> [*]: "isComplete = true, scoreRun/bandFor"
 ```
 
-Sources: [src/features/app/flows/flowEngine.ts:1-259]()
+Sources: [src/features/app/flows/flowEngine.ts:1-259](<>)
 
 ## Flow Data Files
 
 Four flows are shipped, all registered in `data/index.ts` and keyed by slug via `flowBySlug`:
 
-[src/features/app/flows/data/index.ts:1-19]()
+[src/features/app/flows/data/index.ts:1-19](<>)
 
 ### Shipped Flows
 
@@ -307,7 +307,7 @@ Four flows are shipped, all registered in `data/index.ts` and keyed by slug via 
 | `leave-of-absence`           | Leave of absence                      | 2    | Decision tree with checklist branches | 8            | Branching by leave type        | Multiple outcomes  |
 | `mental-health-response`     | Responding to a mental health concern | 2    | Decision tree (triage)                | 6            | Triages to correct process     | Multiple outcomes  |
 
-Sources: [src/features/app/flows/data/dutyToAccommodate.ts:23-28](), [src/features/app/flows/data/psychologicalSafety.ts:62-67](), [src/features/app/flows/data/leaveOfAbsence.ts:23-28](), [src/features/app/flows/data/mentalHealthResponse.ts:30-35]()
+Sources: [src/features/app/flows/data/dutyToAccommodate.ts:23-28](<>), [src/features/app/flows/data/psychologicalSafety.ts:62-67](<>), [src/features/app/flows/data/leaveOfAbsence.ts:23-28](<>), [src/features/app/flows/data/mentalHealthResponse.ts:30-35](<>)
 
 ### Duty to Accommodate Flow Graph
 
@@ -337,13 +337,13 @@ graph TD
 
 Key design choices: undue hardship is reachable only through canvassing options and documenting why each fails. The `check_funding` → `hardship_test` loop is a legitimate cycle — `longestPath` handles it with a visited set. Every outcome hands off to Document Studio templates via TID references.
 
-[src/features/app/flows/data/dutyToAccommodate.ts:23-369]()
+[src/features/app/flows/data/dutyToAccommodate.ts:23-369](<>)
 
 ### Psychological Safety Scored Assessment
 
 Thirteen rated questions, one per CSA Z1003-13 psychosocial factor, using a shared 4-point `SCALE` (0–3: "Not in place" → "In place and written down"). A helper function `rate()` constructs each `FlowChoiceStep` with a `domain`, ensuring all options lead to the same next step and all carry a `value`.
 
-[src/features/app/flows/data/psychologicalSafety.ts:28-60]()
+[src/features/app/flows/data/psychologicalSafety.ts:28-60](<>)
 
 The `result` step has three bands:
 
@@ -353,15 +353,15 @@ The `result` step has three bands:
 | `partial`     | 40    | `caution` | T13, T12, T04 |
 | `early`       | 0     | `risk`    | T13, T12      |
 
-[src/features/app/flows/data/psychologicalSafety.ts:250-287]()
+[src/features/app/flows/data/psychologicalSafety.ts:250-287](<>)
 
-Sources: [src/features/app/flows/data/psychologicalSafety.ts:1-290]()
+Sources: [src/features/app/flows/data/psychologicalSafety.ts:1-290](<>)
 
 ## FlowRunner Component
 
-`FlowRunner` is the React component at route `/app/workflows/:slug`. It resolves the flow from the URL slug via `flowBySlug`, then renders `FlowBody` keyed on the slug so switching flows resets the run.
+`FlowRunner` is the React component at route `/workspace/workflows/:slug`. It resolves the flow from the URL slug via `flowBySlug`, then renders `FlowBody` keyed on the slug so switching flows resets the run.
 
-[src/features/app/flows/FlowRunner.tsx:42-49]()
+[src/features/app/flows/FlowRunner.tsx:42-49](<>)
 
 ### State Management
 
@@ -371,7 +371,7 @@ All state is a single `FlowRun` held in `useState`. Every transition goes throug
 const [run, setRun] = useState<FlowRun>(() => startRun(flow))
 ```
 
-[src/features/app/flows/FlowRunner.tsx:71]()
+[src/features/app/flows/FlowRunner.tsx:71](<>)
 
 Nothing is persisted. A run is a thinking tool; what belongs on the file is the document the outcome hands off to.
 
@@ -384,37 +384,37 @@ Nothing is persisted. A run is a thinking tool; what belongs on the file is the 
 | `outcome` | Band/result card + document handoff links                       | — (terminal)                                           |
 | `result`  | `ScoredResult` with score %, band verdict, per-factor breakdown | — (terminal)                                           |
 
-[src/features/app/flows/FlowRunner.tsx:110-186]()
+[src/features/app/flows/FlowRunner.tsx:110-186](<>)
 
 ### Document Handoff
 
-`OutcomeActions` reads document TIDs from the outcome step or from the band a scored run landed in. For each TID, it resolves the template via `templateFor` (checking `templateByTid` then `customTemplateByTid`) and renders a link to `/app/documents/templates/<tid>`.
+`OutcomeActions` reads document TIDs from the outcome step or from the band a scored run landed in. For each TID, it resolves the template via `templateFor` (checking `templateByTid` then `customTemplateByTid`) and renders a link to `/workspace/documents/templates/<tid>`.
 
-[src/features/app/flows/FlowRunner.tsx:305-365]()
+[src/features/app/flows/FlowRunner.tsx:305-365](<>)
 
 When an outcome deliberately produces no document, it must set `noDocument: Bi` instead of `documents`. The component renders this explanation where the handoff list would be. The tests enforce that exactly one of `documents` and `noDocument` is set on every outcome.
 
-[src/features/app/flows/FlowRunner.tsx:316-327]()
+[src/features/app/flows/FlowRunner.tsx:316-327](<>)
 
 ### Path Record
 
 `PathTaken` calls `flowRecord(flow, run)` and renders an ordered list of every step and the option chosen, so the reasoning can be copied onto the file.
 
-[src/features/app/flows/FlowRunner.tsx:368-387]()
+[src/features/app/flows/FlowRunner.tsx:368-387](<>)
 
-Sources: [src/features/app/flows/FlowRunner.tsx:1-388](), [src/features/app/flows/flowEngine.ts:171-180]()
+Sources: [src/features/app/flows/FlowRunner.tsx:1-388](<>), [src/features/app/flows/flowEngine.ts:171-180](<>)
 
 ## WorkflowsView Catalogue
 
-`WorkflowsView` at route `/app/workflows` is the entry point. It renders in both workspace modes — guided flows are real content, while prototype fixture content (in-flight rows, termination map, Advisor catalogue) is demo-only.
+`WorkflowsView` at route `/workspace/workflows` is the entry point. It renders in both workspace modes — guided flows are real content, while prototype fixture content (in-flight rows, termination map, Advisor catalogue) is demo-only.
 
-[src/features/app/views/workflows/WorkflowsView.tsx:107-120](), [src/app/appViews.tsx:74-78]()
+[src/features/app/views/workflows/WorkflowsView.tsx:107-120](<>), [src/app/appViews.tsx:74-78](<>)
 
 ### Guided Processes Section
 
-The `GuidedProcesses` internal component iterates `flows` from `data/index.ts` and renders a grid of `<Link>` cards, each pointing to `/app/workflows/<slug>` with title, summary, and estimated time.
+The `GuidedProcesses` internal component iterates `flows` from `data/index.ts` and renders a grid of `<Link>` cards, each pointing to `/workspace/workflows/<slug>` with title, summary, and estimated time.
 
-[src/features/app/views/workflows/WorkflowsView.tsx:70-105]()
+[src/features/app/views/workflows/WorkflowsView.tsx:70-105](<>)
 
 ### Demo Fixture Content
 
@@ -422,21 +422,21 @@ When `mode === 'demo'`, the view also renders:
 
 1. **In-flight rows** — `inFlightWorkflows` from `workflowsData.ts`: 3 fixture workflows (Termination, Accommodation, Hiring) with progress bars, risk chips, and "Continue" buttons that navigate to case files or Advisor threads.
 
-[src/features/app/views/workflows/workflowsData.ts:64-119]()
+[src/features/app/views/workflows/workflowsData.ts:64-119](<>)
 
 2. **Termination map** — 9-stage `terminationStages` array with per-stage state (`done`/`current`/`partial`/`waiting`/`upcoming`/`always`). Collapsible via `mapOpen` state (initially `true`).
 
-[src/features/app/views/workflows/workflowsData.ts:252-334]()
+[src/features/app/views/workflows/workflowsData.ts:252-334](<>)
 
 3. **Start-a-workflow catalogue** — `workflowCatalog` grid of 8 tiles (Hiring, Termination, Accommodation, etc.). Tiles with a `flowSlug` navigate to the guided flow; others open the Advisor with a pre-filled prompt.
 
-[src/features/app/views/workflows/workflowsData.ts:159-238]()
+[src/features/app/views/workflows/workflowsData.ts:159-238](<>)
 
 The `CATALOG_FLOW_SLUGS` map currently links only `accommodation` → `duty-to-accommodate`.
 
-[src/features/app/views/workflows/workflowsData.ts:143-145]()
+[src/features/app/views/workflows/workflowsData.ts:143-145](<>)
 
-Sources: [src/features/app/views/workflows/WorkflowsView.tsx:1-338](), [src/features/app/views/workflows/workflowsData.ts:1-334]()
+Sources: [src/features/app/views/workflows/WorkflowsView.tsx:1-338](<>), [src/features/app/views/workflows/workflowsData.ts:1-334](<>)
 
 ## Reference Guides System
 
@@ -444,19 +444,19 @@ Sources: [src/features/app/views/workflows/WorkflowsView.tsx:1-338](), [src/feat
 
 `ReferenceGuide` is the content type for in-product reference documents. Unlike the public editorial articles (`articleModel`), these are behind the app, carry per-jurisdiction notes, and link to templates and flows.
 
-| Field                       | Type                                | Purpose                                |
-| --------------------------- | ----------------------------------- | -------------------------------------- |
-| `slug`                      | `string`                            | URL segment at `/app/knowledge/<slug>` |
-| `title` / `summary` / `tag` | `Bi`                                | Bilingual display text                 |
-| `ring`                      | `1–4`                               | Four Ring Framework position           |
-| `jurisdictions`             | `Jurisdiction[]`                    | Covered jurisdictions                  |
-| `readingMinutes`            | `number`                            | Estimated reading time                 |
-| `sections`                  | `GuideSection[]`                    | Content sections                       |
-| `jurisdictionNotes`         | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction notes                 |
-| `relatedTemplates?`         | `string[]`                          | Document Studio TIDs                   |
-| `relatedFlows?`             | `string[]`                          | Flow slugs                             |
+| Field                       | Type                                | Purpose                                      |
+| --------------------------- | ----------------------------------- | -------------------------------------------- |
+| `slug`                      | `string`                            | URL segment at `/workspace/knowledge/<slug>` |
+| `title` / `summary` / `tag` | `Bi`                                | Bilingual display text                       |
+| `ring`                      | `1–4`                               | Four Ring Framework position                 |
+| `jurisdictions`             | `Jurisdiction[]`                    | Covered jurisdictions                        |
+| `readingMinutes`            | `number`                            | Estimated reading time                       |
+| `sections`                  | `GuideSection[]`                    | Content sections                             |
+| `jurisdictionNotes`         | `Partial<Record<Jurisdiction, Bi>>` | Per-jurisdiction notes                       |
+| `relatedTemplates?`         | `string[]`                          | Document Studio TIDs                         |
+| `relatedFlows?`             | `string[]`                          | Flow slugs                                   |
 
-[src/features/app/reference/guideModel.ts:41-59]()
+[src/features/app/reference/guideModel.ts:41-59](<>)
 
 ### Block Types
 
@@ -470,17 +470,17 @@ Content blocks are a union `GuideBlock`:
 
 Factory functions `p()`, `li()`, and `contrast()` simplify block construction.
 
-[src/features/app/reference/guideModel.ts:30-67]()
+[src/features/app/reference/guideModel.ts:30-67](<>)
 
 `groupGuideBlocks` collapses consecutive `li` blocks into a single `list` group for rendering as a single `<ul>`. Contrast blocks break list runs.
 
-[src/features/app/reference/guideModel.ts:79-93]()
+[src/features/app/reference/guideModel.ts:79-93](<>)
 
 ### Shipped Reference Guides
 
 Eight guides are registered in `reference/data/index.ts` and keyed by slug via `guideBySlug`:
 
-[src/features/app/reference/data/index.ts:1-27]()
+[src/features/app/reference/data/index.ts:1-27](<>)
 
 | Slug                               | Title                                    | Ring | Related Templates | Related Flows            |
 | ---------------------------------- | ---------------------------------------- | ---- | ----------------- | ------------------------ |
@@ -493,30 +493,30 @@ Eight guides are registered in `reference/data/index.ts` and keyed by slug via `
 | `pay-statement`                    | Pay statement guide                      | 2    | —                 | —                        |
 | `retirement-savings`               | Retirement savings guide                 | 2    | —                 | —                        |
 
-Sources: [src/features/app/reference/data/index.ts:16-25](), [src/features/app/reference/data/functionalLimitations.ts:16-31](), [src/features/app/reference/data/eapReferral.ts:24-39](), [src/features/app/reference/data/parentalLeave.ts:26-41]()
+Sources: [src/features/app/reference/data/index.ts:16-25](<>), [src/features/app/reference/data/functionalLimitations.ts:16-31](<>), [src/features/app/reference/data/eapReferral.ts:24-39](<>), [src/features/app/reference/data/parentalLeave.ts:26-41](<>)
 
 ### GuideView Component
 
-`GuideView` at route `/app/knowledge/:slug` resolves the guide from `guideBySlug` and renders:
+`GuideView` at route `/workspace/knowledge/:slug` resolves the guide from `guideBySlug` and renders:
 
 1. Tag, title, summary, reading time
 2. Content sections with grouped blocks (paragraphs, lists, contrast pairs)
 3. Per-jurisdiction notes — rendered as cards filtered by `jurisdictionInfo`
-4. **Related section** — links to related flows at `/app/workflows/<slug>` and related templates at `/app/documents/templates/<tid>`
+4. **Related section** — links to related flows at `/workspace/workflows/<slug>` and related templates at `/workspace/documents/templates/<tid>`
 
-[src/features/app/reference/GuideView.tsx:25-67]()
+[src/features/app/reference/GuideView.tsx:25-67](<>)
 
 The `Related` component resolves templates via `templateFor` and flows via `flowBySlug`, filtering out any that don't exist. This keeps the handoff links safe.
 
-[src/features/app/reference/GuideView.tsx:196-258]()
+[src/features/app/reference/GuideView.tsx:196-258](<>)
 
 ### KnowledgeView Integration
 
-`KnowledgeView` at `/app/knowledge` shows both reference guides and fixture knowledge articles in a single filterable list. Reference guides appear above fixture articles and each links to `/app/knowledge/<slug>`. Filtering runs against `title`, `summary`, and `tag` in the current language.
+`KnowledgeView` at `/workspace/knowledge` shows both reference guides and fixture knowledge articles in a single filterable list. Reference guides appear above fixture articles and each links to `/workspace/knowledge/<slug>`. Filtering runs against `title`, `summary`, and `tag` in the current language.
 
-[src/features/app/views/knowledge/KnowledgeView.tsx:27-46]()
+[src/features/app/views/knowledge/KnowledgeView.tsx:27-46](<>)
 
-Sources: [src/features/app/reference/GuideView.tsx:1-258](), [src/features/app/views/knowledge/KnowledgeView.tsx:1-114]()
+Sources: [src/features/app/reference/GuideView.tsx:1-258](<>), [src/features/app/views/knowledge/KnowledgeView.tsx:1-114](<>)
 
 ## Document Studio Handoff via TID References
 
@@ -575,24 +575,24 @@ graph LR
 
 TID resolution in both `FlowRunner` and `GuideView` uses the same dual-lookup: `templateByTid` (main catalogue) falling back to `customTemplateByTid` (custom/ported templates).
 
-[src/features/app/flows/FlowRunner.tsx:40](), [src/features/app/reference/GuideView.tsx:23]()
+[src/features/app/flows/FlowRunner.tsx:40](<>), [src/features/app/reference/GuideView.tsx:23](<>)
 
 The `noDocument` escape valve on `FlowOutcomeStep` handles the single case where producing a document would be the wrong instruction — e.g., when the outcome says "record nothing about their health." The author must write a bilingual explanation; tests fail an outcome with neither `documents` nor `noDocument`.
 
-[src/features/app/flows/flowModel.ts:103-121]()
+[src/features/app/flows/flowModel.ts:103-121](<>)
 
-Sources: [src/features/app/flows/FlowRunner.tsx:40](), [src/features/app/flows/FlowRunner.tsx:305-365](), [src/features/app/reference/GuideView.tsx:23](), [src/features/app/flows/flowModel.ts:97-121]()
+Sources: [src/features/app/flows/FlowRunner.tsx:40](<>), [src/features/app/flows/FlowRunner.tsx:305-365](<>), [src/features/app/reference/GuideView.tsx:23](<>), [src/features/app/flows/flowModel.ts:97-121](<>)
 
 ## Routing
 
 Both subsystems are registered as ungated routes in `appViews.tsx`:
 
-| Route                  | Component       | Gated?                                     |
-| ---------------------- | --------------- | ------------------------------------------ |
-| `/app/workflows`       | `WorkflowsView` | No — handles both modes internally         |
-| `/app/workflows/:slug` | `FlowRunner`    | No — real content                          |
-| `/app/knowledge`       | `KnowledgeView` | No — real content + `GuidanceSourcesPanel` |
-| `/app/knowledge/:slug` | `GuideView`     | No — real content                          |
+| Route                        | Component       | Gated?                                     |
+| ---------------------------- | --------------- | ------------------------------------------ |
+| `/workspace/workflows`       | `WorkflowsView` | No — handles both modes internally         |
+| `/workspace/workflows/:slug` | `FlowRunner`    | No — real content                          |
+| `/workspace/knowledge`       | `KnowledgeView` | No — real content + `GuidanceSourcesPanel` |
+| `/workspace/knowledge/:slug` | `GuideView`     | No — real content                          |
 
 Both `WorkflowsView` and `FlowRunner` are lazy-loaded:
 
@@ -601,9 +601,9 @@ const WorkflowsView = lazy(() => import('@/features/app/views/workflows/Workflow
 const FlowRunner    = lazy(() => import('@/features/app/flows/FlowRunner')...)
 ```
 
-[src/app/appViews.tsx:28-29]()
+[src/app/appViews.tsx:28-29](<>)
 
-Sources: [src/app/appViews.tsx:71-99]()
+Sources: [src/app/appViews.tsx:71-99](<>)
 
 ## Test Coverage
 
@@ -629,7 +629,7 @@ Two kinds of tests, deliberately separated:
 | Every rated question has a domain    | `step.domain` defined when `isScored`                                           |
 | Bands cover all scores               | At least one band at `minPercent: 0`; `bandFor` non-null at 0,1,39,40,69,70,100 |
 
-[src/features/app/flows/flowEngine.test.ts:403-564]()
+[src/features/app/flows/flowEngine.test.ts:403-564](<>)
 
 ### Component Tests (`FlowRunner.test.tsx`)
 
@@ -652,7 +652,7 @@ Scored assessment tests drive `psychological-safety-check`:
 - Per-factor breakdown shows 13 factors
 - Bands display correct verdict text
 
-[src/features/app/flows/FlowRunner.test.tsx:1-129](), [src/features/app/flows/FlowRunner.test.tsx:131-200]()
+[src/features/app/flows/FlowRunner.test.tsx:1-129](<>), [src/features/app/flows/FlowRunner.test.tsx:131-200](<>)
 
 ### Guide Tests (`GuideView.test.tsx`)
 
@@ -662,21 +662,21 @@ Scored assessment tests drive `psychological-safety-check`:
 - Every claimed jurisdiction has a note
 - Every `Bi` string has non-empty EN and FR, no markdown
 
-[src/features/app/reference/GuideView.test.tsx:83-133]()
+[src/features/app/reference/GuideView.test.tsx:83-133](<>)
 
-Sources: [src/features/app/flows/flowEngine.test.ts:1-564](), [src/features/app/flows/FlowRunner.test.tsx:1-200](), [src/features/app/reference/GuideView.test.tsx:1-133]()
+Sources: [src/features/app/flows/flowEngine.test.ts:1-564](<>), [src/features/app/flows/FlowRunner.test.tsx:1-200](<>), [src/features/app/reference/GuideView.test.tsx:1-133](<>)
 
 ## i18n Approach
 
 Flow content (steps, options, outcomes) lives with the flow in `data/` files using `bi()` for every string. The runner chrome (button labels like "Continue", "Back", "Start over") is in a separate message module `flowsMessages`.
 
-[src/i18n/messages/flows.ts:1-51]()
+[src/i18n/messages/flows.ts:1-51](<>)
 
 Reference guide content similarly lives in `reference/data/` files. The reference chrome is in `referenceMessages`.
 
 This split ensures content authors work alongside the flow/guide data and never need to touch the shared message catalogue.
 
-Sources: [src/i18n/messages/flows.ts:1-51]()
+Sources: [src/i18n/messages/flows.ts:1-51](<>)
 
 ## Cross-References Between Flows and Guides
 
@@ -688,30 +688,30 @@ Guides reference flows and vice versa. The relationship is explicit via `related
 | `parentalLeaveGuide`         | `leave-of-absence`       |
 | `eapReferralGuide`           | `mental-health-response` |
 
-These create bidirectional navigation: `GuideView` renders links to `/app/workflows/<slug>`, and the `dutyToAccommodateFlow` refers to templates that `functionalLimitationsGuide` also relates to (T20, T21, T23), creating a coherent content web.
+These create bidirectional navigation: `GuideView` renders links to `/workspace/workflows/<slug>`, and the `dutyToAccommodateFlow` refers to templates that `functionalLimitationsGuide` also relates to (T20, T21, T23), creating a coherent content web.
 
-Sources: [src/features/app/reference/data/functionalLimitations.ts:30-31](), [src/features/app/reference/data/parentalLeave.ts:40-41](), [src/features/app/reference/data/eapReferral.ts:38-39]()
+Sources: [src/features/app/reference/data/functionalLimitations.ts:30-31](<>), [src/features/app/reference/data/parentalLeave.ts:40-41](<>), [src/features/app/reference/data/eapReferral.ts:38-39](<>)
 
 ## Adding a New Flow or Guide
 
 ### Adding a Flow
 
 1. Create a new file in `src/features/app/flows/data/` exporting a `Flow` constant
-2. Import and add it to the `flows` array in `data/index.ts` — this automatically gives it a route at `/app/workflows/<slug>` and a card on the Workflows view
+2. Import and add it to the `flows` array in `data/index.ts` — this automatically gives it a route at `/workspace/workflows/<slug>` and a card on the Workflows view
 3. The graph invariant tests in `flowEngine.test.ts` run against all shipped flows automatically (`describe.each(flows...)`)
 
-[src/features/app/flows/data/index.ts:7-17]()
+[src/features/app/flows/data/index.ts:7-17](<>)
 
 ### Adding a Guide
 
 1. Create a new file in `src/features/app/reference/data/` exporting a `ReferenceGuide` constant
-2. Import and add it to the `referenceGuides` array in `reference/data/index.ts` — this gives it a route at `/app/knowledge/<slug>` and a card on the Knowledge view
+2. Import and add it to the `referenceGuides` array in `reference/data/index.ts` — this gives it a route at `/workspace/knowledge/<slug>` and a card on the Knowledge view
 3. The `describe.each(referenceGuides...)` tests run automatically
 
-[src/features/app/reference/data/index.ts:11-27]()
+[src/features/app/reference/data/index.ts:11-27](<>)
 
 Both registries use the comment "see docs/FOUR_RING_FRAMEWORK.md before authoring" to gate authorship on reading the framework document first.
 
-Sources: [src/features/app/flows/data/index.ts:7-17](), [src/features/app/reference/data/index.ts:11-27]()
+Sources: [src/features/app/flows/data/index.ts:7-17](<>), [src/features/app/reference/data/index.ts:11-27](<>)
 
 ---

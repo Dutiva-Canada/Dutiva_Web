@@ -10,7 +10,7 @@ import { WorkspaceModeContext } from '@/features/app/workspaceMode/workspaceMode
 import { AppBootSkeleton } from '@/features/app/shell/AppBootSkeleton'
 
 /**
- * Gates the whole /app workspace behind a signed-in, invited session — any
+ * Gates the whole /workspace surface behind a signed-in, invited session — any
  * `@dutiva.ca` staff account, the first BETA_COHORT_LIMIT beta signups, an
  * admin-managed invite, or a paid subscriber (AuthProvider's `authorized`,
  * backed by `current_user_is_workspace_member`; see

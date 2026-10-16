@@ -93,7 +93,7 @@ graph LR
     ForcedLangProvider -->|"provides"| useI18n
 ```
 
-Sources: [src/i18n/core.ts:1-39](), [src/i18n/context.ts:1-29]()
+Sources: [src/i18n/core.ts:1-39](<>), [src/i18n/context.ts:1-29](<>)
 
 ---
 
@@ -121,7 +121,7 @@ graph TD
     PM -->|"scoped by"| WMC
 ```
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:1-56](), [src/features/app/workspaceMode/ProductionEmptyState.tsx](), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](), [src/app/appViews.tsx:9-25](), [src/features/app/billing/PlanGate.tsx:1-62]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:1-56](<>), [src/features/app/workspaceMode/ProductionEmptyState.tsx](<>), [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](<>), [src/app/appViews.tsx:9-25](<>), [src/features/app/billing/PlanGate.tsx:1-62](<>)
 
 ---
 
@@ -129,9 +129,9 @@ Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:1-56](), [src/f
 
 ### Advisor
 
-The AI-powered HR compliance chat assistant — the platform's central feature at route `/app/advisor`. In **demo mode** it runs scripted light flows and scenarios; in **production mode** it calls the `advisor-chat` edge function to reach an upstream LLM (DeepSeek). The main view component is `AdvisorView`.
+The AI-powered HR compliance chat assistant — the platform's central feature at route `/workspace/advisor`. In **demo mode** it runs scripted light flows and scenarios; in **production mode** it calls the `advisor-chat` edge function to reach an upstream LLM (DeepSeek). The main view component is `AdvisorView`.
 
-Sources: [src/features/app/views/advisor/AdvisorView.tsx:66-81](), [supabase/functions/advisor-chat/index.ts:13-28]()
+Sources: [src/features/app/views/advisor/AdvisorView.tsx:66-81](<>), [supabase/functions/advisor-chat/index.ts:13-28](<>)
 
 ### AdvisorResponse
 
@@ -145,25 +145,25 @@ The machine-readable structured payload the Advisor engine returns for every tur
 | `risk.safety`         | `'none' \| 'watch' \| 'urgent' \| 'critical'`                         | Safety risk meter                             |
 | `isCrisis`            | `boolean`                                                             | Gates all structured surfaces off when `true` |
 
-Sources: [src/features/app/advisor/contract.ts:1-119]()
+Sources: [src/features/app/advisor/contract.ts:1-119](<>)
 
 ### `ANNUAL_MONTHS_BILLED`
 
 Constant set to `10` — annual billing charges for 10 of 12 months (two months free). Used to compute `annualPerMonth()` and `annualTotal()` display prices.
 
-Sources: [src/config/plans.ts:95]()
+Sources: [src/config/plans.ts:95](<>)
 
 ### `applySafetyBackstop()`
 
 Pure function in `safetyBackstop.ts` that hardens an `AdvisorResponse` after the engine and before the Compliance Workspace reads it. Implements three monotonic rules: crisis intercept (§5.1), jurisdiction/statutory-figure gate (§5.2), and notice-figure cross-check (§5.2b). Rules can only **tighten** gates, never loosen them. Returns a `SafetyBackstopResult` with the hardened response and a list of fired `SafetyAction` values.
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:93-155]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:93-155](<>)
 
 ### `acquire_cron_lock()` / `release_cron_lock()`
 
 PostgreSQL functions implementing an advisory-lock pattern for cron jobs. `acquire_cron_lock` inserts or updates a row in `cron_locks` with a TTL; it only succeeds (returns `true`) if the lock is expired or held by the same instance. Used by the law monitor nightly sweep to prevent concurrent runs.
 
-Sources: [supabase/schema.sql:170-194]()
+Sources: [supabase/schema.sql:170-194](<>)
 
 ---
 
@@ -173,7 +173,7 @@ Sources: [supabase/schema.sql:170-194]()
 
 Constant set to `5` in `src/config/beta.ts`. The maximum number of individuals/organizations auto-admitted to the beta workspace. Enforced server-side by `current_user_is_workspace_member()` (live gate: migration `0116_beta_cohort_capacity_five`). Signup stays open past capacity as a waiting list. CI (`canonicalFacts.test.ts`) fails if any copy drifts from this value.
 
-Sources: [src/config/beta.ts:1-19]()
+Sources: [src/config/beta.ts:1-19](<>)
 
 ### `Bi`
 
@@ -187,7 +187,7 @@ export interface Bi {
 export const bi = (en: string, fr: string): Bi => ({ en, fr })
 ```
 
-Sources: [src/i18n/core.ts:4-9]()
+Sources: [src/i18n/core.ts:4-9](<>)
 
 ---
 
@@ -197,7 +197,7 @@ Sources: [src/i18n/core.ts:4-9]()
 
 **Canada's Anti-Spam Legislation** (S.C. 2010, c. 23). Requires express consent before sending commercial electronic messages. The beta signup flow records CASL consent via a checkbox (`BetaSignup` component) and the server-side `caslConsent.ts` shared module stores the consent record. Relevant edge functions: `create-beta-signup`.
 
-Sources: [supabase/functions/_shared/caslConsent.ts]()
+Sources: [supabase/functions/_shared/caslConsent.ts](<>)
 
 ### `CoverageStatus`
 
@@ -211,13 +211,13 @@ Type in `monitoringCoverage.ts` describing whether law-change monitoring actuall
 
 This is a **maintained claim** — deliberately not derived from `law_page_hashes` to prevent silent drift. The audit date is stored in `COVERAGE_AUDITED_ON`.
 
-Sources: [src/features/app/guidance/monitoringCoverage.ts:34-40]()
+Sources: [src/features/app/guidance/monitoringCoverage.ts:34-40](<>)
 
 ### Compliance Score
 
 A 0–100 composite metric (v3 formula) computed from four weighted components: tasks, documents, findings, and obligations. Calculated by pure functions in `aggregation.ts`. The **critical ceiling** (see below) caps the score at 69 when any critical-severity finding is open. Snapshotted daily by the `record-score-snapshots` edge function.
 
-Sources: [src/features/app/views/analytics/aggregation.ts:1-9]()
+Sources: [src/features/app/views/analytics/aggregation.ts:1-9](<>)
 
 ### Configured or inert
 
@@ -228,19 +228,19 @@ export const supabase: SupabaseClient | null =
   SUPA_URL && SUPA_KEY ? createClient(SUPA_URL, SUPA_KEY) : null
 ```
 
-Sources: [src/lib/supabaseClient.ts:1-16]()
+Sources: [src/lib/supabaseClient.ts:1-16](<>)
 
 ### Crisis intercept
 
 The first-priority safety rule (§5.1 in `AI_USAGE_STRATEGY.md`). `detectCrisisSignal()` runs a maintained bilingual phrase list against the user's message **before** any model call. If matched, the 9-8-8 Suicide Crisis Helpline resource is shown, the `isCrisis` flag is raised on the `AdvisorResponse`, and every structured surface is gated off. The detection is **fail-safe-on**: the maintained list can only raise the crisis flag, never clear it — a model that fails to flag a crisis cannot suppress the intercept.
 
-Sources: [src/features/app/advisor/safety/crisisSignals.ts:1-78](), [src/features/app/advisor/safety/safetyBackstop.ts:98-105]()
+Sources: [src/features/app/advisor/safety/crisisSignals.ts:1-78](<>), [src/features/app/advisor/safety/safetyBackstop.ts:98-105](<>)
 
 ### Critical ceiling
 
 A hard cap in the compliance score formula: when any compliance finding has `severity: 'critical'` and is open, the score is capped at **69** regardless of what the weighted components compute. This prevents a workspace with a critical open finding from ever showing a "good" score.
 
-Sources: [src/features/app/views/analytics/aggregation.ts:75-110]()
+Sources: [src/features/app/views/analytics/aggregation.ts:75-110](<>)
 
 ---
 
@@ -256,25 +256,25 @@ export function defineMessages<T extends Record<string, Bi>>(messages: T): T {
 }
 ```
 
-Sources: [src/i18n/core.ts:16-18]()
+Sources: [src/i18n/core.ts:16-18](<>)
 
 ### Demo mode
 
 The default `WorkspaceMode` — the workspace runs on fixture data from `src/data/` (Northgate Logistics Inc. sample company). Every workspace module renders its full UI with realistic bilingual sample data. No Supabase connection required; also reachable publicly at `/demo`. Toggled via `setMode` on `WorkspaceModeContextValue`.
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5](), [src/features/app/workspaceMode/ProductionEmptyState.tsx]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5](<>), [src/features/app/workspaceMode/ProductionEmptyState.tsx](<>)
 
 ### Doclib
 
-Short for **Document Library** — the HR document management system. Managed by `DoclibProvider` / `DoclibContext` for state. Contains the template catalogue (50 bilingual templates, T01–T50), the Document Studio for generation, e-signature workflow, and the document repository. Route: `/app/documents`.
+Short for **Document Library** — the HR document management system. Managed by `DoclibProvider` / `DoclibContext` for state. Contains the template catalogue (50 bilingual templates, T01–T50), the Document Studio for generation, e-signature workflow, and the document repository. Route: `/workspace/documents`.
 
-Sources: [src/features/app/documents/]()
+Sources: [src/features/app/documents/](<>)
 
 ### `dutiva-widget`
 
 The fenced-block language tag a bot emits to attach an interactive widget spec to a chat reply. The spec is a Zod-validated JSON discriminated union (`widgetSpecSchema`) with six types — `calculator`, `chart`, `table`, `checklist`, `timeline`, `comparison` — admitting data only (no markup, URLs, or code). Renders on surfaces covered by the `interactiveChatWidgets` flag (`advisor` via `ChatMarkdown`; `invest`/`health`/`pr` via `WidgetContent`); elsewhere the fence shows as a plain code block.
 
-Sources: [src/components/chatWidgets/fence.ts](), [src/components/chatWidgets/widgetSpec.ts]()
+Sources: [src/components/chatWidgets/fence.ts](<>), [src/components/chatWidgets/widgetSpec.ts](<>)
 
 ---
 
@@ -290,13 +290,13 @@ Abbreviations for the three employment standards statutes Dutiva supports:
 | **CNESST** (administers LNT) | Loi sur les normes du travail  | Quebec (QC)   |
 | **CLC**                      | Canada Labour Code, Part III   | Federal (FED) |
 
-Sources: [docs/CANONICAL_FACTS.md:44]()
+Sources: [docs/CANONICAL_FACTS.md:44](<>)
 
 ### Envelope
 
 In the e-signature workflow, an **envelope** is the container created when a document is sent for signing. Created via `sendForSignature` → edge function. Tracks signers, their roles, statuses, and expiry. The `SigningScreen` reads the envelope via a token URL. Database table: `signature_tokens` (typed as `signature_token_view`).
 
-Sources: [supabase/schema.sql:90-97]()
+Sources: [supabase/schema.sql:90-97](<>)
 
 ---
 
@@ -304,7 +304,7 @@ Sources: [supabase/schema.sql:90-97]()
 
 ### `FlowRunner` / `FlowStep`
 
-The guided-workflow engine. `FlowRunner` is the React component (route `/app/workflows/:slug`) that drives a user through a `Flow` — a graph of `FlowStep` nodes. `FlowStep` is a discriminated union of four kinds:
+The guided-workflow engine. `FlowRunner` is the React component (route `/workspace/workflows/:slug`) that drives a user through a `Flow` — a graph of `FlowStep` nodes. `FlowStep` is a discriminated union of four kinds:
 
 | Kind      | Purpose                                                        |
 | --------- | -------------------------------------------------------------- |
@@ -315,7 +315,7 @@ The guided-workflow engine. `FlowRunner` is the React component (route `/app/wor
 
 The pure engine functions (`startRun`, `advance`, `back`, `scoreRun`, `bandFor`) live in `flowEngine.ts`. Flow data files live under `src/data/`.
 
-Sources: [src/features/app/flows/flowModel.ts:1-192](), [src/app/appViews.tsx:29]()
+Sources: [src/features/app/flows/flowModel.ts:1-192](<>), [src/app/appViews.tsx:29](<>)
 
 ### Four Ring Framework
 
@@ -330,7 +330,7 @@ The organizational model for Dutiva's HR compliance content. Templates, flows, a
 
 Documented in `docs/FOUR_RING_FRAMEWORK.md`. Each `Flow` carries a `ring` field.
 
-Sources: [src/features/app/flows/flowModel.ts:158-159](), [docs/CANONICAL_FACTS.md:49]()
+Sources: [src/features/app/flows/flowModel.ts:158-159](<>), [docs/CANONICAL_FACTS.md:49](<>)
 
 ---
 
@@ -340,19 +340,19 @@ Sources: [src/features/app/flows/flowModel.ts:158-159](), [docs/CANONICAL_FACTS.
 
 The deterministic Advisor regression harness — `runGoldenEval()` in `src/features/app/advisor/eval/` runs the versioned golden case set (64 cases across ON/QC/FED + cross-jurisdiction) against `detectJurisdictions`, the committed corpus snapshot, `buildAdvisorResponse`, and `crossCheckNoticeFigure`. No LLM runs, so it gates `npm run check` on every model/prompt/corpus change. Runner: `scripts/check-advisor-golden.mjs`; records to `eval-results/`.
 
-Sources: [src/features/app/advisor/eval/goldenEval.ts](), [scripts/check-advisor-golden.mjs]()
+Sources: [src/features/app/advisor/eval/goldenEval.ts](<>), [scripts/check-advisor-golden.mjs](<>)
 
 ### `GuidanceSourcesPanel`
 
 React component in `src/features/app/guidance/GuidanceSourcesPanel.tsx` that displays law-change monitoring coverage and recent law updates. Shows the three supported jurisdictions (ON/QC/FED) with their `CoverageStatus` chips. Behind auth, it fetches and displays recent `law_updates` rows filtered to `event_type = 'change'`. Includes a staleness guard (`updatesAreStale`) that warns when the newest update is older than 7 days.
 
-Sources: [src/features/app/guidance/GuidanceSourcesPanel.test.tsx:1-96](), [src/features/app/guidance/monitoringCoverage.ts:94-104]()
+Sources: [src/features/app/guidance/GuidanceSourcesPanel.test.tsx:1-96](<>), [src/features/app/guidance/monitoringCoverage.ts:94-104](<>)
 
 ### `gated()` (removed)
 
 Former helper in `appViews.tsx` that wrapped a fixture-driven view in `ModeGate` — demo rendered it, production rendered `ProductionEmptyState`. Removed once every module gained a `*ProductionView`; dispatch now lives inside each view.
 
-Sources: [src/app/appViews.tsx:30-42]()
+Sources: [src/app/appViews.tsx:30-42](<>)
 
 ---
 
@@ -362,13 +362,13 @@ Sources: [src/app/appViews.tsx:30-42]()
 
 PostgreSQL functions that implement authorization checks in RLS policies and `SECURITY DEFINER` RPCs. `is_admin(user_id)` returns `true` for platform administrators (e.g. `@dutiva.ca` accounts). `is_org_member(org_id, user_id)` returns `true` when the user has an active row in `organization_members` for the given organization. Both are called extensively in RPC guards like `accept_ai_recommendation`.
 
-Sources: [supabase/schema.sql:145-148]()
+Sources: [supabase/schema.sql:145-148](<>)
 
 ### `isCurrentUserAdmin()`
 
 Client-side function in `supportAdminApi.ts` that checks whether the signed-in user is a platform admin. Called in `SidebarFooter` to conditionally render the "Support dashboard" menu item.
 
-Sources: [src/features/app/shell/SidebarFooter.tsx:26-31]()
+Sources: [src/features/app/shell/SidebarFooter.tsx:26-31](<>)
 
 ---
 
@@ -378,7 +378,7 @@ Sources: [src/features/app/shell/SidebarFooter.tsx:26-31]()
 
 The `job_queue` database table — a general-purpose task queue for background processing. Used by edge functions to enqueue work that should be processed asynchronously (e.g. notification delivery, analytics rollups).
 
-Sources: [supabase/schema.sql]()
+Sources: [supabase/schema.sql](<>)
 
 ---
 
@@ -388,25 +388,25 @@ Sources: [supabase/schema.sql]()
 
 Type alias `'en' | 'fr'` — the two supported UI languages. English routes are unprefixed; French routes live under `/fr/` with localized slugs.
 
-Sources: [src/i18n/core.ts:1]()
+Sources: [src/i18n/core.ts:1](<>)
 
 ### `LText`
 
 Union type `string | Bi` — "localizable text". State that outlives a single render (rail content, toasts, chat transcripts) stores `Bi` so a live language toggle re-localizes it. `pickL(value, lang)` resolves either form to a plain string.
 
-Sources: [src/i18n/core.ts:30-31]()
+Sources: [src/i18n/core.ts:30-31](<>)
 
 ### Law Monitor
 
 The `monitor-law-changes` edge function — a nightly cron that sweeps 43 legislation pages across 14 Canadian jurisdictions. Four source strategies: HTML hash, Ontario e-Laws API, Québec CKAN datasets, Justice Canada XML. Records events (`first_seen`, `change`, `redirect`, `broken`) to `law_updates`. Scheduled via `pg_cron` at 07:00 UTC. Uses `acquire_cron_lock` to prevent concurrent runs.
 
-Sources: [docs/LAW_MONITORING.md:1-10](), [supabase/schema.sql:170-194]()
+Sources: [docs/LAW_MONITORING.md:1-10](<>), [supabase/schema.sql:170-194](<>)
 
 ### Light flows
 
 Scripted, fixture-based demo conversation flows in the Advisor. When a user sends a message in demo mode, `routeFlowKeyFromText` matches it to a flow key (e.g. `'termination'`). The Advisor then runs the corresponding scripted interaction — quick forms, jurisdiction prompts, assessment results — without calling any AI backend. Data lives in `advisorFlows.ts`.
 
-Sources: [src/features/app/views/advisor/AdvisorView.tsx:29-30](), [src/features/app/views/advisor/advisorFlows.ts]()
+Sources: [src/features/app/views/advisor/AdvisorView.tsx:29-30](<>), [src/features/app/views/advisor/advisorFlows.ts](<>)
 
 ---
 
@@ -416,19 +416,19 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:29-30](), [src/features
 
 Former React component that gated a route on `WorkspaceMode` — production showed `ProductionEmptyState`, demo passed children through. No longer imported anywhere; modules handle the demo/production split themselves via `*ProductionView` variants. The file remains in the tree and in the entry-graph `ALLOWED_APP_MODULES` allowlist.
 
-Sources: [src/features/app/workspaceMode/ModeGate.tsx](), [scripts/check-entry-graph.mjs:78]()
+Sources: [src/features/app/workspaceMode/ModeGate.tsx](<>), [scripts/check-entry-graph.mjs:78](<>)
 
 ### `ModuleEmptyBlock`
 
 In-view empty-state primitive used inside production views that keep their chrome (e.g. Communications, Compensation, Wellbeing `*ProductionView`s) — renders the "no records yet" block where fixture content would mislead. Sibling of `ProductionEmptyState` (the module-level empty card).
 
-Sources: [src/features/app/workspaceMode/ModuleEmptyBlock.tsx]()
+Sources: [src/features/app/workspaceMode/ModuleEmptyBlock.tsx](<>)
 
 ### Mira
 
 The wellness portal's companion — the assistant persona served by the `health-ai` edge function at `/wellness`. Warm and non-clinical: reads only the caller's own check-ins and explicitly shared journal excerpts, can execute whitelisted writes (habits, check-ins, journal entries), and answers with the 9-8-8 line when content hints at crisis. Persists to `health_chat_messages`. See [Portal Assistants](Portal-Assistants).
 
-Sources: [supabase/functions/health-ai/index.ts](), [src/features/health/data/types.ts]()
+Sources: [supabase/functions/health-ai/index.ts](<>), [src/features/health/data/types.ts](<>)
 
 ---
 
@@ -442,7 +442,7 @@ The five-level role vocabulary for organization membership: `'viewer' | 'member'
 export const ORG_MEMBER_ROLES = ['viewer', 'member', 'manager', 'admin', 'owner'] as const
 ```
 
-Sources: [src/features/app/workspaceMode/roles.ts:1-33]()
+Sources: [src/features/app/workspaceMode/roles.ts:1-33](<>)
 
 ---
 
@@ -452,43 +452,43 @@ Sources: [src/features/app/workspaceMode/roles.ts:1-33]()
 
 The PR desk's press specialist — the assistant persona served by the `pr-ai` edge function at `/pr`. Drafts and logs communications (campaigns, content, contacts, mentions, keywords, GEO prompts) but never publishes or sends anything. Persists to `pr_chat_messages`. See [Portal Assistants](Portal-Assistants).
 
-Sources: [supabase/functions/pr-ai/index.ts]()
+Sources: [supabase/functions/pr-ai/index.ts](<>)
 
 ### PIPEDA
 
 **Personal Information Protection and Electronic Documents Act** — Canada's federal privacy law. Dutiva's attachment scanner is deployed in DigitalOcean Toronto for PIPEDA data residency. The privacy policy and legal hub pages reference PIPEDA compliance throughout.
 
-Sources: [docs/CANONICAL_FACTS.md:56-57]()
+Sources: [docs/CANONICAL_FACTS.md:56-57](<>)
 
 ### `PlanGate`
 
-React component in `billing/PlanGate.tsx` that gates workspace views by subscription tier. Renders children if the user's plan meets or exceeds the `required` `PlanId`; otherwise renders an `UpgradeNudge`. Demo mode bypasses the gate entirely. While `PAID_PLANS_DISABLED_DURING_BETA` is `true`, every beta user resolves to `'free'`, so gates show the nudge in production mode but don't block until checkout goes live.
+React component in `billing/PlanGate.tsx` that gates workspace views by subscription tier. Renders children if the user's plan meets or exceeds the `required` `PlanId`; otherwise renders an `UpgradeNudge`. Demo mode bypasses the gate entirely. `PLAN_FEATURE_GATES_ENABLED` is `true`, so gates enforce the per-plan feature entitlements (`featureKeysEntitled`).
 
-Sources: [src/features/app/billing/PlanGate.tsx:25-39]()
+Sources: [src/features/app/billing/PlanGate.tsx:25-39](<>)
 
 ### `PAID_PLANS_DISABLED_DURING_BETA`
 
-Boolean constant set to `true` — paid plans are shown on `/pricing` but disabled with a "coming soon" state. Flip to `false` when paid signup opens. Checked by `isPurchasable()`.
+Boolean constant currently `false` — monthly paid checkout is live on `/pricing` (go-live OA11 closed 2026-08-27). Setting it back to `true` would make `isPurchasable()` return `false` for every paid plan.
 
-Sources: [src/config/plans.ts:79]()
+Sources: [src/config/plans.ts:103](<>), [docs/STRIPE_GO_LIVE.md](<>)
 
 ### Production mode
 
 The `WorkspaceMode` for real data. When a signed-in workspace member (platform admin or active org member — `canUseProduction`) switches to production, `WorkspaceModeProvider` auto-provisions an organization via `create_organization()` RPC if none exists. Every read/write is scoped to the real `organizationId`. Views with no records yet render `ProductionEmptyState`/`ModuleEmptyBlock` primitives inside the module's own `*ProductionView`; a fully empty workspace gets the Home setup path.
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5-48]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5-48](<>)
 
 ### `productionApi.ts`
 
 Per-module data boundary files (one per workspace module) that encapsulate all Supabase read/write calls for production mode. Examples: `employees/productionApi.ts`, `cases/productionApi.ts`, `policies/productionApi.ts`. Each exports functions like `listEmployees()`, `addEmployee()` that scope queries to the current `organizationId`.
 
-Sources: [src/features/app/views/employees/productionApi.ts](), [src/features/app/views/cases/productionApi.ts](), [src/features/app/views/policies/productionApi.ts]()
+Sources: [src/features/app/views/employees/productionApi.ts](<>), [src/features/app/views/cases/productionApi.ts](<>), [src/features/app/views/policies/productionApi.ts](<>)
 
 ### Provenanced task
 
 In the compliance score formula, a task is **provenanced** when it is tied to a specific compliance obligation or finding (has a `related_finding_id` or `related_obligation_id`). Only provenanced tasks contribute to the score's task component — ad-hoc tasks without a compliance lineage are excluded to prevent score gaming.
 
-Sources: [src/features/app/views/analytics/aggregation.ts]()
+Sources: [src/features/app/views/analytics/aggregation.ts](<>)
 
 ---
 
@@ -498,7 +498,7 @@ Sources: [src/features/app/views/analytics/aggregation.ts]()
 
 Québec's **Loi modernisant des dispositions législatives en matière de protection des renseignements personnels** (Law 25, s. 8.1). Requires analytics tracking to be **off by default** until the visitor opts in. Implemented in `analyticsConsent.ts`: `hasAnalyticsConsent()` returns `false` when no consent has been recorded, and both GA4 and first-party support analytics check it before collecting any data.
 
-Sources: [src/lib/analyticsConsent.ts:1-77]()
+Sources: [src/lib/analyticsConsent.ts:1-77](<>)
 
 ---
 
@@ -506,9 +506,9 @@ Sources: [src/lib/analyticsConsent.ts:1-77]()
 
 ### RLS
 
-**Row-Level Security** — PostgreSQL's built-in access control enforced on every table. The Dutiva schema carries **610 RLS policies** and **187+ functions/RPCs** (many `SECURITY DEFINER`). Key authorization functions used in policies: `is_admin()`, `is_org_member()`, `is_org_admin()`, `current_user_is_workspace_member()`. The CI pipeline includes `check-rls.mjs` which probes live Supabase with positive/negative controls.
+**Row-Level Security** — PostgreSQL's built-in access control enforced on every table. The Dutiva schema carries **687 RLS policies** and **206 functions/RPCs** (many `SECURITY DEFINER`). Key authorization functions used in policies: `is_admin()`, `is_org_member()`, `is_org_admin()`, `current_user_is_workspace_member()`. The CI pipeline includes `check-rls.mjs` which probes live Supabase with positive/negative controls.
 
-Sources: [supabase/schema.sql](), [docs/CANONICAL_FACTS.md:1-55]()
+Sources: [supabase/schema.sql](<>), [docs/CANONICAL_FACTS.md:1-55](<>)
 
 ---
 
@@ -518,25 +518,25 @@ Sources: [supabase/schema.sql](), [docs/CANONICAL_FACTS.md:1-55]()
 
 See `applySafetyBackstop()`. The collective name for the deterministic safety rules that harden every Advisor turn. Three rules, all **monotonic** (can only tighten, never loosen): crisis intercept, jurisdiction/statutory-figure gate, and notice-figure cross-check.
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:9-19]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:9-19](<>)
 
 ### Scenario
 
 One of six pre-built demo Advisor conversation scripts (`s1`–`s6`) in `advisorScenarios.ts`. Each scenario demonstrates a different `AdvisorResponse` response mode (HR, escalation, supportive) with a complete transcript, jurisdiction context, and Compliance Workspace payload. Used in the thread list when the Advisor is in demo mode.
 
-Sources: [src/features/app/views/advisor/advisorScenarios.ts](), [src/features/app/views/advisor/AdvisorView.tsx:107-116]()
+Sources: [src/features/app/views/advisor/advisorScenarios.ts](<>), [src/features/app/views/advisor/AdvisorView.tsx:107-116](<>)
 
 ### `SidebarMode`
 
 Type `'expanded' | 'compact' | 'drawer'` controlling the sidebar's visual state. `expanded` shows full labels; `compact` collapses to icon-only (64px wide); `drawer` is viewport-fixed for mobile with slide-in/out animation.
 
-Sources: [src/features/app/shell/Sidebar.tsx:19]()
+Sources: [src/features/app/shell/Sidebar.tsx:19](<>)
 
 ### Statute registry / statute drift
 
 `STATUTE_REGISTRY` (`src/features/app/advisor/eval/statuteRegistry.ts`) is the canonical list of statute refs the Advisor may cite — each pairs a stable ref (`ON_ESA:57`, `FED_CLC:230`) with its act, section, and `sourceUrl` to the official consolidated text. `statuteDrift.ts` periodically re-verifies those citations against the live texts (e-Laws, LégisQuébec, laws-lois) via `npm run check:statute-drift` — network-bound, so it runs on a Woodpecker cron pipeline, not the commit gate. See [Advisor Evaluation & Statute Drift](Advisor-Evaluation-Statute-Drift).
 
-Sources: [src/features/app/advisor/eval/statuteRegistry.ts](), [src/features/app/advisor/eval/statuteDrift.ts]()
+Sources: [src/features/app/advisor/eval/statuteRegistry.ts](<>), [src/features/app/advisor/eval/statuteDrift.ts](<>)
 
 ### Supported jurisdictions (ON / QC / FED)
 
@@ -550,7 +550,7 @@ The three Canadian jurisdictions Dutiva provides compliance coverage for:
 
 The law monitor sweeps 14 jurisdictions but the product only claims coverage for these three. `MONITORING_COVERAGE` in `monitoringCoverage.ts` records the status of each.
 
-Sources: [docs/CANONICAL_FACTS.md:44](), [src/features/app/guidance/monitoringCoverage.ts:51-79]()
+Sources: [docs/CANONICAL_FACTS.md:44](<>), [src/features/app/guidance/monitoringCoverage.ts:51-79](<>)
 
 ---
 
@@ -568,19 +568,19 @@ The three i18n resolution functions returned by `useI18n()`:
 
 All three resolve to the current `lang` from context.
 
-Sources: [src/i18n/context.ts:8-13]()
+Sources: [src/i18n/context.ts:8-13](<>)
 
 ### Tally
 
 The invest portal's watch clerk — the assistant persona served by `invest-ai` at `/invest`. Plain, numbers-first, "software not a person and not an adviser": may discuss general investing concepts but never recommends buys/sells/holds, never predicts, never calls an order "good" or "right for them". Whitelisted writes land as drafts/queued rows — the deterministic `invest-bot` engine executes strategies and only the user-invoked `execute-order` action fills a paper order. Persists to `invest_chat_messages`. See [Portal Assistants](Portal-Assistants).
 
-Sources: [supabase/functions/invest-ai/index.ts](), [supabase/functions/invest-ai/handlers.ts]()
+Sources: [supabase/functions/invest-ai/index.ts](<>), [supabase/functions/invest-ai/handlers.ts](<>)
 
 ### Usage counters
 
 The `usage_counters` database table tracking per-user monthly resource consumption. Used by the AI usage metering system: `claimAiUsage()` checks burst/daily/token/platform ceilings before an LLM call; `finalizeAiUsage()` stamps the claim with actual token counts after the call resolves. Exceeding a ceiling raises `AdvisorUsageLimitError`.
 
-Sources: [supabase/functions/_shared/aiUsage.ts](), [supabase/functions/advisor-chat/index.ts:8-11]()
+Sources: [supabase/functions/_shared/aiUsage.ts](<>), [supabase/functions/advisor-chat/index.ts:8-11](<>)
 
 ---
 
@@ -590,7 +590,7 @@ Sources: [supabase/functions/_shared/aiUsage.ts](), [supabase/functions/advisor-
 
 Supabase Vault (`supabase_vault` extension) stores sensitive credentials that edge functions and cron jobs read at runtime. Secrets are created via `vault.create_secret()` in the SQL editor and never committed to the repository. Key secrets include `law_monitor_service_key`, `RESEND_API_KEY`, `SUPPORT_EMAIL_FROM`, `CAPTCHA_SECRET_KEY`, and Stripe keys. The "configured or inert" pattern means a missing secret produces a no-op, not an error.
 
-Sources: [supabase/schema.sql:62](), [docs/LAW_MONITORING.md:87-101](), [docs/TODO.md:37-40]()
+Sources: [supabase/schema.sql:62](<>), [docs/LAW_MONITORING.md:87-101](<>), [docs/TODO.md:37-40](<>)
 
 ---
 
@@ -600,13 +600,13 @@ Sources: [supabase/schema.sql:62](), [docs/LAW_MONITORING.md:87-101](), [docs/TO
 
 Type `'demo' | 'production'` — the two operating modes of the workspace. Provided by `WorkspaceModeProvider` and consumed via `useWorkspaceMode()`. Demo mode runs on fixture data; production mode connects to Supabase with real data scoped to an `organizationId`.
 
-Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5]()
+Sources: [src/features/app/workspaceMode/workspaceModeContext.ts:5](<>)
 
 ### `WorkspaceModeProvider`
 
 React context provider that resolves and exposes the current `WorkspaceMode`, admin status, identity, organization ID, member role, and the `setMode` toggle. On first switch to production, auto-provisions an organization via `create_organization()` RPC.
 
-Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx]()
+Sources: [src/features/app/workspaceMode/WorkspaceModeProvider.tsx](<>)
 
 ---
 
@@ -657,7 +657,7 @@ graph LR
     end
 ```
 
-Sources: [src/features/app/advisor/safety/safetyBackstop.ts:1-155](), [src/features/app/advisor/contract.ts:1-119](), [supabase/functions/advisor-chat/index.ts:1-28](), [src/features/app/workspaceMode/ModeGate.tsx:1-29](), [src/features/app/billing/PlanGate.tsx:1-62](), [src/features/app/guidance/monitoringCoverage.ts:1-127](), [docs/LAW_MONITORING.md:1-10]()
+Sources: [src/features/app/advisor/safety/safetyBackstop.ts:1-155](<>), [src/features/app/advisor/contract.ts:1-119](<>), [supabase/functions/advisor-chat/index.ts:1-28](<>), [src/features/app/workspaceMode/ModeGate.tsx:1-29](<>), [src/features/app/billing/PlanGate.tsx:1-62](<>), [src/features/app/guidance/monitoringCoverage.ts:1-127](<>), [docs/LAW_MONITORING.md:1-10](<>)
 
 ---
 

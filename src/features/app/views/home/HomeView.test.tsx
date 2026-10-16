@@ -59,7 +59,7 @@ describe('HomeView', () => {
       { route: '/workspace/home' },
     )
 
-    /* pr1 — "Open case" → /app/cases/case1 (prototype openCase('case1')). */
+    /* pr1 — "Open case" → /workspace/cases/case1 (prototype openCase('case1')). */
     fireEvent.click(screen.getByRole('button', { name: 'Open case' }))
     expect(screen.getByTestId('pathname')).toHaveTextContent('/workspace/cases/case1')
   })

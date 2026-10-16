@@ -53,7 +53,7 @@ flowchart TD
     CI -->|"articles.test.ts"| Editorial["Editorial rule:\nno statutory figures\nin public articles"]
 ```
 
-Sources: [docs/README.md:1-21](), [AGENTS.md:9-21]()
+Sources: [docs/README.md:1-21](<>), [AGENTS.md:9-21](<>)
 
 ## Documentation Index (`docs/README.md`)
 
@@ -71,7 +71,7 @@ The `docs/README.md` file is the project-wide documentation index. It organises 
 
 For details, see [Documentation Index & Strategy Docs](#12.1).
 
-Sources: [docs/README.md:1-98]()
+Sources: [docs/README.md:1-98](<>)
 
 ## Strategy & Reference Documents
 
@@ -94,7 +94,7 @@ graph LR
     BILLING["BILLING_BETA_AUDIT.md"] -->|"governs"| Stripe["supabase/functions/\nstripe-webhook/"]
 ```
 
-Sources: [docs/README.md:36-98](), [docs/AI_USAGE_STRATEGY.md:1-29](), [docs/SCORING_LOGIC.md:1-17](), [docs/FOUR_RING_FRAMEWORK.md:1-55]()
+Sources: [docs/README.md:36-98](<>), [docs/AI_USAGE_STRATEGY.md:1-29](<>), [docs/SCORING_LOGIC.md:1-17](<>), [docs/FOUR_RING_FRAMEWORK.md:1-55](<>)
 
 ### Agent & Operational Documents
 
@@ -104,7 +104,7 @@ Sources: [docs/README.md:36-98](), [docs/AI_USAGE_STRATEGY.md:1-29](), [docs/SCO
 
 For details, see [Documentation Index & Strategy Docs](#12.1).
 
-Sources: [AGENTS.md:1-116](), [docs/TODO.md:1-76](), [docs/DEVIN_PROMPTS.md:1-43]()
+Sources: [AGENTS.md:1-116](<>), [docs/TODO.md:1-76](<>), [docs/DEVIN_PROMPTS.md:1-43](<>)
 
 ## Design Handoff Packages
 
@@ -150,13 +150,13 @@ flowchart LR
     MockupHTML --> ScoreHero["ScoreHero.tsx"]
 ```
 
-Sources: [docs/design-handoff-advisor-chat/README.md:1-48](), [docs/design-handoff-hr-documents-library/README.md:1-60](), [docs/design-handoff-analytics/README.md:1-35]()
+Sources: [docs/design-handoff-advisor-chat/README.md:1-48](<>), [docs/design-handoff-hr-documents-library/README.md:1-60](<>), [docs/design-handoff-analytics/README.md:1-35](<>)
 
 ### Handoff Protocol
 
 The design handoff protocol is codified in `AGENTS.md`: prototypes are the source of truth for pixels and copy, but implementations bind to `--surface-app` design-system tokens, not to the prototype's inline hex values. Handoff packages are committed to the repository under `docs/design-handoff-<slug>/`, not left in external uploads. Each package's README carries a "Where this landed" table mapping handoff pieces to implementation files.
 
-Sources: [AGENTS.md:84-96](), [docs/design-handoff-advisor-chat/README.md:20-32]()
+Sources: [AGENTS.md:84-96](<>), [docs/design-handoff-advisor-chat/README.md:20-32](<>)
 
 ## Advisor Guidance Corpus
 
@@ -176,13 +176,13 @@ Two review packs prepare the corpus for human sign-off:
 
 For details, see [Design Handoffs & Advisor Corpus](#12.2).
 
-Sources: [docs/advisor-guidance-corpus-2026-07-26.md:1-18](), [docs/advisor-corpus-review-pack-ontario.md:1-56](), [docs/notice-bands-review-pack.md:1-29](), [docs/advisor-guidance-corpus-2026-08-04.md:1-27]()
+Sources: [docs/advisor-guidance-corpus-2026-07-26.md:1-18](<>), [docs/advisor-corpus-review-pack-ontario.md:1-56](<>), [docs/notice-bands-review-pack.md:1-29](<>), [docs/advisor-guidance-corpus-2026-08-04.md:1-27](<>)
 
 ## Legal Review Inventory
 
 `LEGAL_REVIEW_INVENTORY.md` is the RFQ-ready scoping document for legal review. It counts **143 discrete documents/rows/pages** carrying reviewable legal content, triaged into nine buckets. The core requiring a licensed lawyer is 81 items (26 legal pages + 12 high-risk templates + 1 review pack + 42 corpus rows). None currently has counsel sign-off — zero of 50 templates are `approved_for_use`, and all 42 corpus rows remain `machine_curated`.
 
-Sources: [docs/LEGAL_REVIEW_INVENTORY.md:1-52]()
+Sources: [docs/LEGAL_REVIEW_INVENTORY.md:1-52](<>)
 
 ## Child Pages
 

@@ -82,7 +82,7 @@ flowchart TD
     MEMORY --> MEM_CHAT
 ```
 
-Sources: [src/app/appViews.tsx:71-166]()
+Sources: [src/app/appViews.tsx:71-166](<>)
 
 **Mode dispatch pattern — every module checks `useWorkspaceMode()` and branches:**
 
@@ -95,33 +95,33 @@ flowchart LR
     DEMO --> FIXTURES["@/data fixtures"]
 ```
 
-Sources: [src/features/app/views/tasks/TasksView.tsx:33-37](), [src/features/app/views/policies/PoliciesView.tsx:34-37](), [src/features/app/views/home/HomeView.tsx:40-45]()
+Sources: [src/features/app/views/tasks/TasksView.tsx:33-37](<>), [src/features/app/views/policies/PoliciesView.tsx:34-37](<>), [src/features/app/views/home/HomeView.tsx:40-45](<>)
 
 ## Planning: Tasks & Calendar
 
 ### PlanningLayout
 
-`PlanningLayout` is a nested route layout at `/app/planning` that renders a tab strip (Tasks | Calendar) and an `<Outlet />` for child views. Legacy routes `/app/tasks` and `/app/calendar` redirect here.
+`PlanningLayout` is a nested route layout at `/workspace/planning` that renders a tab strip (Tasks | Calendar) and an `<Outlet />` for child views. Legacy routes `/workspace/tasks` and `/workspace/calendar` redirect here.
 
-[src/features/app/views/planning/PlanningLayout.tsx:1-51]()
+[src/features/app/views/planning/PlanningLayout.tsx:1-51](<>)
 
-The tab strip uses `<Link>` components with `aria-current="page"` on the active tab. Path detection uses `pathname.startsWith('/app/planning/calendar')` to determine the active tab.
+The tab strip uses `<Link>` components with `aria-current="page"` on the active tab. Path detection uses `pathname.startsWith('/workspace/planning/calendar')` to determine the active tab.
 
-[src/features/app/views/planning/PlanningLayout.tsx:14-15]()
+[src/features/app/views/planning/PlanningLayout.tsx:14-15](<>)
 
-Sources: [src/features/app/views/planning/PlanningLayout.tsx:1-51](), [src/app/appViews.tsx:119-133]()
+Sources: [src/features/app/views/planning/PlanningLayout.tsx:1-51](<>), [src/app/appViews.tsx:119-133](<>)
 
 ### TasksView (Demo)
 
 `TasksDemoView` renders an Advisor-generated checklist from the `@/data` fixtures. Each row has:
 
 - A done-toggle button that flips local state via `useState<Record<string, boolean>>`
-- A clickable body that navigates to `/app/advisor` with `{ chatId }` router state
+- A clickable body that navigates to `/workspace/advisor` with `{ chatId }` router state
 - Status chips (Open / Blocked / Done) and priority chips (high / medium / low)
 
 The open count is derived live: `tasks.filter((task) => !isDone(task)).length`.
 
-[src/features/app/views/tasks/TasksView.tsx:39-146]()
+[src/features/app/views/tasks/TasksView.tsx:39-146](<>)
 
 ### TasksProductionView
 
@@ -132,9 +132,9 @@ The open count is derived live: `tasks.filter((task) => !isDone(task)).length`.
 - **Toggle done**: `setTaskDone(id, done)` updates `status` between `'open'` and `'completed'`
 - **Remove**: `removeTask(id)` with optimistic list filtering
 
-[src/features/app/views/tasks/TasksProductionView.tsx:46-290]()
+[src/features/app/views/tasks/TasksProductionView.tsx:46-290](<>)
 
-Sources: [src/features/app/views/tasks/TasksView.tsx:1-147](), [src/features/app/views/tasks/TasksProductionView.tsx:1-291]()
+Sources: [src/features/app/views/tasks/TasksView.tsx:1-147](<>), [src/features/app/views/tasks/TasksProductionView.tsx:1-291](<>)
 
 ### CalendarView (Demo)
 
@@ -142,7 +142,7 @@ Sources: [src/features/app/views/tasks/TasksView.tsx:1-147](), [src/features/app
 
 Grid construction computes `firstDow`, `daysInMonth`, and builds a `DayCell[][]` weeks array at module scope.
 
-[src/features/app/views/calendar/CalendarView.tsx:22-36]()
+[src/features/app/views/calendar/CalendarView.tsx:22-36](<>)
 
 ### CalendarProductionView
 
@@ -150,11 +150,11 @@ Grid construction computes `firstDow`, `daysInMonth`, and builds a `DayCell[][]`
 
 - Month navigation via `moveMonth(delta)` with `MonthCursor` state
 - Deadlines mapped by day for grid chips; a sorted list below
-- Chips link to `/app/cases` or `/app/tasks`
+- Chips link to `/workspace/cases` or `/workspace/tasks`
 
-[src/features/app/views/calendar/CalendarProductionView.tsx:65-271]()
+[src/features/app/views/calendar/CalendarProductionView.tsx:65-271](<>)
 
-Sources: [src/features/app/views/calendar/CalendarView.tsx:1-187](), [src/features/app/views/calendar/CalendarProductionView.tsx:1-272]()
+Sources: [src/features/app/views/calendar/CalendarView.tsx:1-187](<>), [src/features/app/views/calendar/CalendarProductionView.tsx:1-272](<>)
 
 ## Policies View
 
@@ -162,7 +162,7 @@ Sources: [src/features/app/views/calendar/CalendarView.tsx:1-187](), [src/featur
 
 `PoliciesDemoView` renders the policy register with status rows (Up to date / Needs review / Missing). Each row has a "Review with Advisor" button that opens the Advisor rail. The rail's primary action invokes `openDocStudio()` to draft the policy in Document Studio.
 
-[src/features/app/views/policies/PoliciesView.tsx:40-103]()
+[src/features/app/views/policies/PoliciesView.tsx:40-103](<>)
 
 ### PoliciesProductionView
 
@@ -177,21 +177,21 @@ Backed by `hr_policies` table (migration 0008). The `productionApi.ts` exports:
 
 The `ProductionPolicyStatus` type constrains to `'up_to_date' | 'needs_review' | 'missing'`.
 
-[src/features/app/views/policies/productionApi.ts:13-19]()
+[src/features/app/views/policies/productionApi.ts:13-19](<>)
 
 The production view renders an add form, status-change `<select>` dropdowns per row, and a remove button — all with optimistic state updates and toast feedback.
 
-[src/features/app/views/policies/PoliciesProductionView.tsx:53-127]()
+[src/features/app/views/policies/PoliciesProductionView.tsx:53-127](<>)
 
-Sources: [src/features/app/views/policies/PoliciesView.tsx:1-104](), [src/features/app/views/policies/productionApi.ts:1-108](), [src/features/app/views/policies/PoliciesProductionView.tsx:1-53]()
+Sources: [src/features/app/views/policies/PoliciesView.tsx:1-104](<>), [src/features/app/views/policies/productionApi.ts:1-108](<>), [src/features/app/views/policies/PoliciesProductionView.tsx:1-53](<>)
 
 ## Settings View
 
 ### SettingsLayout
 
-`SettingsLayout` at `/app/settings` provides a tab strip with two tabs: General and Memory. Tab strip gutters tighten on phones (`px-[16px]` → `32px` at `md`), matching `PlanningLayout`.
+`SettingsLayout` at `/workspace/settings` provides a tab strip with two tabs: General and Memory. Tab strip gutters tighten on phones (`px-[16px]` → `32px` at `md`), matching `PlanningLayout`.
 
-[src/features/app/views/settings/SettingsLayout.tsx:1-53]()
+[src/features/app/views/settings/SettingsLayout.tsx:1-53](<>)
 
 ### SettingsView
 
@@ -199,23 +199,23 @@ Sources: [src/features/app/views/policies/PoliciesView.tsx:1-104](), [src/featur
 
 **Sections rendered:**
 
-| Section               | Description                                                          |
-| --------------------- | -------------------------------------------------------------------- |
-| Appearance + Language | Segmented controls driving `ThemeProvider` / `LangProvider`          |
-| Data & Privacy        | Law 25 (Quebec) notice banner                                        |
+| Section               | Description                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------- |
+| Appearance + Language | Segmented controls driving `ThemeProvider` / `LangProvider`                                          |
+| Data & Privacy        | Law 25 (Quebec) notice banner                                                                        |
 | Workspace             | Mode toggle (demo ↔ production), shown when `canUseProduction` (platform admin or active org member) |
-| Notifications         | Toggle rows: email digest, risk alerts, auto-escalate, weekly digest |
-| AI preferences        | Toggle rows: AI context, AI citations                                |
-| Integrations          | E-sign (connected), Payroll (connected), Calendar (error → retry)    |
-| Provinces             | Region chips (production: real profile province; demo: fixture list) |
-| Team                  | Member list with role labels and initials                            |
-| Roles & Permissions   | Matrix table on `≥768px`; stacked permission cards on phones         |
-| Retention             | Data retention periods by category                                   |
-| Security              | 2FA, SSO, timeout, residency settings                                |
-| Audit log             | Recent events with kind/tone chips                                   |
-| Export trail          | Device-local export audit from `readExportAudit()`                   |
+| Notifications         | Toggle rows: email digest, risk alerts, auto-escalate, weekly digest                                 |
+| AI preferences        | Toggle rows: AI context, AI citations                                                                |
+| Integrations          | E-sign (connected), Payroll (connected), Calendar (error → retry)                                    |
+| Provinces             | Region chips (production: real profile province; demo: fixture list)                                 |
+| Team                  | Member list with role labels and initials                                                            |
+| Roles & Permissions   | Matrix table on `≥768px`; stacked permission cards on phones                                         |
+| Retention             | Data retention periods by category                                                                   |
+| Security              | 2FA, SSO, timeout, residency settings                                                                |
+| Audit log             | Recent events with kind/tone chips                                                                   |
+| Export trail          | Device-local export audit from `readExportAudit()`                                                   |
 
-[src/features/app/views/settings/SettingsView.tsx:43-93]()
+[src/features/app/views/settings/SettingsView.tsx:43-93](<>)
 
 ### settingsData.ts
 
@@ -230,21 +230,21 @@ All content tables live in `settingsData.ts` as typed arrays:
 - `auditEvents` — audit log entries with `ChipTone`
 - `segClass(on)` — segmented control button styling function
 
-[src/features/app/views/settings/settingsData.ts:1-166]()
+[src/features/app/views/settings/settingsData.ts:1-166](<>)
 
 ### settingsPrimitives.tsx
 
 Shared building blocks: `Section` (eyebrow label), `Card` (bordered container), `StatusChip` (tone-colored badge), `ToggleSwitch` (38×22 toggle from prototype lines 3533–3538), and `ToggleRow` (label + sub-text + switch).
 
-[src/features/app/views/settings/settingsPrimitives.tsx:1-104]()
+[src/features/app/views/settings/settingsPrimitives.tsx:1-104](<>)
 
-Sources: [src/features/app/views/settings/SettingsLayout.tsx:1-53](), [src/features/app/views/settings/SettingsView.tsx:1-93](), [src/features/app/views/settings/settingsData.ts:1-166](), [src/features/app/views/settings/settingsPrimitives.tsx:1-104]()
+Sources: [src/features/app/views/settings/SettingsLayout.tsx:1-53](<>), [src/features/app/views/settings/SettingsView.tsx:1-93](<>), [src/features/app/views/settings/settingsData.ts:1-166](<>), [src/features/app/views/settings/settingsPrimitives.tsx:1-104](<>)
 
 ## Memory System
 
-The Advisor Memory system provides human-governed memory for the AI Advisor. It is nested under Settings at `/app/settings/memory` and dispatches on workspace mode internally — each view delegates to a `*DemoView` (session-scoped `memoryStore`) or a `*ProductionView` backed by `productionApi.ts` / `productionLifecycleApi.ts` over the `hr_advisor_memory_facts` tables.
+The Advisor Memory system provides human-governed memory for the AI Advisor. It is nested under Settings at `/workspace/settings/memory` and dispatches on workspace mode internally — each view delegates to a `*DemoView` (session-scoped `memoryStore`) or a `*ProductionView` backed by `productionApi.ts` / `productionLifecycleApi.ts` over the `hr_advisor_memory_facts` tables.
 
-[src/app/appViews.tsx:154-160]()
+[src/app/appViews.tsx:154-160](<>)
 
 ### MemoryLayout
 
@@ -252,7 +252,7 @@ On desktop/tablet (`≥768px`), `MemoryLayout` renders a 252px side navigation r
 
 Below `768px`, the rail is replaced by **`MemoryMobileNavAccess`**: a bar showing the current section label and a full-screen sheet with the same nav groups. Tapping an item navigates and closes the sheet.
 
-[src/features/app/views/memory/MemoryLayout.tsx:28-290]()
+[src/features/app/views/memory/MemoryLayout.tsx:28-290](<>)
 
 ### memoryStore.ts
 
@@ -266,13 +266,13 @@ Session-scoped external store using `useSyncExternalStore`. Seeds from `seedMemo
 
 Every action appends to the session `audit` log as a `MemoryAuditEntry`. The store is intentionally not persisted — it lives for the browser session.
 
-[src/features/app/views/memory/memoryStore.ts:1-94]()
+[src/features/app/views/memory/memoryStore.ts:1-94](<>)
 
 ### Memory Sub-views
 
 ```mermaid
 flowchart TB
-    ML["MemoryLayout\n(/app/settings/memory)"]
+    ML["MemoryLayout\n(/workspace/settings/memory)"]
     MM["MemoryManagerView\n(index)"]
     PM["PersonMemoryView\n(people/:personId)"]
     CM["CaseMemoryView\n(cases/:caseId)"]
@@ -294,35 +294,35 @@ flowchart TB
 
 **MemoryManagerView**: Central dashboard with inferred-review banner, filter tabs (all/people/cases/threads/review) with live counts, memory search, governed rows with scope tags, and a governance rail including retention policies, lawful basis, audit log, and JSON export through the export-protection pipeline (`authorizeExport`).
 
-[src/features/app/views/memory/MemoryManagerView.tsx:49-335]()
+[src/features/app/views/memory/MemoryManagerView.tsx:49-335](<>)
 
 **PersonMemoryView**: Profile header with status chips, "What Advisor remembers" intro, facts grouped by `PERSON_CATEGORY_ORDER`, and a governance rail (confidence legend, who-can-see, retention, lawful basis).
 
-[src/features/app/views/memory/PersonMemoryView.tsx:29-233]()
+[src/features/app/views/memory/PersonMemoryView.tsx:29-233](<>)
 
 **CaseMemoryView**: "Picking up where you left off" resume banner, running case-memory summary with what-changed items, held case facts, and a session timeline with dashed gap markers. A "What I know" rail shows person and case facts plus next steps.
 
-[src/features/app/views/memory/CaseMemoryView.tsx:31-305]()
+[src/features/app/views/memory/CaseMemoryView.tsx:31-305](<>)
 
 **ChatRecallView**: Recall transcript with system/user/advisor turns. Advisor turns contain `RecallSegment` arrays where segments with `memId` render as gold recall highlights (underlined, with title showing provenance). A "Memory used in this answer" accordion shows per-fact detail with Correct actions. A "What I know" rail splits facts by person and conversation — inline aside at `≥1024px`, sheet below `lg`.
 
-[src/features/app/views/memory/ChatRecallView.tsx:112-380]()
+[src/features/app/views/memory/ChatRecallView.tsx:112-380](<>)
 
 ### MemoryFactRow
 
 The universal governed memory row component. Renders: confidence dot, statement (or inline Correct editor), provenance line (source · learned/confirmed · visibility), and three action buttons (Confirm for inferred facts, Correct, Forget). Manager variant prepends a scope tag line.
 
-[src/features/app/views/memory/MemoryFactRow.tsx:25-166]()
+[src/features/app/views/memory/MemoryFactRow.tsx:25-166](<>)
 
-Sources: [src/features/app/views/memory/MemoryLayout.tsx:1-167](), [src/features/app/views/memory/memoryStore.ts:1-94](), [src/features/app/views/memory/MemoryManagerView.tsx:1-335](), [src/features/app/views/memory/PersonMemoryView.tsx:1-233](), [src/features/app/views/memory/CaseMemoryView.tsx:1-305](), [src/features/app/views/memory/ChatRecallView.tsx:1-332](), [src/features/app/views/memory/MemoryFactRow.tsx:1-166]()
+Sources: [src/features/app/views/memory/MemoryLayout.tsx:1-167](<>), [src/features/app/views/memory/memoryStore.ts:1-94](<>), [src/features/app/views/memory/MemoryManagerView.tsx:1-335](<>), [src/features/app/views/memory/PersonMemoryView.tsx:1-233](<>), [src/features/app/views/memory/CaseMemoryView.tsx:1-305](<>), [src/features/app/views/memory/ChatRecallView.tsx:1-332](<>), [src/features/app/views/memory/MemoryFactRow.tsx:1-166](<>)
 
 ## Home View (Command Centre)
 
 ### HomeView
 
-The Home view at `/app/home` is the workspace's command centre. In demo mode, it renders the Northgate Logistics fixtures; in production mode, it delegates to `HomeProductionView` wrapped in `PlanGate required="growth"`.
+The Home view at `/workspace/home` is the workspace's command centre. In demo mode, it renders the Northgate Logistics fixtures; in production mode, it delegates to `HomeProductionView` wrapped in `PlanGate required="growth"`.
 
-[src/features/app/views/home/HomeView.tsx:29-93]()
+[src/features/app/views/home/HomeView.tsx:29-93](<>)
 
 ### Demo Mode Component Tree
 
@@ -360,28 +360,28 @@ Provides typed view-model data:
 - `homeMetricChips` — 5 metric chip definitions (Compliance 82/100, Open cases, Overdue tasks, Docs awaiting review, Support signals) with values derived from `@/data` fixtures
 - `askBriefPrompt` — the "Ask about this brief" flow prompt
 
-[src/features/app/views/home/homeData.ts:1-273]()
+[src/features/app/views/home/homeData.ts:1-273](<>)
 
 ### useHomeActions
 
 Resolves declarative `HomeAction` objects into real navigation/rail/studio calls:
 
-| Action kind      | Resolution                                                 |
-| ---------------- | ---------------------------------------------------------- |
-| `route`          | `navigate(action.to)`                                      |
-| `chat`           | `navigate('/app/advisor', { state: { chatId } })`          |
-| `doc`            | `openDocStudio(action.templateKey)`                        |
-| `flow`           | `navigate('/app/advisor', { state: { prompt, flowKey } })` |
-| `comp-rail`      | `openPayRail(employeeId)`                                  |
-| `wellbeing-rail` | `openWellbeingRail(employeeId)`                            |
+| Action kind      | Resolution                                                       |
+| ---------------- | ---------------------------------------------------------------- |
+| `route`          | `navigate(action.to)`                                            |
+| `chat`           | `navigate('/workspace/advisor', { state: { chatId } })`          |
+| `doc`            | `openDocStudio(action.templateKey)`                              |
+| `flow`           | `navigate('/workspace/advisor', { state: { prompt, flowKey } })` |
+| `comp-rail`      | `openPayRail(employeeId)`                                        |
+| `wellbeing-rail` | `openWellbeingRail(employeeId)`                                  |
 
-[src/features/app/views/home/useHomeActions.ts:1-53]()
+[src/features/app/views/home/useHomeActions.ts:1-53](<>)
 
 ### HomeCompliancePanel
 
 Renders the compliance prediction card: current score (82) → predicted (88, +6 in 90 days), top three category bars with tone-colored fills, and a "Top lever · Remote Work Policy refresh +4" footer with a "Draft refresh" CTA that triggers `{ kind: 'doc', templateKey: 'T10' }`.
 
-[src/features/app/views/home/HomeCompliancePanel.tsx:25-92]()
+[src/features/app/views/home/HomeCompliancePanel.tsx:25-92](<>)
 
 ### HomeProductionView
 
@@ -397,7 +397,7 @@ const [employees, cases, tasks, findings, policies] = await Promise.all([
 ])
 ```
 
-[src/features/app/views/home/HomeProductionView.tsx:60-66]()
+[src/features/app/views/home/HomeProductionView.tsx:60-66](<>)
 
 It renders:
 
@@ -407,9 +407,9 @@ It renders:
 4. **ChatComposer** for free-text Advisor queries
 5. **`HomeProductionEmptyState`** — welcome state when `totalRecords === 0`
 
-[src/features/app/views/home/HomeProductionView.tsx:49-264]()
+[src/features/app/views/home/HomeProductionView.tsx:49-264](<>)
 
-Sources: [src/features/app/views/home/HomeView.tsx:1-93](), [src/features/app/views/home/homeData.ts:1-273](), [src/features/app/views/home/useHomeActions.ts:1-53](), [src/features/app/views/home/HomeBriefHero.tsx:1-90](), [src/features/app/views/home/HomePriorityQueue.tsx:1-150](), [src/features/app/views/home/HomeWorkflowCatalog.tsx:1-43](), [src/features/app/views/home/HomeWorkflowsCard.tsx:1-156](), [src/features/app/views/home/HomeCompliancePanel.tsx:1-92](), [src/features/app/views/home/HomeProductionView.tsx:1-264]()
+Sources: [src/features/app/views/home/HomeView.tsx:1-93](<>), [src/features/app/views/home/homeData.ts:1-273](<>), [src/features/app/views/home/useHomeActions.ts:1-53](<>), [src/features/app/views/home/HomeBriefHero.tsx:1-90](<>), [src/features/app/views/home/HomePriorityQueue.tsx:1-150](<>), [src/features/app/views/home/HomeWorkflowCatalog.tsx:1-43](<>), [src/features/app/views/home/HomeWorkflowsCard.tsx:1-156](<>), [src/features/app/views/home/HomeCompliancePanel.tsx:1-92](<>), [src/features/app/views/home/HomeProductionView.tsx:1-264](<>)
 
 ## Communications, Compensation & Wellbeing
 
@@ -419,7 +419,7 @@ These three modules were ungated from the `ModeGate` pattern (migrations 0039–
 
 **Demo**: Announcement pipeline with Advisor review dimensions (Tone / Legal / Clarity / Policy), linked entities, and a sensitive-send review gate via the Advisor rail. Sensitive communications open a confirmation dialog before marking as sent.
 
-[src/features/app/views/communications/CommunicationsView.tsx:40-218]()
+[src/features/app/views/communications/CommunicationsView.tsx:40-218](<>)
 
 **Production**: `CommunicationsProductionView` backed by `hr_communications` table. Demo review dimensions do not cross over.
 
@@ -427,7 +427,7 @@ These three modules were ungated from the `ModeGate` pattern (migrations 0039–
 
 **Demo**: Restricted-module banner, payroll stat tiles ($total payroll, below-midpoint count), changes & approvals pipeline with Advisor review rail, internal pay-band equity card, and per-employee compensation table (desktop) / row cards (mobile). Row clicks navigate to employee profile compensation tab.
 
-[src/features/app/views/compensation/CompensationView.tsx:56-300]()
+[src/features/app/views/compensation/CompensationView.tsx:56-300](<>)
 
 **Production**: `CompensationProductionView` backed by `hr_compensation_records`. Market salary benchmarks are intentionally excluded.
 
@@ -435,26 +435,26 @@ These three modules were ungated from the `ModeGate` pattern (migrations 0039–
 
 **Demo**: Support signals with non-diagnostic framing. Signal cards show source, confidence, sensitivity tone, recommended supportive actions, and "Draft check-in" / "Open profile" buttons. Personal signals open the wellbeing rail; team-level signals navigate to Communications.
 
-[src/features/app/views/wellbeing/WellbeingView.tsx:28-146]()
+[src/features/app/views/wellbeing/WellbeingView.tsx:28-146](<>)
 
 **Production**: `WellbeingProductionView` backed by `hr_wellbeing_initiatives`. Per-person wellbeing signals do not cross over — they are inferred health information that Ring 2 is built not to record.
 
-Sources: [src/features/app/views/communications/CommunicationsView.tsx:1-219](), [src/features/app/views/compensation/CompensationView.tsx:1-300](), [src/features/app/views/wellbeing/WellbeingView.tsx:1-147](), [src/app/appViews.tsx:111-118]()
+Sources: [src/features/app/views/communications/CommunicationsView.tsx:1-219](<>), [src/features/app/views/compensation/CompensationView.tsx:1-300](<>), [src/features/app/views/wellbeing/WellbeingView.tsx:1-147](<>), [src/app/appViews.tsx:111-118](<>)
 
 ## Knowledge View
 
-`KnowledgeView` at `/app/knowledge` renders the HR library article list with a search filter. It combines two content sources:
+`KnowledgeView` at `/workspace/knowledge` renders the HR library article list with a search filter. It combines two content sources:
 
-1. **Reference guides** (from `referenceGuides` in `@/features/app/reference/data`) — real authored content with bodies, linked to individual guide pages at `/app/knowledge/:slug`
+1. **Reference guides** (from `referenceGuides` in `@/features/app/reference/data`) — real authored content with bodies, linked to individual guide pages at `/workspace/knowledge/:slug`
 2. **Knowledge items** (from `@/data` fixtures) — fixture titles that open the Advisor rail for a summary
 
 The view also renders `GuidanceSourcesPanel` — a real backend component showing the Advisor's guidance corpus sources.
 
-[src/features/app/views/knowledge/KnowledgeView.tsx:27-114]()
+[src/features/app/views/knowledge/KnowledgeView.tsx:27-114](<>)
 
 Knowledge is ungated — it contains generic HR-law reference content and the real guidance panel, not fixture data.
 
-Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](), [src/app/appViews.tsx:97-99]()
+Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](<>), [src/app/appViews.tsx:97-99](<>)
 
 ## Search Overlay
 
@@ -462,7 +462,7 @@ Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](), [src/app/
 
 `SearchProvider` manages the open/closed state of the search overlay. It listens for `⌘K` / `Ctrl+K` globally and exposes `{ open, openSearch, closeSearch }` through `SearchContext`.
 
-[src/features/app/search/SearchProvider.tsx:1-26]()
+[src/features/app/search/SearchProvider.tsx:1-26](<>)
 
 ### SearchOverlay
 
@@ -474,18 +474,18 @@ Sources: [src/features/app/views/knowledge/KnowledgeView.tsx:1-115](), [src/app/
 - **Pinned conversations** shown when query is empty (from `pinnedChatEntries`)
 - **Result navigation** resolves `SearchNav` to router routes:
 
-| Nav kind   | Destination                                         |
-| ---------- | --------------------------------------------------- |
-| `employee` | `/app/employees/{id}`                               |
-| `case`     | `/app/cases/{id}`                                   |
-| `chat`     | `/app/advisor` with `{ chatId }` state              |
-| `document` | `/app/documents/hr-library` with `{ docKey }` state |
-| `view`     | `/app/{view}`                                       |
+| Nav kind   | Destination                                               |
+| ---------- | --------------------------------------------------------- |
+| `employee` | `/workspace/employees/{id}`                               |
+| `case`     | `/workspace/cases/{id}`                                   |
+| `chat`     | `/workspace/advisor` with `{ chatId }` state              |
+| `document` | `/workspace/documents/hr-library` with `{ docKey }` state |
+| `view`     | `/workspace/{view}`                                       |
 
 - **Production mode**: search returns empty results (corpus is fixture-based)
 - **Restricted badge**: gold lock icon on sensitive cases and high-risk documents
 
-[src/features/app/search/SearchOverlay.tsx:23-260]()
+[src/features/app/search/SearchOverlay.tsx:23-260](<>)
 
 ### searchCorpus.ts
 
@@ -505,9 +505,9 @@ Builds the search corpus from all fixture domains. Entity types indexed:
 
 Filtering uses `filterSearchEntries(tab, query, lang)` — case-insensitive substring match against the `match` field in the current language.
 
-[src/features/app/search/searchCorpus.ts:1-210]()
+[src/features/app/search/searchCorpus.ts:1-210](<>)
 
-Sources: [src/features/app/search/SearchProvider.tsx:1-26](), [src/features/app/search/searchContext.ts:1-17](), [src/features/app/search/SearchOverlay.tsx:1-261](), [src/features/app/search/searchCorpus.ts:1-210]()
+Sources: [src/features/app/search/SearchProvider.tsx:1-26](<>), [src/features/app/search/searchContext.ts:1-17](<>), [src/features/app/search/SearchOverlay.tsx:1-261](<>), [src/features/app/search/searchCorpus.ts:1-210](<>)
 
 ## Cross-Module Data Flow
 
@@ -540,26 +540,26 @@ flowchart LR
     POL_API --> DB
 ```
 
-Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](), [src/features/app/views/calendar/CalendarProductionView.tsx:77-109]()
+Sources: [src/features/app/views/home/HomeProductionView.tsx:56-78](<>), [src/features/app/views/calendar/CalendarProductionView.tsx:77-109](<>)
 
 ## Module Gating Summary
 
 Every module in `appViews.tsx` now dispatches on workspace mode internally — the `gated()`/`ModeGate` route wrapper is gone. How each module resolves production:
 
-| Module         | Notes                                                                       |
-| -------------- | --------------------------------------------------------------------------- |
-| Home           | Own production variant (`HomeProductionView` + `HomeProductionEmptyState`)  |
-| Tasks          | Dispatches via `useWorkspaceMode()` → `TasksProductionView`                 |
-| Calendar       | Dispatches → `CalendarProductionView`                                       |
-| Policies       | Dispatches → `PoliciesProductionView`                                       |
-| Settings       | Hosts mode toggle; real `ThemeProvider`/`LangProvider`                      |
-| Memory         | Dispatches → `*ProductionView` over `hr_advisor_memory_facts`               |
-| Communications | Dispatches → `CommunicationsProductionView` (migration 0040)                |
-| Compensation   | Dispatches → `CompensationProductionView` (migration 0039)                  |
-| Wellbeing      | Dispatches → `WellbeingProductionView` (migration 0041)                     |
-| Knowledge      | Generic HR-law reference + real `GuidanceSourcesPanel`                      |
-| Search         | N/A       | Overlay; corpus is fixture-based, returns empty in production |
+| Module         | Notes                                                                      |
+| -------------- | -------------------------------------------------------------------------- |
+| Home           | Own production variant (`HomeProductionView` + `HomeProductionEmptyState`) |
+| Tasks          | Dispatches via `useWorkspaceMode()` → `TasksProductionView`                |
+| Calendar       | Dispatches → `CalendarProductionView`                                      |
+| Policies       | Dispatches → `PoliciesProductionView`                                      |
+| Settings       | Hosts mode toggle; real `ThemeProvider`/`LangProvider`                     |
+| Memory         | Dispatches → `*ProductionView` over `hr_advisor_memory_facts`              |
+| Communications | Dispatches → `CommunicationsProductionView` (migration 0040)               |
+| Compensation   | Dispatches → `CompensationProductionView` (migration 0039)                 |
+| Wellbeing      | Dispatches → `WellbeingProductionView` (migration 0041)                    |
+| Knowledge      | Generic HR-law reference + real `GuidanceSourcesPanel`                     |
+| Search         | N/A                                                                        | Overlay; corpus is fixture-based, returns empty in production |
 
-Sources: [src/app/appViews.tsx:14-21](), [src/app/appViews.tsx:71-166]()
+Sources: [src/app/appViews.tsx:14-21](<>), [src/app/appViews.tsx:71-166](<>)
 
 ---

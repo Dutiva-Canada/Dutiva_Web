@@ -13,7 +13,7 @@ the marketing and app surfaces showed zero console violations.
 
 | Header                              | Value                                                       | Closes                                                                                                                                                                               |
 | ----------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `X-Frame-Options`                   | `DENY`                                                      | Clickjacking — nothing legitimately frames `dutiva.ca` or the `/app` workspace.                                                                                                      |
+| `X-Frame-Options`                   | `DENY`                                                      | Clickjacking — nothing legitimately frames `dutiva.ca` or the `/workspace` workspace.                                                                                                |
 | `Content-Security-Policy`           | `default-src 'self'; ...` (full resource policy, see below) | Modern-browser clickjacking + `<object>`/`<embed>` + `<base>` hijack, plus all resource directives. Promoted to enforcing 2026-08-10.                                                |
 | `X-Content-Type-Options`            | `nosniff`                                                   | MIME sniffing on user-influenced blobs.                                                                                                                                              |
 | `Referrer-Policy`                   | `strict-origin-when-cross-origin`                           | Path/query leakage to third parties.                                                                                                                                                 |
@@ -75,7 +75,7 @@ this host — that is expected on Vercel.
 
 The full resource policy is now served as `Content-Security-Policy` on every
 route. It was verified with a Playwright signed-in click-through (marketing
-pages, `/fr`, `/app`, Advisor, Documents, Knowledge, Support, People, Cases)
+pages, `/fr`, `/workspace`, Advisor, Documents, Knowledge, Support, People, Cases)
 on 2026-08-10 and logged **zero CSP console violations**.
 
 The allowed origins:
@@ -85,7 +85,7 @@ The allowed origins:
 - **Self-hosted fonts** — Inter Variable + Montserrat Variable from same-origin `/assets/*.woff2` (`font-src 'self'` only).
 - **GA4 / Tag Manager** — `googletagmanager.com`, `google-analytics.com`, `region1.google-analytics.com` (consent-gated). GTM also needs `frame-src` and `connect-src` for `www.googletagmanager.com`.
 - **CAPTCHA** — Turnstile (`challenges.cloudflare.com` and `*.challenges.cloudflare.com`) and hCaptcha (`js.hcaptcha.com`, `newassets.hcaptcha.com`, `api.hcaptcha.com`).
-- **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Loaded from the public marketing route shell only; never on `/app/*`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
+- **TrustedSite** — `cdn.ywxi.net` (script, style, images), `www.trustedsite.com` (frame + connect), `s3-us-west-2.amazonaws.com` (connect). Loaded from the public marketing route shell only; never on `/workspace/*`. `style-src` does **not** add `'unsafe-inline'` for this vendor.
 
 `script-src` no longer includes `'unsafe-inline'` (2026-08-23): bootstrap
 scripts moved to `/bootstrap-auth.js` and `/bootstrap-theme.js`. `style-src`
@@ -102,7 +102,7 @@ break CAPTCHA.
 ### Ongoing CSP hygiene
 
 - Hermetic regression: `e2e/csp.spec.ts` (via `npm run test:e2e`) fails on
-  `script-src` or `style-src` console violations on marketing load and `/app`
+  `script-src` or `style-src` console violations on marketing load and `/workspace`
   welcome — run after any inline-script or inline-style change.
 - Re-test after any new third-party integration, new font origin, or inline
   script change.

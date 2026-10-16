@@ -18,7 +18,7 @@ Exactly these fields, and nothing else, per report:
 | --------- | -------------------------------- | ---------------------------------------------------------- |
 | `message` | `Cannot read properties of null` | Error text. Free-form — see residual risk below.           |
 | `stack`   | minified stack, ≤ 4 KB           | Resolved with source maps kept off the public server.      |
-| `route`   | `/app/cases/:id`                 | Route **pattern** — never a resolved path (see scrubbing). |
+| `route`   | `/workspace/cases/:id`           | Route **pattern** — never a resolved path (see scrubbing). |
 | `release` | commit SHA                       | Ties a trace to the exact deploy + its source maps.        |
 | `locale`  | `en-CA` / `fr-CA`                | From `<html lang>`; not identifying.                       |
 | `kind`    | `route-boundary`                 | Which handler fired.                                       |
@@ -48,20 +48,20 @@ Exactly these fields, and nothing else, per report:
 
 ### URL scrubbing (the core PII control)
 
-The `/app` surface carries employee, case, document, person, and conversation
-identifiers directly in the path (`/app/employees/:employeeId`,
-`/app/cases/:caseId`, …). `src/lib/errorReporting/scrubRoute.ts` reduces any
+The `/workspace` surface carries employee, case, document, person, and conversation
+identifiers directly in the path (`/workspace/employees/:employeeId`,
+`/workspace/cases/:caseId`, …). `src/lib/errorReporting/scrubRoute.ts` reduces any
 pathname to its **pattern** before it leaves the browser:
 
 - The query string and hash are dropped entirely (they can carry search text or
   tokens).
 - The full path is matched against a **known route registry** (deny-by-default),
-  and the matched **pattern** is returned — `/legal/:slug`, `/app/cases/:id`. The
-  match is position-aware, so `/app/employees/studio` binds `studio` to
-  `:employeeId` → `/app/employees/:id` (it can't be mistaken for the
+  and the matched **pattern** is returned — `/legal/:slug`, `/workspace/cases/:id`. The
+  match is position-aware, so `/workspace/employees/studio` binds `studio` to
+  `:employeeId` → `/workspace/employees/:id` (it can't be mistaken for the
   documents-only `studio` route).
 - Any path that matches **no** registered route degrades to a safe label —
-  `/unknown`, or `/app/:unknown` on the private surface — **never** the resolved
+  `/unknown`, or `/workspace/:unknown` on the private surface — **never** the resolved
   path. So a 404, or a new dynamic route not yet added to the registry, can never
   transmit a segment; the worst case is a lost grouping, not a leak. This also
   covers the human-readable slugs demo fixtures use (e.g. a person's name), which

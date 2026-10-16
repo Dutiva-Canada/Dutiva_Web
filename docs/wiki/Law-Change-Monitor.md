@@ -43,7 +43,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Law Change Monitor is a nightly cron-driven edge function (`monitor-law-changes`) that sweeps 19 configured Canadian employment legislation pages across all 14 jurisdictions, detects amendments through four distinct source strategies, and logs structured events to the `law_updates` table. The customer-facing surface is the `GuidanceSourcesPanel` in the Knowledge view, which filters the log to show only real changes in supported jurisdictions.
+The Law Change Monitor is a nightly cron-driven edge function (`monitor-law-changes`) that sweeps 20 configured Canadian employment legislation pages across all 14 jurisdictions, detects amendments through four distinct source strategies, and logs structured events to the `law_updates` table. The customer-facing surface is the `GuidanceSourcesPanel` in the Knowledge view, which filters the log to show only real changes in supported jurisdictions.
 
 ## System Architecture Overview
 
@@ -115,11 +115,11 @@ graph TD
     panel --> stale
 ```
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](), [supabase/migrations/0035_schedule_law_monitor.sql:37-67](), [src/features/app/guidance/GuidanceSourcesPanel.tsx:49-73]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:1-40](<>), [supabase/migrations/0035_schedule_law_monitor.sql:37-67](<>), [src/features/app/guidance/GuidanceSourcesPanel.tsx:49-73](<>)
 
 ## Monitored Pages Configuration
 
-The `MONITORED_PAGES` array defines all 19 legislation pages across 14 Canadian jurisdictions. Each entry is a `PageConfig` with jurisdiction, law name, primary URL, fallback URLs, and an optional `source` discriminant.
+The `MONITORED_PAGES` array defines all 20 legislation pages across 14 Canadian jurisdictions. Each entry is a `PageConfig` with jurisdiction, law name, primary URL, fallback URLs, and an optional `source` discriminant.
 
 | Jurisdiction                               | Law                                      | Source Strategy     | URL Pattern                                                        |
 | ------------------------------------------ | ---------------------------------------- | ------------------- | ------------------------------------------------------------------ |
@@ -134,7 +134,7 @@ The `MONITORED_PAGES` array defines all 19 legislation pages across 14 Canadian 
 
 Monitoring is deliberately wider than the product's three supported jurisdictions (ON, QC, FED). The panel filters; the monitor watches everything.
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:45-211](), [docs/LAW_MONITORING.md:29-34]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:45-211](<>), [docs/LAW_MONITORING.md:29-34](<>)
 
 ## Four Source Strategies
 
@@ -169,7 +169,7 @@ graph LR
     QC --> Q1 --> QF
 ```
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:230-234](), [supabase/functions/monitor-law-changes/justiceXml.ts:136-138](), [supabase/functions/monitor-law-changes/ontarioApi.ts:155-157](), [supabase/functions/monitor-law-changes/quebecCkan.ts:125-127]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:230-234](<>), [supabase/functions/monitor-law-changes/justiceXml.ts:136-138](<>), [supabase/functions/monitor-law-changes/ontarioApi.ts:155-157](<>), [supabase/functions/monitor-law-changes/quebecCkan.ts:125-127](<>)
 
 ### Strategy 1: HTML Hash (default)
 
@@ -177,7 +177,7 @@ The original strategy. HTML is fetched, stripped of `<script>` / `<style>` / all
 
 The `extractText()` function performs tag stripping and entity decoding before hashing. The `assessLegislationText()` content sanity check gates this path — responses that pass HTTP 200 but contain block pages or JS-app shells are rejected.
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:254-265](), [supabase/functions/monitor-law-changes/index.ts:950-998]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:254-265](<>), [supabase/functions/monitor-law-changes/index.ts:950-998](<>)
 
 ### Strategy 2: Justice Canada XML (`justice-xml`)
 
@@ -187,7 +187,7 @@ Identity is verified: `<ConsolidatedNumber>` is checked against the expected val
 
 The fingerprint stored in `content_hash` is `amended:YYYY-MM-DD` — prefixed so the column is self-describing.
 
-Sources: [supabase/functions/monitor-law-changes/justiceXml.ts:47-138](), [supabase/functions/monitor-law-changes/index.ts:698-785]()
+Sources: [supabase/functions/monitor-law-changes/justiceXml.ts:47-138](<>), [supabase/functions/monitor-law-changes/index.ts:698-785](<>)
 
 ### Strategy 3: Ontario e-Laws API (`ontario-api`)
 
@@ -202,7 +202,7 @@ The `assessOntarioActVersions()` function navigates a three-level Elasticsearch 
 
 The fingerprint is `ontario-api:` + SHA-256 of the JSON-serialized normalized version list, capturing any change across the entire version history.
 
-Sources: [supabase/functions/monitor-law-changes/ontarioApi.ts:75-157](), [supabase/functions/monitor-law-changes/index.ts:787-867]()
+Sources: [supabase/functions/monitor-law-changes/ontarioApi.ts:75-157](<>), [supabase/functions/monitor-law-changes/index.ts:787-867](<>)
 
 ### Strategy 4: Québec CKAN Datasets (`quebec-ckan`)
 
@@ -212,7 +212,7 @@ The `assessQuebecPackage()` function checks `success === true`, finds the named 
 
 The fingerprint format is `quebec-ckan:${lastModified}|${url}`.
 
-Sources: [supabase/functions/monitor-law-changes/quebecCkan.ts:65-127](), [supabase/functions/monitor-law-changes/index.ts:115-147]()
+Sources: [supabase/functions/monitor-law-changes/quebecCkan.ts:65-127](<>), [supabase/functions/monitor-law-changes/index.ts:115-147](<>)
 
 ## Content Sanity Checks
 
@@ -239,7 +239,7 @@ The `BLOCK_PAGE_SIGNATURES` array contains multi-word phrases (≥3 words) to av
 'please complete the security check'
 ```
 
-Sources: [supabase/functions/monitor-law-changes/contentSanity.ts:42-107](), [supabase/functions/monitor-law-changes/contentSanity.test.ts:20-111]()
+Sources: [supabase/functions/monitor-law-changes/contentSanity.ts:42-107](<>), [supabase/functions/monitor-law-changes/contentSanity.test.ts:20-111](<>)
 
 ## State Tables & Event Types
 
@@ -287,7 +287,7 @@ The product-facing log. Each row represents a detected event:
 
 Only `change` events are shown to customers, enforced by `CUSTOMER_FACING_EVENT_TYPE` in `monitoringCoverage.ts` and `CUSTOMER_FACING_EVENT_TYPES` in `lawUpdateRelevance.ts`.
 
-Sources: [docs/LAW_MONITORING.md:18-24](), [supabase/functions/monitor-law-changes/index.ts:569-596](), [src/features/app/guidance/monitoringCoverage.ts:98-104](), [supabase/functions/_shared/lawUpdateRelevance.ts:65-79](), [supabase/migrations/0046_law_update_digest.sql:34-39]()
+Sources: [docs/LAW_MONITORING.md:18-24](<>), [supabase/functions/monitor-law-changes/index.ts:569-596](<>), [src/features/app/guidance/monitoringCoverage.ts:98-104](<>), [supabase/functions/_shared/lawUpdateRelevance.ts:65-79](<>), [supabase/migrations/0046_law_update_digest.sql:34-39](<>)
 
 ## Per-Page Sweep Logic
 
@@ -351,7 +351,7 @@ flowchart TD
     newOrChanged -->|"No"| noChange
 ```
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:551-1039]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:551-1039](<>)
 
 ## SSRF-Guarded URL Resolution
 
@@ -362,7 +362,7 @@ When a page is broken for ≥ 3 consecutive sweeps, the function calls `findNewU
 
 If either check fails, the suggestion is discarded.
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:462-497](), [supabase/functions/monitor-law-changes/index.ts:615-669]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:462-497](<>), [supabase/functions/monitor-law-changes/index.ts:615-669](<>)
 
 ## Change Summarization via HuggingFace
 
@@ -375,7 +375,7 @@ Two HuggingFace API calls are used, both against `mistralai/Mistral-7B-Instruct-
 
 Both degrade gracefully when `HF_TOKEN` is absent — the monitor still runs and records events, just with generic summaries.
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:334-424]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:334-424](<>)
 
 ## Cron Lock Pattern
 
@@ -401,7 +401,7 @@ create table if not exists public.cron_locks (
 );
 ```
 
-Sources: [supabase/migrations/0034_cron_locks.sql:16-84](), [supabase/functions/monitor-law-changes/index.ts:426-535](), [supabase/functions/monitor-law-changes/index.ts:1043-1051]()
+Sources: [supabase/migrations/0034_cron_locks.sql:16-84](<>), [supabase/functions/monitor-law-changes/index.ts:426-535](<>), [supabase/functions/monitor-law-changes/index.ts:1043-1051](<>)
 
 ## Scheduling & Authentication
 
@@ -413,7 +413,7 @@ The function reads `law_monitor_service_key` from Vault, then fires `pg_net.http
 
 Migration 0049 amended the trigger to send both `Authorization: Bearer` and `x-trigger-secret` headers during a deployment transition window.
 
-Sources: [supabase/migrations/0035_schedule_law_monitor.sql:37-115](), [supabase/migrations/0049_cron_trigger_shared_secret.sql:42-75]()
+Sources: [supabase/migrations/0035_schedule_law_monitor.sql:37-115](<>), [supabase/migrations/0049_cron_trigger_shared_secret.sql:42-75](<>)
 
 ### Authentication Gate
 
@@ -424,7 +424,7 @@ Sources: [supabase/migrations/0035_schedule_law_monitor.sql:37-115](), [supabase
 
 The function runs with `verify_jwt: false`, so this check is the only authentication gate.
 
-Sources: [supabase/functions/monitor-law-changes/index.ts:442-455]()
+Sources: [supabase/functions/monitor-law-changes/index.ts:442-455](<>)
 
 ### Operational Visibility
 
@@ -437,7 +437,7 @@ The `law_monitor_status()` function provides a one-query health check:
 | `hours_since_check` | `< 48`        |
 | `broken_pages`      | Ideally `0`   |
 
-Sources: [supabase/migrations/0035_schedule_law_monitor.sql:74-99]()
+Sources: [supabase/migrations/0035_schedule_law_monitor.sql:74-99](<>)
 
 ## Monitoring Coverage Model
 
@@ -457,7 +457,7 @@ The `CoverageStatus` type is `'active' | 'unavailable' | 'unverified'`, with a `
 
 The `noSupportedJurisdictionCovered()` function returns `true` when no jurisdiction has `status === 'active'` — unverified is **not** counted as coverage.
 
-Sources: [src/features/app/guidance/monitoringCoverage.ts:32-127](), [src/features/app/guidance/monitoringCoverage.test.ts:17-100]()
+Sources: [src/features/app/guidance/monitoringCoverage.ts:32-127](<>), [src/features/app/guidance/monitoringCoverage.test.ts:17-100](<>)
 
 ### `GuidanceSourcesPanel`
 
@@ -467,13 +467,13 @@ The panel is the customer-facing surface. Key behaviors:
 - **Guidance sources and law updates require authentication** — fetched via `fetchGuidanceSources()` and `fetchRecentLawUpdates()` after sign-in
 - **Staleness warning** via `updatesAreStale()` when the newest entry is > 7 days old
 
-Sources: [src/features/app/guidance/GuidanceSourcesPanel.tsx:49-130](), [src/features/app/guidance/GuidanceSourcesPanel.test.tsx:17-96]()
+Sources: [src/features/app/guidance/GuidanceSourcesPanel.tsx:49-130](<>), [src/features/app/guidance/GuidanceSourcesPanel.test.tsx:17-96](<>)
 
 ### `updatesAreStale()`
 
 A freshness guard introduced after the monitor stopped for 52 days without any in-product indication. Compares the `detectedAt` of the newest update to `STALE_AFTER_DAYS = 7`. Returns `false` (safe) when no entries carry a date, or when dates are unparseable.
 
-Sources: [src/features/app/guidance/updatesAreStale.ts:1-20]()
+Sources: [src/features/app/guidance/updatesAreStale.ts:1-20](<>)
 
 ### Client API: `fetchRecentLawUpdates()`
 
@@ -484,7 +484,7 @@ Reads from `law_updates` with two filters:
 
 Row shapes are Zod-validated via `lawUpdateRowSchema` and mapped from snake_case to camelCase.
 
-Sources: [src/features/app/guidance/api.ts:75-103]()
+Sources: [src/features/app/guidance/api.ts:75-103](<>)
 
 ## Law Update Relevance Filtering
 
@@ -497,7 +497,7 @@ The `selectRelevantUpdates()` function narrows a batch to updates matching a rec
 
 The `RelevanceVerdict` type carries a `reason` field: `'relevant' | 'unsupported-jurisdiction' | 'not-a-law-change'`.
 
-Sources: [supabase/functions/_shared/lawUpdateRelevance.ts:43-130](), [supabase/functions/_shared/lawUpdateRelevance.test.ts:32-194]()
+Sources: [supabase/functions/_shared/lawUpdateRelevance.ts:43-130](<>), [supabase/functions/_shared/lawUpdateRelevance.test.ts:32-194](<>)
 
 ## Law Change Notification Digests (`send-law-updates`)
 
@@ -529,7 +529,7 @@ sequenceDiagram
     ef->>db: upsert law_update_notifications (status='sent')
 ```
 
-Sources: [supabase/functions/send-law-updates/index.ts:1-165](), [supabase/migrations/0046_law_update_digest.sql:90-169]()
+Sources: [supabase/functions/send-law-updates/index.ts:1-165](<>), [supabase/migrations/0046_law_update_digest.sql:90-169](<>)
 
 ### Review Gate
 
@@ -539,7 +539,7 @@ Only rows with `review_status = 'reviewed'` are digestable. The `review_status` 
 update public.law_updates set review_status = 'reviewed' where id = '<uuid>';
 ```
 
-Sources: [supabase/migrations/0046_law_update_digest.sql:18-39]()
+Sources: [supabase/migrations/0046_law_update_digest.sql:18-39](<>)
 
 ### Digest Filtering (`selectDigestableUpdates`)
 
@@ -549,13 +549,13 @@ The `selectDigestableUpdates()` pure function in `lawUpdateDigest.ts` applies th
 2. Not in `alreadySentIds` (deduplicated via `law_update_notifications` unique constraint on `(law_update_id, recipient)`)
 3. `detected_at >= GO_LIVE_AT` (fixed at `2026-08-06T00:00:00Z` to prevent backfill dumps)
 
-Sources: [supabase/functions/_shared/lawUpdateDigest.ts:57-70]()
+Sources: [supabase/functions/_shared/lawUpdateDigest.ts:57-70](<>)
 
 ### Recipient Jurisdiction Resolution
 
 `resolveRecipientJurisdictions()` resolves which jurisdictions a recipient should hear about: `organizations.default_jurisdiction` wins over `profiles.province`. Not wired to real customers yet — the internal pilot sends all supported jurisdictions to `SUPPORT_OPERATOR_EMAIL`.
 
-Sources: [supabase/functions/_shared/lawUpdateDigest.ts:32-41]()
+Sources: [supabase/functions/_shared/lawUpdateDigest.ts:32-41](<>)
 
 ### `law_update_notifications` Outbox
 
@@ -571,7 +571,7 @@ create table if not exists public.law_update_notifications (
 );
 ```
 
-Sources: [supabase/migrations/0046_law_update_digest.sql:47-57]()
+Sources: [supabase/migrations/0046_law_update_digest.sql:47-57](<>)
 
 ### CASL Compliance Design
 
@@ -582,7 +582,7 @@ The notification architecture is shaped by CASL (Canada's Anti-Spam Legislation)
 
 The current internal-only pilot avoids the CASL question entirely since the recipient is an operational alias.
 
-Sources: [docs/LAW_CHANGE_NOTIFICATIONS.md:49-108]()
+Sources: [docs/LAW_CHANGE_NOTIFICATIONS.md:49-108](<>)
 
 ## Canonical Facts Enforcement
 
@@ -594,7 +594,7 @@ The monitoring coverage is a canonical fact enforced by `src/canonicalFacts.test
 
 A drift between `CANONICAL_FACTS.md` and the code fails `npm run check`.
 
-Sources: [src/canonicalFacts.test.ts:109-123](), [src/canonicalFacts.test.ts:168-181]()
+Sources: [src/canonicalFacts.test.ts:109-123](<>), [src/canonicalFacts.test.ts:168-181](<>)
 
 ## File Inventory
 

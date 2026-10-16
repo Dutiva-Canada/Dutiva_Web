@@ -145,13 +145,13 @@ when Deno is on PATH and skips loudly when it is not — same fail-soft conventi
 
 ## CI pipelines
 
-| Pipeline                      | What it gates                                                                                             |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `.woodpecker/check.yml`       | typecheck, lint, test:coverage, message-scopes, facts, **architecture**, **brand-assets**, **full build** |
-| `.woodpecker/live-checks.yml` | migration drift + RLS (needs Supabase secrets)                                                            |
-| `.woodpecker/e2e.yml`         | Playwright smoke on `dist/`                                                                               |
-| `.woodpecker/e2e-auth.yml`    | Authenticated production CRUD matrix — needs `SUPABASE_SERVICE_ROLE_KEY`                                  |
-| `.woodpecker/statute-drift.yml` | Cron/manual only — re-verifies Advisor statute citations against live government sources                |
+| Pipeline                        | What it gates                                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `.woodpecker/check.yml`         | typecheck, lint, test:coverage, message-scopes, facts, **architecture**, **brand-assets**, **full build** |
+| `.woodpecker/live-checks.yml`   | migration drift + RLS (needs Supabase secrets)                                                            |
+| `.woodpecker/e2e.yml`           | Playwright smoke on `dist/`                                                                               |
+| `.woodpecker/e2e-auth.yml`      | Authenticated production CRUD matrix — needs `SUPABASE_SERVICE_ROLE_KEY`                                  |
+| `.woodpecker/statute-drift.yml` | Cron/manual only — re-verifies Advisor statute citations against live government sources                  |
 
 **Live checks:** configure `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` in Woodpecker
 so green CI implies live DB parity, not just local green.

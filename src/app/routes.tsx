@@ -287,7 +287,7 @@ function AppLegacyRedirect() {
  *   /pr/answers             GEO tracker — brand presence in AI answers
  *   /pr/mentions            coverage/mentions log with tone tagging
  *   /pr/report              monthly desk summary + Markdown export
- *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /app
+ *   /employer & /fr/employeur   employer door — sign-in → org bootstrap → /workspace
  *   /sign/:token               external Dutiva Signature (no login)
  *   /fr/sign/:token            external signing (French UI)
  *   *                      404 (noindex)

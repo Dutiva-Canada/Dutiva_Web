@@ -33,8 +33,8 @@ review, not just writing").
 | 4   | Notice-bands review pack (QC + FED statutory tables)                                                       | **1**       | EN (statutes quoted bilingually) | ~4,500                  | Employment lawyer — pack is built for a ~1-hour sign-off |
 | 5   | Advisor grounding corpus rows (`advisor_guidance_chunks`)                                                  | **42**      | EN + FR per row                  | —                       | Employment lawyer or supervised paralegal                |
 | 6   | Public articles (`/blog` 6 + `/guides` 6)                                                                  | **12**      | EN + FR = 24 pages               | ~27,000                 | Editorial legal pass (deferrable)                        |
-| 7   | In-app reference guides (`/app/knowledge/*`)                                                               | **8**       | bilingual                        | ~23,000                 | Editorial legal pass (deferrable)                        |
-| 8   | In-app flows & checklists (`/app/workflows/*`)                                                             | **4**       | bilingual                        | ~11,000                 | Editorial legal pass (deferrable)                        |
+| 7   | In-app reference guides (`/workspace/knowledge/*`)                                                         | **8**       | bilingual                        | ~23,000                 | Editorial legal pass (deferrable)                        |
+| 8   | In-app flows & checklists (`/workspace/workflows/*`)                                                       | **4**       | bilingual                        | ~11,000                 | Editorial legal pass (deferrable)                        |
 | 9   | Small compliance copy (CASL consent string, signup emails, FAQ, known-limitations page, jurisdiction tool) | ~6 surfaces | bilingual                        | ~5,000                  | Quick lawyer pass alongside bucket 1                     |
 
 ¹ Word counts are of the source files (TypeScript string content plus a

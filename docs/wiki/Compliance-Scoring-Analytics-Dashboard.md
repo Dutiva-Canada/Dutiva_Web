@@ -45,7 +45,7 @@ This page documents the compliance score formula (v3), the `aggregation.ts` pure
 
 The score formula is versioned via the `SCORE_FORMULA_VERSION` constant (currently **3**) defined in both the client-side `aggregation.ts` and the server-side `scoring.ts` mirror. Every persisted snapshot records the version that produced it so trend charts crossing a formula change can be labeled.
 
-[src/features/app/views/analytics/aggregation.ts:284]()
+[src/features/app/views/analytics/aggregation.ts:284](<>)
 
 ### Formula Version History
 
@@ -55,7 +55,7 @@ The score formula is versioned via the `SCORE_FORMULA_VERSION` constant (current
 | v2      | 0068      | Severity-weighted findings, cancelled tasks excluded, open-critical ceiling of 69         |
 | v3      | 0069      | Obligations as fourth component, tasks scoped to provenanced rows only                    |
 
-Sources: [src/features/app/views/analytics/aggregation.ts:271-284](), [supabase/migrations/0068_score_formula_v2.sql:1-11](), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-17]()
+Sources: [src/features/app/views/analytics/aggregation.ts:271-284](<>), [supabase/migrations/0068_score_formula_v2.sql:1-11](<>), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-17](<>)
 
 ### The Four Components
 
@@ -68,7 +68,7 @@ The score is composed of four independently computed components. Each yields a r
 | **Findings**    | `compliance_findings` | `status = 'resolved'` or `'dismissed'` | All findings                          | Severity-weighted |
 | **Obligations** | `hr_obligations`      | `status = 'ok'`                        | All obligations                       | Raw ratio         |
 
-Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:181-208](), [supabase/functions/record-score-snapshots/scoring.ts:111-141]()
+Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:181-208](<>), [supabase/functions/record-score-snapshots/scoring.ts:111-141](<>)
 
 ### Provenanced Task Scoping
 
@@ -79,13 +79,13 @@ isProvenancedTask(category, linkedKind) →
    category !== 'general' || linkedKind !== null
 ```
 
-[src/features/app/views/analytics/aggregation.ts:294-296]()
+[src/features/app/views/analytics/aggregation.ts:294-296](<>)
 
 Cancelled tasks (`status = 'cancelled'`) are excluded from both numerator and denominator.
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:186-187]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:186-187](<>)
 
-Sources: [src/features/app/views/analytics/aggregation.ts:286-296](), [supabase/functions/record-score-snapshots/scoring.ts:34-36]()
+Sources: [src/features/app/views/analytics/aggregation.ts:286-296](<>), [supabase/functions/record-score-snapshots/scoring.ts:34-36](<>)
 
 ### Severity-Weighted Findings
 
@@ -101,23 +101,23 @@ The findings component uses `weightedComponent` instead of `scoreComponent`. The
 
 The `pct` is computed as `weightedDone / weightedTotal`, so a critical exposure moves the score more than an informational note. The meter text displayed to the user still shows raw counts (e.g. "1 of 2") via `done`/`total`.
 
-[src/features/app/views/analytics/aggregation.ts:298-357]()
+[src/features/app/views/analytics/aggregation.ts:298-357](<>)
 
 A finding is "closed" when its status is `'resolved'` or `'dismissed'`.
 
-[supabase/functions/record-score-snapshots/scoring.ts:107-109]()
+[supabase/functions/record-score-snapshots/scoring.ts:107-109](<>)
 
-Sources: [src/features/app/views/analytics/aggregation.ts:303-309](), [src/features/app/views/analytics/aggregation.ts:343-357](), [src/features/app/views/compliance/productionApi.ts:64-65]()
+Sources: [src/features/app/views/analytics/aggregation.ts:303-309](<>), [src/features/app/views/analytics/aggregation.ts:343-357](<>), [src/features/app/views/compliance/productionApi.ts:64-65](<>)
 
 ### Blending and Critical Ceiling
 
 `blendScore` takes the **unweighted mean** of only the components that have data (`pct !== null`), rounded to the nearest integer. If no component has rows, it returns `null` — the dashboard shows an empty state rather than a number.
 
-[src/features/app/views/analytics/aggregation.ts:363-367]()
+[src/features/app/views/analytics/aggregation.ts:363-367](<>)
 
 **The critical ceiling** (`CRITICAL_SCORE_CEILING = 69`): while any open finding has `severity = 'critical'`, the blended score is capped at 69. This prevents a strong average from hiding a critical exposure. The cap never _raises_ a score already at or below 69 — in that case `capped` is `false` and no explanatory note is shown.
 
-[src/features/app/views/analytics/aggregation.ts:316-384]()
+[src/features/app/views/analytics/aggregation.ts:316-384](<>)
 
 **Score pipeline diagram**
 
@@ -146,7 +146,7 @@ flowchart TD
     W["FINDING_SEVERITY_WEIGHTS"] -.->|"weights"| F
 ```
 
-Sources: [src/features/app/views/analytics/aggregation.ts:363-384](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:210-215]()
+Sources: [src/features/app/views/analytics/aggregation.ts:363-384](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:210-215](<>)
 
 ### Worked Example
 
@@ -160,15 +160,15 @@ From the drift test in `scoring.test.ts`:
 
 No open critical finding, so no ceiling applied.
 
-[supabase/functions/record-score-snapshots/scoring.test.ts:116-141]()
+[supabase/functions/record-score-snapshots/scoring.test.ts:116-141](<>)
 
-Sources: [supabase/functions/record-score-snapshots/scoring.test.ts:116-141](), [docs/SCORING_LOGIC.md:111-125]()
+Sources: [supabase/functions/record-score-snapshots/scoring.test.ts:116-141](<>), [docs/SCORING_LOGIC.md:111-125](<>)
 
 ## `aggregation.ts` — Pure Functions Library
 
 All numeric computation for the Analytics dashboard lives in `aggregation.ts`. This module is pure and deterministic: callers inject "today" as a YYYY-MM-DD string — the demo passes `demoTodayISO`, production passes the real date — so every path is unit-testable and the demo stays stable.
 
-[src/features/app/views/analytics/aggregation.ts:1-9]()
+[src/features/app/views/analytics/aggregation.ts:1-9](<>)
 
 ### Function Inventory
 
@@ -194,7 +194,7 @@ All numeric computation for the Analytics dashboard lives in `aggregation.ts`. T
 | `blendScore(components)`                                | Unweighted mean of present components | `number \| null`                         |
 | `applyCriticalCeiling(score, openCriticalCount)`        | Cap at 69 with open critical          | `CeilingResult`                          |
 
-Sources: [src/features/app/views/analytics/aggregation.ts:11-384]()
+Sources: [src/features/app/views/analytics/aggregation.ts:11-384](<>)
 
 ### Attention Queue
 
@@ -208,9 +208,9 @@ Sources: [src/features/app/views/analytics/aggregation.ts:11-384]()
 
 Ties break on `id` for a stable order. Due-today is classified as `due_soon`, not overdue.
 
-[src/features/app/views/analytics/aggregation.ts:60-73]()
+[src/features/app/views/analytics/aggregation.ts:60-73](<>)
 
-Sources: [src/features/app/views/analytics/aggregation.ts:46-73](), [src/features/app/views/analytics/aggregation.test.ts:59-97]()
+Sources: [src/features/app/views/analytics/aggregation.ts:46-73](<>), [src/features/app/views/analytics/aggregation.test.ts:59-97](<>)
 
 ### Expiry Buckets
 
@@ -225,21 +225,21 @@ Sources: [src/features/app/views/analytics/aggregation.ts:46-73](), [src/feature
 
 Records more than 90 days out are excluded. `flattenBuckets` returns a single soonest-first list across all four.
 
-[src/features/app/views/analytics/aggregation.ts:184-210]()
+[src/features/app/views/analytics/aggregation.ts:184-210](<>)
 
-Sources: [src/features/app/views/analytics/aggregation.ts:172-210](), [src/features/app/views/analytics/aggregation.test.ts:150-203]()
+Sources: [src/features/app/views/analytics/aggregation.ts:172-210](<>), [src/features/app/views/analytics/aggregation.test.ts:150-203](<>)
 
 ## `AnalyticsProductionView` — Dashboard Cards
 
 `AnalyticsProductionView` renders the production-mode analytics dashboard. It fetches data from nine module `productionApi` boundaries independently, computes the score live, and lays out the dashboard as a responsive card grid.
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:156-837]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:156-837](<>)
 
 ### Data Loading Architecture
 
 Each module's data is loaded independently via the `useModuleRows` hook, which carries its own loading/error/ready state and retry. The `CardData` component gates rendering: if any dependency is errored, it shows `CardError` with a retry button; if any is loading, it shows `CardSkeleton`; otherwise it renders children. This means a failing module degrades **one card**, not the whole page.
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:99-154]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:99-154](<>)
 
 **Data flow from modules to cards**
 
@@ -311,7 +311,7 @@ flowchart LR
     SMod --> TREND
 ```
 
-Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:164-172](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:506-832]()
+Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:164-172](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:506-832](<>)
 
 ### Dashboard Card Inventory
 
@@ -328,44 +328,44 @@ Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:164-172](
 | Leave Overview            | `leave`          | employees, leaves                                 | Sort by return date, imminent ≤ 14 days         |
 | Headcount & Turnover      | `trend`          | employees, snapshots                              | `turnoverRatePct`, `TrendLineChart`             |
 
-Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:510-833](), [src/features/app/views/analytics/cardVisibility.ts:17-28]()
+Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:510-833](<>), [src/features/app/views/analytics/cardVisibility.ts:17-28](<>)
 
 ### Card Visibility
 
 Per-card visibility is controlled by `analyticsCardVisible` in `cardVisibility.ts`. Each card has a minimum role floor (`CARD_MIN_ROLE`); currently all cards are set to `'viewer'`, so every active member sees everything. Org admins always bypass the check. Changing a card's floor is a one-word edit.
 
-[src/features/app/views/analytics/cardVisibility.ts:29-58]()
+[src/features/app/views/analytics/cardVisibility.ts:29-58](<>)
 
-Sources: [src/features/app/views/analytics/cardVisibility.ts:1-58](), [src/features/app/views/analytics/cardVisibility.test.ts:1-37]()
+Sources: [src/features/app/views/analytics/cardVisibility.ts:1-58](<>), [src/features/app/views/analytics/cardVisibility.test.ts:1-37](<>)
 
 ### Score Hero Card
 
 The `ScoreHero` component renders the large score figure (e.g. `82/100`) and a `DeltaChip` showing the signed change vs the oldest point in the 6-month window (e.g. "+8 vs February"). The `ScoreBreakdownMeters` component renders one labeled progress meter per component, with the lowest component flagged with a "Lowest" warning chip.
 
-[src/features/app/views/analytics/ScoreHero.tsx:12-41]()
-[src/features/app/views/analytics/ScoreBreakdownMeters.tsx:24-63]()
+[src/features/app/views/analytics/ScoreHero.tsx:12-41](<>)
+[src/features/app/views/analytics/ScoreBreakdownMeters.tsx:24-63](<>)
 
 When the blend is capped, the card prints a red note: "Capped at 69 while a critical finding is open — resolve or dismiss it to lift the ceiling."
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:525-530]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:525-530](<>)
 
 When past months in the trend were computed under a different formula version, a footnote appears: "Earlier months were computed under a previous score formula."
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:553-556]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:553-556](<>)
 
-Sources: [src/features/app/views/analytics/ScoreHero.tsx:1-41](), [src/features/app/views/analytics/ScoreBreakdownMeters.tsx:1-63](), [src/i18n/messages/analytics.ts:50-57]()
+Sources: [src/features/app/views/analytics/ScoreHero.tsx:1-41](<>), [src/features/app/views/analytics/ScoreBreakdownMeters.tsx:1-63](<>), [src/i18n/messages/analytics.ts:50-57](<>)
 
 ### Write-on-Read Snapshot
 
 When the live score is computed, `AnalyticsProductionView` fires a one-shot `recordScoreSnapshot` call to persist the current month's score and headcount via the `productionApi`. This is fire-and-forget — a failure is caught and dropped because history is an enhancement, never a reason to degrade the dashboard.
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:228-246]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:228-246](<>)
 
 The snapshot is written using `recordScoreSnapshot` in `productionApi.ts`, which upserts into `compliance_score_snapshots` with `onConflict: 'organization_id,month'`. It includes a fallback path for pre-migration-0068 schemas that omits the `formula_version` column.
 
-[src/features/app/views/analytics/productionApi.ts:82-127]()
+[src/features/app/views/analytics/productionApi.ts:82-127](<>)
 
-Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:228-246](), [src/features/app/views/analytics/productionApi.ts:82-127]()
+Sources: [src/features/app/views/analytics/AnalyticsProductionView.tsx:228-246](<>), [src/features/app/views/analytics/productionApi.ts:82-127](<>)
 
 ## Snapshot Persistence — `compliance_score_snapshots` Table
 
@@ -379,13 +379,13 @@ The `compliance_score_snapshots` table stores one row per organization per month
 | 0069      | Created `hr_obligations` table, updated formula comment to v3, added month-close cron at 00:05 UTC on the 1st.                                                                                                                |
 | 0070      | Hardened month-close to three retries (`5,25,45 0 1 * *`), enhanced `score_snapshot_status()` with close coverage tracking.                                                                                                   |
 
-Sources: [supabase/migrations/0062_add_compliance_score_snapshots.sql:1-51](), [supabase/migrations/0063_add_headcount_to_score_snapshots.sql:1-16](), [supabase/migrations/0068_score_formula_v2.sql:1-139](), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-112](), [supabase/migrations/0070_score_snapshot_close_retries.sql:1-79]()
+Sources: [supabase/migrations/0062_add_compliance_score_snapshots.sql:1-51](<>), [supabase/migrations/0063_add_headcount_to_score_snapshots.sql:1-16](<>), [supabase/migrations/0068_score_formula_v2.sql:1-139](<>), [supabase/migrations/0069_score_formula_v3_obligations.sql:1-112](<>), [supabase/migrations/0070_score_snapshot_close_retries.sql:1-79](<>)
 
 ## `record-score-snapshots` Edge Function
 
 The `record-score-snapshots` edge function is a scheduled Deno function that upserts every organization's current-month snapshot row. It exists because the write-on-read path in `AnalyticsProductionView` depends on an admin actually opening Analytics — a month without such a visit would leave a gap.
 
-[supabase/functions/record-score-snapshots/index.ts:7-43]()
+[supabase/functions/record-score-snapshots/index.ts:7-43](<>)
 
 ### Two Schedules
 
@@ -396,11 +396,11 @@ The `record-score-snapshots` edge function is a scheduled Deno function that ups
 
 The month-close logic: if the UTC date is the 1st and the UTC hour is 0, the edge function writes _both_ the previous month and the current month. Outside that hour, the previous month is never touched — a manual fire cannot rewrite a frozen month.
 
-[supabase/functions/record-score-snapshots/index.ts:109-118]()
+[supabase/functions/record-score-snapshots/index.ts:109-118](<>)
 
 Three retries (00:05, 00:25, 00:45) exist because `pg_cron` does not backfill missed runs and `pg_net.http_post` is fire-and-forget. One transient failure must not silently lose a month's close.
 
-[supabase/migrations/0070_score_snapshot_close_retries.sql:1-14]()
+[supabase/migrations/0070_score_snapshot_close_retries.sql:1-14](<>)
 
 ### Processing Pipeline
 
@@ -427,17 +427,17 @@ flowchart TD
     NEXT --> RESP["Response:\n { written, skipped, failures }"]
 ```
 
-Sources: [supabase/functions/record-score-snapshots/index.ts:93-195]()
+Sources: [supabase/functions/record-score-snapshots/index.ts:93-195](<>)
 
 ### Paginated Reads
 
 The `fetchAll` helper in the edge function reads in pages of 1000, because PostgREST caps un-ranged selects at `max_rows` (1000 on hosted Supabase) with **no error** — a silent truncation that would score an org on an incomplete slice of its data.
 
-[supabase/functions/record-score-snapshots/index.ts:72-91]()
+[supabase/functions/record-score-snapshots/index.ts:72-91](<>)
 
 The `optionalTable` flag allows `hr_obligations` reads to degrade gracefully to an empty array if the table doesn't exist yet (pre-migration-0069), rather than failing every org.
 
-[supabase/functions/record-score-snapshots/index.ts:150-151]()
+[supabase/functions/record-score-snapshots/index.ts:150-151](<>)
 
 ### Operational Monitoring
 
@@ -453,15 +453,15 @@ The `optionalTable` flag allows `hr_obligations` reads to degrade gracefully to 
 | `orgs_with_closed_prev_month` | Orgs whose previous-month row was actually written by a close run (updated_at ≥ month boundary) |
 | `last_write_at`               | Most recent write timestamp                                                                     |
 
-[supabase/migrations/0070_score_snapshot_close_retries.sql:44-79]()
+[supabase/migrations/0070_score_snapshot_close_retries.sql:44-79](<>)
 
-Sources: [supabase/functions/record-score-snapshots/index.ts:46-91](), [supabase/migrations/0070_score_snapshot_close_retries.sql:44-79]()
+Sources: [supabase/functions/record-score-snapshots/index.ts:46-91](<>), [supabase/migrations/0070_score_snapshot_close_retries.sql:44-79](<>)
 
 ## Demo vs Production Data Paths
 
-`AnalyticsView` is the top-level component at route `/app/analytics`. It checks `workspaceMode` and renders either `AnalyticsDemoView` (demo fixtures) or `AnalyticsProductionView` (live Supabase data).
+`AnalyticsView` is the top-level component at route `/workspace/analytics`. It checks `workspaceMode` and renders either `AnalyticsDemoView` (demo fixtures) or `AnalyticsProductionView` (live Supabase data).
 
-[src/features/app/views/analytics/AnalyticsView.tsx:69-73]()
+[src/features/app/views/analytics/AnalyticsView.tsx:69-73](<>)
 
 ### Demo Mode
 
@@ -478,24 +478,24 @@ The demo renders the Northgate Logistics diorama. Key fixtures:
 
 The demo's last `scoreHistory` point imports `complianceScore` so the overall score on Analytics, Home, and Advisor can never disagree.
 
-[src/data/analytics.ts:35-42]()
+[src/data/analytics.ts:35-42](<>)
 
 Demo mode uses the same `aggregation.ts` functions (e.g. `rankAttention`, `expiryBuckets`, `caseAging`, `scoreDelta`) with the fixed `demoTodayISO`, making all date-relative numbers stable and testable.
 
-[src/features/app/views/analytics/AnalyticsView.tsx:75-213]()
+[src/features/app/views/analytics/AnalyticsView.tsx:75-213](<>)
 
 ### Production Mode
 
 Production mode fetches live data from each module's `productionApi` boundary. The score is computed in real-time from four `scoreComponent`/`weightedComponent` calls, blended, and ceiling-checked. History is built by merging past snapshot rows with the live current-month score, windowed to the last 6 months (`HISTORY_WINDOW_MONTHS = 6`).
 
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:87-88]()
-[src/features/app/views/analytics/AnalyticsProductionView.tsx:248-252]()
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:87-88](<>)
+[src/features/app/views/analytics/AnalyticsProductionView.tsx:248-252](<>)
 
 **Key production-only features:**
 
-- Formula version note on trend charts crossing formula boundaries ([src/features/app/views/analytics/AnalyticsProductionView.tsx:256-265]())
-- Phase 2 cards that say "not tracked in this workspace yet" instead of hiding ([src/features/app/views/analytics/AnalyticsProductionView.tsx:664-668]())
-- Bare fallback rows for employees whose roster status is `on_leave` but have no leave record yet ([src/features/app/views/analytics/AnalyticsProductionView.tsx:437-474]())
+- Formula version note on trend charts crossing formula boundaries ([src/features/app/views/analytics/AnalyticsProductionView.tsx:256-265](<>))
+- Phase 2 cards that say "not tracked in this workspace yet" instead of hiding ([src/features/app/views/analytics/AnalyticsProductionView.tsx:664-668](<>))
+- Bare fallback rows for employees whose roster status is `on_leave` but have no leave record yet ([src/features/app/views/analytics/AnalyticsProductionView.tsx:437-474](<>))
 
 ```mermaid
 flowchart TD
@@ -524,7 +524,7 @@ flowchart TD
     PROD --> AGG
 ```
 
-Sources: [src/features/app/views/analytics/AnalyticsView.tsx:69-73](), [src/data/analytics.ts:22-42](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:156-246]()
+Sources: [src/features/app/views/analytics/AnalyticsView.tsx:69-73](<>), [src/data/analytics.ts:22-42](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:156-246](<>)
 
 ## Score Drift Test — Client ↔ Server Copies
 
@@ -542,13 +542,13 @@ The drift test in `scoring.test.ts` imports **both** copies and asserts bitwise 
 3. **Functions pinned**: `scoreComponent`, `weightedComponent`, `blendScore`, and `applyCriticalCeiling` must return identical outputs for identical inputs across multiple scenarios.
 4. **`computeOrgScore` integration**: tests the full pipeline — provenanced task scoping, severity weighting, ceiling behavior, and null handling.
 
-[supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
+[supabase/functions/record-score-snapshots/scoring.test.ts:1-200](<>)
 
 This is the same discipline as the crisis-phrase mirror (`crisisSignalsDrift.test.ts`): a formula change that lands on one side only fails in CI before it can ship a snapshot the Analytics view would disagree with.
 
-[supabase/functions/record-score-snapshots/scoring.ts:1-19]()
+[supabase/functions/record-score-snapshots/scoring.ts:1-19](<>)
 
-Sources: [supabase/functions/record-score-snapshots/scoring.test.ts:1-106](), [supabase/functions/record-score-snapshots/scoring.ts:1-19]()
+Sources: [supabase/functions/record-score-snapshots/scoring.test.ts:1-106](<>), [supabase/functions/record-score-snapshots/scoring.ts:1-19](<>)
 
 ## `productionApi.ts` — Analytics Persistence Boundary
 
@@ -561,13 +561,13 @@ The analytics `productionApi.ts` exposes two functions:
 
 Both functions use Zod validation on the response rows. `listScoreSnapshots` handles PostgreSQL error `42703` (unknown column) to support the pre-0068 schema, and `recordScoreSnapshot` handles `PGRST204` for the same reason.
 
-[src/features/app/views/analytics/productionApi.ts:1-127]()
+[src/features/app/views/analytics/productionApi.ts:1-127](<>)
 
 The `SCORE_FORMULA_VERSION` is imported from `aggregation.ts` and stamped on every upserted row, so snapshots are version-labeled at write time.
 
-[src/features/app/views/analytics/productionApi.ts:3]()
+[src/features/app/views/analytics/productionApi.ts:3](<>)
 
-Sources: [src/features/app/views/analytics/productionApi.ts:1-127]()
+Sources: [src/features/app/views/analytics/productionApi.ts:1-127](<>)
 
 ## Test Coverage
 
@@ -590,7 +590,7 @@ Covers all pure functions with edge-case scenarios:
 | `weightedComponent`        | Severity weighting vs raw counts, null for empty                                  |
 | `applyCriticalCeiling`     | Capping, no-cap, never-raises-below-69, null passthrough                          |
 
-[src/features/app/views/analytics/aggregation.test.ts:1-415]()
+[src/features/app/views/analytics/aggregation.test.ts:1-415](<>)
 
 ### Integration Tests (`AnalyticsView.test.tsx`)
 
@@ -604,19 +604,19 @@ Tests the full demo view rendering:
 - Probation review task detection
 - Leave overview with protected-leave marking
 
-[src/features/app/views/analytics/AnalyticsView.demo.test.tsx:7-136]()
+[src/features/app/views/analytics/AnalyticsView.demo.test.tsx:7-136](<>)
 
 Also tests production mode rendering, score computation, component meters, and critical ceiling messaging.
 
-[src/features/app/views/analytics/AnalyticsView.production.test.tsx]()
+[src/features/app/views/analytics/AnalyticsView.production.test.tsx](<>)
 
 ### Drift Test (`scoring.test.ts`)
 
 Ensures the edge function's scoring copy produces identical results to the client's `aggregation.ts`. Covers constants, functions, and full `computeOrgScore` integration including unknown severities (defaulting to weight 1).
 
-[supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
+[supabase/functions/record-score-snapshots/scoring.test.ts:1-200](<>)
 
-Sources: [src/features/app/views/analytics/aggregation.test.ts:1-415](), [src/features/app/views/analytics/AnalyticsView.demo.test.tsx](), [src/features/app/views/analytics/AnalyticsView.production.test.tsx](), [supabase/functions/record-score-snapshots/scoring.test.ts:1-200]()
+Sources: [src/features/app/views/analytics/aggregation.test.ts:1-415](<>), [src/features/app/views/analytics/AnalyticsView.demo.test.tsx](<>), [src/features/app/views/analytics/AnalyticsView.production.test.tsx](<>), [supabase/functions/record-score-snapshots/scoring.test.ts:1-200](<>)
 
 ## Component Architecture Summary
 
@@ -673,6 +673,6 @@ flowchart LR
     IDX --> HRO
 ```
 
-Sources: [src/features/app/views/analytics/AnalyticsView.tsx:1-4](), [src/features/app/views/analytics/AnalyticsProductionView.tsx:1-68](), [supabase/functions/record-score-snapshots/index.ts:4](), [supabase/functions/record-score-snapshots/scoring.test.ts:1-12]()
+Sources: [src/features/app/views/analytics/AnalyticsView.tsx:1-4](<>), [src/features/app/views/analytics/AnalyticsProductionView.tsx:1-68](<>), [supabase/functions/record-score-snapshots/index.ts:4](<>), [supabase/functions/record-score-snapshots/scoring.test.ts:1-12](<>)
 
 ---

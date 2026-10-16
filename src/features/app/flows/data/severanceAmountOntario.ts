@@ -176,8 +176,8 @@ export const severanceAmountOntarioFlow: Flow = {
         'Ouvrez d’abord le processus d’admissibilité à l’indemnité de cessation de la LNE de l’Ontario. Calculer des dollars avant de vérifier les conditions invite à verser (ou refuser) la mauvaise prestation.',
       ),
       noDocument: bi(
-        'Use /app/workflows/severance-eligibility-ontario, then return here if both gates are met and no exclusion applies.',
-        'Utilisez /app/workflows/severance-eligibility-ontario, puis revenez ici si les deux conditions sont remplies et qu’aucune exclusion ne s’applique.',
+        'Use /workspace/workflows/severance-eligibility-ontario, then return here if both gates are met and no exclusion applies.',
+        'Utilisez /workspace/workflows/severance-eligibility-ontario, puis revenez ici si les deux conditions sont remplies et qu’aucune exclusion ne s’applique.',
       ),
     },
   ],

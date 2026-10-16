@@ -26,14 +26,14 @@ function renderPlanning(route: string) {
 }
 
 describe('PlanningLayout', () => {
-  it('marks Tasks active on /app/planning/tasks and renders the child outlet', () => {
+  it('marks Tasks active on /workspace/planning/tasks and renders the child outlet', () => {
     renderPlanning('/workspace/planning/tasks')
     expect(screen.getByRole('link', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Calendar' })).not.toHaveAttribute('aria-current')
     expect(screen.getByText('Tasks pane')).toBeInTheDocument()
   })
 
-  it('marks Calendar active on /app/planning/calendar', () => {
+  it('marks Calendar active on /workspace/planning/calendar', () => {
     renderPlanning('/workspace/planning/calendar')
     expect(screen.getByRole('link', { name: 'Calendar' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('link', { name: 'Tasks' })).not.toHaveAttribute('aria-current')

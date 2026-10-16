@@ -39,7 +39,7 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The workspace UI is enclosed in `AppShell`, a responsive layout component that coordinates a sidebar, topbar, mobile navigation, context banners, and global overlays. Every `/app/*` and `/demo/*` route renders inside this frame. On the public demo, `PublicDemoBanner` and `DemoTourRail` render above the main flex area; the sidebar defaults to compact width.
+The workspace UI is enclosed in `AppShell`, a responsive layout component that coordinates a sidebar, topbar, mobile navigation, context banners, and global overlays. Every `/workspace/*` and `/demo/*` route renders inside this frame. On the public demo, `PublicDemoBanner` and `DemoTourRail` render above the main flex area; the sidebar defaults to compact width.
 
 The shell adapts across three breakpoints and persists user layout preferences to `localStorage`.
 
@@ -73,13 +73,13 @@ graph TD
     Sidebar --> SidebarFooter["SidebarFooter"]
 ```
 
-Sources: [src/features/app/shell/AppShell.tsx:1-221](), [src/features/app/shell/Sidebar.tsx:168-233]()
+Sources: [src/features/app/shell/AppShell.tsx:1-221](<>), [src/features/app/shell/Sidebar.tsx:168-233](<>)
 
 ## AppShell Layout
 
 `AppShell` is the outermost workspace component, exported from `src/features/app/shell/AppShell.tsx`. It renders a full-viewport `h-dvh` flex column (using `dvh` instead of `vh` to handle iOS Safari's dynamic toolbar correctly) and coordinates three device tiers via `useLayoutMode()`.
 
-[src/features/app/shell/AppShell.tsx:84-221]()
+[src/features/app/shell/AppShell.tsx:84-221](<>)
 
 ### LayoutMode Resolution
 
@@ -93,7 +93,7 @@ The `useLayoutMode` hook returns one of three modes based on CSS media queries:
 
 The `currentLayoutMode()` function uses `window.matchMedia` queries, and `useLayoutMode` listens for `change` events on both media queries to re-evaluate on resize/rotation.
 
-[src/features/app/shell/AppShell.tsx:27-82]()
+[src/features/app/shell/AppShell.tsx:27-82](<>)
 
 ### SidebarMode Derivation
 
@@ -109,7 +109,7 @@ The expanded preference is stored under `dutiva.sidebar.expanded.v1` via `readPr
 
 Rail width animates with `transition-[width] duration-200`; nav label opacity/transform uses matched expand/collapse timing ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
-[src/features/app/shell/AppShell.tsx:29-44](), [src/features/app/shell/AppShell.tsx:123-125]()
+[src/features/app/shell/AppShell.tsx:29-44](<>), [src/features/app/shell/AppShell.tsx:123-125](<>)
 
 ### Drawer Transition
 
@@ -117,20 +117,20 @@ On mobile, the sidebar opens as a drawer with a scrim overlay. `useDrawerTransit
 
 Opening the drawer moves focus to the header close button (44px target). Closing restores focus to whichever control opened it — topbar hamburger or bottom **More** tab ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
-[src/features/app/shell/AppShell.tsx:46-68](), [src/features/app/shell/AppShell.tsx:172-195]()
+[src/features/app/shell/AppShell.tsx:46-68](<>), [src/features/app/shell/AppShell.tsx:172-195](<>)
 
 ### Mobile Input Zoom Guard & Touch Targets
 
 Two mobile conventions live outside the shell components:
 
-- **16px form-control floor** — iOS Safari page-zooms toward any focused input under 16px. Inputs sit at 13–15px by design on desktop, so `base.css` forces `font-size: 16px` on `input`/`textarea`/`select` below the 768px breakpoint. The literal 16px is the browser's behavioural threshold, not a design token. [src/styles/base.css:122-132]()
-- **Touch targets** — interactive controls bump to ≥44px effective height below `md:` (e.g. `py-[14px] md:py-[6px]`), and mobile surfaces suppress `autoFocus` so the keyboard doesn't open on arrival and cover the page's content. [src/features/app/views/home/HomeBriefHero.tsx](), [src/features/app/views/home/HomeProductionEmptyState.tsx]()
+- **16px form-control floor** — iOS Safari page-zooms toward any focused input under 16px. Inputs sit at 13–15px by design on desktop, so `base.css` forces `font-size: 16px` on `input`/`textarea`/`select` below the 768px breakpoint. The literal 16px is the browser's behavioural threshold, not a design token. [src/styles/base.css:122-132](<>)
+- **Touch targets** — interactive controls bump to ≥44px effective height below `md:` (e.g. `py-[14px] md:py-[6px]`), and mobile surfaces suppress `autoFocus` so the keyboard doesn't open on arrival and cover the page's content. [src/features/app/views/home/HomeBriefHero.tsx](<>), [src/features/app/views/home/HomeProductionEmptyState.tsx](<>)
 
 ### Title Derivation
 
 The topbar/mobile-topbar title adapts to workspace mode. In **production** mode, `moduleLabelFor()` returns the module's canonical label (never a fixture person's name). In **demo** mode, `viewLabelFor()` uses richer labels including employee names on profile routes.
 
-[src/features/app/shell/AppShell.tsx:110-113]()
+[src/features/app/shell/AppShell.tsx:110-113](<>)
 
 **Layout modes diagram**
 
@@ -154,7 +154,7 @@ stateDiagram-v2
     drawer --> SM
 ```
 
-Sources: [src/features/app/shell/AppShell.tsx:27-125](), [src/lib/prefs.ts:1-16]()
+Sources: [src/features/app/shell/AppShell.tsx:27-125](<>), [src/lib/prefs.ts:1-16](<>)
 
 ## Sidebar System
 
@@ -168,13 +168,13 @@ The `Sidebar` component (`src/features/app/shell/Sidebar.tsx`) accepts a `Sideba
 | `compact`  | 64px (`w-[64px]`)   | In-flow, `z-1`               | Hidden (tooltips) | Always visible, no headings |
 | `drawer`   | 292px               | Fixed, `z-70`, CSS translate | Visible text      | Collapsible headings        |
 
-[src/features/app/shell/Sidebar.tsx:19-87]()
+[src/features/app/shell/Sidebar.tsx:19-87](<>)
 
 ### SidebarHeader
 
 `SidebarHeader` displays the organization badge (first letter of `identity.companyName`), the company name, and an "HR workspace" subtitle. In drawer mode, a close button (×) is shown. In compact mode, the company name is hidden with `max-w-0` and a `SidebarTooltip` provides hover context.
 
-[src/features/app/shell/SidebarHeader.tsx:1-60]()
+[src/features/app/shell/SidebarHeader.tsx:1-60](<>)
 
 ### SidebarSearch (⌘K / Ctrl+K)
 
@@ -182,26 +182,26 @@ The `Sidebar` component (`src/features/app/shell/Sidebar.tsx`) accepts a `Sideba
 
 The `SearchProvider` registers a global `keydown` listener that opens the search overlay on `⌘K` / `Ctrl+K`.
 
-[src/features/app/shell/SidebarSearch.tsx:1-45](), [src/features/app/search/SearchProvider.tsx:11-19]()
+[src/features/app/shell/SidebarSearch.tsx:1-45](<>), [src/features/app/search/SearchProvider.tsx:11-19](<>)
 
 ### SidebarCreateMenu
 
 `SidebarCreateMenu` is a dropdown menu for quick entity creation. It uses `useCreateActions()` to define six action items:
 
-| Action        | Key             | Route                   | Status   |
-| ------------- | --------------- | ----------------------- | -------- |
-| Conversation  | `conversation`  | `/app/advisor`          | Active   |
-| Document      | `document`      | `/app/documents/studio` | Active   |
-| Case          | `case`          | `/app/cases`            | Active   |
-| Workflow      | `workflow`      | —                       | Disabled |
-| Employee      | `employee`      | —                       | Disabled |
-| Communication | `communication` | —                       | Disabled |
+| Action        | Key             | Route                         | Status   |
+| ------------- | --------------- | ----------------------------- | -------- |
+| Conversation  | `conversation`  | `/workspace/advisor`          | Active   |
+| Document      | `document`      | `/workspace/documents/studio` | Active   |
+| Case          | `case`          | `/workspace/cases`            | Active   |
+| Workflow      | `workflow`      | —                             | Disabled |
+| Employee      | `employee`      | —                             | Disabled |
+| Communication | `communication` | —                             | Disabled |
 
 Disabled items show an "Unavailable" badge and have `aria-disabled="true"` with a shared `aria-describedby` pointing to a hidden description. The menu supports full keyboard navigation: `ArrowUp`/`ArrowDown` for item focus, `Escape` to close with focus return to the trigger button.
 
 In **compact** sidebar mode, the panel anchors to `left-full ml-2` beside the 64px rail so the menu is not clipped off-screen ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)).
 
-[src/features/app/shell/SidebarCreateMenu.tsx:9-46](), [src/features/app/shell/SidebarCreateMenu.tsx:73-102]()
+[src/features/app/shell/SidebarCreateMenu.tsx:9-46](<>), [src/features/app/shell/SidebarCreateMenu.tsx:73-102](<>)
 
 ### SidebarNavItem
 
@@ -209,15 +209,15 @@ Each nav link is rendered by `SidebarNavItem`. It wraps a React Router `<Link>` 
 
 Badges are rendered via `SidebarBadge`, which supports four tones: `gold`, `neutral`, `risk`, and `warn`. Each tone maps to a distinct CSS class set. Badge accessible labels are derived from `shell_badge_*_aria` i18n templates with `{count}` replacement.
 
-[src/features/app/shell/SidebarNavItem.tsx:1-60](), [src/features/app/shell/SidebarBadge.tsx:1-44]()
+[src/features/app/shell/SidebarNavItem.tsx:1-60](<>), [src/features/app/shell/SidebarBadge.tsx:1-44](<>)
 
 ### SidebarTooltip
 
 `SidebarTooltip` provides positioned tooltips that appear on hover/focus for compact-mode items. It renders as a `role="tooltip"` span fixed-positioned to the right of the trigger (or below, for bottom position). It tracks `resize` and `scroll` events to reposition dynamically, including scroll events on the nearest `[data-rail-scroll]` ancestor.
 
-[src/features/app/shell/SidebarTooltip.tsx:1-74]()
+[src/features/app/shell/SidebarTooltip.tsx:1-74](<>)
 
-Sources: [src/features/app/shell/Sidebar.tsx:96-233](), [src/features/app/shell/SidebarCreateMenu.tsx:1-231](), [src/features/app/shell/SidebarNavItem.tsx:1-60](), [src/features/app/shell/SidebarSearch.tsx:1-45]()
+Sources: [src/features/app/shell/Sidebar.tsx:96-233](<>), [src/features/app/shell/SidebarCreateMenu.tsx:1-231](<>), [src/features/app/shell/SidebarNavItem.tsx:1-60](<>), [src/features/app/shell/SidebarSearch.tsx:1-45](<>)
 
 ## Collapsible SidebarSections with localStorage Persistence
 
@@ -233,13 +233,13 @@ The sidebar organizes `NAV_GROUPS` into collapsible sections. Only groups with a
 | `finance`    | Finance / Finance               | Compensation, Finance                      |
 | `growth`     | Growth / Croissance             | CRM                                        |
 
-[src/features/app/shell/Sidebar.tsx:21-33]()
+[src/features/app/shell/Sidebar.tsx:21-33](<>)
 
 ### Persistence Mechanism
 
 Section open/closed state is stored in `localStorage` under the key `dutiva.sidebar.sections.v1` as a JSON object. The functions `readSectionPrefs()` and `writeSectionPrefs()` handle serialization with graceful fallback to defaults (all sections open).
 
-[src/features/app/shell/Sidebar.tsx:29-55]()
+[src/features/app/shell/Sidebar.tsx:29-55](<>)
 
 ### Auto-Expansion
 
@@ -250,13 +250,13 @@ effectiveSections = { ...storedSections }
 if (activeGroup matches a section) effectiveSections[key] = true
 ```
 
-[src/features/app/shell/Sidebar.tsx:57-68](), [src/features/app/shell/Sidebar.tsx:119-126]()
+[src/features/app/shell/Sidebar.tsx:57-68](<>), [src/features/app/shell/Sidebar.tsx:119-126](<>)
 
 ### SidebarSection Component
 
 `SidebarSection` renders a collapsible group with a heading button (only in expanded mode) and a `grid-rows` CSS transition for smooth open/close animation. In compact mode, it skips the heading and renders children directly in a visible `<div>`.
 
-[src/features/app/shell/SidebarSection.tsx:1-63]()
+[src/features/app/shell/SidebarSection.tsx:1-63](<>)
 
 **Section collapse state flow diagram**
 
@@ -271,7 +271,7 @@ flowchart LR
     Effective --> SidebarSection["SidebarSection\n(open prop)"]
 ```
 
-Sources: [src/features/app/shell/Sidebar.tsx:26-126](), [src/features/app/shell/SidebarSection.tsx:1-63](), [src/lib/prefs.ts:1-16]()
+Sources: [src/features/app/shell/Sidebar.tsx:26-126](<>), [src/features/app/shell/SidebarSection.tsx:1-63](<>), [src/lib/prefs.ts:1-16](<>)
 
 ## navConfig — NAV_GROUPS and isNavActive
 
@@ -282,38 +282,38 @@ The navigation structure is defined in `src/features/app/shell/navConfig.ts`. It
 ```mermaid
 graph TD
     G0["Group 0\n(heading: null)"]
-    G0 --> home["home → /app/home"]
-    G0 --> advisor["advisor → /app/advisor"]
-    G0 --> memory["memory → /app/settings/memory\ncustom isActive"]
-    G0 --> workflows["workflows → /app/workflows"]
+    G0 --> home["home → /workspace/home"]
+    G0 --> advisor["advisor → /workspace/advisor"]
+    G0 --> memory["memory → /workspace/settings/memory\ncustom isActive"]
+    G0 --> workflows["workflows → /workspace/workflows"]
 
     G1["Group 1 — Records"]
-    G1 --> employees["employees → /app/employees"]
-    G1 --> cases["cases → /app/cases\nbadge: count (neutral)"]
-    G1 --> hiring["hiring → /app/hiring"]
-    G1 --> documents["documents → /app/documents/hr-library\ncustom isActive"]
-    G1 --> knowledge["knowledge → /app/knowledge"]
+    G1 --> employees["employees → /workspace/employees"]
+    G1 --> cases["cases → /workspace/cases\nbadge: count (neutral)"]
+    G1 --> hiring["hiring → /workspace/hiring"]
+    G1 --> documents["documents → /workspace/documents/hr-library\ncustom isActive"]
+    G1 --> knowledge["knowledge → /workspace/knowledge"]
 
     G2["Group 2 — Programs"]
-    G2 --> compliance["compliance → /app/compliance\nbadge: 3 (warn)"]
-    G2 --> compensation["compensation → /app/compensation"]
-    G2 --> communications["communications → /app/communications"]
-    G2 --> comms["comms → /app/comms/overview\ncustom isActive"]
-    G2 --> finance["finance → /app/finance/overview\ncustom isActive"]
-    G2 --> wellbeing["wellbeing → /app/wellbeing\nbadge: count (warn)"]
-    G2 --> planning["planning → /app/planning/tasks\ncustom isActive"]
+    G2 --> compliance["compliance → /workspace/compliance\nbadge: 3 (warn)"]
+    G2 --> compensation["compensation → /workspace/compensation"]
+    G2 --> communications["communications → /workspace/communications"]
+    G2 --> comms["comms → /workspace/comms/overview\ncustom isActive"]
+    G2 --> finance["finance → /workspace/finance/overview\ncustom isActive"]
+    G2 --> wellbeing["wellbeing → /workspace/wellbeing\nbadge: count (warn)"]
+    G2 --> planning["planning → /workspace/planning/tasks\ncustom isActive"]
 
     G3["Group 3\n(heading: null)"]
-    G3 --> analytics["analytics → /app/analytics"]
+    G3 --> analytics["analytics → /workspace/analytics"]
 ```
 
-Sources: [src/features/app/shell/navConfig.ts:66-181]()
+Sources: [src/features/app/shell/navConfig.ts:66-181](<>)
 
 ### NavItem Interface
 
 ```typescript
 interface NavItem {
-  key: string // stable key, first path segment under /app
+  key: string // stable key, first path segment under /workspace
   to: string // route target
   icon: LucideIcon // sidebar icon component
   label: Bi // bilingual label { en, fr }
@@ -322,15 +322,15 @@ interface NavItem {
 }
 ```
 
-Two items have custom `isActive` predicates: `documents` (matches any `/app/documents/*`) and `planning` (matches any `/app/planning/*`).
+Two items have custom `isActive` predicates: `documents` (matches any `/workspace/documents/*`) and `planning` (matches any `/workspace/planning/*`).
 
-[src/features/app/shell/navConfig.ts:30-39](), [src/features/app/shell/navConfig.ts:88-93](), [src/features/app/shell/navConfig.ts:130-133]()
+[src/features/app/shell/navConfig.ts:30-39](<>), [src/features/app/shell/navConfig.ts:88-93](<>), [src/features/app/shell/navConfig.ts:130-133](<>)
 
 ### isNavActive
 
 The default active-route check is `isNavActive(to, pathname)` from `navLabels.ts`: it returns `true` when `pathname === to` or `pathname` starts with `to + '/'`. Items with a custom `isActive` override this default.
 
-[src/features/app/shell/navLabels.ts:40-42]()
+[src/features/app/shell/navLabels.ts:40-42](<>)
 
 ### Demo Badge Derivation
 
@@ -341,15 +341,15 @@ In demo mode, badge counts are computed from fixture data at module load time:
 - **Compliance**: hardcoded `'3'`
 - **Wellbeing**: `employeeDetails` entries with `sentiment < 55`
 
-[src/features/app/shell/navConfig.ts:47-56]()
+[src/features/app/shell/navConfig.ts:47-56](<>)
 
 ### navLabels.ts — Entry Graph Safety
 
 The route-to-label vocabulary is split into a separate `navLabels.ts` file to keep `@/data` fixtures out of the eager entry graph. The workspace-mode primitives (`ModeGate.tsx` — now a vestige with no callers — plus `ProductionEmptyState.tsx` and `workspaceModeContext.ts`) import labels from `navLabels.ts` rather than `navConfig.ts`, because `navConfig.ts` value-imports fixture data for badge counts. The `check-entry-graph.mjs` CI script enforces this boundary.
 
-[src/features/app/shell/navLabels.ts:4-18]()
+[src/features/app/shell/navLabels.ts:4-18](<>)
 
-Sources: [src/features/app/shell/navConfig.ts:1-191](), [src/features/app/shell/navLabels.ts:1-64]()
+Sources: [src/features/app/shell/navConfig.ts:1-191](<>), [src/features/app/shell/navLabels.ts:1-64](<>)
 
 ## Production Nav Badges — useProductionNavBadges
 
@@ -383,15 +383,15 @@ sequenceDiagram
 
 The hook re-fetches on every `pathname` change so that completing work (e.g., resolving a case) updates the badge as the user navigates. Failures silently return `{}` — badges are never worth an error state.
 
-[src/features/app/workspaceMode/useProductionNavBadges.ts:1-55]()
+[src/features/app/workspaceMode/useProductionNavBadges.ts:1-55](<>)
 
 ### Badge Application in Sidebar
 
 In `Sidebar.renderGroupItems`, when `workspaceMode === 'production'`, each item's badge is replaced with the production badge (if any). In demo mode, items retain their fixture badges.
 
-[src/features/app/shell/Sidebar.tsx:153-166]()
+[src/features/app/shell/Sidebar.tsx:153-166](<>)
 
-Sources: [src/features/app/workspaceMode/useProductionNavBadges.ts:1-55](), [src/features/app/shell/Sidebar.tsx:104-106](), [src/features/app/shell/Sidebar.tsx:153-166]()
+Sources: [src/features/app/workspaceMode/useProductionNavBadges.ts:1-55](<>), [src/features/app/shell/Sidebar.tsx:104-106](<>), [src/features/app/shell/Sidebar.tsx:153-166](<>)
 
 ## SidebarFooter with Admin Detection
 
@@ -399,9 +399,9 @@ Sources: [src/features/app/workspaceMode/useProductionNavBadges.ts:1-55](), [src
 
 ### Admin Detection
 
-On mount, `SidebarFooter` calls `isCurrentUserAdmin()` from `supportAdminApi.ts`. This function checks the current Supabase session and calls the `is_admin` RPC. If the user is an admin, the profile popover includes a "Support dashboard" menu item linking to `/app/support/admin`.
+On mount, `SidebarFooter` calls `isCurrentUserAdmin()` from `supportAdminApi.ts`. This function checks the current Supabase session and calls the `is_admin` RPC. If the user is an admin, the profile popover includes a "Support dashboard" menu item linking to `/workspace/support/admin`.
 
-[src/features/app/shell/SidebarFooter.tsx:23-35](), [src/features/support/supportAdminApi.ts:107-114]()
+[src/features/app/shell/SidebarFooter.tsx:23-35](<>), [src/features/support/supportAdminApi.ts:107-114](<>)
 
 ### Profile Popover
 
@@ -414,21 +414,21 @@ The popover is a `role="menu"` dialog positioned above the trigger button. It sh
 5. Support dashboard (admin only)
 6. Sign out (styled with `text-risk-dot`)
 
-[src/features/app/shell/SidebarFooter.tsx:107-186]()
+[src/features/app/shell/SidebarFooter.tsx:107-186](<>)
 
 ### Settings Link
 
-The Settings link uses `aria-current="page"` when the pathname starts with `/app/settings`. It adapts its visual treatment between expanded (text + icon) and compact (icon-only with tooltip) modes, matching the same active-state styling as `SidebarNavItem`.
+The Settings link uses `aria-current="page"` when the pathname starts with `/workspace/settings`. It adapts its visual treatment between expanded (text + icon) and compact (icon-only with tooltip) modes, matching the same active-state styling as `SidebarNavItem`.
 
-[src/features/app/shell/SidebarFooter.tsx:37-73]()
+[src/features/app/shell/SidebarFooter.tsx:37-73](<>)
 
-Sources: [src/features/app/shell/SidebarFooter.tsx:1-186](), [src/features/support/supportAdminApi.ts:107-114]()
+Sources: [src/features/app/shell/SidebarFooter.tsx:1-186](<>), [src/features/support/supportAdminApi.ts:107-114](<>)
 
 ## SidebarCollapseButton
 
 Available on desktop and tablet (not in drawer mode), `SidebarCollapseButton` toggles between expanded and compact sidebar. It renders `PanelLeftClose` (when expanded) or `PanelLeftOpen` (when compact), with bilingual aria labels `shell_collapse_sidebar` / `shell_expand_sidebar`. The same toggle is duplicated in `Topbar` for discoverability.
 
-[src/features/app/shell/SidebarCollapseButton.tsx:1-44](), [src/features/app/shell/Topbar.tsx]()
+[src/features/app/shell/SidebarCollapseButton.tsx:1-44](<>), [src/features/app/shell/Topbar.tsx](<>)
 
 ## Topbar
 
@@ -438,14 +438,14 @@ The `Topbar` component renders on desktop and tablet layouts (≥ 768px). It occ
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | Sidebar toggle       | `PanelLeftOpen` / `PanelLeftClose` — same preference as footer collapse button ([#280](https://github.com/Dutiva-Canada/Dutiva_Web/pull/280)) |
 | Route title          | `<h1>` displaying the current view/module label                                                                                               |
-| "Ask Advisor" button | Gold-bordered button opening the contextual `AdvisorRail` (hidden on `/app/advisor`)                                                          |
+| "Ask Advisor" button | Gold-bordered button opening the contextual `AdvisorRail` (hidden on `/workspace/advisor`)                                                    |
 | `LangToggle`         | EN/FR segmented pill                                                                                                                          |
 | `ThemeToggle`        | Sun/moon icon button                                                                                                                          |
 | Search trigger       | Opens `SearchOverlay` via `openSearch()`                                                                                                      |
 | `AuthMenuButton`     | Account/sign-in popover                                                                                                                       |
 | Notifications bell   | Popover with sample notifications (demo mode) or empty state (production)                                                                     |
 
-[src/features/app/shell/Topbar.tsx:70-178]()
+[src/features/app/shell/Topbar.tsx:70-178](<>)
 
 ### Shell Controls
 
@@ -454,9 +454,9 @@ The `Topbar` component renders on desktop and tablet layouts (≥ 768px). It occ
 - `LangToggle` renders a segmented pill with `aria-pressed` states
 - `ThemeToggle` shows `Sun` in dark mode and `Moon` in light mode
 
-[src/features/app/shell/ShellControls.tsx:1-69]()
+[src/features/app/shell/ShellControls.tsx:1-69](<>)
 
-Sources: [src/features/app/shell/Topbar.tsx:1-178](), [src/features/app/shell/ShellControls.tsx:1-69]()
+Sources: [src/features/app/shell/Topbar.tsx:1-178](<>), [src/features/app/shell/ShellControls.tsx:1-69](<>)
 
 ## MobileNav
 
@@ -466,31 +466,31 @@ The mobile navigation system has two parts:
 
 Rendered at < 768px, `MobileTopbar` is a 56px header with a hamburger button (opens the sidebar drawer), the route title, and controls (theme toggle, search, `AuthMenuButton`). All interactive targets have a minimum 44×44px hit area for iOS accessibility compliance.
 
-[src/features/app/shell/MobileNav.tsx:19-61]()
+[src/features/app/shell/MobileNav.tsx:19-61](<>)
 
 ### MobileNav (Bottom Tab Bar)
 
 A fixed-bottom tab bar with five items:
 
-| Tab          | Route          | Icon                            |
-| ------------ | -------------- | ------------------------------- |
-| Home         | `/app/home`    | `House`                         |
-| Cases        | `/app/cases`   | `Briefcase`                     |
-| Ask (raised) | `/app/advisor` | `Sparkle` (gold on navy circle) |
-| Tasks        | `/app/tasks`   | `ListChecks`                    |
-| More         | opens drawer   | `Menu`                          |
+| Tab          | Route                | Icon                            |
+| ------------ | -------------------- | ------------------------------- |
+| Home         | `/workspace/home`    | `House`                         |
+| Cases        | `/workspace/cases`   | `Briefcase`                     |
+| Ask (raised) | `/workspace/advisor` | `Sparkle` (gold on navy circle) |
+| Tasks        | `/workspace/tasks`   | `ListChecks`                    |
+| More         | opens drawer         | `Menu`                          |
 
 The "Ask" tab is visually elevated with a 50px navy circle that overlaps the tab bar's top edge by 16px. It passes `{ newConversation: true }` as route state to start a fresh advisor session. The tab bar handles safe-area bottom insets with `pb-[calc(5px_+_env(safe-area-inset-bottom))]`.
 
-[src/features/app/shell/MobileNav.tsx:92-153]()
+[src/features/app/shell/MobileNav.tsx:92-153](<>)
 
 ### Drawer Focus Trap
 
 When the sidebar is open in drawer mode, a `keydown` listener traps Tab focus within the `<aside>` element, cycling between the first and last focusable elements.
 
-[src/features/app/shell/Sidebar.tsx:128-151]()
+[src/features/app/shell/Sidebar.tsx:128-151](<>)
 
-Sources: [src/features/app/shell/MobileNav.tsx:1-154](), [src/features/app/shell/Sidebar.tsx:128-151]()
+Sources: [src/features/app/shell/MobileNav.tsx:1-154](<>), [src/features/app/shell/Sidebar.tsx:128-151](<>)
 
 ### View-level mobile sheets (<768px)
 
@@ -505,7 +505,7 @@ Some modules hide their desktop side rails below `md` and expose them through fu
 
 Layout mode uses `useMdUp()` / `useLgUp()` from `@/lib/useMediaQuery` so only one variant mounts (important for Vitest, where both Tailwind `hidden`/`md:flex` classes would otherwise render).
 
-Sources: [src/features/app/views/advisor/ThreadList.tsx](), [src/features/app/views/memory/MemoryLayout.tsx](), [src/features/app/views/advisor/ComplianceWorkspace.tsx](), [src/features/app/views/memory/ChatRecallDemoView.tsx](), [src/lib/useMediaQuery.ts]()
+Sources: [src/features/app/views/advisor/ThreadList.tsx](<>), [src/features/app/views/memory/MemoryLayout.tsx](<>), [src/features/app/views/advisor/ComplianceWorkspace.tsx](<>), [src/features/app/views/memory/ChatRecallDemoView.tsx](<>), [src/lib/useMediaQuery.ts](<>)
 
 ## WorkspaceContextBanner
 
@@ -519,7 +519,7 @@ The banner supports six entity types defined by `WorkspaceEntityType`:
 
 Each type has a localized label from `shellMessages`.
 
-[src/features/app/shell/WorkspaceContextBanner.tsx:9-16](), [src/features/app/workspaceContext/workspaceContextStore.ts:11-17]()
+[src/features/app/shell/WorkspaceContextBanner.tsx:9-16](<>), [src/features/app/workspaceContext/workspaceContextStore.ts:11-17](<>)
 
 ### Display
 
@@ -529,12 +529,12 @@ The banner shows:
 - "ADVISOR IS USING · [type]" label in uppercase gold
 - The entity subject name
 - Meta chips (province, role, topic) — each individually removable — desktop/tablet only
-- "Open record" button (links to `/app/employees/:empId`) — desktop/tablet only
+- "Open record" button (links to `/workspace/employees/:empId`) — desktop/tablet only
 - Clear (×) button to dismiss the context
 
 The context state is managed by `WorkspaceContext` from `workspaceContextStore.ts`, with methods `setContext`, `clearContext`, and `removeContextMeta`.
 
-[src/features/app/shell/WorkspaceContextBanner.tsx:25-83](), [src/features/app/workspaceContext/workspaceContextStore.ts:19-40]()
+[src/features/app/shell/WorkspaceContextBanner.tsx:25-83](<>), [src/features/app/workspaceContext/workspaceContextStore.ts:19-40](<>)
 
 ## ModuleContextBanner
 
@@ -551,9 +551,9 @@ The context state is managed by `WorkspaceContext` from `workspaceContextStore.t
 
 The banner is hidden when a `WorkspaceContext` is already set, or when viewing a detail page (route has a second segment).
 
-[src/features/app/shell/ModuleContextBanner.tsx:1-54]()
+[src/features/app/shell/ModuleContextBanner.tsx:1-54](<>)
 
-Sources: [src/features/app/shell/WorkspaceContextBanner.tsx:1-83](), [src/features/app/shell/ModuleContextBanner.tsx:1-54](), [src/features/app/workspaceContext/workspaceContextStore.ts:1-55]()
+Sources: [src/features/app/shell/WorkspaceContextBanner.tsx:1-83](<>), [src/features/app/shell/ModuleContextBanner.tsx:1-54](<>), [src/features/app/workspaceContext/workspaceContextStore.ts:1-55](<>)
 
 ## SearchOverlay and ⌘K
 
@@ -563,7 +563,7 @@ The global search overlay is triggered from multiple points: the `SidebarSearch`
 
 `SearchProvider` wraps the app tree and manages the `open` boolean state. It registers a global `keydown` handler for `⌘K` / `Ctrl+K` to open the overlay.
 
-[src/features/app/search/SearchProvider.tsx:1-25]()
+[src/features/app/search/SearchProvider.tsx:1-25](<>)
 
 ### SearchOverlay
 
@@ -577,9 +577,9 @@ When open, `SearchOverlay` mounts `SearchDialog`, which provides:
 
 In production mode, the search corpus is empty (fixture data is not available).
 
-[src/features/app/search/SearchOverlay.tsx:1-96](), [src/features/app/search/searchContext.ts:1-16]()
+[src/features/app/search/SearchOverlay.tsx:1-96](<>), [src/features/app/search/searchContext.ts:1-16](<>)
 
-Sources: [src/features/app/search/SearchProvider.tsx:1-25](), [src/features/app/search/SearchOverlay.tsx:1-96]()
+Sources: [src/features/app/search/SearchProvider.tsx:1-25](<>), [src/features/app/search/SearchOverlay.tsx:1-96](<>)
 
 ## Global Overlays and Escape Stack
 
@@ -592,9 +592,9 @@ Sources: [src/features/app/search/SearchProvider.tsx:1-25](), [src/features/app/
 
 These overlays can stack, so the `escapeStack` module (`src/lib/escapeStack.ts`) coordinates `Escape` key handling: each overlay registers a handler with `useEscapeToClose(active, handler)`, and only the most-recently-opened overlay receives the `Escape` event.
 
-[src/features/app/shell/AppShell.tsx:215-218](), [src/lib/escapeStack.ts:1-46]()
+[src/features/app/shell/AppShell.tsx:215-218](<>), [src/lib/escapeStack.ts:1-46](<>)
 
-Sources: [src/features/app/shell/AppShell.tsx:215-218](), [src/lib/escapeStack.ts:1-46]()
+Sources: [src/features/app/shell/AppShell.tsx:215-218](<>), [src/lib/escapeStack.ts:1-46](<>)
 
 ## localStorage Keys
 
@@ -605,9 +605,9 @@ The shell persists several preferences to `localStorage` via the `readPref`/`wri
 | `dutiva.sidebar.expanded.v1` | Sidebar expanded vs compact    | `'true'`                            | `AppShell` |
 | `dutiva.sidebar.sections.v1` | Section collapse states (JSON) | `{ records: true, programs: true }` | `Sidebar`  |
 
-[src/features/app/shell/AppShell.tsx:29-44](), [src/features/app/shell/Sidebar.tsx:26-55](), [src/lib/prefs.ts:1-16]()
+[src/features/app/shell/AppShell.tsx:29-44](<>), [src/features/app/shell/Sidebar.tsx:26-55](<>), [src/lib/prefs.ts:1-16](<>)
 
-Sources: [src/lib/prefs.ts:1-16](), [src/features/app/shell/AppShell.tsx:29-44](), [src/features/app/shell/Sidebar.tsx:26-55]()
+Sources: [src/lib/prefs.ts:1-16](<>), [src/features/app/shell/AppShell.tsx:29-44](<>), [src/features/app/shell/Sidebar.tsx:26-55](<>)
 
 ## i18n Integration
 
@@ -624,9 +624,9 @@ All shell components resolve messages through `shellMessages` from `@/i18n/messa
 | `shell_mod_*`        | Module context banner specialties                       |
 | `shell_tab_*`        | Mobile bottom tab labels                                |
 
-[src/i18n/messages/shell.ts:1-130]()
+[src/i18n/messages/shell.ts:1-130](<>)
 
-Sources: [src/i18n/messages/shell.ts:1-130]()
+Sources: [src/i18n/messages/shell.ts:1-130](<>)
 
 ## Component-to-File Mapping
 
@@ -671,7 +671,7 @@ graph LR
 
 All files under `src/features/app/shell/`, `src/features/app/search/`, `src/features/app/workspaceMode/`, and `src/features/app/workspaceContext/`.
 
-Sources: [src/features/app/shell/AppShell.tsx:1-1](), [src/features/app/shell/Sidebar.tsx:1-1](), [src/features/app/shell/navConfig.ts:1-1](), [src/features/app/shell/navLabels.ts:1-1](), [src/features/app/workspaceMode/useProductionNavBadges.ts:1-1]()
+Sources: [src/features/app/shell/AppShell.tsx:1-1](<>), [src/features/app/shell/Sidebar.tsx:1-1](<>), [src/features/app/shell/navConfig.ts:1-1](<>), [src/features/app/shell/navLabels.ts:1-1](<>), [src/features/app/workspaceMode/useProductionNavBadges.ts:1-1](<>)
 
 ## Testing
 
@@ -689,7 +689,7 @@ The sidebar has a comprehensive test suite in `Sidebar.test.tsx` covering:
 - Drawer mode close button behavior
 - Settings link outside the scrollable nav region
 
-[src/features/app/shell/Sidebar.test.tsx:1-251]()
+[src/features/app/shell/Sidebar.test.tsx:1-251](<>)
 
 The production nav badges are tested through `useProductionNavBadges.test.tsx`, which mocks the Supabase client to verify:
 
@@ -697,8 +697,8 @@ The production nav badges are tested through `useProductionNavBadges.test.tsx`, 
 - Production mode displays live counts from `hr_cases`, `compliance_tasks`, and `compliance_findings` tables
 - Fixture-only badges (Workflows, Wellbeing) disappear in production mode
 
-[src/features/app/workspaceMode/useProductionNavBadges.test.tsx:1-133]()
+[src/features/app/workspaceMode/useProductionNavBadges.test.tsx:1-133](<>)
 
-Sources: [src/features/app/shell/Sidebar.test.tsx:1-251](), [src/features/app/workspaceMode/useProductionNavBadges.test.tsx:1-133]()
+Sources: [src/features/app/shell/Sidebar.test.tsx:1-251](<>), [src/features/app/workspaceMode/useProductionNavBadges.test.tsx:1-133](<>)
 
 ---

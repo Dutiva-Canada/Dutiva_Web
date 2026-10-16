@@ -30,7 +30,7 @@ const primaryBtnClass =
  * Signed-in users either open their workspace (membership exists — including
  * freshly claimed invites) or name their organization, which the
  * create_organization RPC provisions with them as owner (capacity-gated
- * server-side). The workspace itself is the existing /app production mode —
+ * server-side). The workspace itself is the existing /workspace production mode —
  * this page is only the front door, so it stays visually consistent.
  */
 export function EmployerDoorPage() {

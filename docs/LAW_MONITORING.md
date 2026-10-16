@@ -338,8 +338,7 @@ that moved plus their latest amending instrument from `HistoricalNote`.
 Justice Laws) so cards and the digest link somewhere readable instead of the
 machine endpoint. **Live proof the same day:** a real `trigger_law_monitor()`
 sweep on the deployed function rekeyed both Québec rows to the `qck2:`
-fingerprint and stored their section baselines (LNT 354 sections, Charter
-165) without filing a single false update — the first attributed read worked
+fingerprint and stored their section baselines (LNT 354 sections, Charter 165) without filing a single false update — the first attributed read worked
 exactly as designed against production.
 
 ### Source liveness — built 2026-10-04

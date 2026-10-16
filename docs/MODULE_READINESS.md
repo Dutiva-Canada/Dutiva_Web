@@ -41,21 +41,21 @@ plus an in-development note — never a dressed-up shell.
 
 ## Current verdicts (2026-09-30 audit)
 
-| Module | Persistence | Verdict |
-| --- | --- | --- |
-| Employees | `productionApi` → `employees` table | Real — create validates, persists, links to detail |
-| Cases | `productionApi` → cases tables; `?new=1` honored | Real |
-| Comms planner | `data/productionApi` → comms tables | Real; Settings usage-controls read-only in demo with local hint |
-| Message log (`/app/communications`) | `productionApi` → communications tables | Real |
-| CRM | `useCrmData` → org-scoped localStorage | Real — documented local persistence (browser) |
-| Finance | `data/productionApi` → finance tables | Real |
-| Governance | `data/productionApi` → governance_* tables | Real |
-| Security | `data/productionApi` → security tables | Real |
-| Specialists | `data/productionApi` → specialists + engagements | Real |
-| Analytics | `productionApi` → org-scoped aggregation | Real (read-only by design) |
-| Revenue | `data/productionApi` | Real |
-| Compensation / Compliance / Hiring / Memory / Tasks | `productionApi` | Real |
-| Workflows | Guided-flow catalog (`flows/`) + plan gates | Real — cards start real flows; gated cards show upgrade nudge |
+| Module                                              | Persistence                                      | Verdict                                                         |
+| --------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------- |
+| Employees                                           | `productionApi` → `employees` table              | Real — create validates, persists, links to detail              |
+| Cases                                               | `productionApi` → cases tables; `?new=1` honored | Real                                                            |
+| Comms planner                                       | `data/productionApi` → comms tables              | Real; Settings usage-controls read-only in demo with local hint |
+| Message log (`/workspace/communications`)           | `productionApi` → communications tables          | Real                                                            |
+| CRM                                                 | `useCrmData` → org-scoped localStorage           | Real — documented local persistence (browser)                   |
+| Finance                                             | `data/productionApi` → finance tables            | Real                                                            |
+| Governance                                          | `data/productionApi` → governance_* tables       | Real                                                            |
+| Security                                            | `data/productionApi` → security tables           | Real                                                            |
+| Specialists                                         | `data/productionApi` → specialists + engagements | Real                                                            |
+| Analytics                                           | `productionApi` → org-scoped aggregation         | Real (read-only by design)                                      |
+| Revenue                                             | `data/productionApi`                             | Real                                                            |
+| Compensation / Compliance / Hiring / Memory / Tasks | `productionApi`                                  | Real                                                            |
+| Workflows                                           | Guided-flow catalog (`flows/`) + plan gates      | Real — cards start real flows; gated cards show upgrade nudge   |
 
 The "empty shell" symptom the external audit reported was the pre-gate
 resolution window (fixed in `f9002c26`): production surfaces mounted before

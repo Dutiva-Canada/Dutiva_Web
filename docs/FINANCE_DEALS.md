@@ -1,6 +1,6 @@
 # Finance → Deals
 
-`/app/finance/deals` — the transaction-pipeline screen for orgs that are
+`/workspace/finance/deals` — the transaction-pipeline screen for orgs that are
 starting to operate like a holding / investment company alongside their
 core business. Screen:
 `src/features/app/views/finance/screens/Deals.tsx`; migration
@@ -14,7 +14,7 @@ tables, all per legal entity (`finance_entities`):
 - **Deal pipeline** — `finance_deals`: one row per transaction
   (acquisition / investment / divestiture / financing / other) moving
   through `sourcing → diligence → negotiation → agreement → closed |
-  passed`, with counterparty, value + currency, target date, owner, and
+passed`, with counterparty, value + currency, target date, owner, and
   bilingual notes. Soft links (`watchlist_item_id`, `holding_id`) let a
   deal graduate from the watchlist or point at the holding a closed deal
   produced.
@@ -32,7 +32,7 @@ tables, all per legal entity (`finance_entities`):
   committed / called / uncalled ledger per partner, with an optional
   next-call date. Each partner card in the Deals partners section lists
   its commitments and offers add/edit/remove in production. `called <=
-  committed` is enforced by a CHECK constraint and pre-validated in the
+committed` is enforced by a CHECK constraint and pre-validated in the
   form. Rows hang off `finance_parties` + `finance_entities`, same
   member-read / admin-write RLS as the rest.
 - **Capital calls** — `finance_capital_calls` (migration `0173`): discrete
@@ -94,7 +94,7 @@ live on the source systems, and this row is the treasury workflow record.
 documents in the HR Documents module (`hr_generated_documents`). The row
 snapshots the document ref + bilingual title so finance screens render
 the link without joining across modules; the deep link resolves to
-`/app/documents/<document_id>`. Each link hangs off exactly one target
+`/workspace/documents/<document_id>`. Each link hangs off exactly one target
 (two CHECK constraints: at least one target, never both), and deleting
 the deal/holding cascades the link. The Deals cards and the Portfolio
 holdings list render their linked documents; production orgs attach via a
@@ -104,7 +104,7 @@ not move or attach files itself.
 
 ## Governance board view
 
-`/app/finance/governance` (tab key `governance`) is the board-oriented
+`/workspace/finance/governance` (tab key `governance`) is the board-oriented
 surface for the investment-firm positioning — everything is derived from
 existing finance state, so the view reads the same records the workspace
 writes:
@@ -135,8 +135,8 @@ already entered — nothing is persisted and no jobs run:
   chip), or past maturity;
 - open deals (not closed/passed) whose target date has passed.
 
-Each row links to the tab that owns it (`/app/finance/deals` or
-`/app/finance/treasury`) and carries an overdue / due-soon / upcoming
+Each row links to the tab that owns it (`/workspace/finance/deals` or
+`/workspace/finance/treasury`) and carries an overdue / due-soon / upcoming
 chip. `computeFinanceAttention(input, today)` is a pure function with an
 injectable clock, so the window rules are unit-tested against fixed
 dates.
@@ -145,11 +145,11 @@ dates.
 
 Migration `0176` wires the call lifecycle into the existing
 `hr_workspace_notifications` surface (the Topbar bell). When a call's
-status *becomes* `notified`, a trigger
+status _becomes_ `notified`, a trigger
 (`finance_capital_calls_notify` → `_finance_call_notify_admins`, the
 same service-role fan-out pattern signing and integration events use)
 inserts one bilingual row per active owner/admin member — party, amount,
-due date, optional reference — linking to `/app/finance/deals`. The
+due date, optional reference — linking to `/workspace/finance/deals`. The
 trigger's `when` clause fires only on the transition into `notified`, so
 re-saving a notified call doesn't double-notify. Scheduling, receiving,
 and cancelling calls produce no notifications — `notified` is the

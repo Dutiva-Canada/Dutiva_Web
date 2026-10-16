@@ -30,13 +30,13 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The Dutiva i18n message catalogue is split across **68 feature-specific module files**, grouped into three surface-scoped aggregations — **workspace** (48 modules), **marketing** (14 modules), and **shared** (4 dual-surface modules) — plus `crm.ts` and `pr.ts`, which their feature trees import directly rather than through an aggregate (the portal modules `health.ts`, `invest.ts`, `pr.ts` are also imported directly by their portal trees). This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
+The Dutiva i18n message catalogue is split across **110 leaf module files** under `src/i18n/messages/` that merge into **68 aggregated modules**, grouped into three surface-scoped aggregations — **workspace** (48 modules, including the `finance/`, `careers/`, `invest`, and `health` portal subtrees), **marketing** (14 modules), and **shared** (4 dual-surface modules, including the `landing/` subtree) — plus `crm.ts` and `pr.ts`, which their feature trees import directly rather than through an aggregate. This split is enforced at three layers: TypeScript's type system, a compile-time disjointness test, and a runtime CI guard script. The result is that marketing visitors never download workspace-only message strings.
 
 ## The `defineMessages` Pattern
 
 Every message module uses the `defineMessages` identity function defined in `src/i18n/core.ts`. It accepts a `Record<string, Bi>` and returns it unchanged — its purpose is purely type-level: it pins each module to the `{ en: string; fr: string }` shape while preserving literal key types, so `t()` calls are fully typed and EN/FR parity is structural (a key cannot exist in one language only).
 
-[src/i18n/core.ts:16-18]()
+[src/i18n/core.ts:16-18](<>)
 
 ```typescript
 export function defineMessages<T extends Record<string, Bi>>(messages: T): T {
@@ -51,15 +51,15 @@ Every module file follows the same structure:
 3. Each key is feature-prefixed (`shell_*`, `home_*`, `cases_*`, `advisor_*`, `landing_*`, etc.)
 4. Each value is a `Bi` object: `{ en: '...', fr: '...' }`
 
-For example, `shell.ts` uses the `shell_` prefix ([src/i18n/messages/shell.ts:12-14]()), `home.ts` uses `home_` ([src/i18n/messages/home.ts:12-14]()), and `advisorCore.ts` uses `advisor_` ([src/i18n/messages/advisorCore.ts:17-19]()). This prefix convention is mandated by `CONVENTIONS.md` and prevents key collisions when modules are merged.
+For example, `shell.ts` uses the `shell_` prefix ([src/i18n/messages/shell.ts:12-14](<>)), `home.ts` uses `home_` ([src/i18n/messages/home.ts:12-14](<>)), and `advisorCore.ts` uses `advisor_` ([src/i18n/messages/advisorCore.ts:17-19](<>)). This prefix convention is mandated by `CONVENTIONS.md` and prevents key collisions when modules are merged.
 
-Sources: [src/i18n/core.ts:16-18](), [src/i18n/messages/shell.ts:1-14](), [src/i18n/messages/home.ts:1-14](), [src/i18n/messages/advisorCore.ts:1-19]()
+Sources: [src/i18n/core.ts:16-18](<>), [src/i18n/messages/shell.ts:1-14](<>), [src/i18n/messages/home.ts:1-14](<>), [src/i18n/messages/advisorCore.ts:1-19](<>)
 
 ## Three-Surface Message Split
 
 The catalogue is organized into three aggregation modules under `src/i18n/messages/`. Placement is derived empirically: each module is classified by which source files under `src/features/app/**` and `src/features/marketing/**` actually reference its keys.
 
-[src/i18n/messages/index.ts:33-43]()
+[src/i18n/messages/index.ts:33-43](<>)
 
 **Three-surface message split architecture**
 
@@ -123,13 +123,13 @@ graph TD
     MA --> helpCenter
 ```
 
-Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.ts:1-36](), [src/i18n/messages/shared.ts:1-32](), [src/i18n/messages/index.ts:18-43]()
+Sources: [src/i18n/messages/workspace.ts:1-78](<>), [src/i18n/messages/marketing.ts:1-36](<>), [src/i18n/messages/shared.ts:1-32](<>), [src/i18n/messages/index.ts:18-43](<>)
 
 ### Workspace Group (48 modules)
 
 `workspace.ts` imports and re-exports 48 workspace-only modules plus the shared set. These modules are read exclusively from `src/features/app/**` (plus `src/components/advisor/` and `src/lib/exportProtection/`).
 
-[src/i18n/messages/workspace.ts:1-30]()
+[src/i18n/messages/workspace.ts:1-30](<>)
 
 | Module file           | Exported constant          | Key prefix     | Domain                            |
 | --------------------- | -------------------------- | -------------- | --------------------------------- |
@@ -163,13 +163,13 @@ Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.t
 | `workspaceMode.ts`    | `workspaceModeMessages`    | `wsmode_*`     | Demo/production mode              |
 | `exportProtection.ts` | `exportProtectionMessages` | `exportprot_*` | Export watermarks                 |
 
-Sources: [src/i18n/messages/workspace.ts:39-70]()
+Sources: [src/i18n/messages/workspace.ts:39-70](<>)
 
 ### Marketing Group (14 modules)
 
 `marketing.ts` imports 14 marketing-only modules plus the shared set. These are read exclusively from `src/features/marketing/**` and `src/seo/routes.ts`.
 
-[src/i18n/messages/marketing.ts:1-36]()
+[src/i18n/messages/marketing.ts:1-36](<>)
 
 | Module file           | Exported constant          | Key prefix     |
 | --------------------- | -------------------------- | -------------- |
@@ -184,13 +184,13 @@ Sources: [src/i18n/messages/workspace.ts:39-70]()
 | `legalHub.ts`         | `legalHubMessages`         | `legalHub_*`   |
 | `jurisdictionTool.ts` | `jurisdictionToolMessages` | `jur_tool_*`   |
 
-Sources: [src/i18n/messages/marketing.ts:1-32]()
+Sources: [src/i18n/messages/marketing.ts:1-32](<>)
 
 ### Shared Group (4 dual-surface modules)
 
 `shared.ts` contains the 4 modules genuinely read from both surfaces. Each has a concrete reason for being shared:
 
-[src/i18n/messages/shared.ts:1-32]()
+[src/i18n/messages/shared.ts:1-32](<>)
 
 | Module file     | Why shared                                                                                                              |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -201,15 +201,15 @@ Sources: [src/i18n/messages/marketing.ts:1-32]()
 
 The `landing.ts` module is the most surprising shared member — it exists in the shared group because plan description keys like `landing_free_desc` are stored in `plans.ts` and resolved via `t()` inside the workspace's `PlanGate.tsx`. Moving `landing` out of shared would crash a workspace component, not a marketing page.
 
-[src/i18n/messages/shared.ts:14-17]()
+[src/i18n/messages/shared.ts:14-17](<>)
 
-Sources: [src/i18n/messages/shared.ts:1-32](), [src/i18n/messages/common.ts:1-23]()
+Sources: [src/i18n/messages/shared.ts:1-32](<>), [src/i18n/messages/common.ts:1-23](<>)
 
 ## The Merged Index
 
 `src/i18n/messages/index.ts` merges workspace and marketing messages back together for consumers that need the full catalogue (tests, `LangProvider`). It also exports the three scoped key types:
 
-[src/i18n/messages/index.ts:86-93]()
+[src/i18n/messages/index.ts:86-93](<>)
 
 ```typescript
 export const messages = {
@@ -222,9 +222,9 @@ export type MessageKey = keyof typeof messages
 
 The three scoped key types — `WorkspaceMessageKey`, `MarketingMessageKey`, `SharedMessageKey` — are exported from this index but defined in their respective aggregation files.
 
-[src/i18n/messages/index.ts:4-6](), [src/i18n/messages/workspace.ts:77](), [src/i18n/messages/marketing.ts:35](), [src/i18n/messages/shared.ts:31]()
+[src/i18n/messages/index.ts:4-6](<>), [src/i18n/messages/workspace.ts:77](<>), [src/i18n/messages/marketing.ts:35](<>), [src/i18n/messages/shared.ts:31](<>)
 
-Sources: [src/i18n/messages/index.ts:1-93]()
+Sources: [src/i18n/messages/index.ts:1-93](<>)
 
 ## Provider-Level Surface Binding
 
@@ -256,14 +256,14 @@ flowchart LR
 ```
 
 - **`ForcedLangProvider`** (marketing surface) imports `marketingMessages` from `./messages/marketing` — never the full index. This is the import that keeps workspace modules out of the marketing bundle.
-  [src/i18n/ForcedLangProvider.tsx:9](), [src/i18n/ForcedLangProvider.tsx:51-52]()
+  [src/i18n/ForcedLangProvider.tsx:9](<>), [src/i18n/ForcedLangProvider.tsx:51-52](<>)
 
 - **`LangProvider`** (workspace surface) imports the full merged `messages` from `./messages`. The workspace is always behind a lazy route boundary, so including the full catalogue has no effect on the marketing eager graph.
-  [src/i18n/LangProvider.tsx:7](), [src/i18n/LangProvider.tsx:39]()
+  [src/i18n/LangProvider.tsx:7](<>), [src/i18n/LangProvider.tsx:39](<>)
 
 Both call `buildLangContextValue()` in `src/i18n/lang.ts`, which constructs the `t()` function. If `t()` is called with a key not present in the given catalogue (a scope violation), it **degrades gracefully** — logs an error and returns the raw key rather than crashing the page:
 
-[src/i18n/lang.ts:43-50]()
+[src/i18n/lang.ts:43-50](<>)
 
 ```typescript
 const t = (key: MessageKey): string => {
@@ -276,13 +276,13 @@ const t = (key: MessageKey): string => {
 }
 ```
 
-Sources: [src/i18n/ForcedLangProvider.tsx:1-57](), [src/i18n/LangProvider.tsx:1-44](), [src/i18n/lang.ts:37-60]()
+Sources: [src/i18n/ForcedLangProvider.tsx:1-57](<>), [src/i18n/LangProvider.tsx:1-44](<>), [src/i18n/lang.ts:37-60](<>)
 
 ## Scope Enforcement Layer 1: Compile-Time Type Disjointness
 
 `src/i18n/messages/scopes.test.ts` is a Vitest test that runs during `npm run typecheck` + `npm run test`. It uses TypeScript `@ts-expect-error` directives to assert that the three scoped key types are disjoint where they claim to be. **The real test is at compile time**: each `@ts-expect-error` line fails the build if the error it expects stops happening — meaning a key that should not cross a surface boundary has become assignable.
 
-[src/i18n/messages/scopes.test.ts:1-78]()
+[src/i18n/messages/scopes.test.ts:1-78](<>)
 
 The test verifies six constraints with three sample keys:
 
@@ -297,33 +297,33 @@ The test verifies six constraints with three sample keys:
 
 The runtime portion of the test pins the sample keys to real catalogue entries (`messages` must `.toHaveProperty(key)`) so the type assertions cannot silently rot into testing typos.
 
-[src/i18n/messages/scopes.test.ts:30-38](), [src/i18n/messages/scopes.test.ts:40-77]()
+[src/i18n/messages/scopes.test.ts:30-38](<>), [src/i18n/messages/scopes.test.ts:40-77](<>)
 
-Sources: [src/i18n/messages/scopes.test.ts:1-78]()
+Sources: [src/i18n/messages/scopes.test.ts:1-78](<>)
 
 ## Scope Enforcement Layer 2: Runtime CI Guard (`check-message-scopes.mjs`)
 
 `scripts/check-message-scopes.mjs` is a Node.js script wired into `npm run check` (and therefore CI) via the `check:message-scopes` npm script.
 
-[package.json:23-24]()
+[package.json:23-24](<>)
 
 It catches what the type system cannot: a literal `t('some_key')` call in a component that reaches outside its surface's allowed key set. The script works in four steps:
 
 1. **Derive allowed keys per surface** — reads `workspace.ts` and `marketing.ts`, follows their imports to each module file, and extracts all top-level keys using a regex (`/^ {2}([A-Za-z0-9_]+):/gm`). Shared keys are added to both allowed sets.
-   [scripts/check-message-scopes.mjs:53-67]()
+   [scripts/check-message-scopes.mjs:53-67](<>)
 
 2. **Define surface directories** — workspace = `src/features/app`, `src/components/advisor`, `src/lib/exportProtection`; marketing = `src/features/marketing`.
-   [scripts/check-message-scopes.mjs:76-87]()
+   [scripts/check-message-scopes.mjs:76-87](<>)
 
 3. **Scan for literal `t()` calls** — matches the regex `/\bt\(\s*['"]([A-Za-z0-9_]+)['"]\s*\)/g` against every `.ts` / `.tsx` file in each surface's directories (excluding test files).
-   [scripts/check-message-scopes.mjs:108-123]()
+   [scripts/check-message-scopes.mjs:108-123](<>)
 
 4. **Report violations** — any key in a `t('...')` call not in that surface's allowed set is a violation. The script exits with code 1 and prints each offending file/key/surface.
-   [scripts/check-message-scopes.mjs:125-141]()
+   [scripts/check-message-scopes.mjs:125-141](<>)
 
 Computed calls like `t(someVariable)` are invisible to this script by design — those are guarded separately at the data structure level (e.g. `plans.ts`, `legalHubData.ts`, which are typed with a surface-scoped key type).
 
-[scripts/check-message-scopes.mjs:13-16]()
+[scripts/check-message-scopes.mjs:13-16](<>)
 
 **Scope enforcement pipeline**
 
@@ -347,28 +347,28 @@ flowchart TB
     RUNTIME -->|"Catches: any remaining scope leak"| LOG["console.error + raw key fallback"]
 ```
 
-Sources: [scripts/check-message-scopes.mjs:1-141](), [package.json:23-24]()
+Sources: [scripts/check-message-scopes.mjs:1-141](<>), [package.json:23-24](<>)
 
 ## Bundle Optimization via Vite Code Splitting
 
 The surface split has a concrete bundle-size payoff configured in `vite.config.ts`. Two `codeSplitting.groups` mirror the message module boundary:
 
-[vite.config.ts:171-218]()
+[vite.config.ts:171-218](<>)
 
 | Group name           | Regex `test`                                                                                                                                                                                       | Contents                       |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | `messages-marketing` | Matches `marketing`, `shared`, `common`, `landing`, `pricing`, `templatesPreview`, `guidesIndex`, `about`, `faq`, `blog`, `templateUsage`, `knownLimitations`, `legalHub`, `support`, `helpCenter` | All marketing + shared modules |
 | `messages-workspace` | Matches everything in `src/i18n/messages/` except `shell.ts` and `workspaceMode.ts`; `includeDependenciesRecursively: false`                                                                       | All workspace modules          |
 
-[vite.config.ts:211-218]()
+[vite.config.ts:211-218](<>)
 
 The `messages-workspace` group sets `includeDependenciesRecursively: false` to solve a specific problem: `shell.ts` and `workspaceMode.ts` are imported directly by eager files (`navLabels.ts`, `ProductionEmptyState.tsx`) that live in `ALLOWED_APP_MODULES`. Without this flag, rolldown would pull those two modules into the workspace chunk as dependencies regardless of the `test` regex excluding them.
 
-[vite.config.ts:183-209]()
+[vite.config.ts:183-209](<>)
 
 The measured result was a **131.4 kB reduction** in the marketing eager graph (671.3 kB → 539.9 kB).
 
-[src/i18n/messages/index.ts:48-49]()
+[src/i18n/messages/index.ts:48-49](<>)
 
 **Bundle chunk architecture**
 
@@ -389,91 +389,91 @@ flowchart LR
     WS_ENTRY --> MK_CHUNK
 
     MK_CHUNK --- MK_CONTENT["marketing.ts + shared.ts\n(17 modules)"]
-    WS_CHUNK --- WS_CONTENT["workspace.ts modules\n(45 modules)"]
+    WS_CHUNK --- WS_CONTENT["workspace.ts modules\n(48 modules)"]
 ```
 
-Sources: [vite.config.ts:170-253](), [src/i18n/messages/index.ts:46-60]()
+Sources: [vite.config.ts:170-253](<>), [src/i18n/messages/index.ts:46-60](<>)
 
 ## Complete Message Module Inventory
 
-The `src/i18n/messages/` directory contains 68 feature modules (48 workspace + 14 marketing + 4 shared + 2 direct-imported: crm.ts, pr.ts), 3 surface aggregation files, a merged index, and a scope test — plus the `landing/` and `finance/` subdirectories that each merge section-level message files into one exported object.
+The `src/i18n/messages/` directory contains 110 leaf module files merging into 68 aggregated modules (48 workspace + 14 marketing + 4 shared + 2 direct-imported: crm.ts, pr.ts), 3 surface aggregation files, a merged index, and a scope test — plus the `landing/`, `finance/`, and `careers/` subdirectories that each merge section-level message files into one exported object via their own `index.ts`.
 
 ### Feature Modules (70 files; 68 aggregated)
 
 `investStrategyBuilder.ts` merges into `invest.ts` and `memoryWorkspace.ts` merges into `memory.ts`, so the table lists 70 files producing 68 aggregated modules.
 
-| #   | File                  | Surface    | Key prefix                                    | Exported constant          |
-| --- | --------------------- | ---------- | --------------------------------------------- | -------------------------- |
-| 1   | `about.ts`            | marketing  | `about_*`                                     | `aboutMessages`            |
-| 2   | `advisorCore.ts`      | workspace  | `advisor_*`                                   | `advisorCore`              |
-| 3   | `advisorView.ts`      | workspace  | `advisorview_*`                               | `advisorViewMessages`      |
-| 4   | `advisorWorkspace.ts` | workspace  | `advws_*`                                     | `advisorWorkspaceMessages` |
-| 5   | `analytics.ts`        | workspace  | `analytics_*`                                 | `analyticsMessages`        |
-| 6   | `auth.ts`             | workspace  | `auth_*`                                      | `authMessages`             |
-| 7   | `blog.ts`             | marketing  | `blog_*`                                      | `blogMessages`             |
-| 8   | `calendar.ts`         | workspace  | `calendar_*`                                  | `calendarMessages`         |
-| 9   | `cases.ts`            | workspace  | `cases_*`                                     | `casesMessages`            |
-| 10  | `common.ts`           | **shared** | `brand_*`, `disclaimer*`, `theme_*`, `lang_*` | `common`                   |
-| 11  | `communications.ts`   | workspace  | `comms_*`                                     | `communicationsMessages`   |
-| 12  | `compensation.ts`     | workspace  | `comp_*`                                      | `compensationMessages`     |
-| 13  | `compliance.ts`       | workspace  | `compliance_*`                                | `complianceMessages`       |
-| 14  | `doclib.ts`           | workspace  | `doclib_*`                                    | `doclibMessages`           |
-| 15  | `docstudio.ts`        | workspace  | `docstudio_*`                                 | `docstudioMessages`        |
-| 16  | `employees.ts`        | workspace  | `employees_*`                                 | `employeesMessages`        |
-| 17  | `exportProtection.ts` | workspace  | `exportprot_*`                                | `exportProtectionMessages` |
-| 18  | `faq.ts`              | marketing  | `faq_*`                                       | `faqMessages`              |
-| 19  | `flows.ts`            | workspace  | `flows_*`                                     | `flowsMessages`            |
-| 20  | `guidance.ts`         | workspace  | `guidance_*`                                  | `guidanceMessages`         |
-| 21  | `guidesIndex.ts`      | marketing  | `guidesIdx_*`                                 | `guidesIndexMessages`      |
-| 22  | `helpCenter.ts`       | **shared** | `help_*`                                      | `helpCenterMessages`       |
-| 23  | `home.ts`             | workspace  | `home_*`                                      | `homeMessages`             |
-| 24  | `jurisdictionTool.ts` | marketing  | `jur_tool_*`                                  | `jurisdictionToolMessages` |
-| 25  | `knowledge.ts`        | workspace  | `knowledge_*`                                 | `knowledgeMessages`        |
-| 26  | `knownLimitations.ts` | marketing  | `limits_*`                                    | `limitsMessages`           |
-| 27  | `landing/`            | **shared** | `landing_*` (19 section files merged by `landing/index.ts`) | `landing`    |
-| 28  | `legalHub.ts`         | marketing  | `legalHub_*`                                  | `legalHubMessages`         |
-| 29  | `memory.ts`           | workspace  | `memory_*`                                    | `memoryMessages`           |
-| 30  | `policies.ts`         | workspace  | `policies_*`                                  | `policiesMessages`         |
-| 31  | `pricing.ts`          | marketing  | `pricing_*`                                   | `pricingMessages`          |
-| 32  | `reference.ts`        | workspace  | `reference_*`                                 | `referenceMessages`        |
-| 33  | `search.ts`           | workspace  | `search_*`                                    | `searchMessages`           |
-| 34  | `settings.ts`         | workspace  | `settings_*`                                  | `settingsMessages`         |
-| 35  | `shell.ts`            | workspace  | `shell_*`                                     | `shellMessages`            |
-| 36  | `support.ts`          | **shared** | `support_*`                                   | `supportMessages`          |
-| 37  | `tasks.ts`            | workspace  | `tasks_*`                                     | `tasksMessages`            |
-| 38  | `templateUsage.ts`    | marketing  | `tmplGuide_*`                                 | `tmplGuideMessages`        |
-| 39  | `templates.ts`        | workspace  | `templates_*`                                 | `templatesMessages`        |
-| 40  | `templatesPreview.ts` | marketing  | `tplPreview_*`                                | `templatesPreviewMessages` |
-| 41  | `wellbeing.ts`        | workspace  | `wellbeing_*`                                 | `wellbeingMessages`        |
-| 42  | `workflows.ts`        | workspace  | `workflows_*`                                 | `workflowsMessages`        |
-| 43  | `workspaceMode.ts`    | workspace  | `wsmode_*`                                    | `workspaceModeMessages`    |
-| 44  | `agent.ts`            | workspace  | `agent_*`                                     | `agentMessages`            |
-| 45  | `aiModels.ts`         | workspace  | `aimodels_*`                                  | `aiModelsMessages`         |
-| 46  | `bulkImport.ts`       | workspace  | `bulk_*`                                      | `bulkImportMessages`       |
-| 47  | `capacity.ts`         | workspace  | `capacity_*`                                  | `capacityMessages`         |
-| 48  | `careers.ts`          | workspace  | `careers_*`                                   | `careersMessages`          |
-| 49  | `changelog.ts`        | marketing  | `changelog_*`                                 | `changelogMessages`        |
-| 50  | `comms.ts`            | workspace  | `comms_*`                                     | `commsMessages`            |
-| 51  | `comparison.ts`       | marketing  | `comparison_*`                                | `comparisonMessages`       |
-| 52  | `entityLinks.ts`      | workspace  | `el_*`                                        | `entityLinksMessages`      |
-| 53  | `finance/`            | workspace  | `finance_*` (section files merged by `finance/index.ts`) | `financeMessages`  |
-| 54  | `governance.ts`       | workspace  | `gov_*`                                       | `governanceMessages`       |
-| 55  | `hiring.ts`           | workspace  | `hiring_*`                                    | `hiringMessages`           |
-| 56  | `integrations.ts`     | workspace  | `integ_*`                                     | `integrationsMessages`     |
-| 57  | `operations.ts`       | workspace  | `ops_*`                                       | `operationsMessages`       |
-| 58  | `placeholder.ts`      | workspace  | `placeholder_*`                               | `placeholderMessages`      |
-| 59  | `revenue.ts`          | workspace  | `rev_*`                                       | `revenueMessages`          |
-| 60  | `security.ts`         | workspace  | `sec_*`                                       | `securityMessages`         |
-| 61  | `seoMeta.ts`          | marketing  | per-route meta keys (`*_meta_description`, `*_intro`) | `seoMetaMessages`  |
-| 62  | `specialists.ts`      | workspace  | `spec_*`                                      | `specialistsMessages`      |
-| 63  | `chatWidgets.ts`      | workspace  | `chatw_*`                                     | `chatWidgetMessages`       |
-| 64  | `health.ts`           | workspace + health portal | `health_*`                          | `healthMessages`           |
-| 65  | `invest.ts`           | workspace + invest portal | `invest_*`                          | `investMessages` (merges `investStrategyBuilder.ts`) |
-| 66  | `investors.ts`        | marketing  | `investors_*`                                 | `investorsMessages`        |
-| 67  | `memoryWorkspace.ts`  | workspace (merged into `memory.ts`) | `memory_ws_*`                  | `memoryWorkspaceMessages`  |
-| 68  | `pr.ts`               | pr portal  | `pr_*`                                        | `prMessages`               |
-| 69  | `crm.ts`              | workspace (direct import) | `crm_*`                           | `crmMessages`              |
-| 70  | `investStrategyBuilder.ts` | invest portal (merged into `invest.ts`) | `invest_sb_*`       | `investStrategyBuilderMessages` |
+| #   | File                       | Surface                                 | Key prefix                                                  | Exported constant                                    |
+| --- | -------------------------- | --------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
+| 1   | `about.ts`                 | marketing                               | `about_*`                                                   | `aboutMessages`                                      |
+| 2   | `advisorCore.ts`           | workspace                               | `advisor_*`                                                 | `advisorCore`                                        |
+| 3   | `advisorView.ts`           | workspace                               | `advisorview_*`                                             | `advisorViewMessages`                                |
+| 4   | `advisorWorkspace.ts`      | workspace                               | `advws_*`                                                   | `advisorWorkspaceMessages`                           |
+| 5   | `analytics.ts`             | workspace                               | `analytics_*`                                               | `analyticsMessages`                                  |
+| 6   | `auth.ts`                  | workspace                               | `auth_*`                                                    | `authMessages`                                       |
+| 7   | `blog.ts`                  | marketing                               | `blog_*`                                                    | `blogMessages`                                       |
+| 8   | `calendar.ts`              | workspace                               | `calendar_*`                                                | `calendarMessages`                                   |
+| 9   | `cases.ts`                 | workspace                               | `cases_*`                                                   | `casesMessages`                                      |
+| 10  | `common.ts`                | **shared**                              | `brand_*`, `disclaimer*`, `theme_*`, `lang_*`               | `common`                                             |
+| 11  | `communications.ts`        | workspace                               | `comms_*`                                                   | `communicationsMessages`                             |
+| 12  | `compensation.ts`          | workspace                               | `comp_*`                                                    | `compensationMessages`                               |
+| 13  | `compliance.ts`            | workspace                               | `compliance_*`                                              | `complianceMessages`                                 |
+| 14  | `doclib.ts`                | workspace                               | `doclib_*`                                                  | `doclibMessages`                                     |
+| 15  | `docstudio.ts`             | workspace                               | `docstudio_*`                                               | `docstudioMessages`                                  |
+| 16  | `employees.ts`             | workspace                               | `employees_*`                                               | `employeesMessages`                                  |
+| 17  | `exportProtection.ts`      | workspace                               | `exportprot_*`                                              | `exportProtectionMessages`                           |
+| 18  | `faq.ts`                   | marketing                               | `faq_*`                                                     | `faqMessages`                                        |
+| 19  | `flows.ts`                 | workspace                               | `flows_*`                                                   | `flowsMessages`                                      |
+| 20  | `guidance.ts`              | workspace                               | `guidance_*`                                                | `guidanceMessages`                                   |
+| 21  | `guidesIndex.ts`           | marketing                               | `guidesIdx_*`                                               | `guidesIndexMessages`                                |
+| 22  | `helpCenter.ts`            | **shared**                              | `help_*`                                                    | `helpCenterMessages`                                 |
+| 23  | `home.ts`                  | workspace                               | `home_*`                                                    | `homeMessages`                                       |
+| 24  | `jurisdictionTool.ts`      | marketing                               | `jur_tool_*`                                                | `jurisdictionToolMessages`                           |
+| 25  | `knowledge.ts`             | workspace                               | `knowledge_*`                                               | `knowledgeMessages`                                  |
+| 26  | `knownLimitations.ts`      | marketing                               | `limits_*`                                                  | `limitsMessages`                                     |
+| 27  | `landing/`                 | **shared**                              | `landing_*` (19 section files merged by `landing/index.ts`) | `landing`                                            |
+| 28  | `legalHub.ts`              | marketing                               | `legalHub_*`                                                | `legalHubMessages`                                   |
+| 29  | `memory.ts`                | workspace                               | `memory_*`                                                  | `memoryMessages`                                     |
+| 30  | `policies.ts`              | workspace                               | `policies_*`                                                | `policiesMessages`                                   |
+| 31  | `pricing.ts`               | marketing                               | `pricing_*`                                                 | `pricingMessages`                                    |
+| 32  | `reference.ts`             | workspace                               | `reference_*`                                               | `referenceMessages`                                  |
+| 33  | `search.ts`                | workspace                               | `search_*`                                                  | `searchMessages`                                     |
+| 34  | `settings.ts`              | workspace                               | `settings_*`                                                | `settingsMessages`                                   |
+| 35  | `shell.ts`                 | workspace                               | `shell_*`                                                   | `shellMessages`                                      |
+| 36  | `support.ts`               | **shared**                              | `support_*`                                                 | `supportMessages`                                    |
+| 37  | `tasks.ts`                 | workspace                               | `tasks_*`                                                   | `tasksMessages`                                      |
+| 38  | `templateUsage.ts`         | marketing                               | `tmplGuide_*`                                               | `tmplGuideMessages`                                  |
+| 39  | `templates.ts`             | workspace                               | `templates_*`                                               | `templatesMessages`                                  |
+| 40  | `templatesPreview.ts`      | marketing                               | `tplPreview_*`                                              | `templatesPreviewMessages`                           |
+| 41  | `wellbeing.ts`             | workspace                               | `wellbeing_*`                                               | `wellbeingMessages`                                  |
+| 42  | `workflows.ts`             | workspace                               | `workflows_*`                                               | `workflowsMessages`                                  |
+| 43  | `workspaceMode.ts`         | workspace                               | `wsmode_*`                                                  | `workspaceModeMessages`                              |
+| 44  | `agent.ts`                 | workspace                               | `agent_*`                                                   | `agentMessages`                                      |
+| 45  | `aiModels.ts`              | workspace                               | `aimodels_*`                                                | `aiModelsMessages`                                   |
+| 46  | `bulkImport.ts`            | workspace                               | `bulk_*`                                                    | `bulkImportMessages`                                 |
+| 47  | `capacity.ts`              | workspace                               | `capacity_*`                                                | `capacityMessages`                                   |
+| 48  | `careers/`                 | workspace                               | `careers_*` (4 section files merged by `careers/index.ts`)  | `careersMessages`                                    |
+| 49  | `changelog.ts`             | marketing                               | `changelog_*`                                               | `changelogMessages`                                  |
+| 50  | `comms.ts`                 | workspace                               | `comms_*`                                                   | `commsMessages`                                      |
+| 51  | `comparison.ts`            | marketing                               | `comparison_*`                                              | `comparisonMessages`                                 |
+| 52  | `entityLinks.ts`           | workspace                               | `el_*`                                                      | `entityLinksMessages`                                |
+| 53  | `finance/`                 | workspace                               | `finance_*` (section files merged by `finance/index.ts`)    | `financeMessages`                                    |
+| 54  | `governance.ts`            | workspace                               | `gov_*`                                                     | `governanceMessages`                                 |
+| 55  | `hiring.ts`                | workspace                               | `hiring_*`                                                  | `hiringMessages`                                     |
+| 56  | `integrations.ts`          | workspace                               | `integ_*`                                                   | `integrationsMessages`                               |
+| 57  | `operations.ts`            | workspace                               | `ops_*`                                                     | `operationsMessages`                                 |
+| 58  | `placeholder.ts`           | workspace                               | `placeholder_*`                                             | `placeholderMessages`                                |
+| 59  | `revenue.ts`               | workspace                               | `rev_*`                                                     | `revenueMessages`                                    |
+| 60  | `security.ts`              | workspace                               | `sec_*`                                                     | `securityMessages`                                   |
+| 61  | `seoMeta.ts`               | marketing                               | per-route meta keys (`*_meta_description`, `*_intro`)       | `seoMetaMessages`                                    |
+| 62  | `specialists.ts`           | workspace                               | `spec_*`                                                    | `specialistsMessages`                                |
+| 63  | `chatWidgets.ts`           | workspace                               | `chatw_*`                                                   | `chatWidgetMessages`                                 |
+| 64  | `health.ts`                | workspace + health portal               | `health_*`                                                  | `healthMessages`                                     |
+| 65  | `invest.ts`                | workspace + invest portal               | `invest_*`                                                  | `investMessages` (merges `investStrategyBuilder.ts`) |
+| 66  | `investors.ts`             | marketing                               | `investors_*`                                               | `investorsMessages`                                  |
+| 67  | `memoryWorkspace.ts`       | workspace (merged into `memory.ts`)     | `memory_ws_*`                                               | `memoryWorkspaceMessages`                            |
+| 68  | `pr.ts`                    | pr portal                               | `pr_*`                                                      | `prMessages`                                         |
+| 69  | `crm.ts`                   | workspace (direct import)               | `crm_*`                                                     | `crmMessages`                                        |
+| 70  | `investStrategyBuilder.ts` | invest portal (merged into `invest.ts`) | `invest_sb_*`                                               | `investStrategyBuilderMessages`                      |
 
 ### Infrastructure Files (5 files)
 
@@ -485,13 +485,13 @@ The `src/i18n/messages/` directory contains 68 feature modules (48 workspace + 1
 | `index.ts`       | Merges `workspaceMessages` + `marketingMessages` into `messages`; exports `MessageKey` union     |
 | `scopes.test.ts` | Compile-time disjointness assertions for the three scoped key types                              |
 
-Sources: [src/i18n/messages/workspace.ts:1-78](), [src/i18n/messages/marketing.ts:1-36](), [src/i18n/messages/shared.ts:1-32](), [src/i18n/messages/index.ts:1-93](), [src/i18n/messages/scopes.test.ts:1-78]()
+Sources: [src/i18n/messages/workspace.ts:1-78](<>), [src/i18n/messages/marketing.ts:1-36](<>), [src/i18n/messages/shared.ts:1-32](<>), [src/i18n/messages/index.ts:1-93](<>), [src/i18n/messages/scopes.test.ts:1-78](<>)
 
 ## Resolution Patterns in Components
 
 Components access messages through two patterns, both via the `useI18n()` hook exported from `src/i18n/context.ts`:
 
-[src/i18n/context.ts:8-13]()
+[src/i18n/context.ts:8-13](<>)
 
 ### Pattern 1: `t('key')` — catalogue lookup by string key
 
@@ -506,7 +506,7 @@ return <h1>{t('home_greeting')}</h1>
 
 Used when the component already has a typed `Bi` object (e.g. imported directly from a message module). Bypasses the catalogue entirely — picks `en` or `fr` from the object. This is how components like `SupportRequestForm` consume messages:
 
-[src/features/support/SupportRequestForm.tsx:4]()
+[src/features/support/SupportRequestForm.tsx:4](<>)
 
 ```typescript
 import { supportMessages as M } from '@/i18n/messages/support'
@@ -517,13 +517,13 @@ return <p>{x(M.support_sensitive_warning)}</p>
 
 The `x()` pattern provides compile-time safety at the import site — the module's `Bi` type is already constrained — without depending on the runtime catalogue.
 
-Sources: [src/i18n/context.ts:1-29](), [src/features/support/SupportRequestForm.tsx:1-5](), [src/features/support/FirstLineSuggestions.tsx:4]()
+Sources: [src/i18n/context.ts:1-29](<>), [src/features/support/SupportRequestForm.tsx:1-5](<>), [src/features/support/FirstLineSuggestions.tsx:4](<>)
 
 ## CI Integration
 
 The scope enforcement fits into the CI pipeline as the final check in the `npm run check` command:
 
-[package.json:24]()
+[package.json:24](<>)
 
 ```
 npm run check =
@@ -537,12 +537,12 @@ check-message-scopes: OK — {N} workspace-only, {M} marketing-only, {K} shared 
 no literal t() call crosses a surface boundary.
 ```
 
-[scripts/check-message-scopes.mjs:137-141]()
+[scripts/check-message-scopes.mjs:137-141](<>)
 
 On failure it lists every violation with file path, key, and surface label, then exits non-zero to fail CI.
 
-[scripts/check-message-scopes.mjs:125-134]()
+[scripts/check-message-scopes.mjs:125-134](<>)
 
-Sources: [package.json:23-24](), [scripts/check-message-scopes.mjs:125-141]()
+Sources: [package.json:23-24](<>), [scripts/check-message-scopes.mjs:125-141](<>)
 
 ---

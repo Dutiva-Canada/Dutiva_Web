@@ -595,7 +595,7 @@ does not yet.
 ```text
 DECISION BLOCK.
 
-/app is gated by invite, not by plan (src/features/app/auth/
+/workspace is gated by invite, not by plan (src/features/app/auth/
 RequireAdminSession.tsx, and the entry stage). The pricing page and the Stripe
 plumbing are real but nothing anywhere reads a plan to decide access. This is
 dormant while the beta is open to the invite list, and a prerequisite for
@@ -821,7 +821,7 @@ them.
   `/tools/jurisdiction-check`. The **public** termination-notice calculator
   remains ruled out (publishing notice periods violates the editorial rule).
   Workspace entitlement calculators (EF11): eng-only scope is **complete** under
-  `/app/workflows/` (Ontario notice + severance gate/amount, QC/FED hedges,
+  `/workspace/workflows/` (Ontario notice + severance gate/amount, QC/FED hedges,
   ROE / layoff / leave-return trackers). Remaining blockers are L6 sign-off for
   numeric QC/FED ladders and a product decision on org payroll / mass-
   termination counts — see TODO.md EF11 “Blocked” table. Do not invent bands.

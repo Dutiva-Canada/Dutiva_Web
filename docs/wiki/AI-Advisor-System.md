@@ -29,11 +29,11 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-The AI Advisor is Dutiva's chat-based HR compliance assistant, accessible at `/app/advisor`. It provides jurisdiction-aware guidance for Canadian employers across Ontario, Québec, and federally regulated workplaces. The system operates in two execution modes — a **scripted demo mode** (fixture-driven, no backend required) and a **real AI mode** (Supabase edge function calling an upstream LLM) — and layers a deterministic safety system over every model response.
+The AI Advisor is Dutiva's chat-based HR compliance assistant, accessible at `/workspace/advisor`. It provides jurisdiction-aware guidance for Canadian employers across Ontario, Québec, and federally regulated workplaces. The system operates in two execution modes — a **scripted demo mode** (fixture-driven, no backend required) and a **real AI mode** (Supabase edge function calling an upstream LLM) — and layers a deterministic safety system over every model response.
 
 The guiding design principle, codified in `docs/AI_USAGE_STRATEGY.md`, is: **the LLM proposes, deterministic code disposes**. The model writes prose; routing, gating, risk classification, jurisdiction detection, crisis intercept, and statutory figures are all computed by rules that are exact, reproducible, and auditable.
 
-Sources: [docs/AI_USAGE_STRATEGY.md:1-21](), [src/features/app/views/advisor/AdvisorView.tsx:66-81]()
+Sources: [docs/AI_USAGE_STRATEGY.md:1-21](<>), [src/features/app/views/advisor/AdvisorView.tsx:66-81](<>)
 
 ---
 
@@ -89,7 +89,7 @@ flowchart TB
     ASE --> ATE
 ```
 
-Sources: [src/features/app/views/advisor/AdvisorView.tsx:1-64](), [src/features/app/advisor/chatApi.ts:90-131](), [supabase/functions/advisor-chat/index.ts:1-28](), [src/features/app/advisor/safety/safetyBackstop.ts:93-155]()
+Sources: [src/features/app/views/advisor/AdvisorView.tsx:1-64](<>), [src/features/app/advisor/chatApi.ts:90-131](<>), [supabase/functions/advisor-chat/index.ts:1-28](<>), [src/features/app/advisor/safety/safetyBackstop.ts:93-155](<>)
 
 ---
 
@@ -109,7 +109,7 @@ In demo mode, six pre-authored scenarios (`s1`–`s6` in `advisorScenarios`) dem
 
 For details on the chat interface, demo flows, and streaming engine, see [Advisor Chat Interface & Demo Flows](#3.1).
 
-Sources: [src/features/app/views/advisor/advisorScenarios.ts:1-55](), [src/features/app/views/advisor/advisorFlows.ts:22-54](), [src/features/app/advisor/chatApi.ts:90-131](), [src/features/app/advisor/useAdvisorEngine.ts:1-22]()
+Sources: [src/features/app/views/advisor/advisorScenarios.ts:1-55](<>), [src/features/app/views/advisor/advisorFlows.ts:22-54](<>), [src/features/app/advisor/chatApi.ts:90-131](<>), [src/features/app/advisor/useAdvisorEngine.ts:1-22](<>)
 
 ---
 
@@ -119,7 +119,7 @@ Sources: [src/features/app/views/advisor/advisorScenarios.ts:1-55](), [src/featu
 
 ```mermaid
 flowchart LR
-    subgraph AdvisorViewLayout["AdvisorView.tsx — /app/advisor"]
+    subgraph AdvisorViewLayout["AdvisorView.tsx — /workspace/advisor"]
         TL["ThreadList.tsx\n(left column, 248px)"]
         subgraph Center["Center"]
             AH["AdvisorHome.tsx\n(no active thread)"]
@@ -166,7 +166,7 @@ flowchart LR
 | `useAdvisorEngine`    | `src/features/app/advisor/useAdvisorEngine.ts`           | Streaming lifecycle hook: thinking → streaming → done                                                                                                  |
 | `advisorSession`      | `src/features/app/views/advisor/advisorSession.ts`       | Module-level session store: transcripts, extras, response state                                                                                        |
 
-Sources: [src/features/app/views/advisor/AdvisorView.tsx:32-63](), [src/features/app/views/advisor/AdvisorHome.tsx:17-66](), [src/features/app/views/advisor/ChatPane.tsx:35-65](), [src/features/app/views/advisor/ComplianceWorkspace.tsx:44-60](), [src/features/app/views/advisor/ThreadList.tsx:1-34](), [src/features/app/rail/AdvisorRail.tsx:14-21](), [src/features/app/advisor/useAdvisorEngine.ts:71-93](), [src/features/app/views/advisor/advisorSession.ts:46-64]()
+Sources: [src/features/app/views/advisor/AdvisorView.tsx:32-63](<>), [src/features/app/views/advisor/AdvisorHome.tsx:17-66](<>), [src/features/app/views/advisor/ChatPane.tsx:35-65](<>), [src/features/app/views/advisor/ComplianceWorkspace.tsx:44-60](<>), [src/features/app/views/advisor/ThreadList.tsx:1-34](<>), [src/features/app/rail/AdvisorRail.tsx:14-21](<>), [src/features/app/advisor/useAdvisorEngine.ts:71-93](<>), [src/features/app/views/advisor/advisorSession.ts:46-64](<>)
 
 On phones, `AdvisorView` stacks vertically: mobile thread access bar, then chat. Side rails (thread list, compliance workspace) use full-screen sheets gated by `useMdUp()` / `useLgUp()` — see [App Shell & Navigation — View-level mobile sheets](#2.4).
 
@@ -186,7 +186,7 @@ Safety telemetry is fire-and-forget via `reportSafetyEvent` → `advisor-safety-
 
 For the full safety pipeline, see [Advisor Safety & Guardrails](#3.2).
 
-Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-78](), [src/features/app/advisor/safety/safetyBackstop.ts:93-155](), [src/features/app/advisor/safetyTelemetry.ts:11-23](), [supabase/functions/advisor-safety-event/index.ts:1-16]()
+Sources: [src/features/app/advisor/safety/crisisSignals.ts:31-78](<>), [src/features/app/advisor/safety/safetyBackstop.ts:93-155](<>), [src/features/app/advisor/safetyTelemetry.ts:11-23](<>), [supabase/functions/advisor-safety-event/index.ts:1-16](<>)
 
 ---
 
@@ -216,15 +216,15 @@ Confirmed org facts (`hr_advisor_memory_facts`) are injected into the prompt and
 
 Memory extraction is `inferred`-only — deduped, capped at 3 per turn, written with audit rows, and **never auto-confirmed**: a human must confirm a fact before it can be injected, which breaks the prompt-injection → memory-poisoning chain. The extraction pass burns a bounded model call (~400 max tokens) without a usage claim — a deliberate, documented choice.
 
-Sources: [supabase/functions/advisor-chat/memoryPersistence.ts:55-70](), [supabase/functions/advisor-chat/memoryExtract.ts](), [supabase/functions/advisor-chat/memoryFacts.ts]()
+Sources: [supabase/functions/advisor-chat/memoryPersistence.ts:55-70](<>), [supabase/functions/advisor-chat/memoryExtract.ts](<>), [supabase/functions/advisor-chat/memoryFacts.ts](<>)
 
 ### Org Overage Attribution
 
-Org-pooled overage billing meters `organizations.stripe_customer_id` — matching the eligibility check `claim_ai_usage` runs against the org — while the legacy per-user path meters `profiles.stripe_customer_id`. Before this fix the org path metered the *calling user's* Stripe customer, which silently no-billed (or billed the wrong account) when a member drove org overage.
+Org-pooled overage billing meters `organizations.stripe_customer_id` — matching the eligibility check `claim_ai_usage` runs against the org — while the legacy per-user path meters `profiles.stripe_customer_id`. Before this fix the org path metered the _calling user's_ Stripe customer, which silently no-billed (or billed the wrong account) when a member drove org overage.
 
-Sources: [supabase/functions/_shared/advisorOverageMeter.ts](), [supabase/functions/_shared/aiUsage.ts]()
+Sources: [supabase/functions/_shared/advisorOverageMeter.ts](<>), [supabase/functions/_shared/aiUsage.ts](<>)
 
-Sources: [supabase/functions/advisor-chat/index.ts:43-103](), [supabase/functions/advisor-chat/responsePayload.ts:1-21](), [supabase/functions/advisor-chat/retrievalQuery.ts:27-33](), [supabase/functions/_shared/aiUsage.ts:1-28]()
+Sources: [supabase/functions/advisor-chat/index.ts:43-103](<>), [supabase/functions/advisor-chat/responsePayload.ts:1-21](<>), [supabase/functions/advisor-chat/retrievalQuery.ts:27-33](<>), [supabase/functions/_shared/aiUsage.ts:1-28](<>)
 
 ---
 
@@ -232,23 +232,23 @@ Sources: [supabase/functions/advisor-chat/index.ts:43-103](), [supabase/function
 
 The `AdvisorResponse` is a Zod-validated contract (`advisorResponseSchema`) that carries the structured payload between the server and the `ComplianceWorkspace` panel. It is defined in `src/features/app/advisor/contract.ts` and mirrored in the edge function's `responsePayload.ts`.
 
-| Field                | Type                  | Purpose                                                                          |
-| -------------------- | --------------------- | -------------------------------------------------------------------------------- |
-| `route`              | `AdvisorRoute`        | Response mode (`hr`/`escalation`/`supportive`) + five boolean gates              |
-| `jurisdiction`       | `JurisdictionRead`    | Status (`known`/`assumed`/`unknown`/`conflict`/`not_applicable`) + display value |
-| `risk`               | `RiskRead`            | Dual ramps: `compliance` (low→critical) and `safety` (none→critical)             |
-| `professionalReview` | `ProfessionalReview?` | Recommended review type (legal, medical, hr, union, emergency)                   |
-| `supportNotice`      | `boolean`             | Show "support mode — intentionally off" in the workspace                         |
-| `legalBasis`         | `LegalBasisRead`      | Statute citation items, each marked `valid` (human-reviewed) or not              |
-| `retrieval`          | `RetrievalRead`       | Corpus tags (e.g. "Termination · ON")                                            |
-| `memory`             | `MemoryUsedRead?`     | Confirmed org memory used this turn                                              |
-| `confidence`         | `ConfidenceRead?`     | Label + 0–100 meter fill                                                         |
+| Field                | Type                  | Purpose                                                                           |
+| -------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| `route`              | `AdvisorRoute`        | Response mode (`hr`/`escalation`/`supportive`) + five boolean gates               |
+| `jurisdiction`       | `JurisdictionRead`    | Status (`known`/`assumed`/`unknown`/`conflict`/`not_applicable`) + display value  |
+| `risk`               | `RiskRead`            | Dual ramps: `compliance` (low→critical) and `safety` (none→critical)              |
+| `professionalReview` | `ProfessionalReview?` | Recommended review type (legal, medical, hr, union, emergency)                    |
+| `supportNotice`      | `boolean`             | Show "support mode — intentionally off" in the workspace                          |
+| `legalBasis`         | `LegalBasisRead`      | Statute citation items, each marked `valid` (human-reviewed) or not               |
+| `retrieval`          | `RetrievalRead`       | Corpus tags (e.g. "Termination · ON")                                             |
+| `memory`             | `MemoryUsedRead?`     | Confirmed org memory used this turn                                               |
+| `confidence`         | `ConfidenceRead?`     | Label + 0–100 meter fill                                                          |
 | `proposedActions`    | `ProposedAction[]?`   | Agent tool calls proposed for user confirmation (gated by `route.actionsAllowed`) |
-| `isCrisis`           | `boolean`             | When true, all structured surfaces are gated off                                 |
+| `isCrisis`           | `boolean`             | When true, all structured surfaces are gated off                                  |
 
 The `allowedSurfaces` function is the single gating check — no workspace block renders without passing its corresponding gate.
 
-Sources: [src/features/app/advisor/contract.ts:56-220]()
+Sources: [src/features/app/advisor/contract.ts:56-220](<>)
 
 ### Agent Actions (propose → confirm → execute)
 
@@ -258,7 +258,7 @@ The client agent layer (`src/features/app/agent/`) ingests each proposal into an
 
 Verified state: `ADVISOR_AGENT_ACTIONS=true` is set on the deployed project and `advisor-chat` is active; an authenticated live turn emitting a proposal card is the remaining end-to-end check.
 
-Sources: [supabase/functions/advisor-chat/agentPropose.ts](), [supabase/functions/advisor-chat/agentCatalog.ts](), [supabase/functions/advisor-chat/index.ts:895-912](), [src/features/app/agent/registry.ts](), [src/features/app/agent/executor.ts](), [src/features/app/agent/AgentActionCard.tsx](), [docs/AGENT_LAYER.md]()
+Sources: [supabase/functions/advisor-chat/agentPropose.ts](<>), [supabase/functions/advisor-chat/agentCatalog.ts](<>), [supabase/functions/advisor-chat/index.ts:895-912](<>), [src/features/app/agent/registry.ts](<>), [src/features/app/agent/executor.ts](<>), [src/features/app/agent/AgentActionCard.tsx](<>), [docs/AGENT_LAYER.md](<>)
 
 ---
 
@@ -275,7 +275,7 @@ During the beta, the AI surface is metered by `claimAiUsage`/`finalizeAiUsage` i
 
 A refused turn returns HTTP 429, surfaced to the user via `AdvisorUsageLimitError` with a friendly message and a `retryAfterSeconds` countdown. All ceilings are env-overridable. The claim is taken **before** the model call and finalized after; an unfinalized claim stays counted as a fail-safe against retry loops.
 
-Sources: [supabase/functions/_shared/aiUsage.ts:30-103](), [src/features/app/advisor/chatApi.ts:33-73]()
+Sources: [supabase/functions/_shared/aiUsage.ts:30-103](<>), [src/features/app/advisor/chatApi.ts:33-73](<>)
 
 ---
 
@@ -316,7 +316,7 @@ sequenceDiagram
 
 In both modes, the crisis pre-classifier (`detectCrisisSignal`) runs on the client **before** any routing decision. A crisis signal always takes precedence — it overrides scenario routing, flow dispatch, and model responses alike.
 
-Sources: [src/features/app/views/advisor/AdvisorView.tsx:126-139](), [src/features/app/advisor/chatApi.ts:90-131](), [src/features/app/advisor/safety/crisisSignals.ts:74-78]()
+Sources: [src/features/app/views/advisor/AdvisorView.tsx:126-139](<>), [src/features/app/advisor/chatApi.ts:90-131](<>), [src/features/app/advisor/safety/crisisSignals.ts:74-78](<>)
 
 ---
 
@@ -327,6 +327,6 @@ Sources: [src/features/app/views/advisor/AdvisorView.tsx:126-139](), [src/featur
 | [Advisor Chat Interface & Demo Flows](#3.1)       | `AdvisorView`, `ChatPane`, `ComplianceWorkspace`, `ThreadList`, `AdvisorHome`, the streaming engine (`useAdvisorEngine`), demo scenarios (`advisorScenarios`), light flows, the termination quick form, suggestion chips, province prompt, `AdvisorRail`                                              |
 | [Advisor Safety & Guardrails](#3.2)               | Crisis intercept (`detectCrisisSignal`, 9-8-8 resource), `applySafetyBackstop` (monotonic tightening), `mentionsStatutoryFigure`, jurisdiction gate, `statutoryCrossCheck`, safety telemetry (`advisor-safety-event`), AI usage metering (`claimAiUsage`/`finalizeAiUsage`, `AdvisorUsageLimitError`) |
 | [Advisor Edge Function & Response Contract](#3.3) | The `advisor-chat` edge function pipeline, `buildAdvisorResponse` deterministic payload builder, `advisorResponseSchema` Zod contract, response modes, workspace state kinds, `match_advisor_guidance` RPC, notice schedule injection, `ChatMarkdown` renderer, `ChatChart` fenced blocks             |
-| [Advisor Evaluation & Statute Drift](#3.4)       | `runGoldenEval` over the 64-case versioned golden set, `statuteRegistry` citation refs, `advisorCorpusSnapshot` frozen corpus, the live-source statute-drift checker (e-Laws / LégisQuébec / laws-lois), and the `--export-corpus` refresh workflow                                                     |
+| [Advisor Evaluation & Statute Drift](#3.4)        | `runGoldenEval` over the 64-case versioned golden set, `statuteRegistry` citation refs, `advisorCorpusSnapshot` frozen corpus, the live-source statute-drift checker (e-Laws / LégisQuébec / laws-lois), and the `--export-corpus` refresh workflow                                                   |
 
 ---

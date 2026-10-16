@@ -56,7 +56,7 @@ Everything _behind_ the UI is illustrative:
 
 The prototype is a single-page shell that swaps a `view` state between six screens. There
 is no real routing — recommend real routes in production (e.g.
-`/app/documents/studio`, `/app/documents/:id`, `/app/documents/generate/:templateId`, etc.)
+`/workspace/documents/studio`, `/workspace/documents/:id`, `/workspace/documents/generate/:templateId`, etc.)
 so links, back button, and refresh all work.
 
 ### 1. Document Studio (template library)

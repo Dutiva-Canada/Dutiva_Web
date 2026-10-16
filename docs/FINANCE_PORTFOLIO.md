@@ -1,6 +1,6 @@
 # Finance → Portfolio
 
-`/app/finance/portfolio` — the company-investments screen, adapted from the
+`/workspace/finance/portfolio` — the company-investments screen, adapted from the
 separate personal-investment-dashboard repo into Dutiva's finance module
 semantics. Screen: `src/features/app/views/finance/screens/Portfolio.tsx`;
 migration `0160_finance_portfolio.sql`.

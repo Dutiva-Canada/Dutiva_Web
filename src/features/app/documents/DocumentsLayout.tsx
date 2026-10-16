@@ -66,7 +66,7 @@ function DocumentsTabs() {
 }
 
 /**
- * Shared frame for every /app/documents route: mounts the feature provider
+ * Shared frame for every /workspace/documents route: mounts the feature provider
  * and the "Viewing as" bar — the prototype's permission-demo control (kept
  * per the handoff; real auth is out of scope for the demo phase). Hidden in
  * production: org membership role from useWorkspaceMode() is the real gate.

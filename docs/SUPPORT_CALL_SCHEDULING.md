@@ -15,7 +15,7 @@ call](SUPPORT_RUNBOOK.md)).
    `propose_call` action, which writes a row to `support_scheduled_calls`,
    moves the ticket to `scheduled_call`, and queues a `call_proposed`
    notification to the customer.
-2. **Confirm.** The customer opens their own ticket (`/app/support/requests/
+2. **Confirm.** The customer opens their own ticket (`/workspace/support/requests/
 :id`) and picks one of the proposed times. This calls
    `support-confirm-call` (checks the caller is the ticket's own requester —
    a scheduled call is a personal appointment, not something a workspace

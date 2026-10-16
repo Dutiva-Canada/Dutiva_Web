@@ -67,7 +67,7 @@ describe('reloadOnWorkerTakeover', () => {
     expect(reload).not.toHaveBeenCalled()
   })
 
-  it('does not reload inside the /app workspace, to preserve unsaved drafts', () => {
+  it('does not reload inside the /workspace surface, to preserve unsaved drafts', () => {
     const container = fakeContainer({})
     const reload = vi.fn()
 

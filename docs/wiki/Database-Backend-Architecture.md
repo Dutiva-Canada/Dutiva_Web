@@ -18,9 +18,9 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
-Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) comprising a PostgreSQL database with 244 tables, 610 RLS policies, 187+ functions/RPCs, and 45 Deno edge functions. The browser connects through a nullable `supabase` client that returns `null` when env vars are missing — the "configured or inert" pattern — so the entire workspace gracefully degrades to demo fixtures when unconfigured.
+Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) comprising a PostgreSQL database with 300 tables, 687 RLS policies, 206 functions/RPCs, and 46 Deno edge functions. The browser connects through a nullable `supabase` client that returns `null` when env vars are missing — the "configured or inert" pattern — so the entire workspace gracefully degrades to demo fixtures when unconfigured.
 
-[src/lib/supabaseClient.ts:1-17]()
+[src/lib/supabaseClient.ts:1-17](<>)
 
 **Backend architecture at a glance**
 
@@ -28,8 +28,8 @@ Dutiva's backend is a **Supabase** project (project id `khtwpxnvziiyplaflwru`) c
 graph TD
     Browser["Browser (supabaseClient.ts)"]
     PostgREST["PostgREST / Realtime"]
-    EdgeFunctions["35 Edge Functions (Deno)"]
-    Postgres["PostgreSQL (244 tables, 610 RLS policies)"]
+    EdgeFunctions["46 Edge Functions (Deno)"]
+    Postgres["PostgreSQL (300 tables, 687 RLS policies)"]
     Vault["supabase_vault (secrets)"]
     PgCron["pg_cron + pg_net"]
     Stripe["Stripe API"]
@@ -54,11 +54,11 @@ graph TD
     PgCron -->|"pg_net.http_post"| EdgeFunctions
 ```
 
-Sources: [supabase/config.toml:1-73](), [src/lib/supabaseClient.ts:12-16](), [supabase/migrations/0035_schedule_law_monitor.sql:37-65]()
+Sources: [supabase/config.toml:1-73](<>), [src/lib/supabaseClient.ts:12-16](<>), [supabase/migrations/0035_schedule_law_monitor.sql:37-65](<>)
 
 ## Database Schema
 
-The full schema lives in `supabase/schema.sql` — a 244-table PostgreSQL database using a **multi-tenant** design where most workspace tables carry an `organization_id` FK. Tables use CHECK constraints for enum-like columns (status, priority, category), UTC timestamps via `timezone('utc', now())`, and `metadata jsonb` columns for extensibility.
+The full schema lives in `supabase/schema.sql` — a 300-table PostgreSQL database using a **multi-tenant** design where most workspace tables carry an `organization_id` FK. Tables use CHECK constraints for enum-like columns (status, priority, category), UTC timestamps via `timezone('utc', now())`, and `metadata jsonb` columns for extensibility.
 
 Key PostgreSQL extensions enable the backend's capabilities:
 
@@ -71,38 +71,42 @@ Key PostgreSQL extensions enable the backend's capabilities:
 | `pgcrypto`       | `extensions` | Cryptographic functions                       |
 | `uuid-ossp`      | `extensions` | UUID generation                               |
 
-Three authorization helpers — `is_admin()`, `is_org_member()`, and `is_org_admin()` — underpin RLS policies across 71, 46, and 13 tables respectively. These are `SECURITY DEFINER` functions granted to the `authenticated` role (migration `0050`) so that signed-in users can read their own data.
+Three authorization helpers — `is_admin()`, `is_org_member()`, and `is_org_admin()` — underpin RLS policies across 72, 147, and 124 tables respectively. These are `SECURITY DEFINER` functions granted to the `authenticated` role (migration `0050`) so that signed-in users can read their own data.
 
-For details on the 244-table schema, multi-tenant design, key tables, 209 migrations, and the 610 RLS policies, see [Database Schema & Migrations](#9.1).
+For details on the 300-table schema, multi-tenant design, key tables, 234 migrations, and the 687 RLS policies, see [Database Schema & Migrations](#9.1).
 
-Sources: [supabase/schema.sql:16-83](), [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:1-48](), [supabase/migrations/0053_rls_grant_gaps_check.sql:1-76]()
+Sources: [supabase/schema.sql:16-83](<>), [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:1-48](<>), [supabase/migrations/0053_rls_grant_gaps_check.sql:1-76](<>)
 
 ## Edge Functions & Shared Modules
 
-The 45 edge functions are Deno TypeScript handlers under `supabase/functions/`. They split into two authentication modes controlled by `supabase/config.toml`:
+The 46 edge functions are Deno TypeScript handlers under `supabase/functions/`. They split into two authentication modes controlled by `supabase/config.toml`:
 
 **Edge function authentication map**
 
 ```mermaid
 graph LR
-    subgraph VerifyJwtFalse["verify_jwt = false"]
-        Webhooks["stripe-webhook\nresend-webhook"]
-        PublicIntake["create-public-support-ticket\ncreate-beta-signup"]
+    subgraph VerifyJwtFalse["verify_jwt = false (25)"]
+        Webhooks["stripe-webhook\nresend-webhook\nintegration-webhook\ninbound-email"]
+        PublicIntake["create-public-support-ticket\ncreate-beta-signup\nbeta-cohort-status"]
+        PortalToken["pr-ai\nhealth-ai\nhealth-transcribe"]
         FireAndForget["report-error\nsupport-analytics-event"]
-        CronWorkers["monitor-law-changes\nsupport-notify\nsupport-call-scheduler\nsupport-attachment-scan\nsend-law-updates\nrecord-score-snapshots"]
+        CronWorkers["monitor-law-changes\nsupport-notify\nsupport-call-scheduler\nsupport-attachment-scan\nsend-law-updates\nrecord-score-snapshots\nsend-signing-invite\nsigning-reminder-scheduler\npolicy-review-scheduler\npr-mentions-feed\npr-geo-check\nhealth-habit-notify\nnotify-signing-status"]
     end
-    subgraph VerifyJwtTrue["verify_jwt = true"]
-        AuthActions["advisor-chat\ncreate-support-ticket\nsupport-agent-action\nsupport-confirm-call\nsupport-attachment-action\ncreate-checkout-session\ncreate-portal-session\nexport-audit-trail\nrecord-export\nadvisor-safety-event\nsupport-firstline\nset-service-status"]
+    subgraph VerifyJwtTrue["verify_jwt = true (21)"]
+        Workspace["advisor-chat\nadvisor-safety-event\nsupport-firstline\nsupport-agent-action\nsupport-confirm-call\nsupport-attachment-action\ncreate-support-ticket\nset-service-status\nexport-audit-trail\nrecord-export\nworkspace-integration\nsend-org-invite"]
+        Billing["create-checkout-session\ncreate-portal-session\ncreate-advisor-pack-checkout"]
+        PortalAuth["candidate-ai\ncandidate-job-agent\ninvest-ai\ninvest-bot\ninvest-market-sync\npr-fetch-meta"]
     end
     Webhooks -.->|"provider signature"| InBandAuth["In-band auth"]
     CronWorkers -.->|"vault shared secret"| InBandAuth
+    PortalToken -.->|"portal token / in-band check"| InBandAuth
 ```
 
-Sources: [supabase/config.toml:22-73]()
+Sources: [supabase/config.toml:22-100](<>)
 
-Functions that bypass JWT verification authenticate callers in-band: webhooks verify provider signatures (e.g. Stripe's HMAC, Resend's Svix signature), and cron-triggered workers check a shared secret from `vault.decrypted_secrets`. This was hardened in migration `0049` after an audit found that the original JWT-based auth was checking claims without verifying signatures.
+`verify_jwt = true` still accepts the publishable anon key — it is itself a JWT — so public-facing portal functions (e.g. `invest-ai`, `candidate-ai`) sit in this group and do their own in-band session/token checks. Functions that bypass gateway JWT verification authenticate callers in-band instead: webhooks verify provider signatures (e.g. Stripe's HMAC, Resend's Svix signature), and cron-triggered workers check a shared secret from `vault.decrypted_secrets`. This was hardened in migration `0049` after an audit found that the original JWT-based auth was checking claims without verifying signatures.
 
-[supabase/migrations/0049_cron_trigger_shared_secret.sql:1-39]()
+[supabase/migrations/0049_cron_trigger_shared_secret.sql:1-39](<>)
 
 A `_shared/` directory provides reusable server modules consumed by multiple edge functions:
 
@@ -121,7 +125,7 @@ A `_shared/` directory provides reusable server modules consumed by multiple edg
 
 For the full edge function inventory, shared module details, and Vault secrets management, see [Edge Functions & Shared Modules](#9.2).
 
-Sources: [supabase/functions/_shared/aiUsage.ts:1-39](), [supabase/functions/_shared/exportGuard.ts:1-49](), [supabase/functions/_shared/resendSend.ts:1-25](), [supabase/functions/_shared/caslConsent.ts:1-65](), [supabase/functions/_shared/lawUpdateRelevance.ts:1-131](), [supabase/functions/_shared/adminAccess.ts:1-17]()
+Sources: [supabase/functions/_shared/aiUsage.ts:1-39](<>), [supabase/functions/_shared/exportGuard.ts:1-49](<>), [supabase/functions/_shared/resendSend.ts:1-25](<>), [supabase/functions/_shared/caslConsent.ts:1-65](<>), [supabase/functions/_shared/lawUpdateRelevance.ts:1-131](<>), [supabase/functions/_shared/adminAccess.ts:1-17](<>)
 
 ## Cron-Driven Scheduling
 
@@ -156,29 +160,30 @@ sequenceDiagram
     EdgeFn->>CronLocks: "release_cron_lock()"
 ```
 
-Sources: [supabase/migrations/0034_cron_locks.sql:1-85](), [supabase/migrations/0035_schedule_law_monitor.sql:1-65](), [supabase/migrations/0048_fix_attachment_scan_trigger_auth.sql:38-68]()
+Sources: [supabase/migrations/0034_cron_locks.sql:1-85](<>), [supabase/migrations/0035_schedule_law_monitor.sql:1-65](<>), [supabase/migrations/0048_fix_attachment_scan_trigger_auth.sql:38-68](<>)
 
 ## Billing & Stripe Integration
 
-Stripe billing is fully integrated but **disabled during beta** via the `PAID_PLANS_DISABLED_DURING_BETA` flag. The integration includes three edge functions: `create-checkout-session` (starts a Stripe Checkout flow), `create-portal-session` (customer portal access), and `stripe-webhook` (processes subscription lifecycle events with idempotency via the `stripe_webhook_events` table). Internal `@dutiva.ca` accounts bypass the paywall entirely — the `bypassesPaywall()` helper in `adminAccess.ts` short-circuits before any Stripe API call.
+Stripe billing is fully integrated and **monthly paid checkout is live** — `PAID_PLANS_DISABLED_DURING_BETA` is `false` (go-live OA11 closed 2026-08-27; annual prices remain a pending follow-on, EF4a). The integration includes three edge functions: `create-checkout-session` (starts a Stripe Checkout flow), `create-portal-session` (customer portal access), and `stripe-webhook` (processes subscription lifecycle events with idempotency via the `stripe_webhook_events` table). Internal `@dutiva.ca` accounts bypass the paywall entirely — the `bypassesPaywall()` helper in `adminAccess.ts` short-circuits before any Stripe API call.
 
-[supabase/functions/create-checkout-session/index.ts:1-17](), [supabase/functions/stripe-webhook/index.ts:1-21](), [supabase/functions/_shared/adminAccess.ts:11-16]()
+[supabase/functions/create-checkout-session/index.ts:1-17](<>), [supabase/functions/stripe-webhook/index.ts:1-21](<>), [supabase/functions/_shared/adminAccess.ts:11-16](<>)
 
 For the complete billing flow, plan tiers, Stripe event processing, and usage counters, see [Billing & Stripe Integration](#9.3).
 
 ## External Service Integrations
 
-The backend integrates with five external services, all following the "configured or inert" pattern — each returns a safe no-op or 503 when its credentials are absent:
+The backend integrates with six external services, all following the "configured or inert" pattern — each returns a safe no-op or 503 when its credentials are absent:
 
-| Service             | Credential(s)                                                 | Consumer                                                 |
-| ------------------- | ------------------------------------------------------------- | -------------------------------------------------------- |
-| **DeepSeek** (LLM)  | `HF_TOKEN` via model routes                                   | `advisor-chat`, `support-firstline`                      |
-| **Stripe**          | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                  | `create-checkout-session`, `stripe-webhook`              |
-| **Resend**          | `RESEND_API_KEY`                                              | `support-notify`, `send-law-updates` via `resendSend.ts` |
-| **Google Calendar** | `GOOGLE_CALENDAR_CLIENT_EMAIL`, `GOOGLE_CALENDAR_PRIVATE_KEY` | `support-call-scheduler` via `googleCalendar.ts`         |
-| **ClamAV scanner**  | `SUPPORT_ATTACHMENT_SCAN_URL`                                 | `support-attachment-scan`                                |
+| Service             | Credential(s)                                                 | Consumer                                                  |
+| ------------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| **DeepSeek** (LLM)  | `HF_TOKEN` via model routes                                   | `advisor-chat`, `support-firstline`                       |
+| **Stripe**          | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                  | `create-checkout-session`, `stripe-webhook`               |
+| **Resend**          | `RESEND_API_KEY`                                              | `support-notify`, `send-law-updates` via `resendSend.ts`  |
+| **Google Calendar** | `GOOGLE_CALENDAR_CLIENT_EMAIL`, `GOOGLE_CALENDAR_PRIVATE_KEY` | `support-call-scheduler` via `googleCalendar.ts`          |
+| **ClamAV scanner**  | `SUPPORT_ATTACHMENT_SCAN_URL`                                 | `support-attachment-scan`                                 |
+| **HuggingFace**     | `HF_TOKEN`                                                    | `monitor-law-changes` (URL recovery via `lawRecovery.ts`) |
 
-Sources: [.env.example:29-104](), [supabase/functions/_shared/resendSend.ts:9-25](), [supabase/functions/_shared/googleCalendar.ts:1-15]()
+Sources: [.env.example:29-104](<>), [supabase/functions/_shared/resendSend.ts:9-25](<>), [supabase/functions/_shared/googleCalendar.ts:1-15](<>)
 
 ## Client ↔ Backend Data Flow
 
@@ -203,17 +208,17 @@ graph TD
     RLS --> Tables
 ```
 
-Sources: [src/lib/supabaseClient.ts:1-17](), [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:43-45]()
+Sources: [src/lib/supabaseClient.ts:1-17](<>), [supabase/migrations/0050_grant_rls_predicate_helpers_to_authenticated.sql:43-45](<>)
 
 ## Migrations & Integrity Guards
 
-The migration history comprises **94 numbered files** under `supabase/migrations/` (`0001_` through `0093_`) plus 6 archived legacy migrations. The CI pipeline includes two database-level integrity checks that run against the live project:
+The migration history comprises **234 numbered files** under `supabase/migrations/` (`0001_` through `0234_`). The CI pipeline includes two database-level integrity checks that run against the live project:
 
 - **`scripts/check-migrations.mjs`** — validates filename discipline and detects forward/reverse drift between the repo and the deployed project.
 - **`scripts/check-rls.mjs`** — runtime RLS regression probing with positive and negative controls.
 - **`rls_grant_gaps()`** (migration `0053`) — a catalog query that detects any RLS policy calling a function the `authenticated` role cannot execute, preventing the class of silent outage discovered in production.
 
-[supabase/migrations/0053_rls_grant_gaps_check.sql:47-75]()
+[supabase/migrations/0053_rls_grant_gaps_check.sql:47-75](<>)
 
 For the complete migration inventory, naming conventions, and detailed table descriptions, see [Database Schema & Migrations](#9.1).
 

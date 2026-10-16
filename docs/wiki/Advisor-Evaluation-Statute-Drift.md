@@ -51,7 +51,7 @@ The eval is honest about its scope: it tests the **deterministic layers** only. 
 
 **Runner:** `scripts/check-advisor-golden.mjs` (wired into `npm run check`) runs the suite via vitest and writes a timestamped JSON audit record to `eval-results/` per run. Exit 0 = no failing checks (gaps tolerated); 1 = a failing check; 2 = usage error.
 
-Sources: [src/features/app/advisor/eval/goldenEval.ts:1-46](), [scripts/check-advisor-golden.mjs:1-30](), [src/features/app/advisor/eval/goldenEval.test.ts]()
+Sources: [src/features/app/advisor/eval/goldenEval.ts:1-46](<>), [scripts/check-advisor-golden.mjs:1-30](<>), [src/features/app/advisor/eval/goldenEval.test.ts](<>)
 
 ---
 
@@ -64,7 +64,7 @@ Sources: [src/features/app/advisor/eval/goldenEval.ts:1-46](), [scripts/check-ad
 
 The corpus uses **citation aliases** — the surface text may name "ESA s.57" while the registry canonical ref is `ON_ESA:57` — and the eval distinguishes `canonical` vs `corpus-cited` refs accordingly.
 
-Sources: [src/features/app/advisor/eval/statuteRegistry.ts:62-110](), [src/features/app/advisor/eval/goldenEval.ts:18-23]()
+Sources: [src/features/app/advisor/eval/statuteRegistry.ts:62-110](<>), [src/features/app/advisor/eval/goldenEval.ts:18-23](<>)
 
 ---
 
@@ -80,7 +80,7 @@ npm run check:advisor-golden -- --export-corpus
 
 which pulls the live table via the Management API (`SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`) and rewrites the snapshot file.
 
-Sources: [src/features/app/advisor/eval/advisorCorpusSnapshot.ts:1-18](), [scripts/check-advisor-golden.mjs:38-60]()
+Sources: [src/features/app/advisor/eval/advisorCorpusSnapshot.ts:1-18](<>), [scripts/check-advisor-golden.mjs:38-60](<>)
 
 ---
 
@@ -96,8 +96,8 @@ Sources are the same official sites cited in the registry — **e-Laws** (JSON d
 
 ### Findings
 
-| `DriftKind`          | Meaning                                                        |
-| -------------------- | -------------------------------------------------------------- |
+| `DriftKind`          | Meaning                                                         |
+| -------------------- | --------------------------------------------------------------- |
 | `section-missing`    | A cited section heading is absent from the live text            |
 | `marker-missing`     | A figure-bearing rule lost its figure marker                    |
 | `source-unreachable` | The official source could not be fetched                        |
@@ -110,7 +110,7 @@ The check is **network-bound and intentionally out of `npm run check`** — gove
 
 Latest full run: **122/125 verified, 0 drifted**, 3 `cite-unattributed` parser limitations (a sessional `S.C. 2024, c.15` cite and OHRC policy-document sections — semantically valid).
 
-Sources: [src/features/app/advisor/eval/statuteDrift.ts:1-46](), [scripts/check-statute-drift.mjs:1-40](), [.woodpecker/statute-drift.yml]()
+Sources: [src/features/app/advisor/eval/statuteDrift.ts:1-46](<>), [scripts/check-statute-drift.mjs:1-40](<>), [.woodpecker/statute-drift.yml](<>)
 
 ---
 
@@ -136,15 +136,15 @@ graph TD
 
 `eval-results/` keeps timestamped JSON audit records per run — dated records stay local (gitignored), and the two `*-latest.json` files (`golden-latest.json`, `statute-drift-latest.json`) are committed as audit evidence.
 
-Sources: [scripts/check-advisor-golden.mjs](), [scripts/check-statute-drift.mjs](), [.gitignore]()
+Sources: [scripts/check-advisor-golden.mjs](<>), [scripts/check-statute-drift.mjs](<>), [.gitignore](<>)
 
 ---
 
 ## Child Pages
 
-| Page | What it covers |
-| ---- | -------------- |
-| [AI Advisor System](AI-Advisor-System) | The production Advisor pipeline this layer evaluates |
-| [Advisor Safety Guardrails](Advisor-Safety-Guardrails) | The deterministic safety gates the eval exercises |
-| [Advisor Edge Function Response Contract](Advisor-Edge-Function-Response-Contract) | The `AdvisorResponse` payload the eval asserts on |
-| [Law Change Monitor](Law-Change-Monitor) | The sibling monitor for statute *text* changes (not citation drift) |
+| Page                                                                               | What it covers                                                      |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [AI Advisor System](AI-Advisor-System)                                             | The production Advisor pipeline this layer evaluates                |
+| [Advisor Safety Guardrails](Advisor-Safety-Guardrails)                             | The deterministic safety gates the eval exercises                   |
+| [Advisor Edge Function Response Contract](Advisor-Edge-Function-Response-Contract) | The `AdvisorResponse` payload the eval asserts on                   |
+| [Law Change Monitor](Law-Change-Monitor)                                           | The sibling monitor for statute _text_ changes (not citation drift) |
