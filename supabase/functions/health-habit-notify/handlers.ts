@@ -67,3 +67,28 @@ export function atRiskHabits(
   }
   return out
 }
+
+export interface NotifyPrefRow {
+  user_id: string
+  email_enabled: boolean
+  reminder_enabled: boolean
+}
+
+/**
+ * Opted-in reminder recipients: reminder_enabled on, email_enabled not
+ * false (that master switch still wins — "no emails" means no emails),
+ * and no check-in row stamped today. Absent rows can't appear — the
+ * query that feeds this filters on reminder_enabled = true.
+ */
+export function reminderRecipients(
+  prefs: NotifyPrefRow[],
+  checkedInToday: Set<string>,
+): Set<string> {
+  const out = new Set<string>()
+  for (const p of prefs) {
+    if (!p.reminder_enabled || p.email_enabled === false) continue
+    if (checkedInToday.has(p.user_id)) continue
+    out.add(p.user_id)
+  }
+  return out
+}

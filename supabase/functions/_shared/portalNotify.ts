@@ -14,7 +14,11 @@ import { resendSend } from './resendSend.ts'
  * Returns a short status string the caller can log/return; 'sent' means the
  * provider accepted the message (resendSend resolves on 2xx only).
  */
-export type PortalNotifyKind = 'pr_coverage' | 'pr_coverage_alert' | 'health_streak_risk'
+export type PortalNotifyKind =
+  | 'pr_coverage'
+  | 'pr_coverage_alert'
+  | 'health_streak_risk'
+  | 'health_checkin_reminder'
 
 /* Pref + log scoping: kinds are prefixed by surface, so an alert variant
    (pr_coverage_alert) shares the surface's opt-out toggle but gets its own

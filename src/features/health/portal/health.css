@@ -1371,3 +1371,95 @@ a > .hb-jthumb:hover {
   font-size: 12px;
   line-height: 1.5;
 }
+
+/* First-run welcome — a calmer card: accent-tinted step icons, an X in
+   the corner instead of a second button row. */
+.hb-welcome {
+  position: relative;
+  margin-top: 18px;
+}
+.hb-welcome-x {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.hb-welcome-x:hover {
+  background: var(--sb-accent-soft);
+  color: var(--sb-ink);
+}
+.hb-welcome-steps {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.hb-welcome-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--sb-ink);
+}
+.hb-welcome-steps svg {
+  flex-shrink: 0;
+  color: var(--sb-accent);
+}
+
+/* Live mic level under the recording status — a thin fill that answers
+   "is it hearing me?" on the server engine, which has no interim text.
+   scaleX keeps the repaints cheap; a slow settle reads as breath, not a
+   VU needle. */
+.hbcall-meter {
+  width: 180px;
+  height: 4px;
+  margin: 10px auto 0;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sb-line) 55%, transparent);
+  overflow: hidden;
+}
+.hbcall-meter > span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sb-accent);
+  transform-origin: left center;
+  transition: transform 0.12s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hbcall-meter > span {
+    transition: none;
+  }
+}
+
+/* Per-habit cadence select — sb-input at 48px would dwarf the meta row;
+   the compact shape keeps it a quiet setting, not a form field. */
+.sb.hb .hb-cadence {
+  width: auto;
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 4px 26px 4px 9px;
+  border-radius: 8px;
+  background-position: right 8px center;
+  color: var(--sb-muted);
+}
+.sb.hb .hb-cadence:focus {
+  color: var(--sb-ink);
+}
+[data-theme='dark'] .sb.hb select.hb-cadence {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237fc4a2' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}

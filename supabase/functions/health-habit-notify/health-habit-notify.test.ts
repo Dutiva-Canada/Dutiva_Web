@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { atRiskHabits, streakEndingOn } from './handlers'
+import { atRiskHabits, reminderRecipients, streakEndingOn } from './handlers'
 
 const habit = (id: string, user_id = 'u1', name = `Habit ${id}`) => ({ id, user_id, name })
 const log = (habit_id: string, day: string, user_id = 'u1') => ({ habit_id, user_id, day })
@@ -60,5 +60,33 @@ describe('atRiskHabits', () => {
     )
     expect(out.get('u1')).toEqual(['Habit h1', 'Habit h2'])
     expect(out.get('u2')).toEqual(['Other'])
+  })
+})
+
+const pref = (user_id: string, email_enabled = true, reminder_enabled = true) => ({
+  user_id,
+  email_enabled,
+  reminder_enabled,
+})
+
+describe('reminderRecipients', () => {
+  it('includes an opted-in user with no check-in today', () => {
+    const out = reminderRecipients([pref('u1')], new Set())
+    expect(out.has('u1')).toBe(true)
+  })
+
+  it('excludes a user who already checked in today', () => {
+    const out = reminderRecipients([pref('u1')], new Set(['u1']))
+    expect(out.size).toBe(0)
+  })
+
+  it('excludes a user whose master email switch is off — opt-out wins over opt-in', () => {
+    const out = reminderRecipients([pref('u1', false, true)], new Set())
+    expect(out.size).toBe(0)
+  })
+
+  it('excludes a user who never opted in', () => {
+    const out = reminderRecipients([pref('u1', true, false)], new Set())
+    expect(out.size).toBe(0)
   })
 })

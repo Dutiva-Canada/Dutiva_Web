@@ -7827,18 +7827,21 @@ export type Database = {
           id: string
           name: string
           user_id: string
+          weekly_target: number | null
         }
         Insert: {
           created_at?: string
           id?: string
           name: string
           user_id: string
+          weekly_target?: number | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string
           user_id?: string
+          weekly_target?: number | null
         }
         Relationships: []
       }
@@ -12619,18 +12622,21 @@ export type Database = {
       portal_notification_prefs: {
         Row: {
           email_enabled: boolean
+          reminder_enabled: boolean
           surface: string
           updated_at: string
           user_id: string
         }
         Insert: {
           email_enabled?: boolean
+          reminder_enabled?: boolean
           surface: string
           updated_at?: string
           user_id: string
         }
         Update: {
           email_enabled?: boolean
+          reminder_enabled?: boolean
           surface?: string
           updated_at?: string
           user_id?: string

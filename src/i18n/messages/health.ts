@@ -128,6 +128,27 @@ export const healthMessages = defineMessages({
     en: 'Start with a one-minute check-in — the summary builds from there.',
     fr: 'Commencez par un point d’une minute — le résumé se construit à partir de là.',
   },
+  /* First-run orientation — only while every surface is empty; any way
+     out (the X or the CTA) dismisses it for good. [FR self-authored] */
+  health_welcome_title: { en: 'Welcome', fr: 'Bienvenue' },
+  health_welcome_sub: {
+    en: 'Three small moves — then the portal works quietly for you.',
+    fr: 'Trois petits gestes — puis le portail travaille discrètement pour vous.',
+  },
+  health_welcome_step1: {
+    en: 'Check in — mood and energy, thirty seconds.',
+    fr: 'Faites le point — humeur et énergie, trente secondes.',
+  },
+  health_welcome_step2: {
+    en: 'Write, or take a guided pause.',
+    fr: 'Écrivez, ou prenez une pause guidée.',
+  },
+  health_welcome_step3: {
+    en: 'Mira notices and suggests — you decide. Nothing changes without a yes.',
+    fr: 'Mira remarque et suggère — vous décidez. Rien ne change sans votre oui.',
+  },
+  health_welcome_cta: { en: 'Start with a check-in', fr: 'Commencer par le point du jour' },
+  health_welcome_dismiss: { en: 'Skip the welcome', fr: 'Fermer la présentation' },
   health_ov_last_checkin: { en: 'Last check-in: {date}', fr: 'Dernier point : {date}' },
   /* Pending review queue — a strip, with the count carried by fill(). */
   health_ov_review_one: { en: '1 suggestion is waiting for your call', fr: '1 suggestion attend votre décision' },
@@ -544,6 +565,17 @@ export const healthMessages = defineMessages({
      toggleable buttons for backfilling, so each carries its day and state.
      [FR self-authored] */
   health_habit_week_summary: { en: '{done}/{total} this week', fr: '{done}/{total} cette semaine' },
+  /* Weekly cadence — an opt-in alternative to the daily streak for habits
+     that aren't meant to be daily ("gym 3× a week"). The progress pill
+     carries the fraction; there is deliberately no "missed day" language
+     on a weekly habit. Gated on migration 0228's column. [FR self-authored] */
+  health_habit_cadence: { en: 'Cadence', fr: 'Rythme' },
+  health_habit_cadence_daily: { en: 'Every day', fr: 'Chaque jour' },
+  health_habit_cadence_weekly: { en: '{n}× a week', fr: '{n}× par semaine' },
+  health_habit_week_progress: {
+    en: '{done} of {target} this week',
+    fr: '{done} sur {target} cette semaine',
+  },
   health_habit_month_summary: { en: '{done} of the last 30 days', fr: '{done} des 30 derniers jours' },
   /* Younger habits get honest denominators — "0 of 30" would scold a
      habit that only just started existing. [FR self-authored] */
@@ -747,6 +779,8 @@ export const healthMessages = defineMessages({
   health_tool_breath_cycle: { en: 'Cycle {count}', fr: 'Cycle {count}' },
   health_tool_breath_mode_label: { en: 'Pace', fr: 'Rythme' },
   health_tool_breath_mode_box: { en: 'Box', fr: 'Carrée' },
+  /* Physiological sigh — double inhale, long exhale. [FR self-authored] */
+  health_tool_breath_mode_sigh: { en: 'Sigh', fr: 'Soupir' },
   /* The eyes-closed affordance — a soft tone and a short pulse mark each
      phase change so the screen can go unread. [FR self-authored] */
   health_tool_breath_cues: { en: 'Chime', fr: 'Carillon' },
@@ -898,8 +932,81 @@ export const healthMessages = defineMessages({
   health_legal_contact: { en: 'Contact', fr: 'Nous joindre' },
   health_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
 
+  /* "Your data" — export, the opt-in evening reminder, delete-all. The
+     delete copy names what stays (account, access, email settings) rather
+     than implying the whole account vanishes. [FR self-authored] */
+  health_data_title: { en: 'Your data', fr: 'Vos données' },
+  health_data_sub: {
+    en: 'Everything the portal stores for you — check-ins, journal, habits, memories, and chats with Mira. Take a copy, or clear it all.',
+    fr: 'Tout ce que le portail conserve pour vous — points du jour, journal, habitudes, souvenirs et clavardages avec Mira. Téléchargez-en une copie ou effacez le tout.',
+  },
+  health_data_export_title: { en: 'Take it with you', fr: 'Emportez vos données' },
+  health_data_export_sub: {
+    en: 'Your full history in one file, exactly as stored. Downloading changes nothing — no one is notified.',
+    fr: 'Tout votre historique dans un fichier, tel que conservé. Le téléchargement ne change rien — personne n’en est avisé.',
+  },
+  health_data_export_json: { en: 'Download everything (JSON)', fr: 'Tout télécharger (JSON)' },
+  health_data_export_md: {
+    en: 'Journal as readable text (.md)',
+    fr: 'Journal en texte lisible (.md)',
+  },
+  health_data_export_empty_journal: {
+    en: 'No journal entries yet — nothing to write out.',
+    fr: 'Aucune entrée de journal pour l’instant — rien à exporter.',
+  },
+  health_data_export_done: {
+    en: 'Download started — check your downloads folder.',
+    fr: 'Téléchargement lancé — voyez votre dossier de téléchargements.',
+  },
+  health_data_export_failed: {
+    en: 'Couldn’t export your data — try again.',
+    fr: 'Impossible d’exporter vos données — réessayez.',
+  },
+  health_data_remind_title: { en: 'Evening reminder', fr: 'Rappel du soir' },
+  health_data_remind_sub: {
+    en: 'Off by default. Turn it on for one quiet email in the evening on days you haven’t checked in — never about what you wrote.',
+    fr: 'Inactif par défaut. Activez-le pour un courriel discret le soir, les jours sans point — jamais au sujet de ce que vous écrivez.',
+  },
+  health_data_remind_toggle: {
+    en: 'Email me in the evening if I haven’t checked in today',
+    fr: 'M’écrire le soir si je n’ai pas fait mon point',
+  },
+  health_data_remind_saved_on: {
+    en: 'Reminder on — at most one email, only on quiet days.',
+    fr: 'Rappel activé — un seul courriel, les jours sans point.',
+  },
+  health_data_remind_saved_off: { en: 'Reminder off.', fr: 'Rappel désactivé.' },
+  health_data_remind_failed: {
+    en: 'Couldn’t save that — try again.',
+    fr: 'Impossible d’enregistrer — réessayez.',
+  },
+  health_data_delete_title: { en: 'Delete everything', fr: 'Tout effacer' },
+  health_data_delete_sub: {
+    en: 'Removes every check-in, journal entry and photo, habit and its history, saved memory, queued suggestion, and chat with Mira. Keeps your sign-in, your access to the portal, and your email settings.',
+    fr: 'Efface chaque point du jour, entrée de journal et photo, habitude et son historique, souvenir, suggestion en attente et clavardage avec Mira. Conserve votre connexion, votre accès au portail et vos réglages de courriel.',
+  },
+  health_data_delete_btn: {
+    en: 'Delete all my health data',
+    fr: 'Effacer toutes mes données Santé',
+  },
+  health_data_delete_armed: {
+    en: 'No undo — click again to delete',
+    fr: 'Aucun retour — cliquez encore pour effacer',
+  },
+  health_data_delete_done: {
+    en: 'Your health data is deleted.',
+    fr: 'Vos données Santé sont effacées.',
+  },
+  health_data_delete_failed: {
+    en: 'Couldn’t delete everything — try again.',
+    fr: 'Impossible de tout effacer — réessayez.',
+  },
+  health_data_back: { en: 'Back to overview', fr: 'Retour à l’aperçu' },
+  health_footer_data: { en: 'Your data', fr: 'Vos données' },
+
   /* SEO/head titles */
   health_seo_title: { en: 'Dutiva Health', fr: 'Dutiva Santé' },
+  health_seo_title_data: { en: 'Your data — Dutiva Health', fr: 'Vos données — Dutiva Santé' },
   health_seo_title_terms: { en: 'Terms — Dutiva Health', fr: 'Conditions — Dutiva Santé' },
   health_seo_title_privacy: { en: 'Privacy — Dutiva Health', fr: 'Confidentialité — Dutiva Santé' },
   health_seo_title_support: { en: 'Support — Dutiva Health', fr: 'Soutien — Dutiva Santé' },
@@ -1065,6 +1172,14 @@ export const healthMessages = defineMessages({
   health_home_mira_week: {
     en: 'You’ve checked in {count} times this week.',
     fr: 'Vous avez pris le point {count} fois cette semaine.',
+  },
+  /* Weekly rhythm notice — {day} is a localized weekday name; both
+     languages pluralize it with a trailing "s" ("your Sundays" / "vos
+     dimanches"). Observational only — names the pattern, never why.
+     [FR self-authored] */
+  health_home_mira_weekday: {
+    en: 'Lately, your {day}s have been running lower than the rest of your week.',
+    fr: 'Ces temps-ci, vos {day}s tirent un peu plus bas que le reste de la semaine.',
   },
   /* Thumbs rating under an assistant reply — stored on the turn.
      [FR self-authored] */

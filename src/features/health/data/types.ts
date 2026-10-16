@@ -37,6 +37,9 @@ export interface HealthJournalEntry {
 export interface HealthHabit {
   id: string
   name: string
+  /** Opt-in times-per-week goal (1–6); null = the daily streak model.
+      Absent on rows read before migration 0228's column existed. */
+  weeklyTarget?: number | null
   createdAt: string
 }
 
@@ -100,6 +103,7 @@ export function habitFromRow(row: HabitRow): HealthHabit {
   return {
     id: row.id,
     name: row.name,
+    weeklyTarget: row.weekly_target ?? null,
     createdAt: row.created_at,
   }
 }
