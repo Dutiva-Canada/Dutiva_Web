@@ -5,9 +5,11 @@ import {
   computeRsi,
   googleNewsUrl,
   interleaveNewsFeeds,
+  newsKindPrompt,
   newsQueries,
   newsThemeQueries,
   parseCoingeckoCloses,
+  parseNewsKindVerdicts,
   parseCoingeckoMarkets,
   parseCoingeckoNames,
   parseCoingeckoSimple,
@@ -464,5 +466,46 @@ describe('parseCoingeckoMarkets', () => {
     expect(btc?.circulating_supply).toBe(19.7e6)
     expect(btc?.ath_change_pct).toBe(-18.2)
     expect(btc?.currency).toBe('USD')
+  })
+})
+
+describe('parseNewsKindVerdicts', () => {
+  it('maps each answered index to a valid kind', () => {
+    const m = parseNewsKindVerdicts(
+      '{"kinds":[{"i":1,"k":"event"},{"i":2,"k":"view"},{"i":3,"k":"move"}]}',
+      3,
+    )
+    expect(m?.get(0)).toBe('event')
+    expect(m?.get(1)).toBe('view')
+    expect(m?.get(2)).toBe('move')
+  })
+
+  it('is lenient — answered indices land even when others are missing or invalid', () => {
+    /* A truncated reply can't be distinguished from a skipped index, but
+       a skipped kind costs nothing — the row falls back to the title
+       heuristic. Unlike theme links, partial answers are usable. */
+    const m = parseNewsKindVerdicts(
+      '{"kinds":[{"i":1,"k":"news"},{"i":2,"k":"bogus"},{"i":9,"k":"event"}]}',
+      3,
+    )
+    expect(m?.size).toBe(1)
+    expect(m?.get(0)).toBe('news')
+    expect(m?.has(1)).toBe(false)
+  })
+
+  it('returns null when nothing usable came back', () => {
+    expect(parseNewsKindVerdicts('not json', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"kinds":[{"i":1,"k":"bogus"}]}', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"kinds":[]}', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"other":[]}', 3)).toBeNull()
+  })
+})
+
+describe('newsKindPrompt', () => {
+  it('numbers every title and names the four labels', () => {
+    const p = newsKindPrompt(['Apple Reports Earnings', 'Why AMD Fell Today'])
+    expect(p).toContain('1. Apple Reports Earnings')
+    expect(p).toContain('2. Why AMD Fell Today')
+    for (const k of ['event', 'news', 'view', 'move']) expect(p).toContain(k)
   })
 })

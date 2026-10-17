@@ -22,6 +22,10 @@ const KIND_LABEL: Record<NewsKind, keyof typeof IM | null> = {
   news: null,
 }
 
+/* The sync's model pass stores kind on the row (0241); rows it missed
+   fall back to the title heuristic — same four labels either way. */
+const kindOf = (n: { title: string; kind: NewsKind | null }): NewsKind => n.kind ?? newsKind(n.title)
+
 /* The feed retains 30 days; the card windows it. */
 const NEWS_RANGE_MS = { '7d': 7 * 86_400_000, '14d': 14 * 86_400_000, '30d': 30 * 86_400_000 } as const
 
@@ -191,7 +195,7 @@ export function NewsFeedCard() {
      * outranks an analyst note or a price-move writeup. Stable sort:
      * items arrive newest-first and keep it inside a kind. */
     for (const g of groups) {
-      g.items.sort((a, b) => NEWS_KIND_ORDER[newsKind(a.title)] - NEWS_KIND_ORDER[newsKind(b.title)])
+      g.items.sort((a, b) => NEWS_KIND_ORDER[kindOf(a)] - NEWS_KIND_ORDER[kindOf(b)])
     }
     return groups
   }, [visibleHeadlines, lang, x])
@@ -349,7 +353,7 @@ export function NewsFeedCard() {
             <ul className="m-0 grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
               {g.items.map((n, i) => {
                 const featured = gi === 0 && i === 0
-                const kind = newsKind(n.title)
+                const kind = kindOf(n)
                 const kindKey = KIND_LABEL[kind]
                 return (
             <li key={n.id} className={featured ? 'relative min-[980px]:col-span-2' : 'relative'}>

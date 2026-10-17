@@ -10,8 +10,10 @@ import {
   coingeckoMarketsUrl,
   googleNewsUrl,
   interleaveNewsFeeds,
+  newsKindPrompt,
   newsQueries,
   newsThemeQueries,
+  parseNewsKindVerdicts,
   parseThemeLinkVerdicts,
   themeLinkPrompt,
   parseCoingeckoCloses,
@@ -30,6 +32,7 @@ import {
   yahooFundamentalsUrl,
   type Fundamentals,
   type NewsItem,
+  type NewsKind,
   type SyncTarget,
   type ThemeLinkCandidate,
 } from './handlers.ts'
@@ -576,6 +579,50 @@ async function makeThemeLinkVerifier(
   }
 }
 
+/* Headline-kind classification — what each story IS (event / news /
+   view / move), never whether it matters. One batched call per run over
+   the run's unique titles; same unmetered, quiet-degrade contract as
+   makeThemeLinkVerifier — no route, key, or usable reply means every row
+   stores null and the portal's title heuristic stays the fallback. */
+async function makeNewsKindClassifier(
+  admin: SupabaseClient,
+): Promise<((titles: string[]) => Promise<Map<number, NewsKind> | null>) | null> {
+  const found = await activeModelRoute(admin, [
+    'invest_news_classify',
+    'invest_news_verify',
+    'invest_ai',
+    'advisor_chat',
+  ])
+  if ('error' in found) return null
+  const key = routeApiKey(found)
+  if ('missingSecret' in key) return null
+  const { provider, modelName: model, config } = found
+  return async (titles) => {
+    if (titles.length === 0) return new Map()
+    try {
+      const upstream = await postChatCompletion(
+        provider,
+        key.apiKey,
+        {
+          model,
+          messages: [{ role: 'user', content: newsKindPrompt(titles) }],
+          temperature: 0.1,
+          max_tokens: 80 + titles.length * 8,
+          ...routeBodyExtras(config),
+        },
+        45_000,
+      )
+      if (!upstream.ok) return null
+      const payload = (await upstream.json()) as {
+        choices?: { message?: { content?: string } }[]
+      }
+      return parseNewsKindVerdicts(payload.choices?.[0]?.message?.content ?? '', titles.length)
+    } catch {
+      return null
+    }
+  }
+}
+
 async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): Promise<number> {
   const queries = newsQueries(targets)
   const rows: Database['public']['Tables']['invest_market_news']['Insert'][] = []
@@ -682,6 +729,21 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
   }
 
   if (rows.length === 0) return 0
+
+  /* One batched kind pass over the run's unique titles — duplicate titles
+     across symbol copies classify once and share the verdict. null kind
+     stays null: the row keeps the portal's title heuristic as fallback. */
+  const uniqueTitles = [...new Set(rows.map((r) => r.title))]
+  const classify = await makeNewsKindClassifier(adminClient)
+  const kindVerdicts = classify ? await classify(uniqueTitles) : null
+  if (kindVerdicts) {
+    const indexOf = new Map(uniqueTitles.map((t, i) => [t, i]))
+    for (const r of rows) {
+      const k = kindVerdicts.get(indexOf.get(r.title) ?? -1)
+      if (k) r.kind = k
+    }
+  }
+
   const { error } = await adminClient
     .from('invest_market_news')
     .upsert(rows, { onConflict: 'symbol,url', ignoreDuplicates: true })

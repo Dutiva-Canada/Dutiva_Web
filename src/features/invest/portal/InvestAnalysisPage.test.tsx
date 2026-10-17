@@ -148,6 +148,7 @@ function newsItem(over: Partial<InvestNewsItem> = {}): InvestNewsItem {
     summary: '',
     publishedAt: '2026-03-10T12:00:00Z',
     viaTheme: 'USD strength vs CAD',
+    kind: null,
     ...over,
   }
 }

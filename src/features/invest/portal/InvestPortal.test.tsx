@@ -226,6 +226,7 @@ const STATE: InvestState = {
       summary: '',
       publishedAt: '2026-01-20T09:00:00Z',
       viaTheme: null,
+      kind: null,
     },
     {
       id: 2,
@@ -237,6 +238,7 @@ const STATE: InvestState = {
       summary: '',
       publishedAt: '2026-01-20T08:00:00Z',
       viaTheme: 'US-China trade restrictions',
+      kind: null,
     },
   ],
 }
@@ -528,6 +530,7 @@ describe('InvestHomePage', () => {
              the event and news rows inside the same day. */
           publishedAt: '2026-01-20T15:00:00Z',
           viaTheme: null,
+          kind: null,
         },
       ],
     })

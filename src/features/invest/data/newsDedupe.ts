@@ -62,6 +62,9 @@ interface NewsRow {
   symbol?: string
   publishedAt?: string | null
   viaTheme?: string | null
+  /** Stored model-assigned kind (0241); the sync writes it, the title
+      heuristic fills in when it's absent. */
+  kind?: NewsKind | null
 }
 
 /* ── Headline kind — signal vs churn ────────────────────────────────────── */
@@ -163,6 +166,11 @@ export function dedupeNews<T extends NewsRow>(
       out[dup.idx] = n
       dup.sym = sym
       dup.theme = theme ?? dup.theme
+    } else {
+      /* The classified copy merged away — carry its kind so the kept
+         row doesn't fall back to the title heuristic. */
+      const keptRow = out[dup.idx] as NewsRow | undefined
+      if (keptRow && !keptRow.kind && n.kind) keptRow.kind = n.kind
     }
   }
   return out

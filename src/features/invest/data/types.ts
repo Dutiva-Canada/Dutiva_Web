@@ -456,6 +456,9 @@ export interface InvestNewsItem {
       symbol or general feed. A theme row is a claimed link, not a
       direct mention. */
   viaTheme: string | null
+  /** Model-assigned story kind from the sync (0241); null means
+      unclassified — the portal falls back to its title heuristic. */
+  kind: 'event' | 'news' | 'view' | 'move' | null
 }
 
 /* ── Track record + cash ledger (0223) ──────────────────────────────────── */

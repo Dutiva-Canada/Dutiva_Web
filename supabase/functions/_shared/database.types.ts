@@ -10304,6 +10304,7 @@ export type Database = {
           asset_class: string
           fetched_at: string
           id: number
+          kind: string | null
           published_at: string | null
           source: string
           summary: string
@@ -10316,6 +10317,7 @@ export type Database = {
           asset_class?: string
           fetched_at?: string
           id?: never
+          kind?: string | null
           published_at?: string | null
           source?: string
           summary?: string
@@ -10328,6 +10330,7 @@ export type Database = {
           asset_class?: string
           fetched_at?: string
           id?: never
+          kind?: string | null
           published_at?: string | null
           source?: string
           summary?: string

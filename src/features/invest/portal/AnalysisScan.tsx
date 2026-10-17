@@ -131,7 +131,9 @@ export function AnalysisScan() {
     /* Same kind order as the Overview feed — the three a card shows
        prefer an event over a price-move writeup. */
     for (const list of map.values()) {
-      list.sort((a, b) => NEWS_KIND_ORDER[newsKind(a.title)] - NEWS_KIND_ORDER[newsKind(b.title)])
+      list.sort(
+        (a, b) => NEWS_KIND_ORDER[a.kind ?? newsKind(a.title)] - NEWS_KIND_ORDER[b.kind ?? newsKind(b.title)],
+      )
     }
     return map
   }, [state.news, state.newsMutes])

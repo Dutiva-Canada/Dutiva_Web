@@ -1788,6 +1788,10 @@ function toNewsItem(row: any): InvestNewsItem {
     summary: row.summary ?? '',
     publishedAt: row.published_at ?? null,
     viaTheme: row.via_theme ?? null,
+    kind:
+      row.kind === 'event' || row.kind === 'news' || row.kind === 'view' || row.kind === 'move'
+        ? row.kind
+        : null,
   }
 }
 

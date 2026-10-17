@@ -674,3 +674,52 @@ export function parseThemeLinkVerdicts(
   if (out.size !== candidates.length) return null
   return out
 }
+
+/* ── Headline kind — what the story is ──────────────────────────────────── */
+
+export const NEWS_KINDS = ['event', 'news', 'view', 'move'] as const
+export type NewsKind = (typeof NEWS_KINDS)[number]
+
+/* What the headline IS, not whether it matters — a classifier can say
+   'this is a price-move writeup' honestly where 'this is important' would
+   be a judgment the data can't support. The model sees titles only, never
+   portfolio state — same contract as themeLinkPrompt. */
+export function newsKindPrompt(titles: string[]): string {
+  const items = titles.map((t, i) => `${i + 1}. ${t}`)
+  return [
+    'You classify market headlines for a portfolio feed — what each story IS, not whether it matters.',
+    'event — something happened: earnings, guidance, merger, approval, lawsuit, leadership change, contract, regulation.',
+    'news — reports facts or developments but names no single new event.',
+    'view — an analyst note, rating, price target, opinion, prediction, or listicle.',
+    'move — a writeup whose substance is the price move itself.',
+    'Reply with JSON only: {"kinds":[{"i":1,"k":"event"}]} — include every item index; k is one of event|news|view|move.',
+    '',
+    ...items,
+  ].join('\n')
+}
+
+/* Lenient per-item verdict parse — unlike theme links, a missing or
+   garbled index costs nothing: that row stores null and the portal's
+   title heuristic stays the fallback. Only a reply with zero usable
+   entries returns null (indistinguishable from no classification). */
+export function parseNewsKindVerdicts(text: string, count: number): Map<number, NewsKind> | null {
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(m[0])
+  } catch {
+    return null
+  }
+  const kinds = (parsed as { kinds?: unknown })?.kinds
+  if (!Array.isArray(kinds)) return null
+  const out = new Map<number, NewsKind>()
+  for (const k of kinds) {
+    const i = Number((k as { i?: unknown })?.i)
+    const v = (k as { k?: unknown })?.k
+    if (Number.isInteger(i) && i >= 1 && i <= count && (NEWS_KINDS as readonly string[]).includes(v as string)) {
+      out.set(i - 1, v as NewsKind)
+    }
+  }
+  return out.size > 0 ? out : null
+}
