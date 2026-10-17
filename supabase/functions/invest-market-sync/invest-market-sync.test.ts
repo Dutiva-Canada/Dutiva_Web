@@ -193,6 +193,19 @@ describe('parseRssItems', () => {
     expect(items[1].published_at).toBeNull()
   })
 
+  it('drops listing pages — options chains and tokenized stocks are not headlines', () => {
+    const xml = `<rss><channel>
+      <item><title>QUBT Nov 2026 8.500 call (QUBT261106C00008500)</title>
+        <link>https://news.example/opt</link><source>Benzinga</source></item>
+      <item><title>Arm Holdings plc Tokenized Stock (Coinbase) price today, ARMc to USD live price, marketcap and chart</title>
+        <link>https://news.example/tok</link><source>CoinMarketCap</source></item>
+      <item><title>Applied Materials wins $5B fab contract</title>
+        <link>https://news.example/real</link><source>Reuters</source></item>
+    </channel></rss>`
+    const items = parseRssItems(xml, { symbol: 'AMAT', asset_class: 'equity', name: 'Applied Materials' })
+    expect(items.map((i) => i.title)).toEqual(['Applied Materials wins $5B fab contract'])
+  })
+
   it('drops prediction-market listings — a wager board is not a headline', () => {
     const xml = `<rss><channel>
       <item><title>SOL price on Oct 13, 2026 at 4am EDT Crypto Prediction Market - Robinhood</title>

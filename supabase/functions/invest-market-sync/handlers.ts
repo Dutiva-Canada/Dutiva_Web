@@ -423,10 +423,14 @@ export interface NewsItem {
   via_theme?: string | null
 }
 
-/* Google News indexes betting-market listing pages (Robinhood prediction
-   markets, etc.) — a wager board is not a headline. Keep in sync with the
-   client-side copy in InvestHomePage.tsx. */
-export const JUNK_HEADLINE = /\bprediction markets?\b/i
+/* Listing pages indexed by Google News that aren't headlines: betting
+   boards (Robinhood prediction markets), options-chain entries
+   ("QUBT Nov 2026 8.500 call (QUBT261106C00008500)" — OCC symbols), and
+   tokenized-stock quote pages (CoinMarketCap "price today… live price,
+   marketcap and chart"). Keep in sync with the client-side copy in
+   src/features/invest/data/newsDedupe.ts. */
+export const JUNK_HEADLINE =
+  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b/i
 
 /** The title or deck mentions the tracked asset — by symbol, or by the
     name the query ran under ('Solana' under SOL). A story Google News

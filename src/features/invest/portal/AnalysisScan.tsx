@@ -26,6 +26,7 @@ import { resolveSuggestion } from '@/lib/agentQueue'
 import type { InvestNewsItem, InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
+import { dedupeNews } from '../data/newsDedupe'
 import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 
 const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
@@ -113,16 +114,12 @@ export function AnalysisScan() {
 
   /* The freshest theme-matched headlines per item — viaTheme is stored
      as the item's title at fetch time, so the match key is the trimmed
-     title. Dedupe by URL: a headline linked to several symbols lands
-     once, not once per tag. */
+     title. Same-story dedupe runs symbol-agnostic here: on a theme card
+     the tag is the theme, not the ticker. */
   const newsByTheme = useMemo(() => {
     const map = new Map<string, InvestNewsItem[]>()
-    const seen = new Set<string>()
-    for (const n of state.news) {
+    for (const n of dedupeNews(state.news, { symbolAware: false })) {
       if (!n.viaTheme) continue
-      const key = `${n.viaTheme}|${n.url}`
-      if (seen.has(key)) continue
-      seen.add(key)
       const list = map.get(n.viaTheme) ?? []
       list.push(n)
       map.set(n.viaTheme, list)

@@ -9,6 +9,7 @@ import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { AGENT_RUN_STALE_MS, isQuoteStale } from '@/features/invest/data/freshness'
+import { dedupeNews } from '@/features/invest/data/newsDedupe'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
@@ -47,21 +48,9 @@ function sourceTint(source: string): string {
   return SOURCE_TINTS[h % SOURCE_TINTS.length] ?? 'bg-inset text-text-2'
 }
 
-// The same wire story often lands from several publishers — keep the first.
-// Betting-market listings aren't headlines; the ingest filter keeps new
-// ones out, this one hides rows already in the table. Keep in sync with
-// JUNK_HEADLINE in supabase/functions/invest-market-sync/handlers.ts.
-const JUNK_HEADLINE = /\bprediction markets?\b/i
-function dedupeNews<T extends { title: string }>(items: T[]): T[] {
-  const seen = new Set<string>()
-  return items.filter((n) => {
-    if (JUNK_HEADLINE.test(n.title)) return false
-    const key = n.title.trim().toLowerCase()
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-}
+/* Dedupe + junk filtering live in data/newsDedupe — same-event stories
+   from different outlets cluster on token overlap, and listing pages
+   (options chains, tokenized stocks) never render as headlines. */
 
 /** Overview tab — book value, cash, open signals, last bot run, allocation. */
 export function InvestHomePage() {
@@ -254,9 +243,18 @@ export function InvestHomePage() {
   }
 
   const headlines = useMemo(() => dedupeNews(state.news), [state.news])
+  /* 'Your book' = held ∪ watched symbols. The feed also carries rows
+     tagged to scan-board links — a theme claim, not book membership —
+     and unscoped (symbol '') rows, which belong to 'All' only. */
+  const bookSymbols = useMemo(() => {
+    const s = new Set<string>()
+    for (const p of state.positions) s.add(p.symbol.toUpperCase())
+    for (const w of state.watchlist) s.add(w.symbol.toUpperCase())
+    return s
+  }, [state.positions, state.watchlist])
   const bookHeadlines = useMemo(
-    () => headlines.filter((n) => n.symbol !== ''),
-    [headlines],
+    () => headlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
+    [headlines, bookSymbols],
   )
   /* A 'book' selection outlives its items (a refresh clears the symbols)
      → the filter falls back to 'all' rather than blank the list. */

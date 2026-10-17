@@ -422,6 +422,29 @@ describe('InvestHomePage', () => {
     expect(screen.getByText(/USD→CAD 1\.3699/)).toBeInTheDocument()
   })
 
+  it('scopes "Your book" to held and watched symbols, not scan-board links', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* 'All' shows both rows — including the AMAT headline that arrived
+       via a watched theme, tagged to a board link the book doesn't hold. */
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Your book' }))
+    /* SHOP is held → stays. AMAT is only a scan-board linkage (neither
+       held nor watched here) → 'Your book' can't claim it. */
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+  })
+
   it('lists totals per currency instead of a blended figure when no FX rate loads', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(USD_QUOTED)
