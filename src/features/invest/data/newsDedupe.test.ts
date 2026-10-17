@@ -105,6 +105,7 @@ describe('JUNK_HEADLINE', () => {
       'QUBT Nov 2026 8.500 call (QUBT261106C00008500)',
       'ETH / USD live price, marketcap and chart - CoinMarketCap',
       'AAPL Jan 2027 250.000 call',
+      'Current price of Ethereum for October 16, 2026',
     ]) {
       expect(JUNK_HEADLINE.test(t), t).toBe(true)
     }
@@ -113,6 +114,7 @@ describe('JUNK_HEADLINE', () => {
       'Applied Materials Just Opened a $5 Billion R&D Center',
       'Binance backs XRP amid controversy',
       'Fed holds rates steady',
+      'Current prices hold steady for Bitcoin',
     ]) {
       expect(JUNK_HEADLINE.test(t), t).toBe(false)
     }

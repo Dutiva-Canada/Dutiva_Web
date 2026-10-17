@@ -430,7 +430,7 @@ export interface NewsItem {
    marketcap and chart"). Keep in sync with the client-side copy in
    src/features/invest/data/newsDedupe.ts. */
 export const JUNK_HEADLINE =
-  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b/i
+  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b/i
 
 /** The title or deck mentions the tracked asset — by symbol, or by the
     name the query ran under ('Solana' under SOL). A story Google News

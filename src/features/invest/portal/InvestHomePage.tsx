@@ -322,6 +322,20 @@ export function InvestHomePage() {
        to 'all' rather than blank the list. */
     return rows.length > 0 ? rows : rangedHeadlines
   }, [rangedHeadlines, bookHeadlines, newsFilter])
+
+  /* ...but a pressed chip must never be invisible — when the selected
+     facet leaves the feed, reset to 'all' so what you see is what the
+     control shows. */
+  useEffect(() => {
+    if (newsFilter === 'all') return
+    const valid =
+      (newsFilter === 'book' && newsFacets.book) ||
+      (newsFilter === 'general' && newsFacets.general) ||
+      (newsFilter.startsWith('sym:') && newsFacets.symbols.includes(newsFilter.slice(4))) ||
+      (newsFilter.startsWith('theme:') && newsFacets.themes.includes(newsFilter.slice(6))) ||
+      (newsFilter.startsWith('cls:') && newsFacets.classes.includes(newsFilter.slice(4)))
+    if (!valid) setNewsFilter('all')
+  }, [newsFilter, newsFacets])
   const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
   /* Chunk the flat feed by publish day — 'Today' / 'Yesterday' / a date.
@@ -661,6 +675,7 @@ export function InvestHomePage() {
             </p>
           </div>
           <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
+            {headlines.length > 0 && (
             <div
               className="sb-seg sb-seg-sm"
               role="group"
@@ -677,6 +692,7 @@ export function InvestHomePage() {
                 </button>
               ))}
             </div>
+            )}
             {scopedHeadlines.length > 12 && (
               <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
                 {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}
