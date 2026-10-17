@@ -9,6 +9,7 @@ import {
   coingeckoId,
   coingeckoMarketsUrl,
   googleNewsUrl,
+  interleaveNewsFeeds,
   newsQueries,
   newsThemeQueries,
   parseThemeLinkVerdicts,
@@ -595,14 +596,22 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
     rows.push(item)
     return true
   }
+  /* Fetch every feed first, then round-robin the items — consuming the
+     budget in query order would let an early feed drain it and starve
+     the same symbols on every run. pushRow returns false for a same-run
+     duplicate too, so the loop breaks on the count itself, never on a
+     skipped push. */
+  const perFeed: NewsItem[][] = []
   for (const q of queries) {
     const xml = await fetchText(googleNewsUrl(q.query))
-    if (!xml) continue
-    for (const item of parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class, name: q.name })) {
-      if (!pushRow(item, NEWS_MAX_ITEMS_STORED)) break
-    }
-    if (rows.length >= NEWS_MAX_ITEMS_STORED) break
+    perFeed.push(
+      xml ? parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class, name: q.name }) : [],
+    )
     await pause(NEWS_STAGGER_MS)
+  }
+  for (const item of interleaveNewsFeeds(perFeed)) {
+    if (rows.length >= NEWS_MAX_ITEMS_STORED) break
+    pushRow(item, NEWS_MAX_ITEMS_STORED)
   }
 
   /* Watch-board themes drive their own feeds: "US-China trade
@@ -618,6 +627,7 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
   const themeRowsByKey = new Map<string, NewsItem[]>()
   const candidates: ThemeLinkCandidate[] = []
   const candidateIndex = new Map<string, number>()
+  const keysByTheme = new Map<string, string[]>()
   for (const tq of newsThemeQueries((scanRows ?? []) as { title: string; symbols: string[] }[])) {
     const linked = tq.symbols.map((s) => ({ symbol: s, asset_class: classOf.get(s) ?? 'equity' }))
     const xml = await fetchText(googleNewsUrl(tq.query))
@@ -628,6 +638,13 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
         if (!list) {
           list = []
           themeRowsByKey.set(key, list)
+          /* Keys are tracked per theme (the title is free text, so the
+             key isn't parsed back apart) so emission can round-robin
+             across themes rather than spending the theme budget on the
+             first one. */
+          const themeKeys = keysByTheme.get(tq.query) ?? []
+          themeKeys.push(key)
+          keysByTheme.set(tq.query, themeKeys)
           /* Whole-book themes emit unscoped rows — nothing for the
              verifier to judge (index -1 marks 'no candidate'). */
           candidateIndex.set(key, item.symbol === '' ? -1 : candidates.length)
@@ -646,7 +663,8 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
 
   const verify = candidates.length > 0 ? await makeThemeLinkVerifier(adminClient) : null
   const verdicts = verify ? await verify(candidates) : null
-  for (const [key, ci] of candidateIndex) {
+  for (const key of interleaveNewsFeeds([...keysByTheme.values()])) {
+    const ci = candidateIndex.get(key) ?? -1
     const list = themeRowsByKey.get(key) ?? []
     const keep = verdicts?.get(ci)
     if (!verdicts) {

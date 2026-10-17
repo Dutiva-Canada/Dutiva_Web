@@ -600,6 +600,24 @@ export interface ThemeLinkCandidate {
   symbols: string[]
 }
 
+/* Feeds emit into a shared run budget; consumed in query order, the
+   first feed could drain it and starve the rest — every run, in the
+   same order. Round-robin gives each feed one slot per pass so the
+   budget spreads across sources before any single one finishes. The
+   caller still enforces the real cap — a duplicated URL here costs an
+   emitted slot but not a stored row. */
+export function interleaveNewsFeeds<T>(feeds: T[][]): T[] {
+  const out: T[] = []
+  const longest = Math.max(0, ...feeds.map((f) => f.length))
+  for (let i = 0; i < longest; i++) {
+    for (const f of feeds) {
+      const item = f[i]
+      if (item !== undefined) out.push(item)
+    }
+  }
+  return out
+}
+
 /* The model sees only what it needs to judge: the theme claim, the
    headline text, and the candidate symbols — never portfolio state. */
 export function themeLinkPrompt(candidates: ThemeLinkCandidate[]): string {

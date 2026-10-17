@@ -4,6 +4,7 @@ import {
   computeMa,
   computeRsi,
   googleNewsUrl,
+  interleaveNewsFeeds,
   newsQueries,
   newsThemeQueries,
   parseCoingeckoCloses,
@@ -327,6 +328,22 @@ describe('newsThemeQueries', () => {
       expect(r.symbol).toBe('')
       expect(r.via_theme).toBe('Fed rate path')
     }
+  })
+})
+
+describe('interleaveNewsFeeds', () => {
+  it('round-robins feeds so a leading feed cannot starve the rest', () => {
+    const out = interleaveNewsFeeds([
+      ['a1', 'a2', 'a3', 'a4'],
+      ['b1', 'b2'],
+      ['c1'],
+    ])
+    expect(out).toEqual(['a1', 'b1', 'c1', 'a2', 'b2', 'a3', 'a4'])
+  })
+
+  it('handles empty feeds and no feeds', () => {
+    expect(interleaveNewsFeeds([[], ['x'], []])).toEqual(['x'])
+    expect(interleaveNewsFeeds<number>([])).toEqual([])
   })
 })
 
