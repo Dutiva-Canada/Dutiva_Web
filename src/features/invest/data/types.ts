@@ -452,6 +452,10 @@ export interface InvestNewsItem {
   source: string
   summary: string
   publishedAt: string | null
+  /** Watch-item title whose feed surfaced the row — null means a
+      symbol or general feed. A theme row is a claimed link, not a
+      direct mention. */
+  viaTheme: string | null
 }
 
 /* ── Track record + cash ledger (0223) ──────────────────────────────────── */

@@ -649,6 +649,11 @@ const investCoreMessages = defineMessages({
     fr: 'Réduire la liste',
   },
   /* [FR self-authored] */
+  invest_news_via: {
+    en: 'via {theme}',
+    fr: 'via {theme}',
+  },
+  /* [FR self-authored] */
   invest_news_count: {
     en: '{count} headlines',
     fr: '{count} manchettes',

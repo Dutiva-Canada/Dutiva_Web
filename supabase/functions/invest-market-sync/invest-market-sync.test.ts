@@ -11,6 +11,7 @@ import {
   parseCoingeckoNames,
   parseCoingeckoSimple,
   parseRssItems,
+  parseThemeLinkVerdicts,
   parseYahooChart,
   parseYahooFundamentals,
   scopeAssetClass,
@@ -217,12 +218,20 @@ describe('parseRssItems', () => {
         { symbol: 'AMAT', asset_class: 'equity' },
         { symbol: 'ARM', asset_class: 'equity' },
       ],
+      viaTheme: 'US-China trade restrictions',
     })
     /* 2 kept items × 2 declared symbols — tagged by linkage even though
-       neither headline mentions them (that's the point of a theme). */
+       neither headline mentions them (that's the point of a theme),
+       and every row carries the theme as its provenance. */
     expect(items).toHaveLength(4)
     expect(new Set(items.map((i) => i.symbol))).toEqual(new Set(['AMAT', 'ARM']))
     expect(items.every((i) => i.asset_class === 'equity')).toBe(true)
+    expect(items.every((i) => i.via_theme === 'US-China trade restrictions')).toBe(true)
+  })
+
+  it('leaves via_theme unset on symbol-feed rows', () => {
+    const items = parseRssItems(RSS, { symbol: 'SHOP', asset_class: 'equity' })
+    expect(items.every((i) => i.via_theme === undefined)).toBe(true)
   })
 })
 
@@ -293,6 +302,41 @@ describe('newsThemeQueries', () => {
     expect(
       newsThemeQueries([{ title: 'Untagged', symbols: [] }]),
     ).toHaveLength(0)
+  })
+})
+
+describe('parseThemeLinkVerdicts', () => {
+  const cands = [
+    { theme: 'US-China trade restrictions', title: 'A', summary: '', symbols: ['AMAT', 'ARM'] },
+    { theme: 'Uranium demand', title: 'B', summary: '', symbols: ['CCJ'] },
+  ]
+
+  it('keeps only the symbols the verdict names', () => {
+    const v = parseThemeLinkVerdicts(
+      '{"links":[{"i":1,"keep":["AMAT"]},{"i":2,"keep":[]}]}',
+      cands,
+    )
+    expect(v?.get(0)).toEqual(new Set(['AMAT']))
+    expect(v?.get(1)).toEqual(new Set())
+  })
+
+  it('drops keeps that were never candidates — the model cannot invent links', () => {
+    const v = parseThemeLinkVerdicts(
+      '{"links":[{"i":1,"keep":["AMAT","TSLA"]},{"i":2,"keep":["ccj"]}]}',
+      cands,
+    )
+    expect(v?.get(0)).toEqual(new Set(['AMAT']))
+    expect(v?.get(1)).toEqual(new Set(['CCJ']))
+  })
+
+  it('rejects a partial answer — a missing index is indistinguishable from truncation', () => {
+    expect(parseThemeLinkVerdicts('{"links":[{"i":1,"keep":["AMAT"]}]}', cands)).toBeNull()
+    expect(parseThemeLinkVerdicts('{"links":[{"i":1,"keep":[]},{"i":2,"keep":[]},{"i":3,"keep":[]}]}', cands)).toBeNull()
+  })
+
+  it('rejects malformed output outright', () => {
+    expect(parseThemeLinkVerdicts('no json here', cands)).toBeNull()
+    expect(parseThemeLinkVerdicts('{"links":"AMAT"}', cands)).toBeNull()
   })
 })
 

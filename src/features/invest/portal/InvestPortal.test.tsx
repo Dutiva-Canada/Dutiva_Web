@@ -219,6 +219,18 @@ const STATE: InvestState = {
       source: 'Example News',
       summary: '',
       publishedAt: '2026-01-20T09:00:00Z',
+      viaTheme: null,
+    },
+    {
+      id: 2,
+      symbol: 'AMAT',
+      assetClass: 'equity',
+      title: 'US widens chip-equipment export rules',
+      url: 'https://news.example/export-rules',
+      source: 'Wire',
+      summary: '',
+      publishedAt: '2026-01-20T08:00:00Z',
+      viaTheme: 'US-China trade restrictions',
     },
   ],
 }
@@ -358,6 +370,9 @@ describe('InvestPortalLayout', () => {
     expect(screen.getByText('Market headlines (third-party)')).toBeInTheDocument()
     // The link's accessible name carries the sr-only exit note too
     expect(screen.getByRole('link', { name: /Shopify beats estimates/ })).toBeInTheDocument()
+    // A theme-sourced headline marks its provenance — it reached AMAT
+    // via a watched theme, not by naming the holding
+    expect(screen.getByText('via US-China trade restrictions')).toBeInTheDocument()
   })
 })
 

@@ -606,6 +606,14 @@ export function InvestHomePage() {
                           {n.symbol}
                         </span>
                       )}
+                      {n.viaTheme && (
+                        <span
+                          className="max-w-[180px] shrink-0 truncate rounded-[6px] bg-inset px-[6px] py-px text-[10px] font-medium text-text-3"
+                          title={n.viaTheme}
+                        >
+                          {x(IM.invest_news_via).replace('{theme}', n.viaTheme)}
+                        </span>
+                      )}
                       {n.publishedAt && (
                         <span className="ml-auto shrink-0 tabular-nums">
                           {new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }).format(new Date(n.publishedAt))}

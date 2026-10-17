@@ -1715,6 +1715,7 @@ function toNewsItem(row: any): InvestNewsItem {
     source: row.source ?? '',
     summary: row.summary ?? '',
     publishedAt: row.published_at ?? null,
+    viaTheme: row.via_theme ?? null,
   }
 }
 

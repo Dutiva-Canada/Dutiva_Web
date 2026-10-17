@@ -406,6 +406,10 @@ export interface NewsItem {
   source: string
   summary: string
   published_at: string | null
+  /** Watch-item title whose feed surfaced the row; unset = symbol or
+      general feed. Lets a theme-sourced row say so instead of reading
+      as a direct mention. */
+  via_theme?: string | null
 }
 
 /* Google News indexes betting-market listing pages (Robinhood prediction
@@ -461,8 +465,10 @@ export function parseRssItems(
     name?: string
     /** Theme-query mode: rows tag to these declared symbols without the
         text-match check — a thematic headline rarely names the holding,
-        which is the whole reason the watch item exists. */
+        which is the whole reason the watch item exists. `viaTheme`
+        records the provenance on every emitted row. */
     linked?: { symbol: string; asset_class: string }[]
+    viaTheme?: string
   },
   maxItems = 12,
 ): NewsItem[] {
@@ -487,7 +493,7 @@ export function parseRssItems(
     }
     if (meta.linked && meta.linked.length > 0) {
       for (const l of meta.linked) {
-        items.push({ symbol: l.symbol, asset_class: l.asset_class, ...base })
+        items.push({ symbol: l.symbol, asset_class: l.asset_class, via_theme: meta.viaTheme ?? null, ...base })
         if (items.length >= maxItems) break
       }
     } else {
@@ -564,5 +570,71 @@ export function newsThemeQueries(
     out.push({ query: e.title, symbols: [...e.symbols].slice(0, 8) })
     if (out.length >= maxThemeFeeds) break
   }
+  return out
+}
+
+export interface ThemeLinkCandidate {
+  /** Watch-item title — the claim under test. */
+  theme: string
+  title: string
+  summary: string
+  /** Symbols the item declares the theme touches. */
+  symbols: string[]
+}
+
+/* The model sees only what it needs to judge: the theme claim, the
+   headline text, and the candidate symbols — never portfolio state. */
+export function themeLinkPrompt(candidates: ThemeLinkCandidate[]): string {
+  const items = candidates.map(
+    (c, i) =>
+      `${i + 1}. theme "${c.theme}" — candidate symbols: ${c.symbols.join(', ')}\n` +
+      `   headline: ${c.title}\n` +
+      `   summary: ${c.summary || '—'}`,
+  )
+  return [
+    'You verify thematic news links for a portfolio watch.',
+    'Each item is a headline fetched for the watched theme shown, plus the symbols that theme claims it touches.',
+    'For every item list ONLY the symbols the story plausibly touches through that theme — sector, supply chain, regulation, macro exposure. Company news unrelated to the theme keeps nothing.',
+    'Reply with JSON only: {"links":[{"i":1,"keep":["SYM"]}]} — include every item index; keep lists symbols verbatim, or an empty array.',
+    '',
+    ...items,
+  ].join('\n')
+}
+
+/* Strict verdict parse: every index must be answered, and keeps are
+   intersected with the candidate's own symbols (a model can't link a
+   headline to a symbol the watch item never claimed). A missing index
+   can't be told from a truncated reply, so anything short of a full
+   answer is unusable — callers then keep every declared link, the same
+   as no verifier at all. */
+export function parseThemeLinkVerdicts(
+  text: string,
+  candidates: ThemeLinkCandidate[],
+): Map<number, Set<string>> | null {
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(m[0])
+  } catch {
+    return null
+  }
+  const links = (parsed as { links?: unknown })?.links
+  if (!Array.isArray(links)) return null
+  const out = new Map<number, Set<string>>()
+  for (const l of links) {
+    const i = Number((l as { i?: unknown })?.i)
+    const keep = (l as { keep?: unknown })?.keep
+    if (!Number.isInteger(i) || i < 1 || i > candidates.length || !Array.isArray(keep)) return null
+    const allowed = new Set(candidates[i - 1].symbols)
+    const kept = new Set<string>()
+    for (const s of keep) {
+      if (typeof s === 'string' && allowed.has(s.trim().toUpperCase())) {
+        kept.add(s.trim().toUpperCase())
+      }
+    }
+    out.set(i - 1, kept)
+  }
+  if (out.size !== candidates.length) return null
   return out
 }

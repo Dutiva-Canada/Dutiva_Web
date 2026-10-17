@@ -3,12 +3,16 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
+import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
+import { postChatCompletion, routeBodyExtras } from '../_shared/modelUpstream.ts'
 import {
   coingeckoId,
   coingeckoMarketsUrl,
   googleNewsUrl,
   newsQueries,
   newsThemeQueries,
+  parseThemeLinkVerdicts,
+  themeLinkPrompt,
   parseCoingeckoCloses,
   parseCoingeckoMarkets,
   parseCoingeckoNames,
@@ -24,7 +28,9 @@ import {
   yahooEquitySymbol,
   yahooFundamentalsUrl,
   type Fundamentals,
+  type NewsItem,
   type SyncTarget,
+  type ThemeLinkCandidate,
 } from './handlers.ts'
 import { secretEquals } from '../_shared/secretEqual.ts'
 
@@ -460,13 +466,62 @@ const NEWS_MAX_ITEMS_STORED = 40
    fill the shared cap and starve the board's coverage. */
 const NEWS_MAX_THEME_ITEMS = 24
 
+/* Theme-feed link check — a small model decides which declared symbols
+   each thematic headline plausibly touches. invest-bot's precedent for
+   model calls in the invest pipeline: unmetered, quiet degrade — any
+   missing route/key/upstream returns null and callers keep every
+   declared link, which is exactly the pre-verifier behavior. A dropped
+   link never deletes the story: the headline still lands unscoped. */
+async function makeThemeLinkVerifier(
+  admin: SupabaseClient,
+): Promise<((cands: ThemeLinkCandidate[]) => Promise<Map<number, Set<string>> | null>) | null> {
+  const found = await activeModelRoute(admin, ['invest_news_verify', 'invest_ai', 'advisor_chat'])
+  if ('error' in found) return null
+  const key = routeApiKey(found)
+  if ('missingSecret' in key) return null
+  const { provider, modelName: model, config } = found
+  return async (cands) => {
+    if (cands.length === 0) return new Map()
+    try {
+      const upstream = await postChatCompletion(
+        provider,
+        key.apiKey,
+        {
+          model,
+          messages: [{ role: 'user', content: themeLinkPrompt(cands) }],
+          temperature: 0.1,
+          max_tokens: 80 + cands.length * 40,
+          ...routeBodyExtras(config),
+        },
+        45_000,
+      )
+      if (!upstream.ok) return null
+      const payload = (await upstream.json()) as {
+        choices?: { message?: { content?: string } }[]
+      }
+      return parseThemeLinkVerdicts(payload.choices?.[0]?.message?.content ?? '', cands)
+    } catch {
+      return null
+    }
+  }
+}
+
 async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): Promise<number> {
   const queries = newsQueries(targets)
   const rows: Database['public']['Tables']['invest_market_news']['Insert'][] = []
   const seenUrls = new Set<string>()
   const pushRow = (item: (typeof rows)[number], cap: number) => {
     const key = `${item.symbol}:${item.url}`
-    if (seenUrls.has(key) || rows.length >= cap) return false
+    if (seenUrls.has(key)) {
+      /* Same symbol+url arrived again via a theme feed — record the
+         second provenance on the row that won the dedupe. */
+      if (item.via_theme) {
+        const won = rows.find((r) => r.symbol === item.symbol && r.url === item.url)
+        if (won && !won.via_theme) won.via_theme = item.via_theme
+      }
+      return false
+    }
+    if (rows.length >= cap) return false
     seenUrls.add(key)
     rows.push(item)
     return true
@@ -483,21 +538,55 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
 
   /* Watch-board themes drive their own feeds: "US-China trade
      restrictions" never names AMAT, but the item's declared symbols say
-     where the headline belongs. Rows tag by linkage, not text-match. */
+     where the headline belongs. Rows tag by linkage, not text-match —
+     and when a model route is live, a verifier pass keeps only the
+     links the story actually supports. */
   const { data: scanRows } = await adminClient
     .from('invest_scan_items')
     .select('title, symbols')
   const classOf = new Map(targets.map((t) => [t.symbol.toUpperCase(), t.asset_class]))
   const themeCap = NEWS_MAX_ITEMS_STORED + NEWS_MAX_THEME_ITEMS
+  const themeRowsByKey = new Map<string, NewsItem[]>()
+  const candidates: ThemeLinkCandidate[] = []
+  const candidateIndex = new Map<string, number>()
   for (const tq of newsThemeQueries((scanRows ?? []) as { title: string; symbols: string[] }[])) {
     const linked = tq.symbols.map((s) => ({ symbol: s, asset_class: classOf.get(s) ?? 'equity' }))
     const xml = await fetchText(googleNewsUrl(tq.query))
-    if (!xml) continue
-    for (const item of parseRssItems(xml, { symbol: '', asset_class: '', linked })) {
-      if (!pushRow(item, themeCap)) break
+    if (xml) {
+      for (const item of parseRssItems(xml, { symbol: '', asset_class: '', linked, viaTheme: tq.query })) {
+        const key = `${tq.query}|${item.url}`
+        let list = themeRowsByKey.get(key)
+        if (!list) {
+          list = []
+          themeRowsByKey.set(key, list)
+          candidateIndex.set(key, candidates.length)
+          candidates.push({ theme: tq.query, title: item.title, summary: item.summary, symbols: [] })
+        }
+        const c = candidates[candidateIndex.get(key) ?? -1]
+        if (c && !c.symbols.includes(item.symbol)) c.symbols.push(item.symbol)
+        list.push(item)
+      }
     }
-    if (rows.length >= themeCap) break
     await pause(NEWS_STAGGER_MS)
+  }
+
+  const verify = candidates.length > 0 ? await makeThemeLinkVerifier(adminClient) : null
+  const verdicts = verify ? await verify(candidates) : null
+  for (const [key, ci] of candidateIndex) {
+    const list = themeRowsByKey.get(key) ?? []
+    const keep = verdicts?.get(ci)
+    if (!verdicts) {
+      for (const r of list) pushRow(r, themeCap)
+    } else if (keep && keep.size > 0) {
+      for (const r of list) {
+        if (keep.has(r.symbol)) pushRow(r, themeCap)
+      }
+    } else {
+      /* Every declared link rejected — the story still lands, just
+         without a symbol claim it can't support. */
+      const first = list[0]
+      if (first) pushRow({ ...first, symbol: '' }, themeCap)
+    }
   }
 
   if (rows.length === 0) return 0

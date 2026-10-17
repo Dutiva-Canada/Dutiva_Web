@@ -10289,6 +10289,7 @@ export type Database = {
           symbol: string
           title: string
           url: string
+          via_theme: string | null
         }
         Insert: {
           asset_class?: string
@@ -10300,6 +10301,7 @@ export type Database = {
           symbol?: string
           title: string
           url: string
+          via_theme?: string | null
         }
         Update: {
           asset_class?: string
@@ -10311,6 +10313,7 @@ export type Database = {
           symbol?: string
           title?: string
           url?: string
+          via_theme?: string | null
         }
         Relationships: []
       }
@@ -17514,7 +17517,7 @@ export type Database = {
         }[]
       }
       pr_keyword_check: {
-        Args: { p_keyword_id: string; p_position?: number | null }
+        Args: { p_keyword_id: string; p_position: number }
         Returns: undefined
       }
       process_expired_data_deletions: { Args: never; Returns: number }
@@ -17877,7 +17880,10 @@ export type Database = {
       trigger_candidate_job_agent: { Args: never; Returns: undefined }
       trigger_health_streak_notify: { Args: never; Returns: undefined }
       trigger_invest_bot: { Args: never; Returns: undefined }
-      trigger_invest_market_sync: { Args: never; Returns: undefined }
+      trigger_invest_market_sync: {
+        Args: { p_light?: boolean; p_news?: boolean }
+        Returns: undefined
+      }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
