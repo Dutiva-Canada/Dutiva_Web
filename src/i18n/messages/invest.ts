@@ -674,6 +674,10 @@ const investCoreMessages = defineMessages({
   invest_news_book: { en: 'Your book', fr: 'Votre portefeuille' },
   /* [FR self-authored] */
   invest_news_all: { en: 'All', fr: 'Tout' },
+  /* [FR self-authored] Unscoped rows — no ticker, no theme link. */
+  invest_news_general: { en: 'General market', fr: 'Marché général' },
+  /* [FR self-authored] */
+  invest_news_filter_aria: { en: 'Filter headlines', fr: 'Filtrer les manchettes' },
 
   /* Track record (0223) — one mark per sweep-day; deposits and
      withdrawals are backed out so the change reads as performance,

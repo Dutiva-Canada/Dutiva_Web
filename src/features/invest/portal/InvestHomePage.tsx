@@ -63,7 +63,9 @@ export function InvestHomePage() {
   const [newsExpanded, setNewsExpanded] = useState(false)
   /* 'book' shows only headlines tagged to a held or watched symbol —
      the news-for-your-book cut. */
-  const [newsFilter, setNewsFilter] = useState<'all' | 'book'>('all')
+  /* Facet keys: 'all' | 'book' | 'general' | 'sym:AMD' | 'cls:crypto' |
+     'theme:<watch-item title>'. */
+  const [newsFilter, setNewsFilter] = useState<string>('all')
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency amounts drop out of the totals with a note below
      rather than sum into a wrong number. */
@@ -261,10 +263,49 @@ export function InvestHomePage() {
     () => headlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
     [headlines, bookSymbols],
   )
-  /* A 'book' selection outlives its items (a refresh clears the symbols)
-     → the filter falls back to 'all' rather than blank the list. */
-  const effectiveNewsFilter = bookHeadlines.length === 0 ? 'all' : newsFilter
-  const scopedHeadlines = effectiveNewsFilter === 'book' ? bookHeadlines : headlines
+  /* Facet chips derive from what the feed actually carries — a facet
+     never appears for an empty result. Symbols sort book-first, then
+     alphabetically; a class chip exists only when it splits the feed
+     (an all-equity list gains nothing from an 'Equity' chip); 'General'
+     is skipped when it would equal 'All'. */
+  const newsFacets = useMemo(() => {
+    const syms = new Set<string>()
+    const themes = new Set<string>()
+    const classes = new Set<string>()
+    let general = false
+    for (const n of headlines) {
+      if (n.symbol === '') general = true
+      else syms.add(n.symbol.toUpperCase())
+      if (n.viaTheme) themes.add(n.viaTheme)
+      if (n.assetClass) classes.add(n.assetClass)
+    }
+    return {
+      book: bookHeadlines.length > 0 && bookHeadlines.length !== headlines.length,
+      symbols: [...syms].sort(
+        (a, b) => Number(bookSymbols.has(b)) - Number(bookSymbols.has(a)) || a.localeCompare(b),
+      ),
+      themes: [...themes].sort((a, b) => a.localeCompare(b)),
+      classes: classes.size > 1 ? [...classes].sort() : [],
+      general: general && syms.size > 0,
+    }
+  }, [headlines, bookHeadlines, bookSymbols])
+  const scopedHeadlines = useMemo(() => {
+    const rows =
+      newsFilter === 'all'
+        ? headlines
+        : newsFilter === 'book'
+          ? bookHeadlines
+          : newsFilter === 'general'
+            ? headlines.filter((n) => n.symbol === '')
+            : newsFilter.startsWith('sym:')
+              ? headlines.filter((n) => n.symbol.toUpperCase() === newsFilter.slice(4))
+              : newsFilter.startsWith('theme:')
+                ? headlines.filter((n) => n.viaTheme === newsFilter.slice(6))
+                : headlines.filter((n) => n.assetClass === newsFilter.slice(4))
+    /* A facet can outlive its rows (a refresh clears them) — fall back
+       to 'all' rather than blank the list. */
+    return rows.length > 0 ? rows : headlines
+  }, [headlines, bookHeadlines, newsFilter])
   const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
   /* Tally's presence outside the chat tab — one noticed thing, built
@@ -578,26 +619,6 @@ export function InvestHomePage() {
             </p>
           </div>
           <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
-            {/* 'Your book' keeps only headlines tagged to a held or
-                watched symbol — the general market wrap drops out. */}
-            {bookHeadlines.length > 0 && bookHeadlines.length !== headlines.length && (
-              <div className="sb-seg sb-seg-sm">
-                <button
-                  type="button"
-                  aria-pressed={newsFilter === 'all'}
-                  onClick={() => setNewsFilter('all')}
-                >
-                  {x(IM.invest_news_all)}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={newsFilter === 'book'}
-                  onClick={() => setNewsFilter('book')}
-                >
-                  {x(IM.invest_news_book)}
-                </button>
-              </div>
-            )}
             {scopedHeadlines.length > 12 && (
               <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
                 {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}
@@ -609,6 +630,68 @@ export function InvestHomePage() {
           <p className="sb-empty">{x(IM.invest_news_empty)}</p>
         ) : (
           <>
+          <div
+            className="sb-pills sb-pills-sm mt-[12px]"
+            role="group"
+            aria-label={x(IM.invest_news_filter_aria)}
+          >
+            <button
+              type="button"
+              aria-pressed={newsFilter === 'all'}
+              onClick={() => setNewsFilter('all')}
+            >
+              {x(IM.invest_news_all)}
+            </button>
+            {newsFacets.book && (
+              <button
+                type="button"
+                aria-pressed={newsFilter === 'book'}
+                onClick={() => setNewsFilter('book')}
+              >
+                {x(IM.invest_news_book)}
+              </button>
+            )}
+            {newsFacets.symbols.map((s) => (
+              <button
+                key={`sym:${s}`}
+                type="button"
+                aria-pressed={newsFilter === `sym:${s}`}
+                onClick={() => setNewsFilter(`sym:${s}`)}
+              >
+                {s}
+              </button>
+            ))}
+            {newsFacets.classes.map((c) => (
+              <button
+                key={`cls:${c}`}
+                type="button"
+                aria-pressed={newsFilter === `cls:${c}`}
+                onClick={() => setNewsFilter(`cls:${c}`)}
+              >
+                {c in assetLabel ? x(IM[assetLabel[c as AssetClass]]) : c}
+              </button>
+            ))}
+            {newsFacets.themes.map((t) => (
+              <button
+                key={`theme:${t}`}
+                type="button"
+                title={t}
+                aria-pressed={newsFilter === `theme:${t}`}
+                onClick={() => setNewsFilter(`theme:${t}`)}
+              >
+                {t}
+              </button>
+            ))}
+            {newsFacets.general && (
+              <button
+                type="button"
+                aria-pressed={newsFilter === 'general'}
+                onClick={() => setNewsFilter('general')}
+              >
+                {x(IM.invest_news_general)}
+              </button>
+            )}
+          </div>
           <ul className="m-0 mt-[14px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
             {visibleHeadlines.map((n, i) => (
               <li key={n.id} className={i === 0 ? 'min-[980px]:col-span-2' : undefined}>

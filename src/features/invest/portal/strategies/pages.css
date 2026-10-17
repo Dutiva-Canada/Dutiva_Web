@@ -1635,6 +1635,20 @@
   padding: 3px 12px;
   font-size: 12.5px;
 }
+/* Compact pill chips — the headline facet row. */
+.sb-pills-sm {
+  gap: 6px;
+}
+.sb-pills-sm button {
+  min-height: 30px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ── Cash ledger (0223) ──────────────────────────────────────────────── */
 .sb-ledger-list {

@@ -445,6 +445,32 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
   })
 
+  it('filters headlines by ticker and theme facets', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Facets derive from the feed: AMAT gets a chip even though it's a
+       board link, not a holding — the story IS in the 'All' feed. */
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'AMAT' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    expect(screen.queryByText('Shopify beats estimates')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'US-China trade restrictions' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'All' }))
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    /* A single-class feed earns no 'Equity' chip — it wouldn't split
+       anything. */
+    expect(screen.queryByRole('button', { name: 'Equity' })).not.toBeInTheDocument()
+  })
+
   it('lists totals per currency instead of a blended figure when no FX rate loads', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(USD_QUOTED)
