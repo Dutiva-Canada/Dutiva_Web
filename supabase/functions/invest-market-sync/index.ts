@@ -4,7 +4,7 @@ import type { SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import { makeCorsHeaders, withCors } from '../_shared/cors.ts'
 import { activeModelRoute, routeApiKey } from '../_shared/aiRoute.ts'
-import { postChatCompletion, routeBodyExtras } from '../_shared/modelUpstream.ts'
+import { postChatCompletion, routeBodyExtras, routeMaxTokens } from '../_shared/modelUpstream.ts'
 import {
   coingeckoId,
   coingeckoMarketsUrl,
@@ -563,7 +563,10 @@ async function makeThemeLinkVerifier(
           model,
           messages: [{ role: 'user', content: themeLinkPrompt(cands) }],
           temperature: 0.1,
-          max_tokens: 80 + cands.length * 40,
+          /* A reasoning route (invest_ai carries reasoning_effort high)
+             can spend most of a tight budget thinking and truncate the
+             JSON — the route's own ceiling is the honest budget. */
+          max_tokens: routeMaxTokens(config, 80 + cands.length * 40),
           ...routeBodyExtras(config),
         },
         45_000,
@@ -607,7 +610,7 @@ async function makeNewsKindClassifier(
           model,
           messages: [{ role: 'user', content: newsKindPrompt(titles) }],
           temperature: 0.1,
-          max_tokens: 80 + titles.length * 8,
+          max_tokens: routeMaxTokens(config, 80 + titles.length * 8),
           ...routeBodyExtras(config),
         },
         45_000,
