@@ -610,19 +610,41 @@ export function InvestAnalysisPage() {
                       </span>
                     </div>
                     {pct !== null && pct !== undefined && (
-                      <div
-                        className="sb-goalbar"
-                        role="progressbar"
-                        aria-valuenow={Math.round(Math.min(100, Math.max(0, pct)))}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      >
-                        <span
-                          className="sb-goalbar-fill"
-                          /* over-100 progress must not bleed past the track */
-                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                        />
-                      </div>
+                      <>
+                        <div
+                          className="sb-goalbar"
+                          role="progressbar"
+                          aria-valuenow={Math.round(Math.min(100, Math.max(0, pct)))}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <span
+                            className="sb-goalbar-fill"
+                            /* over-100 progress must not bleed past the track */
+                            style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                          />
+                          {/* The pace tick marks where the goal should be
+                              by now — progress short of it is "At risk". */}
+                          {g.evalDetail?.expected_pct !== null &&
+                            g.evalDetail?.expected_pct !== undefined && (
+                              <span
+                                className="sb-goalbar-pace"
+                                style={{
+                                  left: `${Math.min(100, Math.max(0, g.evalDetail.expected_pct))}%`,
+                                }}
+                              />
+                            )}
+                        </div>
+                        {g.evalDetail?.expected_pct !== null &&
+                          g.evalDetail?.expected_pct !== undefined &&
+                          (g.status === 'on_track' || g.status === 'behind') && (
+                            <p className="sb-goal-pace dim">
+                              {fill(x(IM.invest_goal_pace), {
+                                pct: String(Math.round(g.evalDetail.expected_pct)),
+                              })}
+                            </p>
+                          )}
+                      </>
                     )}
                     {line && <p className="sb-goal-line">{line}</p>}
                     <footer className="sb-thesis-foot">

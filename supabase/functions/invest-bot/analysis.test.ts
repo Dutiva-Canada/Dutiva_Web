@@ -1,8 +1,9 @@
 /**
  * Spec for the book-level analysis pass — goal metric reads, status
- * transitions (terminal achieved/missed never regress, 'behind' only
- * earns its name near the deadline), baseline stamping, and the
- * scan-board connector that links watch items to degraded theses.
+ * transitions (terminal achieved/missed never regress, 'behind' earns
+ * its name near the deadline or materially off pace), baseline
+ * stamping, and the scan-board connector that links watch items to
+ * degraded theses.
  */
 import { describe, expect, it } from 'vitest'
 import {
@@ -185,6 +186,88 @@ describe('evaluateGoals', () => {
       { now: NOW },
     )
     expect(far[0]!.status).toBe('on_track')
+  })
+
+  it('flags behind on pace — most of the window gone, little progress', () => {
+    /* Created Jan 1, deadline May 1 → ~57% of the window elapsed at
+       NOW (Mar 10). Progress 10% is under half of expected → behind. */
+    const [ev] = evaluateGoals(
+      [
+        goal({
+          metric: 'book_value',
+          op: 'gte',
+          target: 8_000,
+          baseline: 4_000,
+          deadline: '2026-05-01',
+          created_at: '2026-01-01T00:00:00Z',
+        }),
+      ],
+      ctx(),
+      { now: NOW },
+    )
+    expect(ev.detail.expected_pct).toBeCloseTo(57, 0)
+    expect(ev.detail.progress_pct).toBe(10)
+    expect(ev.status).toBe('behind')
+    expect(ev.detail.days_left).toBeGreaterThan(30) /* pace, not proximity */
+  })
+
+  it('stays on track when progress keeps rough pace', () => {
+    /* Same window — progress 40% vs ~57% expected is over the half bar. */
+    const [ev] = evaluateGoals(
+      [
+        goal({
+          metric: 'book_value',
+          op: 'gte',
+          target: 8_000,
+          baseline: 2_000,
+          deadline: '2026-05-01',
+          created_at: '2026-01-01T00:00:00Z',
+        }),
+      ],
+      ctx(),
+      { now: NOW },
+    )
+    expect(ev.detail.progress_pct).toBe(40)
+    expect(ev.status).toBe('on_track')
+  })
+
+  it('does not pace-flag a young goal — the quarter-window floor holds', () => {
+    /* Created Mar 1, deadline Jul 1 → ~8% elapsed; progress 0 stays
+       on_track — a fresh goal hasn't had time to fall behind. */
+    const [ev] = evaluateGoals(
+      [
+        goal({
+          metric: 'book_value',
+          op: 'gte',
+          target: 8_000,
+          deadline: '2026-07-01',
+          created_at: '2026-03-01T00:00:00Z',
+        }),
+      ],
+      ctx(),
+      { now: NOW },
+    )
+    expect(ev.detail.expected_pct).toBeLessThan(25)
+    expect(ev.status).toBe('on_track')
+  })
+
+  it('falls back to proximity when the creation stamp is missing', () => {
+    const [ev] = evaluateGoals(
+      [
+        goal({
+          metric: 'book_value',
+          op: 'gte',
+          target: 8_000,
+          baseline: 4_000,
+          deadline: '2026-05-01',
+          created_at: null,
+        }),
+      ],
+      ctx(),
+      { now: NOW },
+    )
+    expect(ev.detail.expected_pct).toBeNull()
+    expect(ev.status).toBe('on_track')
   })
 
   it('misses the goal once the deadline passes unmet', () => {

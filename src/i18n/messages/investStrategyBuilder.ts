@@ -716,6 +716,8 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_goal_current: { en: 'Now {value}', fr: 'Actuellement {value}' },
   invest_goal_never: { en: 'Measured on the next sweep.', fr: 'Mesuré au prochain balayage.' },
   invest_goal_evaluated: { en: 'Measured {when}', fr: 'Mesuré {when}' },
+  /* [FR self-authored] */
+  invest_goal_pace: { en: 'Pace — about {pct}% by now', fr: 'Rythme — environ {pct} % à ce stade' },
   invest_goal_delete: { en: 'Delete', fr: 'Supprimer' },
   invest_goal_edit: { en: 'Edit', fr: 'Modifier' },
   invest_goal_suggest_accept: { en: 'Set the goal', fr: 'Fixer l’objectif' },

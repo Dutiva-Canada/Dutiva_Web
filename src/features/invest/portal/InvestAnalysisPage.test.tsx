@@ -108,6 +108,7 @@ function goal(over: Partial<InvestGoal> = {}): InvestGoal {
       target: 40,
       op: 'lte',
       progress_pct: 45,
+      expected_pct: 60,
       days_left: 300,
       line_en: 'On the way — 45.5% against the 40% target, 300 days left.',
       line_fr: 'En cours — 45,5 % contre la cible de 40 %, 300 jours restants.',
@@ -186,6 +187,14 @@ describe('InvestAnalysisPage — goals', () => {
     expect(screen.getByText(/On the way — 45\.5% against the 40% target/)).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '45')
     expect(screen.getByText(/Now 45\.5%/)).toBeInTheDocument()
+  })
+
+  it('marks the pace on the bar — the share of the window already gone', () => {
+    mount({ goals: [goal()] })
+    expect(screen.getByText('Pace — about 60% by now')).toBeInTheDocument()
+    const tick = document.querySelector('.sb-goalbar-pace')
+    expect(tick).not.toBeNull()
+    expect(tick).toHaveStyle({ left: '60%' })
   })
 
   it('tags a deadline-less goal In progress — 0% is not "on track"', () => {

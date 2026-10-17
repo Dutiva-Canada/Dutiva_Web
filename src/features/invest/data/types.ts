@@ -333,6 +333,9 @@ export interface GoalEvalDetail {
   op: GoalOp
   /** 0–100 progress baseline → target. */
   progress_pct: number | null
+  /** 0–100 share of the created→deadline window elapsed — the pace
+      expectation. Absent on rows stamped before pace tracking. */
+  expected_pct?: number | null
   /** Days until the deadline — negative once passed. */
   days_left: number | null
   line_en: string
