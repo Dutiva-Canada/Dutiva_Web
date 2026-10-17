@@ -692,6 +692,13 @@ const investCoreMessages = defineMessages({
   invest_news_general: { en: 'General market', fr: 'Marché général' },
   /* [FR self-authored] */
   invest_news_filter_aria: { en: 'Filter headlines', fr: 'Filtrer les manchettes' },
+  /* [FR self-authored] Per-card control — mutes the publisher, not just
+     this headline. */
+  invest_news_mute: { en: 'Hide {source} headlines', fr: 'Masquer les manchettes de {source}' },
+  /* [FR self-authored] Label over the chips of muted publishers. */
+  invest_news_muted: { en: 'Muted:', fr: 'Masquées :' },
+  /* [FR self-authored] */
+  invest_news_unmute: { en: 'Show {source} again', fr: 'Réafficher {source}' },
 
   /* Track record (0223) — one mark per sweep-day; deposits and
      withdrawals are backed out so the change reads as performance,

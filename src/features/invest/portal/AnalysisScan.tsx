@@ -117,15 +117,19 @@ export function AnalysisScan() {
      title. Same-story dedupe runs symbol-agnostic here: on a theme card
      the tag is the theme, not the ticker. */
   const newsByTheme = useMemo(() => {
+    /* Muted publishers (0240) hide here too — a muted source is muted
+       everywhere the feed surfaces, not just on the Overview card. */
+    const muted = new Set(state.newsMutes.map((s) => s.toLowerCase()))
     const map = new Map<string, InvestNewsItem[]>()
     for (const n of dedupeNews(state.news, { symbolAware: false })) {
+      if (muted.has(n.source.toLowerCase())) continue
       if (!n.viaTheme) continue
       const list = map.get(n.viaTheme) ?? []
       list.push(n)
       map.set(n.viaTheme, list)
     }
     return map
-  }, [state.news])
+  }, [state.news, state.newsMutes])
 
   const save = useCallback(async () => {
     if (busy || !draft.title.trim()) return

@@ -68,6 +68,7 @@ const STATE: InvestState = {
   memories: [],
   bookSnapshots: [],
   benchmarkMarks: [],
+  newsMutes: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],

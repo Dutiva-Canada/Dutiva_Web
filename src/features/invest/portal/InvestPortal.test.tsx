@@ -35,6 +35,8 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setOrderStatus: vi.fn(),
   addWatchSymbol: vi.fn(),
   removeWatchSymbol: vi.fn(),
+  muteNewsSource: vi.fn(),
+  unmuteNewsSource: vi.fn(),
   createAccount: vi.fn(),
   updateAccount: vi.fn(),
   deleteAccount: vi.fn(),
@@ -52,6 +54,8 @@ const {
   executeOrder,
   addWatchSymbol,
   removeWatchSymbol,
+  muteNewsSource,
+  unmuteNewsSource,
   createAccount,
   updateAccount,
   deleteAccount,
@@ -206,6 +210,7 @@ const STATE: InvestState = {
   memories: [],
   bookSnapshots: [],
   benchmarkMarks: [],
+  newsMutes: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],
@@ -469,6 +474,40 @@ describe('InvestHomePage', () => {
     /* A single-class feed earns no 'Equity' chip — it wouldn't split
        anything. */
     expect(screen.queryByRole('button', { name: 'Equity' })).not.toBeInTheDocument()
+  })
+
+  it('mutes a publisher, lists it under "Muted:", and restores it', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    /* The mute write resolves, then the refresh reloads state with the
+       mute persisted — the same two calls the real flow makes. */
+    vi.mocked(loadInvestState)
+      .mockResolvedValueOnce(STATE)
+      .mockResolvedValueOnce({ ...STATE, newsMutes: ['Wire'] })
+      .mockResolvedValue(STATE)
+    vi.mocked(muteNewsSource).mockResolvedValue(undefined)
+    vi.mocked(unmuteNewsSource).mockResolvedValue(undefined)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    expect(await screen.findByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    const user = userEvent.setup()
+    /* Per-card control — names the publisher it mutes. */
+    await user.click(screen.getByRole('button', { name: 'Hide Wire headlines' }))
+    expect(muteNewsSource).toHaveBeenCalledWith('Wire')
+    /* Post-refresh the muted source's story is gone and the muted list
+       shows what's hidden. */
+    expect(await screen.findByText('Muted:')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show Wire again' }))
+    expect(unmuteNewsSource).toHaveBeenCalledWith('Wire')
+    expect(await screen.findByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    expect(screen.queryByText('Muted:')).not.toBeInTheDocument()
   })
 
   it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {

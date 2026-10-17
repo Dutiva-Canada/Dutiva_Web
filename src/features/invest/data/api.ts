@@ -70,6 +70,9 @@ export interface InvestState {
      date-keyed. The track-record chart normalizes them to the book's
      first mark rather than drawing a second axis. */
   benchmarkMarks: InvestBenchmarkMark[]
+  /* 0240 — publishers the user muted. A display preference: rows stay in
+     invest_market_news, the surfaces just stop showing them. */
+  newsMutes: string[]
   cashEvents: InvestCashEvent[]
   fills: OrderFill[]
   stressScenarios: StressScenario[]
@@ -106,7 +109,7 @@ async function requireUserId(): Promise<{ client: NonNullable<typeof supabase>; 
 export async function loadInvestState(): Promise<InvestState> {
   const client = supabase
   if (!client) throw new Error('Supabase is not configured')
-  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts, fillsRes, scenariosRes, recurringRes] =
+  const [accounts, positions, snapshots, strategies, signals, orders, runs, watchlist, theses, goals, scanItems, memories, bookSnaps, cashEvts, fillsRes, scenariosRes, recurringRes, mutesRes] =
     await Promise.all([
       /* Oldest-first — accounts[0] is the book-currency/headline default
          everywhere, so the read must be deterministic. */
@@ -150,6 +153,7 @@ export async function loadInvestState(): Promise<InvestState> {
         .from('invest_recurring_contributions')
         .select('*')
         .order('created_at', { ascending: false }),
+      client.from('invest_news_source_mutes').select('source'),
     ])
   for (const res of [
     accounts,
@@ -174,6 +178,8 @@ export async function loadInvestState(): Promise<InvestState> {
      the migration lands, never a failed state load. */
   const bookSnapRows = bookSnaps.error ? [] : (bookSnaps.data ?? [])
   const cashEvtRows = cashEvts.error ? [] : (cashEvts.data ?? [])
+  /* 0240 — same code-before-schema tolerance. */
+  const muteRows = mutesRes.error ? [] : (mutesRes.data ?? [])
   /* 0238 — the chart only needs the window the book has marks for; no
      book marks, no overlay, no query. Same code-before-schema tolerance
      as the other 02xx tables. */
@@ -254,6 +260,7 @@ export async function loadInvestState(): Promise<InvestState> {
     memories: memoryRows.map(toMemory),
     bookSnapshots: bookSnapRows.map(toBookSnapshot),
     benchmarkMarks: benchRows.map(toBenchmarkMark),
+    newsMutes: muteRows.map((r) => String(r.source ?? '')).filter(Boolean),
     cashEvents: cashEvtRows.map(toCashEvent),
     fills: fillRows.map(toOrderFill),
     stressScenarios: scenarioRows.map(toStressScenario),
@@ -288,6 +295,26 @@ export async function removeWatchSymbol(id: string): Promise<void> {
     .delete()
     .eq('id', id)
     .eq('user_id', userId)
+  if (error) throw error
+}
+
+/* ── Muted headline sources (0240) ──────────────────────────────────────── */
+
+export async function muteNewsSource(source: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_news_source_mutes')
+    .upsert({ user_id: userId, source })
+  if (error) throw error
+}
+
+export async function unmuteNewsSource(source: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_news_source_mutes')
+    .delete()
+    .eq('user_id', userId)
+    .eq('source', source)
   if (error) throw error
 }
 

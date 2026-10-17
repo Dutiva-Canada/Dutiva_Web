@@ -15,6 +15,7 @@ import { RULE_METRIC_LABELS } from '../data/strategyRules'
 import { persistedRuleTitle } from '../data/strategyRules'
 import type { RuleProblem } from '../data/strategyRules'
 import type {
+  AssetClass,
   InvestBotRun,
   InvestStrategy,
   OrderProposalRule,
@@ -39,6 +40,17 @@ export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
   tailwind: 'sb-pill-ok',
   headwind: 'sb-pill-warn',
   monitor: 'sb-pill-draft',
+}
+
+/* Asset-class → label key — the allocation legend and the headline
+   facets name classes with the same vocabulary. */
+export const ASSET_LABEL: Record<AssetClass, keyof typeof IM> = {
+  equity: 'invest_asset_equity',
+  etf: 'invest_asset_etf',
+  crypto: 'invest_asset_crypto',
+  bond: 'invest_asset_bond',
+  cash: 'invest_asset_cash',
+  other: 'invest_asset_other',
 }
 
 const localeOf = (lang: Lang): string => (lang === 'fr' ? 'fr-CA' : 'en-CA')

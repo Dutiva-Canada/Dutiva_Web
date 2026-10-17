@@ -51,6 +51,12 @@ function jaccard(a: Set<string>, b: Set<string>): number {
   return inter / (a.size + b.size - inter)
 }
 
+function intersects(a: Set<string>, b: Set<string>): number {
+  let n = 0
+  for (const t of a) if (b.has(t)) n++
+  return n
+}
+
 interface NewsRow {
   title: string
   symbol?: string
@@ -80,6 +86,11 @@ export function dedupeNews<T extends NewsRow>(
     const day = (n.publishedAt ?? '').slice(0, 10)
     const sym = (n.symbol ?? '').toUpperCase()
     const theme = n.viaTheme ?? null
+    /* Clusters anchor on their founder's fingerprint (kept.fp never
+       mutates), so membership is 'resembles the founder' — no transitive
+       chaining. But a short founder is permissive: one shared token
+       ('amd') shouldn't prove same-story, so a merge also needs ≥2
+       overlapping content tokens. */
     const dup =
       fp.size > 0
         ? kept.find(
@@ -90,6 +101,7 @@ export function dedupeNews<T extends NewsRow>(
                 k.sym === '' ||
                 sym === '' ||
                 (theme !== null && theme === k.theme)) &&
+              intersects(fp, k.fp) >= 2 &&
               jaccard(fp, k.fp) >= 0.35,
           )
         : undefined

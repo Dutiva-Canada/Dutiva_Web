@@ -10443,6 +10443,24 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_news_source_mutes: {
+        Row: {
+          created_at: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invest_notification_prefs: {
         Row: {
           digest_last_sent_at: string
@@ -17913,6 +17931,7 @@ export type Database = {
       trigger_score_snapshots: { Args: never; Returns: undefined }
       trigger_signing_reminder_scheduler: { Args: never; Returns: undefined }
       trigger_support_call_scheduler: { Args: never; Returns: undefined }
+      trigger_support_notify_drain: { Args: never; Returns: undefined }
       update_capacity_config: {
         Args: {
           p_capacity_enforcement_enabled: boolean

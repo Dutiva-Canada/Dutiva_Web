@@ -1,34 +1,22 @@
 import './strategies.css'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
+import { Info, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
+import { ASSET_CLASSES } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { AGENT_RUN_STALE_MS, isQuoteStale } from '@/features/invest/data/freshness'
-import { dedupeNews } from '@/features/invest/data/newsDedupe'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
+import { NewsFeedCard } from './NewsFeedCard'
 import { readDisplayCurrency } from './investPrefs'
-import { fmtDay, fmtNum, fmtPct, pl, tallyNoticed } from './strategyUi'
-
-const assetLabel: Record<AssetClass, keyof typeof IM> = {
-  equity: 'invest_asset_equity',
-  etf: 'invest_asset_etf',
-  crypto: 'invest_asset_crypto',
-  bond: 'invest_asset_bond',
-  cash: 'invest_asset_cash',
-  other: 'invest_asset_other',
-}
+import { ASSET_LABEL, fmtDay, fmtNum, fmtPct, pl, tallyNoticed } from './strategyUi'
 
 const cardClass = 'sb-card sb-card-pad'
-
-/* The feed retains 30 days; the card windows it. */
-const NEWS_RANGE_MS = { '7d': 7 * 86_400_000, '14d': 14 * 86_400_000, '30d': 30 * 86_400_000 } as const
 
 /* recharts (~420kB with its d3 tree) must stay an on-demand chunk — the
    same rule as components/advisor/ChatChart.tsx. The curve mounts once
@@ -36,24 +24,6 @@ const NEWS_RANGE_MS = { '7d': 7 * 86_400_000, '14d': 14 * 86_400_000, '30d': 30 
 const BookCurve = lazy(() =>
   import('./BookCurve').then((m) => ({ default: m.BookCurve })),
 )
-
-// Publisher-badge tints — token pairs only, hashed by source name.
-const SOURCE_TINTS = [
-  'bg-accent-soft text-accent',
-  'bg-gold-bg text-gold-fg',
-  'bg-ok-bg text-ok-fg',
-  'bg-inset text-text-2',
-]
-
-function sourceTint(source: string): string {
-  let h = 0
-  for (const c of source) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return SOURCE_TINTS[h % SOURCE_TINTS.length] ?? 'bg-inset text-text-2'
-}
-
-/* Dedupe + junk filtering live in data/newsDedupe — same-event stories
-   from different outlets cluster on token overlap, and listing pages
-   (options chains, tokenized stocks) never render as headlines. */
 
 /** Overview tab — book value, cash, open signals, last bot run, allocation. */
 export function InvestHomePage() {
@@ -63,14 +33,6 @@ export function InvestHomePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
-  const [newsExpanded, setNewsExpanded] = useState(false)
-  /* 'book' shows only headlines tagged to a held or watched symbol —
-     the news-for-your-book cut. */
-  /* Facet keys: 'all' | 'book' | 'general' | 'sym:AMD' | 'cls:crypto' |
-     'theme:<watch-item title>'. The range axis is separate — the feed
-     retains 30 days, windowed to 7d by default. */
-  const [newsFilter, setNewsFilter] = useState<string>('all')
-  const [newsRange, setNewsRange] = useState<'7d' | '14d' | '30d'>('7d')
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency amounts drop out of the totals with a note below
      rather than sum into a wrong number. */
@@ -249,120 +211,8 @@ export function InvestHomePage() {
     }
   }
 
-  /* 'Your book' = held ∪ watched symbols. The feed also carries rows
-     tagged to scan-board links — a theme claim, not book membership —
-     and unscoped (symbol '') rows, which belong to 'All' only. The same
-     set prefers the surviving tag when one theme story carries several
-     linkage copies. */
-  const bookSymbols = useMemo(() => {
-    const s = new Set<string>()
-    for (const p of state.positions) s.add(p.symbol.toUpperCase())
-    for (const w of state.watchlist) s.add(w.symbol.toUpperCase())
-    return s
-  }, [state.positions, state.watchlist])
-  const headlines = useMemo(
-    () => dedupeNews(state.news, { preferSymbols: bookSymbols }),
-    [state.news, bookSymbols],
-  )
-  /* Range narrows first — facets and 'Your book' describe the windowed
-     set, so a chip reflects what selecting it would actually show. A
-     quiet window still shows what's on file rather than blank the list
-     because the freshest headline happens to predate the range. */
-  const rangedHeadlines = useMemo(() => {
-    const cutoff = Date.now() - NEWS_RANGE_MS[newsRange]
-    const rows = headlines.filter(
-      (n) => n.publishedAt !== null && Date.parse(n.publishedAt) >= cutoff,
-    )
-    return rows.length > 0 ? rows : headlines
-  }, [headlines, newsRange])
-  const bookHeadlines = useMemo(
-    () => rangedHeadlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
-    [rangedHeadlines, bookSymbols],
-  )
-  /* Facet chips derive from what the feed actually carries — a facet
-     never appears for an empty result. Symbols sort book-first, then
-     alphabetically; a class chip exists only when it splits the feed
-     (an all-equity list gains nothing from an 'Equity' chip); 'General'
-     is skipped when it would equal 'All'. */
-  const newsFacets = useMemo(() => {
-    const syms = new Set<string>()
-    const themes = new Set<string>()
-    const classes = new Set<string>()
-    let general = false
-    for (const n of rangedHeadlines) {
-      if (n.symbol === '') general = true
-      else syms.add(n.symbol.toUpperCase())
-      if (n.viaTheme) themes.add(n.viaTheme)
-      if (n.assetClass) classes.add(n.assetClass)
-    }
-    return {
-      book: bookHeadlines.length > 0 && bookHeadlines.length !== rangedHeadlines.length,
-      symbols: [...syms].sort(
-        (a, b) => Number(bookSymbols.has(b)) - Number(bookSymbols.has(a)) || a.localeCompare(b),
-      ),
-      themes: [...themes].sort((a, b) => a.localeCompare(b)),
-      classes: classes.size > 1 ? [...classes].sort() : [],
-      general: general && syms.size > 0,
-    }
-  }, [rangedHeadlines, bookHeadlines, bookSymbols])
-  const scopedHeadlines = useMemo(() => {
-    const rows =
-      newsFilter === 'all'
-        ? rangedHeadlines
-        : newsFilter === 'book'
-          ? bookHeadlines
-          : newsFilter === 'general'
-            ? rangedHeadlines.filter((n) => n.symbol === '')
-            : newsFilter.startsWith('sym:')
-              ? rangedHeadlines.filter((n) => n.symbol.toUpperCase() === newsFilter.slice(4))
-              : newsFilter.startsWith('theme:')
-                ? rangedHeadlines.filter((n) => n.viaTheme === newsFilter.slice(6))
-                : rangedHeadlines.filter((n) => n.assetClass === newsFilter.slice(4))
-    /* A facet can outlive its rows (a refresh clears them) — fall back
-       to 'all' rather than blank the list. */
-    return rows.length > 0 ? rows : rangedHeadlines
-  }, [rangedHeadlines, bookHeadlines, newsFilter])
-
-  /* ...but a pressed chip must never be invisible — when the selected
-     facet leaves the feed, reset to 'all' so what you see is what the
-     control shows. */
-  useEffect(() => {
-    if (newsFilter === 'all') return
-    const valid =
-      (newsFilter === 'book' && newsFacets.book) ||
-      (newsFilter === 'general' && newsFacets.general) ||
-      (newsFilter.startsWith('sym:') && newsFacets.symbols.includes(newsFilter.slice(4))) ||
-      (newsFilter.startsWith('theme:') && newsFacets.themes.includes(newsFilter.slice(6))) ||
-      (newsFilter.startsWith('cls:') && newsFacets.classes.includes(newsFilter.slice(4)))
-    if (!valid) setNewsFilter('all')
-  }, [newsFilter, newsFacets])
-  const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
-
-  /* Chunk the flat feed by publish day — 'Today' / 'Yesterday' / a date.
-     Rows arrive newest-first, so same-day rows are already consecutive
-     and a single pass groups them; undated rows settle last. */
-  const groupedHeadlines = useMemo(() => {
-    const dayKey = (d: Date) =>
-      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const now = new Date()
-    const todayKey = dayKey(now)
-    const yesterdayKey = dayKey(new Date(now.getTime() - 86_400_000))
-    const groups: { key: string; label: string; items: typeof visibleHeadlines }[] = []
-    for (const n of visibleHeadlines) {
-      const key = n.publishedAt ? dayKey(new Date(n.publishedAt)) : 'undated'
-      const label = !n.publishedAt
-        ? x(IM.invest_news_undated)
-        : key === todayKey
-          ? x(IM.invest_news_today)
-          : key === yesterdayKey
-            ? x(IM.invest_news_yesterday)
-            : fmtDay(lang, key)
-      const last = groups[groups.length - 1]
-      if (last && last.key === key) last.items.push(n)
-      else groups.push({ key, label, items: [n] })
-    }
-    return groups
-  }, [visibleHeadlines, lang, x])
+  /* The headlines card owns its feed logic (range, facets, day groups,
+     source mutes) — see NewsFeedCard.tsx. */
 
   /* Tally's presence outside the chat tab — one noticed thing, built
      locally from the same state the stats read. No model call. */
@@ -594,7 +444,7 @@ export function InvestHomePage() {
                 return (
                   <li key={cls}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13.5px' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[assetLabel[cls]])}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[ASSET_LABEL[cls]])}</span>
                       <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--sb-muted)' }}>
                         {book.missed > 0
                           ? native
@@ -656,194 +506,7 @@ export function InvestHomePage() {
         </section>
       </div>
 
-      <section className={cardClass} style={{ marginTop: 16 }}>
-        {/* Third-party headlines, verbatim — label them as such so a publisher's
-            headline never reads as a Dutiva recommendation. */}
-        <div className="flex items-start justify-between gap-[12px]">
-          <div>
-            <h2 className="m-0 flex items-center gap-[8px]">
-              <span
-                aria-hidden="true"
-                className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] bg-accent-soft text-accent"
-              >
-                <Newspaper size={13} strokeWidth={2} />
-              </span>
-              {x(IM.invest_news_title)}
-            </h2>
-            <p className="m-0 ml-[32px] mt-[2px] text-[12px] leading-normal text-text-muted">
-              {x(IM.invest_news_note)}
-            </p>
-          </div>
-          <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
-            {headlines.length > 0 && (
-            <div
-              className="sb-seg sb-seg-sm"
-              role="group"
-              aria-label={x(IM.invest_news_range_aria)}
-            >
-              {(['7d', '14d', '30d'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  aria-pressed={newsRange === r}
-                  onClick={() => setNewsRange(r)}
-                >
-                  {x(IM[`invest_news_range_${r}`])}
-                </button>
-              ))}
-            </div>
-            )}
-            {scopedHeadlines.length > 12 && (
-              <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
-                {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}
-              </span>
-            )}
-          </div>
-        </div>
-        {state.news.length === 0 ? (
-          <p className="sb-empty">{x(IM.invest_news_empty)}</p>
-        ) : (
-          <>
-          <div
-            className="sb-pills sb-pills-sm mt-[12px]"
-            role="group"
-            aria-label={x(IM.invest_news_filter_aria)}
-          >
-            <button
-              type="button"
-              aria-pressed={newsFilter === 'all'}
-              onClick={() => setNewsFilter('all')}
-            >
-              {x(IM.invest_news_all)}
-            </button>
-            {newsFacets.book && (
-              <button
-                type="button"
-                aria-pressed={newsFilter === 'book'}
-                onClick={() => setNewsFilter('book')}
-              >
-                {x(IM.invest_news_book)}
-              </button>
-            )}
-            {newsFacets.symbols.map((s) => (
-              <button
-                key={`sym:${s}`}
-                type="button"
-                aria-pressed={newsFilter === `sym:${s}`}
-                onClick={() => setNewsFilter(`sym:${s}`)}
-              >
-                {s}
-              </button>
-            ))}
-            {newsFacets.classes.map((c) => (
-              <button
-                key={`cls:${c}`}
-                type="button"
-                aria-pressed={newsFilter === `cls:${c}`}
-                onClick={() => setNewsFilter(`cls:${c}`)}
-              >
-                {c in assetLabel ? x(IM[assetLabel[c as AssetClass]]) : c}
-              </button>
-            ))}
-            {newsFacets.themes.map((t) => (
-              <button
-                key={`theme:${t}`}
-                type="button"
-                title={t}
-                aria-pressed={newsFilter === `theme:${t}`}
-                onClick={() => setNewsFilter(`theme:${t}`)}
-              >
-                {t}
-              </button>
-            ))}
-            {newsFacets.general && (
-              <button
-                type="button"
-                aria-pressed={newsFilter === 'general'}
-                onClick={() => setNewsFilter('general')}
-              >
-                {x(IM.invest_news_general)}
-              </button>
-            )}
-          </div>
-          {groupedHeadlines.map((g, gi) => (
-            <section key={g.key} className={gi === 0 ? 'mt-[14px]' : 'mt-[20px]'}>
-              <h3 className="m-0 mb-[8px] text-[11px] font-bold uppercase tracking-[0.06em] text-text-muted">
-                {g.label}
-              </h3>
-              <ul className="m-0 grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
-                {g.items.map((n, i) => {
-                  const featured = gi === 0 && i === 0
-                  return (
-              <li key={n.id} className={featured ? 'min-[980px]:col-span-2' : undefined}>
-                <a
-                  href={n.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group flex h-full items-center gap-[11px] rounded-[12px] border border-border bg-surface no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${featured ? 'p-[13px]' : 'p-[11px]'}`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold uppercase ${featured ? 'h-[34px] w-[34px] text-[13px]' : 'h-[30px] w-[30px] text-[11.5px]'} ${sourceTint(n.source)}`}
-                  >
-                    {(n.source || '?').trim().charAt(0)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className={`line-clamp-2 block font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent ${featured ? 'text-[14px]' : 'text-[13px]'}`}>
-                      {n.title}
-                    </span>
-                    <span className="mt-[5px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
-                      <span className="truncate">{n.source}</span>
-                      {n.symbol && (
-                        <span className="shrink-0 rounded-[6px] bg-accent-soft px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-accent">
-                          {n.symbol}
-                        </span>
-                      )}
-                      {n.viaTheme && (
-                        <span
-                          className="max-w-[180px] shrink-0 truncate rounded-[6px] bg-inset px-[6px] py-px text-[10px] font-medium text-text-3"
-                          title={n.viaTheme}
-                        >
-                          {x(IM.invest_news_via).replace('{theme}', n.viaTheme)}
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  <ArrowUpRight
-                    size={14}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                    className="mt-[3px] shrink-0 self-start text-text-3 transition-transform duration-150 group-hover:-translate-y-[1px] group-hover:translate-x-[1px] group-hover:text-accent"
-                  />
-                  <span className="sr-only">{x(IM.invest_news_external)}</span>
-                </a>
-              </li>
-                  )
-                })}
-              </ul>
-            </section>
-          ))}
-          {/* Gate and count both read the scoped list — under 'Your book'
-              the button must promise only what the filter can reveal. */}
-          {scopedHeadlines.length > 12 && (
-            <button
-              type="button"
-              onClick={() => setNewsExpanded((v) => !v)}
-              className="mx-auto mt-[12px] flex min-h-[34px] w-auto cursor-pointer items-center justify-center gap-[6px] rounded-full border border-border bg-transparent px-[18px] text-[12.5px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:bg-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {newsExpanded
-                ? x(IM.invest_news_less)
-                : x(IM.invest_news_more).replace('{count}', String(scopedHeadlines.length))}
-              {newsExpanded ? (
-                <ChevronUp size={14} aria-hidden="true" />
-              ) : (
-                <ChevronDown size={14} aria-hidden="true" />
-              )}
-            </button>
-          )}
-          </>
-        )}
-      </section>
+      <NewsFeedCard />
     </div>
   )
 }

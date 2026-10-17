@@ -274,7 +274,12 @@ export type AttachmentError =
 
 export type AttachmentsResult = { attachments: AdvisorAttachment[] } | { error: AttachmentError }
 
-const DATA_URL_RE = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64,[a-z0-9+/=\s]+$/i
+const DATA_URL_HEADER_RE = /^data:([a-z0-9.+-]+\/[a-z0-9.+-]+);base64$/i
+/* Body charset must NOT be an anchored `…$` match — regex engines
+   backtrack the whole payload on that shape and a multi-MB image can
+   overflow the call stack. The negated class finds the first bad char
+   linearly instead. */
+const DATA_URL_BODY_BAD_CHAR = /[^a-z0-9+/=\s]/i
 
 function sanitizeName(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
@@ -305,9 +310,15 @@ export function parseAttachments(raw: unknown): AttachmentsResult {
 
     if (kind === 'image') {
       const dataUrl = typeof a.data_url === 'string' ? a.data_url : ''
-      const mime = DATA_URL_RE.exec(dataUrl)?.[1]?.toLowerCase() ?? ''
+      const comma = dataUrl.indexOf(',')
+      const mime =
+        comma < 0
+          ? ''
+          : (DATA_URL_HEADER_RE.exec(dataUrl.slice(0, comma))?.[1] ?? '').toLowerCase()
       if (!IMAGE_MIME_ALLOWLIST.has(mime)) return { error: 'bad_image_mime' }
       if (dataUrl.length > MAX_IMAGE_DATA_URL_CHARS) return { error: 'image_too_large' }
+      if (comma === dataUrl.length - 1) return { error: 'bad_image_mime' }
+      if (DATA_URL_BODY_BAD_CHAR.test(dataUrl.slice(comma + 1))) return { error: 'bad_image_mime' }
       out.push({ kind: 'image', name, data_url: dataUrl })
       continue
     }

@@ -88,6 +88,14 @@ describe('dedupeNews', () => {
     expect(items[0]!.symbol).toBe('AMAT')
   })
 
+  it('needs two shared content tokens to merge — one never proves same-story', () => {
+    const items = dedupeNews([
+      row('AMD Falls on Downgrade', { symbol: 'AMD' }),
+      row('AMD Opens New Toronto Office', { symbol: 'AMD' }),
+    ])
+    expect(items).toHaveLength(2)
+  })
+
   it('keeps cross-symbol copies when the stories claim different themes', () => {
     const items = dedupeNews([
       { ...row('Semis slide on the day', { symbol: 'AMAT' }), viaTheme: 'Export restrictions' },
