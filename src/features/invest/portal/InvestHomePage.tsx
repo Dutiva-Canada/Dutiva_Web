@@ -296,19 +296,17 @@ export function InvestHomePage() {
       <InvestOnboarding />
 
       {noticed && (
-        <div className="sb-note sb-note-accent" style={{ marginBottom: 16, alignItems: 'center' }}>
+        <div className="sb-note sb-note-accent" style={{ marginBottom: 16 }}>
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
             <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed.text}{' '}
-            <Link to="/invest/chat" style={{ color: 'inherit', fontWeight: 600 }}>
-              {x(IM.invest_home_tally_open)}
-            </Link>
+            <Link to="/invest/chat">{x(IM.invest_home_tally_open)}</Link>
           </span>
         </div>
       )}
 
       <div className="sb-note">
-        <Info size={16} strokeWidth={1.7} aria-hidden="true" />
+        <Info size={16} strokeWidth={1.7} aria-hidden="true" style={{ color: 'var(--sb-muted)' }} />
         <span>{x(IM.invest_info_note)}</span>
       </div>
 

@@ -222,7 +222,7 @@ export function InvestOrdersPage() {
       )}
 
       <div className="sb-note">
-        <Info size={16} strokeWidth={1.7} aria-hidden="true" />
+        <Info size={16} strokeWidth={1.7} aria-hidden="true" style={{ color: 'var(--sb-muted)' }} />
         <span>{x(IM.invest_live_note)}</span>
       </div>
 

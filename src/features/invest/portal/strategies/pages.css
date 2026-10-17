@@ -52,9 +52,12 @@
   text-decoration: underline;
 }
 /* Insight strip — accent edge so it doesn't read as a second notice
-   when it stacks above the legal note. */
+   when it stacks above the legal note. Body ink, not muted: the accent
+   strip carries actionable content while plain notes carry chrome —
+   the two shouldn't share a weight. */
 .sb-note-accent {
   border-left: 3px solid var(--sb-accent);
+  color: var(--sb-body);
 }
 /* Tally's read — a caption-level line inside a computed card, lighter
    than .sb-note's inset block: it summarizes what's on the card, it
@@ -1681,7 +1684,7 @@
 }
 .sb-ledger-deposit { color: var(--sb-ok); }
 .sb-ledger-withdrawal { color: var(--sb-danger); }
-.sb-ledger-dividend { color: var(--sb-accent); }
+.sb-ledger-dividend { color: var(--sb-accent-ink); }
 .sb-ledger-amt {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -1856,7 +1859,7 @@
 }
 .sb-stress-sym {
   font-weight: 700;
-  color: var(--sb-accent);
+  color: var(--sb-accent-ink);
 }
 .sb-stress-note {
   display: flex;
@@ -1933,8 +1936,11 @@
   margin: 12px 0 0;
   font-size: 13px;
 }
+/* accent-ink, not accent: raw accent on the card's warm fill is under
+   AA for 13px text, and .sb-note a already uses accent-ink for the same
+   'open more' affordance. */
 .sb-brief-foot a {
-  color: var(--sb-accent);
+  color: var(--sb-accent-ink);
   font-weight: 600;
   text-decoration: none;
 }

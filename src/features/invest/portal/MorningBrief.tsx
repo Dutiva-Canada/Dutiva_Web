@@ -194,7 +194,7 @@ export function MorningBrief(props: {
   const TitleIcon = morning ? Sunrise : Sun
 
   return (
-    <section className="sb-card sb-brief" aria-label={x(title)}>
+    <section className="sb-card sb-card-pad sb-brief" aria-label={x(title)}>
       <div className="sb-brief-head">
         <h2 className="sb-flabel" style={{ margin: 0 }}>
           <TitleIcon size={14} aria-hidden /> {x(title)}
