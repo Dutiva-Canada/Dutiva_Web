@@ -8,6 +8,7 @@ import {
   coingeckoMarketsUrl,
   googleNewsUrl,
   newsQueries,
+  newsThemeQueries,
   parseCoingeckoCloses,
   parseCoingeckoMarkets,
   parseCoingeckoNames,
@@ -455,23 +456,50 @@ const NEWS_MAX_ITEMS_STORED = 40
  * table's unique constraint. The table is global, so repeats across users
  * and runs cost one upsert round-trip, not duplicate rows.
  */
+/* Thematic headlines get their own budget — symbol feeds alone could
+   fill the shared cap and starve the board's coverage. */
+const NEWS_MAX_THEME_ITEMS = 24
+
 async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): Promise<number> {
   const queries = newsQueries(targets)
   const rows: Database['public']['Tables']['invest_market_news']['Insert'][] = []
   const seenUrls = new Set<string>()
+  const pushRow = (item: (typeof rows)[number], cap: number) => {
+    const key = `${item.symbol}:${item.url}`
+    if (seenUrls.has(key) || rows.length >= cap) return false
+    seenUrls.add(key)
+    rows.push(item)
+    return true
+  }
   for (const q of queries) {
     const xml = await fetchText(googleNewsUrl(q.query))
     if (!xml) continue
     for (const item of parseRssItems(xml, { symbol: q.symbol, asset_class: q.asset_class, name: q.name })) {
-      const key = `${item.symbol}:${item.url}`
-      if (seenUrls.has(key)) continue
-      seenUrls.add(key)
-      rows.push(item)
-      if (rows.length >= NEWS_MAX_ITEMS_STORED) break
+      if (!pushRow(item, NEWS_MAX_ITEMS_STORED)) break
     }
     if (rows.length >= NEWS_MAX_ITEMS_STORED) break
     await pause(NEWS_STAGGER_MS)
   }
+
+  /* Watch-board themes drive their own feeds: "US-China trade
+     restrictions" never names AMAT, but the item's declared symbols say
+     where the headline belongs. Rows tag by linkage, not text-match. */
+  const { data: scanRows } = await adminClient
+    .from('invest_scan_items')
+    .select('title, symbols')
+  const classOf = new Map(targets.map((t) => [t.symbol.toUpperCase(), t.asset_class]))
+  const themeCap = NEWS_MAX_ITEMS_STORED + NEWS_MAX_THEME_ITEMS
+  for (const tq of newsThemeQueries((scanRows ?? []) as { title: string; symbols: string[] }[])) {
+    const linked = tq.symbols.map((s) => ({ symbol: s, asset_class: classOf.get(s) ?? 'equity' }))
+    const xml = await fetchText(googleNewsUrl(tq.query))
+    if (!xml) continue
+    for (const item of parseRssItems(xml, { symbol: '', asset_class: '', linked })) {
+      if (!pushRow(item, themeCap)) break
+    }
+    if (rows.length >= themeCap) break
+    await pause(NEWS_STAGGER_MS)
+  }
+
   if (rows.length === 0) return 0
   const { error } = await adminClient
     .from('invest_market_news')

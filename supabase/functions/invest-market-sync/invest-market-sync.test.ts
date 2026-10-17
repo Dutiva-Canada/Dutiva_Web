@@ -5,6 +5,7 @@ import {
   computeRsi,
   googleNewsUrl,
   newsQueries,
+  newsThemeQueries,
   parseCoingeckoCloses,
   parseCoingeckoMarkets,
   parseCoingeckoNames,
@@ -207,6 +208,22 @@ describe('parseRssItems', () => {
     expect(parseRssItems(RSS, { symbol: 'X', asset_class: 'equity' }, 1)).toHaveLength(1)
     expect(parseRssItems('<rss></rss>', { symbol: 'X', asset_class: 'equity' })).toHaveLength(0)
   })
+
+  it('tags theme-query rows to declared symbols — no text-match needed', () => {
+    const items = parseRssItems(RSS, {
+      symbol: '',
+      asset_class: '',
+      linked: [
+        { symbol: 'AMAT', asset_class: 'equity' },
+        { symbol: 'ARM', asset_class: 'equity' },
+      ],
+    })
+    /* 2 kept items × 2 declared symbols — tagged by linkage even though
+       neither headline mentions them (that's the point of a theme). */
+    expect(items).toHaveLength(4)
+    expect(new Set(items.map((i) => i.symbol))).toEqual(new Set(['AMAT', 'ARM']))
+    expect(items.every((i) => i.asset_class === 'equity')).toBe(true)
+  })
 })
 
 describe('newsQueries', () => {
@@ -249,6 +266,33 @@ describe('newsQueries', () => {
     expect(q.some((x) => x.symbol === 'HELD')).toBe(true)
     expect(q.some((x) => x.symbol === 'W11')).toBe(false)
     expect(q[1]?.symbol).toBe('HELD')
+  })
+})
+
+describe('newsThemeQueries', () => {
+  it('merges symbol links when users watch the same theme', () => {
+    const q = newsThemeQueries([
+      { title: 'US-China trade restrictions', symbols: ['amat', 'ARM'] },
+      { title: 'US-China trade restrictions ', symbols: ['QUBT'] },
+      { title: 'Whole-book watch', symbols: [] },
+    ])
+    expect(q).toEqual([
+      { query: 'US-China trade restrictions', symbols: ['AMAT', 'ARM', 'QUBT'] },
+    ])
+  })
+
+  it('caps theme feeds and skips symbol-less items', () => {
+    const items = Array.from({ length: 10 }, (_, i) => ({
+      title: `Theme ${i}`,
+      symbols: ['S'],
+    }))
+    const q = newsThemeQueries(items)
+    expect(q).toHaveLength(8)
+    /* An item with no linked symbols contributes nothing — its coverage
+       is the general feed's job. */
+    expect(
+      newsThemeQueries([{ title: 'Untagged', symbols: [] }]),
+    ).toHaveLength(0)
   })
 })
 

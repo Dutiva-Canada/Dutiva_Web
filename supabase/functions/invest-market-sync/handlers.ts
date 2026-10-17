@@ -455,7 +455,15 @@ function xmlText(block: string, tag: string): string {
  */
 export function parseRssItems(
   xml: string,
-  meta: { symbol: string; asset_class: string; name?: string },
+  meta: {
+    symbol: string
+    asset_class: string
+    name?: string
+    /** Theme-query mode: rows tag to these declared symbols without the
+        text-match check — a thematic headline rarely names the holding,
+        which is the whole reason the watch item exists. */
+    linked?: { symbol: string; asset_class: string }[]
+  },
   maxItems = 12,
 ): NewsItem[] {
   const items: NewsItem[] = []
@@ -468,21 +476,27 @@ export function parseRssItems(
     const url = xmlText(block, 'link')
     if (!title || !url || JUNK_HEADLINE.test(title)) continue
     const summary = xmlText(block, 'description').slice(0, 240)
-    /* The query returned it, but the symbol tag is only honest when the
-       story actually names the holding. */
-    const symbol =
-      meta.symbol && mentionsHolding(`${title} ${summary}`, meta) ? meta.symbol : ''
     const pub = xmlText(block, 'pubDate')
     const pubMs = pub ? Date.parse(pub) : NaN
-    items.push({
-      symbol,
-      asset_class: meta.asset_class,
+    const base = {
       title: title.slice(0, 300),
       url: url.slice(0, 500),
       source: source.slice(0, 120),
       summary,
       published_at: Number.isFinite(pubMs) ? new Date(pubMs).toISOString() : null,
-    })
+    }
+    if (meta.linked && meta.linked.length > 0) {
+      for (const l of meta.linked) {
+        items.push({ symbol: l.symbol, asset_class: l.asset_class, ...base })
+        if (items.length >= maxItems) break
+      }
+    } else {
+      /* The query returned it, but the symbol tag is only honest when the
+         story actually names the holding. */
+      const symbol =
+        meta.symbol && mentionsHolding(`${title} ${summary}`, meta) ? meta.symbol : ''
+      items.push({ symbol, asset_class: meta.asset_class, ...base })
+    }
     if (items.length >= maxItems) break
   }
   return items
@@ -515,4 +529,40 @@ export function newsQueries(
     if (queries.length > maxSymbolFeeds) break
   }
   return queries
+}
+
+export interface NewsThemeQuery {
+  /** The watch item's own title — free text is the query. */
+  query: string
+  /** Every symbol the item(s) declare — the headline's linkage is the
+      board's claim, not a text match. */
+  symbols: string[]
+}
+
+/** One headline feed per distinct watched theme. Scan items carry
+    free-text titles ("US-China trade restrictions") that make direct
+    queries; identical titles across users share one feed and merge
+    their symbol links. Items with no linked symbols can't tag rows —
+    their coverage is the general feed's job. */
+export function newsThemeQueries(
+  items: { title: string; symbols: string[] }[],
+  maxThemeFeeds = 8,
+): NewsThemeQuery[] {
+  const byTitle = new Map<string, { title: string; symbols: Set<string> }>()
+  for (const it of items) {
+    const title = it.title.trim().slice(0, 120)
+    if (!title) continue
+    const entry = byTitle.get(title.toLowerCase()) ?? { title, symbols: new Set<string>() }
+    for (const s of it.symbols) {
+      const sym = s.trim().toUpperCase()
+      if (sym) entry.symbols.add(sym)
+    }
+    if (entry.symbols.size > 0) byTitle.set(title.toLowerCase(), entry)
+  }
+  const out: NewsThemeQuery[] = []
+  for (const e of byTitle.values()) {
+    out.push({ query: e.title, symbols: [...e.symbols].slice(0, 8) })
+    if (out.length >= maxThemeFeeds) break
+  }
+  return out
 }
