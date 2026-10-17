@@ -682,6 +682,12 @@ const investCoreMessages = defineMessages({
   invest_news_range_14d: { en: '2 weeks', fr: '2 semaines' },
   /* [FR self-authored] */
   invest_news_range_30d: { en: '30 days', fr: '30 jours' },
+  /* [FR self-authored] Day-group headers over the headline list. */
+  invest_news_today: { en: 'Today', fr: 'Aujourd’hui' },
+  /* [FR self-authored] */
+  invest_news_yesterday: { en: 'Yesterday', fr: 'Hier' },
+  /* [FR self-authored] */
+  invest_news_undated: { en: 'Undated', fr: 'Non datées' },
   /* [FR self-authored] Unscoped rows — no ticker, no theme link. */
   invest_news_general: { en: 'General market', fr: 'Marché général' },
   /* [FR self-authored] */

@@ -324,6 +324,32 @@ export function InvestHomePage() {
   }, [rangedHeadlines, bookHeadlines, newsFilter])
   const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
+  /* Chunk the flat feed by publish day — 'Today' / 'Yesterday' / a date.
+     Rows arrive newest-first, so same-day rows are already consecutive
+     and a single pass groups them; undated rows settle last. */
+  const groupedHeadlines = useMemo(() => {
+    const dayKey = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const now = new Date()
+    const todayKey = dayKey(now)
+    const yesterdayKey = dayKey(new Date(now.getTime() - 86_400_000))
+    const groups: { key: string; label: string; items: typeof visibleHeadlines }[] = []
+    for (const n of visibleHeadlines) {
+      const key = n.publishedAt ? dayKey(new Date(n.publishedAt)) : 'undated'
+      const label = !n.publishedAt
+        ? x(IM.invest_news_undated)
+        : key === todayKey
+          ? x(IM.invest_news_today)
+          : key === yesterdayKey
+            ? x(IM.invest_news_yesterday)
+            : fmtDay(lang, key)
+      const last = groups[groups.length - 1]
+      if (last && last.key === key) last.items.push(n)
+      else groups.push({ key, label, items: [n] })
+    }
+    return groups
+  }, [visibleHeadlines, lang, x])
+
   /* Tally's presence outside the chat tab — one noticed thing, built
      locally from the same state the stats read. No model call. */
   const noticed = tallyNoticed(state, lang)
@@ -724,23 +750,30 @@ export function InvestHomePage() {
               </button>
             )}
           </div>
-          <ul className="m-0 mt-[14px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
-            {visibleHeadlines.map((n, i) => (
-              <li key={n.id} className={i === 0 ? 'min-[980px]:col-span-2' : undefined}>
+          {groupedHeadlines.map((g, gi) => (
+            <section key={g.key} className={gi === 0 ? 'mt-[14px]' : 'mt-[20px]'}>
+              <h3 className="m-0 mb-[8px] text-[11px] font-bold uppercase tracking-[0.06em] text-text-muted">
+                {g.label}
+              </h3>
+              <ul className="m-0 grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
+                {g.items.map((n, i) => {
+                  const featured = gi === 0 && i === 0
+                  return (
+              <li key={n.id} className={featured ? 'min-[980px]:col-span-2' : undefined}>
                 <a
                   href={n.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`group flex h-full items-center gap-[11px] rounded-[12px] border border-border bg-surface no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${i === 0 ? 'p-[13px]' : 'p-[11px]'}`}
+                  className={`group flex h-full items-center gap-[11px] rounded-[12px] border border-border bg-surface no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${featured ? 'p-[13px]' : 'p-[11px]'}`}
                 >
                   <span
                     aria-hidden="true"
-                    className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold uppercase ${i === 0 ? 'h-[34px] w-[34px] text-[13px]' : 'h-[30px] w-[30px] text-[11.5px]'} ${sourceTint(n.source)}`}
+                    className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold uppercase ${featured ? 'h-[34px] w-[34px] text-[13px]' : 'h-[30px] w-[30px] text-[11.5px]'} ${sourceTint(n.source)}`}
                   >
                     {(n.source || '?').trim().charAt(0)}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className={`line-clamp-2 block font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent ${i === 0 ? 'text-[14px]' : 'text-[13px]'}`}>
+                    <span className={`line-clamp-2 block font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent ${featured ? 'text-[14px]' : 'text-[13px]'}`}>
                       {n.title}
                     </span>
                     <span className="mt-[5px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
@@ -758,11 +791,6 @@ export function InvestHomePage() {
                           {x(IM.invest_news_via).replace('{theme}', n.viaTheme)}
                         </span>
                       )}
-                      {n.publishedAt && (
-                        <span className="ml-auto shrink-0 tabular-nums">
-                          {new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }).format(new Date(n.publishedAt))}
-                        </span>
-                      )}
                     </span>
                   </span>
                   <ArrowUpRight
@@ -774,8 +802,11 @@ export function InvestHomePage() {
                   <span className="sr-only">{x(IM.invest_news_external)}</span>
                 </a>
               </li>
-            ))}
-          </ul>
+                  )
+                })}
+              </ul>
+            </section>
+          ))}
           {/* Gate and count both read the scoped list — under 'Your book'
               the button must promise only what the filter can reveal. */}
           {scopedHeadlines.length > 12 && (

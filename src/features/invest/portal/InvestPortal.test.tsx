@@ -496,6 +496,9 @@ describe('InvestHomePage', () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: '2 weeks' }))
     expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    /* Two different publish days → two day-group headers chunk the list. */
+    const card = screen.getByText('Market headlines (third-party)').closest('section')!
+    expect(within(card).getAllByRole('heading', { level: 3 })).toHaveLength(2)
     await user.click(screen.getByRole('button', { name: '7 days' }))
     expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
   })
