@@ -573,9 +573,17 @@ export function InvestAnalysisPage() {
                   <article key={g.id} className="sb-goal">
                     <header className="sb-goal-head">
                       <strong>{g.title}</strong>
-                      <span className={`sb-pill ${GOAL_STATUS_PILL[g.status]}`}>
-                        {x(IM[GOAL_STATUS_LABEL[g.status]])}
-                      </span>
+                      {/* A deadline-less goal can't be "behind", but a green
+                          "On track" at 0% also asserts a pace that doesn't
+                          exist — open goals get a neutral in-progress tag. */}
+                      {(() => {
+                        const open = g.status === 'on_track' && !g.deadline
+                        return (
+                          <span className={`sb-pill ${open ? 'sb-pill-paused' : GOAL_STATUS_PILL[g.status]}`}>
+                            {x(open ? IM.invest_goal_status_open : IM[GOAL_STATUS_LABEL[g.status]])}
+                          </span>
+                        )
+                      })()}
                     </header>
                     {g.detail && <p className="sb-goal-detail">{g.detail}</p>}
                     <div className="sb-goal-metric">

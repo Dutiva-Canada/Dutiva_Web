@@ -706,6 +706,10 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_goal_deleted: { en: 'Goal removed.', fr: 'Objectif supprimé.' },
   invest_goal_failed: { en: 'Couldn’t save the goal — {error}', fr: 'Enregistrement de l’objectif impossible — {error}' },
   invest_goal_status_on_track: { en: 'On track', fr: 'En voie' },
+  /* Deadline-less goals can't be behind — but "On track" at 0% would
+     claim a pace there isn't. Neutral tag for the open-ended case. */
+  /* [FR self-authored] */
+  invest_goal_status_open: { en: 'In progress', fr: 'En cours' },
   invest_goal_status_behind: { en: 'At risk', fr: 'En péril' },
   invest_goal_status_achieved: { en: 'Achieved', fr: 'Atteint' },
   invest_goal_status_missed: { en: 'Missed', fr: 'Manqué' },

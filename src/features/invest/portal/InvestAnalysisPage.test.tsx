@@ -188,6 +188,27 @@ describe('InvestAnalysisPage — goals', () => {
     expect(screen.getByText(/Now 45\.5%/)).toBeInTheDocument()
   })
 
+  it('tags a deadline-less goal In progress — 0% is not "on track"', () => {
+    mount({
+      goals: [
+        goal({
+          deadline: null,
+          evalDetail: {
+            current: 0,
+            target: 40,
+            op: 'lte',
+            progress_pct: 0,
+            days_left: null,
+            line_en: 'Open-ended — at 0%, target is 40%.',
+            line_fr: 'Sans échéance — à 0 %, cible de 40 %.',
+          },
+        }),
+      ],
+    })
+    expect(screen.getByText('In progress')).toBeInTheDocument()
+    expect(screen.queryByText('On track')).not.toBeInTheDocument()
+  })
+
   it('shows the empty state and saves a new goal from the composer', async () => {
     const user = userEvent.setup()
     const { refresh } = mount()
