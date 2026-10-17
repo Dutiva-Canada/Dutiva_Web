@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { dedupeNews, JUNK_HEADLINE, NEWS_KIND_ORDER, newsKind } from './newsDedupe'
+import {
+  dedupeNews,
+  isPaywalledSource,
+  JUNK_HEADLINE,
+  NEWS_KIND_ORDER,
+  newsKind,
+  normalizeSource,
+  sourceInSet,
+} from './newsDedupe'
 
-function row(title: string, over: Partial<{ symbol: string; publishedAt: string }> = {}) {
+function row(
+  title: string,
+  over: Partial<{ symbol: string; publishedAt: string; source: string }> = {},
+) {
   return { title, symbol: 'AMD', publishedAt: '2026-10-16T14:00:00Z', ...over }
 }
 
@@ -103,6 +114,40 @@ describe('dedupeNews', () => {
     ])
     expect(items).toHaveLength(2)
   })
+
+  it('keeps the free copy when a paywalled twin merges into the cluster', () => {
+    /* Reuters ran the story first (newest-first input), Yahoo's free
+       version merges in — the row that survives is the one the paywall
+       filter judges, so the free copy must win. */
+    const items = dedupeNews([
+      row('AMD lands billion-dollar chip contract with OpenAI', { source: 'Reuters' }),
+      row('AMD lands billion-dollar chip contract with OpenAI', { source: 'Yahoo Finance' }),
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0]!.source).toBe('Yahoo Finance')
+  })
+
+  it('a paywalled twin donates its symbol tag to the kept free row', () => {
+    const items = dedupeNews([
+      { ...row('Chip stocks slide on export fears', { symbol: '', source: 'Benzinga' }) },
+      { ...row('Chip stocks slide on export fears', { symbol: 'AMAT', source: 'Reuters' }) },
+    ])
+    expect(items).toHaveLength(1)
+    expect(items[0]!.source).toBe('Benzinga')
+    expect(items[0]!.symbol).toBe('AMAT')
+  })
+})
+
+describe('source normalization', () => {
+  it('folds case, punctuation, and edition suffixes', () => {
+    expect(normalizeSource("Barron’s")).toBe('barrons')
+    expect(isPaywalledSource('Reuters')).toBe(true)
+    expect(isPaywalledSource('reuters')).toBe(true)
+    expect(isPaywalledSource('Reuters Canada')).toBe(true)
+    expect(isPaywalledSource('The Globe and Mail')).toBe(false)
+    expect(isPaywalledSource('')).toBe(false)
+    expect(sourceInSet(new Set([normalizeSource('Yahoo Finance')]), 'Yahoo! Finance Canada')).toBe(true)
+  })
 })
 
 describe('newsKind', () => {
@@ -124,6 +169,14 @@ describe('newsKind', () => {
     ['Why NVIDIA Stock Jumped Today', 'move'],
     ['Applied Materials Stock Moved Down by 3.13%', 'move'],
     ['Bitcoin Hits New All-Time High', 'move'],
+    /* position-disclosure churn — a fact, but not an event */
+    ['Annex Advisory Services LLC Raises Holdings in Vertiv', 'filing'],
+    ['Ritholtz Wealth Management Trims Stake in AMD', 'filing'],
+    ['Rice Hall James & Associates LLC Purchases 2,400 Shares of ARM', 'filing'],
+    /* evergreen explainers and prediction pieces — view, not news */
+    ['Brokerage Account Basics: What Canadian Beginners Should Look For', 'view'],
+    ['Ethereum forecast: is $2,756 within reach?', 'view'],
+    ['Solana (SOL) Price Prediction for November', 'view'],
     /* neither template — stays neutral */
     ['Fed Holds Rates Steady', 'news'],
     ['China Negotiations Continue Into Weekend', 'news'],
@@ -132,11 +185,11 @@ describe('newsKind', () => {
     expect(newsKind(title)).toBe(kind)
   })
 
-  it('orders kinds event → news → view → move', () => {
+  it('orders kinds event → news → view → move → filing', () => {
     expect(
-      [newsKind('Fed Holds Rates Steady'), newsKind('Apple Reports Q4 Earnings Beat'), newsKind('AMD Stock Falls 6%'), newsKind('Should You Buy AMD?')]
+      [newsKind('Annex Advisory Raises Holdings in AMD'), newsKind('AMD Stock Falls 6%'), newsKind('Fed Holds Rates Steady'), newsKind('Apple Reports Q4 Earnings Beat'), newsKind('Should You Buy AMD?')]
         .sort((a, b) => NEWS_KIND_ORDER[a] - NEWS_KIND_ORDER[b]),
-    ).toEqual(['event', 'news', 'view', 'move'])
+    ).toEqual(['event', 'news', 'view', 'move', 'filing'])
   })
 })
 
@@ -149,6 +202,8 @@ describe('JUNK_HEADLINE', () => {
       'ETH / USD live price, marketcap and chart - CoinMarketCap',
       'AAPL Jan 2027 250.000 call',
       'Current price of Ethereum for October 16, 2026',
+      'Vertiv Holdings Co. shs Thailand Depository Receipts 1 sh Revenue Breakdown – SET:VRT80',
+      'Vertiv Holdings Co. (VRT) Shares Gap Up – NASDAQ:VRT',
     ]) {
       expect(JUNK_HEADLINE.test(t), t).toBe(true)
     }

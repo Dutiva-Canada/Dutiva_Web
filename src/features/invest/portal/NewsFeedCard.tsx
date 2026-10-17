@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowUpRight,
   ChevronDown,
   ChevronUp,
   EyeOff,
-  Lock,
   Newspaper,
   RotateCcw,
 } from 'lucide-react'
@@ -12,15 +11,36 @@ import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import type { AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
+import { useToasts } from '@/features/app/toasts/toastsContext'
 import { muteNewsSource, unmuteNewsSource } from '@/features/invest/data/api'
-import { dedupeNews, NEWS_KIND_ORDER, newsKind, PAYWALL_SOURCES, type NewsKind } from '@/features/invest/data/newsDedupe'
+import {
+  dedupeNews,
+  isPaywalledSource,
+  NEWS_KIND_ORDER,
+  newsKind,
+  normalizeSource,
+  sourceInSet,
+  type NewsKind,
+} from '@/features/invest/data/newsDedupe'
+import { NewsPaywallChip } from './NewsPaywallChip'
+import { usePaywalledPref } from './newsPrefs'
+import { relTimeLabel } from './relTime'
 import { ASSET_LABEL, fmtDay } from './strategyUi'
 
 const KIND_LABEL: Record<NewsKind, keyof typeof IM | null> = {
   event: 'invest_news_kind_event',
   view: 'invest_news_kind_view',
   move: 'invest_news_kind_move',
+  filing: 'invest_news_kind_filing',
   news: null,
+}
+
+/* Ellipsis mid-word reads as a glitch — cut at the last space instead. */
+function ellipsize(s: string, max = 44): string {
+  if (s.length <= max) return s
+  const cut = s.slice(0, max)
+  const sp = cut.lastIndexOf(' ')
+  return `${(sp > 0 ? cut.slice(0, sp) : cut).trimEnd()}…`
 }
 
 /* The sync's model pass stores kind on the row (0241); rows it missed
@@ -58,6 +78,7 @@ function sourceTint(source: string): string {
 export function NewsFeedCard() {
   const { x, lang } = useI18n()
   const { state, refresh } = useInvestData()
+  const { showToast } = useToasts()
   const [newsExpanded, setNewsExpanded] = useState(false)
   /* 'book' shows only headlines tagged to a held or watched symbol —
      the news-for-your-book cut. */
@@ -70,11 +91,9 @@ export function NewsFeedCard() {
      a second click can't queue a competing mutation. */
   const [muting, setMuting] = useState<string | null>(null)
   /* Subscription-only sources are hidden by default — a headline you
-     can't open is noise. The toggle is a device pref, not account data:
-     'I'm subscribed somewhere' is a display choice. */
-  const [showPaywalled, setShowPaywalled] = useState(
-    () => localStorage.getItem('dutiva.news.showPaywalled') === '1',
-  )
+     can't open is noise. The toggle is a device pref shared with the
+     Analysis board: 'I'm subscribed somewhere' is a display choice. */
+  const [showPaywalled, togglePaywalled] = usePaywalledPref()
 
   /* Held ∪ watched — 'Your book' means symbols the user actually owns or
      tracks, never a symbol a theme feed happened to link. The same
@@ -88,37 +107,47 @@ export function NewsFeedCard() {
   }, [state.positions, state.watchlist])
 
   /* Muted publishers drop out after dedupe — facets, counts, and day
-     groups all describe what the user actually sees. Source compares
-     case-insensitively; the stored value keeps the feed's casing. */
+     groups all describe what the user actually sees. Source names
+     normalize before comparing so edition/casing variants ('Reuters',
+     'Reuters Canada') follow the same mute. */
   const muted = useMemo(
-    () => new Set(state.newsMutes.map((s) => s.toLowerCase())),
+    () => new Set(state.newsMutes.map(normalizeSource)),
     [state.newsMutes],
   )
-  const headlines = useMemo(() => {
-    const rows = dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
-      (n) => !muted.has(n.source.toLowerCase()),
-    )
-    return showPaywalled ? rows : rows.filter((n) => !PAYWALL_SOURCES.has(n.source))
-  }, [state.news, bookSymbols, muted, showPaywalled])
-  /* How many rows the paywall default removes — drives the "hidden"
-     chip so what's filtered is always visible and one tap reveals it. */
-  const paywalledHidden = useMemo(() => {
-    if (showPaywalled) return 0
-    return dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
-      (n) => !muted.has(n.source.toLowerCase()) && PAYWALL_SOURCES.has(n.source),
-    ).length
-  }, [state.news, bookSymbols, muted, showPaywalled])
+  /* The full unmuted set — the paywall chip counts against this so its
+     number is what 'show' would actually reveal in the current scope. */
+  const allDeduped = useMemo(
+    () =>
+      dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
+        (n) => !sourceInSet(muted, n.source),
+      ),
+    [state.news, bookSymbols, muted],
+  )
+  const headlines = useMemo(
+    () =>
+      showPaywalled
+        ? allDeduped
+        : allDeduped.filter((n) => !isPaywalledSource(n.source)),
+    [allDeduped, showPaywalled],
+  )
   /* Range narrows first — facets and 'Your book' describe the windowed
      set, so a chip reflects what selecting it would actually show. A
      quiet window still shows what's on file rather than blank the list
-     because the freshest headline happens to predate the range. */
-  const rangedHeadlines = useMemo(() => {
-    const cutoff = Date.now() - NEWS_RANGE_MS[newsRange]
-    const rows = headlines.filter(
-      (n) => n.publishedAt !== null && Date.parse(n.publishedAt) >= cutoff,
-    )
-    return rows.length > 0 ? rows : headlines
-  }, [headlines, newsRange])
+     because the freshest headline happens to predate the range — and
+     says so, so a pressed '7 days' chip can't quietly show older news. */
+  const rangeOf = useCallback(
+    (rows: typeof headlines) => {
+      const cutoff = Date.now() - NEWS_RANGE_MS[newsRange]
+      const r = rows.filter(
+        (n) => n.publishedAt !== null && Date.parse(n.publishedAt) >= cutoff,
+      )
+      return { rows: r.length > 0 ? r : rows, fellBack: r.length === 0 && rows.length > 0 }
+    },
+    [newsRange],
+  )
+  const ranged = useMemo(() => rangeOf(headlines), [headlines, rangeOf])
+  const rangedHeadlines = ranged.rows
+  const rangedAll = useMemo(() => rangeOf(allDeduped).rows, [allDeduped, rangeOf])
   const bookHeadlines = useMemo(
     () => rangedHeadlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
     [rangedHeadlines, bookSymbols],
@@ -149,23 +178,44 @@ export function NewsFeedCard() {
       general: general && syms.size > 0,
     }
   }, [rangedHeadlines, bookHeadlines, bookSymbols])
-  const scopedHeadlines = useMemo(() => {
-    const rows =
+  /* One predicate for the active facet — the visible list and the
+     paywall-hidden count both run through it, so the chip's number is
+     exactly what 'show' adds under the pressed facet. */
+  const matchesFacet = useCallback(
+    (n: (typeof rangedHeadlines)[number]): boolean =>
       newsFilter === 'all'
-        ? rangedHeadlines
+        ? true
         : newsFilter === 'book'
-          ? bookHeadlines
+          ? bookSymbols.has(n.symbol.toUpperCase())
           : newsFilter === 'general'
-            ? rangedHeadlines.filter((n) => n.symbol === '')
+            ? n.symbol === ''
             : newsFilter.startsWith('sym:')
-              ? rangedHeadlines.filter((n) => n.symbol.toUpperCase() === newsFilter.slice(4))
+              ? n.symbol.toUpperCase() === newsFilter.slice(4)
               : newsFilter.startsWith('theme:')
-                ? rangedHeadlines.filter((n) => n.viaTheme === newsFilter.slice(6))
-                : rangedHeadlines.filter((n) => n.assetClass === newsFilter.slice(4))
+                ? n.viaTheme === newsFilter.slice(6)
+                : n.assetClass === newsFilter.slice(4),
+    [newsFilter, bookSymbols],
+  )
+  const scopedHeadlines = useMemo(() => {
+    const rows = rangedHeadlines.filter(matchesFacet)
     /* A facet can outlive its rows (a refresh clears them) — fall back
        to 'all' rather than blank the list. */
     return rows.length > 0 ? rows : rangedHeadlines
-  }, [rangedHeadlines, bookHeadlines, newsFilter])
+  }, [rangedHeadlines, matchesFacet])
+  /* How many subscription-only rows the same scope hides — counted in
+     the ranged+faceted set, not the whole 30-day corpus, so 'show'
+     reveals exactly what the chip counted. Sources are named on the
+     chip's tooltip: hidden is never anonymous. */
+  const paywalledHidden = useMemo(() => {
+    if (showPaywalled) return { count: 0, sources: [] as string[] }
+    const hidden = rangedAll.filter(
+      (n) => isPaywalledSource(n.source) && matchesFacet(n),
+    )
+    return {
+      count: hidden.length,
+      sources: [...new Set(hidden.map((n) => n.source))].sort(),
+    }
+  }, [rangedAll, showPaywalled, matchesFacet])
 
   /* ...but a pressed chip must never be invisible — when the selected
      facet leaves the feed, reset to 'all' so what you see is what the
@@ -220,6 +270,8 @@ export function NewsFeedCard() {
     try {
       await (hide ? muteNewsSource(source) : unmuteNewsSource(source))
       await refresh()
+    } catch {
+      showToast(IM.invest_news_mute_failed)
     } finally {
       setMuting(null)
     }
@@ -295,37 +347,46 @@ export function NewsFeedCard() {
               {x(IM.invest_news_book)}
             </button>
           )}
-          {newsFacets.symbols.map((s) => (
-            <button
-              key={`sym:${s}`}
-              type="button"
-              aria-pressed={newsFilter === `sym:${s}`}
-              onClick={() => setNewsFilter(`sym:${s}`)}
-            >
-              {s}
-            </button>
-          ))}
-          {newsFacets.classes.map((c) => (
-            <button
-              key={`cls:${c}`}
-              type="button"
-              aria-pressed={newsFilter === `cls:${c}`}
-              onClick={() => setNewsFilter(`cls:${c}`)}
-            >
-              {c in ASSET_LABEL ? x(IM[ASSET_LABEL[c as AssetClass]]) : c}
-            </button>
-          ))}
-          {newsFacets.themes.map((t) => (
-            <button
-              key={`theme:${t}`}
-              type="button"
-              title={t}
-              aria-pressed={newsFilter === `theme:${t}`}
-              onClick={() => setNewsFilter(`theme:${t}`)}
-            >
-              {t}
-            </button>
-          ))}
+          {/* Each facet group is an atomic flex-wrap block — a chip
+              group never splits across the wrap ('Crypto' can't end a
+              row while 'Equity' opens the next). */}
+          <span className="flex flex-wrap items-center gap-[6px]">
+            {newsFacets.symbols.map((s) => (
+              <button
+                key={`sym:${s}`}
+                type="button"
+                aria-pressed={newsFilter === `sym:${s}`}
+                onClick={() => setNewsFilter(`sym:${s}`)}
+              >
+                {s}
+              </button>
+            ))}
+          </span>
+          <span className="flex flex-wrap items-center gap-[6px]">
+            {newsFacets.classes.map((c) => (
+              <button
+                key={`cls:${c}`}
+                type="button"
+                aria-pressed={newsFilter === `cls:${c}`}
+                onClick={() => setNewsFilter(`cls:${c}`)}
+              >
+                {c in ASSET_LABEL ? x(IM[ASSET_LABEL[c as AssetClass]]) : c}
+              </button>
+            ))}
+          </span>
+          <span className="flex flex-wrap items-center gap-[6px]">
+            {newsFacets.themes.map((t) => (
+              <button
+                key={`theme:${t}`}
+                type="button"
+                title={t}
+                aria-pressed={newsFilter === `theme:${t}`}
+                onClick={() => setNewsFilter(`theme:${t}`)}
+              >
+                {ellipsize(t)}
+              </button>
+            ))}
+          </span>
           {newsFacets.general && (
             <button
               type="button"
@@ -361,24 +422,21 @@ export function NewsFeedCard() {
         )}
         {/* Same rule as mutes: what's hidden by default stays named and
             one tap reveals it — for the user who is subscribed. */}
-        {(paywalledHidden > 0 || showPaywalled) && (
-          <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
-            <button
-              type="button"
-              aria-pressed={showPaywalled}
-              onClick={() => {
-                const next = !showPaywalled
-                setShowPaywalled(next)
-                localStorage.setItem('dutiva.news.showPaywalled', next ? '1' : '0')
-              }}
-              className="flex cursor-pointer items-center gap-[4px] rounded-full border border-border bg-inset px-[8px] py-[3px] text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              <Lock size={10} aria-hidden="true" />
-              {showPaywalled
-                ? x(IM.invest_news_paywalled_shown)
-                : x(IM.invest_news_paywalled_hidden).replace('{n}', String(paywalledHidden))}
-            </button>
-          </div>
+        <NewsPaywallChip
+          hiddenCount={paywalledHidden.count}
+          hiddenSources={paywalledHidden.sources}
+          showPaywalled={showPaywalled}
+          onToggle={togglePaywalled}
+        />
+        {ranged.fellBack && (
+          <p className="m-0 mt-[8px] text-[11.5px] text-text-muted">
+            {x(IM.invest_news_range_fallback)}
+          </p>
+        )}
+        {groupedHeadlines.length === 0 && allDeduped.length > 0 && (
+          <p className="m-0 mt-[10px] text-[12.5px] text-text-muted">
+            {x(IM.invest_news_all_filtered)}
+          </p>
         )}
         {groupedHeadlines.map((g, gi) => (
           <section key={g.key} className={gi === 0 ? 'mt-[14px]' : 'mt-[20px]'}>
@@ -410,6 +468,9 @@ export function NewsFeedCard() {
                   </span>
                   <span className="mt-[5px] flex items-center gap-[6px] pr-[24px] text-[11.5px] text-text-muted">
                     <span className="truncate">{n.source}</span>
+                    {n.publishedAt && relTimeLabel(n.publishedAt, x) !== null && (
+                      <span className="shrink-0 text-text-3">{relTimeLabel(n.publishedAt, x)}</span>
+                    )}
                     {kindKey !== null && (
                       <span className={`shrink-0 rounded-[6px] px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] ${kind === 'event' ? 'bg-ok-bg text-ok-fg' : 'bg-inset text-text-3'}`}>
                         {x(IM[kindKey])}

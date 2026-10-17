@@ -26,7 +26,16 @@ import { resolveSuggestion } from '@/lib/agentQueue'
 import type { InvestNewsItem, InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { dedupeNews, NEWS_KIND_ORDER, newsKind, PAYWALL_SOURCES } from '../data/newsDedupe'
+import {
+  dedupeNews,
+  isPaywalledSource,
+  NEWS_KIND_ORDER,
+  newsKind,
+  normalizeSource,
+  sourceInSet,
+} from '../data/newsDedupe'
+import { NewsPaywallChip } from './NewsPaywallChip'
+import { usePaywalledPref } from './newsPrefs'
 import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 
 const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
@@ -112,21 +121,31 @@ export function AnalysisScan() {
     })
   }, [state.scanItems])
 
+  /* Subscription-only sources hidden here too — same device pref, and
+     the chip below names what the board isn't showing. */
+  const [showPaywalled, togglePaywalled] = usePaywalledPref()
   /* The freshest theme-matched headlines per item — viaTheme is stored
      as the item's title at fetch time, so the match key is the trimmed
      title. Same-story dedupe runs symbol-agnostic here: on a theme card
      the tag is the theme, not the ticker. */
   const newsByTheme = useMemo(() => {
     /* Muted publishers (0240) hide here too — a muted source is muted
-       everywhere the feed surfaces, not just on the Overview card.
-       Same for subscription-only sources (0241-era default): hidden
-       unless the device pref reveals them. */
-    const muted = new Set(state.newsMutes.map((s) => s.toLowerCase()))
-    const showPaywalled = localStorage.getItem('dutiva.news.showPaywalled') === '1'
+       everywhere the feed surfaces, not just on the Overview card. */
+    const muted = new Set(state.newsMutes.map(normalizeSource))
     const map = new Map<string, InvestNewsItem[]>()
+    const hidden = new Set<string>()
+    let hiddenCount = 0
     for (const n of dedupeNews(state.news, { symbolAware: false })) {
-      if (muted.has(n.source.toLowerCase())) continue
-      if (!showPaywalled && PAYWALL_SOURCES.has(n.source)) continue
+      if (sourceInSet(muted, n.source)) continue
+      if (isPaywalledSource(n.source)) {
+        if (!showPaywalled) {
+          if (n.viaTheme) {
+            hidden.add(n.source)
+            hiddenCount++
+          }
+          continue
+        }
+      }
       if (!n.viaTheme) continue
       const list = map.get(n.viaTheme) ?? []
       list.push(n)
@@ -139,8 +158,8 @@ export function AnalysisScan() {
         (a, b) => NEWS_KIND_ORDER[a.kind ?? newsKind(a.title)] - NEWS_KIND_ORDER[b.kind ?? newsKind(b.title)],
       )
     }
-    return map
-  }, [state.news, state.newsMutes])
+    return { map, hiddenCount, hiddenSources: [...hidden].sort() }
+  }, [state.news, state.newsMutes, showPaywalled])
 
   const save = useCallback(async () => {
     if (busy || !draft.title.trim()) return
@@ -431,6 +450,15 @@ export function AnalysisScan() {
         </div>
       )}
 
+      {/* Same rule as the Overview feed — hidden subscription-only
+          sources stay named and one tap reveals them. */}
+      <NewsPaywallChip
+        hiddenCount={newsByTheme.hiddenCount}
+        hiddenSources={newsByTheme.hiddenSources}
+        showPaywalled={showPaywalled}
+        onToggle={togglePaywalled}
+      />
+
       {state.scanItems.length === 0 ? (
         <div className="sb-empty">{x(IM.invest_scan_empty)}</div>
       ) : (
@@ -438,7 +466,7 @@ export function AnalysisScan() {
           {sorted.map((item) => {
             const stale = Date.now() - Date.parse(item.lastReviewedAt) > STALE_MS
             const when = relTimeLabel(item.lastReviewedAt, x)
-            const itemNews = newsByTheme.get(item.title.trim().slice(0, 120)) ?? []
+            const itemNews = newsByTheme.map.get(item.title.trim().slice(0, 120)) ?? []
             return (
               <article key={item.id} className="sb-scan">
                 <header className="sb-goal-head">

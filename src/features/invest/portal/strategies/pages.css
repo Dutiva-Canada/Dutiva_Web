@@ -1634,6 +1634,7 @@
   min-height: 30px;
   padding: 3px 12px;
   font-size: 12.5px;
+  white-space: nowrap;
 }
 /* Compact pill chips — the headline facet row. */
 .sb-pills-sm {

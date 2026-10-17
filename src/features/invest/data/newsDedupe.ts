@@ -14,7 +14,7 @@
  * supabase/functions/invest-market-sync/handlers.ts. */
 
 export const JUNK_HEADLINE =
-  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b/i
+  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b|\bdepository receipts?\b|[–—]\s*[A-Z]{2,10}:[A-Z0-9]{1,15}\s*$/i
 
 /* Headline boilerplate — these words inflate overlap between unrelated
    stories ("Stock Falls…Should You Sell?" churn shares a template), so
@@ -59,6 +59,7 @@ function intersects(a: Set<string>, b: Set<string>): number {
 
 interface NewsRow {
   title: string
+  source?: string
   symbol?: string
   publishedAt?: string | null
   viaTheme?: string | null
@@ -69,20 +70,30 @@ interface NewsRow {
 
 /* ── Headline kind — signal vs churn ────────────────────────────────────── */
 
-export type NewsKind = 'event' | 'view' | 'move' | 'news'
+export type NewsKind = 'event' | 'view' | 'move' | 'filing' | 'news'
 
 /* What the headline IS, not whether it matters — a classifier can say
    'this is a price-move writeup' honestly where 'this is important'
    would be a judgment the data can't support.
 
-   Precedence is deliberate: analyst churn borrows event verbs ('Analyst
-   Announces New Price Target'), so 'view' is checked first. 'event'
-   then wins over 'move' — 'Stock Jumps on FDA Approval' reports an
-   approval; the price framing doesn't erase the trigger. Bare 'forecast'
-   stays out of the view list: 'Raises Guidance' is an event, not a
-   note. */
+   Precedence is deliberate: filing churn borrows analyst verbs
+   ('Initiates Position'), analyst churn borrows event verbs ('Analyst
+   Announces New Price Target'), so 'filing' then 'view' run first.
+   'event' wins over 'move' — 'Stock Jumps on FDA Approval' reports an
+   approval; the price framing doesn't erase the trigger. 'forecast:'
+   reads as a prediction piece; a bare 'forecasts' verb ('Raises
+   Guidance') still lands as the event it reports. */
 const KIND_VIEW =
-  /\banalyst|price target|rating|upgrad|downgrad|initiat|reiterat|maintain(?:s|ed|ing)?\b|overweight|underweight|outperform|underperform|\b(?:buy|sell|hold) rating|price prediction|stock prediction|should you (?:buy|sell)|stocks? to (?:buy|watch)|top \d+ stocks?|best\b.{0,25}\bstocks?|is\b.{0,25}\ba (?:buy|sell)\b/i
+  /\banalyst|price target|rating|upgrad|downgrad|initiat|reiterat|maintain(?:s|ed|ing)?\b|overweight|underweight|outperform|underperform|\b(?:buy|sell|hold) rating|price prediction|stock prediction|price forecast|\bforecasts?\s*[:–—]|within reach|should you (?:buy|sell)|stocks? to (?:buy|watch)|top \d+ stocks?|best\b.{0,25}\bstocks?|is\b.{0,25}\ba (?:buy|sell)\b|\bbeginners?\b|\bbasics\b|\bexplained\b|what to (?:look|watch) for/i
+
+/* Position-disclosure churn — 'Annex Advisory LLC Raises Holdings',
+   'Z Trims Stake', 'Purchases 12,000 Shares'. A 13F-style restatement
+   is a fact but not an event; it sinks to the bottom of the day and
+   wears its own badge. Checked first: its verbs ('initiates',
+   'acquires') collide with the analyst and event lists, but the
+   stake/holdings/shares object is what marks it as a filing. */
+const KIND_FILING =
+  /\b(?:raises?|boosts?|lifts?|increases?|lowers?|cuts?|trims?|reduces?|decreases?|discloses?|initiates?|opens?|closes?|exits?|grows?|expands?|takes?)\s+(?:\S+\s){0,4}(?:stake|holdings?|positions?)\b|\b(?:buys?|sells?|purchases?|acquires?|raises?|boosts?|lowers?|cuts?|trims?|reduces?|increases?|initiates?|discloses?|exits?|closes?|opens?)\s+(?:\S+\s){0,3}shares?\s+(?:of|in)\b|\b(?:stake|holdings?|positions?)\b[^.]{0,25}\b(?:raised|boosted|increased|lowered|cut|trimmed|reduced|sold|bought|acquired|purchased|disclosed|initiated|opened|closed|exited)\b/i
 
 const KIND_EVENT =
   /\bearnings|guidance|merger|acqui|takeover|buyout|\bipo\b|bankrupt|lawsuit|\bsues\b|\bsued\b|settlement|\bsec\b|\bfda\b|approv|recall|layoff|appoint|resign|\bce[foost]\b|launch|unveil|announce|contract|partnership|dividend|buyback|stock split|spin-?off|delist|halt(?:ed|s|suspension)?\b|sanction|export (?:controls?|ban|rules)|antitrust|investigat|verdict|fined|plead/i
@@ -94,6 +105,7 @@ const KIND_MOVE =
     opinion/listicle; 'move' — a writeup whose substance is the price
     itself; 'news' — everything else. */
 export function newsKind(title: string): NewsKind {
+  if (KIND_FILING.test(title)) return 'filing'
   if (KIND_VIEW.test(title)) return 'view'
   if (KIND_EVENT.test(title)) return 'event'
   if (KIND_MOVE.test(title)) return 'move'
@@ -108,7 +120,33 @@ export const NEWS_KIND_ORDER: Record<NewsKind, number> = {
   news: 1,
   view: 2,
   move: 3,
+  filing: 4,
 }
+
+/* ── Source names ───────────────────────────────────────────────────────── */
+
+/* Google News <source> names vary by edition and punctuation — 'Yahoo
+   Finance' vs 'Yahoo! Finance Canada', curly vs straight apostrophes in
+   'Barron's'. Normalizing to bare alphanumerics keeps mutes and the
+   paywall list stable across those variants. */
+export function normalizeSource(source: string): string {
+  return source.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+/* Membership test for normalized source sets: exact match, plus a
+   longer source starting with a listed key ('Reuters Canada' follows
+   'Reuters'; 'Yahoo! Finance Canada' follows a muted 'Yahoo Finance'). */
+export function sourceInSet(keys: ReadonlySet<string>, source: string): boolean {
+  const k = normalizeSource(source)
+  if (keys.has(k)) return true
+  for (const key of keys) if (key.length >= 3 && k.length > key.length && k.startsWith(key)) return true
+  return false
+}
+
+/* The localStorage key both feed surfaces share for 'I'm subscribed —
+   show subscription-only sources'. A device display pref, not account
+   data. */
+export const NEWS_PAYWALL_PREF = 'dutiva.news.showPaywalled'
 
 /* ── Subscription-only sources ──────────────────────────────────────────── */
 
@@ -137,6 +175,13 @@ export const PAYWALL_SOURCES: ReadonlySet<string> = new Set([
   'The Wall Street Journal',
   'WSJ',
 ])
+
+const PAYWALL_KEYS: ReadonlySet<string> = new Set([...PAYWALL_SOURCES].map(normalizeSource))
+
+/** Case/punctuation-insensitive hard-paywall test. */
+export function isPaywalledSource(source: string): boolean {
+  return sourceInSet(PAYWALL_KEYS, source)
+}
 
 /**
  * Newest-first in, deduped out. `symbolAware` (default) only merges rows
@@ -184,6 +229,33 @@ export function dedupeNews<T extends NewsRow>(
       out.push(n)
       continue
     }
+    const keptRow = out[dup.idx] as NewsRow
+    const keptPaywalled = isPaywalledSource(keptRow.source ?? '')
+    const inPaywalled = isPaywalledSource(n.source ?? '')
+    /* The accessible copy wins the merge: the row that survives is the
+       one the paywall filter judges, so a paywalled founder must not
+       swallow the free version of the same story. The free row inherits
+       the twin's symbol/theme tag when it has none — same story, same
+       association. */
+    if (keptPaywalled && !inPaywalled) {
+      if (sym === '' && dup.sym !== '') n.symbol = dup.sym
+      if (!n.viaTheme && dup.theme) n.viaTheme = dup.theme
+      if (!n.kind && keptRow.kind) n.kind = keptRow.kind
+      out[dup.idx] = n
+      dup.sym = ((n.symbol ?? '') as string).toUpperCase() || dup.sym
+      dup.theme = theme ?? dup.theme
+      continue
+    }
+    if (!keptPaywalled && inPaywalled) {
+      /* The paywalled twin loses — but its tag describes the same story,
+         so it donates symbol/theme to the kept row before merging away. */
+      if (!keptRow.symbol && sym !== '') keptRow.symbol = sym
+      if (!keptRow.viaTheme && n.viaTheme) keptRow.viaTheme = n.viaTheme
+      if (!keptRow.kind && n.kind) keptRow.kind = n.kind
+      if (sym !== '') dup.sym = sym
+      dup.theme = theme ?? dup.theme
+      continue
+    }
     /* Same story under a symbol tag beats the unscoped copy — the tag
        is information. Across same-theme tag copies, a book symbol beats
        a board-only link. */
@@ -191,14 +263,14 @@ export function dedupeNews<T extends NewsRow>(
       sym !== '' &&
       (dup.sym === '' || (preferSymbols ? preferSymbols.has(sym) && !preferSymbols.has(dup.sym) : false))
     if (betterTag) {
+      if (!n.kind && keptRow.kind) n.kind = keptRow.kind
       out[dup.idx] = n
       dup.sym = sym
       dup.theme = theme ?? dup.theme
     } else {
       /* The classified copy merged away — carry its kind so the kept
          row doesn't fall back to the title heuristic. */
-      const keptRow = out[dup.idx] as NewsRow | undefined
-      if (keptRow && !keptRow.kind && n.kind) keptRow.kind = n.kind
+      if (!keptRow.kind && n.kind) keptRow.kind = n.kind
     }
   }
   return out

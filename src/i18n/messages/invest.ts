@@ -707,16 +707,43 @@ const investCoreMessages = defineMessages({
   invest_news_kind_view: { en: 'Analysis', fr: 'Analyse' },
   /* [FR self-authored] */
   invest_news_kind_move: { en: 'Price move', fr: 'Mouvement de cours' },
+  /* [FR self-authored] Position-disclosure churn — 'X Raises Holdings
+     in Y' restates a filing; badged so it reads as what it is. */
+  invest_news_kind_filing: { en: 'Filing', fr: 'Dépôt' },
   /* [FR self-authored] Paywall toggle — state + action on one chip, same
-     shape as the muted-source chips. */
+     shape as the muted-source chips. The count is headlines, not
+     publishers — it's what 'show' would reveal in the current view. */
   invest_news_paywalled_hidden: {
-    en: '{n} subscription-only sources hidden — show',
-    fr: '{n} sources payantes masquées — afficher',
+    en: '{n} subscription-only headlines hidden — show',
+    fr: '{n} manchettes de sources payantes masquées — afficher',
   },
   /* [FR self-authored] */
   invest_news_paywalled_shown: {
     en: 'Subscription-only sources shown — hide',
     fr: 'Sources payantes affichées — masquer',
+  },
+  /* [FR self-authored] Chip tooltip naming the hidden publishers. */
+  invest_news_paywalled_sources: {
+    en: 'Subscription-only sources: {sources}',
+    fr: 'Sources payantes : {sources}',
+  },
+  /* [FR self-authored] When the window is empty the feed falls back to
+     all headlines on file — the chip stays pressed, so say so. */
+  invest_news_range_fallback: {
+    en: 'Quiet window — showing older headlines on file.',
+    fr: 'Période creuse — manchettes plus anciennes affichées.',
+  },
+  /* [FR self-authored] A mute write failed — surface it rather than
+     let the click die silently. */
+  invest_news_mute_failed: {
+    en: "Couldn't update that source filter — try again.",
+    fr: 'Impossible de modifier ce filtre — réessayez.',
+  },
+  /* [FR self-authored] Every row in view is filtered out (mutes or
+     paywall defaults) — an empty list with no note reads as a bug. */
+  invest_news_all_filtered: {
+    en: 'All headlines here are hidden by source filters.',
+    fr: 'Toutes les manchettes sont masquées par les filtres de source.',
   },
 
   /* Track record (0223) — one mark per sweep-day; deposits and

@@ -303,6 +303,10 @@ describe('InvestAnalysisPage — watch board', () => {
     })
     expect(screen.getByText('Export rules tighten again')).toBeInTheDocument()
     expect(screen.queryByText('Paywalled theme piece')).not.toBeInTheDocument()
+    /* The board still names what it hid — same transparency rule as the feed. */
+    expect(
+      screen.getByRole('button', { name: /subscription-only headlines hidden/i }),
+    ).toBeInTheDocument()
     expect(screen.getByText(/Headlines matched to this theme/i)).toBeInTheDocument()
     /* Other-theme and direct-mention rows can't leak under the card. */
     expect(screen.queryByText('Unrelated theme story')).toBeNull()

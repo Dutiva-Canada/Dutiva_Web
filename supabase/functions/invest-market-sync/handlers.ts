@@ -425,12 +425,13 @@ export interface NewsItem {
 
 /* Listing pages indexed by Google News that aren't headlines: betting
    boards (Robinhood prediction markets), options-chain entries
-   ("QUBT Nov 2026 8.500 call (QUBT261106C00008500)" — OCC symbols), and
+   ("QUBT Nov 2026 8.500 call (QUBT261106C00008500)" — OCC symbols),
    tokenized-stock quote pages (CoinMarketCap "price today… live price,
-   marketcap and chart"). Keep in sync with the client-side copy in
-   src/features/invest/data/newsDedupe.ts. */
+   marketcap and chart"), and TradingView's generated listing stubs
+   ("…Depository Receipts … – SET:VRT80"). Keep in sync with the
+   client-side copy in src/features/invest/data/newsDedupe.ts. */
 export const JUNK_HEADLINE =
-  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b/i
+  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b|\bdepository receipts?\b|[–—]\s*[A-Z]{2,10}:[A-Z0-9]{1,15}\s*$/i
 
 /** The title or deck mentions the tracked asset — by symbol, or by the
     name the query ran under ('Solana' under SOL). A story Google News
@@ -677,7 +678,7 @@ export function parseThemeLinkVerdicts(
 
 /* ── Headline kind — what the story is ──────────────────────────────────── */
 
-export const NEWS_KINDS = ['event', 'news', 'view', 'move'] as const
+export const NEWS_KINDS = ['event', 'news', 'view', 'move', 'filing'] as const
 export type NewsKind = (typeof NEWS_KINDS)[number]
 
 /* What the headline IS, not whether it matters — a classifier can say
@@ -693,9 +694,10 @@ export function newsKindPrompt(items: { title: string; summary: string }[]): str
     'You classify market headlines for a portfolio feed — what each story IS, not whether it matters.',
     'event — something happened: earnings, guidance, merger, approval, lawsuit, leadership change, contract, regulation.',
     'news — reports facts or developments but names no single new event.',
-    'view — an analyst note, rating, price target, opinion, prediction, or listicle. A headline that asks whether to buy/sell/hold or argues a verdict is view even when it cites a price move.',
+    'view — an analyst note, rating, price target, opinion, prediction, or listicle. A headline that asks whether to buy/sell/hold or argues a verdict is view even when it cites a price move. Evergreen explainers ("what beginners should look for") are view — they are commentary, not events.',
     'move — a writeup whose substance is only the price change itself, not a verdict on it.',
-    'Reply with JSON only: {"kinds":[{"i":1,"k":"event"}]} — include every item index; k is one of event|news|view|move.',
+    'filing — a position-disclosure restatement: an institution raised/trimmed/bought/sold holdings, stake, or shares.',
+    'Reply with JSON only: {"kinds":[{"i":1,"k":"event"}]} — include every item index; k is one of event|news|view|move|filing.',
     '',
     ...lines,
   ].join('\n')
