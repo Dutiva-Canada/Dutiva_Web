@@ -13,7 +13,7 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { InvestDataContext } from '../data/InvestDataContext'
 import type { InvestState } from '../data/api'
-import type { InvestGoal, InvestScanItem, InvestThesis } from '../data/types'
+import type { InvestGoal, InvestNewsItem, InvestScanItem, InvestThesis } from '../data/types'
 import { InvestAnalysisPage } from './InvestAnalysisPage'
 
 const saveGoal = vi.fn().mockResolvedValue(undefined)
@@ -86,6 +86,7 @@ const STATE: InvestState = {
   scanItems: [],
   memories: [],
   bookSnapshots: [],
+  benchmarkMarks: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],
@@ -131,6 +132,21 @@ function scanItem(over: Partial<InvestScanItem> = {}): InvestScanItem {
     lastReviewedAt: new Date().toISOString(),
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    ...over,
+  }
+}
+
+function newsItem(over: Partial<InvestNewsItem> = {}): InvestNewsItem {
+  return {
+    id: 1,
+    symbol: 'ARM',
+    assetClass: 'equity',
+    title: 'Export rules tighten again',
+    url: 'https://news.example/a1',
+    source: 'Reuters',
+    summary: '',
+    publishedAt: '2026-03-10T12:00:00Z',
+    viaTheme: 'USD strength vs CAD',
     ...over,
   }
 }
@@ -255,6 +271,32 @@ describe('InvestAnalysisPage — watch board', () => {
     await user.click(screen.getByRole('button', { name: /Mark reviewed/i }))
     await waitFor(() => expect(markScanItemReviewed).toHaveBeenCalledWith('w1'))
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('shows theme-matched headlines under the item that owns them', () => {
+    mount({
+      scanItems: [scanItem()],
+      news: [
+        newsItem({ title: 'Export rules tighten again' }),
+        newsItem({
+          id: 2,
+          title: 'Unrelated theme story',
+          url: 'https://news.example/b2',
+          viaTheme: 'Some other theme',
+        }),
+        newsItem({
+          id: 3,
+          title: 'Direct mention, no theme',
+          url: 'https://news.example/c3',
+          viaTheme: null,
+        }),
+      ],
+    })
+    expect(screen.getByText('Export rules tighten again')).toBeInTheDocument()
+    expect(screen.getByText(/Headlines matched to this theme/i)).toBeInTheDocument()
+    /* Other-theme and direct-mention rows can't leak under the card. */
+    expect(screen.queryByText('Unrelated theme story')).toBeNull()
+    expect(screen.queryByText('Direct mention, no theme')).toBeNull()
   })
 
   it('saves a whole-book item from the composer', async () => {

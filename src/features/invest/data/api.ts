@@ -9,6 +9,7 @@ import type {
   GoalMetric,
   GoalOp,
   InvestAccount,
+  InvestBenchmarkMark,
   InvestBookSnapshot,
   InvestBotRun,
   InvestCashEvent,
@@ -65,6 +66,10 @@ export interface InvestState {
   scanItems: InvestScanItem[]
   memories: InvestMemory[]
   bookSnapshots: InvestBookSnapshot[]
+  /* 0238 — shared benchmark closes (XEQT.TO for CAD books, SPY for USD),
+     date-keyed. The track-record chart normalizes them to the book's
+     first mark rather than drawing a second axis. */
+  benchmarkMarks: InvestBenchmarkMark[]
   cashEvents: InvestCashEvent[]
   fills: OrderFill[]
   stressScenarios: StressScenario[]
@@ -169,26 +174,52 @@ export async function loadInvestState(): Promise<InvestState> {
      the migration lands, never a failed state load. */
   const bookSnapRows = bookSnaps.error ? [] : (bookSnaps.data ?? [])
   const cashEvtRows = cashEvts.error ? [] : (cashEvts.data ?? [])
+  /* 0238 — the chart only needs the window the book has marks for; no
+     book marks, no overlay, no query. Same code-before-schema tolerance
+     as the other 02xx tables. */
+  const firstMarkDate = bookSnapRows.length > 0
+    ? String(bookSnapRows[0]!.as_of ?? '').slice(0, 10)
+    : null
+  let benchRows: Record<string, unknown>[] = []
+  if (firstMarkDate) {
+    const bench = await client
+      .from('invest_benchmark_marks')
+      .select('*')
+      .in('symbol', ['XEQT.TO', 'SPY'])
+      .gte('mark_date', firstMarkDate)
+      .order('mark_date', { ascending: true })
+    benchRows = bench.error ? [] : (bench.data ?? [])
+  }
   /* 0224 — fills, saved scenarios, recurring contributions. */
   const fillRows = fillsRes.error ? [] : (fillsRes.data ?? [])
   const scenarioRows = scenariosRes.error ? [] : (scenariosRes.data ?? [])
   const recurringRows = recurringRes.error ? [] : (recurringRes.data ?? [])
 
-  /* News follows the same universe as market-sync: held ∪ watched symbols,
-     plus general-market items (symbol ''). Server-side filter so general
-     headlines can't crowd out a user's symbol news. */
+  /* News follows the same universe as market-sync: held ∪ watched ∪
+     watch-board symbols, plus general-market items (symbol ''). Theme
+     rows tag scan-item symbols that may be held nowhere else — without
+     them in the filter a "via theme" headline could never reach the
+     card that asked for it. Server-side filter so general headlines
+     can't crowd out a user's symbol news. */
   const symbols = [
     ...new Set(
       [...(positions.data ?? []), ...(watchlist.data ?? [])]
         .map((r) => String(r.symbol ?? '').toUpperCase())
-        .filter(Boolean),
+        .filter(Boolean)
+        .concat(
+          scanRows.flatMap((r) =>
+            (Array.isArray(r.symbols) ? (r.symbols as unknown[]) : [])
+              .map((s) => String(s).toUpperCase())
+              .filter(Boolean),
+          ),
+        ),
     ),
   ]
   const newsQuery = client
     .from('invest_market_news')
     .select('*')
     .order('published_at', { ascending: false, nullsFirst: false })
-    .limit(30)
+    .limit(60)
   const news = await (symbols.length > 0
     ? newsQuery.or(`symbol.eq."",symbol.in.(${symbols.map((s) => `"${s}"`).join(',')})`)
     : newsQuery.eq('symbol', ''))
@@ -218,6 +249,7 @@ export async function loadInvestState(): Promise<InvestState> {
     scanItems: scanRows.map(toScanItem),
     memories: memoryRows.map(toMemory),
     bookSnapshots: bookSnapRows.map(toBookSnapshot),
+    benchmarkMarks: benchRows.map(toBenchmarkMark),
     cashEvents: cashEvtRows.map(toCashEvent),
     fills: fillRows.map(toOrderFill),
     stressScenarios: scenarioRows.map(toStressScenario),
@@ -1573,6 +1605,15 @@ function toBookSnapshot(row: any): InvestBookSnapshot {
     cash: Number(row.cash),
     invested: Number(row.invested),
     currency: row.currency,
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toBenchmarkMark(row: any): InvestBenchmarkMark {
+  return {
+    symbol: String(row.symbol ?? ''),
+    date: String(row.mark_date ?? ''),
+    close: Number(row.close ?? 0),
   }
 }
 

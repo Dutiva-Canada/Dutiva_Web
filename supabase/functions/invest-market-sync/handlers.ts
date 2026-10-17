@@ -87,13 +87,16 @@ export interface YahooChartResult {
   dayChangePct: number | null
   name: string | null
   closes: number[]
+  /** Date-keyed closes (YYYY-MM-DD UTC) for mark storage — the raw
+      `closes` list stays for callers that only want the series. */
+  daily: { date: string; close: number }[]
 }
 
 /** v8/chart JSON → quote fields + the daily-close series (nulls dropped —
     Yahoo embeds them on halted days). One call feeds the whole technical
     pack AND the price fields. */
 export function parseYahooChart(json: unknown): YahooChartResult {
-  const empty: YahooChartResult = { price: null, currency: null, dayChangePct: null, name: null, closes: [] }
+  const empty: YahooChartResult = { price: null, currency: null, dayChangePct: null, name: null, closes: [], daily: [] }
   const result = (json as Record<string, unknown> | null)?.['chart']
   const rows = (result as Record<string, unknown> | null)?.['result']
   const first = Array.isArray(rows) ? (rows[0] as Record<string, unknown> | undefined) : undefined
@@ -106,15 +109,23 @@ export function parseYahooChart(json: unknown): YahooChartResult {
   const indicators = (first['indicators'] ?? {}) as Record<string, unknown>
   const quoteRows = Array.isArray(indicators['quote']) ? indicators['quote'] : []
   const quote = (quoteRows[0] ?? {}) as Record<string, unknown>
-  const closes = Array.isArray(quote['close'])
-    ? (quote['close'] as unknown[]).map(Number).filter((n) => Number.isFinite(n) && n > 0)
-    : []
+  const rawCloses = Array.isArray(quote['close']) ? (quote['close'] as unknown[]) : []
+  const timestamps = Array.isArray(first['timestamp']) ? (first['timestamp'] as unknown[]) : []
+  const closes = rawCloses.map(Number).filter((n) => Number.isFinite(n) && n > 0)
+  const daily: { date: string; close: number }[] = []
+  for (let i = 0; i < rawCloses.length; i++) {
+    const c = Number(rawCloses[i])
+    const t = Number(timestamps[i])
+    if (!Number.isFinite(c) || c <= 0 || !Number.isFinite(t) || t <= 0) continue
+    daily.push({ date: new Date(t * 1000).toISOString().slice(0, 10), close: c })
+  }
   return {
     price: num(meta['regularMarketPrice']) ?? closes[closes.length - 1] ?? null,
     currency: typeof meta['currency'] === 'string' ? (meta['currency'] as string) : null,
     dayChangePct: num(meta['regularMarketChangePercent']),
     name: typeof meta['longName'] === 'string' ? (meta['longName'] as string) : null,
     closes,
+    daily,
   }
 }
 
@@ -490,10 +501,12 @@ export function parseRssItems(
       source: source.slice(0, 120),
       summary,
       published_at: Number.isFinite(pubMs) ? new Date(pubMs).toISOString() : null,
+      /* Provenance rides every row a theme feed emits — linked or not. */
+      ...(meta.viaTheme ? { via_theme: meta.viaTheme } : {}),
     }
     if (meta.linked && meta.linked.length > 0) {
       for (const l of meta.linked) {
-        items.push({ symbol: l.symbol, asset_class: l.asset_class, via_theme: meta.viaTheme ?? null, ...base })
+        items.push({ symbol: l.symbol, asset_class: l.asset_class, ...base })
         if (items.length >= maxItems) break
       }
     } else {
@@ -548,8 +561,9 @@ export interface NewsThemeQuery {
 /** One headline feed per distinct watched theme. Scan items carry
     free-text titles ("US-China trade restrictions") that make direct
     queries; identical titles across users share one feed and merge
-    their symbol links. Items with no linked symbols can't tag rows —
-    their coverage is the general feed's job. */
+    their symbol links. Items with no linked symbols still get a feed —
+    their rows land unscoped, carrying the theme as provenance rather
+    than a symbol claim they can't support. */
 export function newsThemeQueries(
   items: { title: string; symbols: string[] }[],
   maxThemeFeeds = 8,
@@ -563,7 +577,7 @@ export function newsThemeQueries(
       const sym = s.trim().toUpperCase()
       if (sym) entry.symbols.add(sym)
     }
-    if (entry.symbols.size > 0) byTitle.set(title.toLowerCase(), entry)
+    byTitle.set(title.toLowerCase(), entry)
   }
   const out: NewsThemeQuery[] = []
   for (const e of byTitle.values()) {

@@ -8,6 +8,7 @@ import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
+import { AGENT_RUN_STALE_MS, isQuoteStale } from '@/features/invest/data/freshness'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
@@ -219,7 +220,7 @@ export function InvestHomePage() {
   /* The sweep is daily — a run older than ~26h means one was missed,
      and a neutral timestamp would hide the outage. */
   const lastRunStale =
-    lastRun !== undefined && Date.now() - Date.parse(lastRun.ranAt) > 26 * 3_600_000
+    lastRun !== undefined && Date.now() - Date.parse(lastRun.ranAt) > AGENT_RUN_STALE_MS
   const pricesAsOf = useMemo(() => {
     let latest: string | undefined
     for (const s of state.snapshots) {
@@ -302,6 +303,17 @@ export function InvestHomePage() {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 }),
+              )}
+              {isQuoteStale(pricesAsOf) && (
+                <>
+                  {' · '}
+                  <span
+                    style={{ color: 'var(--sb-accent-ink)' }}
+                    title={x(IM.invest_prices_stale_hint)}
+                  >
+                    {x(IM.invest_prices_stale)}
+                  </span>
+                </>
               )}
             </p>
           )}
@@ -458,6 +470,7 @@ export function InvestHomePage() {
             cashEvents={state.cashEvents}
             accounts={state.accounts}
             fx={fx}
+            benchmarks={state.benchmarkMarks}
           />
         </Suspense>
       </div>

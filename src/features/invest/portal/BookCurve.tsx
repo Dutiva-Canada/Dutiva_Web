@@ -12,6 +12,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -22,9 +23,9 @@ import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { convertFx, type FxTable } from '../data/fx'
-import { fmtDay, fmtPct } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct } from './strategyUi'
 import { TallyRead } from './TallyRead'
-import type { InvestBookSnapshot, InvestCashEvent } from '../data/types'
+import type { InvestBenchmarkMark, InvestBookSnapshot, InvestCashEvent } from '../data/types'
 
 type Range = '1m' | '3m' | '1y' | 'all'
 
@@ -44,6 +45,10 @@ interface Point {
   /** True when the stored mark's currency differed from the display ccy —
       the tooltip flags it so the conversion stays auditable in place. */
   converted: boolean
+  /** Benchmark rebased to the window's first book value — book-$ terms,
+      never a second axis. Null on days the index didn't print a close
+      at-or-before the mark (or when no series exists at all). */
+  bench: number | null
 }
 
 interface Props {
@@ -57,9 +62,17 @@ interface Props {
       null means 'no rate on file'; unconvertible events drop out of the
       flow adjustment rather than distort it. */
   fx: FxTable | null
+  /** 0238 — shared benchmark closes (XEQT.TO/SPY). The book's currency
+      picks the comparison; an empty list draws no line and no legend —
+      never a phantom flat benchmark. */
+  benchmarks: InvestBenchmarkMark[]
 }
 
-export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
+/* All-equity ETFs as the 'doing nothing' yardstick — CAD books compare
+   to the TSX-listed all-in-one, USD books to the S&P tracker. */
+const BENCHMARK_FOR: Record<string, string> = { CAD: 'XEQT.TO', USD: 'SPY' }
+
+export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: Props) {
   const { x, lang } = useI18n()
   const [range, setRange] = useState<Range>('all')
   const [scope, setScope] = useState<string | 'all'>('all')
@@ -103,9 +116,20 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
   )
 
   const cutoff = RANGES.find((r) => r.id === range)?.days ?? null
+  const benchSymbol = BENCHMARK_FOR[ccy]
   const points = useMemo<Point[]>(() => {
     const since =
       cutoff === null ? null : new Date(Date.now() - cutoff * 86_400_000).toISOString().slice(0, 10)
+    /* Benchmark closes ascend by date; each book point takes the latest
+       close at-or-before its mark — weekends and holidays carry the
+       last print, which is exactly what the index was worth then. The
+       first point that has a close sets the rebase: its book value is
+       what 'tracked the index from here' would have grown into. */
+    const benchRows = benchSymbol
+      ? benchmarks.filter((b) => b.symbol === benchSymbol && b.close > 0)
+      : []
+    let bi = 0
+    let benchBase: { close: number; book: number } | null = null
     const out: Point[] = []
     for (const s of scopedSnapshots) {
       if (since !== null && s.asOf < since) continue
@@ -117,6 +141,15 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
       const invested = convertFx(s.invested, s.currency, ccy, fx)
       const cash = convertFx(s.cash, s.currency, ccy, fx)
       if (book === null || invested === null || cash === null) continue
+      let bench: number | null = null
+      if (benchRows.length > 0) {
+        while (bi < benchRows.length && benchRows[bi]!.date <= s.asOf) bi++
+        const close = bi > 0 ? benchRows[bi - 1]!.close : null
+        if (close !== null) {
+          if (!benchBase) benchBase = { close, book }
+          bench = benchBase.book * (close / benchBase.close)
+        }
+      }
       out.push({
         asOf: s.asOf,
         label: new Date(`${s.asOf}T12:00:00`).toLocaleDateString(
@@ -127,13 +160,21 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
         invested,
         cash,
         converted: s.currency !== ccy,
+        bench,
       })
     }
     return out
-  }, [scopedSnapshots, cutoff, lang, ccy, fx])
+  }, [scopedSnapshots, cutoff, lang, ccy, fx, benchmarks, benchSymbol])
 
   const stats = useMemo(() => {
-    if (points.length < 2) return { chg: null as number | null, hasFlows: false, maxDD: null as number | null }
+    if (points.length < 2) {
+      return {
+        chg: null as number | null,
+        hasFlows: false,
+        maxDD: null as number | null,
+        vsBench: null as number | null,
+      }
+    }
     const first = points[0]!
     const last = points[points.length - 1]!
     /* External flows only — a dividend is the book paying out, which IS
@@ -165,7 +206,18 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
     const dipDupe =
       chg !== null &&
       Math.round(maxDD * 10) === Math.round(chg * 10)
-    return { chg, hasFlows, maxDD: maxDD < 0 && !dipDupe ? maxDD : null }
+    /* Out/under-performance in percentage points — the book's flow-
+       adjusted change minus the index's over the same window. */
+    const benchFirst = points.find((p) => p.bench !== null && p.bench > 0)
+    const benchLast = [...points].reverse().find((p) => p.bench !== null)
+    const benchChg =
+      benchFirst && benchLast && benchLast.bench !== null
+        ? ((benchLast.bench - benchFirst.bench!) / benchFirst.bench!) * 100
+        : null
+    /* A single covered day gives a zero-width window — no gap to claim. */
+    const vsBench =
+      chg !== null && benchChg !== null && benchFirst !== benchLast ? chg - benchChg : null
+    return { chg, hasFlows, maxDD: maxDD < 0 && !dipDupe ? maxDD : null, vsBench }
   }, [points, scopedEvents, ccy, fx])
 
   /* Days the window actually spans — gates the range pills (a 1M pill on
@@ -185,6 +237,14 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
     const r = Math.round(n * 10) / 10
     return `${r > 0 ? '+' : ''}${fmtPct(lang, r, 1)}`
   }
+  /* Percentage-POINT difference — a gap, not a rate, so it can't carry
+     the % sign the change figure does. */
+  const ppFmt = (n: number) => {
+    const r = Math.round(n * 10) / 10
+    return `${r > 0 ? '+' : ''}${fmtNum(lang, r, 1).replace('-', '−')} pp`
+  }
+  const benchLabel = benchSymbol?.replace(/\.TO$/, '') ?? ''
+  const hasBench = points.some((p) => p.bench !== null)
 
   /* Tally's read — the same rounded-sign rule the stat chip uses, so the
      sentence can never disagree with the number beside it. */
@@ -218,6 +278,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
               ` · ${fill(x(IM.invest_curve_since), {
                 date: fmtDay(lang, points[0]!.asOf),
               })}`}
+            {hasBench && ` · ${fill(x(IM.invest_curve_benchmark_note), { sym: benchLabel })}`}
           </p>
         </div>
         <div className="sb-curve-controls">
@@ -297,6 +358,25 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
                 <strong style={{ color: 'var(--sb-danger)' }}>{pctFmt(stats.maxDD)}</strong>
               </span>
             )}
+            {stats.vsBench !== null && benchLabel && (
+              <span className="sb-curve-stat">
+                <span className="sb-curve-k">
+                  {fill(x(IM.invest_curve_vs_bench), { sym: benchLabel })}
+                </span>
+                <strong
+                  style={{
+                    color:
+                      Math.abs(Math.round(stats.vsBench * 10) / 10) === 0
+                        ? 'var(--sb-body)'
+                        : stats.vsBench < 0
+                          ? 'var(--sb-danger)'
+                          : 'var(--sb-ok)',
+                  }}
+                >
+                  {ppFmt(stats.vsBench)}
+                </strong>
+              </span>
+            )}
           </div>
           <TallyRead line={read} />
           {/* The chart is aria-hidden — this line is its text
@@ -353,6 +433,11 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
                         {row(x(IM.invest_ov_total_value), p.book)}
                         {row(x(IM.invest_curve_invested), p.invested)}
                         {row(x(IM.invest_curve_cash), p.cash)}
+                        {p.bench !== null &&
+                          row(
+                            fill(x(IM.invest_curve_benchmark_row), { sym: benchLabel }),
+                            p.bench,
+                          )}
                         {p.converted && (
                           <div style={{ marginTop: 4, fontSize: 11, color: 'var(--sb-muted)' }}>
                             {fill(x(IM.invest_curve_fx_note), { ccy })}
@@ -371,6 +456,17 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx }: Props) {
                   dot={false}
                   activeDot={{ r: 4, fill: 'var(--sb-accent)', stroke: 'var(--sb-card)' }}
                 />
+                {hasBench && (
+                  <Line
+                    type="monotone"
+                    dataKey="bench"
+                    stroke="var(--sb-muted)"
+                    strokeWidth={1.5}
+                    strokeDasharray="5 4"
+                    dot={false}
+                    connectNulls
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </div>

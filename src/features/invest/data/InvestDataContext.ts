@@ -29,6 +29,7 @@ export const EMPTY_INVEST_STATE: InvestState = {
   scanItems: [],
   memories: [],
   bookSnapshots: [],
+  benchmarkMarks: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],

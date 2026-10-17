@@ -747,6 +747,10 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_scan_symbols: { en: 'Symbols it could touch', fr: 'Symboles touchés' },
   invest_scan_all_book: { en: 'Whole book', fr: 'Tout le carnet' },
   invest_scan_stale: { en: 'Stale — due a review', fr: 'Périmé — à revoir' },
+  invest_scan_news_head: {
+    en: 'Headlines matched to this theme',
+    fr: 'Manchettes associées à ce thème',
+  },
   invest_scan_reviewed: { en: 'Reviewed {when}', fr: 'Revue {when}' },
   invest_scan_mark: { en: 'Mark reviewed', fr: 'Marquer revue' },
   invest_scan_save: { en: 'Save item', fr: 'Enregistrer' },

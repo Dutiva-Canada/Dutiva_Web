@@ -10015,6 +10015,27 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_benchmark_marks: {
+        Row: {
+          close: number
+          fetched_at: string
+          mark_date: string
+          symbol: string
+        }
+        Insert: {
+          close: number
+          fetched_at?: string
+          mark_date: string
+          symbol: string
+        }
+        Update: {
+          close?: number
+          fetched_at?: string
+          mark_date?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       invest_book_snapshots: {
         Row: {
           account_id: string | null

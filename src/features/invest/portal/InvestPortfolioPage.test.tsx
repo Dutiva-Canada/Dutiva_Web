@@ -67,6 +67,7 @@ const STATE: InvestState = {
   scanItems: [],
   memories: [],
   bookSnapshots: [],
+  benchmarkMarks: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],

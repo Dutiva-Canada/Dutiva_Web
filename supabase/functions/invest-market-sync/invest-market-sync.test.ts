@@ -287,21 +287,33 @@ describe('newsThemeQueries', () => {
     ])
     expect(q).toEqual([
       { query: 'US-China trade restrictions', symbols: ['AMAT', 'ARM', 'QUBT'] },
+      /* Whole-book items still get a feed — rows land unscoped. */
+      { query: 'Whole-book watch', symbols: [] },
     ])
   })
 
-  it('caps theme feeds and skips symbol-less items', () => {
+  it('caps theme feeds', () => {
     const items = Array.from({ length: 10 }, (_, i) => ({
       title: `Theme ${i}`,
       symbols: ['S'],
     }))
-    const q = newsThemeQueries(items)
-    expect(q).toHaveLength(8)
-    /* An item with no linked symbols contributes nothing — its coverage
-       is the general feed's job. */
-    expect(
-      newsThemeQueries([{ title: 'Untagged', symbols: [] }]),
-    ).toHaveLength(0)
+    expect(newsThemeQueries(items)).toHaveLength(8)
+  })
+
+  it('a symbol-less item yields unscoped rows carrying its theme', () => {
+    const [tq] = newsThemeQueries([{ title: 'Fed rate path', symbols: [] }])
+    expect(tq).toBeDefined()
+    const rows = parseRssItems(RSS, {
+      symbol: '',
+      asset_class: '',
+      linked: [],
+      viaTheme: tq!.query,
+    })
+    expect(rows.length).toBeGreaterThan(0)
+    for (const r of rows) {
+      expect(r.symbol).toBe('')
+      expect(r.via_theme).toBe('Fed rate path')
+    }
   })
 })
 

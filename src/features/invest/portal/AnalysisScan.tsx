@@ -23,7 +23,7 @@ import {
   type ScanDraft,
 } from '../data/api'
 import { resolveSuggestion } from '@/lib/agentQueue'
-import type { InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
+import type { InvestNewsItem, InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
 import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
@@ -110,6 +110,25 @@ export function AnalysisScan() {
       return SCAN_THEMES.indexOf(a.theme) - SCAN_THEMES.indexOf(b.theme)
     })
   }, [state.scanItems])
+
+  /* The freshest theme-matched headlines per item — viaTheme is stored
+     as the item's title at fetch time, so the match key is the trimmed
+     title. Dedupe by URL: a headline linked to several symbols lands
+     once, not once per tag. */
+  const newsByTheme = useMemo(() => {
+    const map = new Map<string, InvestNewsItem[]>()
+    const seen = new Set<string>()
+    for (const n of state.news) {
+      if (!n.viaTheme) continue
+      const key = `${n.viaTheme}|${n.url}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const list = map.get(n.viaTheme) ?? []
+      list.push(n)
+      map.set(n.viaTheme, list)
+    }
+    return map
+  }, [state.news])
 
   const save = useCallback(async () => {
     if (busy || !draft.title.trim()) return
@@ -407,6 +426,7 @@ export function AnalysisScan() {
           {sorted.map((item) => {
             const stale = Date.now() - Date.parse(item.lastReviewedAt) > STALE_MS
             const when = relTimeLabel(item.lastReviewedAt, x)
+            const itemNews = newsByTheme.get(item.title.trim().slice(0, 120)) ?? []
             return (
               <article key={item.id} className="sb-scan">
                 <header className="sb-goal-head">
@@ -438,6 +458,25 @@ export function AnalysisScan() {
                     ))
                   )}
                 </div>
+                {itemNews.length > 0 && (
+                  <div className="sb-scan-news">
+                    <p className="sb-scan-news-head">{x(IM.invest_scan_news_head)}</p>
+                    <ul className="sb-scan-news-list">
+                      {itemNews.slice(0, 3).map((n) => (
+                        <li key={n.id}>
+                          <a href={n.url} target="_blank" rel="noopener noreferrer">
+                            {n.title}
+                          </a>
+                          <span className="sb-scan-news-meta">
+                            {n.source}
+                            {n.symbol && <span className="sb-scan-sym">{n.symbol}</span>}
+                            {n.publishedAt && <span>{relTimeLabel(n.publishedAt, x)}</span>}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 <footer className="sb-thesis-foot">
                   <span className="sb-thesis-when">
                     {when && fill(x(IM.invest_scan_reviewed), { when })}

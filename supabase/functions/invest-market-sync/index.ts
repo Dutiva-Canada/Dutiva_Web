@@ -451,11 +451,80 @@ async function syncUser(adminClient: SupabaseClient, userId: string, light = fal
     if (posErr) console.error('position price write-back failed', p.symbol, posErr)
   }
 
+  await checkAgentHealth(adminClient, userId)
+
   return { symbols: targets.length, synced: patches.length, failed, targets }
+}
+
+const AGENT_RUN_STALE_MS = 26 * 3_600_000
+const AGENT_HEALTH_TITLE = 'Agent sweep overdue'
+
+/* Watchdog — this job runs far more often than the agent, so it
+   carries the liveness check. One open alert at a time; the row stays
+   for the user to triage even after recovery — the outage was real. */
+async function checkAgentHealth(adminClient: SupabaseClient, userId: string) {
+  const { data: lastRun } = await adminClient
+    .from('invest_bot_runs')
+    .select('ran_at')
+    .eq('user_id', userId)
+    .order('ran_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (lastRun && Date.now() - Date.parse(lastRun.ran_at) <= AGENT_RUN_STALE_MS) return
+  const { data: openAlert } = await adminClient
+    .from('invest_signals')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('title', AGENT_HEALTH_TITLE)
+    .neq('status', 'dismissed')
+    .limit(1)
+  if ((openAlert ?? []).length > 0) return
+  const { error } = await adminClient.from('invest_signals').insert({
+    user_id: userId,
+    asset_class: 'equity',
+    symbol: '',
+    name: '',
+    kind: 'alert',
+    title: AGENT_HEALTH_TITLE,
+    title_fr: 'Balayage de l’agent en retard',
+    body: `No agent run has landed in over a day — signals, marks and suggestions may be stale until the daily sweep recovers. Last run: ${lastRun?.ran_at ?? 'never'}.`,
+    body_fr: 'Aucun balayage de l’agent depuis plus d’un jour — signaux, valorisations et suggestions peuvent être périmés jusqu’au prochain passage.',
+    score: null,
+    status: 'new',
+  })
+  if (error) console.error('agent-health signal insert failed', error)
 }
 
 const NEWS_STAGGER_MS = 300
 const NEWS_MAX_ITEMS_STORED = 40
+
+/* Benchmark closes for the track-record overlay — global public data,
+   one (symbol, date) row each. Hourly runs refresh a month of tail;
+   the daily full sync refreshes 2y so gaps heal themselves. */
+const BENCHMARK_SYMBOLS = ['XEQT.TO', 'SPY'] as const
+
+async function syncBenchmarks(adminClient: SupabaseClient, deep: boolean): Promise<number> {
+  let written = 0
+  for (const sym of BENCHMARK_SYMBOLS) {
+    const raw = await fetchText(yahooChartUrl(sym, deep ? '2y' : '1mo'), YAHOO_HEADERS)
+    if (!raw) continue
+    let parsed: ReturnType<typeof parseYahooChart>
+    try {
+      parsed = parseYahooChart(JSON.parse(raw))
+    } catch {
+      continue
+    }
+    const rows = parsed.daily.map((d) => ({ symbol: sym, mark_date: d.date, close: d.close }))
+    if (rows.length === 0) continue
+    const { error } = await adminClient
+      .from('invest_benchmark_marks')
+      .upsert(rows, { onConflict: 'symbol,mark_date' })
+    if (error) console.error('benchmark upsert failed', sym, error)
+    else written += rows.length
+    await pause(NEWS_STAGGER_MS)
+  }
+  return written
+}
 
 /**
  * Shared market headlines — one row per (symbol, url), deduped by the
@@ -559,10 +628,15 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
         if (!list) {
           list = []
           themeRowsByKey.set(key, list)
-          candidateIndex.set(key, candidates.length)
-          candidates.push({ theme: tq.query, title: item.title, summary: item.summary, symbols: [] })
+          /* Whole-book themes emit unscoped rows — nothing for the
+             verifier to judge (index -1 marks 'no candidate'). */
+          candidateIndex.set(key, item.symbol === '' ? -1 : candidates.length)
+          if (item.symbol !== '') {
+            candidates.push({ theme: tq.query, title: item.title, summary: item.summary, symbols: [] })
+          }
         }
-        const c = candidates[candidateIndex.get(key) ?? -1]
+        const ci = candidateIndex.get(key) ?? -1
+        const c = ci >= 0 ? candidates[ci] : undefined
         if (c && !c.symbols.includes(item.symbol)) c.symbols.push(item.symbol)
         list.push(item)
       }
@@ -660,7 +734,10 @@ const handler = async (req: Request) => {
       }
     }
     const news = light && !withNews ? 0 : await refreshNews(adminClient, allTargets)
-    return json({ scanned: results.length, news, results })
+    /* Quarter-hour price runs skip benchmarks — a daily close changes
+       once a day, not four times an hour. */
+    const benchmarks = light && !withNews ? 0 : await syncBenchmarks(adminClient, !light)
+    return json({ scanned: results.length, news, benchmarks, results })
   }
 
   /* sync — caller's book only */
@@ -668,7 +745,8 @@ const handler = async (req: Request) => {
   if (authed instanceof Response) return authed
   const result = await syncUser(authed.adminClient, authed.userId)
   const news = await refreshNews(authed.adminClient, result.targets)
-  return json({ symbols: result.symbols, synced: result.synced, failed: result.failed, news })
+  const benchmarks = await syncBenchmarks(authed.adminClient, false)
+  return json({ symbols: result.symbols, synced: result.synced, failed: result.failed, news, benchmarks })
 }
 
 Deno.serve(async (req) => withCors(req, await handler(req), CORS))

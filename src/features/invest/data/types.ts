@@ -473,6 +473,16 @@ export interface InvestBookSnapshot {
   currency: string
 }
 
+/** 0238 — one shared benchmark close (XEQT.TO / SPY). Date-keyed; the
+    chart rebases the series to the track record's first mark so a
+    different-currency index can sit on the same axis without implying
+    the book is invested in it. */
+export interface InvestBenchmarkMark {
+  symbol: string
+  date: string
+  close: number
+}
+
 export type CashEventKind = 'deposit' | 'withdrawal' | 'dividend'
 
 /** A recorded cash movement — deposits and withdrawals change the book's

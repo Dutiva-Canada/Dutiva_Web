@@ -619,6 +619,11 @@ const investCoreMessages = defineMessages({
     fr: 'Certains symboles n’ont pas pu être évalués : {symbols}',
   },
   invest_prices_as_of: { en: 'Prices as of {time}', fr: 'Cours au {time}' },
+  invest_prices_stale: { en: 'stale', fr: 'obsolète' },
+  invest_prices_stale_hint: {
+    en: 'The price feed missed its usual window — marks may be old. Try Refresh prices.',
+    fr: 'Le flux de cours a raté sa fenêtre habituelle — les valorisations peuvent dater. Essayez Actualiser les cours.',
+  },
   invest_watchlist_title: { en: 'Watchlist', fr: 'Surveillance' },
   invest_watchlist_sub: {
     en: 'Symbols you don’t hold yet — priced on every refresh, and your dip rules can fire on them.',
@@ -709,6 +714,15 @@ const investCoreMessages = defineMessages({
   invest_curve_maxdd: { en: 'Deepest dip', fr: 'Creux maximal' },
   /* [FR self-authored] */
   invest_curve_since: { en: 'since {date}', fr: 'depuis le {date}' },
+  /* [FR self-authored] */
+  invest_curve_benchmark_note: {
+    en: 'dashed — {sym} rebased to your first mark',
+    fr: 'pointillés — {sym} ramené à votre premier relevé',
+  },
+  /* [FR self-authored] */
+  invest_curve_benchmark_row: { en: '{sym} (same start)', fr: '{sym} (même départ)' },
+  /* [FR self-authored] */
+  invest_curve_vs_bench: { en: 'vs {sym}', fr: 'vs {sym}' },
   /* [FR self-authored] */
   invest_curve_invested: { en: 'Invested', fr: 'Investi' },
   /* [FR self-authored] */

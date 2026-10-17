@@ -34,6 +34,7 @@ import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from 
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { suggestionIcon } from './suggestionIcons'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
+import { isQuoteStale } from '@/features/invest/data/freshness'
 import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
 import { newRulePersistId } from './ruleDrafts'
 import { TallyNote } from './TallyNote'
@@ -80,9 +81,8 @@ const kindHelp: Record<AccountKind, keyof typeof IM> = {
 
 type PosSortKey = 'symbol' | 'account' | 'price' | 'value' | 'pnl'
 
-/* A quote older than this reads stale rather than current — the sync runs
-   daily, so past ~3 days means the symbol fell out of the feed. */
-const STALE_MS = 3 * 86_400_000
+/* Quotes read stale on the session-aware threshold in freshness.ts —
+   90 min during market hours, ~26h otherwise. */
 
 /** Portfolios tab — accounts, positions, manual price updates. */
 export function InvestPortfolioPage() {
@@ -339,7 +339,7 @@ export function InvestPortfolioPage() {
           quoteName: snap?.quoteName ?? '',
           converted: pxNative !== null && px !== null && pxCur !== p.currency,
           noFx: pxNative !== null && px === null,
-          stale: pxAt !== null && Date.now() - Date.parse(pxAt) > STALE_MS,
+          stale: isQuoteStale(pxAt),
           value: px === null ? null : p.quantity * px,
           pnl: px === null ? null : (px - p.avgCost) * p.quantity,
           pnlPct: px === null || p.avgCost === 0 ? null : (px / p.avgCost - 1) * 100,

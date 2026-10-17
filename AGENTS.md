@@ -140,3 +140,25 @@ fails on any migration present in the repo but not applied to the project.
 After merging anything that adds a migration or touches
 `supabase/functions/**`, apply and deploy it, then record what you verified —
 "tests pass" is not evidence that a server-side change is live.
+
+**Post-deploy smoke, every time.** A deploy returning "Deployed" only proves
+the code uploaded — the October agent outage ran three days of
+cron-"successful" invokes that wrote nothing. After deploying a changed
+function:
+
+1. Trigger it once by hand (the `trigger_*` SQL function or a direct
+   authenticated POST).
+2. Assert a 2xx response **and** the row it should have written —
+   `invest_bot_runs` for the bot, `invest_market_snapshots` /
+   `invest_market_news` for market sync, `net._http_response` for
+   cron-fired drains (filter on `url` containing the function name and
+   read the newest row's status/content, not just cron.job_run_details,
+   which reports success for a queued request that later failed).
+3. If the schedule is new, confirm the job exists in `cron.job` and
+   note its first firing window — don't call a weekday-only job broken
+   because it hasn't reached Monday yet.
+
+For the frontend path: GitLab `origin` is source of truth; Vercel's
+`dutiva-website` deploys GitHub `main`, fed by `mirror/*` squash-merge PRs.
+A GitLab push alone changes nothing on dutiva.ca — verify the Vercel
+deployment is `READY` and aliased before calling work shipped.
