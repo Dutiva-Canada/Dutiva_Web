@@ -123,6 +123,22 @@ export const SUPPORT_HOURS = {
   holidayJurisdiction: bi('Ontario statutory holidays', 'jours fériés légaux de l’Ontario'),
 } as const
 
+/**
+ * The compact staffed-hours line every legal/contact card renders. It must
+ * carry the day window and the holiday closure — "Staffed 9–17 · Ontario
+ * statutory holidays" read as staffed *on* weekends and holidays, the
+ * opposite of the model. Day span assumes Mon–Fri (`businessDays` is fixed
+ * as const); if that ever changes, derive the span instead.
+ */
+export function staffedHoursLine(L: (en: string, fr: string) => string): string {
+  const { startHour, endHour, timezoneLabel, holidayJurisdiction } = SUPPORT_HOURS
+  const enHour = (h: number) => (h < 12 ? `${h} a.m.` : h === 12 ? '12 p.m.' : `${h - 12} p.m.`)
+  return L(
+    `Mon–Fri, ${enHour(startHour)}–${enHour(endHour)} ${timezoneLabel.en} · closed on ${holidayJurisdiction.en}`,
+    `lun.–ven., de ${startHour} h à ${endHour} h (${timezoneLabel.fr}) · fermé les ${holidayJurisdiction.fr}`,
+  )
+}
+
 // ── Priority & response targets ──────────────────────────────────────────
 
 export type SupportPriority = 'critical' | 'high' | 'standard' | 'low'

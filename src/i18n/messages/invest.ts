@@ -126,7 +126,7 @@ const investCoreMessages = defineMessages({
   invest_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
   invest_legal_effective: { en: 'Effective:', fr: 'Entrée en vigueur :' },
   invest_legal_contact: { en: 'Contact support', fr: 'Joindre l’assistance' },
-  invest_legal_hours: { en: 'Staffed', fr: 'Présence' },
+  invest_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
 
   /* Notifications */
   invest_notif_title: { en: 'Notifications', fr: 'Notifications' },
