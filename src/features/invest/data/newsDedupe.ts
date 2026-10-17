@@ -4,7 +4,7 @@
  * and "AMD Stock Down 6.0% but Still Overvalued" are the same event —
  * every outlet rewrites the wire. So rows cluster on content-token
  * overlap (Jaccard ≥ 0.35) within the same publish-day, matched on the
- * symbol tag when both rows carry one. Two different stories about the
+ * symbol tag or shared theme provenance. Two different stories about the
  * same stock on the same day rarely share half their content words;
  * the same wire story from two outlets nearly always does.
  *
@@ -55,44 +55,59 @@ interface NewsRow {
   title: string
   symbol?: string
   publishedAt?: string | null
+  viaTheme?: string | null
 }
 
 /**
  * Newest-first in, deduped out. `symbolAware` (default) only merges rows
  * that share a symbol tag or where one side is unscoped — pass false for
  * a surface already grouped by theme (the scan cards), where the symbol
- * tag is incidental.
+ * tag is incidental. Rows claiming the same `viaTheme` merge across
+ * symbols regardless: a theme tag is a linkage claim, not a mention —
+ * "US-China Trade War Escalates" tagged AMAT/AMD/ARM is one story, not
+ * three. `preferSymbols` decides which tag survives that merge (the
+ * book's own symbols beat board-only links).
  */
 export function dedupeNews<T extends NewsRow>(
   items: T[],
-  { symbolAware = true }: { symbolAware?: boolean } = {},
+  { symbolAware = true, preferSymbols }: { symbolAware?: boolean; preferSymbols?: Set<string> } = {},
 ): T[] {
-  const kept: { idx: number; fp: Set<string>; sym: string; day: string }[] = []
+  const kept: { idx: number; fp: Set<string>; sym: string; day: string; theme: string | null }[] = []
   const out: T[] = []
   for (const n of items) {
     if (JUNK_HEADLINE.test(n.title)) continue
     const fp = fingerprint(n.title)
     const day = (n.publishedAt ?? '').slice(0, 10)
     const sym = (n.symbol ?? '').toUpperCase()
+    const theme = n.viaTheme ?? null
     const dup =
       fp.size > 0
         ? kept.find(
             (k) =>
               k.day === day &&
-              (!symbolAware || k.sym === sym || k.sym === '' || sym === '') &&
+              (!symbolAware ||
+                k.sym === sym ||
+                k.sym === '' ||
+                sym === '' ||
+                (theme !== null && theme === k.theme)) &&
               jaccard(fp, k.fp) >= 0.35,
           )
         : undefined
     if (!dup) {
-      kept.push({ idx: out.length, fp, sym, day })
+      kept.push({ idx: out.length, fp, sym, day, theme })
       out.push(n)
       continue
     }
     /* Same story under a symbol tag beats the unscoped copy — the tag
-       is information. */
-    if (sym !== '' && dup.sym === '') {
+       is information. Across same-theme tag copies, a book symbol beats
+       a board-only link. */
+    const betterTag =
+      sym !== '' &&
+      (dup.sym === '' || (preferSymbols ? preferSymbols.has(sym) && !preferSymbols.has(dup.sym) : false))
+    if (betterTag) {
       out[dup.idx] = n
       dup.sym = sym
+      dup.theme = theme ?? dup.theme
     }
   }
   return out

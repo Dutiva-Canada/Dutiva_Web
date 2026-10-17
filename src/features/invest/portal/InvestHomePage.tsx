@@ -242,16 +242,21 @@ export function InvestHomePage() {
     }
   }
 
-  const headlines = useMemo(() => dedupeNews(state.news), [state.news])
   /* 'Your book' = held ∪ watched symbols. The feed also carries rows
      tagged to scan-board links — a theme claim, not book membership —
-     and unscoped (symbol '') rows, which belong to 'All' only. */
+     and unscoped (symbol '') rows, which belong to 'All' only. The same
+     set prefers the surviving tag when one theme story carries several
+     linkage copies. */
   const bookSymbols = useMemo(() => {
     const s = new Set<string>()
     for (const p of state.positions) s.add(p.symbol.toUpperCase())
     for (const w of state.watchlist) s.add(w.symbol.toUpperCase())
     return s
   }, [state.positions, state.watchlist])
+  const headlines = useMemo(
+    () => dedupeNews(state.news, { preferSymbols: bookSymbols }),
+    [state.news, bookSymbols],
+  )
   const bookHeadlines = useMemo(
     () => headlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
     [headlines, bookSymbols],

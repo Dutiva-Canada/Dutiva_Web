@@ -66,6 +66,35 @@ describe('dedupeNews', () => {
     )
     expect(items).toHaveLength(1)
   })
+
+  it('merges one theme story across its linked symbols — the tag is a linkage, not a mention', () => {
+    const items = dedupeNews([
+      { ...row('US-China Trade War Escalates With New Bans', { symbol: 'AMD' }), viaTheme: 'Export restrictions' },
+      { ...row('US-China Trade War Escalates With New Bans', { symbol: 'AMAT' }), viaTheme: 'Export restrictions' },
+      { ...row('US-China Trade War Escalates With New Bans', { symbol: 'ARM' }), viaTheme: 'Export restrictions' },
+    ])
+    expect(items).toHaveLength(1)
+  })
+
+  it('prefers a book symbol over a board-only link when theme copies merge', () => {
+    const items = dedupeNews(
+      [
+        { ...row('US-China Trade War Escalates With New Bans', { symbol: 'AMD' }), viaTheme: 'Export restrictions' },
+        { ...row('US-China Trade War Escalates With New Bans', { symbol: 'AMAT' }), viaTheme: 'Export restrictions' },
+      ],
+      { preferSymbols: new Set(['AMAT']) },
+    )
+    expect(items).toHaveLength(1)
+    expect(items[0]!.symbol).toBe('AMAT')
+  })
+
+  it('keeps cross-symbol copies when the stories claim different themes', () => {
+    const items = dedupeNews([
+      { ...row('Semis slide on the day', { symbol: 'AMAT' }), viaTheme: 'Export restrictions' },
+      { ...row('Semis slide on the day', { symbol: 'ARM' }), viaTheme: 'Rate path' },
+    ])
+    expect(items).toHaveLength(2)
+  })
 })
 
 describe('JUNK_HEADLINE', () => {
