@@ -731,37 +731,72 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
     }
   }
 
-  if (rows.length === 0) return 0
-
   /* One batched kind pass over the run's unique titles — duplicate titles
      across symbol copies classify once and share the verdict. null kind
      stays null: the row keeps the portal's title heuristic as fallback. */
-  const uniqueTitles = [...new Set(rows.map((r) => r.title))]
-  const kindItems = uniqueTitles.map((t) => ({
-    title: t,
-    summary: rows.find((r) => r.title === t)?.summary ?? '',
-  }))
   const classify = await makeNewsKindClassifier(adminClient)
-  const kindVerdicts = classify ? await classify(kindItems) : null
-  if (kindVerdicts) {
-    const indexOf = new Map(uniqueTitles.map((t, i) => [t, i]))
-    for (const r of rows) {
-      const k = kindVerdicts.get(indexOf.get(r.title) ?? -1)
-      if (k) r.kind = k
+  if (rows.length > 0) {
+    const uniqueTitles = [...new Set(rows.map((r) => r.title))]
+    const kindItems = uniqueTitles.map((t) => ({
+      title: t,
+      summary: rows.find((r) => r.title === t)?.summary ?? '',
+    }))
+    const kindVerdicts = classify ? await classify(kindItems) : null
+    if (kindVerdicts) {
+      const indexOf = new Map(uniqueTitles.map((t, i) => [t, i]))
+      for (const r of rows) {
+        const k = kindVerdicts.get(indexOf.get(r.title) ?? -1)
+        if (k) r.kind = k
+      }
     }
+
+    const { error } = await adminClient
+      .from('invest_market_news')
+      .upsert(rows, { onConflict: 'symbol,url', ignoreDuplicates: true })
+    if (error) return 0
+    /* The card offers up to a 30-day window — anything older is dead
+       storage, so the feed prunes on the same bound it displays. */
+    const { error: pruneError } = await adminClient
+      .from('invest_market_news')
+      .delete()
+      .lt('published_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+    if (pruneError) console.error('news prune failed', pruneError)
   }
 
-  const { error } = await adminClient
-    .from('invest_market_news')
-    .upsert(rows, { onConflict: 'symbol,url', ignoreDuplicates: true })
-  if (error) return 0
-  /* The card offers up to a 30-day window — anything older is dead
-     storage, so the feed prunes on the same bound it displays. */
-  const { error: pruneError } = await adminClient
-    .from('invest_market_news')
-    .delete()
-    .lt('published_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
-  if (pruneError) console.error('news prune failed', pruneError)
+  /* Backfill the backlog the classifier missed — pre-column rows and
+     every degraded pass. Each run reclassifies a bounded batch of the
+     newest kind:null rows, so the visible surface converges to model
+     verdicts over a few sweeps without a one-off job. The update is
+     still null-guarded: a row another run just classified is left
+     alone rather than re-judged. */
+  if (classify) {
+    const { data: backlog } = await adminClient
+      .from('invest_market_news')
+      .select('id, title, summary')
+      .is('kind', null)
+      .order('published_at', { ascending: false })
+      .limit(24)
+    if (backlog && backlog.length > 0) {
+      const verdicts = await classify(
+        backlog.map((r) => ({ title: r.title, summary: r.summary ?? '' })),
+      )
+      if (verdicts) {
+        const byKind = new Map<NewsKind, number[]>()
+        backlog.forEach((r, i) => {
+          const k = verdicts.get(i)
+          if (k) byKind.set(k, [...(byKind.get(k) ?? []), r.id])
+        })
+        for (const [kind, ids] of byKind) {
+          const { error: backfillError } = await adminClient
+            .from('invest_market_news')
+            .update({ kind })
+            .in('id', ids)
+            .is('kind', null)
+          if (backfillError) console.error('news kind backfill failed', backfillError)
+        }
+      }
+    }
+  }
   return rows.length
 }
 
