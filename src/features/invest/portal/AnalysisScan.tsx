@@ -26,7 +26,7 @@ import { resolveSuggestion } from '@/lib/agentQueue'
 import type { InvestNewsItem, InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { dedupeNews } from '../data/newsDedupe'
+import { dedupeNews, NEWS_KIND_ORDER, newsKind } from '../data/newsDedupe'
 import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 
 const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
@@ -127,6 +127,11 @@ export function AnalysisScan() {
       const list = map.get(n.viaTheme) ?? []
       list.push(n)
       map.set(n.viaTheme, list)
+    }
+    /* Same kind order as the Overview feed — the three a card shows
+       prefer an event over a price-move writeup. */
+    for (const list of map.values()) {
+      list.sort((a, b) => NEWS_KIND_ORDER[newsKind(a.title)] - NEWS_KIND_ORDER[newsKind(b.title)])
     }
     return map
   }, [state.news, state.newsMutes])

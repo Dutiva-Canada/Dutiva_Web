@@ -64,6 +64,49 @@ interface NewsRow {
   viaTheme?: string | null
 }
 
+/* ── Headline kind — signal vs churn ────────────────────────────────────── */
+
+export type NewsKind = 'event' | 'view' | 'move' | 'news'
+
+/* What the headline IS, not whether it matters — a classifier can say
+   'this is a price-move writeup' honestly where 'this is important'
+   would be a judgment the data can't support.
+
+   Precedence is deliberate: analyst churn borrows event verbs ('Analyst
+   Announces New Price Target'), so 'view' is checked first. 'event'
+   then wins over 'move' — 'Stock Jumps on FDA Approval' reports an
+   approval; the price framing doesn't erase the trigger. Bare 'forecast'
+   stays out of the view list: 'Raises Guidance' is an event, not a
+   note. */
+const KIND_VIEW =
+  /\banalyst|price target|rating|upgrad|downgrad|initiat|reiterat|maintain(?:s|ed|ing)?\b|overweight|underweight|outperform|underperform|\b(?:buy|sell|hold) rating|price prediction|stock prediction|should you (?:buy|sell)|stocks? to (?:buy|watch)|top \d+ stocks?|best\b.{0,25}\bstocks?|is\b.{0,25}\ba (?:buy|sell)\b/i
+
+const KIND_EVENT =
+  /\bearnings|guidance|merger|acqui|takeover|buyout|\bipo\b|bankrupt|lawsuit|\bsues\b|\bsued\b|settlement|\bsec\b|\bfda\b|approv|recall|layoff|appoint|resign|\bce[foost]\b|launch|unveil|announce|contract|partnership|dividend|buyback|stock split|spin-?off|delist|halt(?:ed|s|suspension)?\b|sanction|export (?:controls?|ban|rules)|antitrust|investigat|verdict|fined|plead/i
+
+const KIND_MOVE =
+  /\bfell|falls|drops?|dropped|sinks?|sank|rises?|rose|jumps?|jumped|soars?|soared|plunges?|plunged|slides?|slid|slumps?|slumped|gains?|climbs?|climbed|rall(?:y|ies|ied)|surges?|surged|tumbles?|tumbled|rebounds?|rebounded|mov(?:es?|ed|ing)\b[^.]{0,15}(?:up|down|higher|lower)|(?:up|down)(?: by)? \d+(?:\.\d+)?%|moving (?:today|now)|(?:are|is|was|were) (?:up|down) \d|hits? (?:a )?(?:new )?(?:record|high|low|all-time)|sells? off|selloff|sell-off|trades? (?:up|down|lower|higher)/i
+
+/** 'event' — something happened; 'view' — analyst note, rating, or
+    opinion/listicle; 'move' — a writeup whose substance is the price
+    itself; 'news' — everything else. */
+export function newsKind(title: string): NewsKind {
+  if (KIND_VIEW.test(title)) return 'view'
+  if (KIND_EVENT.test(title)) return 'event'
+  if (KIND_MOVE.test(title)) return 'move'
+  return 'news'
+}
+
+/* Within a publish-day, order by kind then recency: events and news
+   first, analyst notes, price-move writeups last. Stable — rows arrive
+   newest-first, so equal kinds keep that order. */
+export const NEWS_KIND_ORDER: Record<NewsKind, number> = {
+  event: 0,
+  news: 1,
+  view: 2,
+  move: 3,
+}
+
 /**
  * Newest-first in, deduped out. `symbolAware` (default) only merges rows
  * that share a symbol tag or where one side is unscoped — pass false for

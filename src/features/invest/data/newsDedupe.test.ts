@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dedupeNews, JUNK_HEADLINE } from './newsDedupe'
+import { dedupeNews, JUNK_HEADLINE, NEWS_KIND_ORDER, newsKind } from './newsDedupe'
 
 function row(title: string, over: Partial<{ symbol: string; publishedAt: string }> = {}) {
   return { title, symbol: 'AMD', publishedAt: '2026-10-16T14:00:00Z', ...over }
@@ -102,6 +102,41 @@ describe('dedupeNews', () => {
       { ...row('Semis slide on the day', { symbol: 'ARM' }), viaTheme: 'Rate path' },
     ])
     expect(items).toHaveLength(2)
+  })
+})
+
+describe('newsKind', () => {
+  const cases: [title: string, kind: ReturnType<typeof newsKind>][] = [
+    /* events — something happened */
+    ['Apple Reports Q4 Earnings Beat Expectations', 'event'],
+    ['FDA Approves New Cancer Drug', 'event'],
+    ['US Widens Chip-Equipment Export Rules', 'event'],
+    ['Microsoft to Acquire Activision', 'event'],
+    ['AMD Stock Jumps on New AI Chip Launch', 'event'],
+    /* analyst churn wins its borrowed event verbs */
+    ['Analyst Announces New AMD Price Target', 'view'],
+    ['Oppenheimer Maintains Outperform on AMD After Earnings', 'view'],
+    ['Should You Buy AMD Stock Right Now?', 'view'],
+    ['Top 10 Stocks to Watch This Week', 'view'],
+    ['Solana (SOL) Price Prediction for November', 'view'],
+    /* price-move writeups */
+    ["AMD Stock Falls 6% - Here's Why", 'move'],
+    ['Why NVIDIA Stock Jumped Today', 'move'],
+    ['Applied Materials Stock Moved Down by 3.13%', 'move'],
+    ['Bitcoin Hits New All-Time High', 'move'],
+    /* neither template — stays neutral */
+    ['Fed Holds Rates Steady', 'news'],
+    ['China Negotiations Continue Into Weekend', 'news'],
+  ]
+  it.each(cases)('classifies "%s" as %s', (title, kind) => {
+    expect(newsKind(title)).toBe(kind)
+  })
+
+  it('orders kinds event → news → view → move', () => {
+    expect(
+      [newsKind('Fed Holds Rates Steady'), newsKind('Apple Reports Q4 Earnings Beat'), newsKind('AMD Stock Falls 6%'), newsKind('Should You Buy AMD?')]
+        .sort((a, b) => NEWS_KIND_ORDER[a] - NEWS_KIND_ORDER[b]),
+    ).toEqual(['event', 'news', 'view', 'move'])
   })
 })
 

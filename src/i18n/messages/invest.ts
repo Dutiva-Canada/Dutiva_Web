@@ -699,6 +699,14 @@ const investCoreMessages = defineMessages({
   invest_news_muted: { en: 'Muted:', fr: 'Masquées :' },
   /* [FR self-authored] */
   invest_news_unmute: { en: 'Show {source} again', fr: 'Réafficher {source}' },
+  /* [FR self-authored] Headline-kind badges — what the story is, not
+     whether it matters: something happened / an analyst note or opinion
+     / a writeup about the price itself. */
+  invest_news_kind_event: { en: 'Event', fr: 'Événement' },
+  /* [FR self-authored] */
+  invest_news_kind_view: { en: 'Analysis', fr: 'Analyse' },
+  /* [FR self-authored] */
+  invest_news_kind_move: { en: 'Price move', fr: 'Mouvement de cours' },
 
   /* Track record (0223) — one mark per sweep-day; deposits and
      withdrawals are backed out so the change reads as performance,

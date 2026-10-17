@@ -12,8 +12,15 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import type { AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { muteNewsSource, unmuteNewsSource } from '@/features/invest/data/api'
-import { dedupeNews } from '@/features/invest/data/newsDedupe'
+import { dedupeNews, NEWS_KIND_ORDER, newsKind, type NewsKind } from '@/features/invest/data/newsDedupe'
 import { ASSET_LABEL, fmtDay } from './strategyUi'
+
+const KIND_LABEL: Record<NewsKind, keyof typeof IM | null> = {
+  event: 'invest_news_kind_event',
+  view: 'invest_news_kind_view',
+  move: 'invest_news_kind_move',
+  news: null,
+}
 
 /* The feed retains 30 days; the card windows it. */
 const NEWS_RANGE_MS = { '7d': 7 * 86_400_000, '14d': 14 * 86_400_000, '30d': 30 * 86_400_000 } as const
@@ -180,6 +187,12 @@ export function NewsFeedCard() {
       if (last && last.key === key) last.items.push(n)
       else groups.push({ key, label, items: [n] })
     }
+    /* Within a day, kind order before recency — 'something happened'
+     * outranks an analyst note or a price-move writeup. Stable sort:
+     * items arrive newest-first and keep it inside a kind. */
+    for (const g of groups) {
+      g.items.sort((a, b) => NEWS_KIND_ORDER[newsKind(a.title)] - NEWS_KIND_ORDER[newsKind(b.title)])
+    }
     return groups
   }, [visibleHeadlines, lang, x])
 
@@ -336,6 +349,8 @@ export function NewsFeedCard() {
             <ul className="m-0 grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
               {g.items.map((n, i) => {
                 const featured = gi === 0 && i === 0
+                const kind = newsKind(n.title)
+                const kindKey = KIND_LABEL[kind]
                 return (
             <li key={n.id} className={featured ? 'relative min-[980px]:col-span-2' : 'relative'}>
               <a
@@ -356,6 +371,11 @@ export function NewsFeedCard() {
                   </span>
                   <span className="mt-[5px] flex items-center gap-[6px] pr-[24px] text-[11.5px] text-text-muted">
                     <span className="truncate">{n.source}</span>
+                    {kindKey !== null && (
+                      <span className={`shrink-0 rounded-[6px] px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] ${kind === 'event' ? 'bg-ok-bg text-ok-fg' : 'bg-inset text-text-3'}`}>
+                        {x(IM[kindKey])}
+                      </span>
+                    )}
                     {n.symbol && (
                       <span className="shrink-0 rounded-[6px] bg-accent-soft px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-accent">
                         {n.symbol}

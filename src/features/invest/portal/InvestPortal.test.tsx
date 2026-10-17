@@ -510,6 +510,42 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('Muted:')).not.toBeInTheDocument()
   })
 
+  it('badges headline kinds and ranks events above churn within a day', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: [
+        ...STATE.news,
+        {
+          id: 3,
+          symbol: 'SHOP',
+          assetClass: 'equity',
+          title: 'Shopify Stock Falls 4% in Morning Trading',
+          url: 'https://news.example/shop-down',
+          source: 'Churn Daily',
+          summary: '',
+          /* Newest row — but a price-move writeup, so it ranks after
+             the event and news rows inside the same day. */
+          publishedAt: '2026-01-20T15:00:00Z',
+          viaTheme: null,
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    const move = await screen.findByText('Shopify Stock Falls 4% in Morning Trading')
+    const event = screen.getByText('US widens chip-equipment export rules')
+    /* Event outranks the newer churn inside the same day. */
+    expect(event.compareDocumentPosition(move) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getAllByText('Price move')).toHaveLength(1)
+    expect(screen.getAllByText('Event')).toHaveLength(1)
+  })
+
   it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {
     const recent = new Date(Date.now() - 2 * 86_400_000).toISOString()
     const older = new Date(Date.now() - 10 * 86_400_000).toISOString()
