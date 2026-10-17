@@ -684,17 +684,20 @@ export type NewsKind = (typeof NEWS_KINDS)[number]
    'this is a price-move writeup' honestly where 'this is important' would
    be a judgment the data can't support. The model sees titles only, never
    portfolio state — same contract as themeLinkPrompt. */
-export function newsKindPrompt(titles: string[]): string {
-  const items = titles.map((t, i) => `${i + 1}. ${t}`)
+export function newsKindPrompt(items: { title: string; summary: string }[]): string {
+  const lines = items.map(
+    (it, i) =>
+      `${i + 1}. ${it.title}\n   summary: ${it.summary || '—'}`,
+  )
   return [
     'You classify market headlines for a portfolio feed — what each story IS, not whether it matters.',
     'event — something happened: earnings, guidance, merger, approval, lawsuit, leadership change, contract, regulation.',
     'news — reports facts or developments but names no single new event.',
-    'view — an analyst note, rating, price target, opinion, prediction, or listicle.',
-    'move — a writeup whose substance is the price move itself.',
+    'view — an analyst note, rating, price target, opinion, prediction, or listicle. A headline that asks whether to buy/sell/hold or argues a verdict is view even when it cites a price move.',
+    'move — a writeup whose substance is only the price change itself, not a verdict on it.',
     'Reply with JSON only: {"kinds":[{"i":1,"k":"event"}]} — include every item index; k is one of event|news|view|move.',
     '',
-    ...items,
+    ...lines,
   ].join('\n')
 }
 

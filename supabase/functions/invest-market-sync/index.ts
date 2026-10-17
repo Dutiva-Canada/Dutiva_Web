@@ -589,7 +589,7 @@ async function makeThemeLinkVerifier(
    stores null and the portal's title heuristic stays the fallback. */
 async function makeNewsKindClassifier(
   admin: SupabaseClient,
-): Promise<((titles: string[]) => Promise<Map<number, NewsKind> | null>) | null> {
+): Promise<((items: { title: string; summary: string }[]) => Promise<Map<number, NewsKind> | null>) | null> {
   const found = await activeModelRoute(admin, [
     'invest_news_classify',
     'invest_news_verify',
@@ -600,17 +600,17 @@ async function makeNewsKindClassifier(
   const key = routeApiKey(found)
   if ('missingSecret' in key) return null
   const { provider, modelName: model, config } = found
-  return async (titles) => {
-    if (titles.length === 0) return new Map()
+  return async (items) => {
+    if (items.length === 0) return new Map()
     try {
       const upstream = await postChatCompletion(
         provider,
         key.apiKey,
         {
           model,
-          messages: [{ role: 'user', content: newsKindPrompt(titles) }],
+          messages: [{ role: 'user', content: newsKindPrompt(items) }],
           temperature: 0.1,
-          max_tokens: routeMaxTokens(config, 80 + titles.length * 8),
+          max_tokens: routeMaxTokens(config, 80 + items.length * 8),
           ...routeBodyExtras(config),
         },
         45_000,
@@ -619,7 +619,7 @@ async function makeNewsKindClassifier(
       const payload = (await upstream.json()) as {
         choices?: { message?: { content?: string } }[]
       }
-      return parseNewsKindVerdicts(payload.choices?.[0]?.message?.content ?? '', titles.length)
+      return parseNewsKindVerdicts(payload.choices?.[0]?.message?.content ?? '', items.length)
     } catch {
       return null
     }
@@ -737,8 +737,12 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
      across symbol copies classify once and share the verdict. null kind
      stays null: the row keeps the portal's title heuristic as fallback. */
   const uniqueTitles = [...new Set(rows.map((r) => r.title))]
+  const kindItems = uniqueTitles.map((t) => ({
+    title: t,
+    summary: rows.find((r) => r.title === t)?.summary ?? '',
+  }))
   const classify = await makeNewsKindClassifier(adminClient)
-  const kindVerdicts = classify ? await classify(uniqueTitles) : null
+  const kindVerdicts = classify ? await classify(kindItems) : null
   if (kindVerdicts) {
     const indexOf = new Map(uniqueTitles.map((t, i) => [t, i]))
     for (const r of rows) {

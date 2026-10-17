@@ -502,10 +502,17 @@ describe('parseNewsKindVerdicts', () => {
 })
 
 describe('newsKindPrompt', () => {
-  it('numbers every title and names the four labels', () => {
-    const p = newsKindPrompt(['Apple Reports Earnings', 'Why AMD Fell Today'])
+  it('numbers every item with its summary and names the four labels', () => {
+    const p = newsKindPrompt([
+      { title: 'Apple Reports Earnings', summary: 'Quarterly results' },
+      { title: 'Why AMD Fell Today', summary: '' },
+    ])
     expect(p).toContain('1. Apple Reports Earnings')
+    expect(p).toContain('summary: Quarterly results')
     expect(p).toContain('2. Why AMD Fell Today')
+    /* The view/move boundary the Sandisk case exposed: a buy/sell
+       verdict question is opinion even when the lede cites price. */
+    expect(p).toContain('asks whether to buy/sell/hold')
     for (const k of ['event', 'news', 'view', 'move']) expect(p).toContain(k)
   })
 })
