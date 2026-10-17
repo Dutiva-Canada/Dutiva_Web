@@ -382,6 +382,9 @@ export interface SyncTarget {
   symbol: string
   /** Company/coin name when known — drives better headline queries. */
   name?: string
+  /** True when a position backs the symbol — held rows get news feeds
+      before watchlist/strategy-only symbols under the cap. */
+  held?: boolean
 }
 
 export type SyncAction = 'sync' | 'sync-all'
@@ -491,14 +494,17 @@ export function parseRssItems(
  * shops). Names beat tickers for headline matching.
  */
 export function newsQueries(
-  targets: { asset_class: string; symbol: string; name?: string }[],
-  maxSymbolFeeds = 8,
+  targets: { asset_class: string; symbol: string; name?: string; held?: boolean }[],
+  maxSymbolFeeds = 12,
 ): { query: string; symbol: string; asset_class: string; name?: string }[] {
   const queries: { query: string; symbol: string; asset_class: string; name?: string }[] = [
     { query: 'stock market Canada', symbol: '', asset_class: '' },
   ]
   const seen = new Set<string>()
-  for (const t of targets) {
+  /* Held positions lead the feed list — under the cap a symbol you own
+     must never lose its news feed to a watchlist or strategy-only name. */
+  const ordered = [...targets].sort((a, b) => Number(b.held ?? false) - Number(a.held ?? false))
+  for (const t of ordered) {
     const sym = t.symbol.trim().toUpperCase()
     if (!sym || seen.has(sym)) continue
     seen.add(sym)

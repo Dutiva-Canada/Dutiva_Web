@@ -229,8 +229,26 @@ describe('newsQueries', () => {
       name: '',
     }))
     const q = newsQueries(targets)
-    expect(q).toHaveLength(9) // 1 general + 8 symbols
+    expect(q).toHaveLength(13) // 1 general + 12 symbols
     expect(newsQueries([{ asset_class: 'equity', symbol: 'VFV.TO' }])[1].query).toBe('VFV stock')
+  })
+
+  it('feeds held positions before watch-only symbols under the cap', () => {
+    const targets = [
+      /* 12 watch/strategy names first — order alone would starve HELD. */
+      ...Array.from({ length: 12 }, (_, i) => ({
+        asset_class: 'equity',
+        symbol: `W${i}`,
+        name: '',
+      })),
+      { asset_class: 'equity', symbol: 'HELD', name: '', held: true },
+    ]
+    const q = newsQueries(targets)
+    expect(q).toHaveLength(13)
+    /* The held row takes a feed slot; the twelfth watch name drops out. */
+    expect(q.some((x) => x.symbol === 'HELD')).toBe(true)
+    expect(q.some((x) => x.symbol === 'W11')).toBe(false)
+    expect(q[1]?.symbol).toBe('HELD')
   })
 })
 

@@ -354,11 +354,19 @@ async function syncEquities(
     refresh price/change only (0235 quarter-hour job). */
 async function syncUser(adminClient: SupabaseClient, userId: string, light = false) {
   const [snapsRes, positionsRes, watchRes, stratRes] = await Promise.all([
-    adminClient.from('invest_market_snapshots').select('asset_class, symbol').eq('user_id', userId),
+    adminClient
+      .from('invest_market_snapshots')
+      .select('asset_class, symbol, quote_name')
+      .eq('user_id', userId),
     adminClient.from('invest_positions').select('asset_class, symbol, name').eq('user_id', userId),
     adminClient.from('invest_watchlist').select('asset_class, symbol, name').eq('user_id', userId),
     adminClient.from('invest_strategies').select('scope').eq('user_id', userId).eq('enabled', true),
   ])
+  /* Held symbols get the news feeds first under the cap — a position you
+     own must never lose headline coverage to a watch-only name. */
+  const heldSet = new Set(
+    (positionsRes.data ?? []).map((p) => `${p.asset_class}:${p.symbol}`),
+  )
   const seen = new Set<string>()
   const targets: SyncTarget[] = []
   for (const r of [
@@ -373,7 +381,14 @@ async function syncUser(adminClient: SupabaseClient, userId: string, light = fal
       user_id: userId,
       asset_class: r.asset_class as string,
       symbol: r.symbol as string,
-      name: (r as { name?: string }).name ?? '',
+      /* The feed-resolved name ("Rocket Lab Corporation") beats a raw
+         user entry for headline matching; a held-but-unsnapshotted row
+         falls back to its own name field. */
+      name:
+        (r as { quote_name?: string }).quote_name ??
+        (r as { name?: string }).name ??
+        '',
+      held: heldSet.has(key),
     })
   }
 
@@ -488,9 +503,12 @@ const handler = async (req: Request) => {
       const authed = await authenticateInvestUser(req, config, { requireAdmin: true })
       if (authed instanceof Response) return authed
     }
-    /* The quarter-hour cron passes light:true — headline queries stay a
-       daily job; hammering Google News 96×/day buys nothing. */
+    /* The quarter-hour cron passes light:true — headline queries stay
+       out of every run. The hour-news cron adds news:true for a
+       once-hourly light run that does refresh headlines; the daily job
+       does a full pass either way. */
     const light = body['light'] === true
+    const withNews = body['news'] === true
     const adminClient = createClient<Database>(config.supabaseUrl, config.serviceRoleKey)
     /* Users who have anything invested/tracked/watched — cheaper than
        sweeping all. */
@@ -524,7 +542,7 @@ const handler = async (req: Request) => {
         results.push({ userId, error: String(error).slice(0, 200) })
       }
     }
-    const news = light ? 0 : await refreshNews(adminClient, allTargets)
+    const news = light && !withNews ? 0 : await refreshNews(adminClient, allTargets)
     return json({ scanned: results.length, news, results })
   }
 
