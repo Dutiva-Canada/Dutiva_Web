@@ -26,7 +26,7 @@ import { resolveSuggestion } from '@/lib/agentQueue'
 import type { InvestNewsItem, InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { dedupeNews, NEWS_KIND_ORDER, newsKind } from '../data/newsDedupe'
+import { dedupeNews, NEWS_KIND_ORDER, newsKind, PAYWALL_SOURCES } from '../data/newsDedupe'
 import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 
 const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
@@ -118,11 +118,15 @@ export function AnalysisScan() {
      the tag is the theme, not the ticker. */
   const newsByTheme = useMemo(() => {
     /* Muted publishers (0240) hide here too — a muted source is muted
-       everywhere the feed surfaces, not just on the Overview card. */
+       everywhere the feed surfaces, not just on the Overview card.
+       Same for subscription-only sources (0241-era default): hidden
+       unless the device pref reveals them. */
     const muted = new Set(state.newsMutes.map((s) => s.toLowerCase()))
+    const showPaywalled = localStorage.getItem('dutiva.news.showPaywalled') === '1'
     const map = new Map<string, InvestNewsItem[]>()
     for (const n of dedupeNews(state.news, { symbolAware: false })) {
       if (muted.has(n.source.toLowerCase())) continue
+      if (!showPaywalled && PAYWALL_SOURCES.has(n.source)) continue
       if (!n.viaTheme) continue
       const list = map.get(n.viaTheme) ?? []
       list.push(n)

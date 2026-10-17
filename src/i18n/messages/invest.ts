@@ -707,6 +707,17 @@ const investCoreMessages = defineMessages({
   invest_news_kind_view: { en: 'Analysis', fr: 'Analyse' },
   /* [FR self-authored] */
   invest_news_kind_move: { en: 'Price move', fr: 'Mouvement de cours' },
+  /* [FR self-authored] Paywall toggle — state + action on one chip, same
+     shape as the muted-source chips. */
+  invest_news_paywalled_hidden: {
+    en: '{n} subscription-only sources hidden — show',
+    fr: '{n} sources payantes masquées — afficher',
+  },
+  /* [FR self-authored] */
+  invest_news_paywalled_shown: {
+    en: 'Subscription-only sources shown — hide',
+    fr: 'Sources payantes affichées — masquer',
+  },
 
   /* Track record (0223) — one mark per sweep-day; deposits and
      withdrawals are backed out so the change reads as performance,

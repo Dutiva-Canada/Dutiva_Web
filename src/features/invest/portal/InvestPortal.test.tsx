@@ -549,6 +549,45 @@ describe('InvestHomePage', () => {
     expect(screen.getAllByText('Event')).toHaveLength(1)
   })
 
+  it('hides subscription-only sources until the toggle shows them', async () => {
+    localStorage.setItem('dutiva.news.showPaywalled', '0')
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: [
+        ...STATE.news,
+        {
+          id: 4,
+          symbol: 'SHOP',
+          assetClass: 'equity',
+          title: 'Barron paywalled piece on Shopify',
+          url: 'https://news.example/barrons-shop',
+          source: "Barron's",
+          summary: '',
+          publishedAt: '2026-01-20T07:00:00Z',
+          viaTheme: null,
+          kind: null,
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('Barron paywalled piece on Shopify')).not.toBeInTheDocument()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    const chip = screen.getByRole('button', { name: /subscription-only sources hidden/i })
+    await user.click(chip)
+    expect(await screen.findByText('Barron paywalled piece on Shopify')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Subscription-only sources shown/i }))
+    expect(screen.queryByText('Barron paywalled piece on Shopify')).not.toBeInTheDocument()
+  })
+
   it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {
     const recent = new Date(Date.now() - 2 * 86_400_000).toISOString()
     const older = new Date(Date.now() - 10 * 86_400_000).toISOString()

@@ -4,6 +4,7 @@ import {
   ChevronDown,
   ChevronUp,
   EyeOff,
+  Lock,
   Newspaper,
   RotateCcw,
 } from 'lucide-react'
@@ -12,7 +13,7 @@ import { investMessages as IM } from '@/i18n/messages/invest'
 import type { AssetClass } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { muteNewsSource, unmuteNewsSource } from '@/features/invest/data/api'
-import { dedupeNews, NEWS_KIND_ORDER, newsKind, type NewsKind } from '@/features/invest/data/newsDedupe'
+import { dedupeNews, NEWS_KIND_ORDER, newsKind, PAYWALL_SOURCES, type NewsKind } from '@/features/invest/data/newsDedupe'
 import { ASSET_LABEL, fmtDay } from './strategyUi'
 
 const KIND_LABEL: Record<NewsKind, keyof typeof IM | null> = {
@@ -68,6 +69,12 @@ export function NewsFeedCard() {
   /* Source name of the in-flight mute write — disables both controls so
      a second click can't queue a competing mutation. */
   const [muting, setMuting] = useState<string | null>(null)
+  /* Subscription-only sources are hidden by default — a headline you
+     can't open is noise. The toggle is a device pref, not account data:
+     'I'm subscribed somewhere' is a display choice. */
+  const [showPaywalled, setShowPaywalled] = useState(
+    () => localStorage.getItem('dutiva.news.showPaywalled') === '1',
+  )
 
   /* Held ∪ watched — 'Your book' means symbols the user actually owns or
      tracks, never a symbol a theme feed happened to link. The same
@@ -87,13 +94,20 @@ export function NewsFeedCard() {
     () => new Set(state.newsMutes.map((s) => s.toLowerCase())),
     [state.newsMutes],
   )
-  const headlines = useMemo(
-    () =>
-      dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
-        (n) => !muted.has(n.source.toLowerCase()),
-      ),
-    [state.news, bookSymbols, muted],
-  )
+  const headlines = useMemo(() => {
+    const rows = dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
+      (n) => !muted.has(n.source.toLowerCase()),
+    )
+    return showPaywalled ? rows : rows.filter((n) => !PAYWALL_SOURCES.has(n.source))
+  }, [state.news, bookSymbols, muted, showPaywalled])
+  /* How many rows the paywall default removes — drives the "hidden"
+     chip so what's filtered is always visible and one tap reveals it. */
+  const paywalledHidden = useMemo(() => {
+    if (showPaywalled) return 0
+    return dedupeNews(state.news, { preferSymbols: bookSymbols }).filter(
+      (n) => !muted.has(n.source.toLowerCase()) && PAYWALL_SOURCES.has(n.source),
+    ).length
+  }, [state.news, bookSymbols, muted, showPaywalled])
   /* Range narrows first — facets and 'Your book' describe the windowed
      set, so a chip reflects what selecting it would actually show. A
      quiet window still shows what's on file rather than blank the list
@@ -343,6 +357,27 @@ export function NewsFeedCard() {
                 {s}
               </button>
             ))}
+          </div>
+        )}
+        {/* Same rule as mutes: what's hidden by default stays named and
+            one tap reveals it — for the user who is subscribed. */}
+        {(paywalledHidden > 0 || showPaywalled) && (
+          <div className="mt-[8px] flex flex-wrap items-center gap-[6px]">
+            <button
+              type="button"
+              aria-pressed={showPaywalled}
+              onClick={() => {
+                const next = !showPaywalled
+                setShowPaywalled(next)
+                localStorage.setItem('dutiva.news.showPaywalled', next ? '1' : '0')
+              }}
+              className="flex cursor-pointer items-center gap-[4px] rounded-full border border-border bg-inset px-[8px] py-[3px] text-[11px] font-medium text-text-2 transition-colors hover:border-border-strong hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              <Lock size={10} aria-hidden="true" />
+              {showPaywalled
+                ? x(IM.invest_news_paywalled_shown)
+                : x(IM.invest_news_paywalled_hidden).replace('{n}', String(paywalledHidden))}
+            </button>
           </div>
         )}
         {groupedHeadlines.map((g, gi) => (

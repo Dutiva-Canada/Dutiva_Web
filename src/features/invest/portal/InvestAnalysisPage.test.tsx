@@ -144,7 +144,7 @@ function newsItem(over: Partial<InvestNewsItem> = {}): InvestNewsItem {
     assetClass: 'equity',
     title: 'Export rules tighten again',
     url: 'https://news.example/a1',
-    source: 'Reuters',
+    source: 'Wire',
     summary: '',
     publishedAt: '2026-03-10T12:00:00Z',
     viaTheme: 'USD strength vs CAD',
@@ -292,9 +292,17 @@ describe('InvestAnalysisPage — watch board', () => {
           url: 'https://news.example/c3',
           viaTheme: null,
         }),
+        /* Subscription-only sources hide on theme cards too. */
+        newsItem({
+          id: 4,
+          title: 'Paywalled theme piece',
+          url: 'https://news.example/d4',
+          source: "Barron's",
+        }),
       ],
     })
     expect(screen.getByText('Export rules tighten again')).toBeInTheDocument()
+    expect(screen.queryByText('Paywalled theme piece')).not.toBeInTheDocument()
     expect(screen.getByText(/Headlines matched to this theme/i)).toBeInTheDocument()
     /* Other-theme and direct-mention rows can't leak under the card. */
     expect(screen.queryByText('Unrelated theme story')).toBeNull()

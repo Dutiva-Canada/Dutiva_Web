@@ -110,6 +110,34 @@ export const NEWS_KIND_ORDER: Record<NewsKind, number> = {
   move: 3,
 }
 
+/* ── Subscription-only sources ──────────────────────────────────────────── */
+
+/* Publishers whose articles sit behind a hard paywall — as named in the
+   Google News <source> tag, not domains. Deliberately excludes metered/
+   partial walls (The Globe and Mail, Forbes, Morningstar): those serve
+   free articles too, so hiding the whole source would over-remove. A
+   subscribed user reveals them with the card's toggle; a source the
+   user simply dislikes is covered by mutes. */
+export const PAYWALL_SOURCES: ReadonlySet<string> = new Set([
+  'Barron\'s',
+  'Bloomberg',
+  'Business Insider',
+  'Financial Times',
+  'Haaretz',
+  'Harvard Business Review',
+  'Investor\'s Business Daily',
+  'MarketWatch',
+  'Reuters',
+  'Seeking Alpha',
+  'The Athletic',
+  'The Economist',
+  'The Information',
+  'The New York Times',
+  'The Telegraph',
+  'The Wall Street Journal',
+  'WSJ',
+])
+
 /**
  * Newest-first in, deduped out. `symbolAware` (default) only merges rows
  * that share a symbol tag or where one side is unscoped — pass false for
