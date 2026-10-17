@@ -325,6 +325,38 @@ describe('InvestAnalysisPage — pending suggestions', () => {
     expect(saveGoal).not.toHaveBeenCalled()
   })
 
+  it('tags a scan suggestion with its direction', async () => {
+    loadPendingSuggestions.mockResolvedValue([
+      {
+        ...pendingGoal,
+        id: 'sug-s1',
+        kind: 'scan',
+        title: 'US-China technology trade restrictions',
+        payload: {
+          title: 'US-China technology trade restrictions',
+          note: 'Export curbs could disrupt AMAT, AMD, ARM.',
+          theme: 'geopolitical',
+          direction: 'headwind',
+          symbols: ['AMAT', 'AMD', 'ARM'],
+        },
+      },
+      /* A malformed direction renders no tag rather than an invented one. */
+      {
+        ...pendingGoal,
+        id: 'sug-s2',
+        kind: 'scan',
+        title: 'Mystery factor',
+        payload: { title: 'Mystery factor', direction: 'sideways' },
+      },
+    ])
+    mount()
+    await waitFor(() =>
+      expect(screen.getByText(/US-China technology/)).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Headwind')).toBeInTheDocument()
+    expect(screen.queryByText('sideways')).not.toBeInTheDocument()
+  })
+
   it('saves Tally’s named scenario on accept — and skips a name twin', async () => {
     const user = userEvent.setup()
     const pendingScenario = {

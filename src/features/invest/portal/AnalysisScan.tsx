@@ -35,12 +35,14 @@ const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
   geopolitical: 'invest_scan_theme_geopolitical',
   company: 'invest_scan_theme_company',
 }
-const SCAN_DIR_LABEL: Record<ScanDirection, keyof typeof IM> = {
+/* Exported so the pending-suggestion strip can tag scan suggestions with
+   the same direction vocabulary the saved board uses. */
+export const SCAN_DIR_LABEL: Record<ScanDirection, keyof typeof IM> = {
   tailwind: 'invest_scan_dir_tailwind',
   headwind: 'invest_scan_dir_headwind',
   monitor: 'invest_scan_dir_monitor',
 }
-const SCAN_DIR_PILL: Record<ScanDirection, string> = {
+export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
   tailwind: 'sb-pill-ok',
   headwind: 'sb-pill-warn',
   monitor: 'sb-pill-draft',

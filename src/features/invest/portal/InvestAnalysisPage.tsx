@@ -36,14 +36,14 @@ import type {
   ScanTheme,
   StressShock,
 } from '../data/types'
-import { GOAL_METRICS } from '../data/types'
+import { GOAL_METRICS, SCAN_DIRECTIONS } from '../data/types'
 import { relTimeLabel } from './relTime'
 import { fmtDay, fmtNum, fmtPct } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
-import { AnalysisScan } from './AnalysisScan'
+import { AnalysisScan, SCAN_DIR_LABEL, SCAN_DIR_PILL } from './AnalysisScan'
 import { AnalysisSwot } from './AnalysisSwot'
 import './strategies.css'
 
@@ -363,6 +363,14 @@ export function InvestAnalysisPage() {
             {pending.map((s) => {
               const KindIcon = suggestionIcon(s.kind)
               const p = (s.payload ?? {}) as Record<string, unknown>
+              /* Scan suggestions carry a direction — surface it on the
+                 row like the board does, not just in the note's prose. */
+              const dir =
+                s.kind === 'scan' &&
+                typeof p.direction === 'string' &&
+                (SCAN_DIRECTIONS as readonly string[]).includes(p.direction)
+                  ? (p.direction as ScanDirection)
+                  : null
               const title =
                 lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
               const detail =
@@ -381,6 +389,11 @@ export function InvestAnalysisPage() {
                   <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <strong>{title}</strong>
+                    {dir && (
+                      <span className={`sb-pill ${SCAN_DIR_PILL[dir]}`} style={{ marginLeft: 8 }}>
+                        {x(IM[SCAN_DIR_LABEL[dir]])}
+                      </span>
+                    )}
                     {detail && <span className="sb-notify-hint">{detail}</span>}
                   </span>
                   <span className="sb-row-actions" style={{ flexShrink: 0 }}>
