@@ -979,7 +979,7 @@ describe('internal advice tier (@dutiva.ca)', () => {
 })
 
 describe('detectHealthFlags (boundary backstop)', () => {
-  it('flags clinical vocabulary for EVERY tier — the clinical line is tier-independent', () => {
+  it('flags clinical content applied to the person for EVERY tier — the clinical line is tier-independent', () => {
     for (const reply of [
       'You have insomnia — that much is clear.',
       'Try taking melatonin before bed.',
@@ -987,10 +987,49 @@ describe('detectHealthFlags (boundary backstop)', () => {
       'A therapist could help you sort through this.',
       'You should see a doctor about those symptoms.',
       'Take your medication at the same time each night.',
+      /* The applied shapes beyond the bare words — a label read onto
+         the person or a steer toward care flag however they're
+         phrased. */
+      'It could be a sign of depression.',
+      'What you described sounds like anxiety.',
+      'Your symptoms point toward burnout.',
+      'You might be dealing with a mood disorder.',
+      'You seem really depressed lately.',
+      'You might want to talk to a therapist.',
+      'Get checked out by a professional.',
+      'Consider therapy for this.',
+      "You've got a sleep disorder, I'd say.",
     ]) {
       expect(detectHealthFlags(reply, 'en', false), reply).not.toEqual([])
-      /* Internal advice is in scope — illness, medication and therapy are not. */
+      /* Internal advice is in scope — applied clinical content and
+         substances are not. */
       expect(detectHealthFlags(reply, 'en', true), reply).not.toEqual([])
+    }
+  })
+
+  it('leaves general educational answers clean — the topic itself is in scope', () => {
+    for (const reply of [
+      'Depression is a common condition — low mood or a loss of interest that settles in for weeks, often with changes in sleep, energy, or focus.',
+      'It usually shows up as a stretch of heavy days rather than one bad one.',
+      'A doctor or licensed professional is the one who can diagnose it — the Resources page is the place to start.',
+      'It is treatable. Professionals help people through it every day, and the Resources page lists where to start.',
+      'Talking to a professional helps a lot of people with it.',
+      'Common signs include trouble sleeping, low energy, and losing interest in things that used to feel good.',
+      'People experience it differently — for some it is mostly exhaustion, for others a flatness.',
+    ]) {
+      for (const advice of [false, true]) {
+        expect(detectHealthFlags(reply, 'en', advice), reply).toEqual([])
+      }
+    }
+    for (const reply of [
+      "La dépression est un trouble fréquent — un moral bas ou une perte d'intérêt qui s'installe, souvent avec des changements de sommeil ou d'énergie.",
+      "Un professionnel peut l'évaluer — la page Ressources est le point de départ.",
+      'Ça se soigne — du soutien existe, et la page Ressources liste par où commencer.',
+      'Les signes fréquents incluent un sommeil difficile et une perte d’intérêt.',
+    ]) {
+      for (const advice of [false, true]) {
+        expect(detectHealthFlags(reply, 'fr', advice), reply).toEqual([])
+      }
     }
   })
 
@@ -1019,6 +1058,12 @@ describe('detectHealthFlags (boundary backstop)', () => {
       'Une thérapie pourrait aider.',
       'Coupez la caféine après midi.',
       'Vous devriez dormir plus.',
+      /* Applied shapes — a label on the person or a steer toward care. */
+      "Vous pourriez avoir de l'anxiété.",
+      'Ça ressemble à de la dépression.',
+      'Consultez un médecin.',
+      'Votre insomnie empire ces temps-ci.',
+      'Vous faites de la dépression, je pense.',
     ]) {
       expect(detectHealthFlags(reply, 'fr', false), reply).not.toEqual([])
     }

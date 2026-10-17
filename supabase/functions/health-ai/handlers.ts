@@ -192,15 +192,17 @@ function sharedRules(advice: boolean): string {
 }
 
 /* The chat companion gets a wider remit than the one-shot prompts — she may
-   listen, reflect feelings, and offer small everyday suggestions — but the
-   clinical line is the same, and "she is software" is a rule, not a mood.
-   Internal tier adds skills practice: she can guide evidence-informed
-   exercises (a thought record, a breathing space, a DBT skill) plainly
-   named as such — that's still not therapy, and the clinician-led
-   approaches stay with clinicians. */
+   listen, reflect feelings, offer small everyday suggestions, and answer
+   general questions plainly — but the clinical line is the same: nothing
+   applied to the person, no steering toward care, no substances, and "she
+   is software" is a rule, not a mood. Internal tier adds skills practice:
+   she can guide evidence-informed exercises (a thought record, a breathing
+   space, a DBT skill) plainly named as such — that's still not therapy,
+   and the clinician-led approaches stay with clinicians. */
 function companionRules(advice: boolean): string {
   return [
-    'This is a non-clinical wellness space. Never diagnose, never name or imply illness, treatment, or medication, and never offer therapy — if professional support is what the person needs, point them to the portal\'s Resources page.',
+    'This is a non-clinical wellness space. Never diagnose the person or read a condition onto what they shared, never steer them toward treatment, medication, or a clinical visit, never name a substance, and never offer therapy — when they need professional support, point to the portal\'s Resources page.',
+    'A general question still deserves a real answer — "what is X" is not a diagnosis request. Explain the topic in general terms — what it is, how it tends to show up, that professionals help with it — never applied to them or their care.',
     'You are software, not a person. Never claim feelings, a body, a life outside this chat, or a professional credential — if asked, say so plainly.',
     advice
       ? 'No praise inflation, no shame, no scorekeeping. Internal staff account (@dutiva.ca) — concrete everyday advice is welcome here, and so is guiding skills practice (a thought record, a breathing space, a DBT skill) — name the approach when you use one. You are still not a therapist: EMDR, hypnotherapy, trauma processing, trance work, and prescriptive protocols stay with clinicians — explain those, never conduct or simulate them.'
@@ -522,7 +524,7 @@ export function chatPrompt(
         ? '- When they seem stuck or ask for ideas, advise directly — concrete, everyday suggestions sized to what the data shows. Offer, don\'t push.'
         : '- When they seem stuck or ask for ideas, offer at most ONE small, concrete, everyday suggestion — a short walk, a few slow breaths, writing a few lines, reaching out to someone they trust. Offer, don\'t push.',
       ...(advice ? [modalityPlaybook()] : []),
-      '- You can answer questions about their tracked data — check-in counts, mood and energy averages, habits and streaks. If asked something the context cannot answer, say so plainly rather than guessing.',
+      '- Answer questions plainly — about their tracked data (check-in counts, mood and energy averages, habits and streaks) and general questions about a topic alike, the latter in general terms only, never applied to them. If their data cannot answer what they asked about it, say so rather than guessing.',
       'You can also DO things in the portal when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"mark_habit_done","habit":"<existing habit name>"}   — mark a habit done today',
       '  {"type":"unmark_habit_done","habit":"<existing habit name>"} — undo today\'s mark',
@@ -788,11 +790,15 @@ export function entryReactPrompt(
 /* ── Output screens — the deterministic backstop behind the prompt ─────────
    Two different boundaries are enforced here:
 
-   1. The clinical line binds EVERY tier — Mira never diagnoses and never
-      names or implies illness, treatment, medication, or therapy, no
-      matter who is signed in. Pointing at the Resources page is the
-      sanctioned deflection, so those words pass; the crisis line carries
-      no clinical vocabulary and always goes through.
+   1. The clinical line binds EVERY tier, and it has two halves. Banned:
+      anything clinical APPLIED to the person — a condition read onto
+      them ("you have…", "your anxiety", "sounds like depression"),
+      steering them toward treatment, medication or a clinical visit,
+      and substance vocabulary outright. Allowed: the topic itself —
+      asked "what is X", Mira may explain it plainly in third-person
+      terms (what it is, how it tends to show up, that professionals
+      help with it). The Resources page pointer and the crisis line
+      stay clean either way.
    2. The directed line binds only the external tier — the external
       register sanctions at most one small everyday suggestion, offered
       not pushed. "You should sleep eight hours", a cut-caffeine
@@ -805,18 +811,68 @@ export function entryReactPrompt(
    scope there; the clinical line is not. */
 const CLINICAL_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
   en: [
-    /\b(?:diagnos\w*|disorder|illness|disease|syndrome|symptoms?)(?!\w)/i,
-    /\b(?:depression|depressive|insomnia|sleep\s+apn[oe]a|an[ae]mia|diabetes|adhd|bipolar|ptsd|ocd|schizophreni\w*|eating\s+disorder|thyroid)(?!\w)/i,
-    /\b(?:medications?|meds|pills?|tablets?|capsules?|prescri\w+|dose|dosage|antidepressants?|melatonin|magnesium|supplements?|vitamins?|ibuprofen|tylenol|advil|medicine|painkillers?)(?!\w)/i,
-    /\b(?:therap\w+|psychiatr\w*|psycholog\w*|counsell?or\w*|treatment|clinic(?:al)?\b|clinicians?|doctors?|physicians?)(?!\w)/i,
-    /\byou\s+(?:have|may\s+have|might\s+have|could\s+have|show\s+signs?\s+of|are\s+showing\s+signs?\s+of|suffer(?:ing)?\s+from)\s+(?:a\s+|an\s+)?\w*(?:depress\w*|anxiet\w*|insomnia|burnout|deficien\w*|condition)(?!\w)/i,
+    /* Substances and prescribing — banned outright, either person. A
+       topic-level answer never needs them. */
+    /\b(?:medications?|meds|pills?|tablets?|capsules?|prescri\w+|dose|dosage|\d+\s?mg\b|antidepressants?|ssris?|snris?|benzodiazepin\w*|anxiolyt\w*|melatonin|magnesium|supplements?|vitamins?|ibuprofen|tylenol|advil|medicine|painkillers?|sleeping\s+pills?)(?!\w)/i,
+    /* A condition read onto the person — "you have / you may have / you
+       are showing signs of". Up to three words of slack covers "you
+       have some early symptoms of depression" without letting a real
+       distance in. */
+    /\byou(?:\s+|'|’)\s*(?:have|may\s+have|might\s+have|could\s+have|must\s+have|seem\s+to\s+have|ve\s+got|have\s+got|got|(?:(?:might|could|may|must)\s+be|are|re)\s+(?:showing|experiencing|dealing\s+with|struggling\s+with|going\s+through|living\s+with)|show|suffer(?:ing)?\s+from|live\s+with)\s+[\w'’-]*(?:\s+[\w'’-]+){0,3}\s*(?:depress\w*|anxiet\w*|insomnia|burnout|bipolar|ptsd|ocd|adhd|schizophren\w*|disorder|syndrome|condition|deficien\w*|illness|disease|diabetes|thyroid|an[ae]mia|eating\s+disorder|sleep\s+apn[oe]a|panic\s+disorder)(?!\w)/i,
+    /* The adjectival read — "you seem depressed", "you might be burned
+       out". */
+    /\byou(?:\s+|'|’)\s*(?:are|re|seem|sound|look|feel|might\s+be|could\s+be|may\s+be|must\s+be|appear(?:\s+to\s+be)?|come\s+across\s+as)\s+(?:so\s+|really\s+|quite\s+|pretty\s+|very\s+|genuinely\s+|truly\s+|a\s+(?:bit|little)\s+)?(?:depress\w+|anxious|manic|burn(?:t|ed)[\s-]?out|traumati[sz]\w+|bipolar|suicidal|psychotic)(?!\w)/i,
+    /* Possessive — "your depression", "your symptoms", "your diagnosis". */
+    /\byour\s+(?:depress\w+|anxiet\w+|insomnia|burnout|bipolar|ptsd|ocd|adhd|schizophren\w*|disorder|syndrome|symptoms?|diagnos\w+|illness|disease|condition|panic\s+attacks?)(?!\w)/i,
+    /* Labeled guesses about what they described — "sounds like
+       depression", "it could be anxiety", "a sign of a disorder". */
+    /\b(?:sounds?|seems?|feels?|looks?)\s+like\s+(?:it\s+(?:could|might|may|is|'s)\s*(?:be\s+)?|you(?:'re|\s+are)?\s+(?:have|may\s+have|might\s+have|could\s+have|are\s+dealing\s+with|are\s+going\s+through|are\s+struggling\s+with)\s+)?(?:a\s+|an\s+|some\s+|early\s+)?(?:[\w'’-]+\s+){0,2}(?:signs?\s+of\s+)?(?:depress\w*|anxiet\w*|insomnia|burnout|disorder|syndrome|bipolar|ptsd|ocd|adhd|schizophren\w*|eating\s+disorder)(?!\w)/i,
+    /\b(?:that|this|it)(?:'s|\s+(?:is|was|(?:could|might|may)\s+(?:well\s+)?be))\s+(?:a\s+|an\s+|early\s+)?(?:[\w'’-]+\s+){0,2}(?:signs?\s+of\s+|form\s+of\s+|case\s+of\s+)?(?:depress\w*|anxiet\w*|insomnia|burnout|disorder|syndrome|bipolar|ptsd|ocd|adhd|schizophren\w*|eating\s+disorder)(?!\w)/i,
+    /\b(?:could|might|may)\s+(?:well\s+)?be\s+(?:a\s+|an\s+)?(?:early\s+)?(?:signs?|symptoms?|form|case)\s+of\s+[\w'’-]*(?:depress\w*|anxiet\w*|insomnia|burnout|disorder|syndrome|bipolar|ptsd|ocd|adhd|schizophren\w*)(?!\w)/i,
+    /* Steered toward care — "you should see a doctor", "a therapist
+       could help you", "get checked out", "consider therapy". General
+       third-person mentions stay clean: "a doctor can diagnose it",
+       "talking to a professional helps". */
+    /\byou\s+(?:should|must|need\s+to|ought\s+to|might\s+want\s+to|may\s+want\s+to|could|want\s+to)\s+(?:see|talk\s+to|speak\s+(?:to|with)|consult|reach\s+out\s+to|visit|ask|contact|call|check\s+with)\s+(?:a\s+|your\s+)?(?:doctor|physician|therapist|counsello?r\w*|psychiatr\w*|psycholog\w*|clinician|professional|gp|provider|nurse|specialist)(?!\w)/i,
+    /\b(?:doctor|physician|therapist|counsello?r\w*|psychiatr\w*|psycholog\w*|clinician|professional|provider|specialist|therapy|treatment|counsell?ing)\s+(?:could|can|may|might|would|should|will)\s+(?:really\s+|actually\s+|genuinely\s+)?help\s+(?:you\b|with\s+(?:this|that|it|what))/i,
+    /\b(?:see|talk\s+to|speak\s+(?:to|with)|consult|visit|ask|contact|tell)\s+(?:a\s+|your\s+)?(?:doctor|physician|therapist|counsello?r\w*|psychiatr\w*|psycholog\w*|clinician|professional|provider|nurse|specialist)\s+about\s+(?:your|those|these|the|what)\b/i,
+    /(?:^|[.!?\n]\s*|\b(?:please|so|then|honestly|seriously)\s+)(?:see|talk\s+to|speak\s+(?:to|with)|consult|visit|call|ask|reach\s+out\s+to|contact)\s+(?:a\s+|your\s+)?(?:doctor|physician|therapist|counsello?r\w*|psychiatr\w*|psycholog\w*|clinician|professional|provider|nurse|specialist)\b/im,
+    /\b(?:worth|a\s+good\s+idea\s+to|best\s+to|help(?:s|ful)?\s+to)\s+(?:see|seeing|talk(?:ing)?\s+(?:to|with)|speak(?:ing)?\s+(?:to|with)|consult(?:ing)?|visit(?:ing)?|try(?:ing)?|consider(?:ing)?|explor\w*|look(?:ing)?\s+into)\s+(?:a\s+|your\s+)?(?:doctor|physician|therapist|counsello?r\w*|psychiatr\w*|psycholog\w*|clinician|professional|provider|specialist|therapy|treatment|counsell?ing)\b/i,
+    /\b(?:get|getting)\s+(?:yourself\s+)?(?:tested|diagnosed|checked\s+out|screened|assessed|evaluated|referred)\b/i,
+    /\bget\s+(?:it|that|this|yourself|those)\s+(?:checked|tested|diagnosed|looked\s+at|assessed|evaluated|checked\s+out)\b/i,
+    /\byou\s+(?:could|should|might|may|would)?\s*(?:start|try|stop|begin|pursue|undergo|consider|explore|look\s+into|benefit\s+from|enter|join)\s+(?:a\s+|an\s+|some\s+|the\s+|group\s+)?(?:treatment|therapy|counsell?ing|psychotherapy|rehab|clinical\s+care)\b/i,
+    /(?:^|[.!?\n]\s*|\b(?:please|so|then)\s+)(?:try|consider|explore|look\s+into|start|begin|pursue|join)\s+(?:a\s+|an\s+|some\s+|the\s+|group\s+)?(?:therapy|treatment|counsell?ing|psychotherapy|rehab|a\s+support\s+group)\b/im,
+    /\b(?:seek|seeking|get|getting|find|reach\s+out\s+for|ask\s+for|look\s+for)\s+(?:professional|medical|clinical|urgent)\s+(?:help|support|care|attention|advice|treatment)\b/i,
+    /* Diagnosis verbs aimed at the person — "only a professional can
+       diagnose it" stays clean. */
+    /\bdiagnos(?:e|es|ed|ing)\s+(?:you|this\s+as)\b/i,
+    /\byou(?:\s+|'|’)\s*(?:were|are|re|d\s+be|have\s+been|may\s+be|might\s+be|got|were\s+recently)\s+diagnos\w+/i,
   ],
   fr: [
-    /\b(?:diagnosti\w*|troubles?|maladie|syndrome|symptômes?)(?!\w)/i,
-    /\b(?:dépression|dépressi\w+|insomnie|apnée|anémie|diabète|tdah|bipolaire|tspt|toc|schizophrén\w*|thyroïde)(?!\w)/i,
-    /\b(?:médicaments?|pilules?|comprimés?|gélules?|prescri\w+|ordonnance|dosage|posologie|antidépresseurs?|mélatonine|magnésium|suppléments?|vitamines?|ibuprofène|tylénol|médicament\w*)(?!\w)/i,
-    /\b(?:thérap\w+|psychiatr\w*|psycholog\w*|psychothérap\w*|conseill(?:er|ers|ères?)\b|traitement|clinique|médecins?|docteurs?)(?!\w)/i,
-    /\bvous\s+(?:avez|souffrez|présentez|montrez|pourriez\s+avoir|auriez|faites)\s+(?:de\s+la\s+|de\s+l'|d'|des\s+|un\s+|une\s+)?(?:signes?\s+(?:de\s+|d'))?\w*(?:dépress\w*|anxiété|insomnie|épuisement|burnout|carence)(?!\w)/i,
+    /* Substances — banned outright, either person. */
+    /\b(?:médicaments?|pilules?|comprimés?|gélules?|prescri\w+|ordonnance|dosage|posologie|antidépresseurs?|isrs?|benzodiazépin\w*|anxiolyt\w*|mélatonine|magnésium|suppléments?|vitamines?|ibuprofène|tylénol|somnifères?|médicament\w*)(?!\w)/i,
+    /* A condition read onto the person — "vous avez de l'anxiété",
+       "vous souffrez d'insomnie", "vous faites de la dépression". */
+    /\bvous\s+(?:avez|souffrez|présentez|montrez|pourriez\s+avoir|auriez|faites|vivez\s+avec|traversez|ressentez|éprouvez|semblez\s+avoir)\s+[\w'’-]*(?:\s+[\w'’-]+){0,3}\s*(?:l'|d')?(?:dépress\w*|anxiété|anxieu\w*|insomnie|épuisement|burnout|bipolarité|tspt|toc|tdah|schizophrén\w*|troubles?|syndrome|maladie|carence|diabète|thyroïde|anémie|apnée|panique)(?!\w)/i,
+    /\bvous\s+(?:êtes|semblez|paraissez|avez\s+l'air|vous\s+sentez)\s+(?:si\s+|très\s+|vraiment\s+|tellement\s+|un\s+peu\s+|plutôt\s+)?(?:dépressi[\wàâäéèêëîïôöùûüçœæ]*|déprim\w*[\wàâäéèêëîïôöùûüçœæ]*|anxieu\w+|épuis[\wàâäéèêëîïôöùûüçœæ]*|en\s+burnout|bipolaire|suicidaire|traumatis[\wàâäéèêëîïôöùûüçœæ]*|psychotique)(?!\w)/i,
+    /\bvo(?:tre|s)\s+(?:dépress\w+|anxiété|insomnie|épuisement|burnout|bipolarité|tspt|toc|tdah|schizophrén\w*|troubles?|syndrome|maladie|diagnostic\w*|symptômes?|condition|crises?\s+de\s+panique)(?!\w)/i,
+    /* Labeled guesses — "ça ressemble à de la dépression", "c'est de
+       l'anxiété", "ça pourrait être un signe de burnout". */
+    /(?:ça|cela|ceci|tout\s+ça|c')\s*(?:est|était|ressemble\s+à|semble\s+(?:à|être)|pourrait\s+être|serait|s'apparente\s+à|tient\s+(?:de|du))\s*(?:de\s+la\s+|de\s+l'|d'|du\s+|un\s+|une\s+|des\s+)?(?:[\w'’-]+\s+){0,2}(?:l'|d')?(?:dépress\w*|anxiété|anxieu\w*|insomnie|troubles?|burnout|épuisement|bipolarité|tspt|toc|tdah|syndrome)(?!\w)/i,
+    /\b(?:pourrait|pourrait\s+bien|peut|pourrait\s+être)\s+(?:un\s+|une\s+)?(?:signe|symptôme|forme|cas)\s+(?:de\s+|d')?(?:de\s+la\s+|de\s+l'|d')?[\w'’-]*(?:l'|d')?(?:dépress\w*|anxiété|insomnie|troubles?|burnout|épuisement|bipolarité|tspt|toc|tdah)(?!\w)/i,
+    /* Steered toward care — "vous devriez consulter", imperatives in
+       -ez (necessarily addressed to the reader), "une thérapie
+       pourrait aider". General mentions stay clean: "un professionnel
+       peut l'évaluer", "il existe du soutien". */
+    /\bvous\s+(?:devriez|devez|pourriez|auriez\s+intérêt\s+à|gagneriez\s+à|avez\s+besoin\s+de|feriez\s+bien\s+de)\s+(?:voir|consulter|contacter|appeler|parler\s+(?:à|avec)|rencontrer|demander\s+à|en\s+parler\s+(?:à|avec))\s+(?:un\s+|une\s+|votre\s+|le\s+|la\s+|des\s+)?(?:médecin|docteur|thérapeute|psychiatr\w*|psycholog\w*|psycho\w+|conseill\w+|clinicien\w*|professionnel|spécialiste|infirmi\w+|travailleu\w+\s+social\w*)(?!\w)/i,
+    /\b(?:médecin|docteur|thérapeute|psychiatr\w*|psycholog\w*|psycho\w+|conseill\w+|clinicien|professionnel|spécialiste|thérap\w+|traitement|suivi|psychothérap\w+)\s+(?:pourrait|pourraient|peut|peuvent|devrait|devraient|va|vont|aiderait|aideraient|serait|seraient|est|sont)\s+(?:vous\s+|te\s+)?(?:aider|soulager|faire\s+du\s+bien|être\s+utile|être\s+la\s+réponse)/i,
+    /\b(?:consultez|parlez|appelez|contactez|demandez|voyez|allez\s+voir|prenez\s+rendez-vous\s+avec|en\s+parlez)\s+(?:à\s+|avec\s+)?(?:un\s+|une\s+|votre\s+|le\s+|la\s+)?(?:médecin|docteur|thérapeute|psychiatr\w*|psycholog\w*|psycho\w+|conseill\w+|clinicien|professionnel|spécialiste|infirmi\w+)\b/i,
+    /\b(?:ça|cela|il)\s+(?:aide|aiderait|pourrait\s+aider|vaut\s+la\s+peine|vaudrait\s+la\s+peine|est\s+utile|serait\s+utile)\s+(?:de\s+|d')?(?:consulter|voir|parler\s+(?:à|avec)|contacter|appeler|rencontrer|en\s+parler)\s+(?:à\s+|avec\s+)?(?:un\s+|une\s+|votre\s+|le\s+|la\s+)?(?:médecin|docteur|thérapeute|psychiatr\w*|psycholog\w*|psycho\w+|conseill\w+|clinicien|professionnel|spécialiste|infirmi\w+)\b/i,
+    /\b(?:vaut|vaudrait)\s+la\s+peine\s+de\s+(?:consulter|voir|parler\s+(?:à|avec)|contacter|appeler|rencontrer|en\s+parler)\s+(?:à\s+|avec\s+)?(?:un\s+|une\s+|votre\s+|le\s+|la\s+)?(?:médecin|docteur|thérapeute|psychiatr\w*|psycholog\w*|psycho\w+|conseill\w+|clinicien|professionnel|spécialiste|infirmi\w+)\b/i,
+    /\bvous\s+(?:pourriez|devriez|devez|pouvez|auriez\s+intérêt\s+à)?\s*(?:commencer|commenciez|commencez|essayer|essayez|arrêter|entamer|envisager|envisagez|explorer|explorez|suivre|entreprendre|rejoindre)\s+(?:un\s+|une\s+|le\s+|la\s+|de\s+la\s+)?(?:traitement|thérap\w+|psychothérap\w+|suivi\s+(?:psychologique|thérapeutique|professionnel)|cure|thérapie\s+de\s+groupe)\b/i,
+    /\b(?:vous\s+faire|se\s+faire|faites[-\s]vous)\s+(?:tester|dépister|évaluer|diagnostiquer|examiner|soigner|suivre)\b/i,
+    /\b(?:cherchez|chercher|obtenez|obtenir|demandez|demander|consultez|consulter)\s+(?:de\s+l'|de\s+la\s+|un\s+|une\s+|des\s+|du\s+)?(?:aide|soutien|soins|avis)\s+(?:professionnel\w*|médical\w*|clinique\w*|d'urgence)/i,
+    /\bvous\s+(?:a\s+été|êtes|avez\s+été|étiez|seriez|soyez)?\s*diagnosti\w+/i,
   ],
 }
 
@@ -853,10 +909,10 @@ export function buildHealthRepairNote(flags: string[], advice: boolean): string 
   return (
     'Your reply crossed a boundary — flagged:\n' +
     flags.map((f) => `- "${f}"`).join('\n') +
-    '\nRewrite it with nothing clinical (no conditions, medications, supplements, treatments, or therapy) ' +
+    '\nRewrite it with nothing clinical applied to the person: no label on what they have or are showing, no steering toward treatment or a clinical visit, no substance names at all. A general explanation of the topic itself is fine — keep it if that is what they asked for. ' +
     (advice
-      ? '— advice itself is fine for this internal account. '
-      : 'and no "you should" directives — observations and at most one small everyday suggestion, offered not pushed. ') +
+      ? 'Advice itself is fine for this internal account. '
+      : 'And no "you should" directives — observations and at most one small everyday suggestion, offered not pushed. ') +
     'Keep the same language and the same JSON contract.'
   )
 }

@@ -144,7 +144,7 @@ Sources: [src/features/invest/portal/InvestChatPage.tsx:17-25](<>), [src/feature
 
 ## Mira — `/wellness` (health-ai)
 
-Mira is the wellness portal's companion: a warm, non-clinical presence over the person's own check-ins, habits, journal, and conversation. She is deliberately **not** clinical — her system prompt bars diagnosis, illness, treatment, medication, therapy, and crisis content beyond a single resource line.
+Mira is the wellness portal's companion: a warm, non-clinical presence over the person's own check-ins, habits, journal, and conversation. She is deliberately **not** clinical — she never reads a condition onto the person, never steers them toward treatment, medication, or a clinical visit, and never names a substance; crisis content beyond the 9-8-8 resource line stays out. A general question ("what is X") still earns a real answer in general terms — the prompt grants it and the output screen in `handlers.ts` flags only clinical content applied to the person, not third-person topic talk.
 
 **One-shot kinds** (beyond the shared chat contract):
 
