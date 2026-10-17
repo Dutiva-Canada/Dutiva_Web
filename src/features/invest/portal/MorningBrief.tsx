@@ -87,32 +87,65 @@ export function MorningBrief(props: {
       .sort((a, b) => Math.abs(b.dayChangePct ?? 0) - Math.abs(a.dayChangePct ?? 0))
       .slice(0, 4)
     if (movers.length > 0) {
-      const parts = movers.map((m) => {
+      /* Movers sharing the identical tag set collapse into one group —
+         "ASTS, RKLB, QUBT — below your cost, below their 50-day
+         averages" says the same thing as four repeated tails, once.
+         Tag keys stay symbolic until render so a group can pluralize. */
+      type MoverTagKey = 'broken' | 'drifting' | 'signal' | 'cost' | 'ma'
+      const MOVER_TAG: Record<MoverTagKey, keyof typeof IM> = {
+        broken: 'invest_brief_mover_broken',
+        drifting: 'invest_brief_mover_drifting',
+        signal: 'invest_brief_mover_signal',
+        cost: 'invest_brief_mover_below_cost',
+        ma: 'invest_brief_mover_below_ma',
+      }
+      const MOVER_TAG_MANY: Partial<Record<MoverTagKey, keyof typeof IM>> = {
+        broken: 'invest_brief_mover_broken_many',
+        drifting: 'invest_brief_mover_drifting_many',
+        signal: 'invest_brief_mover_signal_many',
+        ma: 'invest_brief_mover_below_ma_many',
+      }
+      const groups = new Map<string, { syms: string[]; keys: MoverTagKey[] }>()
+      for (const m of movers) {
         const sym = m.symbol.toUpperCase()
-        const ctx: string[] = []
+        const keys: MoverTagKey[] = []
         const th = theses.find((t) => t.symbol.toUpperCase() === sym)
-        if (th?.status === 'broken') ctx.push(x(IM.invest_brief_mover_broken))
-        else if (th?.status === 'drifting') ctx.push(x(IM.invest_brief_mover_drifting))
-        if (freshSignals.some((s) => s.symbol.toUpperCase() === sym))
-          ctx.push(x(IM.invest_brief_mover_signal))
+        if (th?.status === 'broken') keys.push('broken')
+        else if (th?.status === 'drifting') keys.push('drifting')
+        if (freshSignals.some((s) => s.symbol.toUpperCase() === sym)) keys.push('signal')
         /* avg_cost is position-currency; only compare when the quote is
            quoted in the same currency, never raw across currencies. */
         const pos = positions.find(
           (p) => p.symbol.toUpperCase() === sym && p.currency === m.currency,
         )
-        if (pos && pos.avgCost > 0 && m.price < pos.avgCost)
-          ctx.push(x(IM.invest_brief_mover_below_cost))
-        if (m.ma50 !== null && m.price < m.ma50)
-          ctx.push(x(IM.invest_brief_mover_below_ma))
-        return `${m.symbol} ${pctFmt(m.dayChangePct ?? 0)}${ctx.length > 0 ? ` — ${ctx.slice(0, 2).join(', ')}` : ''}`
-      })
-      /* Once a mover carries a tail, commas can't separate movers and tags
-         at once — step up to · for movers, commas inside the tail. */
-      const sep = parts.some((p) => p.includes(' — ')) ? ' · ' : ', '
+        if (pos && pos.avgCost > 0 && m.price < pos.avgCost) keys.push('cost')
+        if (m.ma50 !== null && m.price < m.ma50) keys.push('ma')
+        const sig = keys.slice(0, 2).join('|')
+        const g = groups.get(sig) ?? { syms: [], keys: keys.slice(0, 2) }
+        g.syms.push(`${m.symbol} ${pctFmt(m.dayChangePct ?? 0)}`)
+        groups.set(sig, g)
+      }
+      /* Commas join same-group symbols and same-tail tags; · separates
+         the groups — the tail always binds to the symbols before it. */
+      const parts = [...groups.values()].map(
+        (g) =>
+          `${g.syms.join(', ')}${g.keys.length > 0
+            ? ` — ${g.keys
+                .map(
+                  (k) =>
+                    x(
+                      g.syms.length > 1
+                        ? IM[MOVER_TAG_MANY[k] ?? MOVER_TAG[k]]
+                        : IM[MOVER_TAG[k]],
+                    ),
+                )
+                .join(', ')}`
+            : ''}`,
+      )
       out.push(
         x(morning ? IM.invest_brief_movers : IM.invest_brief_movers_day).replace(
           '{list}',
-          parts.join(sep),
+          parts.join(' · '),
         ),
       )
     }

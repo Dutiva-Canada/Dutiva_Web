@@ -545,6 +545,73 @@ describe('InvestHomePage', () => {
       await screen.findByText(/SHOP −6\.0% — thesis broken, below its 50-day average/),
     ).toBeInTheDocument()
   })
+
+  it('collapses movers with identical tags into one pluralized tail', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      positions: [
+        ...STATE.positions,
+        {
+          id: 'p2',
+          accountId: 'acc1',
+          assetClass: 'equity',
+          symbol: 'AMD',
+          name: 'AMD',
+          quantity: 5,
+          avgCost: 90,
+          currency: 'CAD',
+          lastPrice: 120,
+          lastPriceAt: '2026-01-20T00:00:00Z',
+          targetWeightPct: null,
+        },
+      ],
+      snapshots: [
+        ...STATE.snapshots,
+        {
+          assetClass: 'equity' as const,
+          symbol: 'AMD',
+          price: 120,
+          dayChangePct: -8,
+          ma50: 130,
+          currency: 'CAD',
+          source: 'manual',
+          asOf: '2026-01-20T00:00:00Z',
+          quoteName: '',
+        },
+      ],
+      theses: ['SHOP', 'AMD'].map((sym, i) => ({
+        id: `th${i}`,
+        assetClass: 'equity' as const,
+        symbol: sym,
+        name: sym,
+        thesis: 't',
+        intent: 'core' as const,
+        breakRules: [],
+        driftRules: [],
+        swot: EMPTY_SWOT,
+        status: 'broken' as const,
+        evalDetail: null,
+        lastEvaluatedAt: null,
+        createdAt: '2026-01-10T00:00:00Z',
+        updatedAt: '2026-01-10T00:00:00Z',
+      })),
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Same two tags on both movers — one shared, pluralized tail
+       instead of the same sentence twice. */
+    expect(
+      await screen.findByText(
+        /AMD −8\.0%, SHOP −6\.0% — theses broken, below their 50-day averages/,
+      ),
+    ).toBeInTheDocument()
+  })
 })
 
 describe('InvestSignalsPage', () => {

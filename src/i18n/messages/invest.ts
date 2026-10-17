@@ -321,6 +321,13 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_ov_last_run_sweep: { en: 'sweep', fr: 'balayage' },
   /* [FR self-authored] */
+  invest_ov_last_run_overdue: { en: 'overdue', fr: 'en retard' },
+  /* [FR self-authored] */
+  invest_ov_last_run_overdue_hint: {
+    en: 'The daily agent sweep hasn’t landed in over a day — see the Agent page.',
+    fr: 'Le balayage quotidien n’a pas eu lieu depuis plus d’un jour — voir la page Agent.',
+  },
+  /* [FR self-authored] */
   invest_ov_last_run_eval: { en: 'evaluation', fr: 'évaluation' },
   invest_ov_allocation: { en: 'Allocation by asset class', fr: 'Répartition par classe d’actifs' },
   invest_ov_recent_signals: { en: 'Latest signals', fr: 'Derniers signaux' },
@@ -932,6 +939,19 @@ const investCoreMessages = defineMessages({
   invest_brief_mover_below_ma: {
     en: 'below its 50-day average',
     fr: 'sous sa moyenne de 50 jours',
+  },
+  /* Plural tails — shared when several movers carry the identical tag
+     set, so the line never reads "its" about four positions at once. */
+  /* [FR self-authored] */
+  invest_brief_mover_broken_many: { en: 'theses broken', fr: 'thèses brisées' },
+  /* [FR self-authored] */
+  invest_brief_mover_drifting_many: { en: 'theses drifting', fr: 'thèses en dérive' },
+  /* [FR self-authored] */
+  invest_brief_mover_signal_many: { en: 'signals fired', fr: 'signaux déclenchés' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_ma_many: {
+    en: 'below their 50-day averages',
+    fr: 'sous leur moyenne de 50 jours',
   },
   /* [FR self-authored] */
   invest_brief_signal_one: { en: 'signal fired since yesterday', fr: 'signal déclenché depuis hier' },

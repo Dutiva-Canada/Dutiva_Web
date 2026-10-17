@@ -216,6 +216,10 @@ export function InvestHomePage() {
   const openSignals = state.signals.filter((s) => s.status !== 'dismissed').length
   const latestSignals = state.signals.filter((s) => s.status !== 'dismissed').slice(0, 5)
   const lastRun = state.runs[0]
+  /* The sweep is daily — a run older than ~26h means one was missed,
+     and a neutral timestamp would hide the outage. */
+  const lastRunStale =
+    lastRun !== undefined && Date.now() - Date.parse(lastRun.ranAt) > 26 * 3_600_000
   const pricesAsOf = useMemo(() => {
     let latest: string | undefined
     for (const s of state.snapshots) {
@@ -412,6 +416,15 @@ export function InvestHomePage() {
                 <span className="dim" style={{ display: 'block' }}>
                   {x(lastRun.strategyId ? IM.invest_ov_last_run_eval : IM.invest_ov_last_run_sweep)}
                 </span>
+                {lastRunStale && (
+                  <span
+                    className="dim"
+                    style={{ display: 'block', color: 'var(--sb-accent-ink)' }}
+                    title={x(IM.invest_ov_last_run_overdue_hint)}
+                  >
+                    {x(IM.invest_ov_last_run_overdue)}
+                  </span>
+                )}
               </>
             ) : (
               x(IM.invest_ov_never_run)
