@@ -115,8 +115,13 @@ export function StressTest(props: {
     const snap = snapshots.find(
       (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
     )
-    if (!snap) return null
-    return convertFx(p.quantity * snap.price, snap.currency, bookCcy, fx)
+    if (snap) return convertFx(p.quantity * snap.price, snap.currency, bookCcy, fx)
+    /* Unpriced row — last write-back, then cost; a position that can't
+       mark still counts toward "top holding". */
+    const px = p.lastPrice ?? (p.avgCost > 0 ? p.avgCost : null)
+    return px === null
+      ? null
+      : convertFx(p.quantity * px, p.currency || bookCcy, bookCcy, fx)
   }
 
   /** The preset's shock list — `top15` and `winners20` derive their target
@@ -166,6 +171,11 @@ export function StressTest(props: {
       goals,
       watchSymbols,
       cashTotal,
+      /* Per-leg cash lets the FX scenario revalue foreign-denominated
+         balances — a USD cash pile shrinks when CAD strengthens. */
+      cashLegs: accounts
+        .filter((a) => a.status === 'active')
+        .map((a) => ({ amount: a.cashBalance, currency: a.baseCurrency })),
       bookCcy,
       fx,
       shocks,

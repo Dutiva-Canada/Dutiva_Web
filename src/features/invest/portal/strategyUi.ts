@@ -20,12 +20,26 @@ import type {
   OrderProposalRule,
   RuleMetric,
   RunWarning,
+  ScanDirection,
   StrategyCadence,
   StrategyNotify,
   StrategyRule,
   StrategyScope,
   TestScanMatch,
 } from '../data/types'
+
+/* Scan-board direction vocabulary — the saved board and the pending
+   "Tally suggests" strip tag items with the same labels and pills. */
+export const SCAN_DIR_LABEL: Record<ScanDirection, keyof typeof IM> = {
+  tailwind: 'invest_scan_dir_tailwind',
+  headwind: 'invest_scan_dir_headwind',
+  monitor: 'invest_scan_dir_monitor',
+}
+export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
+  tailwind: 'sb-pill-ok',
+  headwind: 'sb-pill-warn',
+  monitor: 'sb-pill-draft',
+}
 
 const localeOf = (lang: Lang): string => (lang === 'fr' ? 'fr-CA' : 'en-CA')
 

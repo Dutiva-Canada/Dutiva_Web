@@ -26,6 +26,7 @@ import { resolveSuggestion } from '@/lib/agentQueue'
 import type { InvestScanItem, ScanDirection, ScanTheme } from '../data/types'
 import { SCAN_DIRECTIONS, SCAN_THEMES } from '../data/types'
 import { relTimeLabel } from './relTime'
+import { SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 
 const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
   economy: 'invest_scan_theme_economy',
@@ -35,18 +36,8 @@ const SCAN_THEME_LABEL: Record<ScanTheme, keyof typeof IM> = {
   geopolitical: 'invest_scan_theme_geopolitical',
   company: 'invest_scan_theme_company',
 }
-/* Exported so the pending-suggestion strip can tag scan suggestions with
-   the same direction vocabulary the saved board uses. */
-export const SCAN_DIR_LABEL: Record<ScanDirection, keyof typeof IM> = {
-  tailwind: 'invest_scan_dir_tailwind',
-  headwind: 'invest_scan_dir_headwind',
-  monitor: 'invest_scan_dir_monitor',
-}
-export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
-  tailwind: 'sb-pill-ok',
-  headwind: 'sb-pill-warn',
-  monitor: 'sb-pill-draft',
-}
+/* The direction label/pill maps live in strategyUi so the pending-
+   suggestion strip shares the board's vocabulary. */
 
 /** An item untouched for ~6 weeks earns the stale badge — the board's
     own review cadence. */
