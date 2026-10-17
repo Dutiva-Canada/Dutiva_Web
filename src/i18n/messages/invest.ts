@@ -837,7 +837,7 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_stress_scenario_top15: { en: 'Top holding −15%', fr: 'Première position −15 %' },
   /* [FR self-authored] */
-  invest_stress_scenario_cad5: { en: 'CAD +5%', fr: 'CAD +5 %' },
+  invest_stress_scenario_cad5: { en: '{ccy} +5%', fr: '{ccy} +5 %' },
   /* [FR self-authored] */
   invest_stress_scenario_winners: { en: 'Winners give back 20%', fr: 'Les gagnants rendent 20 %' },
   /* [FR self-authored] */

@@ -205,7 +205,7 @@ export function StressTest(props: {
     const shocks = presetShocks(id)
     if (shocks) {
       const key = PRESETS.find((p) => p.id === id)?.key
-      run(shocks, key ? x(IM[key]) : undefined)
+      run(shocks, key ? x(IM[key]).replace('{ccy}', bookCcy) : undefined)
     }
   }
 
@@ -264,7 +264,7 @@ export function StressTest(props: {
             aria-pressed={preset === p.id}
             onClick={() => pickPreset(p.id)}
           >
-            {x(IM[p.key])}
+            {x(IM[p.key]).replace('{ccy}', bookCcy)}
           </button>
         ))}
       </div>
