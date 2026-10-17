@@ -21,8 +21,11 @@ import {
   detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
+  headlineSourceVisible,
   investChatPrompt,
   investReactPrompt,
+  newsKindTag,
+  normalizeSource,
   parseInvestChatReply,
   resolveInvestRef,
   verifyReplyClaims,
@@ -1122,6 +1125,45 @@ describe('formatMarketEntry', () => {
     expect(out).not.toContain('fundamentals:')
     expect(out).not.toContain('news:')
   })
+  it('tags a classified headline and its theme provenance', () => {
+    const out = formatMarketEntry({
+      ...base,
+      headlines: [{
+        title: 'US-China Trade War Escalates', source: 'CNBC',
+        publishedAt: '2026-10-09T12:00:00Z', url: 'https://cnbc.com/x',
+        kind: 'event', viaTheme: 'Trade restrictions',
+      }],
+    })
+    expect(out).toContain('"US-China Trade War Escalates" (CNBC, 2026-10-09, event, via "Trade restrictions")')
+  })
+})
+
+describe('headline source prefs', () => {
+  const noMutes = new Set<string>()
+  it('hides subscription-only sources by default and reveals them on opt-in', () => {
+    expect(headlineSourceVisible('Reuters', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Barron\'s', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Reuters', noMutes, true)).toBe(true)
+    expect(headlineSourceVisible('CBC News', noMutes, false)).toBe(true)
+  })
+  it('matches paywall names case/punctuation-insensitively and by prefix', () => {
+    expect(headlineSourceVisible('reuters', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Barron’s', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Reuters Canada', noMutes, false)).toBe(false)
+  })
+  it('mutes win over everything, including revealed paywalled sources', () => {
+    const muted = new Set(['seekingalpha'])
+    expect(headlineSourceVisible('Seeking Alpha', muted, true)).toBe(false)
+    const mutedYahoo = new Set([normalizeSource('Yahoo Finance')])
+    expect(headlineSourceVisible('Yahoo! Finance Canada', mutedYahoo, false)).toBe(false)
+    expect(headlineSourceVisible('The Globe and Mail', mutedYahoo, false)).toBe(true)
+  })
+  it('newsKindTag passes only the five stored verdicts', () => {
+    expect(newsKindTag('view')).toBe('view')
+    expect(newsKindTag('filing')).toBe('filing')
+    expect(newsKindTag('bogus')).toBeNull()
+    expect(newsKindTag(null)).toBeNull()
+  })
 })
 
 describe('investChatPrompt — market data', () => {
@@ -1147,6 +1189,15 @@ describe('investChatPrompt — market data', () => {
     expect(p).toContain('Market backdrop:')
     expect(p).toContain('"TSX falls on oil"')
     expect(p).toContain('verdict')
+  })
+  it('prints the headline-tag legend when headlines exist and omits it when none do', () => {
+    expect(investChatPrompt(ctxWithMarket, 'en').content).toContain('Headline tags')
+    const quiet: InvestChatContext = {
+      ...ctxWithMarket,
+      market: [{ ...ctxWithMarket.market[0], headlines: [] }],
+      generalNews: [],
+    }
+    expect(investChatPrompt(quiet, 'en').content).not.toContain('Headline tags')
   })
   it('renders (none) cleanly when the table is empty', () => {
     const p = investChatPrompt(EMPTY_CTX, 'en').content

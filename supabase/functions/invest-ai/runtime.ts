@@ -15,7 +15,10 @@ import {
   detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
+  headlineSourceVisible,
   investChatPrompt,
+  newsKindTag,
+  normalizeSource,
   parseInvestChatReply,
   verifyReplyClaims,
   type ChatSource,
@@ -104,6 +107,12 @@ export async function modelRoute(adminClient: SupabaseClient): Promise<ModelRout
 export async function loadBookContext(
   adminClient: SupabaseClient,
   userId: string,
+  opts?: {
+    /** The holder flagged a subscription on the feed card — then the
+        subscription-only publishers stay in context. Absent/false hides
+        them, matching the card's default. */
+    showPaywalled?: boolean
+  },
 ): Promise<{
   ctx: InvestChatContext
   accounts: { id: string; name: string; kind: string; base_currency: string; cash_balance: number }[]
@@ -130,6 +139,7 @@ export async function loadBookContext(
     { data: snapshots },
     { data: profileRow },
     { data: memoryRows },
+    { data: muteRows },
   ] = await Promise.all([
     adminClient.from('invest_accounts')
       .select('id, name, kind, base_currency, cash_balance, status')
@@ -175,6 +185,13 @@ export async function loadBookContext(
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(30),
+    /* Sources the holder muted on the feed — the same preference removes
+       them from Tally's context, so a muted publisher can't come back as
+       a citation. */
+    adminClient.from('invest_news_source_mutes')
+      .select('source')
+      .eq('user_id', userId)
+      .limit(200),
   ])
 
   /* Headlines ride the market section — the table is global, so the query
@@ -186,24 +203,44 @@ export async function loadBookContext(
   for (const w of watchlist ?? []) universe.add(String(w.symbol).toUpperCase())
   for (const s of signals ?? []) universe.add(String(s.symbol).toUpperCase())
 
-  let newsRows: { symbol: string; title: string; source: string; published_at: string | null; url: string | null }[] = []
+  let newsRows: {
+    symbol: string
+    title: string
+    source: string
+    published_at: string | null
+    url: string | null
+    kind: string | null
+    via_theme: string | null
+  }[] = []
   if (universe.size > 0) {
     const { data } = await adminClient
       .from('invest_market_news')
-      .select('symbol, title, source, published_at, url')
+      .select('symbol, title, source, published_at, url, kind, via_theme')
       .in('symbol', [...universe, ''])
       .order('published_at', { ascending: false })
       .limit(50)
     newsRows = (data ?? []) as typeof newsRows
   }
+  /* The feed's visibility rules apply to context too — muted sources and
+     (unless the holder opted in) subscription-only publishers stay out,
+     so a citation can only point at what the holder can actually read. */
+  const mutedKeys = new Set(
+    (muteRows ?? []).map((r) => normalizeSource(String((r as { source: string }).source ?? ''))),
+  )
+  mutedKeys.delete('')
+  const showPaywalled = opts?.showPaywalled === true
   const headlinesBySymbol = new Map<string, MarketContextEntry['headlines']>()
   const generalNews: InvestChatContext['generalNews'] = []
   for (const row of newsRows) {
+    const source = String(row.source).slice(0, 60)
+    if (!headlineSourceVisible(source, mutedKeys, showPaywalled)) continue
     const item = {
       title: String(row.title).slice(0, 200),
-      source: String(row.source).slice(0, 60),
+      source,
       publishedAt: row.published_at,
       url: row.url ?? null,
+      kind: newsKindTag(row.kind),
+      viaTheme: row.via_theme ? String(row.via_theme).slice(0, 120) : null,
     }
     const sym = String(row.symbol ?? '').toUpperCase()
     if (sym === '') {
@@ -391,6 +428,9 @@ export async function runChat(
         regenerate's stale-pair delete and stale-action undo live here so
         a failed call loses nothing. */
     afterPersist?: () => Promise<void>
+    /** Feed card's "I'm subscribed" flag — forwarded so Tally's context
+        honours the same subscription-only filter the holder sees. */
+    showPaywalled?: boolean
   },
 ): Promise<Response> {
   const routed = await modelRoute(adminClient)
@@ -417,7 +457,7 @@ export async function runChat(
     }
   }
   const [book, { data: historyRows, error: histError }] = await Promise.all([
-    loadBookContext(adminClient, userId),
+    loadBookContext(adminClient, userId, { showPaywalled: opts?.showPaywalled }),
     histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
   ])
   if (histError) return json({ error: histError.message }, 500)

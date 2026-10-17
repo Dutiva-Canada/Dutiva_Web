@@ -263,10 +263,15 @@ const handler = async (req: Request) => {
   /* stream:true answers Server-Sent Events instead of one JSON payload —
      see the module header for the event shapes. */
   const stream = body['stream'] === true
+  /* The holder's feed pref travels with the request — subscription-only
+     publishers stay out of Tally's context unless they toggled them on. */
+  const showPaywalled = body['showPaywalled'] === true
   if (body['kind'] === 'chat') {
     const message = typeof body['message'] === 'string' ? body['message'].trim().slice(0, 1200) : ''
     if (!message) return json({ error: 'message is required' }, 400)
-    return await runChat(adminClient, userId, message, lang, stream, advice, threadId)
+    return await runChat(adminClient, userId, message, lang, stream, advice, threadId, {
+      showPaywalled,
+    })
   }
   if (body['kind'] === 'chat_regenerate') {
     /* Re-ask the thread's last user turn. The stale pair is only EXCLUDED
@@ -304,6 +309,7 @@ const handler = async (req: Request) => {
       }
     }
     return await runChat(adminClient, userId, prev.content, lang, stream, advice, threadId, {
+      showPaywalled,
       excludeIds: [latest.id, prev.id],
       afterPersist: async () => {
         await adminClient
@@ -317,7 +323,7 @@ const handler = async (req: Request) => {
   if (body['kind'] === 'react') {
     const event = parseInvestReactEvent(body['event'])
     if (!event) return json({ error: 'bad event' }, 400)
-    return await runReact(adminClient, userId, event, lang, stream, advice)
+    return await runReact(adminClient, userId, event, lang, stream, advice, showPaywalled)
   }
 
   const actionCheck = validateAiAction(body['action'])

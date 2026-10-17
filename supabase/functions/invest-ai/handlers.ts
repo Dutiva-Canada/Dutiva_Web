@@ -659,6 +659,96 @@ export function parseScanDraft(
    index.ts) the register loosens to direct advice; the action grammar and
    the queued-draft rule stay identical either way. */
 
+/* ── Headline source prefs ─────────────────────────────────────────────
+   Mirror of src/features/invest/data/newsDedupe.ts — keep the two in
+   sync. The chat context honours the same muted/paywalled lists the
+   feed applies: a source the holder muted or can't open should not
+   become context — or a citation. */
+
+export function normalizeSource(source: string): string {
+  return source.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+/* Exact match plus a longer source starting with a listed key —
+   'Reuters Canada' follows 'Reuters'. */
+export function sourceInSet(keys: ReadonlySet<string>, source: string): boolean {
+  const k = normalizeSource(source)
+  if (keys.has(k)) return true
+  for (const key of keys) if (key.length >= 3 && k.length > key.length && k.startsWith(key)) return true
+  return false
+}
+
+/* Hard-paywalled publishers as named in Google News <source> — the same
+   set the portal card filters on. Metered/partial walls stay out of it. */
+export const PAYWALL_SOURCES: ReadonlySet<string> = new Set([
+  'Barron\'s',
+  'Bloomberg',
+  'Business Insider',
+  'Financial Times',
+  'Haaretz',
+  'Harvard Business Review',
+  'Investor\'s Business Daily',
+  'MarketWatch',
+  'Reuters',
+  'Seeking Alpha',
+  'The Athletic',
+  'The Economist',
+  'The Information',
+  'The New York Times',
+  'The Telegraph',
+  'The Wall Street Journal',
+  'WSJ',
+])
+
+const PAYWALL_KEYS: ReadonlySet<string> = new Set([...PAYWALL_SOURCES].map(normalizeSource))
+
+/** The feed's visibility rule applied to chat context: a muted source
+    never appears, and subscription-only sources stay out unless the
+    holder flagged a subscription (the card's toggle travels with the
+    request as showPaywalled — absent reads as hidden, like the card). */
+export function headlineSourceVisible(
+  source: string,
+  mutedKeys: ReadonlySet<string>,
+  showPaywalled: boolean,
+): boolean {
+  if (sourceInSet(mutedKeys, source)) return false
+  if (!showPaywalled && sourceInSet(PAYWALL_KEYS, source)) return false
+  return true
+}
+
+/* The stored classifier verdicts — anything else on the row (legacy
+   value, null) renders untagged. */
+const NEWS_KIND_TAGS: ReadonlySet<string> = new Set(['event', 'news', 'view', 'move', 'filing'])
+
+export function newsKindTag(kind: unknown): string | null {
+  return typeof kind === 'string' && NEWS_KIND_TAGS.has(kind) ? kind : null
+}
+
+export interface HeadlineContextItem {
+  title: string
+  source: string
+  publishedAt: string | null
+  url: string | null
+  /** Stored verdict — event|news|view|move|filing. Null means
+      unclassified: an older row, a quiet-degraded run, or a live
+      on-demand pull that never went through the classifier. */
+  kind?: string | null
+  /** Watch-item title that surfaced the row — a theme linkage claim,
+      not a direct mention of the symbol. */
+  viaTheme?: string | null
+}
+
+/** One headline → its context token. Kind and provenance ride along so
+    the model can tell an event from an analyst note from filing churn,
+    and a theme-surfaced story from a direct mention. */
+function formatHeadline(h: HeadlineContextItem): string {
+  const bits = [h.source]
+  if (asDay(h.publishedAt)) bits.push(asDay(h.publishedAt)!)
+  if (h.kind) bits.push(h.kind)
+  if (h.viaTheme) bits.push(`via "${h.viaTheme}"`)
+  return `"${h.title}" (${bits.join(', ')})`
+}
+
 export interface MarketContextEntry {
   symbol: string
   assetClass: string
@@ -677,7 +767,7 @@ export interface MarketContextEntry {
   fundamentals: Record<string, number | string | null> | null
   /** Snapshot write time — the figures are delayed, and the prompt says so. */
   asOf: string | null
-  headlines: { title: string; source: string; publishedAt: string | null; url: string | null }[]
+  headlines: HeadlineContextItem[]
 }
 
 /* The profile the user set in Settings — calibrates depth and what the
@@ -708,7 +798,7 @@ export interface InvestChatContext {
      for a mentioned ticker) — the numbers analysis answers are built on. */
   market: MarketContextEntry[]
   /* Symbol-less market headlines — the general backdrop row. */
-  generalNews: { title: string; source: string; publishedAt: string | null; url: string | null }[]
+  generalNews: HeadlineContextItem[]
   /* Confirmed memories (invest_memories) — what Tally retains about this
      holder across sessions. Context only. */
   memories: MemoryPromptFact[]
@@ -943,11 +1033,7 @@ export function formatMarketEntry(e: MarketContextEntry): string {
     if (bits.length > 0) tail.push(`  fundamentals: ${bits.join(', ')}`)
   }
   if (e.headlines.length > 0) {
-    tail.push(
-      `  news: ${e.headlines
-        .map((h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`)
-        .join('; ')}`,
-    )
+    tail.push(`  news: ${e.headlines.map(formatHeadline).join('; ')}`)
   }
   return [head, ...tail].join('\n')
 }
@@ -1149,14 +1235,15 @@ export function investChatPrompt(
       lines(ctx.openOrders.map((o) => `${o.side} ${o.quantity} ${o.symbol} — ${o.status}`)),
       `Market data on file (${ctx.market.length}):`,
       lines(ctx.market.map(formatMarketEntry)),
+      ...(ctx.market.some((e) => e.headlines.length > 0) || ctx.generalNews.length > 0
+        ? [
+            'Headline tags — kind: event = something happened, news = factual report, view = opinion/analysis, move = price-move churn, filing = holdings disclosure; "via X" = surfaced by that watch theme rather than a direct mention; untagged = unclassified.',
+          ]
+        : []),
       ...(ctx.generalNews.length > 0
         ? [
             'Market backdrop:',
-            lines(
-              ctx.generalNews.map(
-                (h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`,
-              ),
-            ),
+            lines(ctx.generalNews.map(formatHeadline)),
           ]
         : []),
     ].join('\n'),

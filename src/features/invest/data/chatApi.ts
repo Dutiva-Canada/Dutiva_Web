@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient'
 import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
+import { NEWS_PAYWALL_PREF } from '@/features/invest/data/newsDedupe'
 import {
   parseChatSources,
   type ChatSourceRow,
@@ -84,6 +85,17 @@ export interface InvestChatCallOpts {
     caller only sends the message and the locale. assistantId is the
     persisted row's id — the client needs it to attach feedback. Pass
     onDelta to stream the reply into the UI as it generates. */
+/* The feed card's "I'm subscribed" toggle is device-local — the edge
+   function can't see it, so every context-bearing call forwards it.
+   Absent/false hides subscription-only publishers, same as the card. */
+function showPaywalledPref(): boolean {
+  try {
+    return localStorage.getItem(NEWS_PAYWALL_PREF) === '1'
+  } catch {
+    return false
+  }
+}
+
 export interface InvestChatSendResult {
   reply: string
   action: InvestChatAction | null
@@ -108,7 +120,13 @@ export async function sendInvestChat(
   opts?: InvestChatCallOpts,
 ): Promise<InvestChatSendResult> {
   const client = requireClient()
-  const body = { kind: 'chat', message, lang, threadId: opts?.threadId ?? null }
+  const body = {
+    kind: 'chat',
+    message,
+    lang,
+    threadId: opts?.threadId ?? null,
+    showPaywalled: showPaywalledPref(),
+  }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
@@ -148,7 +166,12 @@ export async function regenerateInvestChat(
   opts?: InvestChatCallOpts,
 ): Promise<InvestChatSendResult> {
   const client = requireClient()
-  const body = { kind: 'chat_regenerate', lang, threadId: opts?.threadId ?? null }
+  const body = {
+    kind: 'chat_regenerate',
+    lang,
+    threadId: opts?.threadId ?? null,
+    showPaywalled: showPaywalledPref(),
+  }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
@@ -256,7 +279,7 @@ export async function sendInvestReaction(
   }
   lastReactionAt = Date.now()
   const client = requireClient()
-  const body = { kind: 'react', event, lang }
+  const body = { kind: 'react', event, lang, showPaywalled: showPaywalledPref() }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta)
