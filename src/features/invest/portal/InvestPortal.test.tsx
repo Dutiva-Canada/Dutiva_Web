@@ -471,6 +471,35 @@ describe('InvestHomePage', () => {
     expect(screen.queryByRole('button', { name: 'Equity' })).not.toBeInTheDocument()
   })
 
+  it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {
+    const recent = new Date(Date.now() - 2 * 86_400_000).toISOString()
+    const older = new Date(Date.now() - 10 * 86_400_000).toISOString()
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: STATE.news.map((n, i) => ({
+        ...n,
+        publishedAt: i === 0 ? recent : older,
+      })),
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Default 7d: the 10-day-old theme headline is out of window. */
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: '2 weeks' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+  })
+
   it('lists totals per currency instead of a blended figure when no FX rate loads', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(USD_QUOTED)

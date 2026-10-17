@@ -27,6 +27,9 @@ const assetLabel: Record<AssetClass, keyof typeof IM> = {
 
 const cardClass = 'sb-card sb-card-pad'
 
+/* The feed retains 30 days; the card windows it. */
+const NEWS_RANGE_MS = { '7d': 7 * 86_400_000, '14d': 14 * 86_400_000, '30d': 30 * 86_400_000 } as const
+
 /* recharts (~420kB with its d3 tree) must stay an on-demand chunk — the
    same rule as components/advisor/ChatChart.tsx. The curve mounts once
    when the overview first renders. */
@@ -64,8 +67,10 @@ export function InvestHomePage() {
   /* 'book' shows only headlines tagged to a held or watched symbol —
      the news-for-your-book cut. */
   /* Facet keys: 'all' | 'book' | 'general' | 'sym:AMD' | 'cls:crypto' |
-     'theme:<watch-item title>'. */
+     'theme:<watch-item title>'. The range axis is separate — the feed
+     retains 30 days, windowed to 7d by default. */
   const [newsFilter, setNewsFilter] = useState<string>('all')
+  const [newsRange, setNewsRange] = useState<'7d' | '14d' | '30d'>('7d')
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency amounts drop out of the totals with a note below
      rather than sum into a wrong number. */
@@ -259,9 +264,20 @@ export function InvestHomePage() {
     () => dedupeNews(state.news, { preferSymbols: bookSymbols }),
     [state.news, bookSymbols],
   )
+  /* Range narrows first — facets and 'Your book' describe the windowed
+     set, so a chip reflects what selecting it would actually show. A
+     quiet window still shows what's on file rather than blank the list
+     because the freshest headline happens to predate the range. */
+  const rangedHeadlines = useMemo(() => {
+    const cutoff = Date.now() - NEWS_RANGE_MS[newsRange]
+    const rows = headlines.filter(
+      (n) => n.publishedAt !== null && Date.parse(n.publishedAt) >= cutoff,
+    )
+    return rows.length > 0 ? rows : headlines
+  }, [headlines, newsRange])
   const bookHeadlines = useMemo(
-    () => headlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
-    [headlines, bookSymbols],
+    () => rangedHeadlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
+    [rangedHeadlines, bookSymbols],
   )
   /* Facet chips derive from what the feed actually carries — a facet
      never appears for an empty result. Symbols sort book-first, then
@@ -273,14 +289,14 @@ export function InvestHomePage() {
     const themes = new Set<string>()
     const classes = new Set<string>()
     let general = false
-    for (const n of headlines) {
+    for (const n of rangedHeadlines) {
       if (n.symbol === '') general = true
       else syms.add(n.symbol.toUpperCase())
       if (n.viaTheme) themes.add(n.viaTheme)
       if (n.assetClass) classes.add(n.assetClass)
     }
     return {
-      book: bookHeadlines.length > 0 && bookHeadlines.length !== headlines.length,
+      book: bookHeadlines.length > 0 && bookHeadlines.length !== rangedHeadlines.length,
       symbols: [...syms].sort(
         (a, b) => Number(bookSymbols.has(b)) - Number(bookSymbols.has(a)) || a.localeCompare(b),
       ),
@@ -288,24 +304,24 @@ export function InvestHomePage() {
       classes: classes.size > 1 ? [...classes].sort() : [],
       general: general && syms.size > 0,
     }
-  }, [headlines, bookHeadlines, bookSymbols])
+  }, [rangedHeadlines, bookHeadlines, bookSymbols])
   const scopedHeadlines = useMemo(() => {
     const rows =
       newsFilter === 'all'
-        ? headlines
+        ? rangedHeadlines
         : newsFilter === 'book'
           ? bookHeadlines
           : newsFilter === 'general'
-            ? headlines.filter((n) => n.symbol === '')
+            ? rangedHeadlines.filter((n) => n.symbol === '')
             : newsFilter.startsWith('sym:')
-              ? headlines.filter((n) => n.symbol.toUpperCase() === newsFilter.slice(4))
+              ? rangedHeadlines.filter((n) => n.symbol.toUpperCase() === newsFilter.slice(4))
               : newsFilter.startsWith('theme:')
-                ? headlines.filter((n) => n.viaTheme === newsFilter.slice(6))
-                : headlines.filter((n) => n.assetClass === newsFilter.slice(4))
+                ? rangedHeadlines.filter((n) => n.viaTheme === newsFilter.slice(6))
+                : rangedHeadlines.filter((n) => n.assetClass === newsFilter.slice(4))
     /* A facet can outlive its rows (a refresh clears them) — fall back
        to 'all' rather than blank the list. */
-    return rows.length > 0 ? rows : headlines
-  }, [headlines, bookHeadlines, newsFilter])
+    return rows.length > 0 ? rows : rangedHeadlines
+  }, [rangedHeadlines, bookHeadlines, newsFilter])
   const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
   /* Tally's presence outside the chat tab — one noticed thing, built
@@ -619,6 +635,22 @@ export function InvestHomePage() {
             </p>
           </div>
           <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
+            <div
+              className="sb-seg sb-seg-sm"
+              role="group"
+              aria-label={x(IM.invest_news_range_aria)}
+            >
+              {(['7d', '14d', '30d'] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  aria-pressed={newsRange === r}
+                  onClick={() => setNewsRange(r)}
+                >
+                  {x(IM[`invest_news_range_${r}`])}
+                </button>
+              ))}
+            </div>
             {scopedHeadlines.length > 12 && (
               <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
                 {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}

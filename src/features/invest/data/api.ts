@@ -215,11 +215,15 @@ export async function loadInvestState(): Promise<InvestState> {
         ),
     ),
   ]
+  /* The feed retains 30 days — the sync prunes older rows, and the card
+     offers 7d/2w/30d windows over this set. The row cap is a safety
+     bound for a very busy feed, not the intended window. */
   const newsQuery = client
     .from('invest_market_news')
     .select('*')
+    .gte('published_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
     .order('published_at', { ascending: false, nullsFirst: false })
-    .limit(60)
+    .limit(500)
   const news = await (symbols.length > 0
     ? newsQuery.or(`symbol.eq."",symbol.in.(${symbols.map((s) => `"${s}"`).join(',')})`)
     : newsQuery.eq('symbol', ''))

@@ -674,6 +674,14 @@ const investCoreMessages = defineMessages({
   invest_news_book: { en: 'Your book', fr: 'Votre portefeuille' },
   /* [FR self-authored] */
   invest_news_all: { en: 'All', fr: 'Tout' },
+  /* [FR self-authored] */
+  invest_news_range_aria: { en: 'Headline window', fr: 'Période des manchettes' },
+  /* [FR self-authored] */
+  invest_news_range_7d: { en: '7 days', fr: '7 jours' },
+  /* [FR self-authored] */
+  invest_news_range_14d: { en: '2 weeks', fr: '2 semaines' },
+  /* [FR self-authored] */
+  invest_news_range_30d: { en: '30 days', fr: '30 jours' },
   /* [FR self-authored] Unscoped rows — no ticker, no theme link. */
   invest_news_general: { en: 'General market', fr: 'Marché général' },
   /* [FR self-authored] */

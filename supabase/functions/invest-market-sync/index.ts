@@ -667,7 +667,15 @@ async function refreshNews(adminClient: SupabaseClient, targets: SyncTarget[]): 
   const { error } = await adminClient
     .from('invest_market_news')
     .upsert(rows, { onConflict: 'symbol,url', ignoreDuplicates: true })
-  return error ? 0 : rows.length
+  if (error) return 0
+  /* The card offers up to a 30-day window — anything older is dead
+     storage, so the feed prunes on the same bound it displays. */
+  const { error: pruneError } = await adminClient
+    .from('invest_market_news')
+    .delete()
+    .lt('published_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+  if (pruneError) console.error('news prune failed', pruneError)
+  return rows.length
 }
 
 /* ── Handler ─────────────────────────────────────────────────────────────── */
