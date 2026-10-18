@@ -1160,16 +1160,29 @@ describe('investChatPrompt — attachments + closes legend', () => {
       ...EMPTY_CTX,
       market: [{ ...row, closes30d: [100, 101, 102] }],
     }
-    expect(investChatPrompt(withCloses, 'en').content).toContain('recent closes')
-    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain('recent closes')
+    /* The legend line itself — "recent closes" alone also appears in the
+       chart-fence instruction, so the assertion names the legend's body. */
+    expect(investChatPrompt(withCloses, 'en').content).toContain(
+      'recent closes — the last ~30 daily closes',
+    )
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain(
+      'the last ~30 daily closes',
+    )
     expect(
       investChatPrompt({ ...EMPTY_CTX, market: [row] }, 'en').content,
-    ).not.toContain('recent closes')
+    ).not.toContain('the last ~30 daily closes')
   })
   it('adds the image honesty clause only when an image rides the turn', () => {
     expect(investChatPrompt(EMPTY_CTX, 'en', { image: true }).content).toContain('attached an image')
     expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain('attached an image')
     expect(investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content).not.toContain('attached an image')
+  })
+  it('teaches the chart fence grammar with the grounding rule attached', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('```chart fenced block')
+    expect(p).toContain('bar, hbar, line, area, or donut')
+    /* The chart path is not exempt from grounding — the prompt says so. */
+    expect(p).toContain('never invent values to fill a series')
   })
 })
 
