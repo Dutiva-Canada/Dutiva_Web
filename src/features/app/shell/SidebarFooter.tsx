@@ -8,6 +8,7 @@ import { useI18n } from '@/i18n/context'
 import { shellMessages as M } from '@/i18n/messages/shell'
 import { seoRoute } from '@/seo/routes'
 import { isCurrentUserAdmin } from '@/features/support/supportAdminApi'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import type { WorkspaceIdentity } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { SidebarTooltip } from './SidebarTooltip'
@@ -25,6 +26,7 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
   const { x, L, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
   const { root, isPublicDemo } = useWorkspaceRoot()
+  const { memberships = [], organizationId, setActiveOrganization } = useWorkspaceMode()
   const helpCentrePath = seoRoute('help').path[lang]
   const { pathname } = useLocation()
   const [profileOpen, setProfileOpen] = useState(false)
@@ -163,6 +165,38 @@ export function SidebarFooter({ expanded, identity, onNavigate }: SidebarFooterP
                 <div className="break-all text-[11.5px] text-text-muted">{identity.user.email}</div>
               ) : null}
             </div>
+            {memberships.length > 1 && (
+              <div className="border-b border-border-soft py-1.5" role="group" aria-label={x(M.shell_org_switch_label)}>
+                <div className="px-3.5 pb-1 pt-1 text-[10.5px] font-bold uppercase tracking-[0.06em] text-text-faint">
+                  {x(M.shell_org_switch_label)}
+                </div>
+                {memberships.map((m) => (
+                  <button
+                    key={m.organizationId}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={m.organizationId === organizationId}
+                    onClick={() => {
+                      setProfileOpen(false)
+                      onNavigate?.()
+                      void setActiveOrganization?.(m.organizationId)
+                    }}
+                    className="flex w-full cursor-pointer items-center gap-2 border-none bg-transparent px-3.5 py-2 text-left text-[13px] text-text-2 hover:bg-inset"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cx(
+                        'h-1.5 w-1.5 shrink-0 rounded-full',
+                        m.organizationId === organizationId ? 'bg-accent' : 'bg-border',
+                      )}
+                    />
+                    <span className="min-w-0 flex-1 truncate">
+                      {m.organizationName || m.organizationId}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
             <button
               type="button"
               role="menuitem"

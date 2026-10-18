@@ -105,8 +105,15 @@ function itemVisible(
   item: NavItem,
   role: OrgMemberRole | null,
   enabledModules?: Record<string, boolean>,
+  memberScope?: string[] | null,
 ): boolean {
   if (!isModuleEnabled(enabledModules, item.key as WorkspaceModuleKey)) return false
+  /* Scoped members (consultant/viewer with a non-empty granted_modules,
+     migration 0244) see only granted modules. 'home' stays — it is the
+     landing shell every member needs, not a data module. */
+  if (memberScope != null && item.key !== 'home' && !memberScope.includes(item.key)) {
+    return false
+  }
   if (item.roles == null || item.roles.length === 0) return true
   if (role == null) return true
   return item.roles.includes(role)
@@ -116,6 +123,7 @@ export function getNavGroups(
   root: string,
   role: OrgMemberRole | null = null,
   enabledModules?: Record<string, boolean>,
+  memberScope?: string[] | null,
 ): NavGroup[] {
   const p = (suffix: string) => `${root}/${suffix}`
   const groups: NavGroup[] = [
@@ -312,7 +320,7 @@ export function getNavGroups(
   return groups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => itemVisible(item, role, enabledModules)),
+      items: group.items.filter((item) => itemVisible(item, role, enabledModules, memberScope)),
     }))
     .filter((group) => group.heading === null || group.items.length > 0)
 }
@@ -348,8 +356,9 @@ export function getPublicDemoNavGroups(
   root: string,
   role: OrgMemberRole | null = null,
   enabledModules?: Record<string, boolean>,
+  memberScope?: string[] | null,
 ): NavGroup[] {
-  return getNavGroups(root, role, enabledModules)
+  return getNavGroups(root, role, enabledModules, memberScope)
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => PUBLIC_DEMO_NAV_KEYS.has(item.key)),

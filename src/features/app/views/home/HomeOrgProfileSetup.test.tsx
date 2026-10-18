@@ -60,11 +60,20 @@ describe('HomeOrgProfileSetup', () => {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    order: () => ({
-                      limit: () => ({
-                        maybeSingle: () =>
-                          Promise.resolve({ data: { organization_id: 'org-1' }, error: null }),
-                      }),
+                    or: () => ({
+                      order: () =>
+                        Promise.resolve({
+                          data: [
+                            {
+                              organization_id: 'org-1',
+                              role: 'owner',
+                              granted_modules: [],
+                              access_expires_at: null,
+                              organizations: { name: 'Dutiva Canada Inc.' },
+                            },
+                          ],
+                          error: null,
+                        }),
                     }),
                   }),
                 }),

@@ -57,4 +57,36 @@ describe('getNavGroups', () => {
     const headings = groups.map((g) => (g.heading ? pick(g.heading, 'en') : null))
     expect(headings).not.toContain('Revenue')
   })
+
+  it('scopes a consultant to their granted modules, keeping home', () => {
+    const groups = getNavGroups('/workspace', 'consultant', {}, ['cases', 'documents'])
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key))
+    expect(keys).toContain('home')
+    expect(keys).toContain('cases')
+    expect(keys).toContain('documents')
+    expect(keys).not.toContain('finance')
+    expect(keys).not.toContain('employees')
+    expect(keys).not.toContain('advisor')
+  })
+
+  it('member scope does not widen role gating', () => {
+    /* consultant is in the CONSULTANT nav group, so finance would otherwise
+       show — scope is a separate axis that intersects, never widens. */
+    const groups = getNavGroups('/workspace', 'consultant', {}, ['cases'])
+    const keys = groups.flatMap((g) => g.items.map((i) => i.key))
+    expect(keys).not.toContain('finance')
+
+    const viewerGroups = getNavGroups('/workspace', 'viewer', {}, ['finance'])
+    const viewerKeys = viewerGroups.flatMap((g) => g.items.map((i) => i.key))
+    /* finance is in scope but viewer is not in CONSULTANT — hidden anyway. */
+    expect(viewerKeys).not.toContain('finance')
+    expect(viewerKeys).toContain('home')
+  })
+
+  it('null scope leaves every role-gated item untouched', () => {
+    const scoped = getNavGroups('/workspace', 'consultant', {}, null)
+    const keys = scoped.flatMap((g) => g.items.map((i) => i.key))
+    expect(keys).toContain('finance')
+    expect(keys).toContain('revenue')
+  })
 })

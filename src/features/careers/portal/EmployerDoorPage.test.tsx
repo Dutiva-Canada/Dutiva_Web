@@ -74,7 +74,13 @@ describe('EmployerDoorPage', () => {
   it('offers "open your workspace" to a signed-in org member', async () => {
     vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({
       ok: true,
-      value: { organizationId: 'org-1', role: 'member' },
+      value: {
+        organizationId: 'org-1',
+        organizationName: 'Acme',
+        role: 'member',
+        grantedModules: [],
+        accessExpiresAt: null,
+      },
     })
     const { EmployerDoorPage } = await import('./EmployerDoorPage')
     renderDoor(<EmployerDoorPage />, SIGNED_IN)
@@ -131,7 +137,13 @@ describe('EmployerDoorPage', () => {
     /* Retry re-runs the read; a successful one shows the member card. */
     vi.mocked(api.fetchOrganizationMembership).mockResolvedValue({
       ok: true,
-      value: { organizationId: 'org-1', role: 'owner' },
+      value: {
+        organizationId: 'org-1',
+        organizationName: 'Acme',
+        role: 'owner',
+        grantedModules: [],
+        accessExpiresAt: null,
+      },
     })
     const { default: userEvent } = await import('@testing-library/user-event')
     await userEvent.setup().click(screen.getByRole('button', { name: /Try again/i }))

@@ -6,44 +6,13 @@ import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { updateOrganizationSettings } from '@/features/app/workspaceMode/api'
 import {
+  MODULE_LABELS,
   TOGGLEABLE_MODULES,
   isModuleEnabled,
   type WorkspaceModuleKey,
 } from '@/features/app/workspaceMode/workspaceModules'
 import { getNavGroups } from '@/features/app/shell/navConfig'
-import { shellMessages as SHELL } from '@/i18n/messages/shell'
-import { financeMessages as FINANCE } from '@/i18n/messages/finance'
-import { crmMessages as CRM } from '@/i18n/messages/crm'
-import { commsMessages as COMMS } from '@/i18n/messages/comms'
-import { memoryMessages as MEMORY } from '@/i18n/messages/memory'
 import type { Bi } from '@/i18n/core'
-
-const MODULE_LABELS: Record<WorkspaceModuleKey, Bi> = {
-  home: SHELL.shell_nav_home,
-  advisor: SHELL.shell_nav_advisor_home,
-  memory: MEMORY.memory_title,
-  workflows: SHELL.shell_nav_workflows,
-  revenue: SHELL.shell_nav_revenue,
-  crm: CRM.crm_title,
-  comms: COMMS.comms_title,
-  operations: SHELL.shell_nav_operations,
-  planning: SHELL.shell_nav_planning,
-  documents: SHELL.shell_nav_library,
-  knowledge: SHELL.shell_nav_knowledge,
-  employees: SHELL.shell_nav_people,
-  cases: SHELL.shell_nav_cases,
-  hiring: SHELL.shell_nav_hiring,
-  wellbeing: SHELL.shell_nav_wellbeing,
-  communications: SHELL.shell_nav_communications,
-  finance: FINANCE.finance_title,
-  compensation: SHELL.shell_nav_compensation,
-  governance: SHELL.shell_nav_governance,
-  compliance: SHELL.shell_nav_compliance,
-  policies: SHELL.shell_nav_policies,
-  security: SHELL.shell_nav_security,
-  specialists: SHELL.shell_nav_specialists,
-  analytics: SHELL.shell_nav_analytics,
-}
 
 const labelClass = 'block text-[12px] text-text-muted'
 

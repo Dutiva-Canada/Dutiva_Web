@@ -40,3 +40,25 @@ export function roleAtLeast(role: OrgMemberRole | null, min: OrgMemberRole): boo
 export function isAdminRole(role: OrgMemberRole | null): boolean {
   return roleAtLeast(role, 'admin')
 }
+
+/**
+ * Roles whose `granted_modules` list is honored — mirrors
+ * `org_member_has_module` (migration 0244): consultant and viewer rows are
+ * module-scoped when their list is non-empty; every other role ignores the
+ * column. Used by nav gating to mirror RLS.
+ */
+export function isModuleScopedRole(role: OrgMemberRole | null): boolean {
+  return role === 'consultant' || role === 'viewer'
+}
+
+/**
+ * The effective module scope for a member: the granted list when the role
+ * honors it and the list is non-empty, else null (unscoped).
+ */
+export function memberModuleScope(
+  role: OrgMemberRole | null,
+  grantedModules: string[] | null | undefined,
+): string[] | null {
+  if (!isModuleScopedRole(role)) return null
+  return grantedModules && grantedModules.length > 0 ? grantedModules : null
+}

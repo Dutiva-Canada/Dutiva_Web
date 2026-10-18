@@ -242,17 +242,15 @@ describe('SettingsView workspace-mode toggle (admin only)', () => {
           }
           /* No membership row — a platform admin bootstraps the org via
              create_organization on the first switch to production. The
-             boundary walks eq().eq().order().limit(); returning data:null
+             boundary walks eq().eq().or().order(); returning data:[]
              at the end is a valid "absent" read, not a failure. */
           if (table === 'organization_members') {
             return {
               select: () => ({
                 eq: () => ({
                   eq: () => ({
-                    order: () => ({
-                      limit: () => ({
-                        maybeSingle: () => Promise.resolve({ data: null, error: null }),
-                      }),
+                    or: () => ({
+                      order: () => Promise.resolve({ data: [], error: null }),
                     }),
                   }),
                 }),

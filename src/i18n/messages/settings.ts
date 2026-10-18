@@ -162,6 +162,26 @@ export const settingsMessages = defineMessages({
   },
   settings_team_revoke: { en: 'Revoke', fr: 'Révoquer' },
   settings_team_revoked: { en: 'Invitation revoked.', fr: 'Invitation révoquée.' },
+  /* Scoped member access (consultant/viewer) — [FR self-authored] */
+  settings_team_scope_label: { en: 'Module access', fr: 'Accès aux modules' },
+  settings_team_scope_hint: {
+    en: 'Checked modules only. Leave all unchecked for full access.',
+    fr: 'Seuls les modules cochés sont visibles. Aucune sélection donne un accès complet.',
+  },
+  settings_team_expiry: {
+    en: 'Access expiry (optional)',
+    fr: 'Fin de l’accès (facultatif)',
+  },
+  settings_team_expires_on: { en: 'until {date}', fr: 'jusqu’au {date}' },
+  settings_team_scope_all: { en: 'All modules', fr: 'Tous les modules' },
+  settings_team_scope_edit: { en: 'Edit access', fr: 'Modifier l’accès' },
+  settings_team_scope_save: { en: 'Save access', fr: 'Enregistrer l’accès' },
+  settings_team_scope_cancel: { en: 'Cancel', fr: 'Annuler' },
+  settings_team_scope_saved: { en: 'Access updated.', fr: 'Accès mis à jour.' },
+  settings_team_scope_error: {
+    en: 'Couldn’t update access. Try again.',
+    fr: 'Impossible de modifier l’accès. Réessayez.',
+  },
 
   /* Workspace profile edit — [FR self-authored] */
   settings_profile_edit: {

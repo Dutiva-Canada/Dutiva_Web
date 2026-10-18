@@ -30,6 +30,15 @@ interface WorkspaceOrganization {
   financeFeatures: Record<string, boolean>
 }
 
+export interface WorkspaceMembership {
+  organizationId: string
+  organizationName: string
+  role: OrgMemberRole | null
+  /** Consultant/viewer module scope (0244); empty = unscoped. */
+  grantedModules: string[]
+  accessExpiresAt: string | null
+}
+
 export interface WorkspaceModeContextValue {
   mode: WorkspaceMode
   /**
@@ -79,6 +88,26 @@ export interface WorkspaceModeContextValue {
    * the workspace opens to more members.
    */
   memberRole: OrgMemberRole | null
+  /**
+   * The active membership's module scope for consultant/viewer roles
+   * (0244). Null for unscoped members — and always null in demo mode.
+   * Mirrors org_member_has_module: nav hides what RLS would refuse.
+   * Optional: standalone mounts without a provider resolve to undefined.
+   */
+  memberModuleScope?: string[] | null
+  /**
+   * Every active, unexpired membership the signed-in user holds — a
+   * consultant serving several client orgs has more than one. Empty in
+   * demo mode and for admins without a membership row. Optional for
+   * standalone mounts (tests, preview shells).
+   */
+  memberships?: WorkspaceMembership[]
+  /**
+   * Switch the active organization for a multi-org member. No-op when the
+   * id is not one of `memberships`. Persists to
+   * workspace_preferences.active_organization_id.
+   */
+  setActiveOrganization?: (organizationId: string) => Promise<void>
   /**
    * Client mirror of RLS's is_org_admin (platform admin, or owner/admin
    * membership): whether write surfaces should render at all. RLS stays

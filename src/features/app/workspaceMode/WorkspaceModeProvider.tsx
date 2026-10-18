@@ -8,12 +8,13 @@ import {
   checkIsAdmin,
   claimOrgInvitations,
   fetchAdminProfile,
-  fetchOrganizationMembership,
+  fetchOrganizationMemberships,
   fetchOrganizationSettings,
-  fetchStoredMode,
+  fetchWorkspacePrefs,
+  saveActiveOrganization,
   saveStoredMode,
 } from './api'
-import type { WorkspaceOrganizationSettings } from './api'
+import type { OrganizationMembership, WorkspaceOrganizationSettings } from './api'
 import { hydrateEmptyWorkspaceOnboarding } from './emptyWorkspaceOnboarding'
 import { resetAdvisorSession } from '@/features/app/views/advisor/advisorSession'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
@@ -21,7 +22,7 @@ import { resolveContactDisplayName } from './contactDisplayName'
 import { WorkspaceModeContext } from './workspaceModeContext'
 import type { AdmissionStatus, WorkspaceIdentity, WorkspaceMode } from './workspaceModeContext'
 import type { OrgMemberRole } from './roles'
-import { isAdminRole } from './roles'
+import { isAdminRole, memberModuleScope } from './roles'
 
 const DEMO_IDENTITY: WorkspaceIdentity = { companyName: WORKSPACE_NAME, user: WORKSPACE_USER }
 
@@ -64,6 +65,10 @@ interface AdminState {
   organizationId: string | null
   organization: WorkspaceOrganizationSettings | null
   memberRole: OrgMemberRole | null
+  /** The active membership's module scope; empty when unscoped. */
+  memberGrantedModules: string[]
+  /** Every active membership the user holds, newest org first (0244). */
+  memberships: OrganizationMembership[]
   admissionStatus: AdmissionStatus
 }
 
@@ -76,7 +81,22 @@ const SIGNED_OUT_STATE: AdminState = {
   organizationId: null,
   organization: null,
   memberRole: null,
+  memberGrantedModules: [],
+  memberships: [],
   admissionStatus: 'idle',
+}
+
+/**
+ * Which membership becomes active: the stored preference when it still
+ * names a live membership, else the newest org (fetch order).
+ */
+function pickActiveMembership(
+  memberships: OrganizationMembership[],
+  preferredOrganizationId: string | null,
+): OrganizationMembership | null {
+  if (memberships.length === 0) return null
+  const preferred = memberships.find((m) => m.organizationId === preferredOrganizationId)
+  return preferred ?? memberships[0] ?? null
 }
 
 /**
@@ -140,20 +160,25 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       if (!claimed.ok) return retry()
       const claimedCount = claimed.value
 
-      const [isAdminRes, storedModeRes, profileRes, membershipRes] = await Promise.all([
+      const [isAdminRes, prefsRes, profileRes, membershipsRes] = await Promise.all([
         checkIsAdmin(),
-        fetchStoredMode(userId),
+        fetchWorkspacePrefs(userId),
         fetchAdminProfile(userId),
-        fetchOrganizationMembership(userId),
+        fetchOrganizationMemberships(userId),
       ])
       if (cancelled) return
-      if (!isAdminRes.ok || !storedModeRes.ok || !membershipRes.ok || !profileRes.ok) {
+      if (!isAdminRes.ok || !prefsRes.ok || !membershipsRes.ok || !profileRes.ok) {
         return retry()
       }
       const isAdmin = isAdminRes.value
-      const storedMode0 = storedModeRes.value
+      const prefs = prefsRes.value
+      const storedMode0 = prefs.mode
       const profile = profileRes.value
-      const membership = membershipRes.value
+      const memberships = membershipsRes.value
+      /* The stored active-org preference wins when it still names a live
+         membership (0244) — a consultant lands on the client they last
+         worked in, not whichever org is newest. */
+      const membership = pickActiveMembership(memberships, prefs.activeOrganizationId)
 
       /* Production is for platform admins and org members. Everyone else
          stays in demo — a non-member can still create an org via the
@@ -178,6 +203,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
          inserts the caller as the org's active owner. */
       let organizationId = membership?.organizationId ?? null
       let memberRole = membership?.role ?? null
+      const memberGrantedModules = membership?.grantedModules ?? []
       let organization: WorkspaceOrganizationSettings | null = null
       let admissionStatus: AdmissionStatus = 'idle'
       if (storedMode === 'production' && organizationId === null) {
@@ -228,6 +254,8 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         organizationId,
         organization,
         memberRole,
+        memberGrantedModules,
+        memberships,
         admissionStatus,
         identity: {
           companyName,
@@ -324,6 +352,47 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
     setAdmin((prev) => ({ ...prev, admissionStatus: 'idle' }))
   }, [])
 
+  /**
+   * Multi-org switch (0244): a consultant holding several memberships moves
+   * the active tenant. Persists the choice so the next session opens the
+   * same org; re-reads org settings and re-roots module state on the new
+   * organization id.
+   */
+  const setActiveOrganization = useCallback(
+    async (nextOrganizationId: string) => {
+      const membership = admin.memberships.find(
+        (m) => m.organizationId === nextOrganizationId,
+      )
+      if (!session || !membership || nextOrganizationId === admin.organizationId) return
+      const userId = session.user.id
+      await saveActiveOrganization(userId, nextOrganizationId)
+      const organization = await fetchOrganizationSettings(nextOrganizationId)
+      if (admin.storedMode === 'production') {
+        await hydrateEmptyWorkspaceOnboarding(userId, nextOrganizationId)
+      }
+      resetAdvisorSession()
+      setAdmin((prev) => ({
+        ...prev,
+        organizationId: nextOrganizationId,
+        organization,
+        memberRole: membership.role,
+        memberGrantedModules: membership.grantedModules,
+        admissionStatus: 'idle',
+        identity: prev.identity
+          ? {
+              ...prev.identity,
+              companyName: organization?.name ?? prev.identity.companyName,
+              user: {
+                ...prev.identity.user,
+                role: memberRoleLabel(membership.role, prev.isAdmin),
+              },
+            }
+          : prev.identity,
+      }))
+    },
+    [admin.memberships, admin.organizationId, admin.storedMode, session],
+  )
+
   const refreshOrganization = useCallback(async () => {
     if (!admin.organizationId) return
     const organization = await fetchOrganizationSettings(admin.organizationId)
@@ -377,6 +446,9 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
         organizationId: null,
         organization: null,
         memberRole: null,
+        memberModuleScope: null,
+        memberships: [],
+        setActiveOrganization: async () => {},
         isOrgAdmin: false,
         setMode: async () => {},
         refreshIdentity: async () => {},
@@ -410,6 +482,19 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
       organizationId: mode === 'production' ? admin.organizationId : null,
       organization: mode === 'production' ? admin.organization : null,
       memberRole,
+      memberModuleScope:
+        mode === 'production' ? memberModuleScope(memberRole, admin.memberGrantedModules) : null,
+      memberships:
+        mode === 'production'
+          ? admin.memberships.map((m) => ({
+              organizationId: m.organizationId,
+              organizationName: m.organizationName,
+              role: m.role,
+              grantedModules: m.grantedModules,
+              accessExpiresAt: m.accessExpiresAt,
+            }))
+          : [],
+      setActiveOrganization,
       /* Mirrors RLS's is_org_admin: platform admin, or owner/admin role. */
       isOrgAdmin: mode === 'production' && (admin.isAdmin || isAdminRole(memberRole)),
       setMode,
@@ -421,6 +506,7 @@ export function WorkspaceModeProvider({ children }: { readonly children: ReactNo
   }, [
     admin,
     setMode,
+    setActiveOrganization,
     refreshIdentity,
     refreshOrganization,
     clearAdmissionStatus,

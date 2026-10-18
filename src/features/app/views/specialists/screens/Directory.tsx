@@ -14,6 +14,18 @@ import {
 import { useSpecialistsData } from '../SpecialistsDataContext'
 import type { Specialist, SpecialistSpecialty, SpecialistWorkspaceRole } from '../data/types'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
+import { useToasts } from '@/features/app/toasts/toastsContext'
+import { pickL } from '@/i18n/core'
+import {
+  inviteOrgMember,
+  updateMemberRole,
+  updateMemberScope,
+} from '@/features/app/workspaceMode/api'
+import {
+  MODULE_LABELS,
+  SCOPABLE_MODULES,
+} from '@/features/app/workspaceMode/workspaceModules'
 
 const SPECIALTIES: SpecialistSpecialty[] = [
   'lawyer',
@@ -46,6 +58,18 @@ const ROLE_LABELS: Record<SpecialistWorkspaceRole, keyof typeof M> = {
 
 function generateId() {
   return `sp-${Math.random().toString(36).slice(2, 9)}`
+}
+
+/** date input value ('YYYY-MM-DD') → end-of-day UTC ISO; '' → null. */
+function expiryFromInput(value: string): string | null {
+  if (!value) return null
+  const parsed = new Date(`${value}T23:59:59.999Z`)
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString()
+}
+
+/** ISO timestamp → date input value ('YYYY-MM-DD'); null → ''. */
+function expiryToInput(iso: string | null): string {
+  return iso ? iso.slice(0, 10) : ''
 }
 
 function emptySpecialist(): Specialist {
@@ -131,8 +155,10 @@ function SpecialistRow({
 }
 
 export function Directory() {
-  const { x } = useI18n()
+  const { x, lang } = useI18n()
   const { specialists, addSpecialist, updateSpecialist, removeSpecialist } = useSpecialistsData()
+  const { organizationId, isOrgAdmin } = useWorkspaceMode()
+  const { showToast } = useToasts()
   const [show, setShow] = useState(false)
   const [editing, setEditing] = useState<Specialist | null>(null)
 
@@ -146,6 +172,8 @@ export function Directory() {
   const [workspaceRole, setWorkspaceRole] = useState<SpecialistWorkspaceRole>(
     initial.workspace_role,
   )
+  const [grantedModules, setGrantedModules] = useState<string[]>(initial.granted_modules)
+  const [accessExpiry, setAccessExpiry] = useState(expiryToInput(initial.access_expires_at))
   const [notes, setNotes] = useState(initial.notes ?? '')
 
   useEffect(() => {
@@ -157,6 +185,8 @@ export function Directory() {
     setPhone(base.phone ?? '')
     setWorkspaceAccess(base.workspace_access)
     setWorkspaceRole(base.workspace_role)
+    setGrantedModules(base.granted_modules)
+    setAccessExpiry(expiryToInput(base.access_expires_at))
     setNotes(base.notes ?? '')
   }, [editing])
 
@@ -171,7 +201,38 @@ export function Directory() {
     setPhone(base.phone ?? '')
     setWorkspaceAccess(base.workspace_access)
     setWorkspaceRole(base.workspace_role)
+    setGrantedModules(base.granted_modules)
+    setAccessExpiry(expiryToInput(base.access_expires_at))
     setNotes(base.notes ?? '')
+  }
+
+  /**
+   * Workspace access is a real seat (migration 0244): an unlinked specialist
+   * gets an org invitation carrying the consultant/viewer role and module
+   * scope; a linked one gets the membership updated in place. Claiming the
+   * invite back-links specialists.organization_member_id in the RPC.
+   */
+  const syncWorkspaceAccess = async (specialist: Specialist) => {
+    if (!organizationId || !isOrgAdmin || !specialist.email) return
+    const scope = {
+      grantedModules: specialist.granted_modules,
+      accessExpiresAt: specialist.access_expires_at,
+    }
+    if (specialist.organization_member_id) {
+      const [roleOk, scopeOk] = await Promise.all([
+        updateMemberRole(specialist.organization_member_id, specialist.workspace_role),
+        updateMemberScope(specialist.organization_member_id, scope),
+      ])
+      if (!roleOk || !scopeOk) showToast(M.spec_invite_error, 'info')
+      return
+    }
+    const result = await inviteOrgMember(
+      organizationId,
+      specialist.email,
+      specialist.workspace_role,
+      scope,
+    )
+    showToast('error' in result ? M.spec_invite_error : M.spec_invite_sent, 'error' in result ? 'info' : 'ok')
   }
 
   const onSubmit = async () => {
@@ -185,7 +246,8 @@ export function Directory() {
       phone: phone || null,
       workspace_access: workspaceAccess,
       workspace_role: workspaceAccess ? workspaceRole : 'consultant',
-      granted_modules: [],
+      granted_modules: workspaceAccess ? grantedModules : [],
+      access_expires_at: workspaceAccess ? expiryFromInput(accessExpiry) : null,
       notes: notes || null,
       updated_at: now,
     }
@@ -193,6 +255,9 @@ export function Directory() {
       await updateSpecialist(specialist)
     } else {
       await addSpecialist({ ...specialist, created_at: now })
+    }
+    if (specialist.workspace_access) {
+      await syncWorkspaceAccess(specialist)
     }
     reset()
   }
@@ -251,18 +316,50 @@ export function Directory() {
             />
           </div>
           {workspaceAccess ? (
-            <FormField label={x(M.spec_workspace_role_consultant)}>
-              <FormSelect
-                value={workspaceRole}
-                onChange={(e) => setWorkspaceRole(e.target.value as SpecialistWorkspaceRole)}
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {x(M[ROLE_LABELS[r]])}
-                  </option>
-                ))}
-              </FormSelect>
-            </FormField>
+            <>
+              <FormField label={x(M.spec_workspace_role_consultant)}>
+                <FormSelect
+                  value={workspaceRole}
+                  onChange={(e) => setWorkspaceRole(e.target.value as SpecialistWorkspaceRole)}
+                >
+                  {ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {x(M[ROLE_LABELS[r]])}
+                    </option>
+                  ))}
+                </FormSelect>
+              </FormField>
+              <div className="sm:col-span-2">
+                <span className="mb-[6px] block text-[12px] font-semibold text-text-muted">
+                  {x(M.spec_granted_modules)}
+                </span>
+                <div className="grid grid-cols-2 gap-[6px] sm:grid-cols-3">
+                  {SCOPABLE_MODULES.map((key) => (
+                    <label key={key} className="flex items-center gap-[5px] text-[12px] text-text">
+                      <input
+                        type="checkbox"
+                        checked={grantedModules.includes(key)}
+                        onChange={() =>
+                          setGrantedModules((prev) =>
+                            prev.includes(key)
+                              ? prev.filter((k) => k !== key)
+                              : [...prev, key],
+                          )
+                        }
+                      />
+                      {pickL(MODULE_LABELS[key], lang)}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <FormField label={x(M.spec_access_expires)}>
+                <FormInput
+                  type="date"
+                  value={accessExpiry}
+                  onChange={(e) => setAccessExpiry(e.target.value)}
+                />
+              </FormField>
+            </>
           ) : null}
           <div className="flex justify-end gap-3 sm:col-span-2">
             <button
