@@ -757,6 +757,9 @@ export interface MarketContextEntry {
   price: number | null
   currency: string
   dayChangePct: number | null
+  /** Last ~30 daily closes, oldest first — the shape of the move the
+      aggregates flatten. Absent on thin coverage. */
+  closes30d?: number[]
   ma50: number | null
   ma200: number | null
   rsi14: number | null
@@ -1019,6 +1022,11 @@ export function formatMarketEntry(e: MarketContextEntry): string {
   const head = `${e.symbol} (${e.assetClass}): ${priceBit}${techLine ? ` | ${techLine}` : ''}`
 
   const tail: string[] = []
+  if (e.closes30d && e.closes30d.length > 0) {
+    tail.push(
+      `  recent closes (oldest→newest): ${e.closes30d.map((c) => plain(c)).join(', ')}`,
+    )
+  }
   const f = e.fundamentals
   if (f) {
     const currency = typeof f['currency'] === 'string' ? (f['currency'] as string) : ''
@@ -1152,7 +1160,7 @@ function buildProfileLines(p: InvestUserProfile | null): string[] {
 export function investChatPrompt(
   ctx: InvestChatContext,
   lang: 'en' | 'fr',
-  opts?: { advice?: boolean },
+  opts?: { advice?: boolean; image?: boolean },
 ): {
   role: 'system'
   content: string
@@ -1178,6 +1186,11 @@ export function investChatPrompt(
       'Asked to analyze — "analyze AMD", "is SHOP worth it", "how is X doing" — give a real read, not a label: a one-line verdict, then labeled sections for whatever has data (Fundamentals, Technicals, News) and a close on what it means for their book. Markdown renders fully — bold the section labels, use a short bullet list where a sentence would cram, and a small table when comparing tickers or scenarios side by side. Depth follows the ask: a proper read when they ask for one, a tight answer when they want one number. The numbers do the work — "30% above its 200-day, RSI 61" beats "trending up". A null field is a missing fact, not a gap to fill from memory.',
       'Asked to compare or pick — "what should I buy first", "X or Y", "best for a 5-year goal" — your universe is ONLY the market rows and book data below. Name the set you weighed ("of your loaded names…") and never imply a market-wide screen. When the honest read needs a wider lens — index alternatives, sector peers, broad benchmarks — pull them with the fetch hop first, or say plainly what is missing: a pick from two loaded tickers is a pick from two tickers, and the person deserves to know that. Same rule for anything you point at beyond the set — never name a fund, ETF, or ticker you have not pulled this turn; fetch it first, or describe the exposure in words ("a broad growth ETF") instead of symbols.',
       'An order you record is always a QUEUED draft — the person reviews and executes it themselves from Orders. Say so whenever one is created. You never execute anything — the person does; phrase it as what they would do ("worth confirming on Orders"), never "I\'d execute".',
+      ...(opts?.image
+        ? [
+            'The person attached an image this turn — read it directly and describe only what is actually in it. An uploaded chart or screenshot is their input, not verified market data: never invent a value the image does not show, cross-check any figure against the rows on file when they overlap, and if the image is unreadable or too low-quality to trust, say so plainly. When a later message carries an "[Attached image: ...]" note, the image itself is not re-sent — rely on what was said about it, never pretend to see it again.',
+          ]
+        : []),
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"add_watch_symbol","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>"}',
       '  {"type":"remove_watch_symbol","symbol":"<TICKER>"}',
@@ -1240,6 +1253,11 @@ export function investChatPrompt(
       ...(ctx.market.some((e) => e.headlines.length > 0) || ctx.generalNews.length > 0
         ? [
             'Headline tags — kind: event = something happened, news = factual report, view = opinion/analysis, move = price-move churn, filing = holdings disclosure; "via X" = surfaced by that watch theme rather than a direct mention; untagged = unclassified.',
+          ]
+        : []),
+      ...(ctx.market.some((e) => e.closes30d && e.closes30d.length > 0)
+        ? [
+            'recent closes — the last ~30 daily closes, oldest first. Read the shape of the move off them (slope, streaks, drawdown off the peak, where it is inside the range); the aggregates above are a summary of that same series, not a substitute for it.',
           ]
         : []),
       ...(ctx.generalNews.length > 0

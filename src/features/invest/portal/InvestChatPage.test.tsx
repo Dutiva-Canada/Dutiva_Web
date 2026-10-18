@@ -21,7 +21,10 @@ import { InvestChatPage } from './InvestChatPage'
 /* The page never reads the table directly — history, sending, undo and
    clearing all go through the invest-ai function, so the api module is
    the seam. */
-vi.mock('@/features/invest/data/chatApi', () => ({
+vi.mock('@/features/invest/data/chatApi', async (importOriginal) => ({
+  /* Network calls mock out; pure helpers (splitAttachmentManifest) keep
+     their real implementation. */
+  ...(await importOriginal<typeof import('@/features/invest/data/chatApi')>()),
   sendInvestChat: vi.fn(),
   regenerateInvestChat: vi.fn(),
   listInvestChatThreads: vi.fn(async () => []),
@@ -431,5 +434,69 @@ describe('InvestChatPage', () => {
 
     expect(await screen.findByText(/Bonjour — je suis Tally/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
+  })
+
+  it('renders a persisted attachment manifest as chips, not raw text', async () => {
+    vi.mocked(loadInvestChatHistory).mockResolvedValue([
+      {
+        id: 'u1',
+        role: 'user',
+        /* The row stores a one-line manifest, never the file bytes. */
+        content: '[Attached image: chart.png]\nWhat does this show?',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-05T12:00:00Z',
+      },
+    ])
+    renderPage()
+
+    await screen.findByText('chart.png')
+    expect(screen.getByText('What does this show?')).toBeInTheDocument()
+    /* The manifest line itself never renders as literal text. */
+    expect(screen.queryByText(/\[Attached image:/)).not.toBeInTheDocument()
+  })
+
+  it('sends a staged file with the message as an attachment', async () => {
+    vi.mocked(loadInvestChatHistory).mockResolvedValue([])
+    vi.mocked(sendInvestChat).mockResolvedValue({
+      reply: 'Read it.',
+      action: null,
+      userId: USER_ROW_ID,
+      assistantId: ASSISTANT_ID,
+      suggests: [],
+      reasoning: null,
+      sources: [],
+    })
+    renderPage()
+    await screen.findByPlaceholderText(/Ask Tally/)
+
+    /* Stage a plain-text document through the hidden file input. */
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')
+    expect(input).not.toBeNull()
+    fireEvent.change(input!, {
+      target: { files: [new File(['holding notes'], 'notes.txt', { type: 'text/plain' })] },
+    })
+    await screen.findByText('notes.txt')
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask Tally/), {
+      target: { value: 'summarize this' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+
+    await waitFor(() =>
+      expect(sendInvestChat).toHaveBeenCalledWith(
+        'summarize this',
+        'en',
+        expect.any(Function),
+        expect.objectContaining({
+          attachments: [
+            expect.objectContaining({ kind: 'document', name: 'notes.txt', text: 'holding notes' }),
+          ],
+        }),
+      ),
+    )
+    /* The sent bubble shows the file as a chip. */
+    await screen.findByText('notes.txt')
+    expect(screen.getByText('summarize this')).toBeInTheDocument()
   })
 })

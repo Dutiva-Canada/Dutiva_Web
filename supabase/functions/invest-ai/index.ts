@@ -2,7 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient, type SupabaseClient as SbClient } from 'npm:@supabase/supabase-js@2'
 import type { Database } from '../_shared/database.types.ts'
 import { fileSuggestion, textDedupeKey } from '../_shared/agentQueue.ts'
-import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import { parseAttachments, postChatCompletion } from '../_shared/modelUpstream.ts'
 import { withCors } from '../_shared/cors.ts'
 import { isInternalDutivaAccount } from '../_shared/adminAccess.ts'
 import {
@@ -268,9 +268,18 @@ const handler = async (req: Request) => {
   const showPaywalled = body['showPaywalled'] === true
   if (body['kind'] === 'chat') {
     const message = typeof body['message'] === 'string' ? body['message'].trim().slice(0, 1200) : ''
-    if (!message) return json({ error: 'message is required' }, 400)
+    /* Attachments validate before the message check — a chart with no
+       question is still a turn worth answering. */
+    const parsed = parseAttachments(body['attachments'])
+    if ('error' in parsed) {
+      return json({ error: `attachments: ${parsed.error}`, code: 'bad_attachments' }, 400)
+    }
+    if (!message && parsed.attachments.length === 0) {
+      return json({ error: 'message is required' }, 400)
+    }
     return await runChat(adminClient, userId, message, lang, stream, advice, threadId, {
       showPaywalled,
+      attachments: parsed.attachments,
     })
   }
   if (body['kind'] === 'chat_regenerate') {

@@ -10345,6 +10345,7 @@ export type Database = {
         Row: {
           as_of: string
           asset_class: string
+          closes_30d: Json | null
           currency: string
           day_change_pct: number | null
           fundamentals: Json | null
@@ -10368,6 +10369,7 @@ export type Database = {
         Insert: {
           as_of?: string
           asset_class: string
+          closes_30d?: Json | null
           currency?: string
           day_change_pct?: number | null
           fundamentals?: Json | null
@@ -10391,6 +10393,7 @@ export type Database = {
         Update: {
           as_of?: string
           asset_class?: string
+          closes_30d?: Json | null
           currency?: string
           day_change_pct?: number | null
           fundamentals?: Json | null

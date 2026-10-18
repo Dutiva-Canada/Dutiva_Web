@@ -174,6 +174,7 @@ interface SnapshotPatch {
   /* Set only by a full sync — a light run omits these keys entirely so
      the upsert preserves the daily run's technicals and fundamentals on
      existing rows instead of overwriting them with NULL. */
+  closes_30d?: number[] | null
   ma50?: number | null
   ma200?: number | null
   rsi14?: number | null
@@ -225,6 +226,7 @@ async function syncCrypto(
       continue
     }
     let tech: ReturnType<typeof technicalPack> | null = null
+    let closes: number[] | null = null
     if (!light && historyCalls < MAX_PER_CLASS) {
       historyCalls += 1
       /* 365 days of closes — enough for MA200, the 52-week range, and the
@@ -233,7 +235,10 @@ async function syncCrypto(
         `https://api.coingecko.com/api/v3/coins/${id}/market_chart?vs_currency=${quote.currency.toLowerCase()}&days=365&interval=daily`,
         cgHeaders,
       )
-      if (histRaw) tech = technicalPack(parseCoingeckoCloses(JSON.parse(histRaw)))
+      if (histRaw) {
+        closes = parseCoingeckoCloses(JSON.parse(histRaw))
+        tech = technicalPack(closes)
+      }
       await pause(HISTORY_STAGGER_MS)
     }
     for (const t of group) {
@@ -248,6 +253,7 @@ async function syncCrypto(
         as_of: new Date().toISOString(),
       }
       if (!light) {
+        p.closes_30d = closes && closes.length > 0 ? closes.slice(-30) : null
         p.ma50 = tech?.ma50 ?? null
         p.ma200 = tech?.ma200 ?? null
         p.rsi14 = tech?.rsi14 ?? null
@@ -344,6 +350,9 @@ async function syncEquities(
         fund && Object.keys(fund).length > 0
           ? { ...fund, currency: chart.currency ?? m.currency }
           : null
+      /* The chat reads the shape of a move off this tail — persist the
+         series the technicals were computed from, not just their result. */
+      p.closes_30d = chart.closes.length > 0 ? chart.closes.slice(-30) : null
       p.ma50 = tech?.ma50 ?? null
       p.ma200 = tech?.ma200 ?? null
       p.rsi14 = tech?.rsi14 ?? null

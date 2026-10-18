@@ -645,6 +645,73 @@
   opacity: 0.5;
   cursor: default;
 }
+/* Attachments — the paperclip sits beside the send button; staged files
+   and in-bubble chips share the chip shape. */
+.sbchat-file {
+  display: none;
+}
+.sbchat-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.sbchat-attach-btn:hover {
+  color: var(--sb-body);
+}
+.sbchat-attachrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 4px 8px;
+}
+.sbchat-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  border: 1px solid var(--sb-line);
+  border-radius: 8px;
+  background: var(--sb-input);
+  color: var(--sb-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+.sbchat-attach-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sbchat-attach-trunc {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--sb-muted);
+}
+.sbchat-attach button {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+  padding: 0;
+}
+.sbchat-attach button:hover {
+  color: var(--sb-body);
+}
+.sbchat-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
 .sbchat-note {
   margin-top: 10px;
   font-size: 11.5px;

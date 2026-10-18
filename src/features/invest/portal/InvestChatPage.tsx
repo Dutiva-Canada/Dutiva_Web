@@ -4,7 +4,10 @@ import { Link } from 'react-router-dom'
 import {
   Check,
   CornerDownLeft,
+  FileText,
+  Image as ImageIcon,
   Loader2,
+  Paperclip,
   RefreshCw,
   RotateCcw,
   Send,
@@ -12,9 +15,11 @@ import {
   ThumbsDown,
   ThumbsUp,
   Trash2,
+  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
+import { advisorCore as AM } from '@/i18n/messages/advisorCore'
 import { useAuth } from '@/features/app/auth/authContext'
 import { isInternalDutivaAccount } from '@/lib/billing/adminAccess'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
@@ -26,11 +31,20 @@ import {
   rateInvestChatTurn,
   regenerateInvestChat,
   sendInvestChat,
+  splitAttachmentManifest,
   undoInvestChatAction,
   type InvestChatAction,
   type InvestChatThread,
   type InvestChatTurn,
 } from '@/features/invest/data/chatApi'
+import {
+  ATTACHMENT_ACCEPT,
+  AttachmentError,
+  MAX_ATTACHMENTS,
+  attachmentFromFile,
+  type AdvisorAttachment,
+  type AttachmentIssue,
+} from '@/features/app/advisor/attachments'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import {
   ChipRow,
@@ -189,6 +203,11 @@ export function InvestChatPage() {
   ])
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   useAutoGrowTextarea(inputRef, draft)
+  /* Files staged on the composer — cleared on send, capped at
+     MAX_ATTACHMENTS. Images ride as data URLs, documents as extracted
+     text; the server re-validates everything. */
+  const [pendingAtt, setPendingAtt] = useState<AdvisorAttachment[]>([])
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const isInternal = isInternalDutivaAccount(session?.user?.email)
 
@@ -295,8 +314,42 @@ export function InvestChatPage() {
     return result.action?.ok ? refresh() : Promise.resolve()
   }
 
-  const sendText = async (message: string) => {
-    if (!message || sending) return
+  /* Refused attachments surface as toasts — the file never entered the
+     transcript, so there is no turn to hang the message on. Same chrome
+     strings as the Advisor's composer. */
+  const attachIssueToast = (issue: AttachmentIssue) => {
+    showToast(
+      issue === 'unsupported_type'
+        ? AM.advisor_attach_issue_unsupported
+        : issue === 'too_large'
+          ? AM.advisor_attach_issue_too_large
+          : issue === 'empty'
+            ? AM.advisor_attach_issue_empty
+            : issue === 'too_many'
+              ? AM.advisor_attach_issue_too_many
+              : AM.advisor_attach_issue_read,
+      'info',
+    )
+  }
+  const attachFiles = (files: FileList | null) => {
+    if (!files) return
+    for (const file of Array.from(files)) {
+      if (pendingAtt.length >= MAX_ATTACHMENTS) {
+        attachIssueToast('too_many')
+        break
+      }
+      void attachmentFromFile(file)
+        .then((a) =>
+          setPendingAtt((prev) => (prev.length >= MAX_ATTACHMENTS ? prev : [...prev, a])),
+        )
+        .catch((e: unknown) =>
+          attachIssueToast(e instanceof AttachmentError ? e.issue : 'read_failed'),
+        )
+    }
+  }
+
+  const sendText = async (message: string, atts?: AdvisorAttachment[]) => {
+    if ((!message && !atts?.length) || sending) return
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -314,6 +367,7 @@ export function InvestChatPage() {
       content: message,
       action: null,
       feedback: null,
+      attachments: atts?.length ? atts : undefined,
       createdAt: new Date().toISOString(),
     }
     stickToBottom()
@@ -327,6 +381,7 @@ export function InvestChatPage() {
       const result = await sendInvestChat(message, lang, setStreamed, {
         threadId,
         signal: ctrl.signal,
+        attachments: atts,
         onReasoning: (t) => {
           reasoningSoFar = t
           setStreamedReasoning(t)
@@ -360,7 +415,14 @@ export function InvestChatPage() {
           return ''
         })
       } else {
-        showToast(IM.invest_chat_error)
+        /* A modality refusal deserves its own words — the turn still
+           fails, but the toast says why (the route's model can't see
+           the file) rather than a bare "something went wrong". */
+        showToast(
+          (err as { code?: string }).code === 'modality_unsupported'
+            ? AM.advisor_attach_modality
+            : IM.invest_chat_error,
+        )
         /* Keep the turn in the log flagged failed — the text stays visible
            and a Retry affordance resends it in place. */
         setTurns((prev) =>
@@ -378,17 +440,21 @@ export function InvestChatPage() {
 
   const send = () => {
     const message = draft.trim()
-    if (!message || sending) return
+    const atts = pendingAtt
+    if ((!message && atts.length === 0) || sending) return
     setDraft('')
-    void sendText(message)
+    setPendingAtt([])
+    void sendText(message, atts.length ? atts : undefined)
   }
 
   /* A failed turn disappears and its text goes back through sendText —
-     same pipe as a fresh send. */
+     same pipe as a fresh send. Live attachment objects ride along so a
+     retried image actually re-sends it (a manifest-only persisted row
+     can't — its bytes are gone). */
   const retry = (turn: InvestChatTurn) => {
     if (sending) return
     setTurns((prev) => (prev ?? []).filter((t) => t.id !== turn.id))
-    void sendText(turn.content)
+    void sendText(turn.content, turn.attachments)
   }
 
   /* Try another answer — the server drops the last pair and re-asks, so
@@ -695,6 +761,15 @@ export function InvestChatPage() {
                 const route = t.action?.ok ? actionRoute(t.action) : null
                 const isLastAssistant =
                   t.role === 'assistant' && i === turns.length - 1 && UUID_RE.test(t.id)
+                /* User turns: live attachments on a fresh send render from
+                   their objects; a reloaded row only has the "[Attached …]"
+                   manifest lines — split them into the same chips so the two
+                   states read identically. */
+                const manifest = t.role === 'user' ? splitAttachmentManifest(t.content) : null
+                const bubbleAtts = t.attachments?.length
+                  ? t.attachments.map((a) => ({ kind: a.kind, name: a.name }))
+                  : (manifest?.attachments ?? [])
+                const userText = manifest && !t.attachments?.length ? manifest.text : t.content
                 return (
                   <div key={t.id} style={{ display: 'contents' }}>
                     {showDay && (
@@ -722,7 +797,23 @@ export function InvestChatPage() {
                           <ChatMarkdown widgetSurface="invest">{t.content}</ChatMarkdown>
                         </Suspense>
                       ) : (
-                        t.content
+                        <>
+                          {bubbleAtts.length > 0 && (
+                            <span className="sbchat-attachments">
+                              {bubbleAtts.map((a) => (
+                                <span key={a.name} className="sbchat-attach">
+                                  {a.kind === 'image' ? (
+                                    <ImageIcon size={11} aria-hidden="true" />
+                                  ) : (
+                                    <FileText size={11} aria-hidden="true" />
+                                  )}
+                                  {a.name}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                          {userText}
+                        </>
                       )}
                       {t.role === 'assistant' && t.sources && t.sources.length > 0 && (
                         <SourcesBlock
@@ -913,7 +1004,52 @@ export function InvestChatPage() {
           )}
         </div>
 
+        {pendingAtt.length > 0 && (
+          <div className="sbchat-attachrow">
+            {pendingAtt.map((a) => (
+              <span key={a.id} className="sbchat-attach">
+                {a.kind === 'image' ? (
+                  <ImageIcon size={11} aria-hidden="true" />
+                ) : (
+                  <FileText size={11} aria-hidden="true" />
+                )}
+                <span className="sbchat-attach-name">{a.name}</span>
+                {a.truncated ? (
+                  <span className="sbchat-attach-trunc">{x(AM.advisor_attach_truncated)}</span>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={`${x(AM.advisor_attach_remove)} ${a.name}`}
+                  onClick={() => setPendingAtt((prev) => prev.filter((p) => p.id !== a.id))}
+                >
+                  <X size={11} aria-hidden="true" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <div className="sbchat-compose">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ATTACHMENT_ACCEPT}
+            className="sbchat-file"
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={(e) => {
+              attachFiles(e.target.files)
+              e.target.value = ''
+            }}
+          />
+          <button
+            type="button"
+            className="sbchat-attach-btn"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label={x(AM.advisor_attach)}
+          >
+            <Paperclip size={15} aria-hidden="true" />
+          </button>
           <textarea
             ref={inputRef}
             className="sbchat-input"
@@ -936,7 +1072,7 @@ export function InvestChatPage() {
             type="button"
             className="sbchat-send"
             onClick={send}
-            disabled={sending || !draft.trim()}
+            disabled={sending || (!draft.trim() && pendingAtt.length === 0)}
             aria-label={x(IM.invest_chat_send)}
           >
             <Send size={16} aria-hidden="true" />

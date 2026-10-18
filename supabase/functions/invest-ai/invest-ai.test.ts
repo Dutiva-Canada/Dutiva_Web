@@ -1136,6 +1136,41 @@ describe('formatMarketEntry', () => {
     })
     expect(out).toContain('"US-China Trade War Escalates" (CNBC, 2026-10-09, event, via "Trade restrictions")')
   })
+  it('renders the recent close series oldest-first when present', () => {
+    const closes = Array.from({ length: 30 }, (_, i) => 240 + i)
+    const out = formatMarketEntry({ ...base, closes30d: closes })
+    expect(out).toContain('recent closes (oldest→newest): 240')
+    expect(out).toContain('269')
+    /* Absent on thin coverage — no dangling label. */
+    expect(formatMarketEntry({ ...base, closes30d: undefined })).not.toContain('recent closes')
+    expect(formatMarketEntry({ ...base, closes30d: [] })).not.toContain('recent closes')
+  })
+})
+
+describe('investChatPrompt — attachments + closes legend', () => {
+  const row: MarketContextEntry = {
+    symbol: 'AMD', assetClass: 'equity', price: 254.3, currency: 'USD',
+    dayChangePct: 1.2, ma50: 228.4, ma200: 195.1, rsi14: 61.2,
+    ret1m: 8.4, ret3m: 22.1, ret12m: 65.0, vol20d: 38.2,
+    high52w: 267.08, low52w: 112.76, fundamentals: null,
+    asOf: '2026-10-10T13:00:00Z', headlines: [],
+  }
+  it('adds the closes legend only when a row carries the series', () => {
+    const withCloses: InvestChatContext = {
+      ...EMPTY_CTX,
+      market: [{ ...row, closes30d: [100, 101, 102] }],
+    }
+    expect(investChatPrompt(withCloses, 'en').content).toContain('recent closes')
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain('recent closes')
+    expect(
+      investChatPrompt({ ...EMPTY_CTX, market: [row] }, 'en').content,
+    ).not.toContain('recent closes')
+  })
+  it('adds the image honesty clause only when an image rides the turn', () => {
+    expect(investChatPrompt(EMPTY_CTX, 'en', { image: true }).content).toContain('attached an image')
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain('attached an image')
+    expect(investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content).not.toContain('attached an image')
+  })
 })
 
 describe('headline source prefs', () => {
