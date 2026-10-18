@@ -256,6 +256,33 @@ describe('InvestThesesPage — composer', () => {
     expect(screen.queryByText(/propose an order/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Propose order/i })).not.toBeInTheDocument()
   })
+
+  it('arms a two-tap discard on a dirty composer; clean exits on one tap', async () => {
+    const user = userEvent.setup()
+    mount()
+    /* Clean composer — Cancel exits immediately. */
+    await user.click(screen.getByRole('button', { name: /New thesis/i }))
+    expect(screen.getByRole('heading', { name: 'New thesis' })).toBeInTheDocument()
+    await user.click(
+      screen.getAllByRole('button', { name: 'Cancel' })[0]!,
+    )
+    expect(screen.getByText(/No theses yet/)).toBeInTheDocument()
+    /* Dirty composer — first Cancel arms, second exits. */
+    await user.click(screen.getByRole('button', { name: /New thesis/i }))
+    await user.type(screen.getByLabelText('The thesis'), 'A claim worth keeping.')
+    await user.click(
+      screen.getAllByRole('button', { name: 'Cancel' })[0]!,
+    )
+    /* Still in the composer, now armed. */
+    expect(
+      screen.getAllByRole('button', { name: /Discard changes\? Click again/i }).length,
+    ).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'New thesis' })).toBeInTheDocument()
+    await user.click(
+      screen.getAllByRole('button', { name: /Discard changes\? Click again/i })[0]!,
+    )
+    expect(screen.getByText(/No theses yet/)).toBeInTheDocument()
+  })
 })
 
 describe('InvestThesesPage — suggestions', () => {
@@ -377,5 +404,10 @@ describe('InvestThesesPage — suggestions', () => {
     expect(screen.getByLabelText('The thesis')).toHaveValue(
       'Merchant solutions keep compounding as Shop Pay wins share.',
     )
+    /* The strip's "Tally's draft" tag survives into the composer — the
+       review surface keeps the provenance marker. */
+    expect(
+      screen.getByText(/Tally drafted the claim and its conditions/),
+    ).toBeInTheDocument()
   })
 })

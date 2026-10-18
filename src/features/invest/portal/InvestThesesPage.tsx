@@ -36,7 +36,7 @@ import type {
 } from '../data/types'
 import { THESIS_INTENTS } from '../data/types'
 import { newRuleDraft, newRulePersistId, toDrafts } from './ruleDrafts'
-import { fmtNum, fmtPct } from './strategyUi'
+import { ASSET_LABEL, fmtNum, fmtPct } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
 import type { RuleDraft } from './ruleDrafts'
 import { RulesAccordion } from './RulesAccordion'
@@ -160,16 +160,23 @@ export function InvestThesesPage() {
 
   const [view, setView] = useState<View>({ kind: 'list' })
   const [composer, setComposer] = useState<ThesisDraftState>(emptyComposer)
+  /* The composer's state as opened — dirty = it drifted from that
+     snapshot, so a Cancel tap can't silently wipe a drafted thesis. */
+  const [openedDraft, setOpenedDraft] = useState<ThesisDraftState | null>(null)
+  const [cancelArmed, setCancelArmed] = useState(false)
   const [busy, setBusy] = useState<'save' | 'delete' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   /* Two-tap confirm auto-disarms — a permanently-armed button turns a
      later stray click into a delete. Same cadence as RulesAccordion. */
   useEffect(() => {
-    if (confirmDelete === null) return
-    const t = window.setTimeout(() => setConfirmDelete(null), 3000)
+    if (confirmDelete === null && !cancelArmed) return
+    const t = window.setTimeout(() => {
+      setConfirmDelete(null)
+      setCancelArmed(false)
+    }, 3000)
     return () => window.clearTimeout(t)
-  }, [confirmDelete])
+  }, [confirmDelete, cancelArmed])
 
   const [pending, setPending] = useState<AgentSuggestion[]>([])
   const [pendingBusy, setPendingBusy] = useState<string | null>(null)
@@ -266,7 +273,10 @@ export function InvestThesesPage() {
   )
 
   const openComposer = useCallback((seed?: Partial<ThesisDraftState>) => {
-    setComposer({ ...emptyComposer(), ...seed })
+    const next = { ...emptyComposer(), ...seed }
+    setComposer(next)
+    setOpenedDraft(next)
+    setCancelArmed(false)
     setView({ kind: 'composer' })
     window.scrollTo({ top: 0 })
   }, [])
@@ -312,6 +322,9 @@ export function InvestThesesPage() {
         breakDrafts: seedToDrafts(seed.break_rules),
         driftDrafts: seedToDrafts(seed.drift_rules),
         suggestionId: s.id,
+        /* A seeded claim IS a Tally draft — the strip's "Tally's draft"
+           tag shouldn't vanish the moment the review form opens. */
+        tallyNote: typeof seed.thesis === 'string' && seed.thesis.trim() !== '',
       })
     },
     [openComposer],
@@ -414,6 +427,37 @@ export function InvestThesesPage() {
         : cur,
     )
   }, [])
+
+  /* Dirty = the editable fields moved since openComposer's snapshot.
+     Machine fields (id, suggestionId, tallyBusy, prevDraft, tallyNote)
+     are excluded — a seeded draft isn't "dirty" until touched, and a
+     restored undo counts as clean. */
+  const composerDirty = useMemo(() => {
+    if (view.kind !== 'composer' || openedDraft === null) return false
+    const snap = (c: ThesisDraftState) =>
+      JSON.stringify([
+        c.symbol,
+        c.name,
+        c.thesis,
+        c.intent,
+        c.tallyDescription,
+        c.breakDrafts,
+        c.driftDrafts,
+      ])
+    return snap(composer) !== snap(openedDraft)
+  }, [composer, openedDraft, view.kind])
+
+  /* Same contract as the strategy editor's back link — a dirty composer
+     arms a two-tap confirm instead of silently discarding the claim and
+     its drafted conditions. */
+  const requestCancel = useCallback(() => {
+    if (!composerDirty || cancelArmed) {
+      setCancelArmed(false)
+      setView({ kind: 'list' })
+      return
+    }
+    setCancelArmed(true)
+  }, [composerDirty, cancelArmed])
 
   const save = useCallback(async () => {
     const c = composer
@@ -777,13 +821,15 @@ export function InvestThesesPage() {
           <button
             type="button"
             className="sb-btn sb-btn-secondary sb-btn-sm"
-            onClick={() => setView({ kind: 'list' })}
+            onClick={requestCancel}
           >
             <X size={15} aria-hidden="true" />
-            {x(IM.invest_thesis_cancel)}
+            {x(cancelArmed ? IM.invest_sb_confirm_discard : IM.invest_thesis_cancel)}
           </button>
           <h1 style={{ marginTop: 12 }}>
-            {composer.id ? x(IM.invest_thesis_edit) : x(IM.invest_thesis_new)}
+            {composer.id
+              ? fill(x(IM.invest_thesis_edit_title), { sym: composer.symbol })
+              : x(IM.invest_thesis_new)}
           </h1>
 
           <div className="sb-card" style={{ marginTop: 12 }}>
@@ -793,8 +839,8 @@ export function InvestThesesPage() {
                   {x(IM.invest_thesis_symbol)}
                 </label>
                 {composer.id ? (
-                  <div className="sb-preview-line">
-                    {composer.symbol} · {composer.assetClass}
+                  <div className="sb-preview-line" id="th-symbol">
+                    {composer.symbol} · {x(IM[ASSET_LABEL[composer.assetClass]])}
                   </div>
                 ) : (
                   <select
@@ -824,7 +870,7 @@ export function InvestThesesPage() {
                       <option key={`${c.assetClass}:${c.symbol}`} value={`${c.assetClass}:${c.symbol}`}>
                         {c.symbol}
                         {c.name ? ` — ${c.name}` : ''}
-                        {c.held ? '' : ' · watchlist'}
+                        {c.held ? '' : ` · ${x(IM.invest_thesis_watch_tag)}`}
                       </option>
                     ))}
                   </select>
@@ -832,9 +878,12 @@ export function InvestThesesPage() {
               </div>
 
               <div className="sb-field">
-                <label className="sb-flabel" htmlFor="th-name">
-                  {x(IM.invest_thesis_name)}
-                </label>
+                <div className="sb-label-count">
+                  <label className="sb-flabel" htmlFor="th-name">
+                    {x(IM.invest_thesis_name)}
+                  </label>
+                  <span className="sb-count">{composer.name.length} / 80</span>
+                </div>
                 <input
                   className="sb-input"
                   id="th-name"
@@ -863,9 +912,12 @@ export function InvestThesesPage() {
               </div>
 
               <div className="sb-field">
-                <label className="sb-flabel" htmlFor="th-story">
-                  {x(IM.invest_thesis_story_label)}
-                </label>
+                <div className="sb-label-count">
+                  <label className="sb-flabel" htmlFor="th-story">
+                    {x(IM.invest_thesis_story_label)}
+                  </label>
+                  <span className="sb-count">{composer.thesis.length} / 600</span>
+                </div>
                 <textarea
                   className="sb-input"
                   id="th-story"
@@ -878,9 +930,14 @@ export function InvestThesesPage() {
               </div>
 
               <div className="sb-field">
-                <label className="sb-flabel" htmlFor="th-tally">
-                  {x(IM.invest_thesis_tally_label)}
-                </label>
+                <div className="sb-label-count">
+                  <label className="sb-flabel" htmlFor="th-tally">
+                    {x(IM.invest_thesis_tally_label)}
+                  </label>
+                  <span className="sb-count">
+                    {composer.tallyDescription.length} / 800
+                  </span>
+                </div>
                 <textarea
                   className="sb-input"
                   id="th-tally"
@@ -975,9 +1032,9 @@ export function InvestThesesPage() {
             <button
               type="button"
               className="sb-btn sb-btn-secondary"
-              onClick={() => setView({ kind: 'list' })}
+              onClick={requestCancel}
             >
-              {x(IM.invest_thesis_cancel)}
+              {x(cancelArmed ? IM.invest_sb_confirm_discard : IM.invest_thesis_cancel)}
             </button>
           </div>
         </div>

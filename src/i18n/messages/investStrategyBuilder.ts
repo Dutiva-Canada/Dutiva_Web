@@ -613,6 +613,12 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_thesis_never: { en: 'Not evaluated yet — the next sweep reads it.', fr: 'Pas encore évaluée — le prochain balayage la lira.' },
   invest_thesis_posture: { en: 'Posture', fr: 'Position' },
   invest_thesis_edit: { en: 'Edit', fr: 'Modifier' },
+  /* The composer's h1 names the subject — a bare "Edit"/"Modifier" reads
+     as a verb with no object. [FR self-authored] */
+  invest_thesis_edit_title: { en: 'Edit — {sym}', fr: 'Modifier — {sym}' },
+  /* Suffix marking a non-held candidate inside the symbol picker —
+     "QBTC · watchlist" / « QBTC · suivi ». [FR self-authored] */
+  invest_thesis_watch_tag: { en: 'watchlist', fr: 'suivi' },
   invest_thesis_delete: { en: 'Delete', fr: 'Supprimer' },
   invest_thesis_delete_confirm: { en: 'Tap again to confirm', fr: 'Retoucher pour confirmer' },
   invest_thesis_new: { en: 'New thesis', fr: 'Nouvelle thèse' },

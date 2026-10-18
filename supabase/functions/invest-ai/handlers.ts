@@ -397,7 +397,9 @@ SignalRule: {"metric", "op": "lt"|"gt", "value": number, "title",
   weight_pct      — position's share of the book in %
   unrealized_gain_pct — gain vs avg cost in %
 - Rules carry round, conservative thresholds the user can edit. Titles
-  name what fired ("Under the 50-day average", not "drift rule 1").
+  name what fired WITH the bound — "5%+ under the 50-day average" for a
+  -5% vs_ma50 rule, "position under $2,500" for value_floor — never a
+  vaguer "Under the 50-day average" that understates the trigger.
 - Every rule is type "signal" — a thesis watches, it never proposes an
   order.`
 
