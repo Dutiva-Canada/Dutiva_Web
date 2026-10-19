@@ -55,3 +55,7 @@ eval-results/*
 # Captured design-prototype working copy (artifact, scripts, screenshots)
 .proto/
 hbshots-out/
+
+# News-link audit outputs (scripts/news_link_audit.py) — the resolve cache
+# and per-run dead-link report regenerate on each run; never committed.
+scripts/news_link_audit_*.json
