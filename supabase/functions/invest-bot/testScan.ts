@@ -88,7 +88,7 @@ export async function testScan(
   const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
     adminClient
       .from('invest_market_snapshots')
-      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of, source')
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')

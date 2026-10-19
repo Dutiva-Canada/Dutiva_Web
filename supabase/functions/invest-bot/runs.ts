@@ -113,7 +113,7 @@ export async function runUser(
   const [snapshotsRes, positionsRes, accountsRes, watchlistRes] = await Promise.all([
     adminClient
       .from('invest_market_snapshots')
-      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of, source')
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
@@ -492,12 +492,17 @@ export async function runUser(
      feed stopped. When even the FRESHEST mark has missed its sessions,
      nothing anywhere is quoting — file one deduped alert row the inbox
      surfaces. A lone dead symbol stays a run warning (a book problem, not
-     an outage); a never-synced book — zero snapshots — isn't claimed as a
-     stall, nothing stopped. The 'feed:stalled' rule_id pins one key; an
-     open row suppresses repeats, a dismissal re-arms on the same window
-     every other signal uses. */
+     an outage); a never-synced book isn't claimed as a stall, and
+     'manual'-source marks carry no feed cadence — an aging user-entered
+     price is not a feed stopping. The dedupe key rides the stall point:
+     the same outage shares newestAsOf and suppresses repeats, while a
+     recovery-and-restall gets a new mark time → a new episode → a new
+     alert. The title key is checked too — pre-0218 schemas persist the
+     row title-keyed, and checking only the rule key would re-alert every
+     sweep. */
   const newestAsOf = snapshots.reduce<string | null>(
-    (latest, s) => (s.as_of && (!latest || s.as_of > latest) ? s.as_of : latest),
+    (latest, s) =>
+      s.source !== 'manual' && s.as_of && (!latest || s.as_of > latest) ? s.as_of : latest,
     null,
   )
   let feedStallAlerted = 0
@@ -510,14 +515,22 @@ export async function runUser(
       .slice(0, 16)
       .replace('T', ' ')
     const titleEn = 'Price feed stalled'
+    const episodeKey = `feed:stalled:${newestAsOf}`
     const key = signalKey({
       strategy_id: null,
       symbol: '',
       kind: 'alert',
       title: titleEn,
-      rule_id: 'feed:stalled',
+      rule_id: episodeKey,
     })
-    if (!existingKeys.has(key)) {
+    const titleKey = signalKey({
+      strategy_id: null,
+      symbol: '',
+      kind: 'alert',
+      title: titleEn,
+      rule_id: null,
+    })
+    if (!existingKeys.has(key) && !existingKeys.has(titleKey)) {
       existingKeys.add(key)
       const ok = await insertFeedSignal(
         {
@@ -528,12 +541,13 @@ export async function runUser(
           name: '',
           kind: 'alert',
           title: titleEn,
+          /* [FR self-authored] — no handoff copy exists for engine rows. */
           title_fr: 'Flux de prix interrompu',
           body: `Marks last updated ${stopped} UTC — rules pause on stale marks and the book keeps last-known prices until the feed recovers.`,
           body_fr: `Dernier cours le ${stopped} UTC — les règles s’arrêtent sur des cours périmés et le portefeuille garde les derniers prix connus jusqu’au retour du flux.`,
           score: null,
         },
-        { in_feed: true, rule_id: 'feed:stalled' },
+        { in_feed: true, rule_id: episodeKey },
       )
       if (ok) feedStallAlerted += 1
     }
