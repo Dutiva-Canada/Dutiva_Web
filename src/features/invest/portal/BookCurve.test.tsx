@@ -156,6 +156,31 @@ describe('BookCurve', () => {
     mount([snap('2026-01-01', 10_000), snap('2026-02-01', 9_000)])
     const stats = [...document.querySelectorAll('.sb-curve-stat')].map((s) => s.textContent)
     expect(stats.filter((t) => t?.includes('Deepest dip'))).toHaveLength(0)
+    /* The book was under its start the whole way down — 'never below
+       the start' would be the opposite of the truth here. */
+    expect(document.querySelector('.sb-tally-read')?.textContent).toContain('the last mark is the low')
+  })
+
+  it('keeps "never below the start" only for a decline deposits masked', () => {
+    /* Ends at 10,500 — never under the 10,000 start — yet a mid-window
+       deposit of 1,000 makes the flow-adjusted change −5.0%. */
+    mount(
+      [snap('2026-01-01', 10_000), snap('2026-02-01', 10_500)],
+      [
+        {
+          id: 'e1',
+          accountId: 'a1',
+          kind: 'deposit',
+          amount: 1_000,
+          currency: 'CAD',
+          occurredAt: '2026-01-15T12:00:00.000Z',
+          note: '',
+          createdAt: '2026-01-15T12:00:00.000Z',
+        },
+      ],
+    )
+    const change = document.querySelector('.sb-curve-stat strong')
+    expect(change?.textContent).toBe('−5.0%')
     expect(document.querySelector('.sb-tally-read')?.textContent).toContain('never below the start')
   })
 
@@ -169,8 +194,8 @@ describe('BookCurve', () => {
     expect(document.querySelector('.sb-seg')).not.toBeNull()
   })
 
-  it('renders the benchmark chip and rebased note when closes exist', () => {
-    /* Book +10%, benchmark +5% over the same window → +5.0 pp vs XEQT. */
+  it('renders the benchmark chip and same-start note when closes exist', () => {
+    /* Book +10%, benchmark +5% over the same window → +5.0 pts vs XEQT. */
     mount(
       [snap('2026-01-01', 10_000), snap('2026-02-01', 11_000)],
       [],
@@ -181,8 +206,8 @@ describe('BookCurve', () => {
       ],
     )
     expect(document.body.textContent).toContain('vs XEQT')
-    expect(document.body.textContent).toContain('+5.0 pp')
-    expect(document.body.textContent).toContain('XEQT rebased to your first mark')
+    expect(document.body.textContent).toContain('+5.0 pts')
+    expect(document.body.textContent).toContain('XEQT from the same start')
   })
 
   it('carries the last close across days the index did not print', () => {
@@ -194,8 +219,8 @@ describe('BookCurve', () => {
       [{ symbol: 'XEQT.TO', date: '2026-01-02', close: 40 }],
     )
     expect(document.body.textContent).toContain('vs XEQT')
-    /* Index flat over the window, book +10% → +10.0 pp. */
-    expect(document.body.textContent).toContain('+10.0 pp')
+    /* Index flat over the window, book +10% → +10.0 pts. */
+    expect(document.body.textContent).toContain('+10.0 pts')
   })
 
   it('draws no benchmark chrome when the series has no usable closes', () => {
@@ -210,7 +235,7 @@ describe('BookCurve', () => {
       [{ symbol: 'XEQT.TO', date: '2026-02-01', close: 42 }],
     )
     expect(document.body.textContent).not.toContain('vs XEQT')
-    expect(document.body.textContent).not.toContain(' pp')
+    expect(document.body.textContent).not.toContain(' pts')
   })
 
   it('reads a one-day span as a first day, not a window verdict', () => {

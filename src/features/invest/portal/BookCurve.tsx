@@ -173,6 +173,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
         hasFlows: false,
         maxDD: null as number | null,
         vsBench: null as number | null,
+        neverBelow: false,
       }
     }
     const first = points[0]!
@@ -217,7 +218,11 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
     /* A single covered day gives a zero-width window — no gap to claim. */
     const vsBench =
       chg !== null && benchChg !== null && benchFirst !== benchLast ? chg - benchChg : null
-    return { chg, hasFlows, maxDD: maxDD < 0 && !dipDupe ? maxDD : null, vsBench }
+    /* 'Never below the start' is a claim on the raw curve — the pre-dedup
+       maxDD decides it. A monotone slide also leaves maxDD null, and
+       there the book sat under its first mark the whole window. */
+    const neverBelow = maxDD >= 0
+    return { chg, hasFlows, maxDD: maxDD < 0 && !dipDupe ? maxDD : null, vsBench, neverBelow }
   }, [points, scopedEvents, ccy, fx])
 
   /* Days the window actually spans — gates the range pills (a 1M pill on
@@ -241,7 +246,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
      the % sign the change figure does. */
   const ppFmt = (n: number) => {
     const r = Math.round(n * 10) / 10
-    return `${r > 0 ? '+' : ''}${fmtNum(lang, r, 1).replace('-', '−')} pp`
+    return `${r > 0 ? '+' : ''}${fmtNum(lang, r, 1).replace('-', '−')} pts`
   }
   const benchLabel = benchSymbol?.replace(/\.TO$/, '') ?? ''
   const hasBench = points.some((p) => p.bench !== null)
@@ -260,9 +265,15 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
         ? fill(x(IM.invest_read_curve_up_nodip), { chg: pctFmt(r) })
         : fill(x(IM.invest_read_curve_up), { chg: pctFmt(r), dd })
     }
-    return dd === null
+    if (dd !== null) {
+      return fill(x(IM.invest_read_curve_down), { chg: pctFmt(r), dd })
+    }
+    /* Two ways to have no dip clause: the raw curve never went under
+       (deposits masked the slide), or the dip IS the change — the book
+       slid to the low at the end. Different facts, different line. */
+    return stats.neverBelow
       ? fill(x(IM.invest_read_curve_down_nodip), { chg: pctFmt(r) })
-      : fill(x(IM.invest_read_curve_down), { chg: pctFmt(r), dd })
+      : fill(x(IM.invest_read_curve_down_slide), { chg: pctFmt(r) })
   })()
 
   return (
