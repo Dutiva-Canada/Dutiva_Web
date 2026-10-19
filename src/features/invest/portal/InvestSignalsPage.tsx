@@ -39,23 +39,28 @@ export function InvestSignalsPage() {
     setError(undefined)
     try {
       await setSignalStatus(id, status)
-      await refresh()
-      /* Tally notices the triage — best-effort; a throttled or failed
-         reaction never disturbs the status change. A reopen is an undo, not
-         a triage event, so it stays out of the reaction feed. */
-      if (status === 'acknowledged' || status === 'dismissed') {
-        const symbol = state?.signals.find((s) => s.id === id)?.symbol
-        sendInvestReaction({ type: 'signal_updated', status, symbol }, lang, setTallyLine)
-          .then((r) => {
-            if (r.reply) setTallyLine(r.reply)
-          })
-          .catch(() => {})
-      }
     } catch {
+      /* The write itself failed — the row is still genuinely new. */
       setError(x(IM.invest_error_generic))
-    } finally {
       setBusyId(null)
+      return
     }
+    /* The write landed — don't let a failed reload report an error on an
+       action that succeeded; the row lingers until the next load heals
+       local state. */
+    await refresh().catch(() => {})
+    /* Tally notices the triage — best-effort; a throttled or failed
+       reaction never disturbs the status change. A reopen is an undo, not
+       a triage event, so it stays out of the reaction feed. */
+    if (status === 'acknowledged' || status === 'dismissed') {
+      const symbol = state?.signals.find((s) => s.id === id)?.symbol
+      sendInvestReaction({ type: 'signal_updated', status, symbol }, lang, setTallyLine)
+        .then((r) => {
+          if (r.reply) setTallyLine(r.reply)
+        })
+        .catch(() => {})
+    }
+    setBusyId(null)
   }
 
   if (loading) {
