@@ -56,10 +56,16 @@ export const SIGNAL_KIND_LABEL: Record<SignalKind, keyof typeof IM> = {
 
 /** Symbols a signal's text mentions that are actually held — rendered as
    pills linking to the book so "QUBT fell 6.9%" cross-references without
-   a hunt. Whole-token match, case-insensitive. */
+   a hunt. Whole-token match, case-SENSITIVE on purpose: bot copy writes
+   tickers uppercase, and a held ticker that is also an English word
+   (ON, ARE, IT, NOW, CAN, BE, AT, KEY, MAN) would otherwise chip on
+   ordinary prose — "fell on Friday" is not an ON Semiconductor mention.
+   The left boundary also excludes '.', so a held TO doesn't chip on the
+   .TO exchange suffix in "VFV.TO" (VFV itself still does — the suffix
+   doesn't claim the base ticker). */
 export function mentionedSymbols(text: string, heldSymbols: string[]): string[] {
   return heldSymbols.filter((sym) =>
-    new RegExp(`(^|[^A-Z0-9])${sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Z0-9]|$)`, 'i').test(
+    new RegExp(`(^|[^A-Z0-9.])${sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Z0-9]|$)`).test(
       text,
     ),
   )
