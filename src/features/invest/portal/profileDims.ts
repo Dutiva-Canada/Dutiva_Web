@@ -62,3 +62,19 @@ export const PROFILE_TAGS: ['sectors' | 'exclusions', Bi][] = [
   ['sectors', IM.invest_profile_sectors],
   ['exclusions', IM.invest_profile_exclusions],
 ]
+
+/** UI field key → invest_user_profile column — shared so the Profile
+    editor and the plan document's readout can't disagree on storage. */
+export type ProfileColumn =
+  | 'risk_tolerance'
+  | 'horizon'
+  | 'goal'
+  | 'experience'
+  | 'answer_style'
+export const PROFILE_FIELD: Record<ProfileField, ProfileColumn> = {
+  risk: 'risk_tolerance',
+  horizon: 'horizon',
+  goal: 'goal',
+  experience: 'experience',
+  style: 'answer_style',
+}

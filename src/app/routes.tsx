@@ -76,6 +76,7 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestThesesPage = lazy(() => import('@/features/invest/portal/InvestThesesPage').then((m) => ({ default: m.InvestThesesPage })))
 /* prettier-ignore */ const InvestAnalysisPage = lazy(() => import('@/features/invest/portal/InvestAnalysisPage').then((m) => ({ default: m.InvestAnalysisPage })))
 /* prettier-ignore */ const InvestProfilePage = lazy(() => import('@/features/invest/portal/InvestProfilePage').then((m) => ({ default: m.InvestProfilePage })))
+/* prettier-ignore */ const InvestPlanPage = lazy(() => import('@/features/invest/portal/InvestPlanPage').then((m) => ({ default: m.InvestPlanPage })))
 /* prettier-ignore */ const InvestNotificationsPage = lazy(() => import('@/features/invest/portal/InvestNotificationsPage').then((m) => ({ default: m.InvestNotificationsPage })))
 /* prettier-ignore */ const InvestSettingsPage = lazy(() => import('@/features/invest/portal/InvestSettingsPage').then((m) => ({ default: m.InvestSettingsPage })))
 /* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
@@ -263,6 +264,9 @@ function AppLegacyRedirect() {
  *                           SWOT per thesis — Tally's analytical layer
  *   /invest/profile         the "knows you" layer — declared profile +
  *                           mandate, confirmed memories, observed patterns
+ *   /invest/plan            the book as one reviewed document — objective,
+ *                           investor profile, goals, holdings + theses,
+ *                           standing rules, watch board, open items, review
  *   /wellness               wellness portal — standalone shell, shared auth,
  *                           gated by a health_access grant (invite-only);
  *                           non-clinical self-tracking + journal
@@ -463,6 +467,7 @@ function routeTree(): RouteObject[] {
             { path: 'theses', element: <InvestThesesPage /> },
             { path: 'analysis', element: <InvestAnalysisPage /> },
             { path: 'profile', element: <InvestProfilePage /> },
+            { path: 'plan', element: <InvestPlanPage /> },
             { path: 'notifications', element: <InvestNotificationsPage /> },
             { path: 'settings', element: <InvestSettingsPage /> },
           ],
