@@ -21,30 +21,11 @@ export interface StrategyTemplate {
 
 export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   {
-    slug: 'rebalance-drift',
-    name: { en: 'Drift rebalance', fr: 'Rééquilibrage d’écart' },
-    blurb: {
-      en: 'Flag any holding that grows past a quarter of the book.',
-      fr: 'Signaler toute position qui dépasse le quart du portefeuille.',
-    },
-    cadence: 'weekly',
-    rules: [
-      {
-        type: 'signal',
-        metric: 'weight_pct',
-        op: 'gt',
-        value: 25,
-        severity: 'alert',
-        title: 'Over 25% of book',
-      },
-    ],
-  },
-  {
     slug: 'concentration-cap',
-    name: { en: 'Concentration cap', fr: 'Plafond de concentration' },
+    name: { en: 'Concentration alert', fr: 'Alerte de concentration' },
     blurb: {
-      en: 'Alert when a single position crosses 35% of total value.',
-      fr: 'Alerter quand une position dépasse 35 % de la valeur totale.',
+      en: 'Alert when a single position crosses 35% of the book.',
+      fr: 'Alerter quand une position dépasse 35 % du portefeuille.',
     },
     cadence: 'daily',
     rules: [
@@ -79,10 +60,10 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   },
   {
     slug: 'momentum-guard',
-    name: { en: 'Trend guard', fr: 'Garde de tendance' },
+    name: { en: 'Trend break', fr: 'Cassure de tendance' },
     blurb: {
-      en: 'Alert when a symbol slips below its 50-day average.',
-      fr: 'Alerter quand un symbole passe sous sa moyenne de 50 jours.',
+      en: 'Alert when a tracked symbol slips below its 50-day average.',
+      fr: 'Alerter quand un symbole suivi passe sous sa moyenne de 50 jours.',
     },
     cadence: 'daily',
     rules: [
@@ -100,8 +81,8 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     slug: 'trim-winners',
     name: { en: 'Winner review', fr: 'Revue des gains' },
     blurb: {
-      en: 'Note positions up 40% or more against their average cost.',
-      fr: 'Noter les positions en hausse de 40 % ou plus par rapport au coût moyen.',
+      en: 'Note tracked positions up 40% or more against their average cost.',
+      fr: 'Noter les positions suivies en hausse de 40 % ou plus par rapport au coût moyen.',
     },
     cadence: 'weekly',
     rules: [
@@ -119,8 +100,8 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
     slug: 'cash-sweep',
     name: { en: 'Idle-cash check', fr: 'Contrôle des liquidités' },
     blurb: {
-      en: 'Weekly note when account cash sits above a set amount.',
-      fr: 'Note hebdomadaire quand les liquidités dépassent un seuil fixé.',
+      en: 'Note when account cash sits above $5,000.',
+      fr: 'Noter quand les liquidités dépassent 5 000 $.',
     },
     cadence: 'weekly',
     rules: [
@@ -136,10 +117,10 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
   },
   {
     slug: 'monthly-accumulate',
-    name: { en: 'Monthly accumulation', fr: 'Accumulation mensuelle' },
+    name: { en: 'Monthly accumulation plan', fr: 'Plan d’accumulation mensuel' },
     blurb: {
-      en: 'Once a month, draft a small simulated buy on every symbol in scope.',
-      fr: 'Une fois par mois, rédiger un petit achat simulé sur chaque symbole suivi.',
+      en: 'Propose a small simulated buy on every tracked symbol.',
+      fr: 'Proposer un petit achat simulé sur chaque symbole suivi.',
     },
     cadence: 'monthly',
     rules: [
@@ -156,7 +137,7 @@ export const STRATEGY_TEMPLATES: StrategyTemplate[] = [
         side: 'buy',
         qty: 2,
         qtyUnit: 'shares',
-        title: 'Monthly accumulation',
+        title: 'Monthly accumulation plan',
       },
     ],
   },

@@ -823,8 +823,6 @@ export function InvestStrategiesPage() {
                           ? IM.invest_cadence_monthly
                           : IM.invest_cadence_daily,
                     )}
-                    {' · '}
-                    {pl(lang, t.rules.length, IM.invest_sb_rule_one, IM.invest_sb_rule_many)}
                   </span>
                   <button
                     type="button"
