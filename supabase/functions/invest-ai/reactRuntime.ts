@@ -1,6 +1,13 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
-import { postChatCompletion, readUpstreamText } from '../_shared/modelUpstream.ts'
-import { investReactPrompt, type InvestReactEvent } from './handlers.ts'
+import { postChatCompletion } from '../_shared/modelUpstream.ts'
+import {
+  buildReactRepairNote,
+  investReactPrompt,
+  REACT_FALLBACK_EN,
+  REACT_FALLBACK_FR,
+  screenReactDraft,
+  type InvestReactEvent,
+} from './handlers.ts'
 import { loadBookContext, modelRoute } from './runtime.ts'
 import { json, sseChannel, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
 
@@ -94,6 +101,13 @@ export function parseInvestReactEvent(raw: unknown): InvestReactEvent | null {
   return null
 }
 
+/** First choice's content from a chat completion, '' when absent. */
+const completionText = (body: unknown): string => {
+  const content = (body as { choices?: { message?: { content?: unknown } }[] })?.choices?.[0]
+    ?.message?.content
+  return typeof content === 'string' ? content : ''
+}
+
 export async function runReact(
   adminClient: SupabaseClient,
   userId: string,
@@ -107,21 +121,51 @@ export async function runReact(
   if ('error' in routed) return routed.error
   const { route, provider, apiKey } = routed
   const book = await loadBookContext(adminClient, userId, { showPaywalled })
+  const prompt = investReactPrompt(event, book.ctx, lang, { advice })
+
+  /* The reaction gets the same screens a chat reply gets — the prompt feeds
+     it market rows, so it can misquote them, and the external tier's no-
+     advice line applies here too. Upstream stays buffered in every mode: a
+     streamed piece can't be un-sent once the client holds it, so only the
+     screened text goes out — at most one repair round between draft and
+     send. */
+  const callModel = (draft?: string, repairNote?: string): Promise<Response> => {
+    const messages = [{ role: 'user', content: prompt }]
+    if (draft) messages.push({ role: 'assistant', content: draft })
+    if (repairNote) messages.push({ role: 'system', content: repairNote })
+    return postChatCompletion(
+      provider,
+      apiKey,
+      { model: route.model_name, messages, temperature: 0.5, max_tokens: 160, stream: false },
+      UPSTREAM_TIMEOUT_MS,
+    )
+  }
+
+  /* Draft → screen → (one repair if flagged) → final text. A draft still
+     flagged after its repair ships as the neutral fallback — a reaction is
+     garnish, never worth a wrong number or a stray recommendation. */
+  const finalize = async (draft: string): Promise<string> => {
+    let screen = screenReactDraft(draft, book.ctx.market, lang, advice)
+    if (screen.mismatches.length === 0 && screen.adviceFlags.length === 0) return draft
+    try {
+      const repairUpstream = await callModel(draft, buildReactRepairNote(screen, lang))
+      if (repairUpstream.ok) {
+        const repaired = completionText(await repairUpstream.json()).trim()
+        if (repaired) {
+          screen = screenReactDraft(repaired, book.ctx.market, lang, advice)
+          if (screen.mismatches.length === 0 && screen.adviceFlags.length === 0) return repaired
+          console.warn('invest-ai react: residual flags after repair', JSON.stringify(screen))
+        }
+      }
+    } catch (e) {
+      console.warn('invest-ai react: repair call failed', e)
+    }
+    return lang === 'fr' ? REACT_FALLBACK_FR : REACT_FALLBACK_EN
+  }
 
   let upstream: Response
   try {
-    upstream = await postChatCompletion(
-      provider,
-      apiKey,
-      {
-        model: route.model_name,
-        messages: [{ role: 'user', content: investReactPrompt(event, book.ctx, lang, { advice }) }],
-        temperature: 0.5,
-        max_tokens: 160,
-        stream,
-      },
-      UPSTREAM_TIMEOUT_MS,
-    )
+    upstream = await callModel()
   } catch (error) {
     console.error('invest-ai react: model call failed', error)
     return json({ error: 'The AI service is temporarily unavailable.', code: 'upstream' }, 502)
@@ -130,19 +174,15 @@ export async function runReact(
     return json({ error: 'The AI service is temporarily unavailable.', code: 'upstream' }, 502)
   }
 
+  const draft = completionText(await upstream.json()).trim()
+  if (!draft) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
+  const reply = await finalize(draft)
+
   if (stream) {
     const sse = sseChannel()
     void (async () => {
       try {
-        const reply = (
-          await readUpstreamText(upstream, (piece) => {
-            if (piece) sse.send({ type: 'delta', text: piece })
-          })
-        ).trim()
-        if (!reply) {
-          sse.send({ type: 'error', error: 'Model returned empty text', code: 'empty' })
-          return
-        }
+        sse.send({ type: 'delta', text: reply })
         const { data: row } = await adminClient
           .from('invest_chat_messages')
           .insert({ user_id: userId, role: 'assistant', content: reply })
@@ -157,10 +197,6 @@ export async function runReact(
     })()
     return sse.response
   }
-
-  const completion = await upstream.json()
-  const reply = (completion?.choices?.[0]?.message?.content ?? '').trim()
-  if (!reply) return json({ error: 'Model returned empty text', code: 'empty' }, 502)
 
   const { data: row } = await adminClient
     .from('invest_chat_messages')

@@ -1919,3 +1919,59 @@ export const ADVICE_FALLBACK_EN =
   'That call is yours — or a licensed adviser’s — and it’s not one I can make for you. What I can do: explain how to weigh it, what the trade-offs look like, or what your book actually shows. Tell me which and I’ll go from there.'
 export const ADVICE_FALLBACK_FR =
   'Cette décision vous appartient — ou revient à un conseiller agréé — et je ne peux pas la prendre à votre place. Ce que je peux faire : expliquer comment l’évaluer, les compromis en jeu, ou ce que votre livre montre. Dites-moi lequel et je continue.'
+
+/* ── Reaction screens ──────────────────────────────────────────────────────
+   Reactions get the same two eyes a chat reply gets: figures against the
+   market rows, directed advice against the external-tier patterns. A flag
+   earns one plain-text repair; a draft still flagged after it ships as the
+   neutral line below — a reaction is garnish, never worth a wrong number. */
+
+/** The deterministic line a flagged reaction falls back to — acknowledges
+    the action plainly, cites nothing, evaluates nothing. */
+export const REACT_FALLBACK_EN = "Noted — it's on the book."
+export const REACT_FALLBACK_FR = 'Noté — c’est inscrit au livre.'
+
+export interface ReactScreen {
+  mismatches: ClaimMismatch[]
+  adviceFlags: string[]
+}
+
+/** Both react screens on one draft. The advice screen is skipped for the
+    internal tier, same as chat — facts stay checked either way. */
+export function screenReactDraft(
+  reply: string,
+  market: MarketContextEntry[],
+  lang: 'en' | 'fr',
+  advice: boolean,
+): ReactScreen {
+  return {
+    mismatches: verifyReplyClaims(reply, market),
+    adviceFlags: advice ? [] : detectDirectedAdvice(reply, lang),
+  }
+}
+
+/** The repair note for a flagged reaction — the chat notes compressed for
+    react's plain-text contract (no JSON, one or two sentences). */
+export function buildReactRepairNote(screen: ReactScreen, lang: 'en' | 'fr'): string {
+  const parts: string[] = []
+  if (screen.mismatches.length > 0) {
+    parts.push(
+      'Your reaction cited figures that do not match the market data on file:\n' +
+        screen.mismatches
+          .map((m) => `- ${m.metric}: ${m.detail ?? `you wrote ${Math.round(m.claimed * 100) / 100}${m.unit} — on file: ${Math.round(m.actual * 100) / 100}${m.unit}`}`)
+          .join('\n'),
+    )
+  }
+  if (screen.adviceFlags.length > 0) {
+    parts.push(
+      'It also crossed the no-advice line — flagged:\n' +
+        screen.adviceFlags.map((f) => `- "${f}"`).join('\n'),
+    )
+  }
+  return (
+    parts.join('\n') +
+    `\nRewrite the reaction — plain text, one or two short sentences in ${
+      lang === 'fr' ? 'Canadian French' : 'Canadian English'
+    }, naming what they did and citing only figures from the data provided.`
+  )
+}
