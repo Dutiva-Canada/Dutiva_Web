@@ -39,7 +39,21 @@ function thesis(partial: Partial<Thesis>): Thesis {
     drift_rules: [],
     status: 'healthy',
     last_evaluated_at: '2026-02-01T00:00:00Z',
+    eval_detail: null,
     ...partial,
+  }
+}
+
+/* A stored eval_detail carrying a pending recovery — what the previous
+   sweep wrote when the read came back better than the status. */
+function detailWith(streak: number): NonNullable<Thesis['eval_detail']> {
+  return {
+    rules: [],
+    fired_break: 0,
+    fired_drift: 0,
+    recovery_streak: streak,
+    action_en: '',
+    action_fr: '',
   }
 }
 
@@ -116,7 +130,7 @@ describe('evaluateTheses', () => {
     expect(ev.statusChanged).toBe(false)
   })
 
-  it('reports a transition when the stored status differs', () => {
+  it('holds a degraded status through one better read — flutter, not a heal', () => {
     const [ev] = evaluateTheses(
       [
         thesis({
@@ -129,9 +143,72 @@ describe('evaluateTheses', () => {
       ctx,
       { advice: true },
     )
-    /* broken → healthy IS a transition — the recovery signal matters */
+    /* A single clean read doesn't un-break a thesis — a metric hugging a
+       line flips the card every sweep otherwise. The status holds, no
+       transition emits, and the streak records the pending recovery. */
+    expect(ev.status).toBe('broken')
+    expect(ev.statusChanged).toBe(false)
+    expect(ev.detail.recovery_streak).toBe(1)
+  })
+
+  it('heals once the better read repeats on the next eval', () => {
+    const [ev] = evaluateTheses(
+      [
+        thesis({
+          status: 'broken',
+          eval_detail: detailWith(1),
+          drift_rules: [signalRule({ metric: 'vs_ma50', op: 'lt', value: -30 })],
+        }),
+      ],
+      [snap({})],
+      [pos],
+      ctx,
+      { advice: true },
+    )
+    /* Two consecutive clean reads — the recovery is real, the transition
+       emits, the streak clears. */
     expect(ev.status).toBe('healthy')
     expect(ev.statusChanged).toBe(true)
+    expect(ev.detail.recovery_streak).toBe(0)
+  })
+
+  it('a worsening read cancels the pending recovery instantly', () => {
+    const [ev] = evaluateTheses(
+      [
+        thesis({
+          status: 'drifting',
+          eval_detail: detailWith(1),
+          break_rules: [signalRule({ metric: 'unrealized_gain_pct', op: 'lt', value: -5 })],
+        }),
+      ],
+      [snap({})],
+      [pos],
+      ctx,
+      { advice: true },
+    )
+    /* Trips never wait — -10% vs -5 fires the break and drops the streak. */
+    expect(ev.status).toBe('broken')
+    expect(ev.statusChanged).toBe(true)
+    expect(ev.detail.recovery_streak).toBe(0)
+  })
+
+  it('a silent eval keeps the pending recovery — silence is not a verdict', () => {
+    const [ev] = evaluateTheses(
+      [
+        thesis({
+          status: 'drifting',
+          eval_detail: detailWith(1),
+          drift_rules: [signalRule({})],
+        }),
+      ],
+      [],
+      [pos],
+      ctx,
+      { advice: true },
+    )
+    expect(ev.noSnapshot).toBe(true)
+    expect(ev.status).toBe('drifting')
+    expect(ev.detail.recovery_streak).toBe(1)
   })
 
   it('first eval of an already-degraded thesis counts as a transition', () => {

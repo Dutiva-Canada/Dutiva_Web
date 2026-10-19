@@ -1319,6 +1319,16 @@
   font-size: 13px;
   color: var(--sb-ok);
 }
+/* The sweep's own pending-recovery note — muted, unconfirmed by
+   definition; green would claim a verdict it hasn't earned yet. */
+.sb-thesis-recover {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--sb-mut);
+}
 .sb-thesis-conds {
   display: flex;
   flex-direction: column;

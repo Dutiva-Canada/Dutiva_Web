@@ -641,6 +641,13 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   /* [FR self-authored] */
   invest_thesis_reaffirmed_toast: { en: 'Story reaffirmed.', fr: 'Thèse réaffirmée.' },
+  /* A degraded status whose newest read came back better — one clean
+     tick is flutter, so the badge holds until the next sweep confirms.
+     Honest about what it says: better, not healed. [FR self-authored] */
+  invest_thesis_recovering: {
+    en: 'Newest read came back better — holds until the next sweep confirms it.',
+    fr: 'La lecture la plus récente est revenue meilleure — se maintient jusqu’à ce que le prochain balayage le confirme.',
+  },
   invest_thesis_posture: { en: 'Posture', fr: 'Position' },
   invest_thesis_edit: { en: 'Edit', fr: 'Modifier' },
   /* The composer's h1 names the subject — a bare "Edit"/"Modifier" reads
