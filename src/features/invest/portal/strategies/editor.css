@@ -136,6 +136,10 @@ select.sb-input {
 }
 .sb-seg button {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 0;
   background: transparent;
   border-radius: 999px;
@@ -156,6 +160,10 @@ select.sb-input {
   flex-wrap: wrap;
 }
 .sb-pills button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid var(--sb-line);
   background: var(--sb-input);
   border-radius: 999px;
