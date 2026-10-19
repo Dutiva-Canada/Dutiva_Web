@@ -49,7 +49,10 @@ export function StressTest(props: {
   const { positions, snapshots, strategies, theses, goals, watchSymbols, accounts } = props
   const { scenarios, onScenariosChanged } = props
   const { lang, x } = useI18n()
-  const [preset, setPreset] = useState<PresetId>('all10')
+  /* null = no preset produced the result on screen — nothing has run, a
+     saved scenario is live, or the saved row was just deleted. Pressed
+     marks the source of the visible result, not a default selection. */
+  const [preset, setPreset] = useState<PresetId | null>(null)
   const [customSymbol, setCustomSymbol] = useState('')
   const [customPct, setCustomPct] = useState('')
   const [result, setResult] = useState<StressResult | null>(null)
@@ -237,116 +240,120 @@ export function StressTest(props: {
     result.theses.length === 0 &&
     result.goals.every((g) => g.met !== false)
 
+  /* Same section shell as the sibling frameworks — heading and sub at
+     page level, the panel inside a padded card — so it reads as a peer
+     of Goals/Watch/SWOT, not a widget dropped between them. */
+  const head = (
+    <div className="sb-section-head">
+      <div>
+        <h2 className="sb-h2">
+          <Activity size={16} aria-hidden /> {x(IM.invest_stress_title)}
+        </h2>
+        <p className="sub">{x(IM.invest_stress_sub)}</p>
+      </div>
+    </div>
+  )
+
+  /* The composer opens on Custom — unless a saved scenario is the thing
+     running, in which case the seg must not claim the run. */
+  const customOpen = preset === 'custom' && !selSaved
+
   if (snapshots.length === 0 && positions.length === 0) {
     return (
-      <section className="sb-card sb-stress">
-        <h2 className="sb-flabel">
-          <Activity size={14} aria-hidden /> {x(IM.invest_stress_title)}
-        </h2>
-        <p className="dim">{x(IM.invest_stress_empty)}</p>
+      <section className="sb-section" aria-label={x(IM.invest_stress_title)}>
+        {head}
+        <div className="sb-empty">{x(IM.invest_stress_empty)}</div>
       </section>
     )
   }
 
   return (
-    <section className="sb-card sb-stress">
-      <h2 className="sb-flabel">
-        <Activity size={14} aria-hidden /> {x(IM.invest_stress_title)}
-      </h2>
-      <p className="dim">{x(IM.invest_stress_sub)}</p>
-      {tallyLine && <TallyNote line={tallyLine} />}
+    <section className="sb-section" aria-label={x(IM.invest_stress_title)}>
+      {head}
+      <div className="sb-card sb-card-pad">
+        {tallyLine && <TallyNote line={tallyLine} />}
 
-      <div className="sb-seg sb-stress-scenarios" role="group" aria-label={x(IM.invest_stress_title)}>
-        {PRESETS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            aria-pressed={preset === p.id}
-            onClick={() => pickPreset(p.id)}
-          >
-            {x(IM[p.key]).replace('{ccy}', bookCcy)}
-          </button>
-        ))}
-      </div>
-
-      {scenarios.length > 0 && (
-        <div className="sb-stress-saved">
-          <select
-            className="sb-input"
-            value={selSaved}
-            aria-label={x(IM.invest_stress_saved_label)}
-            onChange={(e) => {
-              setSelSaved(e.target.value)
-              const s = scenarios.find((sc) => sc.id === e.target.value)
-              if (!s) return
-              setPreset('custom')
-              /* Saved rows persist plain shock objects — the evaluator
-                 reads the same fields either way. */
-              run(s.shocks as Shock[], s.name)
-            }}
-          >
-            <option value="" disabled>
-              {x(IM.invest_stress_saved_label)}
-            </option>
-            {scenarios.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
+        {/* One picker row for the three ways to run a scenario — presets
+            fire on pick, Custom opens the composer, saved replays by
+            name. The seg's pressed state is the running preset only. */}
+        <div className="sb-stress-picker">
+          <div className="sb-seg" role="group" aria-label={x(IM.invest_stress_presets)}>
+            {PRESETS.filter((p) => p.id !== 'custom').map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                aria-pressed={preset === p.id && !selSaved}
+                onClick={() => pickPreset(p.id)}
+              >
+                {x(IM[p.key]).replace('{ccy}', bookCcy)}
+              </button>
             ))}
-          </select>
+          </div>
           <button
             type="button"
             className="sb-btn sb-btn-secondary sb-btn-sm"
-            aria-label={x(IM.invest_stress_delete_saved)}
-            disabled={saveBusy || !selSaved || !scenarios.some((s) => s.id === selSaved)}
+            aria-expanded={customOpen}
+            aria-controls="sb-stress-custom"
             onClick={() => {
-              const s = scenarios.find((sc) => sc.id === selSaved)
-              if (!s) return
-              setSaveBusy(true)
-              void deleteStressScenario(s.id)
-                .then(() => {
-                  setSelSaved('')
-                  return onScenariosChanged()
-                })
-                .finally(() => setSaveBusy(false))
+              setPreset('custom')
+              setSelSaved('')
             }}
           >
-            <Trash2 size={14} aria-hidden="true" />
+            {x(IM.invest_stress_scenario_custom)}
           </button>
+          {scenarios.length > 0 && (
+            <>
+              <select
+                className="sb-input"
+                value={selSaved}
+                aria-label={x(IM.invest_stress_saved_label)}
+                onChange={(e) => {
+                  setSelSaved(e.target.value)
+                  const s = scenarios.find((sc) => sc.id === e.target.value)
+                  if (!s) return
+                  /* Saved rows persist plain shock objects — the evaluator
+                     reads the same fields either way. */
+                  run(s.shocks as Shock[], s.name)
+                }}
+              >
+                <option value="" disabled>
+                  {x(IM.invest_stress_saved_label)}
+                </option>
+                {scenarios.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="sb-btn sb-btn-secondary sb-btn-sm"
+                aria-label={x(IM.invest_stress_delete_saved)}
+                disabled={saveBusy || !selSaved || !scenarios.some((s) => s.id === selSaved)}
+                onClick={() => {
+                  const s = scenarios.find((sc) => sc.id === selSaved)
+                  if (!s) return
+                  setSaveBusy(true)
+                  void deleteStressScenario(s.id)
+                    .then(() => {
+                      setSelSaved('')
+                      /* The deleted row's result may still be on screen —
+                         it's valid math, so it stays; the seg just can't
+                         claim a preset produced it. */
+                      setPreset(null)
+                      return onScenariosChanged()
+                    })
+                    .finally(() => setSaveBusy(false))
+                }}
+              >
+                <Trash2 size={14} aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
-      )}
 
-      {result && lastShocks && (
-        <div className="sb-stress-save">
-          <input
-            className="sb-input"
-            value={saveName}
-            maxLength={60}
-            onChange={(e) => setSaveName(e.target.value)}
-            placeholder={x(IM.invest_stress_save_name)}
-            aria-label={x(IM.invest_stress_save_name)}
-          />
-          <button
-            type="button"
-            className="sb-btn sb-btn-secondary sb-btn-sm"
-            disabled={saveBusy || !saveName.trim()}
-            onClick={() => {
-              setSaveBusy(true)
-              void saveStressScenario({ name: saveName, shocks: lastShocks })
-                .then(() => {
-                  setSaveName('')
-                  return onScenariosChanged()
-                })
-                .finally(() => setSaveBusy(false))
-            }}
-          >
-            <Bookmark size={14} aria-hidden="true" /> {x(IM.invest_stress_save)}
-          </button>
-        </div>
-      )}
-
-      {preset === 'custom' && (
-        <div className="sb-stress-custom">
+        {customOpen && (
+          <div className="sb-stress-custom" id="sb-stress-custom">
           <select
             className="sb-input"
             aria-label={x(IM.invest_stress_pick_symbol)}
@@ -485,6 +492,38 @@ export function StressTest(props: {
           <p className="sb-stress-note">{x(IM.invest_stress_note)}</p>
         </div>
       )}
+
+      {/* Last in the flow — name the scenario once its outcome is on
+          screen, not before. */}
+      {result && lastShocks && (
+        <div className="sb-stress-save">
+          <input
+            className="sb-input"
+            value={saveName}
+            maxLength={60}
+            onChange={(e) => setSaveName(e.target.value)}
+            placeholder={x(IM.invest_stress_save_name)}
+            aria-label={x(IM.invest_stress_save_name)}
+          />
+          <button
+            type="button"
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+            disabled={saveBusy || !saveName.trim()}
+            onClick={() => {
+              setSaveBusy(true)
+              void saveStressScenario({ name: saveName, shocks: lastShocks })
+                .then(() => {
+                  setSaveName('')
+                  return onScenariosChanged()
+                })
+                .finally(() => setSaveBusy(false))
+            }}
+          >
+            <Bookmark size={14} aria-hidden="true" /> {x(IM.invest_stress_save)}
+          </button>
+        </div>
+      )}
+      </div>
     </section>
   )
 }

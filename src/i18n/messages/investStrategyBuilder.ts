@@ -794,6 +794,9 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'Track a thesis for {symbol} first — the SWOT lives beside it.',
     fr: 'Suivez d’abord une thèse pour {symbol} — la FFOM vit à côté.',
   },
+  /* Suffix inside {symbol} of the no-thesis nudge once four names are
+     listed — counts the rest instead of dropping them. [FR self-authored] */
+  invest_swot_more: { en: ' and {n} more', fr: ' et {n} autres' },
   invest_swot_go_thesis: { en: 'Open theses', fr: 'Ouvrir les thèses' },
   invest_swot_suggest_apply: { en: 'Apply', fr: 'Appliquer' },
   /* Accept on a stress_scenario row — writes the named scenario to the

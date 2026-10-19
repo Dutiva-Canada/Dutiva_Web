@@ -336,6 +336,30 @@ describe('InvestAnalysisPage — SWOT', () => {
     expect(screen.getAllByText('Strengths').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Threats').length).toBeGreaterThan(0)
   })
+
+  it('counts the untracked overflow instead of silently dropping symbols', () => {
+    /* The section hides until at least one thesis exists — the nudge is
+       for the holdings beside it. */
+    mount({
+      theses: [thesis()],
+      positions: ['AAA', 'BBB', 'CCC', 'DDD', 'EEE', 'FFF'].map((symbol, i) => ({
+        id: `p${i}`,
+        accountId: 'a1',
+        assetClass: 'equity' as const,
+        symbol,
+        name: symbol,
+        quantity: 1,
+        avgCost: 10,
+        currency: 'CAD',
+        lastPrice: 10,
+        lastPriceAt: '2026-02-01T00:00:00Z',
+        targetWeightPct: null,
+      })),
+    })
+    expect(
+      screen.getByText(/Track a thesis for AAA, BBB, CCC, DDD and 2 more first/),
+    ).toBeInTheDocument()
+  })
 })
 
 describe('InvestAnalysisPage — pending suggestions', () => {
