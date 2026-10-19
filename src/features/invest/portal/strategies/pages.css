@@ -1721,6 +1721,117 @@
   white-space: nowrap;
 }
 
+/* ── Headline filter: scope seg + facet menu + picked token. ─────────── */
+.sb-news-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sb-filter {
+  position: relative;
+  display: inline-flex;
+}
+.sb-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--sb-line);
+  background: var(--sb-input);
+  border-radius: 999px;
+  min-height: 30px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--sb-body);
+}
+.sb-filter-btn:hover {
+  color: var(--sb-accent-ink);
+}
+.sb-filter-btn[aria-expanded='true'] {
+  border-color: var(--sb-accent);
+  color: var(--sb-accent-ink);
+}
+.sb-filter-btn:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 1px;
+}
+.sb-filter-pop {
+  position: absolute;
+  top: 34px;
+  left: 0;
+  z-index: 30;
+  min-width: 200px;
+  /* Never wider than the viewport minus a gutter. */
+  max-width: calc(100vw - 32px);
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--sb-line);
+  border-radius: 10px;
+  /* --sb-input is the palette's raised/inset tone (same as .sb-hint-pop). */
+  background: var(--sb-input);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.10);
+}
+.sb-filter-sec {
+  padding: 6px 10px 2px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sb-muted);
+}
+.sb-filter-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sb-body);
+  cursor: pointer;
+  text-align: left;
+}
+.sb-filter-item::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+.sb-filter-item[aria-checked='true']::before {
+  background: var(--sb-accent);
+}
+.sb-filter-item:hover,
+.sb-filter-item:focus-visible {
+  background: var(--sb-card-deep);
+  outline: none;
+}
+.sb-filter-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  min-height: 30px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--sb-primary);
+  color: var(--sb-primary-text);
+}
+.sb-filter-token:focus-visible {
+  outline: 2px solid var(--sb-accent);
+  outline-offset: 1px;
+}
+
 /* ── Cash ledger (0223) ──────────────────────────────────────────────── */
 .sb-ledger-list {
   list-style: none;

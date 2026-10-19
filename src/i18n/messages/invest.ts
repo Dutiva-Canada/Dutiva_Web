@@ -634,9 +634,11 @@ const investCoreMessages = defineMessages({
     en: 'Nothing watched yet — add a symbol to track its price and headlines.',
     fr: 'Aucun symbole surveillé — ajoutez-en un pour suivre son cours et ses nouvelles.',
   },
+  /* The third-party attribution lives in the note below — not doubled
+     in the title. */
   invest_news_title: {
-    en: 'Market headlines (third-party)',
-    fr: 'Manchettes du marché (tiers)',
+    en: 'Market headlines',
+    fr: 'Manchettes du marché',
   },
   invest_news_note: {
     en: 'Headlines come from third-party publishers — context, not recommendations.',
@@ -679,7 +681,7 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_news_range_7d: { en: '7 days', fr: '7 jours' },
   /* [FR self-authored] */
-  invest_news_range_14d: { en: '2 weeks', fr: '2 semaines' },
+  invest_news_range_14d: { en: '14 days', fr: '14 jours' },
   /* [FR self-authored] */
   invest_news_range_30d: { en: '30 days', fr: '30 jours' },
   /* [FR self-authored] Day-group headers over the headline list. */
@@ -692,6 +694,19 @@ const investCoreMessages = defineMessages({
   invest_news_general: { en: 'General market', fr: 'Marché général' },
   /* [FR self-authored] */
   invest_news_filter_aria: { en: 'Filter headlines', fr: 'Filtrer les manchettes' },
+  /* [FR self-authored] Facet menu — symbols and asset classes the
+     current feed carries, one pick at a time. */
+  invest_news_filter_btn: { en: 'Filter', fr: 'Filtrer' },
+  /* [FR self-authored] */
+  invest_news_filter_symbols: { en: 'Symbols', fr: 'Symboles' },
+  /* [FR self-authored] The picked facet shows as a token — its × clears. */
+  invest_news_filter_clear: { en: 'Clear filter', fr: 'Effacer le filtre' },
+  /* [FR self-authored] Scope + facet intersected to nothing — a real
+     answer, not a bug. */
+  invest_news_no_match: {
+    en: 'No headlines match the current filters.',
+    fr: 'Aucune manchette ne correspond aux filtres.',
+  },
   /* [FR self-authored] Per-card control — mutes the publisher, not just
      this headline. */
   invest_news_mute: { en: 'Hide {source} headlines', fr: 'Masquer les manchettes de {source}' },

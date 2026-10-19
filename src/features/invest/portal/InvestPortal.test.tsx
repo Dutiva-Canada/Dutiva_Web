@@ -374,8 +374,8 @@ describe('InvestPortalLayout', () => {
     // Nav labels render
     expect(screen.getAllByText('Signals').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Agent').length).toBeGreaterThan(0)
-    // Market news renders on the overview, labelled as third-party content
-    expect(screen.getByText('Market headlines (third-party)')).toBeInTheDocument()
+    // Market news renders on the overview
+    expect(screen.getByText('Market headlines')).toBeInTheDocument()
     // The link's accessible name carries the sr-only exit note too
     expect(screen.getByRole('link', { name: /Shopify beats estimates/ })).toBeInTheDocument()
     // A theme-sourced headline marks its provenance — it reached AMAT
@@ -452,7 +452,7 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
   })
 
-  it('filters headlines by ticker and theme facets', async () => {
+  it('filters headlines through the facet menu', async () => {
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
     vi.mocked(loadInvestState).mockResolvedValue(STATE)
     const { InvestHomePage } = await import('./InvestHomePage')
@@ -463,19 +463,24 @@ describe('InvestHomePage', () => {
         <InvestHomePage />
       </InvestDataProvider>,
     )
-    /* Facets derive from the feed: AMAT gets a chip even though it's a
-       board link, not a holding — the story IS in the 'All' feed. */
+    /* Facets live in the Filter menu and derive from the feed: AMAT
+       gets an item even though it's a board link, not a holding — the
+       story IS in the 'All' feed. */
     const user = userEvent.setup()
-    await user.click(await screen.findByRole('button', { name: 'AMAT' }))
+    await user.click(await screen.findByRole('button', { name: 'Filter' }))
+    await user.click(screen.getByRole('menuitemradio', { name: 'AMAT' }))
     expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
     expect(screen.queryByText('Shopify beats estimates')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'US-China trade restrictions' }))
-    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'All' }))
+    /* The picked facet shows as a removable token — clearing restores. */
+    await user.click(screen.getByRole('button', { name: 'Clear filter' }))
     expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
-    /* A single-class feed earns no 'Equity' chip — it wouldn't split
-       anything. */
-    expect(screen.queryByRole('button', { name: 'Equity' })).not.toBeInTheDocument()
+    /* Watch-theme facets were dropped — they duplicate the Analysis
+       board — and a single-class feed earns no 'Equity' item. */
+    await user.click(screen.getByRole('button', { name: 'Filter' }))
+    expect(
+      screen.queryByRole('menuitemradio', { name: 'US-China trade restrictions' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('menuitemradio', { name: 'Equity' })).not.toBeInTheDocument()
   })
 
   it('mutes a publisher, lists it under "Muted:", and restores it', async () => {
@@ -589,7 +594,7 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('Barron paywalled piece on Shopify')).not.toBeInTheDocument()
   })
 
-  it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {
+  it('windows the headline feed to 7, 14, or 30 days', async () => {
     const recent = new Date(Date.now() - 2 * 86_400_000).toISOString()
     const older = new Date(Date.now() - 10 * 86_400_000).toISOString()
     vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
@@ -612,10 +617,10 @@ describe('InvestHomePage', () => {
     expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
     expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: '2 weeks' }))
+    await user.click(screen.getByRole('button', { name: '14 days' }))
     expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
     /* Two different publish days → two day-group headers chunk the list. */
-    const card = screen.getByText('Market headlines (third-party)').closest('section')!
+    const card = screen.getByText('Market headlines').closest('section')!
     expect(within(card).getAllByRole('heading', { level: 3 })).toHaveLength(2)
     await user.click(screen.getByRole('button', { name: '7 days' }))
     expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
