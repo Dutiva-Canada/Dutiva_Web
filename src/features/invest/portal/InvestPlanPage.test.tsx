@@ -319,6 +319,15 @@ describe('InvestPlanPage — document', () => {
        links to write one, rather than rendering silence. */
     expect(screen.getByText('ARM')).toBeInTheDocument()
     expect(screen.getByText(/No thesis filed/)).toBeInTheDocument()
+    /* Both next steps deep-link to the theses composer on that holding —
+       manual write or the one-click Tally draft. */
+    expect(screen.getByRole('link', { name: 'write one' })).toHaveAttribute(
+      'href',
+      '/invest/theses?new=equity:ARM',
+    )
+    expect(
+      screen.getByRole('link', { name: /have Tally draft it/ }),
+    ).toHaveAttribute('href', '/invest/theses?draft=equity:ARM')
     /* Watchlist trails the holdings as a footnote, not a section. */
     expect(screen.getByText('BTC', { exact: false })).toBeInTheDocument()
     /* Waiting on you — one queued draft + one new signal. */

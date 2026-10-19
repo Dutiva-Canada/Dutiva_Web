@@ -9,7 +9,8 @@
  * like every agent artifact), and the deterministic suggestion pass files
  * 'thesis' rows for holdings nobody has claimed yet.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Check,
   ChevronLeft,
@@ -153,6 +154,31 @@ function seedToDrafts(rules: unknown): RuleDraft[] {
   return drafts
 }
 
+type DraftResult = Awaited<ReturnType<typeof draftThesis>>
+
+/** Adopt a landed Tally draft — the current composer fields move into
+    prevDraft so the note's "Restore my version" stays lossless. Shared by
+    the composer's story-driven draft and the ?draft= deep link. */
+function applyTallyDraft(cur: ThesisDraftState, res: DraftResult): ThesisDraftState {
+  return {
+    ...cur,
+    prevDraft: {
+      thesis: cur.thesis,
+      intent: cur.intent,
+      breakDrafts: cur.breakDrafts,
+      driftDrafts: cur.driftDrafts,
+      suggestionId: cur.suggestionId,
+    },
+    thesis: res.draft.thesis,
+    intent: res.draft.intent,
+    breakDrafts: toDrafts(res.draft.breakRules),
+    driftDrafts: toDrafts(res.draft.driftRules),
+    suggestionId: res.suggestionId ?? cur.suggestionId,
+    tallyBusy: false,
+    tallyNote: true,
+  }
+}
+
 export function InvestThesesPage() {
   const { x, lang, L } = useI18n()
   const { state, loading, refresh } = useInvestData()
@@ -230,9 +256,36 @@ export function InvestThesesPage() {
       .catch(() => {})
   }, [])
 
-  /* "Draft with Tally" on a scaffold row — the brief is built from the
-     position's own facts, no story typing needed. The server files the
-     draft under the same dedupe key (supersede), so a reload swaps the
+  /* The one-click Tally brief — built from the position's own facts, no
+     story typing needed. Shared by scaffold rows' "Draft with Tally" and
+     the ?draft= deep link. */
+  const tallyBrief = useCallback(
+    (assetClass: AssetClass, symbol: string, name: string) => {
+      const pos = state.positions.find(
+        (r) => r.assetClass === assetClass && r.symbol.toUpperCase() === symbol,
+      )
+      const snap = state.snapshots.find(
+        (n) => n.assetClass === assetClass && n.symbol.toUpperCase() === symbol,
+      )
+      const pnl =
+        pos && snap?.price != null && pos.avgCost > 0
+          ? ((snap.price - pos.avgCost) / pos.avgCost) * 100
+          : null
+      return pos
+        ? L(
+            `Holding ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} at average cost ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, last ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'up' : 'down'} ${fmtNum(lang, Math.abs(pnl), 1)}% on cost` : ''}. No written story yet — infer a reasonable holder claim and its watch conditions.`,
+            `Position de ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} au coût moyen de ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, dernier cours ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'en hausse' : 'en baisse'} de ${fmtNum(lang, Math.abs(pnl), 1)} % sur le coût` : ''}. Aucune histoire écrite — inférer une thèse de détenteur raisonnable et ses conditions de surveillance.`,
+          )
+        : L(
+            `${symbol}${name ? ` (${name})` : ''} held in the book; no written story — infer a reasonable holder claim and its watch conditions.`,
+            `${symbol}${name ? ` (${name})` : ''} en position; aucune histoire écrite — inférer une thèse raisonnable et ses conditions de surveillance.`,
+          )
+    },
+    [lang, L, state.positions, state.snapshots],
+  )
+
+  /* "Draft with Tally" on a scaffold row — the server files the draft
+     under the same dedupe key (supersede), so a reload swaps the
      scaffold card for one carrying the drafted claim + conditions. */
   const draftRow = useCallback(
     async (s: AgentSuggestion) => {
@@ -244,26 +297,16 @@ export function InvestThesesPage() {
       const pos = state.positions.find(
         (r) => r.assetClass === assetClass && r.symbol.toUpperCase() === symbol,
       )
-      const snap = state.snapshots.find(
-        (n) => n.assetClass === assetClass && n.symbol.toUpperCase() === symbol,
-      )
       const name = (typeof p.name === 'string' && p.name) || pos?.name || ''
-      const pnl =
-        pos && snap?.price != null && pos.avgCost > 0
-          ? ((snap.price - pos.avgCost) / pos.avgCost) * 100
-          : null
-      const description = pos
-        ? L(
-            `Holding ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} at average cost ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, last ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'up' : 'down'} ${fmtNum(lang, Math.abs(pnl), 1)}% on cost` : ''}. No written story yet — infer a reasonable holder claim and its watch conditions.`,
-            `Position de ${fmtNum(lang, pos.quantity)} ${symbol}${name ? ` (${name})` : ''} au coût moyen de ${fmtNum(lang, pos.avgCost, 2)} ${pos.currency}${snap?.price != null ? `, dernier cours ${fmtNum(lang, snap.price, 2)} ${snap.currency ?? pos.currency}` : ''}${pnl !== null ? `, ${pnl >= 0 ? 'en hausse' : 'en baisse'} de ${fmtNum(lang, Math.abs(pnl), 1)} % sur le coût` : ''}. Aucune histoire écrite — inférer une thèse de détenteur raisonnable et ses conditions de surveillance.`,
-          )
-        : L(
-            `${symbol}${name ? ` (${name})` : ''} held in the book; no written story — infer a reasonable holder claim and its watch conditions.`,
-            `${symbol}${name ? ` (${name})` : ''} en position; aucune histoire écrite — inférer une thèse raisonnable et ses conditions de surveillance.`,
-          )
       setPendingBusy(s.id)
       try {
-        await draftThesis({ assetClass, symbol, name, description, lang })
+        await draftThesis({
+          assetClass,
+          symbol,
+          name,
+          description: tallyBrief(assetClass, symbol, name),
+          lang,
+        })
         await reloadPending()
       } catch {
         showToast(IM.invest_thesis_tally_failed)
@@ -271,7 +314,7 @@ export function InvestThesesPage() {
         setPendingBusy(null)
       }
     },
-    [lang, L, pendingBusy, reloadPending, showToast, state.positions, state.snapshots],
+    [lang, pendingBusy, reloadPending, showToast, state.positions, tallyBrief],
   )
 
   const openComposer = useCallback((seed?: Partial<ThesisDraftState>) => {
@@ -393,25 +436,7 @@ export function InvestThesesPage() {
       if (c.suggestionId && res.suggestionId && res.suggestionId !== c.suggestionId) {
         setPending((cur) => cur.filter((r) => r.id !== c.suggestionId))
       }
-      setComposer((cur) => ({
-        ...cur,
-        /* Snapshot before replacing — `cur` carries anything typed while
-           the draft was in flight, so the restore is lossless either way. */
-        prevDraft: {
-          thesis: cur.thesis,
-          intent: cur.intent,
-          breakDrafts: cur.breakDrafts,
-          driftDrafts: cur.driftDrafts,
-          suggestionId: cur.suggestionId,
-        },
-        thesis: res.draft.thesis,
-        intent: res.draft.intent,
-        breakDrafts: toDrafts(res.draft.breakRules),
-        driftDrafts: toDrafts(res.draft.driftRules),
-        suggestionId: res.suggestionId ?? cur.suggestionId,
-        tallyBusy: false,
-        tallyNote: true,
-      }))
+      setComposer((cur) => applyTallyDraft(cur, res))
     } catch {
       setComposer((cur) => ({ ...cur, tallyBusy: false }))
       showToast(IM.invest_thesis_tally_failed)
@@ -429,6 +454,87 @@ export function InvestThesesPage() {
         : cur,
     )
   }, [])
+
+  /* ?draft=ac:SYM — fires Tally's draft the moment the composer opens;
+     the same one-click affordance a scaffold row offers, reachable from
+     the plan document's "No thesis filed" line. The landed draft updates
+     openedDraft too — a machine-seeded claim isn't "dirty", same
+     contract as a strip-accepted suggestion. */
+  const autoDraft = useCallback(
+    async (assetClass: AssetClass, symbol: string, name: string) => {
+      try {
+        const res = await draftThesis({
+          assetClass,
+          symbol,
+          name,
+          description: tallyBrief(assetClass, symbol, name),
+          lang,
+        })
+        setComposer((cur) => applyTallyDraft(cur, res))
+        setOpenedDraft((cur) => (cur ? applyTallyDraft(cur, res) : cur))
+      } catch {
+        setComposer((cur) => ({ ...cur, tallyBusy: false }))
+        showToast(IM.invest_thesis_tally_failed)
+      }
+    },
+    [tallyBrief, lang, showToast],
+  )
+
+  /* Deep links from the plan document: ?new=ac:SYM opens the composer on
+     that holding — its editor when a thesis already exists — and ?draft=
+     additionally runs the Tally draft. Consumed once per mount, then
+     stripped so a reload doesn't refire the call. */
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkKey = useRef<string | null>(null)
+  useEffect(() => {
+    if (loading || deepLinkKey.current !== null) return
+    const draft = searchParams.get('draft')
+    const raw = draft ?? searchParams.get('new')
+    if (!raw) return
+    deepLinkKey.current = raw
+    const next = new URLSearchParams(searchParams)
+    next.delete('new')
+    next.delete('draft')
+    setSearchParams(next, { replace: true })
+    const parts = raw.split(':')
+    const acRaw = parts[0]
+    const symbol = parts.slice(1).join(':').toUpperCase()
+    const assetClass =
+      acRaw !== undefined && acRaw in ASSET_LABEL ? (acRaw as AssetClass) : 'equity'
+    if (!symbol) return
+    const existing = state.theses.find(
+      (t) => t.assetClass === assetClass && t.symbol.toUpperCase() === symbol,
+    )
+    const name =
+      existing?.name ??
+      state.positions.find(
+        (p) => p.assetClass === assetClass && p.symbol.toUpperCase() === symbol,
+      )?.name ??
+      state.watchlist.find(
+        (w) => w.assetClass === assetClass && w.symbol.toUpperCase() === symbol,
+      )?.name ??
+      ''
+    if (existing) {
+      openEdit(existing)
+      if (draft !== null) {
+        setComposer((cur) => ({ ...cur, tallyBusy: true }))
+        void autoDraft(assetClass, symbol, existing.name || name)
+      }
+      return
+    }
+    openComposer({ assetClass, symbol, name, tallyBusy: draft !== null })
+    if (draft !== null) void autoDraft(assetClass, symbol, name)
+  }, [
+    loading,
+    searchParams,
+    setSearchParams,
+    state.theses,
+    state.positions,
+    state.watchlist,
+    openComposer,
+    openEdit,
+    autoDraft,
+  ])
 
   /* Dirty = the editable fields moved since openComposer's snapshot.
      Machine fields (id, suggestionId, tallyBusy, prevDraft, tallyNote)

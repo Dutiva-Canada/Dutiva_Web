@@ -104,12 +104,12 @@ function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
   }
 }
 
-function mount(state: Partial<InvestState> = {}) {
+function mount(state: Partial<InvestState> = {}, route = '/invest/theses') {
   const refresh = vi.fn().mockResolvedValue(undefined)
   render(
     <LangProvider>
       <ToastsProvider>
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[route]}>
           <InvestDataContext.Provider
             value={{ state: { ...STATE, ...state }, loading: false, error: false, refresh }}
           >
@@ -452,5 +452,55 @@ describe('InvestThesesPage — reaffirm', () => {
       screen.queryByRole('button', { name: 'Story still holds' }),
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/Story reaffirmed/)).not.toBeInTheDocument()
+  })
+})
+
+describe('InvestThesesPage — deep links', () => {
+  it('?new=ac:SYM opens the composer on that holding', async () => {
+    mount({}, '/invest/theses?new=equity:SHOP')
+    expect(
+      await screen.findByRole('heading', { name: 'New thesis' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Symbol')).toHaveValue('equity:SHOP')
+    expect(screen.getByLabelText('Company or label')).toHaveValue('Shopify')
+    expect(draftThesis).not.toHaveBeenCalled()
+  })
+
+  it('?draft=ac:SYM opens the composer and fires Tally’s draft from the position brief', async () => {
+    draftThesis.mockResolvedValue({
+      suggestionId: 'sug-auto',
+      draft: {
+        thesis: 'Drafted from facts.',
+        intent: 'growth',
+        breakRules: [],
+        driftRules: [],
+      },
+    })
+    mount({}, '/invest/theses?draft=equity:SHOP')
+    await waitFor(() => expect(draftThesis).toHaveBeenCalledTimes(1))
+    const call = draftThesis.mock.calls[0]![0] as {
+      symbol: string
+      description: string
+    }
+    expect(call.symbol).toBe('SHOP')
+    expect(call.description).toMatch(/10 SHOP.*average cost 100/)
+    /* The landed draft fills the composer — and isn't "dirty", so the
+       back link exits without the discard confirm. */
+    await waitFor(() =>
+      expect(screen.getByLabelText('The thesis')).toHaveValue('Drafted from facts.'),
+    )
+  })
+
+  it('?new= on a thesised symbol opens its editor instead of a blank composer', async () => {
+    mount(
+      { theses: [thesis({ status: 'healthy' })] },
+      '/invest/theses?new=equity:SHOP',
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Edit — SHOP' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('The thesis')).toHaveValue(
+      'Shopify keeps compounding merchant solutions.',
+    )
   })
 })

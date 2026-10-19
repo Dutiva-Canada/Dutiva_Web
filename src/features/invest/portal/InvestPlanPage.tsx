@@ -570,8 +570,17 @@ export function InvestPlanPage() {
                     ) : (
                       <span className="sb-plan-row-line sb-plan-gap">
                         {x(IM.invest_plan_no_thesis)}{' '}
-                        <Link to="/invest/theses" className="sb-linklike">
+                        <Link
+                          to={`/invest/theses?new=${p.assetClass}:${encodeURIComponent(p.symbol)}`}
+                          className="sb-linklike"
+                        >
                           {x(IM.invest_plan_write_thesis)}
+                        </Link>{' '}
+                        <Link
+                          to={`/invest/theses?draft=${p.assetClass}:${encodeURIComponent(p.symbol)}`}
+                          className="sb-linklike"
+                        >
+                          {x(IM.invest_plan_tally_draft)}
                         </Link>
                       </span>
                     )}
