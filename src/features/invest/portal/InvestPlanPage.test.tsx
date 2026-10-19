@@ -35,12 +35,15 @@ const PROFILE_ROW = {
   plan_notes: null as string | null,
   plan_reviewed_at: null as string | null,
 }
+/* `let` — a spec can test the no-profile-row path (the holder who has
+   never opened Settings) without a second mock. */
+let profileRow: typeof PROFILE_ROW | null = PROFILE_ROW
 vi.mock('@/lib/supabaseClient', () => ({
   supabase: {
     from: () => ({
       select: () => ({
         eq: () => ({
-          maybeSingle: () => Promise.resolve({ data: PROFILE_ROW }),
+          maybeSingle: () => Promise.resolve({ data: profileRow }),
         }),
       }),
       upsert: (...a: unknown[]) => upsert(...a),
@@ -281,6 +284,7 @@ function mount(lang: Lang = 'en', state: Partial<InvestState> = STATE) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  profileRow = PROFILE_ROW
   PROFILE_ROW.plan_objective = null
   PROFILE_ROW.plan_notes = null
   PROFILE_ROW.plan_reviewed_at = null
@@ -320,8 +324,74 @@ describe('InvestPlanPage — document', () => {
     /* Waiting on you — one queued draft + one new signal. */
     expect(screen.getByText(/1 draft order to review/)).toBeInTheDocument()
     expect(screen.getByText(/1 new signal/)).toBeInTheDocument()
-    /* The standing disclaimer rides the document's foot. */
+    /* The standing disclaimer rides the document's foot — required on
+       paper too, since print hides the shell footer. */
     expect(screen.getByText(/not investment advice/i)).toBeInTheDocument()
+    /* Cash is printed — it silently inflates the weight denominator, so
+       leaving it out would make the weights look wrong. */
+    expect(screen.getByText(/Cash on hand — \$25,000\.00/)).toBeInTheDocument()
+    /* One account → no "· Paper book" tag on every row (the positions
+       table's own rule: the label earns its width once rows can differ). */
+    expect(screen.queryByText(/Paper book/)).toBeNull()
+    /* The goal meta carries its operator — ≥ 100% and ≤ 10% are different
+       promises. */
+    expect(screen.getByText(/target ≥ 40,000 CAD/)).toBeInTheDocument()
+    /* Money is currency-styled, not raw decimals — no "$2,383.418". */
+    expect(screen.getByText(/\$1,200\.00/)).toBeInTheDocument()
+  })
+
+  it('orders holdings by book value, not array order', async () => {
+    /* ARM precedes SHOP in the array; SHOP's larger book value ($1,200 vs
+       $800) must still win the document's top row. */
+    mount('en', {
+      positions: [
+        {
+          id: 'p2',
+          accountId: 'acc1',
+          assetClass: 'equity',
+          symbol: 'ARM',
+          name: 'Arm Holdings',
+          quantity: 4,
+          avgCost: 150,
+          currency: 'CAD',
+          lastPrice: 200,
+          lastPriceAt: '2026-01-20T00:00:00Z',
+          targetWeightPct: null,
+        },
+        {
+          id: 'p1',
+          accountId: 'acc1',
+          assetClass: 'equity',
+          symbol: 'SHOP',
+          name: 'Shopify',
+          quantity: 10,
+          avgCost: 100,
+          currency: 'CAD',
+          lastPrice: 120,
+          lastPriceAt: '2026-01-20T00:00:00Z',
+          targetWeightPct: null,
+        },
+      ],
+    })
+    await waitFor(() => expect(screen.getByText('SHOP')).toBeInTheDocument())
+    const rows = document.querySelectorAll('.sb-plan-row strong')
+    const symbols = [...rows].map((el) => el.textContent)
+    const shopIdx = symbols.findIndex((s) => s?.includes('SHOP'))
+    const armIdx = symbols.findIndex((s) => s?.includes('ARM'))
+    expect(shopIdx).toBeGreaterThanOrEqual(0)
+    expect(armIdx).toBeGreaterThan(shopIdx)
+  })
+
+  it('materializes the row locally when a first stamp lands on no profile', async () => {
+    profileRow = null
+    const user = userEvent.setup()
+    mount()
+    await waitFor(() => expect(screen.getByText('Never reviewed')).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: 'Mark as reviewed' }))
+    await waitFor(() => expect(upsert).toHaveBeenCalled())
+    /* The upsert creates the row server-side; local state must match or
+       the stamp keeps saying "Never reviewed" after a successful write. */
+    await waitFor(() => expect(screen.getByText(/Reviewed /)).toBeInTheDocument())
   })
 
   it('renders an honest empty book rather than blank cards', async () => {
@@ -416,6 +486,7 @@ describe('InvestPlanPage — French', () => {
     }
     /* Vocabulary contract — watchlist, draft order, sweep. */
     expect(screen.getByText('Liste de suivi', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText(/Encaisse/)).toBeInTheDocument()
     expect(screen.getByText(/1 brouillon d’ordre à revoir/)).toBeInTheDocument()
     expect(screen.getByText(/nouveau signal/)).toBeInTheDocument()
     expect(screen.getByText(/balaie chaque jour/)).toBeInTheDocument()

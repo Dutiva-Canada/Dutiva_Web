@@ -21,17 +21,18 @@ import { useAuth } from '@/features/app/auth/authContext'
 import { supabase } from '@/lib/supabaseClient'
 import { useInvestData } from '../data/InvestDataContext'
 import { convertFx, loadFxRates, type FxTable } from '../data/fx'
+import { isQuoteStale } from '../data/freshness'
 import { relTimeLabel } from './relTime'
 import { PageHead } from './PageHead'
 import { PROFILE_SELECTS, PROFILE_TAGS, PROFILE_FIELD } from './profileDims'
 import {
   fmtDay,
-  fmtNum,
   fmtPct,
-  fmtCad,
   pl,
   strategyMeta,
+  scopeSymbols,
   trackedUniverse,
+  goalTargetLabel,
   ASSET_LABEL,
   SCAN_DIR_LABEL,
   SCAN_DIR_PILL,
@@ -56,6 +57,22 @@ interface PlanProfileRow {
 }
 const PLAN_PROFILE_SELECT =
   'risk_tolerance, horizon, goal, experience, answer_style, sectors, exclusions, mandate, plan_objective, plan_notes, plan_reviewed_at'
+
+/** Materialized after a first write on a holder with no profile row yet —
+    mirrors what the upsert created so the document updates in place. */
+const EMPTY_PLAN_ROW: PlanProfileRow = {
+  risk_tolerance: null,
+  horizon: null,
+  goal: null,
+  experience: null,
+  answer_style: null,
+  sectors: null,
+  exclusions: null,
+  mandate: null,
+  plan_objective: null,
+  plan_notes: null,
+  plan_reviewed_at: null,
+}
 
 const THESIS_PILL: Record<InvestThesis['status'], string> = {
   healthy: 'sb-pill-ok',
@@ -94,18 +111,10 @@ const GOAL_METRIC: Record<GoalMetric, keyof typeof IM> = {
   position_count: 'invest_goal_metric_position_count',
 }
 
-/** The plan doc's goal target — same metric rules the Analysis editor
-    uses, kept local so the document stays a pure reader. */
-function planGoalTarget(g: InvestGoal, ccy: string, lang: 'en' | 'fr'): string {
-  if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(g.target))} ${ccy}`
-  if (g.metric === 'position_count') return fmtNum(lang, Math.round(g.target))
-  return fmtPct(lang, g.target, { max: 1 })
-}
-
 export function InvestPlanPage() {
   const { x, lang } = useI18n()
   const { session } = useAuth()
-  const { state, loading } = useInvestData()
+  const { state, loading, error: loadError } = useInvestData()
   const { showToast } = useToasts()
   useInvestHead(IM.invest_seo_title_plan, IM.invest_seo_desc_plan)
 
@@ -114,7 +123,40 @@ export function InvestPlanPage() {
   const [draft, setDraft] = useState('')
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [saveErr, setSaveErr] = useState('')
+  const [stampErr, setStampErr] = useState('')
+  const [stamping, setStamping] = useState(false)
   const [fx, setFx] = useState<FxTable | null>(null)
+
+  /* Money/quantity/date formatters — same Intl conventions the positions
+     table uses (currency-styled amounts in the position's own currency,
+     4-digit quantity precision for fractional crypto lots). */
+  const fmtFor = useMemo(() => {
+    const cache = new Map<string, Intl.NumberFormat>()
+    return (cur: string) => {
+      let f = cache.get(cur)
+      if (!f) {
+        f = new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+          style: 'currency',
+          currency: cur,
+        })
+        cache.set(cur, f)
+      }
+      return f
+    }
+  }, [lang])
+  const fmtQty = useMemo(
+    () =>
+      new Intl.NumberFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { maximumFractionDigits: 4 }),
+    [lang],
+  )
+  const fmtDayShort = useMemo(
+    () =>
+      new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+        month: 'short',
+        day: 'numeric',
+      }),
+    [lang],
+  )
 
   useEffect(() => {
     void loadFxRates().then(setFx)
@@ -141,6 +183,9 @@ export function InvestPlanPage() {
   useEffect(() => loadProfile(), [loadProfile])
 
   const userId = session?.user.id
+  /* A holder with no profile row yet still gets a write — upsert creates
+     the row server-side, so local state must materialize the same shape or
+     the UI keeps saying "Never reviewed" after a successful stamp. */
   const savePlanField = async (field: 'plan_objective' | 'plan_notes', value: string) => {
     if (!supabase || !userId || saveState === 'saving') return
     setSaveState('saving')
@@ -158,47 +203,80 @@ export function InvestPlanPage() {
     }
     setSaveState('saved')
     setEditing(null)
-    setProfile((p) => (p ? { ...p, [field]: next } : p))
+    setProfile((p) => ({ ...(p ?? EMPTY_PLAN_ROW), [field]: next }))
+    showToast(IM.invest_saved)
     window.setTimeout(() => setSaveState('idle'), 1800)
   }
 
   const markReviewed = async () => {
-    if (!supabase || !userId) return
+    if (!supabase || !userId || stamping) return
+    setStamping(true)
+    setStampErr('')
     const now = new Date().toISOString()
     const { error } = await supabase.from('invest_user_profile').upsert({
       user_id: userId,
       plan_reviewed_at: now,
       updated_at: now,
     })
+    setStamping(false)
     if (error) {
-      setSaveErr(error.message)
+      /* Not saveErr — that one renders inside the editor card only, so a
+         failed stamp in read mode would be invisible. */
+      setStampErr(error.message)
       return
     }
-    setProfile((p) => (p ? { ...p, plan_reviewed_at: now } : p))
+    setProfile((p) => ({ ...(p ?? EMPTY_PLAN_ROW), plan_reviewed_at: now }))
     showToast(IM.invest_plan_reviewed_toast)
   }
 
   /* ── Book math — same snapshot/fx rule the positions table uses: real
-     quotes only, '—' when nothing's on file, converted marks flagged. ── */
+     quotes only, '—' when nothing's on file, converted marks flagged.
+     Display amounts stay in the position's own currency (the table's
+     convention); only the weight denominator converts to book currency,
+     and cash earns a printed line because it silently feeds it. ── */
   const bookCcy = state.accounts.find((a) => a.status === 'active')?.baseCurrency ?? 'CAD'
   const holdingRows = useMemo(
     () =>
-      state.positions.map((p) => {
-        const snap = state.snapshots.find(
-          (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
-        )
-        const pxNative = snap?.price ?? p.lastPrice ?? null
-        const px = pxNative === null ? null : convertFx(pxNative, snap?.currency ?? p.currency, bookCcy, fx)
-        return { p, px, value: px === null ? null : p.quantity * px }
-      }),
+      state.positions
+        .map((p) => {
+          const snap = state.snapshots.find(
+            (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
+          )
+          const pxNative = snap?.price ?? p.lastPrice ?? null
+          const pxAt = snap?.asOf ?? p.lastPriceAt
+          const pxCur = snap?.currency ?? p.currency
+          const px = pxNative === null ? null : convertFx(pxNative, pxCur, p.currency, fx)
+          const pxBook = pxNative === null ? null : convertFx(pxNative, pxCur, bookCcy, fx)
+          return {
+            p,
+            px,
+            pxAt,
+            converted: pxNative !== null && px !== null && pxCur !== p.currency,
+            stale: isQuoteStale(pxAt),
+            value: px === null ? null : p.quantity * px,
+            valueBook: pxBook === null ? null : p.quantity * pxBook,
+          }
+        })
+        /* A document reads by weight — largest holding first, unpriced
+           (null) rows sink to the bottom rather than hiding mid-list. */
+        .sort((a, b) => (b.valueBook ?? -1) - (a.valueBook ?? -1)),
     [state.positions, state.snapshots, fx, bookCcy],
   )
-  const bookTotal = useMemo(() => {
-    const cash = state.accounts
-      .filter((a) => a.status === 'active')
-      .reduce((s, a) => s + (convertFx(a.cashBalance, a.baseCurrency, bookCcy, fx) ?? 0), 0)
-    return holdingRows.reduce((s, r) => s + (r.value ?? 0), 0) + cash
-  }, [state.accounts, holdingRows, bookCcy, fx])
+  const cashAccounts = useMemo(
+    () => state.accounts.filter((a) => a.status === 'active' && a.cashBalance !== 0),
+    [state.accounts],
+  )
+  const bookTotal = useMemo(
+    () =>
+      cashAccounts.reduce(
+        (s, a) => s + (convertFx(a.cashBalance, a.baseCurrency, bookCcy, fx) ?? 0),
+        0,
+      ) + holdingRows.reduce((s, r) => s + (r.valueBook ?? 0), 0),
+    [cashAccounts, holdingRows, bookCcy, fx],
+  )
+  /* The account tag earns its place only once holdings span accounts —
+     same rule as the positions table's Account column. */
+  const multiAccount = state.accounts.length > 1
 
   const thesisBySymbol = useMemo(() => {
     const m = new Map<string, InvestThesis>()
@@ -230,6 +308,7 @@ export function InvestPlanPage() {
           className="sb-input sb-plan-edit"
           value={draft}
           placeholder={x(placeholder)}
+          aria-label={x(field === 'plan_objective' ? IM.invest_plan_s_objective : IM.invest_plan_s_notes)}
           maxLength={2000}
           rows={field === 'plan_objective' ? 3 : 5}
           autoFocus
@@ -277,7 +356,11 @@ export function InvestPlanPage() {
     )
 
   return (
-    <div className="sb-page sb-plan">
+    /* `.sb` is the palette scope the whole strategy/portal surface gates
+       itself behind — every shared rule and every --sb-* token lives
+       under it, so the page root must carry it or the document renders
+       chromeless (bare buttons, text-only pills, borderless cards). */
+    <div className="sb sb-page sb-plan">
       <PageHead title={x(IM.invest_plan_title)} sub={x(IM.invest_plan_sub)}>
         <button
           type="button"
@@ -290,9 +373,14 @@ export function InvestPlanPage() {
         <button
           type="button"
           className="sb-btn sb-btn-primary sb-noprint"
+          disabled={stamping}
           onClick={() => void markReviewed()}
         >
-          <Stamp size={14} aria-hidden="true" />
+          {stamping ? (
+            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+          ) : (
+            <Stamp size={14} aria-hidden="true" />
+          )}
           {x(IM.invest_plan_mark_reviewed)}
         </button>
       </PageHead>
@@ -304,7 +392,21 @@ export function InvestPlanPage() {
             })
           : x(IM.invest_plan_never)}
       </p>
+      {stampErr && (
+        <p className="sb-plan-stamp sb-plan-err" role="alert">
+          {stampErr}
+        </p>
+      )}
 
+      {loadError && (
+        <p className="sb-plan-stamp sb-plan-err" role="alert">
+          {x(IM.invest_error_load)}
+        </p>
+      )}
+      {loading ? (
+        <p className="sb-empty">{x(IM.invest_loading)}</p>
+      ) : (
+      <>
       {/* § Objective — the line every other section answers to. */}
       <section className="sb-card sb-card-pad" aria-label={x(IM.invest_plan_s_objective)}>
         <h2 className="sb-h2">{x(IM.invest_plan_s_objective)}</h2>
@@ -376,18 +478,25 @@ export function InvestPlanPage() {
             {state.goals.map((g) => {
               const open = g.status === 'on_track' && !g.deadline
               const line = lang === 'fr' ? g.evalDetail?.line_fr : g.evalDetail?.line_en
+              /* op earns its glyph — "target ≥ 100%" vs "target ≤ 10%"
+                 are different promises. "open-ended" only fills the meta
+                 when the sweep hasn't already said it in the eval line. */
+              const meta = [
+                x(IM[GOAL_METRIC[g.metric]]),
+                `${x(IM.invest_plan_goal_target)} ${g.op === 'gte' ? '≥' : '≤'} ${goalTargetLabel(g, bookCcy, lang)}`,
+                g.deadline
+                  ? fill(x(IM.invest_plan_goal_due), { date: fmtDay(lang, g.deadline) })
+                  : line
+                    ? null
+                    : x(IM.invest_plan_goal_open),
+              ]
+                .filter(Boolean)
+                .join(' · ')
               return (
                 <li className="sb-plan-row" key={g.id}>
                   <div className="sb-plan-row-main">
                     <strong>{g.title}</strong>
-                    <span className="sb-plan-row-meta">
-                      {x(IM[GOAL_METRIC[g.metric]])} · {x(IM.invest_plan_goal_target)}{' '}
-                      {planGoalTarget(g, bookCcy, lang)}
-                      {' · '}
-                      {g.deadline
-                        ? fill(x(IM.invest_plan_goal_due), { date: fmtDay(lang, g.deadline) })
-                        : x(IM.invest_plan_goal_open)}
-                    </span>
+                    <span className="sb-plan-row-meta">{meta}</span>
                     {line && <span className="sb-plan-row-line">{line}</span>}
                   </div>
                   <span className={`sb-pill ${open ? 'sb-pill-paused' : GOAL_PILL[g.status]}`}>
@@ -413,28 +522,45 @@ export function InvestPlanPage() {
           <p className="sb-plan-empty">{x(IM.invest_plan_holdings_empty)}</p>
         ) : (
           <ul className="sb-plan-rows">
-            {holdingRows.map(({ p, px, value }) => {
+            {holdingRows.map(({ p, px, pxAt, converted, stale, value, valueBook }) => {
               const t = thesisBySymbol.get(`${p.assetClass}:${p.symbol}`)
-              const weight = value !== null && bookTotal > 0 ? (value / bookTotal) * 100 : null
+              const weight = valueBook !== null && bookTotal > 0 ? (valueBook / bookTotal) * 100 : null
+              /* pl()'s 2-digit default would print a 0.0042-unit lot as
+                 "0 units" — quantity words ride fmtQty's 4-digit rule. */
+              const unit =
+                lang === 'fr'
+                  ? p.quantity <= 1
+                    ? IM.invest_plan_unit_one
+                    : IM.invest_plan_unit_many
+                  : p.quantity === 1
+                    ? IM.invest_plan_unit_one
+                    : IM.invest_plan_unit_many
               return (
-                <li className="sb-plan-row sb-plan-holding" key={p.id}>
+                <li className="sb-plan-row" key={p.id}>
                   <div className="sb-plan-row-main">
                     <strong>
                       {p.symbol}
                       <span className="sb-plan-holding-name">
                         {t?.name || p.name}
-                        {accountName.get(p.accountId)
+                        {multiAccount && accountName.get(p.accountId)
                           ? ` · ${accountName.get(p.accountId)}`
                           : ''}
                       </span>
                     </strong>
                     <span className="sb-plan-row-meta">
-                      {pl(lang, Math.round(p.quantity * 100) / 100, IM.invest_plan_unit_one, IM.invest_plan_unit_many)}
+                      {fmtQty.format(p.quantity)} {x(unit)}
                       {p.assetClass !== 'equity' && p.assetClass !== 'etf'
                         ? ` · ${x(IM[ASSET_LABEL[p.assetClass]])}`
                         : ''}
-                      {px !== null ? ` · ${x(IM.invest_plan_at)} ${fmtCad(lang, px, bookCcy)}` : ''}
-                      {value !== null ? ` · ${fmtCad(lang, value, bookCcy)}` : ''}
+                      {px !== null
+                        ? ` · ${x(IM.invest_plan_at)} ${converted ? '≈ ' : ''}${fmtFor(p.currency).format(px)}`
+                        : ''}
+                      {stale && pxAt != null
+                        ? ` · ${x(IM.invest_price_asof)} ${fmtDayShort.format(Date.parse(pxAt))}`
+                        : ''}
+                      {value !== null
+                        ? ` · ${converted ? '≈ ' : ''}${fmtFor(p.currency).format(value)}`
+                        : ''}
                       {weight !== null ? ` · ${fmtPct(lang, weight, { max: 1 })}` : ''}
                     </span>
                     {t ? (
@@ -460,12 +586,28 @@ export function InvestPlanPage() {
             })}
           </ul>
         )}
-        {state.watchlist.length > 0 && (
-          <p className="sb-plan-foot">
-            {x(IM.invest_plan_watchlist)}
-            {' — '}
-            {state.watchlist.map((w) => w.symbol).join(', ')}
-          </p>
+        {(state.watchlist.length > 0 || cashAccounts.length > 0) && (
+          <div className="sb-plan-foot">
+            {cashAccounts.length > 0 && (
+              <p>
+                {x(IM.invest_plan_cash)}
+                {' — '}
+                {cashAccounts
+                  .map(
+                    (a) =>
+                      `${multiAccount ? `${a.name}: ` : ''}${fmtFor(a.baseCurrency).format(a.cashBalance)}`,
+                  )
+                  .join(' · ')}
+              </p>
+            )}
+            {state.watchlist.length > 0 && (
+              <p>
+                {x(IM.invest_plan_watchlist)}
+                {' — '}
+                {state.watchlist.map((w) => w.symbol).join(', ')}
+              </p>
+            )}
+          </div>
         )}
       </section>
 
@@ -488,7 +630,7 @@ export function InvestPlanPage() {
                 <div className="sb-plan-row-main">
                   <strong>{s.name || x(IM.invest_sb_untitled)}</strong>
                   <span className="sb-plan-row-meta">
-                    {strategyMeta(lang, s, s.scope.watchlist ? universe.length : s.scope.symbols.length)}
+                    {strategyMeta(lang, s, scopeSymbols(s.scope, universe).length)}
                   </span>
                 </div>
                 <span className={`sb-pill ${s.enabled ? 'sb-pill-ok' : 'sb-pill-paused'}`}>
@@ -584,8 +726,12 @@ export function InvestPlanPage() {
         )}
       </section>
 
+      {/* The in-page copy isn't a dupe of the shell footer — @media print
+          hides the shell chrome, so the document must carry its own
+          disclaimer onto paper. */}
       <p className="sb-plan-disclaimer">{x(IM.invest_info_note)}</p>
-      {loading && <p className="sb-empty">{x(IM.invest_loading)}</p>}
+      </>
+      )}
     </div>
   )
 }

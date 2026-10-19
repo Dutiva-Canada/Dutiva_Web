@@ -38,7 +38,7 @@ import type {
 } from '../data/types'
 import { GOAL_METRICS, SCAN_DIRECTIONS } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { fmtDay, fmtNum, fmtPct, SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct, SCAN_DIR_LABEL, SCAN_DIR_PILL, goalTargetLabel } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
@@ -106,12 +106,6 @@ function goalCurrentLabel(g: InvestGoal, ccy: string, lang: Lang): string | null
   if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(cur))} ${ccy}`
   if (g.metric === 'position_count') return fmtNum(lang, Math.round(cur))
   return fmtPct(lang, cur, { max: 1 })
-}
-
-function goalTargetLabel(g: InvestGoal, ccy: string, lang: Lang): string {
-  if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(g.target))} ${ccy}`
-  if (g.metric === 'position_count') return fmtNum(lang, Math.round(g.target))
-  return fmtPct(lang, g.target, { max: 1 })
 }
 
 export function InvestAnalysisPage() {
