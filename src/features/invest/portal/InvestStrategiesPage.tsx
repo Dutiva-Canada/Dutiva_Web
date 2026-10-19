@@ -67,8 +67,10 @@ const FOREIGN_SUGGESTION_PAGE: Record<string, { to: string; page: (typeof IM)[ke
 }
 
 /* Cadence is "at most" — the strategy's run window reopens at last +
-   cadence (daily = next sweep, weekly = 7d, monthly = 30d), matching
-   strategyDue in the bot. */
+   cadence (daily = 1d, weekly = 7d, monthly = 30d), matching strategyDue
+   in the bot. The sweep fires twice per weekday, so a daily strategy due
+   lands on the next sweep after its 24h window — typically tomorrow's
+   morning pass, not the midday one. */
 const CADENCE_MS: Record<StrategyCadence, number> = {
   daily: 86_400_000,
   weekly: 7 * 86_400_000,

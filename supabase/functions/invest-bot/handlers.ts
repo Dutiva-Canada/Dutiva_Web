@@ -99,6 +99,10 @@ export interface MarketSnapshot {
   day_change_pct: number | null
   ma50: number | null
   currency: string
+  /** When the quote was marked — market-sync writes it each pass. Optional:
+      test fixtures and pre-0246 callers may not carry it; absent = treated
+      fresh (no evidence to judge otherwise). */
+  as_of?: string
 }
 
 export interface Position {
@@ -398,17 +402,96 @@ export function resolveQuantity(
 
 /* --- Cadence ----------------------------------------------------------------- */
 
-/** Long-horizon strategies stay quiet between windows: weekly = 7d,
-    monthly = 30d. A never-run strategy is always due. */
+/** Cadence windows in days. Daily is a real window — the sweep fires
+    twice per weekday (morning + midday), so an unguarded 'daily' would
+    evaluate twice a day. A never-run strategy is always due. */
+const CADENCE_DAYS: Record<StrategyCadence, number> = { daily: 1, weekly: 7, monthly: 30 }
+
 export function strategyDue(
   strategy: Pick<Strategy, 'cadence' | 'last_evaluated_at'>,
   now: Date,
 ): boolean {
-  if (strategy.cadence === 'daily' || !strategy.last_evaluated_at) return true
+  if (!strategy.last_evaluated_at) return true
   const last = new Date(strategy.last_evaluated_at).getTime()
   if (!Number.isFinite(last)) return true
-  const windowMs = strategy.cadence === 'weekly' ? 7 : 30
-  return now.getTime() - last >= windowMs * 24 * 60 * 60 * 1000
+  return now.getTime() - last >= CADENCE_DAYS[strategy.cadence] * 24 * 60 * 60 * 1000
+}
+
+/* --- Snapshot freshness --------------------------------------------------------
+
+   Market-sync only writes in market sessions (Mon–Fri 13:00–22:00 UTC), so
+   a mark's wall-clock age can't tell a dead sync from a weekend — Friday's
+   close is still the freshest quote on Monday morning. Count closed market
+   sessions since the mark instead. A stale mark still prices the book
+   denominator (an old mark beats dropping the leg) but never fires a rule
+   or moves a thesis. */
+
+/** Market sessions (Mon–Fri 13:00–22:00 UTC) that fully closed after
+    `asOfMs`, looking back from `nowMs`. A session containing asOf is not
+    missed — the mark was refreshed inside it. Lookback caps at 14 days:
+    older marks have simply missed them all. */
+export function marketSessionsMissed(asOfMs: number, nowMs: number): number {
+  let missed = 0
+  const day = new Date(nowMs)
+  day.setUTCHours(0, 0, 0, 0)
+  for (let i = 0; i < 14; i++) {
+    const dow = day.getUTCDay()
+    if (dow >= 1 && dow <= 5) {
+      const open = day.getTime() + 13 * 3_600_000
+      const close = day.getTime() + 22 * 3_600_000
+      if (close <= nowMs && open > asOfMs) missed += 1
+    }
+    day.setUTCDate(day.getUTCDate() - 1)
+    if (day.getTime() + 22 * 3_600_000 <= asOfMs) break
+  }
+  return missed
+}
+
+/** Sessions a mark may miss before rules stop trusting it. One missed
+    session is a single bad sync window; two means the mark predates two
+    closed sessions — alerting off it would present stale prices as live. */
+export const SNAPSHOT_STALE_SESSIONS = 2
+
+export function snapshotStale(snap: MarketSnapshot, nowMs: number): boolean {
+  if (!snap.as_of) return false
+  const t = Date.parse(snap.as_of)
+  if (!Number.isFinite(t)) return false
+  return marketSessionsMissed(t, nowMs) >= SNAPSHOT_STALE_SESSIONS
+}
+
+/* --- Signal dedupe ------------------------------------------------------------
+
+   Whether a stored row still suppresses a repeat, shared between the
+   scheduler's dedupe read and tests. */
+
+export const DEDUPE_WINDOW_MS = 7 * 86_400_000
+/** A dismissed signal re-arms after this window: the user said "seen it",
+    so resurfacing the identical hit next sweep is noise — but a still-true
+    condition stays worth reporting once the quiet period ends. */
+export const DISMISS_REARM_MS = DEDUPE_WINDOW_MS
+
+export function dedupeRowActive(
+  s: {
+    status?: string
+    in_feed?: boolean
+    created_at?: string
+    dismissed_at?: string | null
+  },
+  nowMs: number,
+): boolean {
+  if (s.status === 'dismissed') {
+    const t = s.dismissed_at ? Date.parse(s.dismissed_at) : NaN
+    return Number.isFinite(t) && nowMs - t < DISMISS_REARM_MS
+  }
+  /* 'new' and 'acknowledged' both suppress a refire — acknowledged means
+     "still open"; only 'dismissed' frees the key. Hidden rows can never be
+     dismissed, so they'd lock the key forever — they only suppress for
+     DEDUPE_WINDOW before re-arming. */
+  return (
+    s.in_feed !== false ||
+    !s.created_at ||
+    nowMs - Date.parse(s.created_at) < DEDUPE_WINDOW_MS
+  )
 }
 
 /* --- Run planning ------------------------------------------------------------ */
@@ -529,23 +612,32 @@ export function planRun(
   }
 
   /* Marked-to-market book value in the book currency — the denominator for
-     weight_pct. Only positions with a snapshot count, and only when the
+     weight_pct. Only positions the book can price count, and only when the
      quote currency converts: summing raw prices across CAD and USD books
-     overstated foreign positions by ~40% and corrupted every weight. Cash
-     counts toward the book — "portfolio weight" reads as share of
-     everything held, not just the invested slice. */
+     overstated foreign positions by ~40% and corrupted every weight. The
+     mark chain matches thesisBookContext and the track-record writer —
+     snapshot → last mirrored price → cost basis — so a feed gap shrinks
+     a leg's accuracy without vanishing it from every weight. Cash counts
+     toward the book — "portfolio weight" reads as share of everything
+     held, not just the invested slice. */
   let bookValue = 0
   const unconvertible = new Set<string>()
-  const unsnapshotted = new Set<string>()
+  const fellBack = new Set<string>()
+  const unpriced = new Set<string>()
   for (const p of positions) {
     const snap = snapBySymbol.get(`${p.asset_class}:${p.symbol}`)
-    if (!snap) {
-      unsnapshotted.add(p.symbol.toUpperCase())
+    const px = snap?.price ?? p.last_price ?? (p.avg_cost > 0 ? p.avg_cost : null)
+    /* last_price is a quote-currency mark; with no snapshot the position's
+       own currency is the nearest honest guess for it. */
+    const ccy = snap?.currency ?? p.currency ?? bookCurrency
+    if (px === null) {
+      unpriced.add(p.symbol.toUpperCase())
       continue
     }
-    const v = toBook(p.quantity * snap.price, snap.currency)
+    if (!snap) fellBack.add(p.symbol.toUpperCase())
+    const v = toBook(p.quantity * px, ccy)
     if (v === null) {
-      unconvertible.add(snap.currency.toUpperCase())
+      unconvertible.add(ccy.toUpperCase())
       continue
     }
     bookValue += v
@@ -558,11 +650,18 @@ export function planRun(
       `positions quoted in ${[...unconvertible].sort().join(', ')} skipped — no FX rate; their value-based rules did not run`,
     )
   }
-  if (unsnapshotted.size > 0) {
+  if (fellBack.size > 0) {
     warn(
       'no_snapshot',
-      { symbols: [...unsnapshotted].sort().join(', ') },
-      `positions without price data skipped — ${[...unsnapshotted].sort().join(', ')}; their value-based rules did not run and weights exclude them`,
+      { symbols: [...fellBack].sort().join(', ') },
+      `positions without live price data — ${[...fellBack].sort().join(', ')}; their price rules did not run and weights value them at last marks`,
+    )
+  }
+  if (unpriced.size > 0) {
+    warn(
+      'no_mark',
+      { symbols: [...unpriced].sort().join(', ') },
+      `positions with no price data at all — ${[...unpriced].sort().join(', ')}; their rules did not run and weights exclude them`,
     )
   }
   const ctx: RunContext = {
@@ -571,6 +670,18 @@ export function planRun(
     bookCurrency,
     toBook,
   }
+
+  /* Stale marks — a snapshot that missed ≥SNAPSHOT_STALE_SESSIONS closed
+     sessions still priced the denominator above but never fires a rule:
+     an alert off a dead feed would read as live. Only in-scope staleness
+     is warned on — a stale symbol no strategy watches changed nothing. */
+  const staleMarks = new Set<string>()
+  for (const snap of snapshots) {
+    if (snapshotStale(snap, now.getTime())) {
+      staleMarks.add(`${snap.asset_class}:${snap.symbol}`)
+    }
+  }
+  const staleWarned = new Set<string>()
 
   const scanned = new Set<string>()
   const hit = (diag: RunPlan['perStrategy'][number], rule: RuleBase, n = 1) => {
@@ -615,6 +726,10 @@ export function planRun(
     for (const snap of snapshots) {
       if (!scope.has(snap.symbol.toUpperCase())) continue
       if (classes.size > 0 && !classes.has(snap.asset_class)) continue
+      if (staleMarks.has(`${snap.asset_class}:${snap.symbol}`)) {
+        staleWarned.add(snap.symbol.toUpperCase())
+        continue
+      }
       /* "Symbols scanned" counts symbols fed through an actual rule — a
          book-only strategy scans nothing no matter how wide its scope. */
       if (symbolRules.length > 0) {
@@ -671,7 +786,20 @@ export function planRun(
            ever PLAN a draft; execution stays with the user. Keys ride rule
            identity — a title rename re-arms nothing, and two same-title
            rules each keep their own draft slot. */
-        const qty = resolveQuantity(rule, snap, position, ctx)
+        let qty = resolveQuantity(rule, snap, position, ctx)
+        /* A sell can never promise more than the book holds — applyFill
+           would floor the fill at zero and the draft would overstate what
+           it can do. Nothing held → no proposal; oversized units clamp to
+           the held quantity (a ">100% of position" sell just means out). */
+        let sellClamp = false
+        if (rule.side === 'sell' && qty !== null) {
+          const held = position?.quantity ?? 0
+          if (held <= 0) qty = null
+          else if (qty > held) {
+            qty = held
+            sellClamp = true
+          }
+        }
         const ident = ruleIdent(rule)
         const idKey = `${strategy.id}:${snap.symbol}:${ident}`
         const titleKey = `${strategy.id}:${snap.symbol}:${rule.title}`
@@ -687,12 +815,24 @@ export function planRun(
           })
         }
         if (qty === null) {
+          /* Sell with nothing held reads differently from a unit that
+             couldn't resolve — don't let one warn as the other. */
+          const nothingHeld = rule.side === 'sell' && (position?.quantity ?? 0) <= 0
           warn(
-            'qty_unresolvable',
+            nothingHeld ? 'sell_nothing_held' : 'qty_unresolvable',
             { title: rule.title, symbol: snap.symbol, unit: rule.qty_unit },
-            `${rule.title}: quantity not resolvable for ${snap.symbol} (${rule.qty_unit})`,
+            nothingHeld
+              ? `${rule.title}: sell rule fired for ${snap.symbol} but nothing is held`
+              : `${rule.title}: quantity not resolvable for ${snap.symbol} (${rule.qty_unit})`,
           )
           continue
+        }
+        if (sellClamp) {
+          warn(
+            'qty_clamped',
+            { title: rule.title, symbol: snap.symbol, qty: String(qty) },
+            `${rule.title}: sell clamped to ${qty} ${snap.symbol} — the rule sized past the position`,
+          )
         }
         if (suppressed) continue
         openDraftKeys.add(idKey)
@@ -810,6 +950,13 @@ export function planRun(
       }
     }
     diag.durationMs = Date.now() - stratStart
+  }
+  if (staleWarned.size > 0) {
+    warn(
+      'snapshot_stale',
+      { symbols: [...staleWarned].sort().join(', ') },
+      `price data for ${[...staleWarned].sort().join(', ')} missed ${SNAPSHOT_STALE_SESSIONS}+ market sessions — their rules did not run`,
+    )
   }
   plan.symbolsScanned = [...scanned].sort()
   return plan

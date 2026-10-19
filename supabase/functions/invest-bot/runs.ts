@@ -1,12 +1,15 @@
 import {
   buildDigestEmail,
   buildSignalEmail,
+  dedupeRowActive,
   digestFlushDue,
+  DISMISS_REARM_MS,
   draftExpiryCutoff,
   draftKey,
   parseRules,
   planRun,
   signalKey,
+  snapshotStale,
   strategyDue,
   type AssetClass,
   type MarketSnapshot,
@@ -67,21 +70,30 @@ export async function runUser(
     throw new Error(expiryError.message)
   }
 
-  /* Dedupe reads 0218 columns when they exist — older schemas retry without
-     them and fall back to title-keyed rows (rule_id null, in_feed true). */
-  const signalsSelect = (cols: string) =>
-    adminClient
-      .from('invest_signals')
-      .select(cols)
-      .eq('user_id', userId)
-      /* 'new' and 'acknowledged' both suppress a refire — acknowledged means
-         "still open"; only 'dismissed' frees the key. */
-      .in('status', ['new', 'acknowledged'])
+  /* Dedupe reads open rows plus recently-dismissed ones — 'new' and
+     'acknowledged' both suppress a refire ("still open"), and a dismissal
+     keeps its key for DISMISS_REARM_MS so a hovering rule can't resurrect
+     the identical signal next sweep. Reads 0218/0246 columns when they
+     exist — older schemas retry without them (title-keyed, no dismissal
+     window). */
+  const dismissCutoffIso = new Date(Date.now() - DISMISS_REARM_MS).toISOString()
+  const signalsSelect = (cols: string, withDismissed: boolean) => {
+    const q = adminClient.from('invest_signals').select(cols).eq('user_id', userId)
+    return withDismissed
+      ? q.or(
+          `status.in.(new,acknowledged),and(status.eq.dismissed,dismissed_at.gte.${dismissCutoffIso})`,
+        )
+      : q.in('status', ['new', 'acknowledged'])
+  }
   let signalsRes = await signalsSelect(
-    'strategy_id, symbol, kind, title, rule_id, in_feed, created_at',
+    'strategy_id, symbol, kind, title, rule_id, in_feed, created_at, status, dismissed_at',
+    true,
   )
-  if (signalsRes.error && /rule_id|in_feed/.test(signalsRes.error.message)) {
-    signalsRes = await signalsSelect('strategy_id, symbol, kind, title, created_at')
+  if (signalsRes.error && /rule_id|in_feed|dismissed_at/.test(signalsRes.error.message)) {
+    signalsRes = await signalsSelect(
+      'strategy_id, symbol, kind, title, created_at, status',
+      false,
+    )
   }
   let draftsRes: PostgrestSingleResponse<Parameters<typeof draftKey>[0][]> =
     await adminClient
@@ -99,7 +111,7 @@ export async function runUser(
   const [snapshotsRes, positionsRes, accountsRes, watchlistRes] = await Promise.all([
     adminClient
       .from('invest_market_snapshots')
-      .select('asset_class, symbol, price, day_change_pct, ma50, currency')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of')
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
@@ -197,19 +209,13 @@ export async function runUser(
     }
     return sum + v
   }, 0)
-  /* Feed-visible signals dedupe for as long as the user leaves them open —
-     that's the current contract. Hidden rows (in_feed=false, an in-app-off
-     strategy) can never be dismissed, so they'd lock the key forever; they
-     only suppress repeats for DEDUPE_WINDOW before re-arming. */
-  const DEDUPE_WINDOW_MS = 7 * 86_400_000
-  const dedupeRows = ((signalsRes.data ?? []) as unknown as (
-    Parameters<typeof signalKey>[0] & { in_feed?: boolean; created_at?: string }
-  )[]).filter(
-    (s) =>
-      s.in_feed !== false ||
-      !s.created_at ||
-      Date.now() - Date.parse(s.created_at) < DEDUPE_WINDOW_MS,
-  )
+  /* Which stored rows still suppress a repeat — open rows for as long as
+     they're open, hidden rows and dismissals on their own re-arm windows
+     (dedupeRowActive owns the contract). */
+  const dedupeRows = (
+    (signalsRes.data ?? []) as unknown as (Parameters<typeof signalKey>[0] &
+      Parameters<typeof dedupeRowActive>[0])[]
+  ).filter((s) => dedupeRowActive(s, Date.now()))
   const existingKeys = new Set(dedupeRows.map(signalKey))
 
   const plan = planRun(strategies, snapshots, positions, existingKeys, {
@@ -683,7 +689,13 @@ export async function runUser(
   if (theses.length > 0) {
     try {
       const advice = isInternalDutivaAccount(authEmail)
-      thesisEvals = evaluateTheses(theses, snapshots, positions, thesisCtx, { advice })
+      /* Thesis eval only trusts session-fresh marks — a stale snapshot would
+         trip break lines on prices the feed stopped updating. Stale reads
+         as missing: the thesis keeps its persisted status (silence isn't a
+         verdict). The denominator still uses the full set — thesisBookContext
+         falls back to last marks on its own. */
+      const freshSnapshots = snapshots.filter((s) => !snapshotStale(s, Date.now()))
+      thesisEvals = evaluateTheses(theses, freshSnapshots, positions, thesisCtx, { advice })
       const evalAt = new Date().toISOString()
       for (const ev of thesisEvals) {
         if (ev.noSnapshot) continue /* silence isn't a verdict */

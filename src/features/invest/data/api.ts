@@ -614,9 +614,15 @@ export async function upsertSnapshot(input: {
 
 export async function setSignalStatus(id: string, status: SignalStatus): Promise<void> {
   const { client, userId } = await requireUserId()
+  /* dismissed_at owns the bot's re-arm window — a dismissal quiets the
+     identical signal rather than freeing its key instantly. Reopening
+     clears it so a later dismiss gets a fresh stamp. */
   const { error } = await client
     .from('invest_signals')
-    .update({ status })
+    .update({
+      status,
+      dismissed_at: status === 'dismissed' ? new Date().toISOString() : null,
+    })
     .eq('id', id)
     .eq('user_id', userId)
   if (error) throw error

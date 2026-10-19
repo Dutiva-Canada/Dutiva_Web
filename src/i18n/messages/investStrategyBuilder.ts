@@ -546,12 +546,28 @@ export const investStrategyBuilderMessages = defineMessages({
     fr: 'Les positions cotées en {currencies} ont été ignorées — aucun taux de change ; leurs règles basées sur la valeur n’ont pas été exécutées.',
   },
   invest_warn_no_snapshot: {
-    en: 'Positions without price data were skipped — {symbols}; their value-based rules did not run and weights exclude them.',
-    fr: 'Les positions sans données de prix ont été ignorées — {symbols} ; leurs règles basées sur la valeur n’ont pas été exécutées et les pondérations les excluent.',
+    en: 'Positions without live price data — {symbols}; their price rules did not run and weights value them at last marks.',
+    fr: 'Positions sans données de prix en direct — {symbols} ; leurs règles de prix n’ont pas été exécutées et les pondérations utilisent leur dernier cours.',
+  },
+  invest_warn_no_mark: {
+    en: 'Positions with no price data at all — {symbols}; their rules did not run and weights exclude them.',
+    fr: 'Positions sans aucun cours — {symbols} ; leurs règles n’ont pas été exécutées et les pondérations les excluent.',
+  },
+  invest_warn_snapshot_stale: {
+    en: 'Price data for {symbols} is a stale mark — the feed missed recent sessions, so their rules did not run.',
+    fr: 'Le cours de {symbols} est périmé — le flux a manqué des séances récentes, donc leurs règles n’ont pas été exécutées.',
   },
   invest_warn_qty_unresolvable: {
     en: '"{title}": quantity could not be resolved for {symbol}.',
     fr: '« {title} » : la quantité n’a pas pu être calculée pour {symbol}.',
+  },
+  invest_warn_sell_nothing_held: {
+    en: '"{title}": sell rule fired for {symbol} but nothing is held.',
+    fr: '« {title} » : la règle de vente s’est déclenchée pour {symbol}, mais rien n’est détenu.',
+  },
+  invest_warn_qty_clamped: {
+    en: '"{title}": sell clamped to {qty} {symbol} — the rule sized past the position.',
+    fr: '« {title} » : la vente a été ramenée à {qty} {symbol} — la règle dépassait la position.',
   },
   invest_warn_book_proposal: {
     en: '"{title}": order proposals need a symbol-level metric.',
