@@ -322,7 +322,14 @@ export async function sendInvestReaction(
   }
   lastReactionAt = Date.now()
   const client = requireClient()
-  const body = { kind: 'react', event, lang, showPaywalled: showPaywalledPref() }
+  /* symbol is optional on signal_updated — goal/scan rows carry '' (no
+     position symbol), which isn't a subject. Drop empty values at the
+     boundary so Tally never reads "symbol: " with nothing after it. */
+  const evt =
+    event.type === 'signal_updated' && !(event.symbol ?? '').trim()
+      ? { ...event, symbol: undefined }
+      : event
+  const body = { kind: 'react', event: evt, lang, showPaywalled: showPaywalledPref() }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta)

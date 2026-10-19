@@ -148,6 +148,26 @@ describe('InvestNotificationsPage', () => {
     )
   })
 
+  it('routes strategy-produced rows to the rule and provenance-less ones to Tally', async () => {
+    mount({
+      signals: [
+        /* Rule-fired: a tunable strategy exists → Agent tab. */
+        signal({ strategyId: 'st1', title: 'SHOP crossed its floor' }),
+        /* Insight-pass row: strategy_id and symbol both null/'' —
+           nothing to tune, no position to land on → Tally. */
+        signal({ id: 'sig2', kind: 'insight', symbol: '', name: '', title: 'Book drifted off target' }),
+      ],
+    })
+    expect(await screen.findByRole('link', { name: /Open Agent — SHOP/ })).toHaveAttribute(
+      'href',
+      '/invest/strategies',
+    )
+    expect(screen.getByRole('link', { name: 'Open Tally' })).toHaveAttribute(
+      'href',
+      '/invest/chat',
+    )
+  })
+
   it('links a held symbol to the book and leaves a watchlist-only name plain', async () => {
     mount({
       signals: [
@@ -208,6 +228,36 @@ describe('InvestNotificationsPage', () => {
         expect.any(Function),
       ),
     )
+  })
+
+  it('does not cry failure when the write lands but the reload fails', async () => {
+    const user = userEvent.setup()
+    const refresh = vi.fn().mockRejectedValue(new Error('network down'))
+    render(
+      <LangProvider>
+        <ToastsProvider>
+          <MemoryRouter>
+            <InvestDataContext.Provider
+              value={{ state: { ...STATE, signals: [signal()] }, loading: false, error: false, refresh }}
+            >
+              <InvestNotificationsPage />
+            </InvestDataContext.Provider>
+          </MemoryRouter>
+        </ToastsProvider>
+      </LangProvider>,
+    )
+    await user.click(await screen.findByRole('button', { name: 'Acknowledge' }))
+    await waitFor(() => expect(setSignalStatus).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(sendInvestReaction).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'signal_updated' }),
+        'en',
+        expect.any(Function),
+      ),
+    )
+    /* The write succeeded — no error banner; the stale row simply
+       lingers until the next load. */
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('dismiss behaves the same — status, refresh, reaction', async () => {
