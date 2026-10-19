@@ -1815,6 +1815,10 @@ const investCoreMessages = defineMessages({
   invest_plan_at: { en: 'at', fr: 'à' },
   invest_plan_no_thesis: { en: 'No thesis filed —', fr: 'Aucune thèse déposée —' },
   invest_plan_write_thesis: { en: 'write one', fr: 'la rédiger' },
+  /* The deep link opens the thesis composer and fires Tally's draft from
+     the position facts — same affordance as the scaffold strip's
+     "Draft with Tally". [FR self-authored] */
+  invest_plan_tally_draft: { en: 'or have Tally draft it', fr: 'ou laisser Tally la rédiger' },
   invest_plan_watchlist: { en: 'Watchlist', fr: 'Liste de suivi' },
   invest_plan_cash: { en: 'Cash on hand', fr: 'Encaisse' },
 
