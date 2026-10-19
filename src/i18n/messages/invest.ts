@@ -1750,6 +1750,127 @@ const investCoreMessages = defineMessages({
     en: 'Chat with Tally — the book’s watch clerk — about your own book data.',
     fr: 'Discutez avec Tally — la surveillante du carnet — de vos propres données.',
   },
+
+  /* ── Plan document (/invest/plan) — the book as one reviewed document.
+     Read-only sections render live state; the objective and notes are the
+     holder's own words on invest_user_profile, and the stamp is the
+     reaffirm idiom the theses already use. [FR self-authored] ─────────── */
+  invest_tab_plan: { en: 'Plan', fr: 'Plan' },
+  invest_plan_title: { en: 'Investment plan', fr: 'Plan d’investissement' },
+  invest_plan_sub: {
+    en: 'The book as one document — what you hold, why, and the rules watching it.',
+    fr: 'Le carnet en un document — ce que vous détenez, pourquoi, et les règles qui le surveillent.',
+  },
+  invest_seo_title_plan: { en: 'Plan — Dutiva Invest', fr: 'Plan — Dutiva Invest' },
+  invest_seo_desc_plan: {
+    en: 'Your investment plan as one document — objective, goals, holdings, theses, rules, and review.',
+    fr: 'Votre plan d’investissement en un document — objectif, buts, positions, thèses, règles et revue.',
+  },
+  invest_plan_print: { en: 'Print', fr: 'Imprimer' },
+  invest_plan_mark_reviewed: { en: 'Mark as reviewed', fr: 'Marquer comme révisé' },
+  invest_plan_reviewed_toast: { en: 'Plan marked reviewed', fr: 'Plan marqué révisé' },
+  invest_plan_reviewed: { en: 'Reviewed {date}', fr: 'Révisé le {date}' },
+  invest_plan_never: { en: 'Never reviewed', fr: 'Jamais révisé' },
+
+  invest_plan_s_objective: { en: 'Objective', fr: 'Objectif' },
+  invest_plan_objective_empty: {
+    en: 'Not written yet — one line is enough: what is this book for?',
+    fr: 'Pas encore rédigé — une ligne suffit : à quoi sert ce carnet ?',
+  },
+  invest_plan_objective_ph: {
+    en: 'What this book is for — the test every signal answers to.',
+    fr: 'À quoi sert ce carnet — le test auquel chaque signal répond.',
+  },
+
+  invest_plan_s_investor: { en: 'The investor', fr: 'L’investisseur' },
+  invest_plan_investor_sub: {
+    en: 'What Tally weighs in every draft and answer.',
+    fr: 'Ce que Tally pèse dans chaque brouillon et réponse.',
+  },
+  invest_plan_mandate: { en: 'Mandate', fr: 'Mandat' },
+  invest_plan_mandate_empty: {
+    en: 'No mandate written — it steers Tally’s drafts more than any setting.',
+    fr: 'Aucun mandat rédigé — il oriente les brouillons de Tally plus que tout réglage.',
+  },
+  invest_plan_edit_profile: { en: 'Edit on Profile', fr: 'Modifier dans Profil' },
+
+  invest_plan_s_goals: { en: 'Goals', fr: 'Objectifs' },
+  invest_plan_goals_empty: {
+    en: 'No goals yet — set one on Analysis.',
+    fr: 'Aucun objectif — définissez-en un dans Analyse.',
+  },
+  invest_plan_open_analysis: { en: 'Open Analysis', fr: 'Ouvrir Analyse' },
+  invest_plan_goal_target: { en: 'target', fr: 'cible' },
+  invest_plan_goal_due: { en: 'due {date}', fr: 'échéance {date}' },
+  invest_plan_goal_open: { en: 'open-ended', fr: 'sans échéance' },
+
+  invest_plan_s_holdings: { en: 'Holdings', fr: 'Positions' },
+  invest_plan_holdings_empty: {
+    en: 'Nothing held yet — add positions on Portfolios.',
+    fr: 'Rien en position — ajoutez-en dans Portefeuilles.',
+  },
+  invest_plan_open_portfolios: { en: 'Open Portfolios', fr: 'Ouvrir Portefeuilles' },
+  invest_plan_unit_one: { en: 'unit', fr: 'unité' },
+  invest_plan_unit_many: { en: 'units', fr: 'unités' },
+  invest_plan_at: { en: 'at', fr: 'à' },
+  invest_plan_no_thesis: { en: 'No thesis filed —', fr: 'Aucune thèse déposée —' },
+  invest_plan_write_thesis: { en: 'write one', fr: 'la rédiger' },
+  invest_plan_watchlist: { en: 'Watchlist', fr: 'Liste de suivi' },
+
+  invest_plan_s_rules: { en: 'Standing rules', fr: 'Règles permanentes' },
+  invest_plan_rules_sub: {
+    en: 'Checked on every sweep — signals and draft orders only, never executions.',
+    fr: 'Vérifiées à chaque balayage — signaux et brouillons d’ordres seulement, jamais d’exécutions.',
+  },
+  invest_plan_rules_empty: {
+    en: 'No strategies yet — the agent watches nothing until one exists.',
+    fr: 'Aucune stratégie — l’agent ne surveille rien tant qu’il n’en existe une.',
+  },
+  invest_plan_open_strategies: { en: 'Open Agent', fr: 'Ouvrir Agent' },
+
+  invest_plan_s_watch: { en: 'Watch board', fr: 'Tableau de veille' },
+  invest_plan_watch_empty: {
+    en: 'Nothing watched outside the book — note a factor on Analysis.',
+    fr: 'Rien de surveillé hors du carnet — notez un facteur dans Analyse.',
+  },
+  invest_plan_watch_book: { en: 'whole book', fr: 'tout le carnet' },
+
+  invest_plan_s_open: { en: 'Waiting on you', fr: 'En attente' },
+  invest_plan_open_empty: {
+    en: 'Nothing waiting — drafts and new signals land here first.',
+    fr: 'Rien en attente — les brouillons et nouveaux signaux arrivent ici d’abord.',
+  },
+  invest_plan_open_order_one: { en: 'draft order to review', fr: 'brouillon d’ordre à revoir' },
+  invest_plan_open_order_many: { en: 'draft orders to review', fr: 'brouillons d’ordres à revoir' },
+  invest_plan_open_signal_one: { en: 'new signal', fr: 'nouveau signal' },
+  invest_plan_open_signal_many: { en: 'new signals', fr: 'nouveaux signaux' },
+  invest_plan_open_orders_link: { en: 'Review on Orders', fr: 'Revoir dans Ordres' },
+  invest_plan_open_signals_link: { en: 'Triage on Signals', fr: 'Trier dans Signaux' },
+
+  invest_plan_s_review: { en: 'Review', fr: 'Revue' },
+  invest_plan_review_line: {
+    en: 'The agent sweeps daily at 7:45 AM UTC — what it finds waits for your call, never executes itself.',
+    fr: 'L’agent balaie chaque jour à 7 h 45 UTC — ses trouvailles attendent votre décision, jamais exécutées seules.',
+  },
+  invest_plan_last_sweep: { en: 'Last sweep {time}', fr: 'Dernier balayage {time}' },
+  invest_plan_last_sweep_none: {
+    en: 'No sweep yet — the next daily run files here.',
+    fr: 'Aucun balayage encore — le prochain quotidien se dépose ici.',
+  },
+
+  invest_plan_s_notes: { en: 'Notes to self', fr: 'Notes personnelles' },
+  invest_plan_notes_sub: {
+    en: 'Yours alone — Tally doesn’t weigh these.',
+    fr: 'Rien que pour vous — Tally ne les pèse pas.',
+  },
+  invest_plan_notes_empty: {
+    en: 'Nothing noted yet — decisions, context, the why behind changes.',
+    fr: 'Rien de noté — décisions, contexte, le pourquoi des changements.',
+  },
+  invest_plan_notes_ph: {
+    en: 'What the document can’t say for you.',
+    fr: 'Ce que le document ne peut pas dire pour vous.',
+  },
 })
 
 /* The strategy-builder block lives in investStrategyBuilder.ts (this file

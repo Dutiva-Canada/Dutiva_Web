@@ -10994,6 +10994,9 @@ export type Database = {
           goal: string | null
           horizon: string | null
           mandate: string | null
+          plan_notes: string | null
+          plan_objective: string | null
+          plan_reviewed_at: string | null
           risk_tolerance: string | null
           sectors: string[]
           updated_at: string
@@ -11006,6 +11009,9 @@ export type Database = {
           goal?: string | null
           horizon?: string | null
           mandate?: string | null
+          plan_notes?: string | null
+          plan_objective?: string | null
+          plan_reviewed_at?: string | null
           risk_tolerance?: string | null
           sectors?: string[]
           updated_at?: string
@@ -11018,6 +11024,9 @@ export type Database = {
           goal?: string | null
           horizon?: string | null
           mandate?: string | null
+          plan_notes?: string | null
+          plan_objective?: string | null
+          plan_reviewed_at?: string | null
           risk_tolerance?: string | null
           sectors?: string[]
           updated_at?: string
@@ -17556,7 +17565,11 @@ export type Database = {
         }[]
       }
       org_member_has_module: {
-        Args: { check_module: string; check_org_id: string; check_user_id: string }
+        Args: {
+          check_module: string
+          check_org_id: string
+          check_user_id: string
+        }
         Returns: boolean
       }
       organization_effective_plan: {

@@ -2374,3 +2374,222 @@
   min-width: 0;
   max-width: 260px;
 }
+
+/* ── Plan document (/invest/plan) ─────────────────────────────────────────
+   The book as one document: prose blocks over live state, dim definition
+   rows, and per-item rows that read like clauses rather than cards. */
+.sb-plan .sb-h2 {
+  font-size: 17px;
+}
+
+.sb-plan-stamp {
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sb-muted);
+  letter-spacing: 0.02em;
+}
+
+.sb-plan-sect-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sb-plan-sect-link {
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.sb-plan .sb-caption {
+  margin: 6px 0 0;
+}
+
+/* Objective/notes prose — the document's own words read larger than
+   caption chrome. */
+.sb-plan-prose {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.sb-plan-empty {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  color: var(--sb-muted);
+  font-style: italic;
+}
+
+.sb-plan-edit {
+  width: 100%;
+  margin-top: 10px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sb-plan-edit-actions {
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.sb-plan-editbtn {
+  font-size: 12.5px;
+}
+
+.sb-plan-err {
+  color: var(--sb-danger);
+}
+
+/* Declared-profile definition rows — label left, value right, wrapped to
+   a vertical stack on narrow widths. */
+.sb-plan-dims {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px 18px;
+  margin: 12px 0 0;
+}
+
+.sb-plan-dim dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--sb-muted);
+}
+
+.sb-plan-dim dd {
+  margin: 3px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sb-plan-tagrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.sb-plan-mandate {
+  margin-top: 14px;
+}
+
+.sb-plan-quote {
+  margin: 6px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid var(--sb-line-strong, var(--sb-line));
+  background: var(--sb-card-deep);
+  border-radius: 0 10px 10px 0;
+  font-size: 14px;
+  line-height: 1.55;
+  font-style: italic;
+  white-space: pre-wrap;
+}
+
+/* Document rows — a claim line with a right-side status pill; meta and
+   the detail line stack under the title. */
+.sb-plan-rows {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sb-plan-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--sb-line);
+  border-radius: 12px;
+  background: var(--sb-card-deep);
+}
+
+.sb-plan-row-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sb-plan-row-main > strong {
+  font-size: 14px;
+}
+
+.sb-plan-holding-name {
+  font-weight: 500;
+  color: var(--sb-muted);
+  font-size: 12.5px;
+  margin-left: 8px;
+}
+
+.sb-plan-row-meta {
+  font-size: 12.5px;
+  color: var(--sb-muted);
+}
+
+.sb-plan-row-line {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sb-plan-gap {
+  color: var(--sb-warn, var(--sb-muted));
+}
+
+.sb-plan-row .sb-pill {
+  flex-shrink: 0;
+}
+
+/* "Waiting on you" reads as clauses with links, not pills. */
+.sb-plan-open {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.sb-plan-foot {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--sb-muted);
+  border-top: 1px solid var(--sb-line);
+  padding-top: 10px;
+}
+
+.sb-plan-disclaimer {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--sb-muted);
+  text-align: center;
+}
+
+/* Print — the plan is a document; chrome, actions, and the shell's
+   header/footer drop out so the page prints clean. */
+@media print {
+  .surface-app > header,
+  .surface-app > footer,
+  .sb-noprint {
+    display: none !important;
+  }
+
+  .sb-page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .sb-plan .sb-card {
+    break-inside: avoid;
+    box-shadow: none;
+  }
+}

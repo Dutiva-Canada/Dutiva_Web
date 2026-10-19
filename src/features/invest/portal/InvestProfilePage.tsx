@@ -33,7 +33,7 @@ import {
 } from '@/lib/agentQueue'
 import { useInvestHead } from './useInvestHead'
 import { PageHead } from './PageHead'
-import { PROFILE_SELECTS, PROFILE_TAGS } from './profileDims'
+import { PROFILE_FIELD, PROFILE_SELECTS, PROFILE_TAGS } from './profileDims'
 import { ProfileMemories } from './ProfileMemories'
 import { fmtPct } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
@@ -60,13 +60,7 @@ const EMPTY_ROW: ProfileRow = {
   exclusions: null,
   mandate: null,
 }
-const PROFILE_FIELD: Record<string, keyof ProfileRow> = {
-  risk: 'risk_tolerance',
-  horizon: 'horizon',
-  goal: 'goal',
-  experience: 'experience',
-  style: 'answer_style',
-}
+
 
 /** Suggestion-kind labels for the observed readout — kinds that resolve
     past the profile page too, so the map covers the whole surface. */
