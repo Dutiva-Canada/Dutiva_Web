@@ -4,37 +4,19 @@ import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import type { InvestSignal, SignalKind, SignalStatus } from '@/features/invest/data/types'
+import type { InvestSignal, SignalStatus } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { setSignalStatus } from '@/features/invest/data/api'
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
-
-const kindLabel: Record<SignalKind, keyof typeof IM> = {
-  screen: 'invest_signal_kind_screen',
-  insight: 'invest_signal_kind_insight',
-  alert: 'invest_signal_kind_alert',
-  thesis: 'invest_signal_kind_thesis',
-  goal: 'invest_signal_kind_goal',
-  scan: 'invest_signal_kind_scan',
-}
+import { SIGNAL_KIND_LABEL, mentionedSymbols } from './strategyUi'
 
 const statusLabel: Record<SignalStatus, keyof typeof IM> = {
   new: 'invest_signal_new',
   acknowledged: 'invest_signal_acknowledged',
   dismissed: 'invest_signal_dismissed',
-}
-
-/** Symbols a signal body mentions that are actually held — rendered as pills
-    linking to the book so "QUBT fell 6.9%" cross-references without a hunt. */
-function mentionedSymbols(text: string, heldSymbols: string[]): string[] {
-  return heldSymbols.filter((sym) =>
-    new RegExp(`(^|[^A-Z0-9])${sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Z0-9]|$)`, 'i').test(
-      text,
-    ),
-  )
 }
 
 /** Signals tab — what the bot emitted, with acknowledge/dismiss triage. */
@@ -101,7 +83,7 @@ export function InvestSignalsPage() {
           <div style={{ minWidth: 0 }}>
             <div className="sb-sig-head">
               <span className={`sb-pill ${s.kind === 'alert' ? 'sb-pill-warn' : 'sb-pill-draft'}`}>
-                {x(IM[kindLabel[s.kind]])}
+                {x(IM[SIGNAL_KIND_LABEL[s.kind]])}
               </span>
               {s.symbol && <span className="sb-pill">{s.symbol}</span>}
               {linked.map((sym) => (

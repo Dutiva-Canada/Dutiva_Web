@@ -22,6 +22,7 @@ import type {
   RuleMetric,
   RunWarning,
   ScanDirection,
+  SignalKind,
   StrategyCadence,
   StrategyNotify,
   StrategyRule,
@@ -40,6 +41,28 @@ export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
   tailwind: 'sb-pill-ok',
   headwind: 'sb-pill-warn',
   monitor: 'sb-pill-draft',
+}
+
+/* Signal-kind → label key — the Signals log and the Notifications inbox
+   tag the same rows; one map so they can't disagree. */
+export const SIGNAL_KIND_LABEL: Record<SignalKind, keyof typeof IM> = {
+  screen: 'invest_signal_kind_screen',
+  insight: 'invest_signal_kind_insight',
+  alert: 'invest_signal_kind_alert',
+  thesis: 'invest_signal_kind_thesis',
+  goal: 'invest_signal_kind_goal',
+  scan: 'invest_signal_kind_scan',
+}
+
+/** Symbols a signal's text mentions that are actually held — rendered as
+   pills linking to the book so "QUBT fell 6.9%" cross-references without
+   a hunt. Whole-token match, case-insensitive. */
+export function mentionedSymbols(text: string, heldSymbols: string[]): string[] {
+  return heldSymbols.filter((sym) =>
+    new RegExp(`(^|[^A-Z0-9])${sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Z0-9]|$)`, 'i').test(
+      text,
+    ),
+  )
 }
 
 /* Asset-class → label key — the allocation legend and the headline
