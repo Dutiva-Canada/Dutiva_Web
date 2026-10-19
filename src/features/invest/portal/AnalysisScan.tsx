@@ -9,7 +9,7 @@
  * cards the user accepts or dismisses one by one).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CircleAlert, Loader2, Plus, Sparkles } from 'lucide-react'
+import { CircleAlert, Loader2, Plus, Sparkles, Tag } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -474,7 +474,11 @@ export function AnalysisScan() {
                     <span className={`sb-pill ${SCAN_DIR_PILL[item.direction]}`}>
                       {x(IM[SCAN_DIR_LABEL[item.direction]])}
                     </span>
+                    {/* The theme tag gets a glyph so it can't be misread
+                        as a second direction pill when direction is
+                        Monitor (both default to the muted fill). */}
                     <span className="sb-pill sb-pill-draft">
+                      <Tag size={11} aria-hidden="true" style={{ marginRight: 4 }} />
                       {x(IM[SCAN_THEME_LABEL[item.theme]])}
                     </span>
                   </span>

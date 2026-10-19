@@ -152,8 +152,14 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
 
   return (
     <section className="sb-section" aria-label={x(IM.invest_analysis_swot)}>
-      <h2>{x(IM.invest_analysis_swot)}</h2>
-      <p className="sub">{x(IM.invest_analysis_swot_sub)}</p>
+      {/* Same head idiom as Goals/Watch — the section's 28px of air and
+          a row for future actions, not a bare h2. */}
+      <div className="sb-section-head">
+        <div>
+          <h2>{x(IM.invest_analysis_swot)}</h2>
+          <p className="sub">{x(IM.invest_analysis_swot_sub)}</p>
+        </div>
+      </div>
 
       <div className="sb-pills sb-swot-picks" role="group" aria-label={x(IM.invest_swot_pick)}>
         {theses.map((t) => {
@@ -264,7 +270,15 @@ export function AnalysisSwot({ theses }: { theses: InvestThesis[] }) {
 
       {untracked.length > 0 && (
         <p className="sb-helper" style={{ marginTop: 10 }}>
-          {fill(x(IM.invest_swot_no_thesis), { symbol: untracked.slice(0, 4).join(', ') })}
+          {/* Names the first four and counts the rest — a fifth symbol
+              must not vanish silently from the nudge. */}
+          {fill(x(IM.invest_swot_no_thesis), {
+            symbol:
+              untracked.slice(0, 4).join(', ') +
+              (untracked.length > 4
+                ? fill(x(IM.invest_swot_more), { n: String(untracked.length - 4) })
+                : ''),
+          })}
         </p>
       )}
     </section>

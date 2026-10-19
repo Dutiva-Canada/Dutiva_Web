@@ -955,6 +955,8 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_stress_scenario_custom: { en: 'Custom', fr: 'Sur mesure' },
   /* [FR self-authored] */
+  invest_stress_presets: { en: 'Preset scenarios', fr: 'Scénarios prédéfinis' },
+  /* [FR self-authored] */
   invest_stress_pick_symbol: { en: 'Pick a symbol', fr: 'Choisir un symbole' },
   /* [FR self-authored] */
   invest_stress_pct_label: { en: 'Move in percent', fr: 'Mouvement en pourcentage' },
