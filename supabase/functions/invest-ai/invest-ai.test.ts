@@ -1184,6 +1184,17 @@ describe('investChatPrompt — attachments + closes legend', () => {
     /* The chart path is not exempt from grounding — the prompt says so. */
     expect(p).toContain('never invent values to fill a series')
   })
+  it('teaches the dutiva-widget grammar and forbids the recommendation badge', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('```dutiva-widget fenced block')
+    for (const type of ['table', 'chart', 'checklist', 'timeline', 'comparison', 'calculator']) {
+      expect(p).toContain(`{"type":"${type}"`)
+    }
+    /* A "recommended" badge on an option card is advice by another name —
+       the prompt forbids it outright. */
+    expect(p).toContain('NEVER set "recommended"')
+    expect(p).toContain('never invent values to fill a widget')
+  })
 })
 
 describe('headline source prefs', () => {
