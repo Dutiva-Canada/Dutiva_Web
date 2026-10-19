@@ -15,7 +15,10 @@ import {
   ADVICE_FALLBACK_EN,
   ADVICE_FALLBACK_FR,
   INVEST_CHAT_ACTION_TYPES,
+  REACT_FALLBACK_EN,
+  REACT_FALLBACK_FR,
   buildAdviceRepairNote,
+  buildReactRepairNote,
   buildRepairNote,
   chatSources,
   detectDirectedAdvice,
@@ -28,6 +31,7 @@ import {
   normalizeSource,
   parseInvestChatReply,
   resolveInvestRef,
+  screenReactDraft,
   verifyReplyClaims,
   type InvestChatContext,
   type MarketContextEntry,
@@ -1371,6 +1375,74 @@ describe('verifyReplyClaims', () => {
     ])
     expect(detail).toContain('highest RSI-14')
     expect(detail).not.toContain('NaN')
+  })
+})
+
+describe('react screens', () => {
+  const amd: MarketContextEntry = {
+    symbol: 'AMD', assetClass: 'equity', price: 608.1, currency: 'USD',
+    dayChangePct: -2.03, ma50: 528.9, ma200: 385.3, rsi14: 57.2,
+    ret1m: 20.8, ret3m: 13.8, ret12m: 158.2, vol20d: 53.8,
+    high52w: 649.4, low52w: 190.9,
+    fundamentals: { market_cap: 985e9, pe_trailing: 156.8, currency: 'USD' },
+    asOf: '2026-10-11T02:23:00Z', headlines: [],
+  }
+
+  it('passes a clean grounded reaction', () => {
+    const screen = screenReactDraft(
+      'Noted — AMD is on the watchlist; it trades at $608.10 with RSI-14 at 57.',
+      [amd],
+      'en',
+      false,
+    )
+    expect(screen.mismatches).toEqual([])
+    expect(screen.adviceFlags).toEqual([])
+  })
+
+  it('flags a misquoted figure the chat verifier would catch', () => {
+    const screen = screenReactDraft('AMD is on the list — RSI-14 at 12.', [amd], 'en', false)
+    expect(screen.mismatches.length).toBeGreaterThan(0)
+  })
+
+  it('flags directed advice for external users, skips the screen for staff', () => {
+    const draft = 'AMD watched — you should buy more while it is down.'
+    expect(
+      screenReactDraft(draft, [amd], 'en', false).adviceFlags.length,
+    ).toBeGreaterThan(0)
+    expect(screenReactDraft(draft, [amd], 'en', true).adviceFlags).toEqual([])
+    /* staff still get fact-checked — the advice tier changes the register,
+       not the figures */
+    expect(
+      screenReactDraft('RSI-14 at 12.', [amd], 'en', true).mismatches.length,
+    ).toBeGreaterThan(0)
+  })
+
+  it('the fallback line passes both screens in both languages', () => {
+    for (const [text, lang] of [
+      [REACT_FALLBACK_EN, 'en'],
+      [REACT_FALLBACK_FR, 'fr'],
+    ] as const) {
+      const screen = screenReactDraft(text, [amd], lang, false)
+      expect(screen.mismatches).toEqual([])
+      expect(screen.adviceFlags).toEqual([])
+    }
+  })
+
+  it('the repair note names the flagged issues on the plain-text contract', () => {
+    const note = buildReactRepairNote(
+      {
+        mismatches: [{ metric: 'RSI-14', claimed: 12, actual: 57.2, unit: '' }],
+        adviceFlags: ['you should buy more'],
+      },
+      'en',
+    )
+    expect(note).toContain('RSI-14')
+    expect(note).toContain('57.2')
+    expect(note).toContain('you should buy more')
+    expect(note).toContain('plain text')
+    expect(note).toContain('Canadian English')
+    /* react's contract is prose, not the chat JSON envelope */
+    expect(note).not.toContain('JSON')
   })
 })
 
