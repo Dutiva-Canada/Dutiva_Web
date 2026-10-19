@@ -59,6 +59,11 @@ export interface ThesisEvalDetail {
   rules: ThesisRuleEval[]
   fired_break: number
   fired_drift: number
+  /** Consecutive evals where the computed status came back better than
+      the stored one — a degraded status only heals once that repeats, so
+      a threshold-hugging metric can't flip the card every sweep. 0 means
+      settled. */
+  recovery_streak: number
   /** Posture line in both locales — the card renders the locale pick. */
   action_en: string
   action_fr: string
@@ -77,6 +82,14 @@ export interface ThesisEval {
   noSnapshot: boolean
   detail: ThesisEvalDetail
 }
+
+/* Healing hysteresis — status severity ranks. A computed status better
+   than the stored one has to repeat on consecutive evals before it
+   applies; a metric wobbling ±0.2% across a line can't produce two clean
+   reads in a row, so the flutter never reaches the card. Trips are never
+   delayed — a worse computed status applies on first fire. */
+const STATUS_RANK: Record<ThesisStatus, number> = { healthy: 0, drifting: 1, broken: 2 }
+export const THESIS_HEAL_EVALS = 2
 
 /* The action lines — posture-shaped but never stronger than the tier
    allows. External accounts get a state + a review nudge; internal staff
@@ -218,6 +231,9 @@ export function evaluateTheses(
           rules: [],
           fired_break: 0,
           fired_drift: 0,
+          /* The pending recovery survives a silent eval — neither proven
+             nor disproven by a mark that isn't there. */
+          recovery_streak: t.eval_detail?.recovery_streak ?? 0,
           action_en: quietAction.en,
           action_fr: quietAction.fr,
         },
@@ -244,8 +260,17 @@ export function evaluateTheses(
         })
       }
     }
-    const status: ThesisStatus =
+    const computed: ThesisStatus =
       firedBreak > 0 ? 'broken' : firedDrift > 0 ? 'drifting' : 'healthy'
+    let status = computed
+    let streak = 0
+    if (STATUS_RANK[computed] < STATUS_RANK[t.status]) {
+      /* The read improved on the stored state — believe the recovery only
+         once it repeats. One tick back over a line is flutter, not a heal. */
+      streak = (t.eval_detail?.recovery_streak ?? 0) + 1
+      if (streak < THESIS_HEAL_EVALS) status = t.status
+      else streak = 0
+    }
     /* A first eval emits on any degraded status — a freshly-filed thesis
        that's already broken shouldn't wait a day to say so. */
     const statusChanged =
@@ -264,6 +289,7 @@ export function evaluateTheses(
         rules,
         fired_break: firedBreak,
         fired_drift: firedDrift,
+        recovery_streak: streak,
         action_en: action.en,
         action_fr: action.fr,
       },

@@ -258,6 +258,10 @@ export interface ThesisEvalDetail {
   rules: ThesisRuleEval[]
   fired_break: number
   fired_drift: number
+  /** Consecutive evals that read better than the stored status — healing
+      needs two in a row, so >0 on a degraded card means "recovering,
+      unconfirmed". Absent on rows predating the streak. */
+  recovery_streak?: number
   /** Posture line in both locales — the card renders the locale pick. */
   action_en: string
   action_fr: string

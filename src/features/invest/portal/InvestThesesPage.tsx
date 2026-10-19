@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Check,
   CircleAlert,
+  Clock,
   Loader2,
   Plus,
   Sparkles,
@@ -752,6 +753,12 @@ export function InvestThesesPage() {
                       <p className="sb-thesis-reaffirm">
                         <Check size={14} aria-hidden="true" />
                         {fill(x(IM.invest_thesis_reaffirmed), { when: reaffirmedWhen })}
+                      </p>
+                    )}
+                    {t.status !== 'healthy' && (detail?.recovery_streak ?? 0) > 0 && (
+                      <p className="sb-thesis-recover">
+                        <Clock size={14} aria-hidden="true" />
+                        {x(IM.invest_thesis_recovering)}
                       </p>
                     )}
                     {evalRows.length > 0 && (

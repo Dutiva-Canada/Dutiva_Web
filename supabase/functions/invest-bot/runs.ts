@@ -890,6 +890,56 @@ export async function runUser(
     console.error('invest-bot: exit-proposal pass failed', error)
   }
 
+  /* Exit proposals die with their premise — a thesis that no longer reads
+     broken (healed under the streak, so a proven recovery — not a tick)
+     or whose row is gone shouldn't still carry a 'close or trim?' sell
+     offer. resolved_action names why the row closed itself. */
+  try {
+    const { data: pendingExits } = await adminClient
+      .from('agent_suggestions')
+      .select('id, payload')
+      .eq('user_id', userId)
+      .eq('surface', 'invest')
+      .eq('kind', 'exit_proposal')
+      .eq('status', 'pending')
+    const statusById = new Map(thesisEvals.map((ev) => [ev.id, ev.status]))
+    const knownIds = new Set(theses.map((t) => t.id))
+    const healed: string[] = []
+    const withdrawn: string[] = []
+    for (const row of (pendingExits ?? []) as {
+      id: string
+      payload: Record<string, unknown> | null
+    }[]) {
+      const thesisId = String(row.payload?.thesis_id ?? '')
+      const status = statusById.get(thesisId)
+      if (status === 'broken') continue
+      if (!knownIds.has(thesisId)) withdrawn.push(row.id)
+      else if (status !== undefined) healed.push(row.id)
+      /* Known thesis with no eval this run (the pass failed midway) —
+         leave the row alone rather than resolve on a guess. */
+    }
+    const sweeps: [string[], string][] = [
+      [healed, 'healed'],
+      [withdrawn, 'withdrawn'],
+    ]
+    for (const [ids, action] of sweeps) {
+      if (ids.length === 0) continue
+      await adminClient
+        .from('agent_suggestions')
+        .update({
+          status: 'dismissed',
+          resolved_at: new Date().toISOString(),
+          resolved_action: action,
+        })
+        .in('id', ids)
+    }
+  } catch (error) {
+    plan.warnings.push(
+      `exit-proposal sweep failed: ${(error as Error).message.slice(0, 120)}`,
+    )
+    console.error('invest-bot: exit-proposal sweep failed', error)
+  }
+
   if (goals.length > 0 || (scanItems.length > 0 && degradedTheses.length > 0)) {
     try {
       const evalAt = new Date().toISOString()
