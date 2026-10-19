@@ -6,10 +6,12 @@ import {
   DISMISS_REARM_MS,
   draftExpiryCutoff,
   draftKey,
+  marketSessionsMissed,
   parseRules,
   planRun,
   signalKey,
   snapshotStale,
+  SNAPSHOT_STALE_SESSIONS,
   strategyDue,
   type AssetClass,
   type MarketSnapshot,
@@ -483,6 +485,58 @@ export async function runUser(
       { in_feed: true, rule_id: null },
     )
     if (ok) insightsInserted += 1
+  }
+
+  /* Feed-stall alarm — per-symbol staleness already warns inside the run
+     row, but a dead sync hides there: nobody opens a run row to learn the
+     feed stopped. When even the FRESHEST mark has missed its sessions,
+     nothing anywhere is quoting — file one deduped alert row the inbox
+     surfaces. A lone dead symbol stays a run warning (a book problem, not
+     an outage); a never-synced book — zero snapshots — isn't claimed as a
+     stall, nothing stopped. The 'feed:stalled' rule_id pins one key; an
+     open row suppresses repeats, a dismissal re-arms on the same window
+     every other signal uses. */
+  const newestAsOf = snapshots.reduce<string | null>(
+    (latest, s) => (s.as_of && (!latest || s.as_of > latest) ? s.as_of : latest),
+    null,
+  )
+  let feedStallAlerted = 0
+  if (
+    newestAsOf &&
+    marketSessionsMissed(Date.parse(newestAsOf), Date.now()) >= SNAPSHOT_STALE_SESSIONS
+  ) {
+    const stopped = new Date(newestAsOf)
+      .toISOString()
+      .slice(0, 16)
+      .replace('T', ' ')
+    const titleEn = 'Price feed stalled'
+    const key = signalKey({
+      strategy_id: null,
+      symbol: '',
+      kind: 'alert',
+      title: titleEn,
+      rule_id: 'feed:stalled',
+    })
+    if (!existingKeys.has(key)) {
+      existingKeys.add(key)
+      const ok = await insertFeedSignal(
+        {
+          user_id: userId,
+          strategy_id: null,
+          asset_class: 'other',
+          symbol: '',
+          name: '',
+          kind: 'alert',
+          title: titleEn,
+          title_fr: 'Flux de prix interrompu',
+          body: `Marks last updated ${stopped} UTC — rules pause on stale marks and the book keeps last-known prices until the feed recovers.`,
+          body_fr: `Dernier cours le ${stopped} UTC — les règles s’arrêtent sur des cours périmés et le portefeuille garde les derniers prix connus jusqu’au retour du flux.`,
+          score: null,
+        },
+        { in_feed: true, rule_id: 'feed:stalled' },
+      )
+      if (ok) feedStallAlerted += 1
+    }
   }
 
   /* Tally's proactive suggestions — a deterministic book review that files
@@ -1075,6 +1129,22 @@ export async function runUser(
       duration_ms: durationMs,
     })
   }
+  if (feedStallAlerted > 0) {
+    /* The alarm is top-level like the insights row — a heartbeat claiming
+       "nothing due" would lie about a sweep that emitted a warning. */
+    runRows.push({
+      user_id: userId,
+      strategy_id: null,
+      signals_emitted: feedStallAlerted,
+      orders_suggested: 0,
+      orders_executed: 0,
+      summary: 'feed stalled — alert emitted',
+      status: writesFailed ? 'partial' : 'ok',
+      symbols_scanned: plan.symbolsScanned,
+      rule_hits: {},
+      duration_ms: durationMs,
+    })
+  }
   if (runRows.length === 0) {
     /* Heartbeat — evaluation days already carry their own rows, so this
        only fills the silence. symbols_scanned stays empty: no scan ran,
@@ -1102,10 +1172,11 @@ export async function runUser(
       /* Pre-0184 schema — record a single flat row without diagnostics.
          A heartbeat-only sweep keeps its own summary rather than claim
          "0 symbols scanned" for a scan that never ran. */
-      const heartbeatOnly = plan.perStrategy.length === 0 && insightsInserted === 0
+      const heartbeatOnly =
+        plan.perStrategy.length === 0 && insightsInserted === 0 && feedStallAlerted === 0
       await adminClient.from('invest_bot_runs').insert({
         user_id: userId,
-        signals_emitted: plan.signals.length + insightsInserted,
+        signals_emitted: plan.signals.length + insightsInserted + feedStallAlerted,
         orders_suggested: proposalsCreated,
         orders_executed: 0,
         summary: heartbeatOnly
