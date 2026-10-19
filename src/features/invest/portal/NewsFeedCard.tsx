@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowUpRight,
   ChevronDown,
@@ -6,6 +6,8 @@ import {
   EyeOff,
   Newspaper,
   RotateCcw,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -35,14 +37,6 @@ const KIND_LABEL: Record<NewsKind, keyof typeof IM | null> = {
   news: null,
 }
 
-/* Ellipsis mid-word reads as a glitch — cut at the last space instead. */
-function ellipsize(s: string, max = 44): string {
-  if (s.length <= max) return s
-  const cut = s.slice(0, max)
-  const sp = cut.lastIndexOf(' ')
-  return `${(sp > 0 ? cut.slice(0, sp) : cut).trimEnd()}…`
-}
-
 /* The sync's model pass stores kind on the row (0241); rows it missed
    fall back to the title heuristic — same four labels either way. */
 const kindOf = (n: { title: string; kind: NewsKind | null }): NewsKind => n.kind ?? newsKind(n.title)
@@ -70,8 +64,8 @@ function sourceTint(source: string): string {
 
 /**
  * Market-headlines card — third-party headlines verbatim, organized by
- * window (7d/2w/30d), facet chips (book / ticker / class / theme /
- * general market), and publish-day groups. Per-source mutes hide a
+ * window (7d/14d/30d), a scope seg (all / book / general) plus a facet
+ * menu (symbol / class), and publish-day groups. Per-source mutes hide a
  * publisher everywhere the feed surfaces; the muted row keeps what's
  * hidden visible and restorable.
  */
@@ -80,13 +74,20 @@ export function NewsFeedCard() {
   const { state, refresh } = useInvestData()
   const { showToast } = useToasts()
   const [newsExpanded, setNewsExpanded] = useState(false)
-  /* 'book' shows only headlines tagged to a held or watched symbol —
-     the news-for-your-book cut. */
-  /* Facet keys: 'all' | 'book' | 'general' | 'sym:AMD' | 'cls:crypto' |
-     'theme:<watch-item title>'. The range axis is separate — the feed
-     retains 30 days, windowed to 7d by default. */
-  const [newsFilter, setNewsFilter] = useState<string>('all')
+  /* Two axes: the scope seg picks which slice of the feed ('all' |
+     'book' — held or watched symbols | 'general' — untagged, market-
+     wide), the facet narrows inside it ('sym:AMD' | 'cls:crypto').
+     Single-valued each — a picked facet shows as a removable token.
+     The range axis is separate — the feed retains 30 days, windowed
+     to 7d by default. Theme facets were dropped: they were the watch
+     board's own item titles, and that board already lists the freshest
+     theme-matched headlines per item. */
+  const [newsScope, setNewsScope] = useState<'all' | 'book' | 'general'>('all')
+  const [newsFacet, setNewsFacet] = useState<string | null>(null)
   const [newsRange, setNewsRange] = useState<'7d' | '14d' | '30d'>('7d')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRootRef = useRef<HTMLSpanElement>(null)
+  const filterMenuRef = useRef<HTMLDivElement>(null)
   /* Source name of the in-flight mute write — disables both controls so
      a second click can't queue a competing mutation. */
   const [muting, setMuting] = useState<string | null>(null)
@@ -152,20 +153,18 @@ export function NewsFeedCard() {
     () => rangedHeadlines.filter((n) => bookSymbols.has(n.symbol.toUpperCase())),
     [rangedHeadlines, bookSymbols],
   )
-  /* Facet chips derive from what the feed actually carries — a facet
-     never appears for an empty result. Symbols sort book-first, then
-     alphabetically; a class chip exists only when it splits the feed
-     (an all-equity list gains nothing from an 'Equity' chip); 'General'
-     is skipped when it would equal 'All'. */
+  /* Facets derive from what the feed actually carries — a facet never
+     appears for an empty result. Symbols sort book-first, then
+     alphabetically; a class item exists only when it splits the feed
+     (an all-equity list gains nothing from an 'Equity' option);
+     'General' is skipped when it would equal 'All'. */
   const newsFacets = useMemo(() => {
     const syms = new Set<string>()
-    const themes = new Set<string>()
     const classes = new Set<string>()
     let general = false
     for (const n of rangedHeadlines) {
       if (n.symbol === '') general = true
       else syms.add(n.symbol.toUpperCase())
-      if (n.viaTheme) themes.add(n.viaTheme)
       if (n.assetClass) classes.add(n.assetClass)
     }
     return {
@@ -173,63 +172,106 @@ export function NewsFeedCard() {
       symbols: [...syms].sort(
         (a, b) => Number(bookSymbols.has(b)) - Number(bookSymbols.has(a)) || a.localeCompare(b),
       ),
-      themes: [...themes].sort((a, b) => a.localeCompare(b)),
       classes: classes.size > 1 ? [...classes].sort() : [],
       general: general && syms.size > 0,
     }
   }, [rangedHeadlines, bookHeadlines, bookSymbols])
-  /* One predicate for the active facet — the visible list and the
-     paywall-hidden count both run through it, so the chip's number is
-     exactly what 'show' adds under the pressed facet. */
-  const matchesFacet = useCallback(
+  /* Both axes narrow — 'Your book' + 'Crypto' means book crypto rows.
+     The visible list and the paywall-hidden count run through the same
+     pair so the chip's number is exactly what 'show' would reveal. */
+  const inScope = useCallback(
     (n: (typeof rangedHeadlines)[number]): boolean =>
-      newsFilter === 'all'
+      newsScope === 'all'
         ? true
-        : newsFilter === 'book'
+        : newsScope === 'book'
           ? bookSymbols.has(n.symbol.toUpperCase())
-          : newsFilter === 'general'
-            ? n.symbol === ''
-            : newsFilter.startsWith('sym:')
-              ? n.symbol.toUpperCase() === newsFilter.slice(4)
-              : newsFilter.startsWith('theme:')
-                ? n.viaTheme === newsFilter.slice(6)
-                : n.assetClass === newsFilter.slice(4),
-    [newsFilter, bookSymbols],
+          : n.symbol === '',
+    [newsScope, bookSymbols],
   )
-  const scopedHeadlines = useMemo(() => {
-    const rows = rangedHeadlines.filter(matchesFacet)
-    /* A facet can outlive its rows (a refresh clears them) — fall back
-       to 'all' rather than blank the list. */
-    return rows.length > 0 ? rows : rangedHeadlines
-  }, [rangedHeadlines, matchesFacet])
+  const inFacet = useCallback(
+    (n: (typeof rangedHeadlines)[number]): boolean =>
+      newsFacet === null
+        ? true
+        : newsFacet.startsWith('sym:')
+          ? n.symbol.toUpperCase() === newsFacet.slice(4)
+          : n.assetClass === newsFacet.slice(4),
+    [newsFacet],
+  )
+  const scopedHeadlines = useMemo(
+    () => rangedHeadlines.filter((n) => inScope(n) && inFacet(n)),
+    [rangedHeadlines, inScope, inFacet],
+  )
   /* How many subscription-only rows the same scope hides — counted in
-     the ranged+faceted set, not the whole 30-day corpus, so 'show'
+     the ranged+scoped set, not the whole 30-day corpus, so 'show'
      reveals exactly what the chip counted. Sources are named on the
      chip's tooltip: hidden is never anonymous. */
   const paywalledHidden = useMemo(() => {
     if (showPaywalled) return { count: 0, sources: [] as string[] }
     const hidden = rangedAll.filter(
-      (n) => isPaywalledSource(n.source) && matchesFacet(n),
+      (n) => isPaywalledSource(n.source) && inScope(n) && inFacet(n),
     )
     return {
       count: hidden.length,
       sources: [...new Set(hidden.map((n) => n.source))].sort(),
     }
-  }, [rangedAll, showPaywalled, matchesFacet])
+  }, [rangedAll, showPaywalled, inScope, inFacet])
 
-  /* ...but a pressed chip must never be invisible — when the selected
-     facet leaves the feed, reset to 'all' so what you see is what the
-     control shows. */
+  /* ...but a pressed control must never be invisible — when the
+     selection leaves the feed (a refresh clears its rows), reset so
+     what you see is what the control shows. */
   useEffect(() => {
-    if (newsFilter === 'all') return
+    if (
+      (newsScope === 'book' && !newsFacets.book) ||
+      (newsScope === 'general' && !newsFacets.general)
+    ) {
+      setNewsScope('all')
+    }
+    if (newsFacet === null) return
     const valid =
-      (newsFilter === 'book' && newsFacets.book) ||
-      (newsFilter === 'general' && newsFacets.general) ||
-      (newsFilter.startsWith('sym:') && newsFacets.symbols.includes(newsFilter.slice(4))) ||
-      (newsFilter.startsWith('theme:') && newsFacets.themes.includes(newsFilter.slice(6))) ||
-      (newsFilter.startsWith('cls:') && newsFacets.classes.includes(newsFilter.slice(4)))
-    if (!valid) setNewsFilter('all')
-  }, [newsFilter, newsFacets])
+      (newsFacet.startsWith('sym:') && newsFacets.symbols.includes(newsFacet.slice(4))) ||
+      (newsFacet.startsWith('cls:') && newsFacets.classes.includes(newsFacet.slice(4)))
+    if (!valid) setNewsFacet(null)
+  }, [newsScope, newsFacet, newsFacets])
+
+  /* Menu pattern per portalChat: outside pointerdown and Escape close,
+     opening focuses the checked item, arrows cycle. */
+  useEffect(() => {
+    if (!filterOpen) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!filterRootRef.current?.contains(e.target as Node)) setFilterOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFilterOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [filterOpen])
+  useEffect(() => {
+    if (!filterOpen) return
+    const items = filterMenuRef.current?.querySelectorAll('button')
+    const active = [...(items ?? [])].find((b) => b.getAttribute('aria-checked') === 'true')
+    ;(active ?? items?.[0])?.focus()
+  }, [filterOpen])
+  const onMenuKeyDown = (e: React.KeyboardEvent) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return
+    e.preventDefault()
+    const items = [...(filterMenuRef.current?.querySelectorAll('button') ?? [])]
+    if (items.length === 0) return
+    const idx = items.indexOf(document.activeElement as HTMLButtonElement)
+    const next =
+      e.key === 'Home'
+        ? 0
+        : e.key === 'End'
+          ? items.length - 1
+          : e.key === 'ArrowDown'
+            ? (idx + 1) % items.length
+            : (idx - 1 + items.length) % items.length
+    items[next]?.focus()
+  }
   const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
 
   /* Chunk the flat feed by publish day — 'Today' / 'Yesterday' / a date.
@@ -263,6 +305,25 @@ export function NewsFeedCard() {
     }
     return groups
   }, [visibleHeadlines, lang, x])
+
+  /* The scope seg hides itself when 'All' would be the only option;
+     the facet menu hides when no symbol/class splits the feed. */
+  const scopeOpts = (
+    [
+      ['all', x(IM.invest_news_all)],
+      ['book', x(IM.invest_news_book)],
+      ['general', x(IM.invest_news_general)],
+    ] as const
+  ).filter(([k]) => k === 'all' || (k === 'book' ? newsFacets.book : newsFacets.general))
+  const hasFacetMenu = newsFacets.symbols.length > 0 || newsFacets.classes.length > 0
+  const facetLabel =
+    newsFacet === null
+      ? ''
+      : newsFacet.startsWith('sym:')
+        ? newsFacet.slice(4)
+        : newsFacet.slice(4) in ASSET_LABEL
+          ? x(IM[ASSET_LABEL[newsFacet.slice(4) as AssetClass]])
+          : newsFacet.slice(4)
 
   const setMute = async (source: string, hide: boolean) => {
     if (muting !== null) return
@@ -326,77 +387,111 @@ export function NewsFeedCard() {
         <p className="sb-empty">{x(IM.invest_news_empty)}</p>
       ) : (
         <>
-        <div
-          className="sb-pills sb-pills-sm mt-[12px]"
-          role="group"
-          aria-label={x(IM.invest_news_filter_aria)}
-        >
-          <button
-            type="button"
-            aria-pressed={newsFilter === 'all'}
-            onClick={() => setNewsFilter('all')}
-          >
-            {x(IM.invest_news_all)}
-          </button>
-          {newsFacets.book && (
-            <button
-              type="button"
-              aria-pressed={newsFilter === 'book'}
-              onClick={() => setNewsFilter('book')}
+        {/* Two controls for two axes — the seg picks the slice, the
+            menu picks an attribute inside it. The picked facet renders
+            as a removable token so this row never doubles as the
+            menu's state display. */}
+        {(scopeOpts.length > 1 || hasFacetMenu) && (
+        <div className="sb-news-ctl mt-[12px]">
+          {scopeOpts.length > 1 && (
+            <div
+              className="sb-seg sb-seg-sm"
+              role="group"
+              aria-label={x(IM.invest_news_filter_aria)}
             >
-              {x(IM.invest_news_book)}
-            </button>
+              {scopeOpts.map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  aria-pressed={newsScope === k}
+                  onClick={() => setNewsScope(k)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           )}
-          {/* Each facet group is an atomic flex-wrap block — a chip
-              group never splits across the wrap ('Crypto' can't end a
-              row while 'Equity' opens the next). */}
-          <span className="flex flex-wrap items-center gap-[6px]">
-            {newsFacets.symbols.map((s) => (
+          {hasFacetMenu && (
+            <span className="sb-filter" ref={filterRootRef}>
               <button
-                key={`sym:${s}`}
                 type="button"
-                aria-pressed={newsFilter === `sym:${s}`}
-                onClick={() => setNewsFilter(`sym:${s}`)}
+                className="sb-filter-btn"
+                aria-haspopup="menu"
+                aria-expanded={filterOpen}
+                onClick={() => setFilterOpen((v) => !v)}
               >
-                {s}
+                <SlidersHorizontal size={12} aria-hidden="true" />
+                {x(IM.invest_news_filter_btn)}
+                <ChevronDown size={12} aria-hidden="true" />
               </button>
-            ))}
-          </span>
-          <span className="flex flex-wrap items-center gap-[6px]">
-            {newsFacets.classes.map((c) => (
-              <button
-                key={`cls:${c}`}
-                type="button"
-                aria-pressed={newsFilter === `cls:${c}`}
-                onClick={() => setNewsFilter(`cls:${c}`)}
-              >
-                {c in ASSET_LABEL ? x(IM[ASSET_LABEL[c as AssetClass]]) : c}
-              </button>
-            ))}
-          </span>
-          <span className="flex flex-wrap items-center gap-[6px]">
-            {newsFacets.themes.map((t) => (
-              <button
-                key={`theme:${t}`}
-                type="button"
-                title={t}
-                aria-pressed={newsFilter === `theme:${t}`}
-                onClick={() => setNewsFilter(`theme:${t}`)}
-              >
-                {ellipsize(t)}
-              </button>
-            ))}
-          </span>
-          {newsFacets.general && (
+              {filterOpen && (
+                <div
+                  className="sb-filter-pop"
+                  role="menu"
+                  ref={filterMenuRef}
+                  onKeyDown={onMenuKeyDown}
+                >
+                  {newsFacets.symbols.length > 0 && (
+                    <div role="group" aria-label={x(IM.invest_news_filter_symbols)}>
+                      <div className="sb-filter-sec">
+                        {x(IM.invest_news_filter_symbols)}
+                      </div>
+                      {newsFacets.symbols.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={newsFacet === `sym:${s}`}
+                          className="sb-filter-item"
+                          onClick={() => {
+                            setNewsFacet(`sym:${s}`)
+                            setFilterOpen(false)
+                          }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {newsFacets.classes.length > 0 && (
+                    <div role="group" aria-label={x(IM.invest_field_asset_class)}>
+                      <div className="sb-filter-sec">
+                        {x(IM.invest_field_asset_class)}
+                      </div>
+                      {newsFacets.classes.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={newsFacet === `cls:${c}`}
+                          className="sb-filter-item"
+                          onClick={() => {
+                            setNewsFacet(`cls:${c}`)
+                            setFilterOpen(false)
+                          }}
+                        >
+                          {c in ASSET_LABEL ? x(IM[ASSET_LABEL[c as AssetClass]]) : c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </span>
+          )}
+          {newsFacet !== null && (
             <button
               type="button"
-              aria-pressed={newsFilter === 'general'}
-              onClick={() => setNewsFilter('general')}
+              className="sb-filter-token"
+              onClick={() => setNewsFacet(null)}
+              aria-label={x(IM.invest_news_filter_clear)}
             >
-              {x(IM.invest_news_general)}
+              {facetLabel}
+              <X size={11} aria-hidden="true" />
             </button>
           )}
         </div>
+        )}
         {/* Hidden publishers stay visible here — a mute is a preference,
             not a deletion, so the list of what's muted is always shown. */}
         {state.newsMutes.length > 0 && (
@@ -433,7 +528,14 @@ export function NewsFeedCard() {
             {x(IM.invest_news_range_fallback)}
           </p>
         )}
-        {groupedHeadlines.length === 0 && allDeduped.length > 0 && (
+        {groupedHeadlines.length === 0 && rangedHeadlines.length > 0 && (
+          <p className="m-0 mt-[10px] text-[12.5px] text-text-muted">
+            {x(IM.invest_news_no_match)}
+          </p>
+        )}
+        {groupedHeadlines.length === 0 &&
+          rangedHeadlines.length === 0 &&
+          allDeduped.length > 0 && (
           <p className="m-0 mt-[10px] text-[12.5px] text-text-muted">
             {x(IM.invest_news_all_filtered)}
           </p>
