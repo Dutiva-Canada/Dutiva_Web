@@ -282,6 +282,9 @@ export interface InvestThesis {
   status: ThesisStatus
   evalDetail: ThesisEvalDetail | null
   lastEvaluatedAt: string | null
+  /** Holder's stamp that the story still holds while a line is crossed —
+     cleared by the sweep on every status transition. */
+  reaffirmedAt: string | null
   createdAt: string
   updatedAt: string
 }

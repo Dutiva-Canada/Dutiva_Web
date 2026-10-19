@@ -1293,6 +1293,16 @@
   font-size: 14.5px;
   color: var(--sb-body);
 }
+/* The holder's stamp beside the sweep's verdict — quiet green, a note,
+   never a second status pill. */
+.sb-thesis-reaffirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--sb-ok);
+}
 .sb-thesis-conds {
   display: flex;
   flex-direction: column;

@@ -10937,6 +10937,7 @@ export type Database = {
           intent: string
           last_evaluated_at: string | null
           name: string
+          reaffirmed_at: string | null
           status: string
           swot: Json
           symbol: string
@@ -10954,6 +10955,7 @@ export type Database = {
           intent?: string
           last_evaluated_at?: string | null
           name?: string
+          reaffirmed_at?: string | null
           status?: string
           swot?: Json
           symbol: string
@@ -10971,6 +10973,7 @@ export type Database = {
           intent?: string
           last_evaluated_at?: string | null
           name?: string
+          reaffirmed_at?: string | null
           status?: string
           swot?: Json
           symbol?: string

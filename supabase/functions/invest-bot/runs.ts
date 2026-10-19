@@ -694,6 +694,9 @@ export async function runUser(
             eval_detail: ev.detail as unknown as Json,
             last_evaluated_at: evalAt,
             updated_at: evalAt,
+            /* A state transition retires the last reaffirm — the holder's
+               call was made against the state it answered. */
+            ...(ev.statusChanged ? { reaffirmed_at: null } : {}),
           })
           .eq('id', ev.id)
           .eq('user_id', userId)
@@ -702,13 +705,16 @@ export async function runUser(
         const firedTitles = ev.detail.rules
           .filter((r) => r.fired)
           .map((r) => r.title)
+        /* Titles lead the body directly — the action sentence already
+           says they fired; a 'Fired:' prefix would double the word. */
+        const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
         const bodyEn =
           firedTitles.length > 0
-            ? `Fired: ${firedTitles.join('; ')}. ${ev.detail.action_en}`
+            ? `${cap(firedTitles.join('; '))}. ${ev.detail.action_en}`
             : `Back to healthy — no drift or break rule fires now. ${ev.detail.action_en}`
         const bodyFr =
           firedTitles.length > 0
-            ? `Déclenché : ${firedTitles.join(' ; ')}. ${ev.detail.action_fr}`
+            ? `${cap(firedTitles.join(' ; '))}. ${ev.detail.action_fr}`
             : `Retour à la normale — aucune règle de dérive ou de cassure ne se déclenche. ${ev.detail.action_fr}`
         /* Per-status pseudo rule_id — stored rows recompute the same key
            (rule_id beats the title in signalKey), so an open 'drifting'
@@ -779,7 +785,7 @@ export async function runUser(
         userId,
         surface: 'invest',
         kind: 'exit_proposal',
-        title: `${ev.symbol}'s thesis broke — close or trim the position?`,
+        title: `${ev.symbol} crossed its break line — close or trim the position?`,
         payload: {
           thesis_id: ev.id,
           asset_class: ev.asset_class,
@@ -788,9 +794,9 @@ export async function runUser(
           side: 'sell',
           quantity: pos.quantity,
           detail_en:
-            'The break conditions fired. If the claim no longer holds, a sell draft is one step away — nothing happens without your confirmation.',
+            'A break condition fired — the line tripped, which is technicals, not the story. If the claim no longer holds, a sell draft is one step away — nothing happens without your confirmation.',
           detail_fr:
-            "Les conditions de cassure se sont déclenchées. Si la thèse ne tient plus, un brouillon de vente est à un pas — rien ne se fait sans votre confirmation.",
+            "Une condition de cassure s’est déclenchée — la ligne a été franchie, ce sont les données techniques, pas l’histoire. Si la thèse ne tient plus, un brouillon de vente est à un pas — rien ne se fait sans votre confirmation.",
         },
         source: 'rule',
         dedupeKey: `exit:${ev.id}`,
@@ -859,10 +865,10 @@ export async function runUser(
         const scanRuleId = `scan:${link.item.id}:${link.symbol}`
         const label =
           link.thesisStatus === 'broken'
-            ? { en: 'thesis broke', fr: 'thèse brisée' }
-            : { en: 'thesis drifting', fr: 'thèse qui dérive' }
+            ? { en: 'break line crossed', fr: 'ligne de cassure franchie' }
+            : { en: 'thesis fraying', fr: 'la thèse s’effiloche' }
         const title = {
-          en: `${link.symbol} — a watch item may connect`,
+          en: `${link.symbol} — a watch item may explain`,
           fr: `${link.symbol} — un élément de veille peut expliquer`,
         }
         const key = signalKey({
@@ -886,8 +892,8 @@ export async function runUser(
             kind: 'scan',
             title: title.en,
             title_fr: title.fr,
-            body: `“${link.item.title}” (${link.item.theme}) — ${label.en}. Check whether the watch explains the fray.`,
-            body_fr: `« ${link.item.title} » (${link.item.theme}) — ${label.fr}. Vérifier si la veille explique l’éraflure.`,
+            body: `“${link.item.title}” (${link.item.theme}) — ${label.en}. Check whether the watch explains the slide.`,
+            body_fr: `« ${link.item.title} » (${link.item.theme}) — ${label.fr}. Vérifier si la veille explique le recul.`,
             score: null,
           },
           { in_feed: true, rule_id: scanRuleId },

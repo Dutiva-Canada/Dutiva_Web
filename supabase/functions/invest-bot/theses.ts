@@ -87,8 +87,8 @@ const ACTION_EXTERNAL: Record<Exclude<ThesisStatus, 'healthy'>, { en: string; fr
     fr: 'Conditions de dérive déclenchées — la thèse mérite un nouvel examen.',
   },
   broken: {
-    en: 'A break condition fired — the thesis needs a decision.',
-    fr: 'Une condition de cassure s’est déclenchée — la thèse exige une décision.',
+    en: 'A break condition fired — the line tripped; whether the story still holds is your call.',
+    fr: 'Une condition de cassure s’est déclenchée — la ligne a été franchie ; à vous de dire si la thèse tient toujours.',
   },
 }
 
@@ -128,20 +128,20 @@ const ACTION_INTENT: Record<ThesisStatus, Record<ThesisIntent, { en: string; fr:
   },
   broken: {
     core: {
-      en: 'Invalidated — decide whether the story changed; a break is a decision, not noise.',
-      fr: 'Invalidée — trancher si l’histoire a changé ; une cassure exige une décision.',
+      en: 'Break line crossed — decide whether the story still holds; the line reads price, not fundamentals.',
+      fr: 'Ligne franchie — tranchez si l’histoire tient toujours ; la ligne lit le cours, pas les fondamentaux.',
     },
     growth: {
-      en: 'Invalidated — the growth case no longer holds; review the position.',
-      fr: 'Invalidée — la thèse de croissance ne tient plus ; revoir la position.',
+      en: 'Break line crossed — re-check the growth case before calling it dead; the line reads price, not the story.',
+      fr: 'Ligne franchie — revérifiez la thèse de croissance avant de la déclarer morte ; la ligne lit le cours, pas l’histoire.',
     },
     income: {
-      en: 'Invalidated — the income case broke; review the position.',
-      fr: 'Invalidée — la thèse de revenu s’est brisée ; revoir la position.',
+      en: 'Break line crossed — verify the payout story still holds; a price line can’t read fundamentals.',
+      fr: 'Ligne franchie — vérifiez que le revenu tient toujours ; une ligne de cours ne lit pas les fondamentaux.',
     },
     speculative: {
-      en: 'Invalidated — exit candidate; a speculative hold lives and dies by its setup.',
-      fr: 'Invalidée — candidate à la sortie ; une position spéculative vit de sa configuration.',
+      en: 'Break line crossed — exit candidate; a speculative setup lives by its line — if the story still holds, say so.',
+      fr: 'Ligne franchie — candidate à la sortie ; une configuration spéculative vit de sa ligne — si l’histoire tient encore, dites-le.',
     },
   },
 }
@@ -272,8 +272,10 @@ export function evaluateTheses(
   return out
 }
 
-/** Signal title for a transition — the status word is the dedupe handle:
-    an open 'drifting' row doesn't suppress the later 'broken' row. */
+/** Signal title for a transition — the per-status pseudo rule_id is the
+    dedupe handle: an open 'drifting' row doesn't suppress the later
+    'broken' row. The title names the line that tripped, never a verdict
+    on the story — a crossed break line is technicals, not a dead thesis. */
 export function thesisSignalTitle(
   symbol: string,
   name: string,
@@ -283,13 +285,13 @@ export function thesisSignalTitle(
   switch (status) {
     case 'broken':
       return {
-        en: `${label} — thesis broken`,
-        fr: `${label} — thèse brisée`,
+        en: `${label} — break line crossed`,
+        fr: `${label} — ligne de cassure franchie`,
       }
     case 'drifting':
       return {
-        en: `${label} — thesis drifting`,
-        fr: `${label} — thèse qui dérive`,
+        en: `${label} — thesis fraying`,
+        fr: `${label} — la thèse s’effiloche`,
       }
     case 'healthy':
       return {

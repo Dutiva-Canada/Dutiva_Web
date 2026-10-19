@@ -60,6 +60,7 @@ function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
     status: 'healthy',
     evalDetail: null,
     lastEvaluatedAt: null,
+    reaffirmedAt: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     ...over,
@@ -117,7 +118,7 @@ describe('AllocationDonut', () => {
 
   it('quotes the thesis status when the leader carries one', () => {
     mount([position()], 0, [thesis({ status: 'drifting' })])
-    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(/Drifting/)
+    expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(/Fraying/)
   })
 
   it('reads cash as the biggest slice when it outweighs every position', () => {

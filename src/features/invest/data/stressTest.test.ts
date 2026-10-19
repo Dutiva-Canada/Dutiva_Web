@@ -174,6 +174,7 @@ describe('runStress', () => {
       status: 'healthy',
       evalDetail: null,
       lastEvaluatedAt: null,
+      reaffirmedAt: null,
       createdAt: '',
       updatedAt: '',
     }

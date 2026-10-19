@@ -1199,7 +1199,7 @@ export async function draftStrategy(
 export async function saveThesis(
   thesis: Omit<
     InvestThesis,
-    'id' | 'status' | 'evalDetail' | 'lastEvaluatedAt' | 'createdAt' | 'updatedAt' | 'swot'
+    'id' | 'status' | 'evalDetail' | 'lastEvaluatedAt' | 'reaffirmedAt' | 'createdAt' | 'updatedAt' | 'swot'
   > & {
     id?: string
   },
@@ -1247,6 +1247,23 @@ export async function saveThesis(
         .from('invest_theses')
         .upsert(payload, { onConflict: 'user_id,asset_class,symbol' })
   if (res.error) throw res.error
+}
+
+/** The holder's verdict while a line is crossed — stamps reaffirmed_at,
+    leaving status untouched: the break/drift line is still tripped, the
+    user has simply recorded that the story survives it. The sweep clears
+    the stamp on any status transition, so a re-breach asks again. */
+export async function reaffirmThesis(id: string): Promise<void> {
+  const { client, userId } = await requireUserId()
+  const { error } = await client
+    .from('invest_theses')
+    .update({
+      reaffirmed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .eq('user_id', userId)
+  if (error) throw error
 }
 
 export async function deleteThesis(id: string): Promise<void> {
@@ -1847,6 +1864,7 @@ function toThesis(row: any): InvestThesis {
         ? (row.eval_detail as InvestThesis['evalDetail'])
         : null,
     lastEvaluatedAt: row.last_evaluated_at ?? null,
+    reaffirmedAt: row.reaffirmed_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
