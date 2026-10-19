@@ -1816,6 +1816,7 @@ const investCoreMessages = defineMessages({
   invest_plan_no_thesis: { en: 'No thesis filed —', fr: 'Aucune thèse déposée —' },
   invest_plan_write_thesis: { en: 'write one', fr: 'la rédiger' },
   invest_plan_watchlist: { en: 'Watchlist', fr: 'Liste de suivi' },
+  invest_plan_cash: { en: 'Cash on hand', fr: 'Encaisse' },
 
   invest_plan_s_rules: { en: 'Standing rules', fr: 'Règles permanentes' },
   invest_plan_rules_sub: {

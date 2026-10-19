@@ -2567,6 +2567,14 @@
   padding-top: 10px;
 }
 
+.sb-plan-foot p {
+  margin: 0;
+}
+
+.sb-plan-foot p + p {
+  margin-top: 4px;
+}
+
 .sb-plan-disclaimer {
   margin: 4px 0 0;
   font-size: 12px;
@@ -2588,8 +2596,18 @@
     padding: 0;
   }
 
+  /* Cards may exceed a printed page — break inside rows instead, and keep
+     section headings glued to what they head. */
   .sb-plan .sb-card {
-    break-inside: avoid;
     box-shadow: none;
+  }
+
+  .sb-plan .sb-plan-row {
+    break-inside: avoid;
+  }
+
+  .sb-plan .sb-plan-sect-head,
+  .sb-plan .sb-h2 {
+    break-after: avoid;
   }
 }

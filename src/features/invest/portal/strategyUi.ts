@@ -17,6 +17,7 @@ import type { RuleProblem } from '../data/strategyRules'
 import type {
   AssetClass,
   InvestBotRun,
+  InvestGoal,
   InvestStrategy,
   OrderProposalRule,
   RuleMetric,
@@ -295,6 +296,16 @@ export function strategyMeta(lang: Lang, s: InvestStrategy, trackedCount: number
     cadenceLabel(lang, s.cadence),
     pl(lang, trackedCount, IM.invest_sb_tracked_one, IM.invest_sb_tracked_many),
   ].join(' · ')
+}
+
+/** Goal target formatted for its metric — book_value renders book
+    currency, position_count a bare count, the rest percents. Shared by
+    the Analysis editor and the plan document so a new metric can't drift
+    the two readouts. */
+export function goalTargetLabel(g: InvestGoal, ccy: string, lang: Lang): string {
+  if (g.metric === 'book_value') return `${fmtNum(lang, Math.round(g.target))} ${ccy}`
+  if (g.metric === 'position_count') return fmtNum(lang, Math.round(g.target))
+  return fmtPct(lang, g.target, { max: 1 })
 }
 
 /** "Sep 29, 4:15 PM" / "29 sept., 16 h 15". */
