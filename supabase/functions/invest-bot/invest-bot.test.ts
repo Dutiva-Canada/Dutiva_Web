@@ -605,6 +605,17 @@ describe('snapshot freshness', () => {
     expect(snapshotStale({ ...snap, as_of: 'not-a-date' }, wedMorning)).toBe(false)
   })
 
+  it('manual marks are never stale — no feed cadence applies to them', () => {
+    /* A manual-only book would otherwise go silent after two sessions —
+       staleness is about the automated feed missing ITS schedule. */
+    expect(
+      snapshotStale({ ...snap, as_of: '2025-10-10T21:00:00Z', source: 'manual' }, wedMorning),
+    ).toBe(false)
+    expect(
+      snapshotStale({ ...snap, as_of: '2025-10-10T21:00:00Z', source: 'yahoo' }, wedMorning),
+    ).toBe(true)
+  })
+
   it('stale in-scope marks skip rules and warn — they never emit signals', () => {
     const staleSnap: MarketSnapshot = { ...snap, as_of: '2025-10-10T21:00:00Z' }
     const strategy: Strategy = { ...baseStrategy, rules: [signalRule()] }

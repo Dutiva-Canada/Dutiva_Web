@@ -103,6 +103,9 @@ export interface MarketSnapshot {
       test fixtures and pre-0246 callers may not carry it; absent = treated
       fresh (no evidence to judge otherwise). */
   as_of?: string
+  /** Who wrote the mark — 'manual' rows are user-entered, so no feed cadence
+      applies to them. Optional for the same legacy reasons as as_of. */
+  source?: string
 }
 
 export interface Position {
@@ -453,7 +456,10 @@ export function marketSessionsMissed(asOfMs: number, nowMs: number): number {
 export const SNAPSHOT_STALE_SESSIONS = 2
 
 export function snapshotStale(snap: MarketSnapshot, nowMs: number): boolean {
-  if (!snap.as_of) return false
+  /* Manual marks are the user's own cadence — no feed is expected to
+     refresh them, so session-missed math can't call them stale (a
+     manual-only book would otherwise go silent after two sessions). */
+  if (!snap.as_of || snap.source === 'manual') return false
   const t = Date.parse(snap.as_of)
   if (!Number.isFinite(t)) return false
   return marketSessionsMissed(t, nowMs) >= SNAPSHOT_STALE_SESSIONS
