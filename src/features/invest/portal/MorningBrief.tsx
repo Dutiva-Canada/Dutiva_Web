@@ -163,11 +163,11 @@ export function MorningBrief(props: {
         x(IM.invest_brief_theses)
           .replace(
             '{broken}',
-            `${broken} ${pl(lang, broken, IM.invest_brief_broken_one, IM.invest_brief_broken_many)}`,
+            pl(lang, broken, IM.invest_brief_broken_one, IM.invest_brief_broken_many),
           )
           .replace(
             '{drifting}',
-            `${drifting} ${pl(lang, drifting, IM.invest_brief_drift_one, IM.invest_brief_drift_many)}`,
+            pl(lang, drifting, IM.invest_brief_drift_one, IM.invest_brief_drift_many),
           ),
       )
     }

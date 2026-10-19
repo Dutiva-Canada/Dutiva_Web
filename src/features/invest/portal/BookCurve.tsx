@@ -260,20 +260,23 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
     if (spanDays <= 1) return fill(x(IM.invest_read_curve_first_day), { chg: pctFmt(r) })
     const dd = stats.maxDD === null ? null : pctFmt(stats.maxDD)
     if (Math.abs(r) === 0) return x(IM.invest_read_curve_flat)
+    /* The direction word carries the sign — 'down −9.5%' would read as a
+       double negative, so chg renders unsigned; dd stays a signed level. */
+    const chgAbs = fmtPct(lang, Math.abs(r), 1)
     if (r > 0) {
       return dd === null
-        ? fill(x(IM.invest_read_curve_up_nodip), { chg: pctFmt(r) })
-        : fill(x(IM.invest_read_curve_up), { chg: pctFmt(r), dd })
+        ? fill(x(IM.invest_read_curve_up_nodip), { chg: chgAbs })
+        : fill(x(IM.invest_read_curve_up), { chg: chgAbs, dd })
     }
     if (dd !== null) {
-      return fill(x(IM.invest_read_curve_down), { chg: pctFmt(r), dd })
+      return fill(x(IM.invest_read_curve_down), { chg: chgAbs, dd })
     }
     /* Two ways to have no dip clause: the raw curve never went under
        (deposits masked the slide), or the dip IS the change — the book
        slid to the low at the end. Different facts, different line. */
     return stats.neverBelow
-      ? fill(x(IM.invest_read_curve_down_nodip), { chg: pctFmt(r) })
-      : fill(x(IM.invest_read_curve_down_slide), { chg: pctFmt(r) })
+      ? fill(x(IM.invest_read_curve_down_nodip), { chg: chgAbs })
+      : fill(x(IM.invest_read_curve_down_slide), { chg: chgAbs })
   })()
 
   return (
