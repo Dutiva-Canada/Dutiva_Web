@@ -1,6 +1,5 @@
 import './strategies.css'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
@@ -11,7 +10,8 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
-import { SIGNAL_KIND_LABEL, mentionedSymbols } from './strategyUi'
+import { SignalCard } from './SignalCard'
+import { PageHead } from './PageHead'
 
 const statusLabel: Record<SignalStatus, keyof typeof IM> = {
   new: 'invest_signal_new',
@@ -39,7 +39,7 @@ export function InvestSignalsPage() {
   const [showDismissed, setShowDismissed] = useState(false)
 
   const heldSymbols = useMemo(
-    () => [...new Set((state?.positions ?? []).map((p) => p.symbol.toUpperCase()))],
+    () => new Set((state?.positions ?? []).map((p) => p.symbol.toUpperCase())),
     [state?.positions],
   )
 
@@ -80,52 +80,17 @@ export function InvestSignalsPage() {
     )
   }
 
-  const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    })
-
-  const renderSignal = (s: InvestSignal) => {
-    const text = `${s.title} ${s.body}`
-    const linked = mentionedSymbols(text, heldSymbols).filter(
-      (sym) => sym !== s.symbol.toUpperCase(),
-    )
-    return (
-      <li key={s.id} className="sb-card sb-card-pad">
-        <div className="sb-sig">
-          <div style={{ minWidth: 0 }}>
-            <div className="sb-sig-head">
-              <span className={`sb-pill ${s.kind === 'alert' ? 'sb-pill-warn' : 'sb-pill-draft'}`}>
-                {x(IM[SIGNAL_KIND_LABEL[s.kind]])}
-              </span>
-              {s.symbol && <span className="sb-pill">{s.symbol}</span>}
-              {linked.map((sym) => (
-                <Link key={sym} to={`/invest/portfolio?symbol=${sym}`} className="sb-pill sb-pill-link">
-                  {sym}
-                </Link>
-              ))}
-              {s.score !== null && (
-                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                  {x(IM.invest_score)} {Math.round(s.score)}
-                </span>
-              )}
-              <span>{fmtDate(s.createdAt)}</span>
-            </div>
-            <p className="sb-sig-title" style={{ marginTop: 8 }}>
-              {lang === 'fr' && s.titleFr ? s.titleFr : s.title}
-            </p>
-            {(lang === 'fr' && s.bodyFr ? s.bodyFr : s.body) && (
-              <p className="sb-sig-body">
-                {lang === 'fr' && s.bodyFr ? s.bodyFr : s.body}
-              </p>
-            )}
-          </div>
-          <div className="sb-sig-side">
-            <span className={`sb-pill ${s.status === 'new' ? 'sb-pill-warn' : s.status === 'acknowledged' ? 'sb-pill-ok' : 'sb-pill-draft'}`}>
-              {x(IM[statusLabel[s.status]])}
-            </span>
-            <span className="sb-row-actions">
+  const renderSignal = (s: InvestSignal) => (
+    <SignalCard
+      key={s.id}
+      signal={s}
+      heldSymbols={heldSymbols}
+      side={
+        <>
+          <span className={`sb-pill ${s.status === 'new' ? 'sb-pill-warn' : s.status === 'acknowledged' ? 'sb-pill-ok' : 'sb-pill-draft'}`}>
+            {x(IM[statusLabel[s.status]])}
+          </span>
+          <span className="sb-row-actions">
               {s.status === 'new' && (
                 <button
                   type="button"
@@ -157,26 +122,27 @@ export function InvestSignalsPage() {
                 </button>
               )}
             </span>
-          </div>
-        </div>
-      </li>
-    )
-  }
+        </>
+      }
+    />
+  )
 
   const openSignals = state.signals.filter((s) => s.status !== 'dismissed')
   const dismissedSignals = state.signals.filter((s) => s.status === 'dismissed')
 
   return (
     <div className="sb sb-page">
-      <div className="sb-head-row">
-        <h1>
-          {x(IM.invest_signals_title)}
-          <InfoHint
-            label={x(IM.invest_hint_signal_kinds_aria)}
-            text={x(IM.invest_hint_signal_kinds)}
-          />
-        </h1>
-      </div>
+      <PageHead
+        title={
+          <>
+            {x(IM.invest_signals_title)}
+            <InfoHint
+              label={x(IM.invest_hint_signal_kinds_aria)}
+              text={x(IM.invest_hint_signal_kinds)}
+            />
+          </>
+        }
+      />
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}

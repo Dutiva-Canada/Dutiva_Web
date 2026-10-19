@@ -280,7 +280,7 @@ export function BookCurve({ snapshots, cashEvents, accounts, fx, benchmarks }: P
     <section className="sb-card sb-card-pad" aria-labelledby="sb-curve-h">
       <div className="sb-curve-head">
         <div>
-          <h2 id="sb-curve-h" style={{ margin: 0 }}>
+          <h2 id="sb-curve-h" className="sb-h2">
             <TrendingUp size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_curve_title)}
           </h2>
           <p className="sb-helper" style={{ margin: '4px 0 0' }}>

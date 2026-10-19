@@ -339,7 +339,7 @@ export function NewsFeedCard() {
   }
 
   return (
-    <section className="sb-card sb-card-pad" style={{ marginTop: 16 }}>
+    <section className="sb-card sb-card-pad sbnews" style={{ marginTop: 16 }}>
       {/* Third-party headlines, verbatim — label them as such so a publisher's
           headline never reads as a Dutiva recommendation. */}
       <div className="flex items-start justify-between gap-[12px]">

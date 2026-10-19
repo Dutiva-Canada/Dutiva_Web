@@ -10,6 +10,7 @@ import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
 import { AGENT_RUN_STALE_MS, isQuoteStale } from '@/features/invest/data/freshness'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
 import { NewsFeedCard } from './NewsFeedCard'
@@ -241,47 +242,48 @@ export function InvestHomePage() {
 
   return (
     <div className="sb sb-page">
-      <div className="sb-head-row">
-        <div>
-          <h1>{x(IM.invest_title)}</h1>
-          <p className="sb-sub">{x(IM.invest_subtitle)}</p>
-          {pricesAsOf && (
-            <p className="sb-helper" style={{ margin: '6px 0 0' }}>
-              {x(IM.invest_prices_as_of).replace(
-                '{time}',
-                new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                }),
-              )}
-              {isQuoteStale(pricesAsOf) && (
-                <>
-                  {' · '}
-                  <span
-                    style={{ color: 'var(--sb-accent-ink)' }}
-                    title={x(IM.invest_prices_stale_hint)}
-                  >
-                    {x(IM.invest_prices_stale)}
-                  </span>
-                </>
-              )}
-            </p>
-          )}
-        </div>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void syncNow()}
-          className="sb-btn sb-btn-secondary sb-btn-sm"
-        >
-          {busy ? (
-            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-          ) : (
-            <RefreshCw size={14} aria-hidden="true" />
-          )}
-          {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
-        </button>
-      </div>
+      <PageHead
+        title={x(IM.invest_title)}
+        sub={x(IM.invest_subtitle)}
+        actions={
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void syncNow()}
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+          >
+            {busy ? (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <RefreshCw size={14} aria-hidden="true" />
+            )}
+            {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
+          </button>
+        }
+      >
+        {pricesAsOf && (
+          <p className="sb-helper" style={{ margin: '6px 0 0' }}>
+            {x(IM.invest_prices_as_of).replace(
+              '{time}',
+              new Date(pricesAsOf).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              }),
+            )}
+            {isQuoteStale(pricesAsOf) && (
+              <>
+                {' · '}
+                <span
+                  style={{ color: 'var(--sb-accent-ink)' }}
+                  title={x(IM.invest_prices_stale_hint)}
+                >
+                  {x(IM.invest_prices_stale)}
+                </span>
+              </>
+            )}
+          </p>
+        )}
+      </PageHead>
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}
@@ -425,7 +427,7 @@ export function InvestHomePage() {
 
       <div className="sb-duo">
         <section className={cardClass}>
-          <h2 style={{ margin: 0 }}>{x(IM.invest_ov_allocation)}</h2>
+          <h2 className="sb-h2">{x(IM.invest_ov_allocation)}</h2>
           {allocation.length === 0 ? (
             <p className="sb-empty">{x(IM.invest_positions_empty)}</p>
           ) : (
@@ -473,7 +475,7 @@ export function InvestHomePage() {
         </section>
 
         <section className={cardClass}>
-          <h2 style={{ margin: 0 }}>{x(IM.invest_ov_recent_signals)}</h2>
+          <h2 className="sb-h2">{x(IM.invest_ov_recent_signals)}</h2>
           {latestSignals.length === 0 ? (
             <p className="sb-empty">{x(IM.invest_signals_empty)}</p>
           ) : (

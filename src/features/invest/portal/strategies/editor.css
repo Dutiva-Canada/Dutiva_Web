@@ -56,6 +56,9 @@
   gap: 12px;
   margin: 28px 0 10px;
 }
+.sb-section-head > h2 {
+  margin: 0;
+}
 .sb-settings {
   padding: 18px 16px 8px;
   margin-bottom: 6px;

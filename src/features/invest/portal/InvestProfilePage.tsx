@@ -32,6 +32,7 @@ import {
   type AgentSuggestion,
 } from '@/lib/agentQueue'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import { PROFILE_SELECTS, PROFILE_TAGS } from './profileDims'
 import { ProfileMemories } from './ProfileMemories'
 import { fmtPct } from './strategyUi'
@@ -296,8 +297,7 @@ export function InvestProfilePage() {
   return (
     <div className="sb sb-col">
       <div className="sb-list">
-        <h1>{x(IM.invest_prof_title)}</h1>
-        <p className="sub">{x(IM.invest_prof_sub)}</p>
+        <PageHead title={x(IM.invest_prof_title)} sub={x(IM.invest_prof_sub)} />
 
         {pending.length > 0 && (
           <div className="sb-mini-list" style={{ marginBottom: 16 }}>

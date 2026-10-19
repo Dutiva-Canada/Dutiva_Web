@@ -43,6 +43,7 @@ import { suggestionIcon } from './suggestionIcons'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import { AnalysisScan } from './AnalysisScan'
 import { AnalysisSwot } from './AnalysisSwot'
 import './strategies.css'
@@ -352,8 +353,7 @@ export function InvestAnalysisPage() {
   return (
     <div className="sb sb-col">
       <div className="sb-list">
-        <h1>{x(IM.invest_analysis_title)}</h1>
-        <p className="sub">{x(IM.invest_analysis_sub)}</p>
+        <PageHead title={x(IM.invest_analysis_title)} sub={x(IM.invest_analysis_sub)} />
 
         {pending.length > 0 && (
           <div className="sb-mini-list" style={{ marginBottom: 16 }}>

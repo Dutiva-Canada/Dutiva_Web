@@ -13,8 +13,8 @@ import { useInvestHead } from './useInvestHead'
 import { StrategyDeliveryCard } from './StrategyDeliveryCard'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
-import { relTimeLabel } from './relTime'
-import { SIGNAL_KIND_LABEL, mentionedSymbols } from './strategyUi'
+import { SignalCard } from './SignalCard'
+import { PageHead } from './PageHead'
 
 /** Where a row's subject lives — an inbox that routes nowhere is a dead
     end. Theses land on the Theses cards (with their reaffirm action),
@@ -107,9 +107,7 @@ export function InvestNotificationsPage() {
 
   return (
     <div className="sb sb-page">
-      <div className="sb-head-row">
-        <h1>{x(IM.invest_notif_title)}</h1>
-      </div>
+      <PageHead title={x(IM.invest_notif_title)} />
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}
@@ -153,56 +151,16 @@ export function InvestNotificationsPage() {
               const openLabel = fill(x(IM.invest_notif_open), {
                 dest: x(IM[dest.tab]),
               })
-              const sym = s.symbol.toUpperCase()
-              const held = sym.length > 0 && heldSymbols.has(sym)
-              const title = lang === 'fr' && s.titleFr ? s.titleFr : s.title
-              const body = lang === 'fr' && s.bodyFr ? s.bodyFr : s.body
-              /* Other held symbols the text mentions get link chips —
-                 same scan the Signals tab runs, over the raw fields (EN),
-                 so the same row wears the same chips on both surfaces. */
-              const mentioned = mentionedSymbols(`${s.title} ${s.body}`, [...heldSymbols]).filter(
-                (m) => m !== sym,
-              )
-              const when = relTimeLabel(s.createdAt, x)
+              /* Same card the Signals tab draws — only the side verbs
+                 differ: triage buttons plus the route to the page that
+                 owns the subject. */
               return (
-                <li key={s.id} className="sb-card sb-card-pad">
-                  <div className="sb-sig">
-                    <div style={{ minWidth: 0 }}>
-                      <div className="sb-sig-head">
-                        <span className={`sb-pill ${s.kind === 'alert' ? 'sb-pill-warn' : 'sb-pill-draft'}`}>
-                          {x(IM[SIGNAL_KIND_LABEL[s.kind]])}
-                        </span>
-                        {s.symbol &&
-                          (held ? (
-                            <Link
-                              to={`/invest/portfolio?symbol=${s.symbol}`}
-                              className="sb-pill sb-pill-link"
-                            >
-                              {s.symbol}
-                            </Link>
-                          ) : (
-                            <span className="sb-pill">{s.symbol}</span>
-                          ))}
-                        {mentioned.map((m) => (
-                          <Link
-                            key={m}
-                            to={`/invest/portfolio?symbol=${m}`}
-                            className="sb-pill sb-pill-link"
-                          >
-                            {m}
-                          </Link>
-                        ))}
-                        {s.score !== null && (
-                          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                            {x(IM.invest_score)} {Math.round(s.score)}
-                          </span>
-                        )}
-                        {when && <span>{when}</span>}
-                      </div>
-                      <p className="sb-sig-title" style={{ marginTop: 8 }}>{title}</p>
-                      {body && <p className="sb-sig-body">{body}</p>}
-                    </div>
-                    <div className="sb-sig-side">
+                <SignalCard
+                  key={s.id}
+                  signal={s}
+                  heldSymbols={heldSymbols}
+                  side={
+                    <>
                       <span className="sb-row-actions">
                         <button
                           type="button"
@@ -229,9 +187,9 @@ export function InvestNotificationsPage() {
                         {openLabel}
                         <ArrowRight size={12} strokeWidth={2} aria-hidden="true" />
                       </Link>
-                    </div>
-                  </div>
-                </li>
+                    </>
+                  }
+                />
               )
             })}
           </ul>

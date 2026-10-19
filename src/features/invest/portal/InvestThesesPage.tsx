@@ -12,12 +12,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Check,
+  ChevronLeft,
   CircleAlert,
   Clock,
   Loader2,
   Plus,
   Sparkles,
-  X,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import type { Lang } from '@/i18n/core'
@@ -46,6 +46,7 @@ import { validateRules } from '../data/strategyRules'
 import { ruleProblemText } from './strategyUi'
 import { relTimeLabel } from './relTime'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import './strategies.css'
 
 type View = { kind: 'list' } | { kind: 'composer' }
@@ -568,24 +569,28 @@ export function InvestThesesPage() {
     <div className="sb sb-col">
       {view.kind === 'list' && (
         <div className="sb-list">
-          <h1>
-            {x(IM.invest_theses_title)}
-            <InfoHint
-              label={x(IM.invest_hint_thesis_status_aria)}
-              text={x(IM.invest_hint_thesis_status)}
-            />
-          </h1>
-          <p className="sub">{x(IM.invest_theses_sub)}</p>
-          <div className="sb-list-actions">
-            <button
-              type="button"
-              className="sb-btn sb-btn-primary"
-              onClick={() => openComposer()}
-            >
-              <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
-              {x(IM.invest_thesis_new)}
-            </button>
-          </div>
+          <PageHead
+            title={
+              <>
+                {x(IM.invest_theses_title)}
+                <InfoHint
+                  label={x(IM.invest_hint_thesis_status_aria)}
+                  text={x(IM.invest_hint_thesis_status)}
+                />
+              </>
+            }
+            sub={x(IM.invest_theses_sub)}
+            actions={
+              <button
+                type="button"
+                className="sb-btn sb-btn-primary"
+                onClick={() => openComposer()}
+              >
+                <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+                {x(IM.invest_thesis_new)}
+              </button>
+            }
+          />
 
           {pending.length > 0 && (
             <div className="sb-mini-list" style={{ marginBottom: 16 }}>
@@ -867,13 +872,9 @@ export function InvestThesesPage() {
 
       {view.kind === 'composer' && (
         <div className="sb-list">
-          <button
-            type="button"
-            className="sb-btn sb-btn-secondary sb-btn-sm"
-            onClick={requestCancel}
-          >
-            <X size={15} aria-hidden="true" />
-            {x(cancelArmed ? IM.invest_sb_confirm_discard : IM.invest_thesis_cancel)}
+          <button type="button" className="sb-backlink" onClick={requestCancel}>
+            <ChevronLeft size={18} strokeWidth={2.4} aria-hidden="true" />
+            {x(cancelArmed ? IM.invest_sb_confirm_discard : IM.invest_sb_back)}
           </button>
           <h1 style={{ marginTop: 12 }}>
             {composer.id
