@@ -260,6 +260,22 @@ describe('InvestNotificationsPage', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
+  it('keeps other rows actionable while one write is in flight', async () => {
+    /* A single busyId slot re-enabled row A the moment row B took the
+       marker — the in-flight set keeps the disable per row. */
+    let resolveWrite: (() => void) | undefined
+    setSignalStatus.mockImplementationOnce(
+      () => new Promise<void>((res) => (resolveWrite = res)),
+    )
+    const user = userEvent.setup()
+    mount({ signals: [signal(), signal({ id: 'sig2', title: 'VFV crossed its floor', symbol: 'VFV' })] })
+    const buttons = await screen.findAllByRole('button', { name: 'Acknowledge' })
+    await user.click(buttons[0]!)
+    await waitFor(() => expect(buttons[0]).toBeDisabled())
+    expect(buttons[1]).toBeEnabled()
+    resolveWrite?.()
+  })
+
   it('dismiss behaves the same — status, refresh, reaction', async () => {
     const user = userEvent.setup()
     mount({ signals: [signal()] })

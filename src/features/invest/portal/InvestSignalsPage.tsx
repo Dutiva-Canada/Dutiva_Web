@@ -24,7 +24,16 @@ export function InvestSignalsPage() {
   const { x, lang } = useI18n()
   const { state, loading, refresh } = useInvestData()
   useInvestHead(IM.invest_seo_title_signals, IM.invest_seo_desc_signals)
-  const [busyId, setBusyId] = useState<string | null>(null)
+  /* One busy slot per row — a single id would re-enable row A's buttons
+     the moment row B's tap moves the marker. */
+  const [busyIds, setBusyIds] = useState<ReadonlySet<string>>(new Set())
+  const setBusy = (id: string, on: boolean) =>
+    setBusyIds((prev) => {
+      const next = new Set(prev)
+      if (on) next.add(id)
+      else next.delete(id)
+      return next
+    })
   const [error, setError] = useState<string | undefined>()
   const [tallyLine, setTallyLine] = useState<string | null>(null)
   const [showDismissed, setShowDismissed] = useState(false)
@@ -35,14 +44,14 @@ export function InvestSignalsPage() {
   )
 
   const act = async (id: string, status: SignalStatus) => {
-    setBusyId(id)
+    setBusy(id, true)
     setError(undefined)
     try {
       await setSignalStatus(id, status)
     } catch {
       /* The write itself failed — the row is still genuinely new. */
       setError(x(IM.invest_error_generic))
-      setBusyId(null)
+      setBusy(id, false)
       return
     }
     /* The write landed — don't let a failed reload report an error on an
@@ -60,7 +69,7 @@ export function InvestSignalsPage() {
         })
         .catch(() => {})
     }
-    setBusyId(null)
+    setBusy(id, false)
   }
 
   if (loading) {
@@ -120,7 +129,7 @@ export function InvestSignalsPage() {
               {s.status === 'new' && (
                 <button
                   type="button"
-                  disabled={busyId === s.id}
+                  disabled={busyIds.has(s.id)}
                   onClick={() => void act(s.id, 'acknowledged')}
                   className="sb-btn sb-btn-primary sb-btn-sm"
                 >
@@ -130,7 +139,7 @@ export function InvestSignalsPage() {
               {s.status !== 'dismissed' && (
                 <button
                   type="button"
-                  disabled={busyId === s.id}
+                  disabled={busyIds.has(s.id)}
                   onClick={() => void act(s.id, 'dismissed')}
                   className="sb-btn sb-btn-secondary sb-btn-sm"
                 >
@@ -140,7 +149,7 @@ export function InvestSignalsPage() {
               {s.status !== 'new' && (
                 <button
                   type="button"
-                  disabled={busyId === s.id}
+                  disabled={busyIds.has(s.id)}
                   onClick={() => void act(s.id, 'new')}
                   className="sb-btn sb-btn-secondary sb-btn-sm"
                 >

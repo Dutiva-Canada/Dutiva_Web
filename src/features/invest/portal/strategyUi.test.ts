@@ -14,6 +14,7 @@ import {
   fmtNum,
   fmtPct,
   formatDuration,
+  mentionedSymbols,
   pl,
   qtyPreview,
   ruleTitle,
@@ -291,5 +292,28 @@ describe('tallyNoticed', () => {
     expect(
       tallyNoticed({ ...base, signals: [{ status: 'dismissed' }] }, 'en'),
     ).toBeNull()
+  })
+})
+
+describe('mentionedSymbols', () => {
+  it('links a held ticker the text names uppercase', () => {
+    expect(mentionedSymbols('SHOP fell 6.9% while AMD held flat.', ['SHOP', 'VFV'])).toEqual([
+      'SHOP',
+    ])
+  })
+
+  it('does not chip English prose — held tickers that are also words', () => {
+    /* Case-insensitive matching turned "fell on Friday" into an ON
+       Semiconductor mention; the fix is strict case. */
+    const prose = 'The book drifted off pace and the slide can now be on hold.'
+    expect(mentionedSymbols(prose, ['ON', 'CAN', 'NOW', 'BE', 'IT', 'ARE'])).toEqual([])
+  })
+
+  it('does not chip a lowercase ticker either — sentence-case words are prose', () => {
+    expect(mentionedSymbols('Shop the dip while it lasts.', ['SHOP', 'IT'])).toEqual([])
+  })
+
+  it('still matches tickers inside dotted symbols like VFV.TO', () => {
+    expect(mentionedSymbols('VFV.TO led the day.', ['VFV', 'TO'])).toEqual(['VFV'])
   })
 })
