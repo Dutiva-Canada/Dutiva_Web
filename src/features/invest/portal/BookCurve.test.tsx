@@ -84,7 +84,7 @@ describe('BookCurve', () => {
       snap('2026-02-01', 11_000),
     ])
     expect(document.querySelector('.sb-tally-read')?.textContent).toMatch(
-      /up \+10\.0% over the window — the deepest dip was −8\.3%/,
+      /up 10\.0% over the window — the deepest dip was −8\.3%/,
     )
   })
 
