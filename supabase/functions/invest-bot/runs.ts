@@ -103,13 +103,17 @@ export async function runUser(
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
-      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency, last_price')
       .eq('user_id', userId),
     adminClient
       .from('invest_accounts')
       .select('id, cash_balance, base_currency')
       .eq('user_id', userId)
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      /* Oldest-first: accounts[0] picks the book currency — an unordered
+         read could flip it between sweeps and print a phantom crash into
+         the track record. */
+      .order('created_at', { ascending: true }),
     adminClient.from('invest_watchlist').select('symbol').eq('user_id', userId),
   ])
   for (const res of [snapshotsRes, positionsRes, signalsRes, accountsRes, watchlistRes]) {
@@ -292,6 +296,7 @@ export async function runUser(
     .eq('user_id', userId)
     .eq('kind', 'paper')
     .eq('status', 'active')
+    .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle()
 
@@ -544,8 +549,11 @@ export async function runUser(
           const snap = snapshots.find(
             (s) => s.asset_class === p.asset_class && s.symbol === p.symbol,
           )
-          if (!snap) return sum
-          return sum + (convertFx(p.quantity * snap.price, snap.currency, cur, fx) ?? 0)
+          /* Same chain as thesisBookContext — a missing snapshot falls
+             back to last_price then cost basis, never to zero. */
+          const px = snap?.price ?? p.last_price ?? (p.avg_cost > 0 ? p.avg_cost : null)
+          if (px === null) return sum
+          return sum + (convertFx(p.quantity * px, snap?.currency ?? p.currency ?? cur, cur, fx) ?? 0)
         }, 0)
       const cash = Number(acc.cash_balance)
       rows.push({
@@ -1009,8 +1017,10 @@ export async function runUser(
   /* Run history is per strategy — one row for each strategy evaluated this
      sweep, so rule_hits and symbols_scanned never mix across strategies
      that share a rule title. Proposals count what was actually inserted.
-     Sweeps where nothing was due write no row at all — a daily "0 symbols
-     scanned" record claimed a scan that never happened. */
+     A sweep where nothing was due writes a single sweep-level heartbeat
+     instead: it declares 'nothing due' rather than a fake "0 symbols
+     scanned" evaluation, and it keeps the overview's 'Last agent run'
+     honest — otherwise a quiet cadence window reads as a dead agent. */
   const durationMs = Date.now() - startedAt
   const runRows: Database['public']['Tables']['invest_bot_runs']['Insert'][] =
     plan.perStrategy.map((s) => {
@@ -1047,20 +1057,42 @@ export async function runUser(
       duration_ms: durationMs,
     })
   }
+  if (runRows.length === 0) {
+    /* Heartbeat — evaluation days already carry their own rows, so this
+       only fills the silence. symbols_scanned stays empty: no scan ran,
+       and the portal renders that as 'book metrics only', which is what
+       the sweep actually did (book snapshots above are unconditional). */
+    runRows.push({
+      user_id: userId,
+      strategy_id: null,
+      signals_emitted: 0,
+      orders_suggested: 0,
+      orders_executed: 0,
+      summary: 'sweep — nothing due',
+      status: writesFailed ? 'partial' : 'ok',
+      symbols_scanned: [],
+      rule_hits: {},
+      duration_ms: durationMs,
+    })
+  }
   if (runRows.length > 0) {
     const runInsert = await adminClient.from('invest_bot_runs').insert(runRows)
     if (
       runInsert.error &&
       /strategy_id|symbols_scanned|rule_hits|duration_ms/.test(runInsert.error.message)
     ) {
-      /* Pre-0184 schema — record a single flat row without diagnostics. */
+      /* Pre-0184 schema — record a single flat row without diagnostics.
+         A heartbeat-only sweep keeps its own summary rather than claim
+         "0 symbols scanned" for a scan that never ran. */
+      const heartbeatOnly = plan.perStrategy.length === 0 && insightsInserted === 0
       await adminClient.from('invest_bot_runs').insert({
         user_id: userId,
         signals_emitted: plan.signals.length + insightsInserted,
         orders_suggested: proposalsCreated,
         orders_executed: 0,
-        summary:
-          plan.symbolsScanned.length === 1
+        summary: heartbeatOnly
+          ? 'sweep — nothing due'
+          : plan.symbolsScanned.length === 1
             ? '1 symbol scanned'
             : `${plan.symbolsScanned.length} symbols scanned`,
         status: writesFailed ? 'partial' : 'ok',

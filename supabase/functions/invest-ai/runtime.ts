@@ -1,9 +1,14 @@
 import { type SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import {
+  missingModality,
+  persistedUserContent,
   postChatCompletion,
   readUpstreamCompletion,
   resolveApiKey,
   routeBodyExtras,
+  routeModalities,
+  userMessageContent,
+  type AdvisorAttachment,
   type UpstreamMessage,
 } from '../_shared/modelUpstream.ts'
 import {
@@ -15,7 +20,10 @@ import {
   detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
+  headlineSourceVisible,
   investChatPrompt,
+  newsKindTag,
+  normalizeSource,
   parseInvestChatReply,
   verifyReplyClaims,
   type ChatSource,
@@ -67,8 +75,11 @@ interface ModelRoute {
 
 /** Route lookup — `invest_ai` first, `advisor_chat` as the shared fallback
     (same contract as candidate-ai), plus the resolved provider key. */
-export async function modelRoute(adminClient: SupabaseClient): Promise<ModelRoute | { error: Response }> {
-  for (const routeKey of ['invest_ai', 'advisor_chat']) {
+export async function modelRoute(
+  adminClient: SupabaseClient,
+  routeKeys: string[] = ['invest_ai', 'advisor_chat'],
+): Promise<ModelRoute | { error: Response }> {
+  for (const routeKey of routeKeys) {
     const { data: route, error } = await adminClient
       .from('ai_model_routes')
       .select(
@@ -104,6 +115,12 @@ export async function modelRoute(adminClient: SupabaseClient): Promise<ModelRout
 export async function loadBookContext(
   adminClient: SupabaseClient,
   userId: string,
+  opts?: {
+    /** The holder flagged a subscription on the feed card — then the
+        subscription-only publishers stay in context. Absent/false hides
+        them, matching the card's default. */
+    showPaywalled?: boolean
+  },
 ): Promise<{
   ctx: InvestChatContext
   accounts: { id: string; name: string; kind: string; base_currency: string; cash_balance: number }[]
@@ -130,6 +147,7 @@ export async function loadBookContext(
     { data: snapshots },
     { data: profileRow },
     { data: memoryRows },
+    { data: muteRows },
   ] = await Promise.all([
     adminClient.from('invest_accounts')
       .select('id, name, kind, base_currency, cash_balance, status')
@@ -155,7 +173,7 @@ export async function loadBookContext(
        book's universe, now readable by the chat surface for analysis. */
     adminClient.from('invest_market_snapshots')
       .select(
-        'symbol, asset_class, price, currency, day_change_pct, ma50, ma200, rsi14, ret_1m, ret_3m, ret_12m, vol_20d, high_52w, low_52w, fundamentals, fundamentals_as_of, as_of',
+        'symbol, asset_class, price, currency, day_change_pct, closes_30d, ma50, ma200, rsi14, ret_1m, ret_3m, ret_12m, vol_20d, high_52w, low_52w, fundamentals, fundamentals_as_of, as_of',
       )
       .eq('user_id', userId)
       .order('as_of', { ascending: false })
@@ -175,6 +193,13 @@ export async function loadBookContext(
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(30),
+    /* Sources the holder muted on the feed — the same preference removes
+       them from Tally's context, so a muted publisher can't come back as
+       a citation. */
+    adminClient.from('invest_news_source_mutes')
+      .select('source')
+      .eq('user_id', userId)
+      .limit(200),
   ])
 
   /* Headlines ride the market section — the table is global, so the query
@@ -186,24 +211,44 @@ export async function loadBookContext(
   for (const w of watchlist ?? []) universe.add(String(w.symbol).toUpperCase())
   for (const s of signals ?? []) universe.add(String(s.symbol).toUpperCase())
 
-  let newsRows: { symbol: string; title: string; source: string; published_at: string | null; url: string | null }[] = []
+  let newsRows: {
+    symbol: string
+    title: string
+    source: string
+    published_at: string | null
+    url: string | null
+    kind: string | null
+    via_theme: string | null
+  }[] = []
   if (universe.size > 0) {
     const { data } = await adminClient
       .from('invest_market_news')
-      .select('symbol, title, source, published_at, url')
+      .select('symbol, title, source, published_at, url, kind, via_theme')
       .in('symbol', [...universe, ''])
       .order('published_at', { ascending: false })
       .limit(50)
     newsRows = (data ?? []) as typeof newsRows
   }
+  /* The feed's visibility rules apply to context too — muted sources and
+     (unless the holder opted in) subscription-only publishers stay out,
+     so a citation can only point at what the holder can actually read. */
+  const mutedKeys = new Set(
+    (muteRows ?? []).map((r) => normalizeSource(String((r as { source: string }).source ?? ''))),
+  )
+  mutedKeys.delete('')
+  const showPaywalled = opts?.showPaywalled === true
   const headlinesBySymbol = new Map<string, MarketContextEntry['headlines']>()
   const generalNews: InvestChatContext['generalNews'] = []
   for (const row of newsRows) {
+    const source = String(row.source).slice(0, 60)
+    if (!headlineSourceVisible(source, mutedKeys, showPaywalled)) continue
     const item = {
       title: String(row.title).slice(0, 200),
-      source: String(row.source).slice(0, 60),
+      source,
       publishedAt: row.published_at,
       url: row.url ?? null,
+      kind: newsKindTag(row.kind),
+      viaTheme: row.via_theme ? String(row.via_theme).slice(0, 120) : null,
     }
     const sym = String(row.symbol ?? '').toUpperCase()
     if (sym === '') {
@@ -229,6 +274,11 @@ export async function loadBookContext(
       price: s.price ?? null,
       currency: String(s.currency ?? 'USD'),
       dayChangePct: s.day_change_pct ?? null,
+      closes30d: Array.isArray(s.closes_30d)
+        ? (s.closes_30d as unknown[])
+            .filter((n): n is number => typeof n === 'number' && Number.isFinite(n))
+            .slice(-30)
+        : undefined,
       ma50: s.ma50 ?? null,
       ma200: s.ma200 ?? null,
       rsi14: s.rsi14 ?? null,
@@ -329,6 +379,7 @@ async function persistChatTurns(
   threadId: string | null,
   reasoning: string,
   sources: ChatSource[],
+  attachments: AdvisorAttachment[] = [],
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
   const { data: userRow } = await adminClient
@@ -336,7 +387,7 @@ async function persistChatTurns(
     .insert({
       user_id: userId,
       role: 'user',
-      content: message,
+      content: persistedUserContent(message, attachments),
       thread_id: threadId,
       created_at: nowIso,
     })
@@ -391,11 +442,50 @@ export async function runChat(
         regenerate's stale-pair delete and stale-action undo live here so
         a failed call loses nothing. */
     afterPersist?: () => Promise<void>
+    /** Feed card's "I'm subscribed" flag — forwarded so Tally's context
+        honours the same subscription-only filter the holder sees. */
+    showPaywalled?: boolean
+    /** User-attached files — images ride the turn as image_url parts,
+        extracted-text documents land inline in the user message. The
+        manifest (never the payload) is what persists on the row. */
+    attachments?: AdvisorAttachment[]
   },
 ): Promise<Response> {
-  const routed = await modelRoute(adminClient)
-  if ('error' in routed) return routed.error
+  const attachments = opts?.attachments ?? []
+  /* Images change the routing, not just the payload — the chat route's
+     model may be text-only, so a vision-capable route is its own row
+     (invest_ai_vision) rather than a flag on the shared one. A missing
+     vision route is a configuration gap, not a reason to silently drop
+     the user's file and answer as if it were seen. */
+  const needsVision = attachments.some((a) => a.kind === 'image')
+  const routed = await modelRoute(adminClient, needsVision ? ['invest_ai_vision'] : undefined)
+  if ('error' in routed) {
+    if (needsVision) {
+      return json(
+        {
+          error: 'No vision-capable model route is configured for this feature.',
+          code: 'modality_unsupported',
+          modality: 'image',
+        },
+        422,
+      )
+    }
+    return routed.error
+  }
   const { route, provider, apiKey } = routed
+  /* Refuse before the model call — a route that can't see the file must
+     not pretend it did, and the refusal shouldn't meter a call. */
+  const missingMod = missingModality(attachments, routeModalities(route.config))
+  if (missingMod) {
+    return json(
+      {
+        error: `The active model for this route does not accept ${missingMod} input.`,
+        code: 'modality_unsupported',
+        modality: missingMod,
+      },
+      422,
+    )
+  }
 
   /* Context history scopes to the same thread — a named conversation must
      not leak turns from the default one into the model window. */
@@ -417,7 +507,7 @@ export async function runChat(
     }
   }
   const [book, { data: historyRows, error: histError }] = await Promise.all([
-    loadBookContext(adminClient, userId),
+    loadBookContext(adminClient, userId, { showPaywalled: opts?.showPaywalled }),
     histQuery.order('created_at', { ascending: false }).limit(CHAT_HISTORY),
   ])
   if (histError) return json({ error: histError.message }, 500)
@@ -443,9 +533,12 @@ export async function runChat(
     }))
 
   const baseMessages: UpstreamMessage[] = [
-    investChatPrompt(chatCtx, lang, { advice }),
+    investChatPrompt(chatCtx, lang, {
+      advice,
+      image: attachments.some((a) => a.kind === 'image'),
+    }),
     ...history,
-    { role: 'user', content: message },
+    { role: 'user', content: userMessageContent(message, attachments) },
   ]
 
   /* Reply content is never emitted before the fetch loop and the claim
@@ -717,6 +810,7 @@ export async function runChat(
       threadId,
       reasoning,
       sources,
+      attachments,
     )
     await runAfterPersist()
     return {

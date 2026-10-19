@@ -71,10 +71,13 @@ export const YAHOO_HEADERS: Record<string, string> = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
 }
 
-export function yahooChartUrl(yahooSymbol: string): string {
+/** `range` keeps the quarter-hour light sync cheap — the technical pack
+    needs 2y of closes, a price refresh needs only enough rows for a
+    current quote. */
+export function yahooChartUrl(yahooSymbol: string, range = '2y'): string {
   return (
     `https://query2.finance.yahoo.com/v8/finance/chart/` +
-    `${encodeURIComponent(yahooSymbol)}?range=2y&interval=1d&includePrePost=false`
+    `${encodeURIComponent(yahooSymbol)}?range=${range}&interval=1d&includePrePost=false`
   )
 }
 
@@ -84,13 +87,16 @@ export interface YahooChartResult {
   dayChangePct: number | null
   name: string | null
   closes: number[]
+  /** Date-keyed closes (YYYY-MM-DD UTC) for mark storage — the raw
+      `closes` list stays for callers that only want the series. */
+  daily: { date: string; close: number }[]
 }
 
 /** v8/chart JSON → quote fields + the daily-close series (nulls dropped —
     Yahoo embeds them on halted days). One call feeds the whole technical
     pack AND the price fields. */
 export function parseYahooChart(json: unknown): YahooChartResult {
-  const empty: YahooChartResult = { price: null, currency: null, dayChangePct: null, name: null, closes: [] }
+  const empty: YahooChartResult = { price: null, currency: null, dayChangePct: null, name: null, closes: [], daily: [] }
   const result = (json as Record<string, unknown> | null)?.['chart']
   const rows = (result as Record<string, unknown> | null)?.['result']
   const first = Array.isArray(rows) ? (rows[0] as Record<string, unknown> | undefined) : undefined
@@ -103,15 +109,23 @@ export function parseYahooChart(json: unknown): YahooChartResult {
   const indicators = (first['indicators'] ?? {}) as Record<string, unknown>
   const quoteRows = Array.isArray(indicators['quote']) ? indicators['quote'] : []
   const quote = (quoteRows[0] ?? {}) as Record<string, unknown>
-  const closes = Array.isArray(quote['close'])
-    ? (quote['close'] as unknown[]).map(Number).filter((n) => Number.isFinite(n) && n > 0)
-    : []
+  const rawCloses = Array.isArray(quote['close']) ? (quote['close'] as unknown[]) : []
+  const timestamps = Array.isArray(first['timestamp']) ? (first['timestamp'] as unknown[]) : []
+  const closes = rawCloses.map(Number).filter((n) => Number.isFinite(n) && n > 0)
+  const daily: { date: string; close: number }[] = []
+  for (let i = 0; i < rawCloses.length; i++) {
+    const c = Number(rawCloses[i])
+    const t = Number(timestamps[i])
+    if (!Number.isFinite(c) || c <= 0 || !Number.isFinite(t) || t <= 0) continue
+    daily.push({ date: new Date(t * 1000).toISOString().slice(0, 10), close: c })
+  }
   return {
     price: num(meta['regularMarketPrice']) ?? closes[closes.length - 1] ?? null,
     currency: typeof meta['currency'] === 'string' ? (meta['currency'] as string) : null,
     dayChangePct: num(meta['regularMarketChangePercent']),
     name: typeof meta['longName'] === 'string' ? (meta['longName'] as string) : null,
     closes,
+    daily,
   }
 }
 
@@ -331,6 +345,23 @@ export function coingeckoMarketsUrl(ids: string[]): string {
   )
 }
 
+/** CoinGecko /coins/markets JSON → id → display name ("bitcoin" →
+    "Bitcoin") — the feed's own label, persisted as quote_name so a bare
+    ticker never hides what it resolved to. */
+export function parseCoingeckoNames(json: unknown): Map<string, string> {
+  const out = new Map<string, string>()
+  if (!Array.isArray(json)) return out
+  for (const row of json) {
+    const r = row as Record<string, unknown> | null
+    const id = r?.['id']
+    const name = r?.['name']
+    if (typeof id === 'string' && id && typeof name === 'string' && name) {
+      out.set(id, name)
+    }
+  }
+  return out
+}
+
 /** CoinGecko /coins/markets JSON → fundamentals per coin id (denominated
     in USD — the blob's `currency` field says so explicitly). */
 export function parseCoingeckoMarkets(json: unknown): Map<string, Fundamentals> {
@@ -362,6 +393,9 @@ export interface SyncTarget {
   symbol: string
   /** Company/coin name when known — drives better headline queries. */
   name?: string
+  /** True when a position backs the symbol — held rows get news feeds
+      before watchlist/strategy-only symbols under the cap. */
+  held?: boolean
 }
 
 export type SyncAction = 'sync' | 'sync-all'
@@ -383,12 +417,21 @@ export interface NewsItem {
   source: string
   summary: string
   published_at: string | null
+  /** Watch-item title whose feed surfaced the row; unset = symbol or
+      general feed. Lets a theme-sourced row say so instead of reading
+      as a direct mention. */
+  via_theme?: string | null
 }
 
-/* Google News indexes betting-market listing pages (Robinhood prediction
-   markets, etc.) — a wager board is not a headline. Keep in sync with the
-   client-side copy in InvestHomePage.tsx. */
-export const JUNK_HEADLINE = /\bprediction markets?\b/i
+/* Listing pages indexed by Google News that aren't headlines: betting
+   boards (Robinhood prediction markets), options-chain entries
+   ("QUBT Nov 2026 8.500 call (QUBT261106C00008500)" — OCC symbols),
+   tokenized-stock quote pages (CoinMarketCap "price today… live price,
+   marketcap and chart"), and TradingView's generated listing stubs
+   ("…Depository Receipts … – SET:VRT80"). Keep in sync with the
+   client-side copy in src/features/invest/data/newsDedupe.ts. */
+export const JUNK_HEADLINE =
+  /\bprediction markets?\b|\btokenized stock\b|\bto usd live\b|live price,? marketcap|^current price of\b|\b[A-Z]{1,6}\d{6}[CP]\d{8}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+\d{4}\s+[\d.]+\s+(?:call|put)\b|\bdepository receipts?\b|[–—]\s*[A-Z]{2,10}:[A-Z0-9]{1,15}\s*$/i
 
 /** The title or deck mentions the tracked asset — by symbol, or by the
     name the query ran under ('Solana' under SOL). A story Google News
@@ -432,7 +475,17 @@ function xmlText(block: string, tag: string): string {
  */
 export function parseRssItems(
   xml: string,
-  meta: { symbol: string; asset_class: string; name?: string },
+  meta: {
+    symbol: string
+    asset_class: string
+    name?: string
+    /** Theme-query mode: rows tag to these declared symbols without the
+        text-match check — a thematic headline rarely names the holding,
+        which is the whole reason the watch item exists. `viaTheme`
+        records the provenance on every emitted row. */
+    linked?: { symbol: string; asset_class: string }[]
+    viaTheme?: string
+  },
   maxItems = 12,
 ): NewsItem[] {
   const items: NewsItem[] = []
@@ -445,21 +498,29 @@ export function parseRssItems(
     const url = xmlText(block, 'link')
     if (!title || !url || JUNK_HEADLINE.test(title)) continue
     const summary = xmlText(block, 'description').slice(0, 240)
-    /* The query returned it, but the symbol tag is only honest when the
-       story actually names the holding. */
-    const symbol =
-      meta.symbol && mentionsHolding(`${title} ${summary}`, meta) ? meta.symbol : ''
     const pub = xmlText(block, 'pubDate')
     const pubMs = pub ? Date.parse(pub) : NaN
-    items.push({
-      symbol,
-      asset_class: meta.asset_class,
+    const base = {
       title: title.slice(0, 300),
       url: url.slice(0, 500),
       source: source.slice(0, 120),
       summary,
       published_at: Number.isFinite(pubMs) ? new Date(pubMs).toISOString() : null,
-    })
+      /* Provenance rides every row a theme feed emits — linked or not. */
+      ...(meta.viaTheme ? { via_theme: meta.viaTheme } : {}),
+    }
+    if (meta.linked && meta.linked.length > 0) {
+      for (const l of meta.linked) {
+        items.push({ symbol: l.symbol, asset_class: l.asset_class, ...base })
+        if (items.length >= maxItems) break
+      }
+    } else {
+      /* The query returned it, but the symbol tag is only honest when the
+         story actually names the holding. */
+      const symbol =
+        meta.symbol && mentionsHolding(`${title} ${summary}`, meta) ? meta.symbol : ''
+      items.push({ symbol, asset_class: meta.asset_class, ...base })
+    }
     if (items.length >= maxItems) break
   }
   return items
@@ -471,14 +532,17 @@ export function parseRssItems(
  * shops). Names beat tickers for headline matching.
  */
 export function newsQueries(
-  targets: { asset_class: string; symbol: string; name?: string }[],
-  maxSymbolFeeds = 8,
+  targets: { asset_class: string; symbol: string; name?: string; held?: boolean }[],
+  maxSymbolFeeds = 12,
 ): { query: string; symbol: string; asset_class: string; name?: string }[] {
   const queries: { query: string; symbol: string; asset_class: string; name?: string }[] = [
     { query: 'stock market Canada', symbol: '', asset_class: '' },
   ]
   const seen = new Set<string>()
-  for (const t of targets) {
+  /* Held positions lead the feed list — under the cap a symbol you own
+     must never lose its news feed to a watchlist or strategy-only name. */
+  const ordered = [...targets].sort((a, b) => Number(b.held ?? false) - Number(a.held ?? false))
+  for (const t of ordered) {
     const sym = t.symbol.trim().toUpperCase()
     if (!sym || seen.has(sym)) continue
     seen.add(sym)
@@ -489,4 +553,178 @@ export function newsQueries(
     if (queries.length > maxSymbolFeeds) break
   }
   return queries
+}
+
+export interface NewsThemeQuery {
+  /** The watch item's own title — free text is the query. */
+  query: string
+  /** Every symbol the item(s) declare — the headline's linkage is the
+      board's claim, not a text match. */
+  symbols: string[]
+}
+
+/** One headline feed per distinct watched theme. Scan items carry
+    free-text titles ("US-China trade restrictions") that make direct
+    queries; identical titles across users share one feed and merge
+    their symbol links. Items with no linked symbols still get a feed —
+    their rows land unscoped, carrying the theme as provenance rather
+    than a symbol claim they can't support. */
+export function newsThemeQueries(
+  items: { title: string; symbols: string[] }[],
+  maxThemeFeeds = 8,
+): NewsThemeQuery[] {
+  const byTitle = new Map<string, { title: string; symbols: Set<string> }>()
+  for (const it of items) {
+    const title = it.title.trim().slice(0, 120)
+    if (!title) continue
+    const entry = byTitle.get(title.toLowerCase()) ?? { title, symbols: new Set<string>() }
+    for (const s of it.symbols) {
+      const sym = s.trim().toUpperCase()
+      if (sym) entry.symbols.add(sym)
+    }
+    byTitle.set(title.toLowerCase(), entry)
+  }
+  const out: NewsThemeQuery[] = []
+  for (const e of byTitle.values()) {
+    out.push({ query: e.title, symbols: [...e.symbols].slice(0, 8) })
+    if (out.length >= maxThemeFeeds) break
+  }
+  return out
+}
+
+export interface ThemeLinkCandidate {
+  /** Watch-item title — the claim under test. */
+  theme: string
+  title: string
+  summary: string
+  /** Symbols the item declares the theme touches. */
+  symbols: string[]
+}
+
+/* Feeds emit into a shared run budget; consumed in query order, the
+   first feed could drain it and starve the rest — every run, in the
+   same order. Round-robin gives each feed one slot per pass so the
+   budget spreads across sources before any single one finishes. The
+   caller still enforces the real cap — a duplicated URL here costs an
+   emitted slot but not a stored row. */
+export function interleaveNewsFeeds<T>(feeds: T[][]): T[] {
+  const out: T[] = []
+  const longest = Math.max(0, ...feeds.map((f) => f.length))
+  for (let i = 0; i < longest; i++) {
+    for (const f of feeds) {
+      const item = f[i]
+      if (item !== undefined) out.push(item)
+    }
+  }
+  return out
+}
+
+/* The model sees only what it needs to judge: the theme claim, the
+   headline text, and the candidate symbols — never portfolio state. */
+export function themeLinkPrompt(candidates: ThemeLinkCandidate[]): string {
+  const items = candidates.map(
+    (c, i) =>
+      `${i + 1}. theme "${c.theme}" — candidate symbols: ${c.symbols.join(', ')}\n` +
+      `   headline: ${c.title}\n` +
+      `   summary: ${c.summary || '—'}`,
+  )
+  return [
+    'You verify thematic news links for a portfolio watch.',
+    'Each item is a headline fetched for the watched theme shown, plus the symbols that theme claims it touches.',
+    'For every item list ONLY the symbols the story plausibly touches through that theme — sector, supply chain, regulation, macro exposure. Company news unrelated to the theme keeps nothing.',
+    'Reply with JSON only: {"links":[{"i":1,"keep":["SYM"]}]} — include every item index; keep lists symbols verbatim, or an empty array.',
+    '',
+    ...items,
+  ].join('\n')
+}
+
+/* Strict verdict parse: every index must be answered, and keeps are
+   intersected with the candidate's own symbols (a model can't link a
+   headline to a symbol the watch item never claimed). A missing index
+   can't be told from a truncated reply, so anything short of a full
+   answer is unusable — callers then keep every declared link, the same
+   as no verifier at all. */
+export function parseThemeLinkVerdicts(
+  text: string,
+  candidates: ThemeLinkCandidate[],
+): Map<number, Set<string>> | null {
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(m[0])
+  } catch {
+    return null
+  }
+  const links = (parsed as { links?: unknown })?.links
+  if (!Array.isArray(links)) return null
+  const out = new Map<number, Set<string>>()
+  for (const l of links) {
+    const i = Number((l as { i?: unknown })?.i)
+    const keep = (l as { keep?: unknown })?.keep
+    if (!Number.isInteger(i) || i < 1 || i > candidates.length || !Array.isArray(keep)) return null
+    const allowed = new Set(candidates[i - 1].symbols)
+    const kept = new Set<string>()
+    for (const s of keep) {
+      if (typeof s === 'string' && allowed.has(s.trim().toUpperCase())) {
+        kept.add(s.trim().toUpperCase())
+      }
+    }
+    out.set(i - 1, kept)
+  }
+  if (out.size !== candidates.length) return null
+  return out
+}
+
+/* ── Headline kind — what the story is ──────────────────────────────────── */
+
+export const NEWS_KINDS = ['event', 'news', 'view', 'move', 'filing'] as const
+export type NewsKind = (typeof NEWS_KINDS)[number]
+
+/* What the headline IS, not whether it matters — a classifier can say
+   'this is a price-move writeup' honestly where 'this is important' would
+   be a judgment the data can't support. The model sees titles only, never
+   portfolio state — same contract as themeLinkPrompt. */
+export function newsKindPrompt(items: { title: string; summary: string }[]): string {
+  const lines = items.map(
+    (it, i) =>
+      `${i + 1}. ${it.title}\n   summary: ${it.summary || '—'}`,
+  )
+  return [
+    'You classify market headlines for a portfolio feed — what each story IS, not whether it matters.',
+    'event — something happened: earnings, guidance, merger, approval, lawsuit, leadership change, contract, regulation.',
+    'news — reports facts or developments but names no single new event.',
+    'view — an analyst note, rating, price target, opinion, prediction, or listicle. A headline that asks whether to buy/sell/hold or argues a verdict is view even when it cites a price move. Evergreen explainers ("what beginners should look for") are view — they are commentary, not events.',
+    'move — a writeup whose substance is only the price change itself, not a verdict on it.',
+    'filing — a position-disclosure restatement: an institution raised/trimmed/bought/sold holdings, stake, or shares.',
+    'Reply with JSON only: {"kinds":[{"i":1,"k":"event"}]} — include every item index; k is one of event|news|view|move|filing.',
+    '',
+    ...lines,
+  ].join('\n')
+}
+
+/* Lenient per-item verdict parse — unlike theme links, a missing or
+   garbled index costs nothing: that row stores null and the portal's
+   title heuristic stays the fallback. Only a reply with zero usable
+   entries returns null (indistinguishable from no classification). */
+export function parseNewsKindVerdicts(text: string, count: number): Map<number, NewsKind> | null {
+  const m = text.match(/\{[\s\S]*\}/)
+  if (!m) return null
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(m[0])
+  } catch {
+    return null
+  }
+  const kinds = (parsed as { kinds?: unknown })?.kinds
+  if (!Array.isArray(kinds)) return null
+  const out = new Map<number, NewsKind>()
+  for (const k of kinds) {
+    const i = Number((k as { i?: unknown })?.i)
+    const v = (k as { k?: unknown })?.k
+    if (Number.isInteger(i) && i >= 1 && i <= count && (NEWS_KINDS as readonly string[]).includes(v as string)) {
+      out.set(i - 1, v as NewsKind)
+    }
+  }
+  return out.size > 0 ? out : null
 }

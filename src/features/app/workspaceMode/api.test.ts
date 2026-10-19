@@ -415,4 +415,155 @@ describe('workspaceMode api', () => {
 
     expect(await api.joinOrganizationWaitlist('Acme')).toBe('already_waiting')
   })
+
+  it('fetchWorkspacePrefs returns mode and active organization', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { mode: 'production', active_organization_id: 'org-2' },
+      error: null,
+    })
+    const eq = vi.fn().mockReturnValue({ maybeSingle })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.fetchWorkspacePrefs('u1')).toEqual({
+      ok: true,
+      value: { mode: 'production', activeOrganizationId: 'org-2' },
+    })
+    expect(select).toHaveBeenCalledWith('mode, active_organization_id')
+  })
+
+  it('fetchWorkspacePrefs defaults when no row exists', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+    const eq = vi.fn().mockReturnValue({ maybeSingle })
+    const select = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.fetchWorkspacePrefs('u1')).toEqual({
+      ok: true,
+      value: { mode: 'demo', activeOrganizationId: null },
+    })
+  })
+
+  it('saveActiveOrganization upserts the preference row', async () => {
+    const upsert = vi.fn().mockResolvedValue({ error: null })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ upsert }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(await api.saveActiveOrganization('u1', 'org-9')).toBe(true)
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ user_id: 'u1', active_organization_id: 'org-9' }),
+    )
+  })
+
+  it('fetchOrganizationMemberships returns every active membership with scope', async () => {
+    const order = vi.fn().mockResolvedValue({
+      data: [
+        {
+          organization_id: 'org-1',
+          role: 'owner',
+          granted_modules: [],
+          access_expires_at: null,
+          organizations: { name: 'Acme' },
+        },
+        {
+          organization_id: 'org-2',
+          role: 'consultant',
+          granted_modules: ['cases'],
+          access_expires_at: '2027-01-01T00:00:00Z',
+          organizations: { name: 'Beta' },
+        },
+      ],
+      error: null,
+    })
+    const or = vi.fn().mockReturnValue({ order })
+    const eqStatus = vi.fn().mockReturnValue({ or })
+    const eqUser = vi.fn().mockReturnValue({ eq: eqStatus })
+    const select = vi.fn().mockReturnValue({ eq: eqUser })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ select }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    const res = await api.fetchOrganizationMemberships('u1')
+    expect(res).toEqual({
+      ok: true,
+      value: [
+        {
+          organizationId: 'org-1',
+          organizationName: 'Acme',
+          role: 'owner',
+          grantedModules: [],
+          accessExpiresAt: null,
+        },
+        {
+          organizationId: 'org-2',
+          organizationName: 'Beta',
+          role: 'consultant',
+          grantedModules: ['cases'],
+          accessExpiresAt: '2027-01-01T00:00:00Z',
+        },
+      ],
+    })
+  })
+
+  it('inviteOrgMember carries module scope and expiry onto the invitation', async () => {
+    const single = vi.fn().mockResolvedValue({ data: { id: 'inv-1' }, error: null })
+    const select = vi.fn().mockReturnValue({ single })
+    const insert = vi.fn().mockReturnValue({ select })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: {
+        from: vi.fn().mockReturnValue({ insert }),
+        functions: { invoke: vi.fn().mockResolvedValue({ data: { emailed: true } }) },
+      },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    const res = await api.inviteOrgMember('org-1', 'Consult@Firm.ca', 'consultant', {
+      grantedModules: ['cases', 'documents'],
+      accessExpiresAt: '2027-01-01T00:00:00Z',
+    })
+    expect(res).toEqual({ id: 'inv-1', emailed: true })
+    expect(insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'consult@firm.ca',
+        role: 'consultant',
+        granted_modules: ['cases', 'documents'],
+        access_expires_at: '2027-01-01T00:00:00Z',
+      }),
+    )
+  })
+
+  it('updateMemberScope writes granted_modules and access_expires_at', async () => {
+    const eq = vi.fn().mockResolvedValue({ error: null })
+    const update = vi.fn().mockReturnValue({ eq })
+    vi.doMock('@/lib/supabaseClient', () => ({
+      supabase: { from: vi.fn().mockReturnValue({ update }) },
+    }))
+    vi.resetModules()
+    const api = await import('./api')
+
+    expect(
+      await api.updateMemberScope('mem-1', {
+        grantedModules: ['finance'],
+        accessExpiresAt: null,
+      }),
+    ).toBe(true)
+    expect(update).toHaveBeenCalledWith({
+      granted_modules: ['finance'],
+      access_expires_at: null,
+    })
+  })
 })

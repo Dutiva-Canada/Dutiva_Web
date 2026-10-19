@@ -50,6 +50,7 @@ describe('WorkspaceModeProvider', () => {
     profile,
     membershipOrgId,
     memberRole,
+    grantedModules,
     claimedInvites = 0,
     claimFailures = 0,
     storedModeFailures = 0,
@@ -67,6 +68,8 @@ describe('WorkspaceModeProvider', () => {
     /** Existing organization_members row, if any. */
     membershipOrgId?: string
     memberRole?: string
+    /** granted_modules on that membership row (scoped consultant/viewer). */
+    grantedModules?: string[]
     /** Count returned by claim_org_invitations(). */
     claimedInvites?: number
     /** First N claim_org_invitations calls error (transient backend failure). */
@@ -115,16 +118,22 @@ describe('WorkspaceModeProvider', () => {
           select: () => ({
             eq: () => ({
               eq: () => ({
-                order: () => ({
-                  limit: () => ({
-                    maybeSingle: () =>
-                      Promise.resolve({
-                        data: membershipOrgId
-                          ? { organization_id: membershipOrgId, role: memberRole ?? 'member' }
-                          : null,
-                        error: null,
-                      }),
-                  }),
+                or: () => ({
+                  order: () =>
+                    Promise.resolve({
+                      data: membershipOrgId
+                        ? [
+                            {
+                              organization_id: membershipOrgId,
+                              role: memberRole ?? 'member',
+                              granted_modules: grantedModules ?? [],
+                              access_expires_at: null,
+                              organizations: { name: 'Member Org Inc.' },
+                            },
+                          ]
+                        : [],
+                      error: null,
+                    }),
                 }),
               }),
             }),

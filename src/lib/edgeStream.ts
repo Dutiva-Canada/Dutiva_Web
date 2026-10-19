@@ -57,7 +57,18 @@ export async function invokeEdgeFnStream(
        server may still finish and persist its turn. */
     signal: signal ?? null,
   })
-  if (!res.ok) throw new Error(`${fnName} ${res.status}`)
+  if (!res.ok) {
+    /* Error bodies carry a machine `code` (modality_unsupported, …) — keep
+       it on the thrown error so a caller can say more than "it failed". */
+    const err = new Error(`${fnName} ${res.status}`) as Error & { code?: string }
+    try {
+      const body = (await res.json()) as { code?: unknown } | null
+      if (typeof body?.code === 'string') err.code = body.code
+    } catch {
+      /* Non-JSON body — the status in the message is all there is. */
+    }
+    throw err
+  }
   const contentType = res.headers.get('content-type') ?? ''
   if (!contentType.includes('text/event-stream') || !res.body) {
     return (await res.json()) as Record<string, unknown>

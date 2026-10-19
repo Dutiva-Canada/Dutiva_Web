@@ -7886,7 +7886,7 @@ $$;
 ALTER FUNCTION "public"."trigger_invest_bot"() OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."trigger_invest_market_sync"() RETURNS "void"
+CREATE OR REPLACE FUNCTION "public"."trigger_invest_market_sync"("p_light" boolean DEFAULT false) RETURNS "void"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'pg_catalog', 'public'
     AS $$
@@ -7913,7 +7913,7 @@ begin
       'Authorization', 'Bearer ' || coalesce(v_key, ''),
       'x-trigger-secret', v_secret
     ),
-    body := '{"action":"sync-all"}'::jsonb,
+    body := jsonb_build_object('action', 'sync-all', 'light', p_light),
     timeout_milliseconds := 300000
   );
 end;
@@ -11911,6 +11911,7 @@ CREATE TABLE IF NOT EXISTS "public"."invest_market_snapshots" (
     "low_52w" double precision,
     "fundamentals" "jsonb",
     "fundamentals_as_of" timestamp with time zone,
+    "quote_name" "text" DEFAULT ''::"text" NOT NULL,
     CONSTRAINT "invest_market_snapshots_asset_class_check" CHECK (("asset_class" = ANY (ARRAY['equity'::"text", 'etf'::"text", 'crypto'::"text", 'bond'::"text", 'cash'::"text", 'other'::"text"])))
 );
 

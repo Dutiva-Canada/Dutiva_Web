@@ -101,11 +101,12 @@ export async function runReact(
   lang: 'en' | 'fr',
   stream: boolean,
   advice: boolean,
+  showPaywalled = false,
 ): Promise<Response> {
   const routed = await modelRoute(adminClient)
   if ('error' in routed) return routed.error
   const { route, provider, apiKey } = routed
-  const book = await loadBookContext(adminClient, userId)
+  const book = await loadBookContext(adminClient, userId, { showPaywalled })
 
   let upstream: Response
   try {

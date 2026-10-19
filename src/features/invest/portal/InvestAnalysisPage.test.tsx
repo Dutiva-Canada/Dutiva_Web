@@ -13,7 +13,7 @@ import { LangProvider } from '@/i18n/LangProvider'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import { InvestDataContext } from '../data/InvestDataContext'
 import type { InvestState } from '../data/api'
-import type { InvestGoal, InvestScanItem, InvestThesis } from '../data/types'
+import type { InvestGoal, InvestNewsItem, InvestScanItem, InvestThesis } from '../data/types'
 import { InvestAnalysisPage } from './InvestAnalysisPage'
 
 const saveGoal = vi.fn().mockResolvedValue(undefined)
@@ -86,6 +86,8 @@ const STATE: InvestState = {
   scanItems: [],
   memories: [],
   bookSnapshots: [],
+  benchmarkMarks: [],
+  newsMutes: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],
@@ -108,6 +110,7 @@ function goal(over: Partial<InvestGoal> = {}): InvestGoal {
       target: 40,
       op: 'lte',
       progress_pct: 45,
+      expected_pct: 60,
       days_left: 300,
       line_en: 'On the way — 45.5% against the 40% target, 300 days left.',
       line_fr: 'En cours — 45,5 % contre la cible de 40 %, 300 jours restants.',
@@ -130,6 +133,22 @@ function scanItem(over: Partial<InvestScanItem> = {}): InvestScanItem {
     lastReviewedAt: new Date().toISOString(),
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    ...over,
+  }
+}
+
+function newsItem(over: Partial<InvestNewsItem> = {}): InvestNewsItem {
+  return {
+    id: 1,
+    symbol: 'ARM',
+    assetClass: 'equity',
+    title: 'Export rules tighten again',
+    url: 'https://news.example/a1',
+    source: 'Wire',
+    summary: '',
+    publishedAt: '2026-03-10T12:00:00Z',
+    viaTheme: 'USD strength vs CAD',
+    kind: null,
     ...over,
   }
 }
@@ -188,6 +207,35 @@ describe('InvestAnalysisPage — goals', () => {
     expect(screen.getByText(/Now 45\.5%/)).toBeInTheDocument()
   })
 
+  it('marks the pace on the bar — the share of the window already gone', () => {
+    mount({ goals: [goal()] })
+    expect(screen.getByText('Pace — about 60% by now')).toBeInTheDocument()
+    const tick = document.querySelector('.sb-goalbar-pace')
+    expect(tick).not.toBeNull()
+    expect(tick).toHaveStyle({ left: '60%' })
+  })
+
+  it('tags a deadline-less goal In progress — 0% is not "on track"', () => {
+    mount({
+      goals: [
+        goal({
+          deadline: null,
+          evalDetail: {
+            current: 0,
+            target: 40,
+            op: 'lte',
+            progress_pct: 0,
+            days_left: null,
+            line_en: 'Open-ended — at 0%, target is 40%.',
+            line_fr: 'Sans échéance — à 0 %, cible de 40 %.',
+          },
+        }),
+      ],
+    })
+    expect(screen.getByText('In progress')).toBeInTheDocument()
+    expect(screen.queryByText('On track')).not.toBeInTheDocument()
+  })
+
   it('shows the empty state and saves a new goal from the composer', async () => {
     const user = userEvent.setup()
     const { refresh } = mount()
@@ -225,6 +273,44 @@ describe('InvestAnalysisPage — watch board', () => {
     await user.click(screen.getByRole('button', { name: /Mark reviewed/i }))
     await waitFor(() => expect(markScanItemReviewed).toHaveBeenCalledWith('w1'))
     expect(refresh).toHaveBeenCalled()
+  })
+
+  it('shows theme-matched headlines under the item that owns them', () => {
+    mount({
+      scanItems: [scanItem()],
+      news: [
+        newsItem({ title: 'Export rules tighten again' }),
+        newsItem({
+          id: 2,
+          title: 'Unrelated theme story',
+          url: 'https://news.example/b2',
+          viaTheme: 'Some other theme',
+        }),
+        newsItem({
+          id: 3,
+          title: 'Direct mention, no theme',
+          url: 'https://news.example/c3',
+          viaTheme: null,
+        }),
+        /* Subscription-only sources hide on theme cards too. */
+        newsItem({
+          id: 4,
+          title: 'Paywalled theme piece',
+          url: 'https://news.example/d4',
+          source: "Barron's",
+        }),
+      ],
+    })
+    expect(screen.getByText('Export rules tighten again')).toBeInTheDocument()
+    expect(screen.queryByText('Paywalled theme piece')).not.toBeInTheDocument()
+    /* The board still names what it hid — same transparency rule as the feed. */
+    expect(
+      screen.getByRole('button', { name: /subscription-only headlines hidden/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Headlines matched to this theme/i)).toBeInTheDocument()
+    /* Other-theme and direct-mention rows can't leak under the card. */
+    expect(screen.queryByText('Unrelated theme story')).toBeNull()
+    expect(screen.queryByText('Direct mention, no theme')).toBeNull()
   })
 
   it('saves a whole-book item from the composer', async () => {
@@ -302,6 +388,38 @@ describe('InvestAnalysisPage — pending suggestions', () => {
       expect(resolveSuggestion).toHaveBeenCalledWith('sug-g1', 'dismissed', 'dismissed'),
     )
     expect(saveGoal).not.toHaveBeenCalled()
+  })
+
+  it('tags a scan suggestion with its direction', async () => {
+    loadPendingSuggestions.mockResolvedValue([
+      {
+        ...pendingGoal,
+        id: 'sug-s1',
+        kind: 'scan',
+        title: 'US-China technology trade restrictions',
+        payload: {
+          title: 'US-China technology trade restrictions',
+          note: 'Export curbs could disrupt AMAT, AMD, ARM.',
+          theme: 'geopolitical',
+          direction: 'headwind',
+          symbols: ['AMAT', 'AMD', 'ARM'],
+        },
+      },
+      /* A malformed direction renders no tag rather than an invented one. */
+      {
+        ...pendingGoal,
+        id: 'sug-s2',
+        kind: 'scan',
+        title: 'Mystery factor',
+        payload: { title: 'Mystery factor', direction: 'sideways' },
+      },
+    ])
+    mount()
+    await waitFor(() =>
+      expect(screen.getByText(/US-China technology/)).toBeInTheDocument(),
+    )
+    expect(screen.getByText('Headwind')).toBeInTheDocument()
+    expect(screen.queryByText('sideways')).not.toBeInTheDocument()
   })
 
   it('saves Tally’s named scenario on accept — and skips a name twin', async () => {

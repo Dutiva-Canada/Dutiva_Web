@@ -126,7 +126,7 @@ const investCoreMessages = defineMessages({
   invest_legal_updated: { en: 'Last updated:', fr: 'Dernière mise à jour :' },
   invest_legal_effective: { en: 'Effective:', fr: 'Entrée en vigueur :' },
   invest_legal_contact: { en: 'Contact support', fr: 'Joindre l’assistance' },
-  invest_legal_hours: { en: 'Staffed', fr: 'Présence' },
+  invest_legal_hours: { en: 'Staffed hours:', fr: 'Heures de service :' },
 
   /* Notifications */
   invest_notif_title: { en: 'Notifications', fr: 'Notifications' },
@@ -316,6 +316,19 @@ const investCoreMessages = defineMessages({
   invest_ov_cash: { en: 'Cash', fr: 'Encaisse' },
   invest_ov_open_signals: { en: 'Open signals', fr: 'Signaux ouverts' },
   invest_ov_last_run: { en: 'Last agent run', fr: 'Dernière exécution de l’agent' },
+  /* Tile qualifier — what kind of run the timestamp belongs to. A sweep
+     evaluated nothing (heartbeat); an evaluation ran a strategy. */
+  /* [FR self-authored] */
+  invest_ov_last_run_sweep: { en: 'sweep', fr: 'balayage' },
+  /* [FR self-authored] */
+  invest_ov_last_run_overdue: { en: 'overdue', fr: 'en retard' },
+  /* [FR self-authored] */
+  invest_ov_last_run_overdue_hint: {
+    en: 'The daily agent sweep hasn’t landed in over a day — see the Agent page.',
+    fr: 'Le balayage quotidien n’a pas eu lieu depuis plus d’un jour — voir la page Agent.',
+  },
+  /* [FR self-authored] */
+  invest_ov_last_run_eval: { en: 'evaluation', fr: 'évaluation' },
   invest_ov_allocation: { en: 'Allocation by asset class', fr: 'Répartition par classe d’actifs' },
   invest_ov_recent_signals: { en: 'Latest signals', fr: 'Derniers signaux' },
   invest_ov_never_run: { en: 'Not run yet', fr: 'Jamais exécuté' },
@@ -596,14 +609,21 @@ const investCoreMessages = defineMessages({
   invest_sync_prices: { en: 'Refresh prices', fr: 'Actualiser les cours' },
   invest_syncing: { en: 'Refreshing…', fr: 'Actualisation…' },
   invest_sync_done: {
-    en: 'Prices refreshed — {count} symbol(s) updated.',
-    fr: 'Cours actualisés — {count} symbole(s) mis à jour.',
+    en: 'Prices refreshed — {symbols} updated.',
+    fr: 'Cours actualisés — {symbols} mis à jour.',
   },
+  invest_sync_symbol_one: { en: 'symbol', fr: 'symbole' },
+  invest_sync_symbol_many: { en: 'symbols', fr: 'symboles' },
   invest_sync_partial: {
     en: 'Some symbols could not be priced: {symbols}',
     fr: 'Certains symboles n’ont pas pu être évalués : {symbols}',
   },
   invest_prices_as_of: { en: 'Prices as of {time}', fr: 'Cours au {time}' },
+  invest_prices_stale: { en: 'stale', fr: 'obsolète' },
+  invest_prices_stale_hint: {
+    en: 'The price feed missed its usual window — marks may be old. Try Refresh prices.',
+    fr: 'Le flux de cours a raté sa fenêtre habituelle — les valorisations peuvent dater. Essayez Actualiser les cours.',
+  },
   invest_watchlist_title: { en: 'Watchlist', fr: 'Surveillance' },
   invest_watchlist_sub: {
     en: 'Symbols you don’t hold yet — priced on every refresh, and your dip rules can fire on them.',
@@ -641,6 +661,11 @@ const investCoreMessages = defineMessages({
     fr: 'Réduire la liste',
   },
   /* [FR self-authored] */
+  invest_news_via: {
+    en: 'via {theme}',
+    fr: 'via {theme}',
+  },
+  /* [FR self-authored] */
   invest_news_count: {
     en: '{count} headlines',
     fr: '{count} manchettes',
@@ -649,6 +674,77 @@ const investCoreMessages = defineMessages({
   invest_news_book: { en: 'Your book', fr: 'Votre portefeuille' },
   /* [FR self-authored] */
   invest_news_all: { en: 'All', fr: 'Tout' },
+  /* [FR self-authored] */
+  invest_news_range_aria: { en: 'Headline window', fr: 'Période des manchettes' },
+  /* [FR self-authored] */
+  invest_news_range_7d: { en: '7 days', fr: '7 jours' },
+  /* [FR self-authored] */
+  invest_news_range_14d: { en: '2 weeks', fr: '2 semaines' },
+  /* [FR self-authored] */
+  invest_news_range_30d: { en: '30 days', fr: '30 jours' },
+  /* [FR self-authored] Day-group headers over the headline list. */
+  invest_news_today: { en: 'Today', fr: 'Aujourd’hui' },
+  /* [FR self-authored] */
+  invest_news_yesterday: { en: 'Yesterday', fr: 'Hier' },
+  /* [FR self-authored] */
+  invest_news_undated: { en: 'Undated', fr: 'Non datées' },
+  /* [FR self-authored] Unscoped rows — no ticker, no theme link. */
+  invest_news_general: { en: 'General market', fr: 'Marché général' },
+  /* [FR self-authored] */
+  invest_news_filter_aria: { en: 'Filter headlines', fr: 'Filtrer les manchettes' },
+  /* [FR self-authored] Per-card control — mutes the publisher, not just
+     this headline. */
+  invest_news_mute: { en: 'Hide {source} headlines', fr: 'Masquer les manchettes de {source}' },
+  /* [FR self-authored] Label over the chips of muted publishers. */
+  invest_news_muted: { en: 'Muted:', fr: 'Masquées :' },
+  /* [FR self-authored] */
+  invest_news_unmute: { en: 'Show {source} again', fr: 'Réafficher {source}' },
+  /* [FR self-authored] Headline-kind badges — what the story is, not
+     whether it matters: something happened / an analyst note or opinion
+     / a writeup about the price itself. */
+  invest_news_kind_event: { en: 'Event', fr: 'Événement' },
+  /* [FR self-authored] */
+  invest_news_kind_view: { en: 'Analysis', fr: 'Analyse' },
+  /* [FR self-authored] */
+  invest_news_kind_move: { en: 'Price move', fr: 'Mouvement de cours' },
+  /* [FR self-authored] Position-disclosure churn — 'X Raises Holdings
+     in Y' restates a filing; badged so it reads as what it is. */
+  invest_news_kind_filing: { en: 'Filing', fr: 'Dépôt' },
+  /* [FR self-authored] Paywall toggle — state + action on one chip, same
+     shape as the muted-source chips. The count is headlines, not
+     publishers — it's what 'show' would reveal in the current view. */
+  invest_news_paywalled_hidden: {
+    en: '{n} subscription-only headlines hidden — show',
+    fr: '{n} manchettes de sources payantes masquées — afficher',
+  },
+  /* [FR self-authored] */
+  invest_news_paywalled_shown: {
+    en: 'Subscription-only sources shown — hide',
+    fr: 'Sources payantes affichées — masquer',
+  },
+  /* [FR self-authored] Chip tooltip naming the hidden publishers. */
+  invest_news_paywalled_sources: {
+    en: 'Subscription-only sources: {sources}',
+    fr: 'Sources payantes : {sources}',
+  },
+  /* [FR self-authored] When the window is empty the feed falls back to
+     all headlines on file — the chip stays pressed, so say so. */
+  invest_news_range_fallback: {
+    en: 'Quiet window — showing older headlines on file.',
+    fr: 'Période creuse — manchettes plus anciennes affichées.',
+  },
+  /* [FR self-authored] A mute write failed — surface it rather than
+     let the click die silently. */
+  invest_news_mute_failed: {
+    en: "Couldn't update that source filter — try again.",
+    fr: 'Impossible de modifier ce filtre — réessayez.',
+  },
+  /* [FR self-authored] Every row in view is filtered out (mutes or
+     paywall defaults) — an empty list with no note reads as a bug. */
+  invest_news_all_filtered: {
+    en: 'All headlines here are hidden by source filters.',
+    fr: 'Toutes les manchettes sont masquées par les filtres de source.',
+  },
 
   /* Track record (0223) — one mark per sweep-day; deposits and
      withdrawals are backed out so the change reads as performance,
@@ -689,6 +785,15 @@ const investCoreMessages = defineMessages({
   invest_curve_maxdd: { en: 'Deepest dip', fr: 'Creux maximal' },
   /* [FR self-authored] */
   invest_curve_since: { en: 'since {date}', fr: 'depuis le {date}' },
+  /* [FR self-authored] */
+  invest_curve_benchmark_note: {
+    en: 'dashed — {sym} rebased to your first mark',
+    fr: 'pointillés — {sym} ramené à votre premier relevé',
+  },
+  /* [FR self-authored] */
+  invest_curve_benchmark_row: { en: '{sym} (same start)', fr: '{sym} (même départ)' },
+  /* [FR self-authored] */
+  invest_curve_vs_bench: { en: 'vs {sym}', fr: 'vs {sym}' },
   /* [FR self-authored] */
   invest_curve_invested: { en: 'Invested', fr: 'Investi' },
   /* [FR self-authored] */
@@ -829,7 +934,7 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_stress_scenario_top15: { en: 'Top holding −15%', fr: 'Première position −15 %' },
   /* [FR self-authored] */
-  invest_stress_scenario_cad5: { en: 'CAD +5%', fr: 'CAD +5 %' },
+  invest_stress_scenario_cad5: { en: '{ccy} +5%', fr: '{ccy} +5 %' },
   /* [FR self-authored] */
   invest_stress_scenario_winners: { en: 'Winners give back 20%', fr: 'Les gagnants rendent 20 %' },
   /* [FR self-authored] */
@@ -900,6 +1005,39 @@ const investCoreMessages = defineMessages({
   invest_brief_title_day: { en: 'Today', fr: "Aujourd'hui" },
   /* [FR self-authored] */
   invest_brief_movers: { en: 'Overnight: {list}', fr: 'Pendant la nuit : {list}' },
+  /* Day variant — after noon the same numbers are today's session moves,
+     not overnight gaps. */
+  /* [FR self-authored] */
+  invest_brief_movers_day: { en: 'Session: {list}', fr: 'Séance : {list}' },
+  /* Mover context tails — "ASTS −8.5% — thesis broken, below your cost".
+     The strongest two attach so a bare % never stands in for why a move
+     matters to this book. */
+  /* [FR self-authored] */
+  invest_brief_mover_broken: { en: 'thesis broken', fr: 'thèse brisée' },
+  /* [FR self-authored] */
+  invest_brief_mover_drifting: { en: 'thesis drifting', fr: 'thèse en dérive' },
+  /* [FR self-authored] */
+  invest_brief_mover_signal: { en: 'signal fired', fr: 'signal déclenché' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_cost: { en: 'below your cost', fr: 'sous votre coût' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_ma: {
+    en: 'below its 50-day average',
+    fr: 'sous sa moyenne de 50 jours',
+  },
+  /* Plural tails — shared when several movers carry the identical tag
+     set, so the line never reads "its" about four positions at once. */
+  /* [FR self-authored] */
+  invest_brief_mover_broken_many: { en: 'theses broken', fr: 'thèses brisées' },
+  /* [FR self-authored] */
+  invest_brief_mover_drifting_many: { en: 'theses drifting', fr: 'thèses en dérive' },
+  /* [FR self-authored] */
+  invest_brief_mover_signal_many: { en: 'signals fired', fr: 'signaux déclenchés' },
+  /* [FR self-authored] */
+  invest_brief_mover_below_ma_many: {
+    en: 'below their 50-day averages',
+    fr: 'sous leur moyenne de 50 jours',
+  },
   /* [FR self-authored] */
   invest_brief_signal_one: { en: 'signal fired since yesterday', fr: 'signal déclenché depuis hier' },
   /* [FR self-authored] */
@@ -1303,17 +1441,29 @@ const investCoreMessages = defineMessages({
      she noticed from the book, and a question. Built client-side from
      InvestState so it costs no call and stays bilingual. [FR self-authored] */
   invest_chat_hi: { en: 'Hi — I’m Tally, the book’s watch clerk.', fr: 'Bonjour — je suis Tally, la surveillante du carnet.' },
-  invest_chat_hi_watch: {
-    en: '{count} symbols are on the watchlist.',
-    fr: '{count} symboles sont sous surveillance.',
+  invest_chat_hi_watch_one: {
+    en: 'symbol is on the watchlist.',
+    fr: 'symbole est sous surveillance.',
   },
-  invest_chat_hi_orders: {
-    en: '{count} orders are queued waiting on you.',
-    fr: '{count} ordres attendent votre validation.',
+  invest_chat_hi_watch_many: {
+    en: 'symbols are on the watchlist.',
+    fr: 'symboles sont sous surveillance.',
   },
-  invest_chat_hi_signals: {
-    en: '{count} open signals on the board.',
-    fr: '{count} signaux ouverts au tableau.',
+  invest_chat_hi_orders_one: {
+    en: 'order is waiting on you.',
+    fr: 'ordre attend votre validation.',
+  },
+  invest_chat_hi_orders_many: {
+    en: 'orders are waiting on you.',
+    fr: 'ordres attendent votre validation.',
+  },
+  invest_chat_hi_signals_one: {
+    en: 'open signal on the board.',
+    fr: 'signal ouvert au tableau.',
+  },
+  invest_chat_hi_signals_many: {
+    en: 'open signals on the board.',
+    fr: 'signaux ouverts au tableau.',
   },
   invest_chat_hi_ask: {
     en: 'What should the book record today?',
@@ -1451,17 +1601,31 @@ const investCoreMessages = defineMessages({
   /* Overview strip — one thing she noticed, built locally (no call).
      [FR self-authored] */
   invest_home_tally_label: { en: 'Tally noticed', fr: 'Tally a remarqué' },
-  invest_home_tally_orders: {
-    en: '{count} orders are queued waiting on you.',
-    fr: '{count} ordres attendent votre validation.',
+  /* pl() one/many pairs — the order count covers drafts too, so it says
+     'waiting on you', not 'queued'. */
+  invest_home_tally_orders_one: {
+    en: 'order is waiting on you.',
+    fr: 'ordre attend votre validation.',
   },
-  invest_home_tally_signals: {
-    en: '{count} open signals on the board.',
-    fr: '{count} signaux ouverts au tableau.',
+  invest_home_tally_orders_many: {
+    en: 'orders are waiting on you.',
+    fr: 'ordres attendent votre validation.',
   },
-  invest_home_tally_watch: {
-    en: 'Watching {count} symbols.',
-    fr: '{count} symboles sous surveillance.',
+  invest_home_tally_signals_one: {
+    en: 'open signal on the board.',
+    fr: 'signal ouvert au tableau.',
+  },
+  invest_home_tally_signals_many: {
+    en: 'open signals on the board.',
+    fr: 'signaux ouverts au tableau.',
+  },
+  invest_home_tally_watch_one: {
+    en: 'symbol on the watchlist.',
+    fr: 'symbole sous surveillance.',
+  },
+  invest_home_tally_watch_many: {
+    en: 'symbols on the watchlist.',
+    fr: 'symboles sous surveillance.',
   },
   invest_home_tally_open: { en: 'Chat with Tally', fr: 'Discuter avec Tally' },
   /* Tally's reads — deterministic one-liners on the computed cards. She

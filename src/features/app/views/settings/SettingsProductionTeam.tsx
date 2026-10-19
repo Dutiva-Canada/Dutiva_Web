@@ -14,13 +14,26 @@ import {
   removeOrgMember,
   revokeOrgInvitation,
   updateMemberRole,
+  updateMemberScope,
 } from '@/features/app/workspaceMode/api'
 import type { OrgDirectoryMember, OrgInvitation } from '@/features/app/workspaceMode/api'
 import type { OrgMemberRole } from '@/features/app/workspaceMode/roles'
+import { isModuleScopedRole } from '@/features/app/workspaceMode/roles'
+import {
+  MODULE_LABELS,
+  SCOPABLE_MODULES,
+} from '@/features/app/workspaceMode/workspaceModules'
 import { Card, Section } from './settingsPrimitives'
 
 /** Roles an admin may grant through the invite form and role picker. */
-const ASSIGNABLE_ROLES: OrgMemberRole[] = ['admin', 'manager', 'member', 'viewer']
+const ASSIGNABLE_ROLES: OrgMemberRole[] = [
+  'admin',
+  'manager',
+  'professional',
+  'member',
+  'consultant',
+  'viewer',
+]
 
 function roleLabel(role: string | null, x: (m: { en: string; fr: string }) => string): string {
   switch (role) {
@@ -53,6 +66,82 @@ const initialsOf = (name: string): string =>
 const fieldClass =
   'rounded-[9px] border border-border bg-bg px-[10px] py-[7px] text-[13px] text-text outline-none transition-[border-color] focus:border-navy'
 
+/** date input value ('YYYY-MM-DD') → end-of-day UTC ISO; '' → null. */
+function expiryFromInput(value: string): string | null {
+  if (!value) return null
+  const parsed = new Date(`${value}T23:59:59.999Z`)
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString()
+}
+
+/** ISO timestamp → date input value ('YYYY-MM-DD'); null/'' → ''. */
+function expiryToInput(iso: string | null): string {
+  return iso ? iso.slice(0, 10) : ''
+}
+
+interface ScopeFieldsProps {
+  readonly modules: string[]
+  readonly onToggleModule: (key: string) => void
+  readonly expiry: string
+  readonly onExpiryChange: (value: string) => void
+  readonly disabled?: boolean
+}
+
+/**
+ * The module-scope + expiry picker shared by the invite form and the
+ * per-member scope editor (migration 0244). Rendered only for scoped roles
+ * (consultant/viewer) — an empty module set means unscoped member access.
+ */
+function ScopeFields({
+  modules,
+  onToggleModule,
+  expiry,
+  onExpiryChange,
+  disabled = false,
+}: ScopeFieldsProps) {
+  const { x, lang } = useI18n()
+  return (
+    <div className="flex w-full flex-col gap-[8px]">
+      <div>
+        <span className="mb-[4px] block text-[12px] font-semibold text-text-muted">
+          {x(M.settings_team_scope_label)}
+        </span>
+        <p className="m-0 mb-[6px] text-[11.5px] leading-[1.4] text-text-faint">
+          {x(M.settings_team_scope_hint)}
+        </p>
+        <div className="grid grid-cols-2 gap-[6px] sm:grid-cols-3">
+          {SCOPABLE_MODULES.map((key) => (
+            <label key={key} className="flex items-center gap-[5px] text-[12px] text-text">
+              <input
+                type="checkbox"
+                checked={modules.includes(key)}
+                disabled={disabled}
+                onChange={() => onToggleModule(key)}
+              />
+              {pickL(MODULE_LABELS[key], lang)}
+            </label>
+          ))}
+        </div>
+      </div>
+      <div>
+        <label
+          htmlFor={disabled ? undefined : 'scope-expiry'}
+          className="mb-[4px] block text-[12px] font-semibold text-text-muted"
+        >
+          {x(M.settings_team_expiry)}
+        </label>
+        <input
+          id="scope-expiry"
+          type="date"
+          value={expiry}
+          disabled={disabled}
+          onChange={(e) => onExpiryChange(e.target.value)}
+          className={fieldClass}
+        />
+      </div>
+    </div>
+  )
+}
+
 /**
  * Production team management — member directory, email invites, role changes
  * and removals. Backed by org_member_directory / organization_invitations
@@ -69,8 +158,13 @@ export function SettingsProductionTeam() {
   const [invitations, setInvitations] = useState<OrgInvitation[]>([])
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<OrgMemberRole>('member')
+  const [inviteModules, setInviteModules] = useState<string[]>([])
+  const [inviteExpiry, setInviteExpiry] = useState('')
   const [inviting, setInviting] = useState(false)
   const [busyMember, setBusyMember] = useState<string | null>(null)
+  const [scopeEditId, setScopeEditId] = useState<string | null>(null)
+  const [scopeModules, setScopeModules] = useState<string[]>([])
+  const [scopeExpiry, setScopeExpiry] = useState('')
 
   const selfUserId = session?.user.id ?? ''
 
@@ -95,7 +189,12 @@ export function SettingsProductionTeam() {
     if (!email) return
     setInviting(true)
     try {
-      const result = await inviteOrgMember(organizationId, email, inviteRole)
+      /* Module scope rides the invite so a consultant's first sign-in is
+         already scoped — no window where they hold unscoped access. */
+      const result = await inviteOrgMember(organizationId, email, inviteRole, {
+        grantedModules: isModuleScopedRole(inviteRole) ? inviteModules : [],
+        accessExpiresAt: isModuleScopedRole(inviteRole) ? expiryFromInput(inviteExpiry) : null,
+      })
       if ('error' in result) {
         showToast(M.settings_team_invite_error, 'info')
       } else {
@@ -104,6 +203,8 @@ export function SettingsProductionTeam() {
           'ok',
         )
         setInviteEmail('')
+        setInviteModules([])
+        setInviteExpiry('')
         void load()
       }
     } finally {
@@ -139,6 +240,30 @@ export function SettingsProductionTeam() {
     if (ok) void load()
     setBusyMember(null)
   }
+
+  const openScopeEdit = (member: OrgDirectoryMember) => {
+    setScopeEditId(member.memberId)
+    setScopeModules(member.grantedModules)
+    setScopeExpiry(expiryToInput(member.accessExpiresAt))
+  }
+
+  const onSaveScope = async (member: OrgDirectoryMember) => {
+    if (busyMember) return
+    setBusyMember(member.memberId)
+    const ok = await updateMemberScope(member.memberId, {
+      grantedModules: scopeModules,
+      accessExpiresAt: expiryFromInput(scopeExpiry),
+    })
+    showToast(ok ? M.settings_team_scope_saved : M.settings_team_scope_error, ok ? 'ok' : 'info')
+    if (ok) {
+      setScopeEditId(null)
+      void load()
+    }
+    setBusyMember(null)
+  }
+
+  const toggleModule = (list: string[], key: string): string[] =>
+    list.includes(key) ? list.filter((k) => k !== key) : [...list, key]
 
   /* Last-owner guard: never let the UI offer removing/demoting the org's only
      owner — that would strand the tenant. */
@@ -178,21 +303,46 @@ export function SettingsProductionTeam() {
             members.map((m) => {
               const name = m.displayName || m.email
               const editable = canEditMember(m)
+              const scoped = isModuleScopedRole(m.role)
+              const scopeSummary = scoped
+                ? m.grantedModules.length > 0
+                  ? m.grantedModules
+                      .map((key) =>
+                        pickL(
+                          MODULE_LABELS[key as keyof typeof MODULE_LABELS] ?? {
+                            en: key,
+                            fr: key,
+                          },
+                          lang,
+                        ),
+                      )
+                      .join(', ')
+                  : x(M.settings_team_scope_all)
+                : null
               return (
-                <div key={m.memberId} className="flex items-center gap-[10px] px-[18px] py-[11px]">
-                  <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
-                    {m.status === 'active' ? (
-                      initialsOf(name)
-                    ) : (
-                      <UserRound size={14} strokeWidth={2} aria-hidden="true" />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13.5px] font-semibold text-text">{name}</div>
-                    {m.displayName && m.email && (
-                      <div className="truncate text-[12px] text-text-muted">{m.email}</div>
-                    )}
-                  </div>
+                <div key={m.memberId} className="px-[18px] py-[11px]">
+                  <div className="flex items-center gap-[10px]">
+                    <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
+                      {m.status === 'active' ? (
+                        initialsOf(name)
+                      ) : (
+                        <UserRound size={14} strokeWidth={2} aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13.5px] font-semibold text-text">{name}</div>
+                      {m.displayName && m.email && (
+                        <div className="truncate text-[12px] text-text-muted">{m.email}</div>
+                      )}
+                      {scopeSummary !== null && (
+                        <div className="truncate text-[11.5px] text-text-faint">
+                          {scopeSummary}
+                          {m.accessExpiresAt
+                            ? ` · ${pickL(M.settings_team_expires_on, lang).replaceAll('{date}', m.accessExpiresAt.slice(0, 10))}`
+                            : ''}
+                        </div>
+                      )}
+                    </div>
                   {editable ? (
                     <select
                       value={m.role ?? 'member'}
@@ -214,6 +364,19 @@ export function SettingsProductionTeam() {
                       {roleLabel(m.role, x)}
                     </span>
                   )}
+                  {editable && scoped && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        scopeEditId === m.memberId ? setScopeEditId(null) : openScopeEdit(m)
+                      }
+                      disabled={busyMember === m.memberId}
+                      aria-label={x(M.settings_team_scope_edit)}
+                      className="cursor-pointer rounded-[7px] border-none bg-transparent px-[9px] py-[4px] text-[12px] font-semibold text-text-muted transition-colors hover:bg-inset hover:text-text"
+                    >
+                      {x(M.settings_team_scope_edit)}
+                    </button>
+                  )}
                   {editable && (
                     <button
                       type="button"
@@ -224,6 +387,38 @@ export function SettingsProductionTeam() {
                     >
                       <Trash2 size={14} strokeWidth={2} aria-hidden="true" />
                     </button>
+                  )}
+                  </div>
+                  {scopeEditId === m.memberId && (
+                    <div className="mt-[10px] flex flex-col gap-[10px] rounded-[9px] border border-border-soft bg-bg px-[14px] py-[12px]">
+                      <ScopeFields
+                        modules={scopeModules}
+                        onToggleModule={(key) =>
+                          setScopeModules((prev) => toggleModule(prev, key))
+                        }
+                        expiry={scopeExpiry}
+                        onExpiryChange={setScopeExpiry}
+                        disabled={busyMember === m.memberId}
+                      />
+                      <div className="flex justify-end gap-[8px]">
+                        <button
+                          type="button"
+                          onClick={() => setScopeEditId(null)}
+                          disabled={busyMember === m.memberId}
+                          className="cursor-pointer rounded-[7px] border-none bg-transparent px-[9px] py-[4px] text-[12px] font-semibold text-text-muted hover:text-text"
+                        >
+                          {x(M.settings_team_scope_cancel)}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void onSaveScope(m)}
+                          disabled={busyMember === m.memberId}
+                          className="cursor-pointer rounded-[7px] border-none bg-navy px-[12px] py-[5px] text-[12px] font-semibold text-white disabled:opacity-60"
+                        >
+                          {x(M.settings_team_scope_save)}
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               )
@@ -296,6 +491,19 @@ export function SettingsProductionTeam() {
                 ))}
               </select>
             </div>
+            {isModuleScopedRole(inviteRole) && (
+              <div className="w-full rounded-[9px] border border-border-soft bg-bg px-[14px] py-[12px]">
+                <ScopeFields
+                  modules={inviteModules}
+                  onToggleModule={(key) =>
+                    setInviteModules((prev) => toggleModule(prev, key))
+                  }
+                  expiry={inviteExpiry}
+                  onExpiryChange={setInviteExpiry}
+                  disabled={inviting}
+                />
+              </div>
+            )}
             <button
               type="submit"
               disabled={inviting || !inviteEmail.trim()}

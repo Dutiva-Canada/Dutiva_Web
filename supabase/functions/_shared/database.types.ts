@@ -10015,6 +10015,27 @@ export type Database = {
         }
         Relationships: []
       }
+      invest_benchmark_marks: {
+        Row: {
+          close: number
+          fetched_at: string
+          mark_date: string
+          symbol: string
+        }
+        Insert: {
+          close: number
+          fetched_at?: string
+          mark_date: string
+          symbol: string
+        }
+        Update: {
+          close?: number
+          fetched_at?: string
+          mark_date?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       invest_book_snapshots: {
         Row: {
           account_id: string | null
@@ -10283,34 +10304,40 @@ export type Database = {
           asset_class: string
           fetched_at: string
           id: number
+          kind: string | null
           published_at: string | null
           source: string
           summary: string
           symbol: string
           title: string
           url: string
+          via_theme: string | null
         }
         Insert: {
           asset_class?: string
           fetched_at?: string
           id?: never
+          kind?: string | null
           published_at?: string | null
           source?: string
           summary?: string
           symbol?: string
           title: string
           url: string
+          via_theme?: string | null
         }
         Update: {
           asset_class?: string
           fetched_at?: string
           id?: never
+          kind?: string | null
           published_at?: string | null
           source?: string
           summary?: string
           symbol?: string
           title?: string
           url?: string
+          via_theme?: string | null
         }
         Relationships: []
       }
@@ -10318,6 +10345,7 @@ export type Database = {
         Row: {
           as_of: string
           asset_class: string
+          closes_30d: Json | null
           currency: string
           day_change_pct: number | null
           fundamentals: Json | null
@@ -10328,6 +10356,7 @@ export type Database = {
           ma200: number | null
           ma50: number | null
           price: number
+          quote_name: string
           ret_12m: number | null
           ret_1m: number | null
           ret_3m: number | null
@@ -10340,6 +10369,7 @@ export type Database = {
         Insert: {
           as_of?: string
           asset_class: string
+          closes_30d?: Json | null
           currency?: string
           day_change_pct?: number | null
           fundamentals?: Json | null
@@ -10350,6 +10380,7 @@ export type Database = {
           ma200?: number | null
           ma50?: number | null
           price: number
+          quote_name?: string
           ret_12m?: number | null
           ret_1m?: number | null
           ret_3m?: number | null
@@ -10362,6 +10393,7 @@ export type Database = {
         Update: {
           as_of?: string
           asset_class?: string
+          closes_30d?: Json | null
           currency?: string
           day_change_pct?: number | null
           fundamentals?: Json | null
@@ -10372,6 +10404,7 @@ export type Database = {
           ma200?: number | null
           ma50?: number | null
           price?: number
+          quote_name?: string
           ret_12m?: number | null
           ret_1m?: number | null
           ret_3m?: number | null
@@ -10412,6 +10445,24 @@ export type Database = {
           symbol?: string | null
           text?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      invest_news_source_mutes: {
+        Row: {
+          created_at: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          source?: string
           user_id?: string
         }
         Relationships: []
@@ -12184,9 +12235,11 @@ export type Database = {
       organization_invitations: {
         Row: {
           accepted_at: string | null
+          access_expires_at: string | null
           created_at: string
           email: string
           expires_at: string
+          granted_modules: string[]
           id: string
           invited_by: string | null
           organization_id: string
@@ -12196,9 +12249,11 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          access_expires_at?: string | null
           created_at?: string
           email: string
           expires_at?: string
+          granted_modules?: string[]
           id?: string
           invited_by?: string | null
           organization_id: string
@@ -12208,9 +12263,11 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          access_expires_at?: string | null
           created_at?: string
           email?: string
           expires_at?: string
+          granted_modules?: string[]
           id?: string
           invited_by?: string | null
           organization_id?: string
@@ -15700,18 +15757,21 @@ export type Database = {
       }
       workspace_preferences: {
         Row: {
+          active_organization_id: string | null
           mode: string
           onboarding: Json
           updated_at: string
           user_id: string
         }
         Insert: {
+          active_organization_id?: string | null
           mode?: string
           onboarding?: Json
           updated_at?: string
           user_id: string
         }
         Update: {
+          active_organization_id?: string | null
           mode?: string
           onboarding?: Json
           updated_at?: string
@@ -17489,6 +17549,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      org_member_has_module: {
+        Args: { check_module: string; check_org_id: string; check_user_id: string }
+        Returns: boolean
+      }
       organization_effective_plan: {
         Args: { p_organization_id: string }
         Returns: string
@@ -17511,7 +17575,7 @@ export type Database = {
         }[]
       }
       pr_keyword_check: {
-        Args: { p_keyword_id: string; p_position?: number | null }
+        Args: { p_keyword_id: string; p_position: number }
         Returns: undefined
       }
       process_expired_data_deletions: { Args: never; Returns: number }
@@ -17874,7 +17938,10 @@ export type Database = {
       trigger_candidate_job_agent: { Args: never; Returns: undefined }
       trigger_health_streak_notify: { Args: never; Returns: undefined }
       trigger_invest_bot: { Args: never; Returns: undefined }
-      trigger_invest_market_sync: { Args: never; Returns: undefined }
+      trigger_invest_market_sync: {
+        Args: { p_light?: boolean; p_news?: boolean }
+        Returns: undefined
+      }
       trigger_law_monitor: { Args: never; Returns: undefined }
       trigger_law_update_digest: { Args: never; Returns: undefined }
       trigger_policy_review_scheduler: { Args: never; Returns: undefined }
@@ -17883,6 +17950,7 @@ export type Database = {
       trigger_score_snapshots: { Args: never; Returns: undefined }
       trigger_signing_reminder_scheduler: { Args: never; Returns: undefined }
       trigger_support_call_scheduler: { Args: never; Returns: undefined }
+      trigger_support_notify_drain: { Args: never; Returns: undefined }
       update_capacity_config: {
         Args: {
           p_capacity_enforcement_enabled: boolean

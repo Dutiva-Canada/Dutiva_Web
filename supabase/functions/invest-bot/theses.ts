@@ -174,8 +174,13 @@ export function thesisBookContext(
     const snap = snapshots.find(
       (s) => s.asset_class === p.asset_class && s.symbol === p.symbol,
     )
-    if (!snap) continue
-    const v = toBook(p.quantity * snap.price, snap.currency)
+    /* A missing snapshot must not zero the position out of the mark —
+       the portal headline falls back snapshot → last mirrored price →
+       cost basis, and the permanent track record follows the same chain
+       (a transient feed gap would otherwise etch a fake dip). */
+    const px = snap?.price ?? p.last_price ?? (p.avg_cost > 0 ? p.avg_cost : null)
+    if (px === null) continue
+    const v = toBook(p.quantity * px, snap?.currency ?? p.currency ?? bookCurrency)
     if (v !== null) bookValue += v
   }
   return { bookValue, cashTotal, bookCurrency, toBook }

@@ -6,7 +6,9 @@
  * book it already loaded (no new data feeds, no model in the verdict)
  * and stamps status + eval_detail — the Analysis page renders straight
  * from the row. Statuses: 'on_track' → 'behind' (deadline under 30 days
- * and not met) → 'missed' (deadline passed) or 'achieved' (met).
+ * and not met, or materially behind pace — a quarter of the window
+ * gone with less than half the expected progress) → 'missed' (deadline
+ * passed) or 'achieved' (met).
  * 'achieved' and 'missed' are terminal — a finished goal doesn't
  * oscillate back and forth as prices move.
  *
@@ -41,6 +43,8 @@ export interface Goal {
       or missed, only on-track or achieved. */
   deadline: string | null
   status: GoalStatus
+  /** Row creation — the pace window runs from here to the deadline. */
+  created_at?: string | null
   last_evaluated_at?: string | null
 }
 
@@ -52,6 +56,9 @@ export interface GoalEvalDetail {
   /** 0–100 progress toward the target from the creation baseline —
       null when the metric can't read or the goal is already met. */
   progress_pct: number | null
+  /** 0–100 share of the created→deadline window already elapsed —
+      the pace expectation. Null for open-ended goals. */
+  expected_pct: number | null
   /** Days until the deadline — negative means it passed. */
   days_left: number | null
   /** Bilingual status line the card renders directly. */
@@ -193,6 +200,20 @@ function daysLeft(deadline: string, now: number): number {
   return Math.floor((end - now) / 86_400_000)
 }
 
+/** Pace expectation — the elapsed share of the created→deadline window
+    as 0–100. Null when the window can't read (no creation stamp, a
+    malformed or inverted range): silence isn't a verdict. */
+function expectedPct(
+  createdAt: string | null | undefined,
+  deadline: string,
+  now: number,
+): number | null {
+  const start = Date.parse(createdAt ?? '')
+  const end = Date.parse(`${deadline}T23:59:59Z`)
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null
+  return Math.max(0, Math.min(100, ((now - start) / (end - start)) * 100))
+}
+
 const fmtNum = (n: number): string =>
   Math.abs(n) >= 1000 ? Math.round(n).toLocaleString('en-CA') : `${Math.round(n * 10) / 10}`
 const fmtNumFr = (n: number): string =>
@@ -241,6 +262,11 @@ function goalLine(
 const TERMINAL: ReadonlySet<GoalStatus> = new Set(['achieved', 'missed'])
 /** A 'behind' flag only earns its name this close to the deadline. */
 const BEHIND_DAYS = 30
+/** Or this far off pace: once a quarter of the created→deadline window
+    has run, progress under half of expected reads 'behind' — a goal
+    untouched for most of its window no longer claims 'on_track'. */
+const PACE_MIN_PCT = 25
+const PACE_RATIO = 0.5
 
 /** Re-measure every goal against the book. Terminal statuses stick —
     an achieved goal stays achieved even if the metric drifts back. */
@@ -253,21 +279,25 @@ export function evaluateGoals(
   return goals.map((g) => {
     const current = goalCurrent(g.metric, ctx)
     const baseline = g.baseline ?? current
+    const left = g.deadline ? daysLeft(g.deadline, now) : null
+    const expected = g.deadline ? expectedPct(g.created_at, g.deadline, now) : null
+    const progress =
+      current !== null ? goalProgress(g.op, current, g.target, baseline) : null
     let status: GoalStatus
     if (TERMINAL.has(g.status)) {
       status = g.status
     } else if (current !== null && goalMet(g.op, current, g.target)) {
       status = 'achieved'
-    } else if (g.deadline) {
-      const left = daysLeft(g.deadline, now)
-      if (left < 0) status = 'missed'
-      else status = left <= BEHIND_DAYS ? 'behind' : 'on_track'
+    } else if (left !== null && left < 0) {
+      status = 'missed'
     } else {
-      status = 'on_track'
+      const offPace =
+        progress !== null &&
+        expected !== null &&
+        expected >= PACE_MIN_PCT &&
+        progress < expected * PACE_RATIO
+      status = (left !== null && left <= BEHIND_DAYS) || offPace ? 'behind' : 'on_track'
     }
-    const left = g.deadline ? daysLeft(g.deadline, now) : null
-    const progress =
-      current !== null ? goalProgress(g.op, current, g.target, baseline) : null
     const line =
       current !== null
         ? goalLine(g.metric, status, {
@@ -295,6 +325,7 @@ export function evaluateGoals(
         target: g.target,
         op: g.op,
         progress_pct: progress,
+        expected_pct: expected,
         days_left: left,
         line_en: line.en,
         line_fr: line.fr,

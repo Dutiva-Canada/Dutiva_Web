@@ -88,6 +88,7 @@ async function equityEntry(symbol: string): Promise<MarketContextEntry> {
     price: chart?.price ?? null,
     currency: chart?.currency ?? currency,
     dayChangePct: chart?.dayChangePct ?? null,
+    closes30d: chart && chart.closes.length > 0 ? chart.closes.slice(-30) : undefined,
     ma50: tech?.ma50 ?? null,
     ma200: tech?.ma200 ?? null,
     rsi14: tech?.rsi14 ?? null,
@@ -119,13 +120,15 @@ async function cryptoEntry(
     headlinesFor(symbol, 'crypto'),
   ])
   const histJson = tryParseJson(histRaw)
-  const tech = histJson ? technicalPack(parseCoingeckoCloses(histJson)) : null
+  const closes = histJson ? parseCoingeckoCloses(histJson) : []
+  const tech = closes.length > 0 ? technicalPack(closes) : null
   return {
     symbol,
     assetClass: 'crypto',
     price: quote?.price ?? null,
     currency,
     dayChangePct: quote?.day_change_pct ?? null,
+    closes30d: closes.length > 0 ? closes.slice(-30) : undefined,
     ma50: tech?.ma50 ?? null,
     ma200: tech?.ma200 ?? null,
     rsi14: tech?.rsi14 ?? null,

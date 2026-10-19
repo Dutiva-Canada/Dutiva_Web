@@ -613,6 +613,12 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_thesis_never: { en: 'Not evaluated yet — the next sweep reads it.', fr: 'Pas encore évaluée — le prochain balayage la lira.' },
   invest_thesis_posture: { en: 'Posture', fr: 'Position' },
   invest_thesis_edit: { en: 'Edit', fr: 'Modifier' },
+  /* The composer's h1 names the subject — a bare "Edit"/"Modifier" reads
+     as a verb with no object. [FR self-authored] */
+  invest_thesis_edit_title: { en: 'Edit — {sym}', fr: 'Modifier — {sym}' },
+  /* Suffix marking a non-held candidate inside the symbol picker —
+     "QBTC · watchlist" / « QBTC · suivi ». [FR self-authored] */
+  invest_thesis_watch_tag: { en: 'watchlist', fr: 'suivi' },
   invest_thesis_delete: { en: 'Delete', fr: 'Supprimer' },
   invest_thesis_delete_confirm: { en: 'Tap again to confirm', fr: 'Retoucher pour confirmer' },
   invest_thesis_new: { en: 'New thesis', fr: 'Nouvelle thèse' },
@@ -706,12 +712,18 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_goal_deleted: { en: 'Goal removed.', fr: 'Objectif supprimé.' },
   invest_goal_failed: { en: 'Couldn’t save the goal — {error}', fr: 'Enregistrement de l’objectif impossible — {error}' },
   invest_goal_status_on_track: { en: 'On track', fr: 'En voie' },
+  /* Deadline-less goals can't be behind — but "On track" at 0% would
+     claim a pace there isn't. Neutral tag for the open-ended case. */
+  /* [FR self-authored] */
+  invest_goal_status_open: { en: 'In progress', fr: 'En cours' },
   invest_goal_status_behind: { en: 'At risk', fr: 'En péril' },
   invest_goal_status_achieved: { en: 'Achieved', fr: 'Atteint' },
   invest_goal_status_missed: { en: 'Missed', fr: 'Manqué' },
   invest_goal_current: { en: 'Now {value}', fr: 'Actuellement {value}' },
   invest_goal_never: { en: 'Measured on the next sweep.', fr: 'Mesuré au prochain balayage.' },
   invest_goal_evaluated: { en: 'Measured {when}', fr: 'Mesuré {when}' },
+  /* [FR self-authored] */
+  invest_goal_pace: { en: 'Pace — about {pct}% by now', fr: 'Rythme — environ {pct} % à ce stade' },
   invest_goal_delete: { en: 'Delete', fr: 'Supprimer' },
   invest_goal_edit: { en: 'Edit', fr: 'Modifier' },
   invest_goal_suggest_accept: { en: 'Set the goal', fr: 'Fixer l’objectif' },
@@ -741,6 +753,10 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_scan_symbols: { en: 'Symbols it could touch', fr: 'Symboles touchés' },
   invest_scan_all_book: { en: 'Whole book', fr: 'Tout le carnet' },
   invest_scan_stale: { en: 'Stale — due a review', fr: 'Périmé — à revoir' },
+  invest_scan_news_head: {
+    en: 'Headlines matched to this theme',
+    fr: 'Manchettes associées à ce thème',
+  },
   invest_scan_reviewed: { en: 'Reviewed {when}', fr: 'Revue {when}' },
   invest_scan_mark: { en: 'Mark reviewed', fr: 'Marquer revue' },
   invest_scan_save: { en: 'Save item', fr: 'Enregistrer' },

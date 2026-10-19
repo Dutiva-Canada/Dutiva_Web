@@ -130,19 +130,29 @@ export function mockProductionWorkspace({
             }),
           }
         }
+        /* The membership read walks select().eq().eq().or().order() and
+           resolves to a row array (0244 multi-org). */
         if (table === 'organization_members') {
           return {
             select: () => ({
               eq: () => ({
                 eq: () => ({
-                  order: () => ({
-                    limit: () => ({
-                      maybeSingle: () =>
-                        Promise.resolve({
-                          data: organizationId ? { organization_id: organizationId } : null,
-                          error: null,
-                        }),
-                    }),
+                  or: () => ({
+                    order: () =>
+                      Promise.resolve({
+                        data: organizationId
+                          ? [
+                              {
+                                organization_id: organizationId,
+                                role: 'owner',
+                                granted_modules: [],
+                                access_expires_at: null,
+                                organizations: { name: 'Dutiva Canada Inc.' },
+                              },
+                            ]
+                          : [],
+                        error: null,
+                      }),
                   }),
                 }),
               }),

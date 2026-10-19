@@ -10,7 +10,7 @@ import {
   policyEditionResource,
 } from '@/features/marketing/legal/policyContent'
 import type { PolicyEdition } from '@/features/marketing/legal/policyContent'
-import { SUPPORT_CHANNELS, SUPPORT_HOURS } from '@/config/support'
+import { SUPPORT_CHANNELS, staffedHoursLine } from '@/config/support'
 import { PrFooter } from './PrFooter'
 import { usePrHead } from './usePrHead'
 
@@ -199,9 +199,7 @@ function SupportCard() {
           </a>
         )}
         <p className="m-0 text-[12.5px] text-text-muted">
-          {x(PM.pr_legal_hours)} {SUPPORT_HOURS.startHour}–{SUPPORT_HOURS.endHour}{' '}
-          {L(SUPPORT_HOURS.timezoneLabel.en, SUPPORT_HOURS.timezoneLabel.fr)} ·{' '}
-          {L(SUPPORT_HOURS.holidayJurisdiction.en, SUPPORT_HOURS.holidayJurisdiction.fr)}
+          {x(PM.pr_legal_hours)} {staffedHoursLine(L)}
         </p>
       </div>
     </div>

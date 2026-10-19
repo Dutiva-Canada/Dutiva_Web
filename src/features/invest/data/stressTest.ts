@@ -231,28 +231,101 @@ export function runStress(input: {
   goals: InvestGoal[]
   watchSymbols: string[]
   cashTotal: number
+  /** Per-account cash legs (amount + its own currency) — lets an FX
+     shock revalue foreign-denominated cash. Absent: cashTotal stands. */
+  cashLegs?: { amount: number; currency: string }[]
   bookCcy: string
   fx: FxTable | null
   shocks: Shock[]
 }): StressResult {
   const { snaps, unmatched } = applyShocks(input.snapshots, input.shocks, input.bookCcy)
 
+  /* FX-shock multiplier for a currency leg — a foreign-denominated
+     balance shrinks when the book currency strengthens. */
+  const fxShockScale = (ccy: string): number => {
+    let s = 1
+    for (const sh of input.shocks) {
+      if ((sh.kind ?? 'price') === 'fx' && sh.match === 'ALL' && ccy.toUpperCase() !== input.bookCcy) {
+        s *= 1 / (1 + sh.pct / 100)
+      }
+    }
+    return s
+  }
+
+  /* Cash legs convert per-account, then scale under an FX shock — a USD
+     balance's book value moves with the book currency, not with prices. */
+  const legValue = (l: { amount: number; currency: string }, shocked: boolean): number => {
+    const c = convertFx(l.amount, l.currency, input.bookCcy, input.fx)
+    return c === null ? 0 : c * (shocked ? fxShockScale(l.currency) : 1)
+  }
+  const unshockedCash =
+    input.cashLegs === undefined
+      ? input.cashTotal
+      : input.cashLegs.reduce((t, l) => t + legValue(l, false), 0)
+  const shockedCash =
+    input.cashLegs === undefined
+      ? input.cashTotal
+      : input.cashLegs.reduce((t, l) => t + legValue(l, true), 0)
+
   const ctx: EvalCtx = {
-    cashTotal: input.cashTotal,
+    cashTotal: shockedCash,
     bookCcy: input.bookCcy,
     fx: input.fx,
     bookValue: 0,
   }
-  /* Shocked book value — cash doesn't move under a price shock (the FX
-     scenario leaves it: account cash is already denominated in its own
-     currency). Positions re-mark under the shocked snaps. */
-  let book = input.cashTotal
+
+  /* A position without a snapshot isn't valueless — fall back to the
+     sync's last write-back, then cost basis (the same chain the book
+     mark and portal use). Both shock kinds still apply to that mark:
+     price-kind scale the price, fx-kind scale the conversion. */
+  const fallbackMark = (
+    p: InvestPosition,
+    shocked: boolean,
+  ): { px: number; scale: number } | null => {
+    const base = p.lastPrice ?? (p.avgCost > 0 ? p.avgCost : null)
+    if (base === null) return null
+    let px = base
+    let scale = 1
+    if (shocked) {
+      for (const sh of input.shocks) {
+        const hit = sh.match === 'ALL' || p.symbol.toUpperCase() === sh.match.toUpperCase()
+        if (!hit) continue
+        if ((sh.kind ?? 'price') === 'fx') {
+          if (p.currency.toUpperCase() !== input.bookCcy) scale *= 1 / (1 + sh.pct / 100)
+        } else {
+          px *= 1 + sh.pct / 100
+        }
+      }
+    }
+    return { px, scale }
+  }
+
+  const positionValue = (
+    p: InvestPosition,
+    snap: ShockedSnap | undefined,
+    shocked: boolean,
+  ): number | null => {
+    if (snap) return toBook(p.quantity * snap.price, snap.currency, ctx, snap.bookScale)
+    const m = fallbackMark(p, shocked)
+    if (!m) return null
+    const c = convertFx(
+      p.quantity * m.px,
+      p.currency || input.bookCcy,
+      input.bookCcy,
+      input.fx,
+    )
+    return c === null ? null : c * m.scale
+  }
+
+  /* Shocked book value — cash moves only under an FX shock. Positions
+     re-mark under the shocked snaps, or under their own shocked
+     fallback mark when no snapshot covers them. */
+  let book = shockedCash
   for (const p of input.positions) {
     const snap = snaps.find(
       (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
     )
-    if (!snap) continue
-    const v = positionBookValue(p, snap, ctx)
+    const v = positionValue(p, snap, true)
     if (v !== null) book += v
   }
   ctx.bookValue = book
@@ -309,10 +382,21 @@ export function runStress(input: {
     const snap = snaps.find(
       (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
     )
-    if (!snap) continue
-    const v = positionBookValue(p, snap, ctx)
+    const v = positionValue(p, snap, true)
     if (v !== null) marks.push(v)
-    const g = metricValue('unrealized_gain_pct', snap, p, ctx)
+    const g = snap
+      ? metricValue('unrealized_gain_pct', snap, p, ctx)
+      : (() => {
+          /* Unpriced row — the gain still reads off the shocked fallback
+             mark vs cost, never dropped from the book-level metric. */
+          const m = fallbackMark(p, true)
+          if (!m || p.avgCost <= 0) return null
+          const px = toBook(m.px, p.currency || input.bookCcy, ctx, m.scale)
+          const cost = toBook(p.avgCost, p.currency || input.bookCcy, ctx)
+          return px === null || cost === null || cost === 0
+            ? null
+            : ((px - cost) / cost) * 100
+        })()
     if (g !== null) gainPcts.push(g)
   }
   const thesised = input.positions.filter((p) =>
@@ -355,13 +439,14 @@ export function runStress(input: {
   /* The delta reads against the same marks UNSHOCKED — recomputing the
      current book with the same conversion path keeps the comparison
      apples-to-apples (state totals could be FX-stale by a day). */
-  let currentBook = input.cashTotal
+  let currentBook = unshockedCash
   for (const p of input.positions) {
     const snap = input.snapshots.find(
       (s) => s.assetClass === p.assetClass && s.symbol === p.symbol,
     )
-    if (!snap) continue
-    const v = convertFx(p.quantity * snap.price, snap.currency, input.bookCcy, input.fx)
+    const v = snap
+      ? convertFx(p.quantity * snap.price, snap.currency, input.bookCcy, input.fx)
+      : positionValue(p, undefined, false)
     if (v !== null) currentBook += v
   }
 
@@ -385,5 +470,6 @@ const EMPTY_SNAP: ShockedSnap = {
   currency: '',
   source: '',
   asOf: '',
+  quoteName: '',
   bookScale: 1,
 }

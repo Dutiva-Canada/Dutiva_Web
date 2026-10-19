@@ -271,6 +271,13 @@ describe('tallyNoticed', () => {
     expect(r?.text).toContain('2 orders')
   })
 
+  it('singularizes in both languages — no "1 orders"', () => {
+    expect(tallyNoticed({ ...base, orders: [{ status: 'queued' }] }, 'en')?.text).toContain('1 order')
+    expect(tallyNoticed({ ...base, orders: [{ status: 'queued' }] }, 'fr')?.text).toContain('1 ordre')
+    expect(tallyNoticed({ ...base, signals: [{ status: 'new' }] }, 'en')?.text).toContain('1 open signal')
+    expect(tallyNoticed({ ...base, watchlist: [{}] }, 'en')?.text).toContain('1 symbol')
+  })
+
   it('falls through to signals, then the watchlist, then nothing', () => {
     expect(
       tallyNoticed({ ...base, signals: [{ status: 'new' }] }, 'en')?.kind,

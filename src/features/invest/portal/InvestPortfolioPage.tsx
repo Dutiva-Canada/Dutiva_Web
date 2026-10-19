@@ -34,6 +34,7 @@ import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from 
 import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { suggestionIcon } from './suggestionIcons'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
+import { isQuoteStale } from '@/features/invest/data/freshness'
 import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
 import { newRulePersistId } from './ruleDrafts'
 import { TallyNote } from './TallyNote'
@@ -80,9 +81,8 @@ const kindHelp: Record<AccountKind, keyof typeof IM> = {
 
 type PosSortKey = 'symbol' | 'account' | 'price' | 'value' | 'pnl'
 
-/* A quote older than this reads stale rather than current — the sync runs
-   daily, so past ~3 days means the symbol fell out of the feed. */
-const STALE_MS = 3 * 86_400_000
+/* Quotes read stale on the session-aware threshold in freshness.ts —
+   90 min during market hours, ~26h otherwise. */
 
 /** Portfolios tab — accounts, positions, manual price updates. */
 export function InvestPortfolioPage() {
@@ -158,6 +158,13 @@ export function InvestPortfolioPage() {
      currency that matches the feed instead of defaulting to CAD. */
   const snapCur = useMemo(
     () => new Map(state.snapshots.map((s) => [`${s.assetClass}|${s.symbol}`, s.currency])),
+    [state.snapshots],
+  )
+  /* Symbol → the name the feed resolved it to. Rows show it when the
+     user never entered a name — a mistyped ticker prices as whatever the
+     feed found, and the resolved name is the only way to see that. */
+  const snapName = useMemo(
+    () => new Map(state.snapshots.map((s) => [`${s.assetClass}|${s.symbol}`, s.quoteName])),
     [state.snapshots],
   )
   /* The newest quote timestamp on the page — freshness should be stated,
@@ -282,7 +289,10 @@ export function InvestPortfolioPage() {
       setSyncNote(
         r.failed.length > 0
           ? x(IM.invest_sync_partial).replace('{symbols}', r.failed.join(', '))
-          : x(IM.invest_sync_done).replace('{count}', String(r.synced)),
+          : x(IM.invest_sync_done).replace(
+              '{symbols}',
+              pl(lang, r.synced, IM.invest_sync_symbol_one, IM.invest_sync_symbol_many),
+            ),
       )
       await refresh()
     } catch {
@@ -326,9 +336,10 @@ export function InvestPortfolioPage() {
           px,
           pxAt,
           pxCur,
+          quoteName: snap?.quoteName ?? '',
           converted: pxNative !== null && px !== null && pxCur !== p.currency,
           noFx: pxNative !== null && px === null,
-          stale: pxAt !== null && Date.now() - Date.parse(pxAt) > STALE_MS,
+          stale: isQuoteStale(pxAt),
           value: px === null ? null : p.quantity * px,
           pnl: px === null ? null : (px - p.avgCost) * p.quantity,
           pnlPct: px === null || p.avgCost === 0 ? null : (px / p.avgCost - 1) * 100,
@@ -765,11 +776,17 @@ export function InvestPortfolioPage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map(({ p, px, pxAt, stale, converted, value, pnl, pnlPct }) => (
+                {sorted.map(({ p, px, pxAt, stale, converted, value, pnl, pnlPct, quoteName }) => (
                   <tr key={p.id}>
                     <td>
                       <span className="strong">{p.symbol}</span>
-                      <span className="dim" style={{ marginLeft: 6 }}>{p.name}</span>
+                      {/* The user's own label first; when the name field is
+                          just the ticker (bulk add, quick entry), the
+                          feed-resolved name says what the symbol actually
+                          priced — a typo can't hide behind itself. */}
+                      <span className="dim" style={{ marginLeft: 6 }}>
+                        {p.name && p.name !== p.symbol ? p.name : quoteName}
+                      </span>
                       {p.currency && p.currency !== 'CAD' && (
                         <span className="dim" style={{ marginLeft: 6 }}>{p.currency}</span>
                       )}
@@ -1070,12 +1087,19 @@ export function InvestPortfolioPage() {
         ) : (
           <>
           <ul className="sb-chips">
-            {state.watchlist.map((w) => (
+            {state.watchlist.map((w) => {
+              /* A bare-symbol entry borrows the feed-resolved name, so
+                 'RKTB' can be seen to have priced as something else. */
+              const label =
+                w.name && w.name !== w.symbol
+                  ? w.name
+                  : (snapName.get(`${w.assetClass}|${w.symbol}`) ?? '')
+              return (
               <li key={w.id} className="sb-chip-sym">
                 {w.symbol}
-                {w.name && w.name !== w.symbol && (
+                {label && (
                   <span className="dim" style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {w.name}
+                    {label}
                   </span>
                 )}
                 <button
@@ -1096,7 +1120,8 @@ export function InvestPortfolioPage() {
                   <X size={14} aria-hidden="true" />
                 </button>
               </li>
-            ))}
+              )
+            })}
           </ul>
           {alertSym && (
             <WatchAlertForm

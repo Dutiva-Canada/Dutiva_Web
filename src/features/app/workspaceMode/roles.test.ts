@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { isAdminRole, isOrgMemberRole, roleAtLeast } from './roles'
+import {
+  isAdminRole,
+  isModuleScopedRole,
+  isOrgMemberRole,
+  memberModuleScope,
+  roleAtLeast,
+} from './roles'
 
 describe('roleAtLeast', () => {
   it('orders viewer < member < manager < admin < owner', () => {
@@ -32,5 +38,38 @@ describe('isOrgMemberRole', () => {
     expect(isOrgMemberRole('viewer')).toBe(true)
     expect(isOrgMemberRole('superuser')).toBe(false)
     expect(isOrgMemberRole(null)).toBe(false)
+  })
+})
+
+describe('isModuleScopedRole', () => {
+  it('scopes exactly the roles org_member_has_module restricts (0244)', () => {
+    expect(isModuleScopedRole('consultant')).toBe(true)
+    expect(isModuleScopedRole('viewer')).toBe(true)
+    expect(isModuleScopedRole('member')).toBe(false)
+    expect(isModuleScopedRole('professional')).toBe(false)
+    expect(isModuleScopedRole('admin')).toBe(false)
+    expect(isModuleScopedRole('owner')).toBe(false)
+    expect(isModuleScopedRole(null)).toBe(false)
+  })
+})
+
+describe('memberModuleScope', () => {
+  it('returns the grant list only for scoped roles with a non-empty list', () => {
+    expect(memberModuleScope('consultant', ['cases', 'documents'])).toEqual([
+      'cases',
+      'documents',
+    ])
+    expect(memberModuleScope('viewer', ['finance'])).toEqual(['finance'])
+  })
+
+  it('treats an empty list on a scoped role as unscoped', () => {
+    expect(memberModuleScope('consultant', [])).toBeNull()
+    expect(memberModuleScope('consultant', null)).toBeNull()
+  })
+
+  it('ignores the list entirely on unscoped roles', () => {
+    expect(memberModuleScope('member', ['cases'])).toBeNull()
+    expect(memberModuleScope('admin', ['cases'])).toBeNull()
+    expect(memberModuleScope(null, ['cases'])).toBeNull()
   })
 })

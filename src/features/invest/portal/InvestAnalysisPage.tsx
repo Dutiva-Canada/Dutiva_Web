@@ -36,9 +36,9 @@ import type {
   ScanTheme,
   StressShock,
 } from '../data/types'
-import { GOAL_METRICS } from '../data/types'
+import { GOAL_METRICS, SCAN_DIRECTIONS } from '../data/types'
 import { relTimeLabel } from './relTime'
-import { fmtDay, fmtNum, fmtPct } from './strategyUi'
+import { fmtDay, fmtNum, fmtPct, SCAN_DIR_LABEL, SCAN_DIR_PILL } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
 import { StressTest } from './StressTest'
 import { InfoHint } from './InfoHint'
@@ -363,6 +363,14 @@ export function InvestAnalysisPage() {
             {pending.map((s) => {
               const KindIcon = suggestionIcon(s.kind)
               const p = (s.payload ?? {}) as Record<string, unknown>
+              /* Scan suggestions carry a direction — surface it on the
+                 row like the board does, not just in the note's prose. */
+              const dir =
+                s.kind === 'scan' &&
+                typeof p.direction === 'string' &&
+                (SCAN_DIRECTIONS as readonly string[]).includes(p.direction)
+                  ? (p.direction as ScanDirection)
+                  : null
               const title =
                 lang === 'fr' && typeof p.title_fr === 'string' ? p.title_fr : s.title
               const detail =
@@ -381,6 +389,11 @@ export function InvestAnalysisPage() {
                   <KindIcon size={15} className="sb-notify-ico" aria-hidden="true" />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <strong>{title}</strong>
+                    {dir && (
+                      <span className={`sb-pill ${SCAN_DIR_PILL[dir]}`} style={{ marginLeft: 8 }}>
+                        {x(IM[SCAN_DIR_LABEL[dir]])}
+                      </span>
+                    )}
                     {detail && <span className="sb-notify-hint">{detail}</span>}
                   </span>
                   <span className="sb-row-actions" style={{ flexShrink: 0 }}>
@@ -573,9 +586,17 @@ export function InvestAnalysisPage() {
                   <article key={g.id} className="sb-goal">
                     <header className="sb-goal-head">
                       <strong>{g.title}</strong>
-                      <span className={`sb-pill ${GOAL_STATUS_PILL[g.status]}`}>
-                        {x(IM[GOAL_STATUS_LABEL[g.status]])}
-                      </span>
+                      {/* A deadline-less goal can't be "behind", but a green
+                          "On track" at 0% also asserts a pace that doesn't
+                          exist — open goals get a neutral in-progress tag. */}
+                      {(() => {
+                        const open = g.status === 'on_track' && !g.deadline
+                        return (
+                          <span className={`sb-pill ${open ? 'sb-pill-paused' : GOAL_STATUS_PILL[g.status]}`}>
+                            {x(open ? IM.invest_goal_status_open : IM[GOAL_STATUS_LABEL[g.status]])}
+                          </span>
+                        )
+                      })()}
                     </header>
                     {g.detail && <p className="sb-goal-detail">{g.detail}</p>}
                     <div className="sb-goal-metric">
@@ -589,19 +610,41 @@ export function InvestAnalysisPage() {
                       </span>
                     </div>
                     {pct !== null && pct !== undefined && (
-                      <div
-                        className="sb-goalbar"
-                        role="progressbar"
-                        aria-valuenow={Math.round(Math.min(100, Math.max(0, pct)))}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      >
-                        <span
-                          className="sb-goalbar-fill"
-                          /* over-100 progress must not bleed past the track */
-                          style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
-                        />
-                      </div>
+                      <>
+                        <div
+                          className="sb-goalbar"
+                          role="progressbar"
+                          aria-valuenow={Math.round(Math.min(100, Math.max(0, pct)))}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <span
+                            className="sb-goalbar-fill"
+                            /* over-100 progress must not bleed past the track */
+                            style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
+                          />
+                          {/* The pace tick marks where the goal should be
+                              by now — progress short of it is "At risk". */}
+                          {g.evalDetail?.expected_pct !== null &&
+                            g.evalDetail?.expected_pct !== undefined && (
+                              <span
+                                className="sb-goalbar-pace"
+                                style={{
+                                  left: `${Math.min(100, Math.max(0, g.evalDetail.expected_pct))}%`,
+                                }}
+                              />
+                            )}
+                        </div>
+                        {g.evalDetail?.expected_pct !== null &&
+                          g.evalDetail?.expected_pct !== undefined &&
+                          (g.status === 'on_track' || g.status === 'behind') && (
+                            <p className="sb-goal-pace dim">
+                              {fill(x(IM.invest_goal_pace), {
+                                pct: String(Math.round(g.evalDetail.expected_pct)),
+                              })}
+                            </p>
+                          )}
+                      </>
                     )}
                     {line && <p className="sb-goal-line">{line}</p>}
                     <footer className="sb-thesis-foot">

@@ -331,13 +331,14 @@ export async function runChat(
   ]
 
   /* Post-generation boundary — runs on every reply, either tier. The
-     clinical line binds everyone (never diagnose, never name illness,
-     medication, or treatment); external replies also get the directed-
-     suggestion screen — the external register sanctions one small
-     offered suggestion, not directives. A flag buys ONE non-streamed
-     repair round; a still-flagged reply is replaced with the fixed
-     fallback and loses its suggests and action — both came from the same
-     drifted payload, and an unasked action is half the leak. */
+     clinical line binds everyone — nothing clinical applied to the
+     person, no substances, no steering toward care; general topic
+     answers stay in scope — and external replies also get the directed-
+     suggestion screen (one small offered suggestion, not directives).
+     A flag buys ONE non-streamed repair round; a still-flagged reply is
+     replaced with the fixed fallback and loses its suggests and action —
+     both came from the same drifted payload, and an unasked action is
+     half the leak. */
   const screenReply = async (draft: ChatReply): Promise<{ reply: ChatReply; reasoning: string }> => {
     const flags = detectHealthFlags(draft.reply, lang, advice)
     if (flags.length === 0) return { reply: draft, reasoning: '' }

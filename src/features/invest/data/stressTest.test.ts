@@ -21,6 +21,7 @@ const snap = (
   currency: 'CAD',
   source: 'test',
   asOf: '2025-01-01',
+  quoteName: '',
   ...extra,
 })
 
@@ -235,5 +236,41 @@ describe('runStress', () => {
     })
     /* AAPL 90 USD × 10 = 900 USD → CAD at 0.7 USD/CAD = 1285.71 + 500 cash. */
     expect(res.bookValue).toBeCloseTo(900 / 0.7 + 500, 0)
+  })
+
+  it('marks an unsnapshotted position by its fallback price — never zero', () => {
+    const res = runStress({
+      ...baseInput(),
+      positions: [
+        pos('SHOP', 10, 80),
+        pos('VFV', 20, 45),
+        /* No ORPH snapshot — the last write-back 60 is still the mark. */
+        pos('ORPH', 5, 40, { lastPrice: 60 }),
+        /* No mark at all → cost basis stands in. */
+        pos('COST', 2, 30),
+      ],
+      shocks: [{ match: 'ALL', pct: -10 }],
+    })
+    /* Book: SHOP 900 + VFV 900 + ORPH 5×54 + COST 2×27 + cash 500 = 2624.
+       Current: 1000 + 1000 + 300 + 60 + 500 = 2860. */
+    expect(res.bookValue).toBe(2624)
+    expect(res.bookDeltaPct).toBeCloseTo(((2624 - 2860) / 2860) * 100, 1)
+  })
+
+  it('shrinks a foreign cash leg under an fx shock', () => {
+    const res = runStress({
+      ...baseInput(),
+      positions: [pos('AAPL', 10, 100, { currency: 'USD' })],
+      snapshots: [snap('AAPL', 120, { currency: 'USD' })],
+      cashLegs: [
+        { amount: 300, currency: 'CAD' },
+        { amount: 100, currency: 'USD' },
+      ],
+      fx: { date: '2025-01-01', rates: { CAD: 1, USD: 0.7 } },
+      shocks: [{ match: 'ALL', pct: 5, kind: 'fx' }],
+    })
+    /* Cash: 300 + (100/0.7)/1.05 = 436.05. AAPL: 1200 USD → 1714.29 CAD
+       → /1.05 = 1632.65. The CAD leg doesn't move. */
+    expect(res.bookValue).toBeCloseTo(300 + 100 / 0.7 / 1.05 + 1200 / 0.7 / 1.05, 1)
   })
 })

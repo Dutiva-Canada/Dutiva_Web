@@ -62,6 +62,10 @@ export const shellMessages = defineMessages({
   shell_hr_workspace: { en: 'Workspace', fr: 'Espace de travail' },
   shell_demo_workspace: { en: 'Demo workspace', fr: 'Espace démo' }, // [FR self-authored]
   shell_powered_by: { en: 'Powered by', fr: 'Propulsé par' },
+  shell_org_switch_label: {
+    en: 'Organizations',
+    fr: 'Organisations',
+  }, // [FR self-authored]
   shell_sign_out: { en: 'Sign out', fr: 'Se déconnecter' }, // [FR self-authored]
 
   /* Create menu */

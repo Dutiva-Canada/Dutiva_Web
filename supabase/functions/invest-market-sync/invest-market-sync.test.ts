@@ -4,16 +4,23 @@ import {
   computeMa,
   computeRsi,
   googleNewsUrl,
+  interleaveNewsFeeds,
+  newsKindPrompt,
   newsQueries,
+  newsThemeQueries,
   parseCoingeckoCloses,
+  parseNewsKindVerdicts,
   parseCoingeckoMarkets,
+  parseCoingeckoNames,
   parseCoingeckoSimple,
   parseRssItems,
+  parseThemeLinkVerdicts,
   parseYahooChart,
   parseYahooFundamentals,
   scopeAssetClass,
   technicalPack,
   validateSyncAction,
+  yahooChartUrl,
   yahooEquitySymbol,
 } from './handlers'
 
@@ -189,6 +196,19 @@ describe('parseRssItems', () => {
     expect(items[1].published_at).toBeNull()
   })
 
+  it('drops listing pages — options chains and tokenized stocks are not headlines', () => {
+    const xml = `<rss><channel>
+      <item><title>QUBT Nov 2026 8.500 call (QUBT261106C00008500)</title>
+        <link>https://news.example/opt</link><source>Benzinga</source></item>
+      <item><title>Arm Holdings plc Tokenized Stock (Coinbase) price today, ARMc to USD live price, marketcap and chart</title>
+        <link>https://news.example/tok</link><source>CoinMarketCap</source></item>
+      <item><title>Applied Materials wins $5B fab contract</title>
+        <link>https://news.example/real</link><source>Reuters</source></item>
+    </channel></rss>`
+    const items = parseRssItems(xml, { symbol: 'AMAT', asset_class: 'equity', name: 'Applied Materials' })
+    expect(items.map((i) => i.title)).toEqual(['Applied Materials wins $5B fab contract'])
+  })
+
   it('drops prediction-market listings — a wager board is not a headline', () => {
     const xml = `<rss><channel>
       <item><title>SOL price on Oct 13, 2026 at 4am EDT Crypto Prediction Market - Robinhood</title>
@@ -204,6 +224,30 @@ describe('parseRssItems', () => {
   it('caps items and tolerates empty xml', () => {
     expect(parseRssItems(RSS, { symbol: 'X', asset_class: 'equity' }, 1)).toHaveLength(1)
     expect(parseRssItems('<rss></rss>', { symbol: 'X', asset_class: 'equity' })).toHaveLength(0)
+  })
+
+  it('tags theme-query rows to declared symbols — no text-match needed', () => {
+    const items = parseRssItems(RSS, {
+      symbol: '',
+      asset_class: '',
+      linked: [
+        { symbol: 'AMAT', asset_class: 'equity' },
+        { symbol: 'ARM', asset_class: 'equity' },
+      ],
+      viaTheme: 'US-China trade restrictions',
+    })
+    /* 2 kept items × 2 declared symbols — tagged by linkage even though
+       neither headline mentions them (that's the point of a theme),
+       and every row carries the theme as its provenance. */
+    expect(items).toHaveLength(4)
+    expect(new Set(items.map((i) => i.symbol))).toEqual(new Set(['AMAT', 'ARM']))
+    expect(items.every((i) => i.asset_class === 'equity')).toBe(true)
+    expect(items.every((i) => i.via_theme === 'US-China trade restrictions')).toBe(true)
+  })
+
+  it('leaves via_theme unset on symbol-feed rows', () => {
+    const items = parseRssItems(RSS, { symbol: 'SHOP', asset_class: 'equity' })
+    expect(items.every((i) => i.via_theme === undefined)).toBe(true)
   })
 })
 
@@ -227,8 +271,116 @@ describe('newsQueries', () => {
       name: '',
     }))
     const q = newsQueries(targets)
-    expect(q).toHaveLength(9) // 1 general + 8 symbols
+    expect(q).toHaveLength(13) // 1 general + 12 symbols
     expect(newsQueries([{ asset_class: 'equity', symbol: 'VFV.TO' }])[1].query).toBe('VFV stock')
+  })
+
+  it('feeds held positions before watch-only symbols under the cap', () => {
+    const targets = [
+      /* 12 watch/strategy names first — order alone would starve HELD. */
+      ...Array.from({ length: 12 }, (_, i) => ({
+        asset_class: 'equity',
+        symbol: `W${i}`,
+        name: '',
+      })),
+      { asset_class: 'equity', symbol: 'HELD', name: '', held: true },
+    ]
+    const q = newsQueries(targets)
+    expect(q).toHaveLength(13)
+    /* The held row takes a feed slot; the twelfth watch name drops out. */
+    expect(q.some((x) => x.symbol === 'HELD')).toBe(true)
+    expect(q.some((x) => x.symbol === 'W11')).toBe(false)
+    expect(q[1]?.symbol).toBe('HELD')
+  })
+})
+
+describe('newsThemeQueries', () => {
+  it('merges symbol links when users watch the same theme', () => {
+    const q = newsThemeQueries([
+      { title: 'US-China trade restrictions', symbols: ['amat', 'ARM'] },
+      { title: 'US-China trade restrictions ', symbols: ['QUBT'] },
+      { title: 'Whole-book watch', symbols: [] },
+    ])
+    expect(q).toEqual([
+      { query: 'US-China trade restrictions', symbols: ['AMAT', 'ARM', 'QUBT'] },
+      /* Whole-book items still get a feed — rows land unscoped. */
+      { query: 'Whole-book watch', symbols: [] },
+    ])
+  })
+
+  it('caps theme feeds', () => {
+    const items = Array.from({ length: 10 }, (_, i) => ({
+      title: `Theme ${i}`,
+      symbols: ['S'],
+    }))
+    expect(newsThemeQueries(items)).toHaveLength(8)
+  })
+
+  it('a symbol-less item yields unscoped rows carrying its theme', () => {
+    const [tq] = newsThemeQueries([{ title: 'Fed rate path', symbols: [] }])
+    expect(tq).toBeDefined()
+    const rows = parseRssItems(RSS, {
+      symbol: '',
+      asset_class: '',
+      linked: [],
+      viaTheme: tq!.query,
+    })
+    expect(rows.length).toBeGreaterThan(0)
+    for (const r of rows) {
+      expect(r.symbol).toBe('')
+      expect(r.via_theme).toBe('Fed rate path')
+    }
+  })
+})
+
+describe('interleaveNewsFeeds', () => {
+  it('round-robins feeds so a leading feed cannot starve the rest', () => {
+    const out = interleaveNewsFeeds([
+      ['a1', 'a2', 'a3', 'a4'],
+      ['b1', 'b2'],
+      ['c1'],
+    ])
+    expect(out).toEqual(['a1', 'b1', 'c1', 'a2', 'b2', 'a3', 'a4'])
+  })
+
+  it('handles empty feeds and no feeds', () => {
+    expect(interleaveNewsFeeds([[], ['x'], []])).toEqual(['x'])
+    expect(interleaveNewsFeeds<number>([])).toEqual([])
+  })
+})
+
+describe('parseThemeLinkVerdicts', () => {
+  const cands = [
+    { theme: 'US-China trade restrictions', title: 'A', summary: '', symbols: ['AMAT', 'ARM'] },
+    { theme: 'Uranium demand', title: 'B', summary: '', symbols: ['CCJ'] },
+  ]
+
+  it('keeps only the symbols the verdict names', () => {
+    const v = parseThemeLinkVerdicts(
+      '{"links":[{"i":1,"keep":["AMAT"]},{"i":2,"keep":[]}]}',
+      cands,
+    )
+    expect(v?.get(0)).toEqual(new Set(['AMAT']))
+    expect(v?.get(1)).toEqual(new Set())
+  })
+
+  it('drops keeps that were never candidates — the model cannot invent links', () => {
+    const v = parseThemeLinkVerdicts(
+      '{"links":[{"i":1,"keep":["AMAT","TSLA"]},{"i":2,"keep":["ccj"]}]}',
+      cands,
+    )
+    expect(v?.get(0)).toEqual(new Set(['AMAT']))
+    expect(v?.get(1)).toEqual(new Set(['CCJ']))
+  })
+
+  it('rejects a partial answer — a missing index is indistinguishable from truncation', () => {
+    expect(parseThemeLinkVerdicts('{"links":[{"i":1,"keep":["AMAT"]}]}', cands)).toBeNull()
+    expect(parseThemeLinkVerdicts('{"links":[{"i":1,"keep":[]},{"i":2,"keep":[]},{"i":3,"keep":[]}]}', cands)).toBeNull()
+  })
+
+  it('rejects malformed output outright', () => {
+    expect(parseThemeLinkVerdicts('no json here', cands)).toBeNull()
+    expect(parseThemeLinkVerdicts('{"links":"AMAT"}', cands)).toBeNull()
   })
 })
 
@@ -283,6 +435,27 @@ describe('computeRsi', () => {
   })
 })
 
+describe('yahooChartUrl', () => {
+  it('defaults to the full-history range; light runs pass 5d', () => {
+    expect(yahooChartUrl('SHOP.TO')).toContain('range=2y')
+    expect(yahooChartUrl('SHOP.TO', '5d')).toContain('range=5d')
+  })
+})
+
+describe('parseCoingeckoNames', () => {
+  it('maps coin id → display name', () => {
+    const m = parseCoingeckoNames([
+      { id: 'bitcoin', name: 'Bitcoin' },
+      { id: 'solana', name: 'Solana' },
+      { id: 'junk' },
+    ])
+    expect(m.get('bitcoin')).toBe('Bitcoin')
+    expect(m.get('solana')).toBe('Solana')
+    expect(m.has('junk')).toBe(false)
+    expect(parseCoingeckoNames(null).size).toBe(0)
+  })
+})
+
 describe('parseCoingeckoMarkets', () => {
   it('reads cap/volume/supply/ATH per coin id in USD', () => {
     const m = parseCoingeckoMarkets([
@@ -293,5 +466,53 @@ describe('parseCoingeckoMarkets', () => {
     expect(btc?.circulating_supply).toBe(19.7e6)
     expect(btc?.ath_change_pct).toBe(-18.2)
     expect(btc?.currency).toBe('USD')
+  })
+})
+
+describe('parseNewsKindVerdicts', () => {
+  it('maps each answered index to a valid kind', () => {
+    const m = parseNewsKindVerdicts(
+      '{"kinds":[{"i":1,"k":"event"},{"i":2,"k":"view"},{"i":3,"k":"move"}]}',
+      3,
+    )
+    expect(m?.get(0)).toBe('event')
+    expect(m?.get(1)).toBe('view')
+    expect(m?.get(2)).toBe('move')
+  })
+
+  it('is lenient — answered indices land even when others are missing or invalid', () => {
+    /* A truncated reply can't be distinguished from a skipped index, but
+       a skipped kind costs nothing — the row falls back to the title
+       heuristic. Unlike theme links, partial answers are usable. */
+    const m = parseNewsKindVerdicts(
+      '{"kinds":[{"i":1,"k":"news"},{"i":2,"k":"bogus"},{"i":9,"k":"event"}]}',
+      3,
+    )
+    expect(m?.size).toBe(1)
+    expect(m?.get(0)).toBe('news')
+    expect(m?.has(1)).toBe(false)
+  })
+
+  it('returns null when nothing usable came back', () => {
+    expect(parseNewsKindVerdicts('not json', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"kinds":[{"i":1,"k":"bogus"}]}', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"kinds":[]}', 3)).toBeNull()
+    expect(parseNewsKindVerdicts('{"other":[]}', 3)).toBeNull()
+  })
+})
+
+describe('newsKindPrompt', () => {
+  it('numbers every item with its summary and names the four labels', () => {
+    const p = newsKindPrompt([
+      { title: 'Apple Reports Earnings', summary: 'Quarterly results' },
+      { title: 'Why AMD Fell Today', summary: '' },
+    ])
+    expect(p).toContain('1. Apple Reports Earnings')
+    expect(p).toContain('summary: Quarterly results')
+    expect(p).toContain('2. Why AMD Fell Today')
+    /* The view/move boundary the Sandisk case exposed: a buy/sell
+       verdict question is opinion even when the lede cites price. */
+    expect(p).toContain('asks whether to buy/sell/hold')
+    for (const k of ['event', 'news', 'view', 'move']) expect(p).toContain(k)
   })
 })

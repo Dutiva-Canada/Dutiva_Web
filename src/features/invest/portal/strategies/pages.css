@@ -52,9 +52,12 @@
   text-decoration: underline;
 }
 /* Insight strip — accent edge so it doesn't read as a second notice
-   when it stacks above the legal note. */
+   when it stacks above the legal note. Body ink, not muted: the accent
+   strip carries actionable content while plain notes carry chrome —
+   the two shouldn't share a weight. */
 .sb-note-accent {
   border-left: 3px solid var(--sb-accent);
+  color: var(--sb-body);
 }
 /* Tally's read — a caption-level line inside a computed card, lighter
    than .sb-note's inset block: it summarizes what's on the card, it
@@ -641,6 +644,73 @@
 .sbchat-send:disabled {
   opacity: 0.5;
   cursor: default;
+}
+/* Attachments — the paperclip sits beside the send button; staged files
+   and in-bubble chips share the chip shape. */
+.sbchat-file {
+  display: none;
+}
+.sbchat-attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+}
+.sbchat-attach-btn:hover {
+  color: var(--sb-body);
+}
+.sbchat-attachrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 4px 8px;
+}
+.sbchat-attach {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  border: 1px solid var(--sb-line);
+  border-radius: 8px;
+  background: var(--sb-input);
+  color: var(--sb-body);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+.sbchat-attach-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sbchat-attach-trunc {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--sb-muted);
+}
+.sbchat-attach button {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  color: var(--sb-muted);
+  cursor: pointer;
+  padding: 0;
+}
+.sbchat-attach button:hover {
+  color: var(--sb-body);
+}
+.sbchat-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
 }
 .sbchat-note {
   margin-top: 10px;
@@ -1332,6 +1402,7 @@
   color: var(--sb-body);
 }
 .sb-goalbar {
+  position: relative;
   height: 7px;
   border-radius: 999px;
   background: var(--sb-input);
@@ -1343,6 +1414,18 @@
   border-radius: 999px;
   background: var(--sb-accent);
   transition: width 0.3s ease;
+}
+.sb-goalbar-pace {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--sb-muted);
+}
+.sb-goal-pace {
+  margin: 4px 0 0;
+  font-size: 13px;
 }
 .sb-goal-compose {
   display: grid;
@@ -1390,6 +1473,51 @@
   border: 1px solid var(--sb-line);
   border-radius: 999px;
   padding: 2px 9px;
+}
+.sb-scan-news {
+  border-top: 1px dashed var(--sb-line);
+  padding-top: 8px;
+}
+.sb-scan-news-head {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sb-muted);
+}
+.sb-scan-news-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.sb-scan-news-list a {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--sb-ink);
+  text-decoration: none;
+}
+.sb-scan-news-list a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--sb-accent-ink);
+  text-underline-offset: 2px;
+}
+.sb-scan-news-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--sb-muted);
+}
+.sb-scan-news-meta .sb-scan-sym {
+  font-size: 10px;
+  padding: 0 7px;
 }
 
 /* ---------- analysis: SWOT ---------- */
@@ -1576,6 +1704,21 @@
   min-height: 30px;
   padding: 3px 12px;
   font-size: 12.5px;
+  white-space: nowrap;
+}
+/* Compact pill chips — the headline facet row. */
+.sb-pills-sm {
+  gap: 6px;
+}
+.sb-pills-sm button {
+  min-height: 30px;
+  padding: 3px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Cash ledger (0223) ──────────────────────────────────────────────── */
@@ -1608,7 +1751,7 @@
 }
 .sb-ledger-deposit { color: var(--sb-ok); }
 .sb-ledger-withdrawal { color: var(--sb-danger); }
-.sb-ledger-dividend { color: var(--sb-accent); }
+.sb-ledger-dividend { color: var(--sb-accent-ink); }
 .sb-ledger-amt {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
@@ -1783,7 +1926,7 @@
 }
 .sb-stress-sym {
   font-weight: 700;
-  color: var(--sb-accent);
+  color: var(--sb-accent-ink);
 }
 .sb-stress-note {
   display: flex;
@@ -1860,8 +2003,11 @@
   margin: 12px 0 0;
   font-size: 13px;
 }
+/* accent-ink, not accent: raw accent on the card's warm fill is under
+   AA for 13px text, and .sb-note a already uses accent-ink for the same
+   'open more' affordance. */
 .sb-brief-foot a {
-  color: var(--sb-accent);
+  color: var(--sb-accent-ink);
   font-weight: 600;
   text-decoration: none;
 }

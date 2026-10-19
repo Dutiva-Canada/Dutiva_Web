@@ -1,9 +1,14 @@
 import { supabase } from '@/lib/supabaseClient'
 import { invokeEdgeFn, invokeEdgeFnStream } from '@/lib/edgeStream'
+import { NEWS_PAYWALL_PREF } from '@/features/invest/data/newsDedupe'
 import {
   parseChatSources,
   type ChatSourceRow,
 } from '@/components/chat/portalChatUtils'
+import {
+  toWireAttachments,
+  type AdvisorAttachment,
+} from '@/features/app/advisor/attachments'
 
 /* ---------- chat — Tally, the book's watch clerk ---------- */
 
@@ -57,6 +62,10 @@ export interface InvestChatTurn {
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+  /** Client-only — the live attachment objects on a just-sent turn. They
+      carry the data URLs a retry needs; after a reload the persisted row
+      only holds the "[Attached …]" manifest, never the bytes. */
+  attachments?: AdvisorAttachment[]
 }
 
 /** A named conversation — the default thread (threadId null) always exists;
@@ -77,6 +86,10 @@ export interface InvestChatCallOpts {
       accumulation contract as onDelta. Only fires on the streamed path. */
   onReasoning?: (text: string) => void
   onStatus?: (code: string) => void
+  /** Files attached to this turn — images go up as base64 data URLs,
+      documents as browser-extracted text (see app/advisor/attachments.ts).
+      The server gates images on a vision-capable route. */
+  attachments?: AdvisorAttachment[]
 }
 
 /** One turn of the book conversation. The server writes both sides to
@@ -84,6 +97,17 @@ export interface InvestChatCallOpts {
     caller only sends the message and the locale. assistantId is the
     persisted row's id — the client needs it to attach feedback. Pass
     onDelta to stream the reply into the UI as it generates. */
+/* The feed card's "I'm subscribed" toggle is device-local — the edge
+   function can't see it, so every context-bearing call forwards it.
+   Absent/false hides subscription-only publishers, same as the card. */
+function showPaywalledPref(): boolean {
+  try {
+    return localStorage.getItem(NEWS_PAYWALL_PREF) === '1'
+  } catch {
+    return false
+  }
+}
+
 export interface InvestChatSendResult {
   reply: string
   action: InvestChatAction | null
@@ -101,6 +125,34 @@ export interface InvestChatSendResult {
   sources: ChatSourceRow[]
 }
 
+const MANIFEST_LINE_RE = /^\[Attached (image|document): (.+)\]$/
+
+export interface ManifestAttachment {
+  kind: 'image' | 'document'
+  name: string
+}
+
+/** Persisted user turns carry a one-line attachment manifest instead of
+    the file itself (`persistedUserContent` server-side). Splits those
+    leading lines off so the bubble can render chips instead of raw text. */
+export function splitAttachmentManifest(content: string): {
+  text: string
+  attachments: ManifestAttachment[]
+} {
+  const lines = content.split('\n')
+  const attachments: ManifestAttachment[] = []
+  let i = 0
+  while (i < lines.length) {
+    const m = MANIFEST_LINE_RE.exec(lines[i] ?? '')
+    const kind = m?.[1]
+    const name = m?.[2]
+    if ((kind !== 'image' && kind !== 'document') || !name) break
+    attachments.push({ kind, name })
+    i += 1
+  }
+  return { text: lines.slice(i).join('\n'), attachments }
+}
+
 export async function sendInvestChat(
   message: string,
   lang: 'en' | 'fr',
@@ -108,7 +160,16 @@ export async function sendInvestChat(
   opts?: InvestChatCallOpts,
 ): Promise<InvestChatSendResult> {
   const client = requireClient()
-  const body = { kind: 'chat', message, lang, threadId: opts?.threadId ?? null }
+  const body = {
+    kind: 'chat',
+    message,
+    lang,
+    threadId: opts?.threadId ?? null,
+    showPaywalled: showPaywalledPref(),
+    ...(opts?.attachments?.length
+      ? { attachments: toWireAttachments(opts.attachments) }
+      : {}),
+  }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
@@ -148,7 +209,12 @@ export async function regenerateInvestChat(
   opts?: InvestChatCallOpts,
 ): Promise<InvestChatSendResult> {
   const client = requireClient()
-  const body = { kind: 'chat_regenerate', lang, threadId: opts?.threadId ?? null }
+  const body = {
+    kind: 'chat_regenerate',
+    lang,
+    threadId: opts?.threadId ?? null,
+    showPaywalled: showPaywalledPref(),
+  }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(
@@ -256,7 +322,7 @@ export async function sendInvestReaction(
   }
   lastReactionAt = Date.now()
   const client = requireClient()
-  const body = { kind: 'react', event, lang }
+  const body = { kind: 'react', event, lang, showPaywalled: showPaywalledPref() }
   const raw = (
     onDelta
       ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta)

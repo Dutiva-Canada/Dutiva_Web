@@ -13,7 +13,10 @@ interface AdminProfile {
   city: string
 }
 
-const preferenceRowSchema = z.object({ mode: z.enum(['demo', 'production']) })
+const preferenceRowSchema = z.object({
+  mode: z.enum(['demo', 'production']),
+  active_organization_id: z.string().nullable().optional(),
+})
 
 const profileRowSchema = z.object({
   legal_name: z.string().nullable(),
@@ -67,20 +70,32 @@ export async function checkIsAdmin(): Promise<ReadResult<boolean>> {
   }
 }
 
-export async function fetchStoredMode(userId: string): Promise<ReadResult<WorkspaceMode>> {
+export interface WorkspacePrefs {
+  mode: WorkspaceMode
+  /** The member's chosen org when they hold more than one membership (0244). */
+  activeOrganizationId: string | null
+}
+
+export async function fetchWorkspacePrefs(userId: string): Promise<ReadResult<WorkspacePrefs>> {
   if (!supabase) return READ_FAILED
   try {
     const { data, error } = await supabase
       .from('workspace_preferences')
-      .select('mode')
+      .select('mode, active_organization_id')
       .eq('user_id', userId)
       .maybeSingle()
     if (error) return READ_FAILED
-    if (!data) return ok('demo')
-    return ok(preferenceRowSchema.parse(data).mode)
+    if (!data) return ok({ mode: 'demo', activeOrganizationId: null })
+    const parsed = preferenceRowSchema.parse(data)
+    return ok({ mode: parsed.mode, activeOrganizationId: parsed.active_organization_id ?? null })
   } catch {
     return READ_FAILED
   }
+}
+
+export async function fetchStoredMode(userId: string): Promise<ReadResult<WorkspaceMode>> {
+  const res = await fetchWorkspacePrefs(userId)
+  return res.ok ? ok(res.value.mode) : READ_FAILED
 }
 
 export async function saveStoredMode(userId: string, mode: WorkspaceMode): Promise<boolean> {
@@ -89,6 +104,24 @@ export async function saveStoredMode(userId: string, mode: WorkspaceMode): Promi
     const { error } = await supabase
       .from('workspace_preferences')
       .upsert({ user_id: userId, mode, updated_at: new Date().toISOString() })
+    return !error
+  } catch {
+    return false
+  }
+}
+
+/** Persist the member's active organization for multi-org memberships (0244). */
+export async function saveActiveOrganization(
+  userId: string,
+  organizationId: string,
+): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase.from('workspace_preferences').upsert({
+      user_id: userId,
+      active_organization_id: organizationId,
+      updated_at: new Date().toISOString(),
+    })
     return !error
   } catch {
     return false
@@ -162,38 +195,71 @@ export async function saveOnboardingMarks(
   }
 }
 
-interface OrganizationMembership {
+export interface OrganizationMembership {
   organizationId: string
+  organizationName: string
   /** Null when the row predates role reads or carries an unknown value. */
   role: OrgMemberRole | null
+  /**
+   * Consultant/viewer module scope (0244). Empty = unscoped member access;
+   * non-empty restricts the member to the listed module keys. RLS enforces
+   * via org_member_has_module; the client mirrors it for nav gating.
+   */
+  grantedModules: string[]
+  /** Membership end-of-access timestamp — RLS treats expired rows as absent. */
+  accessExpiresAt: string | null
+}
+
+const membershipRowSchema = z.object({
+  organization_id: z.string(),
+  role: z.string().nullable().optional(),
+  granted_modules: z.array(z.string()).nullable().optional(),
+  access_expires_at: z.string().nullable().optional(),
+  organizations: z.object({ name: z.string().nullable() }).nullable().optional(),
+})
+
+/**
+ * All of the user's active, unexpired organization memberships — newest org
+ * first. A consultant or staff member may hold several; callers pick the
+ * active one via workspace_preferences.active_organization_id (0244).
+ */
+export async function fetchOrganizationMemberships(
+  userId: string,
+): Promise<ReadResult<OrganizationMembership[]>> {
+  if (!supabase) return READ_FAILED
+  try {
+    const { data, error } = await supabase
+      .from('organization_members')
+      .select(
+        'organization_id, role, granted_modules, access_expires_at, organizations!inner(name, created_at)',
+      )
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .or(`access_expires_at.is.null,access_expires_at.gt.${new Date().toISOString()}`)
+      .order('created_at', { referencedTable: 'organizations', ascending: false })
+    if (error) return READ_FAILED
+    const rows = z.array(membershipRowSchema).parse(data ?? [])
+    return ok(
+      rows.map((row) => ({
+        organizationId: row.organization_id,
+        organizationName: row.organizations?.name ?? '',
+        role: isOrgMemberRole(row.role) ? row.role : null,
+        grantedModules: row.granted_modules ?? [],
+        accessExpiresAt: row.access_expires_at ?? null,
+      })),
+    )
+  } catch {
+    return READ_FAILED
+  }
 }
 
 /** The user's active organization membership, if one has been provisioned. */
 export async function fetchOrganizationMembership(
   userId: string,
 ): Promise<ReadResult<OrganizationMembership | null>> {
-  if (!supabase) return READ_FAILED
-  try {
-    const { data, error } = await supabase
-      .from('organization_members')
-      .select('organization_id, role, organizations!inner(created_at)')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { referencedTable: 'organizations', ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (error) return READ_FAILED
-    if (!data) return ok(null)
-    const row = z
-      .object({ organization_id: z.string(), role: z.string().nullable().optional() })
-      .parse(data)
-    return ok({
-      organizationId: row.organization_id,
-      role: isOrgMemberRole(row.role) ? row.role : null,
-    })
-  } catch {
-    return READ_FAILED
-  }
+  const res = await fetchOrganizationMemberships(userId)
+  if (!res.ok) return READ_FAILED
+  return ok(res.value[0] ?? null)
 }
 
 type OrganizationAdmissionResult =
@@ -319,6 +385,8 @@ export interface OrgDirectoryMember {
   role: OrgMemberRole | null
   status: string
   accessExpiresAt: string | null
+  /** Consultant/viewer module scope (0244); empty = unscoped. */
+  grantedModules: string[]
 }
 
 const directoryRowSchema = z.object({
@@ -329,6 +397,7 @@ const directoryRowSchema = z.object({
   role: z.string().nullable(),
   status: z.string(),
   access_expires_at: z.string().nullable(),
+  granted_modules: z.array(z.string()).nullable().optional(),
 })
 
 /** Org-admin-only member list with emails (SECURITY DEFINER — migration 0168). */
@@ -348,6 +417,7 @@ export async function listOrgMembers(organizationId: string): Promise<OrgDirecto
         role: isOrgMemberRole(row.role) ? row.role : null,
         status: row.status,
         accessExpiresAt: row.access_expires_at,
+        grantedModules: row.granted_modules ?? [],
       }))
   } catch {
     return []
@@ -369,6 +439,12 @@ const invitationRowSchema = z.object({
   status: z.string(),
   expires_at: z.string(),
 })
+
+/** Scope carried on an invite so the claimed membership starts scoped (0244). */
+export interface InviteScope {
+  grantedModules?: string[]
+  accessExpiresAt?: string | null
+}
 
 /** Pending invitations for the org (admin-only via RLS — migration 0168). */
 export async function listOrgInvitations(organizationId: string): Promise<OrgInvitation[]> {
@@ -406,13 +482,21 @@ export async function inviteOrgMember(
   organizationId: string,
   email: string,
   role: OrgMemberRole,
+  scope: InviteScope = {},
 ): Promise<{ id: string; emailed: boolean } | { error: string }> {
   if (!supabase) return { error: 'offline' }
   const normalized = email.trim().toLowerCase()
   try {
     const { data, error } = await supabase
       .from('organization_invitations')
-      .insert({ organization_id: organizationId, email: normalized, role, status: 'pending' })
+      .insert({
+        organization_id: organizationId,
+        email: normalized,
+        role,
+        status: 'pending',
+        granted_modules: scope.grantedModules ?? [],
+        access_expires_at: scope.accessExpiresAt ?? null,
+      })
       .select('id')
       .single()
     if (error || !data) return { error: error?.message ?? 'insert failed' }
@@ -454,6 +538,30 @@ export async function updateMemberRole(memberId: string, role: OrgMemberRole): P
     const { error } = await supabase
       .from('organization_members')
       .update({ role })
+      .eq('id', memberId)
+    return !error
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Update a member's module scope and access expiry (admin-only RLS). Pass an
+ * empty grantedModules to restore unscoped member access; null expiry for
+ * open-ended access (0244).
+ */
+export async function updateMemberScope(
+  memberId: string,
+  scope: { grantedModules: string[]; accessExpiresAt: string | null },
+): Promise<boolean> {
+  if (!supabase) return false
+  try {
+    const { error } = await supabase
+      .from('organization_members')
+      .update({
+        granted_modules: scope.grantedModules,
+        access_expires_at: scope.accessExpiresAt,
+      })
       .eq('id', memberId)
     return !error
   } catch {

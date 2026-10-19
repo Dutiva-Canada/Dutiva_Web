@@ -317,7 +317,7 @@ export async function addKeyword(input: {
     baseline and overwrite the other's delta the way read-then-write did. */
 export async function updateKeywordPosition(
   id: string,
-  position: number | null,
+  position: number,
 ): Promise<void> {
   const client = requireSupabase()
   const { error } = await client.rpc('pr_keyword_check', {

@@ -30,10 +30,17 @@ function mount(
   snapshots: InvestBookSnapshot[],
   cashEvents: Parameters<typeof BookCurve>[0]['cashEvents'] = [],
   fx: Parameters<typeof BookCurve>[0]['fx'] = null,
+  benchmarks: Parameters<typeof BookCurve>[0]['benchmarks'] = [],
 ) {
   return render(
     <LangProvider>
-      <BookCurve snapshots={snapshots} cashEvents={cashEvents} accounts={[]} fx={fx} />
+      <BookCurve
+        snapshots={snapshots}
+        cashEvents={cashEvents}
+        accounts={[]}
+        fx={fx}
+        benchmarks={benchmarks}
+      />
     </LangProvider>,
   )
 }
@@ -160,6 +167,50 @@ describe('BookCurve', () => {
   it('keeps the range pills once the marks span enough days to differ', () => {
     mount([snap('2025-01-01', 10_000), snap('2026-01-02', 9_000)])
     expect(document.querySelector('.sb-seg')).not.toBeNull()
+  })
+
+  it('renders the benchmark chip and rebased note when closes exist', () => {
+    /* Book +10%, benchmark +5% over the same window → +5.0 pp vs XEQT. */
+    mount(
+      [snap('2026-01-01', 10_000), snap('2026-02-01', 11_000)],
+      [],
+      null,
+      [
+        { symbol: 'XEQT.TO', date: '2026-01-01', close: 40 },
+        { symbol: 'XEQT.TO', date: '2026-01-31', close: 42 },
+      ],
+    )
+    expect(document.body.textContent).toContain('vs XEQT')
+    expect(document.body.textContent).toContain('+5.0 pp')
+    expect(document.body.textContent).toContain('XEQT rebased to your first mark')
+  })
+
+  it('carries the last close across days the index did not print', () => {
+    /* Sunday mark sees Friday's close — no invented weekend price. */
+    mount(
+      [snap('2026-01-02', 10_000), snap('2026-01-05', 11_000)],
+      [],
+      null,
+      [{ symbol: 'XEQT.TO', date: '2026-01-02', close: 40 }],
+    )
+    expect(document.body.textContent).toContain('vs XEQT')
+    /* Index flat over the window, book +10% → +10.0 pp. */
+    expect(document.body.textContent).toContain('+10.0 pp')
+  })
+
+  it('draws no benchmark chrome when the series has no usable closes', () => {
+    mount([snap('2026-01-01', 10_000), snap('2026-02-01', 11_000)])
+    expect(document.body.textContent).not.toContain('vs XEQT')
+    /* One covered day is a point, not a window — the note names the
+       series but no out/under-performance chip can be claimed. */
+    mount(
+      [snap('2026-01-01', 10_000), snap('2026-02-01', 11_000)],
+      [],
+      null,
+      [{ symbol: 'XEQT.TO', date: '2026-02-01', close: 42 }],
+    )
+    expect(document.body.textContent).not.toContain('vs XEQT')
+    expect(document.body.textContent).not.toContain(' pp')
   })
 
   it('reads a one-day span as a first day, not a window verdict', () => {

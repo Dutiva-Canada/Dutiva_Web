@@ -15,17 +15,43 @@ import { RULE_METRIC_LABELS } from '../data/strategyRules'
 import { persistedRuleTitle } from '../data/strategyRules'
 import type { RuleProblem } from '../data/strategyRules'
 import type {
+  AssetClass,
   InvestBotRun,
   InvestStrategy,
   OrderProposalRule,
   RuleMetric,
   RunWarning,
+  ScanDirection,
   StrategyCadence,
   StrategyNotify,
   StrategyRule,
   StrategyScope,
   TestScanMatch,
 } from '../data/types'
+
+/* Scan-board direction vocabulary — the saved board and the pending
+   "Tally suggests" strip tag items with the same labels and pills. */
+export const SCAN_DIR_LABEL: Record<ScanDirection, keyof typeof IM> = {
+  tailwind: 'invest_scan_dir_tailwind',
+  headwind: 'invest_scan_dir_headwind',
+  monitor: 'invest_scan_dir_monitor',
+}
+export const SCAN_DIR_PILL: Record<ScanDirection, string> = {
+  tailwind: 'sb-pill-ok',
+  headwind: 'sb-pill-warn',
+  monitor: 'sb-pill-draft',
+}
+
+/* Asset-class → label key — the allocation legend and the headline
+   facets name classes with the same vocabulary. */
+export const ASSET_LABEL: Record<AssetClass, keyof typeof IM> = {
+  equity: 'invest_asset_equity',
+  etf: 'invest_asset_etf',
+  crypto: 'invest_asset_crypto',
+  bond: 'invest_asset_bond',
+  cash: 'invest_asset_cash',
+  other: 'invest_asset_other',
+}
 
 const localeOf = (lang: Lang): string => (lang === 'fr' ? 'fr-CA' : 'en-CA')
 
@@ -450,13 +476,13 @@ export function tallyGreeting(
     const queued = state.orders.filter((o) => o.status === 'queued' || o.status === 'draft').length
     const open = state.signals.filter((s) => s.status === 'new').length
     if (queued >= 1) {
-      parts.push(pick(IM.invest_chat_hi_orders, lang).replace('{count}', String(queued)))
+      parts.push(pl(lang, queued, IM.invest_chat_hi_orders_one, IM.invest_chat_hi_orders_many))
     } else if (state.watchlist.length >= 1) {
       parts.push(
-        pick(IM.invest_chat_hi_watch, lang).replace('{count}', String(state.watchlist.length)),
+        pl(lang, state.watchlist.length, IM.invest_chat_hi_watch_one, IM.invest_chat_hi_watch_many),
       )
     } else if (open >= 1) {
-      parts.push(pick(IM.invest_chat_hi_signals, lang).replace('{count}', String(open)))
+      parts.push(pl(lang, open, IM.invest_chat_hi_signals_one, IM.invest_chat_hi_signals_many))
     }
   }
   parts.push(pick(IM.invest_chat_hi_ask, lang))
@@ -481,23 +507,20 @@ export function tallyNoticed(
   if (queued >= 1) {
     return {
       kind: 'orders',
-      text: pick(IM.invest_home_tally_orders, lang).replace('{count}', String(queued)),
+      text: pl(lang, queued, IM.invest_home_tally_orders_one, IM.invest_home_tally_orders_many),
     }
   }
   const open = state.signals.filter((s) => s.status === 'new').length
   if (open >= 1) {
     return {
       kind: 'signals',
-      text: pick(IM.invest_home_tally_signals, lang).replace('{count}', String(open)),
+      text: pl(lang, open, IM.invest_home_tally_signals_one, IM.invest_home_tally_signals_many),
     }
   }
   if (state.watchlist.length >= 1) {
     return {
       kind: 'watch',
-      text: pick(IM.invest_home_tally_watch, lang).replace(
-        '{count}',
-        String(state.watchlist.length),
-      ),
+      text: pl(lang, state.watchlist.length, IM.invest_home_tally_watch_one, IM.invest_home_tally_watch_many),
     }
   }
   return null

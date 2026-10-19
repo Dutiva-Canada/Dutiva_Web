@@ -59,6 +59,18 @@ export const specialistsMessages = defineMessages({
   spec_remove: { en: 'Remove', fr: 'Retirer' },
   spec_save_changes: { en: 'Save changes', fr: 'Enregistrer les modifications' },
   spec_workspace_access: { en: 'Workspace access', fr: 'Accès à l’espace de travail' },
+  spec_access_expires: {
+    en: 'Access expiry (optional)',
+    fr: 'Fin de l’accès (facultatif)',
+  }, // [FR self-authored]
+  spec_invite_sent: {
+    en: 'Workspace invite sent.',
+    fr: 'Invitation à l’espace de travail envoyée.',
+  }, // [FR self-authored]
+  spec_invite_error: {
+    en: 'Specialist saved, but the workspace invite failed. Invite them from Settings → Users & team.',
+    fr: 'Spécialiste enregistré, mais l’invitation a échoué. Envoyez-la depuis Paramètres → Équipe et utilisateurs.',
+  }, // [FR self-authored]
   spec_engagement_type_call: { en: 'Call', fr: 'Appel' },
   spec_engagement_type_email: { en: 'Email', fr: 'Courriel' },
   spec_engagement_type_meeting: { en: 'Meeting', fr: 'Réunion' },

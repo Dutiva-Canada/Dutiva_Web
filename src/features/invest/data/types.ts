@@ -58,6 +58,10 @@ export interface MarketSnapshot {
   currency: string
   source: string
   asOf: string
+  /* 0235 — the feed-resolved listing name (Yahoo longName, CoinGecko
+     name). '' when none on file; a mistyped symbol shows what it
+     actually priced instead of staying invisible. */
+  quoteName: string
 }
 
 export type StrategyCadence = 'daily' | 'weekly' | 'monthly'
@@ -329,6 +333,9 @@ export interface GoalEvalDetail {
   op: GoalOp
   /** 0–100 progress baseline → target. */
   progress_pct: number | null
+  /** 0–100 share of the created→deadline window elapsed — the pace
+      expectation. Absent on rows stamped before pace tracking. */
+  expected_pct?: number | null
   /** Days until the deadline — negative once passed. */
   days_left: number | null
   line_en: string
@@ -445,6 +452,14 @@ export interface InvestNewsItem {
   source: string
   summary: string
   publishedAt: string | null
+  /** Watch-item title whose feed surfaced the row — null means a
+      symbol or general feed. A theme row is a claimed link, not a
+      direct mention. */
+  viaTheme: string | null
+  /** Model-assigned story kind from the sync (0241, 'filing' added in
+      0242); null means unclassified — the portal falls back to its
+      title heuristic. */
+  kind: 'event' | 'news' | 'view' | 'move' | 'filing' | null
 }
 
 /* ── Track record + cash ledger (0223) ──────────────────────────────────── */
@@ -460,6 +475,16 @@ export interface InvestBookSnapshot {
   cash: number
   invested: number
   currency: string
+}
+
+/** 0238 — one shared benchmark close (XEQT.TO / SPY). Date-keyed; the
+    chart rebases the series to the track record's first mark so a
+    different-currency index can sit on the same axis without implying
+    the book is invested in it. */
+export interface InvestBenchmarkMark {
+  symbol: string
+  date: string
+  close: number
 }
 
 export type CashEventKind = 'deposit' | 'withdrawal' | 'dividend'

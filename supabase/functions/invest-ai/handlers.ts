@@ -397,7 +397,9 @@ SignalRule: {"metric", "op": "lt"|"gt", "value": number, "title",
   weight_pct      — position's share of the book in %
   unrealized_gain_pct — gain vs avg cost in %
 - Rules carry round, conservative thresholds the user can edit. Titles
-  name what fired ("Under the 50-day average", not "drift rule 1").
+  name what fired WITH the bound — "5%+ under the 50-day average" for a
+  -5% vs_ma50 rule, "position under $2,500" for value_floor — never a
+  vaguer "Under the 50-day average" that understates the trigger.
 - Every rule is type "signal" — a thesis watches, it never proposes an
   order.`
 
@@ -659,12 +661,105 @@ export function parseScanDraft(
    index.ts) the register loosens to direct advice; the action grammar and
    the queued-draft rule stay identical either way. */
 
+/* ── Headline source prefs ─────────────────────────────────────────────
+   Mirror of src/features/invest/data/newsDedupe.ts — keep the two in
+   sync. The chat context honours the same muted/paywalled lists the
+   feed applies: a source the holder muted or can't open should not
+   become context — or a citation. */
+
+export function normalizeSource(source: string): string {
+  return source.toLowerCase().replace(/[^a-z0-9]+/g, '')
+}
+
+/* Exact match plus a longer source starting with a listed key —
+   'Reuters Canada' follows 'Reuters'. */
+export function sourceInSet(keys: ReadonlySet<string>, source: string): boolean {
+  const k = normalizeSource(source)
+  if (keys.has(k)) return true
+  for (const key of keys) if (key.length >= 3 && k.length > key.length && k.startsWith(key)) return true
+  return false
+}
+
+/* Hard-paywalled publishers as named in Google News <source> — the same
+   set the portal card filters on. Metered/partial walls stay out of it. */
+export const PAYWALL_SOURCES: ReadonlySet<string> = new Set([
+  'Barron\'s',
+  'Bloomberg',
+  'Business Insider',
+  'Financial Times',
+  'Haaretz',
+  'Harvard Business Review',
+  'Investor\'s Business Daily',
+  'MarketWatch',
+  'Reuters',
+  'Seeking Alpha',
+  'The Athletic',
+  'The Economist',
+  'The Information',
+  'The New York Times',
+  'The Telegraph',
+  'The Wall Street Journal',
+  'WSJ',
+])
+
+const PAYWALL_KEYS: ReadonlySet<string> = new Set([...PAYWALL_SOURCES].map(normalizeSource))
+
+/** The feed's visibility rule applied to chat context: a muted source
+    never appears, and subscription-only sources stay out unless the
+    holder flagged a subscription (the card's toggle travels with the
+    request as showPaywalled — absent reads as hidden, like the card). */
+export function headlineSourceVisible(
+  source: string,
+  mutedKeys: ReadonlySet<string>,
+  showPaywalled: boolean,
+): boolean {
+  if (sourceInSet(mutedKeys, source)) return false
+  if (!showPaywalled && sourceInSet(PAYWALL_KEYS, source)) return false
+  return true
+}
+
+/* The stored classifier verdicts — anything else on the row (legacy
+   value, null) renders untagged. */
+const NEWS_KIND_TAGS: ReadonlySet<string> = new Set(['event', 'news', 'view', 'move', 'filing'])
+
+export function newsKindTag(kind: unknown): string | null {
+  return typeof kind === 'string' && NEWS_KIND_TAGS.has(kind) ? kind : null
+}
+
+export interface HeadlineContextItem {
+  title: string
+  source: string
+  publishedAt: string | null
+  url: string | null
+  /** Stored verdict — event|news|view|move|filing. Null means
+      unclassified: an older row, a quiet-degraded run, or a live
+      on-demand pull that never went through the classifier. */
+  kind?: string | null
+  /** Watch-item title that surfaced the row — a theme linkage claim,
+      not a direct mention of the symbol. */
+  viaTheme?: string | null
+}
+
+/** One headline → its context token. Kind and provenance ride along so
+    the model can tell an event from an analyst note from filing churn,
+    and a theme-surfaced story from a direct mention. */
+function formatHeadline(h: HeadlineContextItem): string {
+  const bits = [h.source]
+  if (asDay(h.publishedAt)) bits.push(asDay(h.publishedAt)!)
+  if (h.kind) bits.push(h.kind)
+  if (h.viaTheme) bits.push(`via "${h.viaTheme}"`)
+  return `"${h.title}" (${bits.join(', ')})`
+}
+
 export interface MarketContextEntry {
   symbol: string
   assetClass: string
   price: number | null
   currency: string
   dayChangePct: number | null
+  /** Last ~30 daily closes, oldest first — the shape of the move the
+      aggregates flatten. Absent on thin coverage. */
+  closes30d?: number[]
   ma50: number | null
   ma200: number | null
   rsi14: number | null
@@ -677,7 +772,7 @@ export interface MarketContextEntry {
   fundamentals: Record<string, number | string | null> | null
   /** Snapshot write time — the figures are delayed, and the prompt says so. */
   asOf: string | null
-  headlines: { title: string; source: string; publishedAt: string | null; url: string | null }[]
+  headlines: HeadlineContextItem[]
 }
 
 /* The profile the user set in Settings — calibrates depth and what the
@@ -708,7 +803,7 @@ export interface InvestChatContext {
      for a mentioned ticker) — the numbers analysis answers are built on. */
   market: MarketContextEntry[]
   /* Symbol-less market headlines — the general backdrop row. */
-  generalNews: { title: string; source: string; publishedAt: string | null; url: string | null }[]
+  generalNews: HeadlineContextItem[]
   /* Confirmed memories (invest_memories) — what Tally retains about this
      holder across sessions. Context only. */
   memories: MemoryPromptFact[]
@@ -927,6 +1022,11 @@ export function formatMarketEntry(e: MarketContextEntry): string {
   const head = `${e.symbol} (${e.assetClass}): ${priceBit}${techLine ? ` | ${techLine}` : ''}`
 
   const tail: string[] = []
+  if (e.closes30d && e.closes30d.length > 0) {
+    tail.push(
+      `  recent closes (oldest→newest): ${e.closes30d.map((c) => plain(c)).join(', ')}`,
+    )
+  }
   const f = e.fundamentals
   if (f) {
     const currency = typeof f['currency'] === 'string' ? (f['currency'] as string) : ''
@@ -943,11 +1043,7 @@ export function formatMarketEntry(e: MarketContextEntry): string {
     if (bits.length > 0) tail.push(`  fundamentals: ${bits.join(', ')}`)
   }
   if (e.headlines.length > 0) {
-    tail.push(
-      `  news: ${e.headlines
-        .map((h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`)
-        .join('; ')}`,
-    )
+    tail.push(`  news: ${e.headlines.map(formatHeadline).join('; ')}`)
   }
   return [head, ...tail].join('\n')
 }
@@ -1064,7 +1160,7 @@ function buildProfileLines(p: InvestUserProfile | null): string[] {
 export function investChatPrompt(
   ctx: InvestChatContext,
   lang: 'en' | 'fr',
-  opts?: { advice?: boolean },
+  opts?: { advice?: boolean; image?: boolean },
 ): {
   role: 'system'
   content: string
@@ -1088,8 +1184,22 @@ export function investChatPrompt(
           ]),
       'You carry the market data on file below — delayed free feeds, end-of-day not real-time. Ground every figure you cite in those rows: never invent a P/E, a price, or a percentage, and when a symbol has no row (or the field is missing), say plainly there is nothing on file — watching the symbol puts it on the next sync.',
       'Asked to analyze — "analyze AMD", "is SHOP worth it", "how is X doing" — give a real read, not a label: a one-line verdict, then labeled sections for whatever has data (Fundamentals, Technicals, News) and a close on what it means for their book. Markdown renders fully — bold the section labels, use a short bullet list where a sentence would cram, and a small table when comparing tickers or scenarios side by side. Depth follows the ask: a proper read when they ask for one, a tight answer when they want one number. The numbers do the work — "30% above its 200-day, RSI 61" beats "trending up". A null field is a missing fact, not a gap to fill from memory.',
+      'Figures can render as a real chart — emit a ```chart fenced block: {"type","title","x","format":{"prefix","suffix","decimals"},"series":[{"key","label"}],"data":[…]}. type is bar, hbar, line, area, or donut; x is the category key each data row shares and each series key is a numeric field on those rows. Reach for it when a shape says more than a sentence — the recent closes as a line, weights across holdings as a donut, metrics side by side as bars. Every plotted number obeys the same grounding rule — only figures from the rows on file or numbers the person gave; never invent values to fill a series, and when a comparison earns a chart, pair it with the table, never instead of it.',
+      'Interactive widgets — a ```dutiva-widget fenced block renders a real control, not text: one strict JSON object {"type","title","data"} per fence (unknown keys reject the whole widget). Emit one when an interactive answer beats prose — a sortable comparison table, a checklist of steps, an options card, a timeline, a small calculator the person can adjust — and always alongside the written answer, never instead of it. Shapes:',
+      '  {"type":"table","data":{"columns":[{"key":"col","label":"…","align":"left|center|right"}],"rows":[{"col":<string|number|{"en","fr"}>}…≤500],"sortable":true,"searchable":true}} — ≤8 columns; sortable/searchable only when they help',
+      '  {"type":"chart","data":{"kind":"bar|pie","format":"number|currency|percent","items":[{"label":"…","value":<number>}…≤12]}} — pie is parts of a whole and every slice non-negative; a price-over-time line belongs in a ```chart fence instead',
+      '  {"type":"checklist","data":{"items":[{"id":"kebab-id","label":"…","done":false}…≤60],"showProgress":true}}',
+      '  {"type":"timeline","data":{"steps":[{"label":"…","date":"YYYY-MM-DD or short label","description":"…","status":"done|current|upcoming"}…2–14]}}',
+      '  {"type":"comparison","data":{"options":[{"name":"…","tagline":"…","rows":[{"label":"…","value":"…"}…≤10]},{"name":"…"}…2–3]}} — NEVER set "recommended" on an option: that badge would be a recommendation, which the line above forbids',
+      '  {"type":"calculator","data":{"inputs":[{"key":"camel","label":"…","default":<n>,"min":<n>,"max":<n>,"step":<n>,"unit":"…"}…≤8],"formula":<expr>,"result":{"label":"…","format":"number|currency|percent"},"regulated":<true when the math approximates a rule>,"note":"…"}} — formula is a JSON tree: {"op":"num","value":n}, {"op":"ref","key":"camel"}, {"op":"add|sub|mul|div|min|max","args":[<expr>,…]}, or {"op":"if","cond":<expr>,"then":<expr>,"else":<expr>} (comparisons: gt gte lt lte eq neq as two-arg ops)',
+      'Labels may be plain strings or {"en","fr"} pairs — emit pairs so a language toggle re-renders the widget. Same grounding rule as prose and the ```chart fence: every number inside a spec comes from the rows on file or the person\'s own figures — never invent values to fill a widget.',
       'Asked to compare or pick — "what should I buy first", "X or Y", "best for a 5-year goal" — your universe is ONLY the market rows and book data below. Name the set you weighed ("of your loaded names…") and never imply a market-wide screen. When the honest read needs a wider lens — index alternatives, sector peers, broad benchmarks — pull them with the fetch hop first, or say plainly what is missing: a pick from two loaded tickers is a pick from two tickers, and the person deserves to know that. Same rule for anything you point at beyond the set — never name a fund, ETF, or ticker you have not pulled this turn; fetch it first, or describe the exposure in words ("a broad growth ETF") instead of symbols.',
       'An order you record is always a QUEUED draft — the person reviews and executes it themselves from Orders. Say so whenever one is created. You never execute anything — the person does; phrase it as what they would do ("worth confirming on Orders"), never "I\'d execute".',
+      ...(opts?.image
+        ? [
+            'The person attached an image this turn — read it directly and describe only what is actually in it. An uploaded chart or screenshot is their input, not verified market data: never invent a value the image does not show, cross-check any figure against the rows on file when they overlap, and if the image is unreadable or too low-quality to trust, say so plainly. When a later message carries an "[Attached image: ...]" note, the image itself is not re-sent — rely on what was said about it, never pretend to see it again.',
+          ]
+        : []),
       'You can RECORD things when the person asks. To act, end your JSON reply with an "action" object — the system executes it against their account. Allowed actions:',
       '  {"type":"add_watch_symbol","symbol":"<TICKER>","name":"<optional>","assetClass":"<equity|etf|crypto|bond|cash|other>"}',
       '  {"type":"remove_watch_symbol","symbol":"<TICKER>"}',
@@ -1149,14 +1259,20 @@ export function investChatPrompt(
       lines(ctx.openOrders.map((o) => `${o.side} ${o.quantity} ${o.symbol} — ${o.status}`)),
       `Market data on file (${ctx.market.length}):`,
       lines(ctx.market.map(formatMarketEntry)),
+      ...(ctx.market.some((e) => e.headlines.length > 0) || ctx.generalNews.length > 0
+        ? [
+            'Headline tags — kind: event = something happened, news = factual report, view = opinion/analysis, move = price-move churn, filing = holdings disclosure; "via X" = surfaced by that watch theme rather than a direct mention; untagged = unclassified.',
+          ]
+        : []),
+      ...(ctx.market.some((e) => e.closes30d && e.closes30d.length > 0)
+        ? [
+            'recent closes — the last ~30 daily closes, oldest first. Read the shape of the move off them (slope, streaks, drawdown off the peak, where it is inside the range); the aggregates above are a summary of that same series, not a substitute for it.',
+          ]
+        : []),
       ...(ctx.generalNews.length > 0
         ? [
             'Market backdrop:',
-            lines(
-              ctx.generalNews.map(
-                (h) => `"${h.title}" (${h.source}${asDay(h.publishedAt) ? `, ${asDay(h.publishedAt)}` : ''})`,
-              ),
-            ),
+            lines(ctx.generalNews.map(formatHeadline)),
           ]
         : []),
     ].join('\n'),

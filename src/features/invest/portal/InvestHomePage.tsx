@@ -1,27 +1,20 @@
 import './strategies.css'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowUpRight, ChevronDown, ChevronUp, Info, Loader2, Newspaper, RefreshCw, Sparkles } from 'lucide-react'
+import { Info, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { investMessages as IM } from '@/i18n/messages/invest'
-import { ASSET_CLASSES, type AssetClass } from '@/features/invest/data/types'
+import { ASSET_CLASSES } from '@/features/invest/data/types'
 import { useInvestData } from '@/features/invest/data/InvestDataContext'
 import { syncPrices } from '@/features/invest/data/api'
 import { convertFx, loadFxRates, type FxTable } from '@/features/invest/data/fx'
+import { AGENT_RUN_STALE_MS, isQuoteStale } from '@/features/invest/data/freshness'
 import { useInvestHead } from './useInvestHead'
 import { InvestOnboarding } from './InvestOnboarding'
 import { MorningBrief } from './MorningBrief'
+import { NewsFeedCard } from './NewsFeedCard'
 import { readDisplayCurrency } from './investPrefs'
-import { fmtDay, fmtNum, fmtPct, tallyNoticed } from './strategyUi'
-
-const assetLabel: Record<AssetClass, keyof typeof IM> = {
-  equity: 'invest_asset_equity',
-  etf: 'invest_asset_etf',
-  crypto: 'invest_asset_crypto',
-  bond: 'invest_asset_bond',
-  cash: 'invest_asset_cash',
-  other: 'invest_asset_other',
-}
+import { ASSET_LABEL, fmtDay, fmtNum, fmtPct, pl, tallyNoticed } from './strategyUi'
 
 const cardClass = 'sb-card sb-card-pad'
 
@@ -32,36 +25,6 @@ const BookCurve = lazy(() =>
   import('./BookCurve').then((m) => ({ default: m.BookCurve })),
 )
 
-// Publisher-badge tints — token pairs only, hashed by source name.
-const SOURCE_TINTS = [
-  'bg-accent-soft text-accent',
-  'bg-gold-bg text-gold-fg',
-  'bg-ok-bg text-ok-fg',
-  'bg-inset text-text-2',
-]
-
-function sourceTint(source: string): string {
-  let h = 0
-  for (const c of source) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return SOURCE_TINTS[h % SOURCE_TINTS.length] ?? 'bg-inset text-text-2'
-}
-
-// The same wire story often lands from several publishers — keep the first.
-// Betting-market listings aren't headlines; the ingest filter keeps new
-// ones out, this one hides rows already in the table. Keep in sync with
-// JUNK_HEADLINE in supabase/functions/invest-market-sync/handlers.ts.
-const JUNK_HEADLINE = /\bprediction markets?\b/i
-function dedupeNews<T extends { title: string }>(items: T[]): T[] {
-  const seen = new Set<string>()
-  return items.filter((n) => {
-    if (JUNK_HEADLINE.test(n.title)) return false
-    const key = n.title.trim().toLowerCase()
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-}
-
 /** Overview tab — book value, cash, open signals, last bot run, allocation. */
 export function InvestHomePage() {
   const { x, lang } = useI18n()
@@ -70,10 +33,6 @@ export function InvestHomePage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [syncNote, setSyncNote] = useState<string | undefined>()
-  const [newsExpanded, setNewsExpanded] = useState(false)
-  /* 'book' shows only headlines tagged to a held or watched symbol —
-     the news-for-your-book cut. */
-  const [newsFilter, setNewsFilter] = useState<'all' | 'book'>('all')
   /* ECB reference rates, loaded once — null means 'no rate on file', and
      cross-currency amounts drop out of the totals with a note below
      rather than sum into a wrong number. */
@@ -216,6 +175,10 @@ export function InvestHomePage() {
   const openSignals = state.signals.filter((s) => s.status !== 'dismissed').length
   const latestSignals = state.signals.filter((s) => s.status !== 'dismissed').slice(0, 5)
   const lastRun = state.runs[0]
+  /* The sweep is daily — a run older than ~26h means one was missed,
+     and a neutral timestamp would hide the outage. */
+  const lastRunStale =
+    lastRun !== undefined && Date.now() - Date.parse(lastRun.ranAt) > AGENT_RUN_STALE_MS
   const pricesAsOf = useMemo(() => {
     let latest: string | undefined
     for (const s of state.snapshots) {
@@ -232,7 +195,10 @@ export function InvestHomePage() {
       setSyncNote(
         r.failed.length > 0
           ? x(IM.invest_sync_partial).replace('{symbols}', r.failed.join(', '))
-          : x(IM.invest_sync_done).replace('{count}', String(r.synced)),
+          : x(IM.invest_sync_done).replace(
+              '{symbols}',
+              pl(lang, r.synced, IM.invest_sync_symbol_one, IM.invest_sync_symbol_many),
+            ),
       )
       await refresh()
       /* Refresh doubles as the FX retry — a manual resync should also
@@ -245,16 +211,8 @@ export function InvestHomePage() {
     }
   }
 
-  const headlines = useMemo(() => dedupeNews(state.news), [state.news])
-  const bookHeadlines = useMemo(
-    () => headlines.filter((n) => n.symbol !== ''),
-    [headlines],
-  )
-  /* A 'book' selection outlives its items (a refresh clears the symbols)
-     → the filter falls back to 'all' rather than blank the list. */
-  const effectiveNewsFilter = bookHeadlines.length === 0 ? 'all' : newsFilter
-  const scopedHeadlines = effectiveNewsFilter === 'book' ? bookHeadlines : headlines
-  const visibleHeadlines = newsExpanded ? scopedHeadlines : scopedHeadlines.slice(0, 12)
+  /* The headlines card owns its feed logic (range, facets, day groups,
+     source mutes) — see NewsFeedCard.tsx. */
 
   /* Tally's presence outside the chat tab — one noticed thing, built
      locally from the same state the stats read. No model call. */
@@ -296,6 +254,17 @@ export function InvestHomePage() {
                   timeStyle: 'short',
                 }),
               )}
+              {isQuoteStale(pricesAsOf) && (
+                <>
+                  {' · '}
+                  <span
+                    style={{ color: 'var(--sb-accent-ink)' }}
+                    title={x(IM.invest_prices_stale_hint)}
+                  >
+                    {x(IM.invest_prices_stale)}
+                  </span>
+                </>
+              )}
             </p>
           )}
         </div>
@@ -327,19 +296,17 @@ export function InvestHomePage() {
       <InvestOnboarding />
 
       {noticed && (
-        <div className="sb-note sb-note-accent" style={{ marginBottom: 16, alignItems: 'center' }}>
+        <div className="sb-note sb-note-accent" style={{ marginBottom: 16 }}>
           <Sparkles size={15} aria-hidden="true" style={{ flexShrink: 0 }} />
           <span>
             <strong>{x(IM.invest_home_tally_label)}</strong> — {noticed.text}{' '}
-            <Link to="/invest/chat" style={{ color: 'inherit', fontWeight: 600 }}>
-              {x(IM.invest_home_tally_open)}
-            </Link>
+            <Link to="/invest/chat">{x(IM.invest_home_tally_open)}</Link>
           </span>
         </div>
       )}
 
       <div className="sb-note">
-        <Info size={16} strokeWidth={1.7} aria-hidden="true" />
+        <Info size={16} strokeWidth={1.7} aria-hidden="true" style={{ color: 'var(--sb-muted)' }} />
         <span>{x(IM.invest_info_note)}</span>
       </div>
 
@@ -385,7 +352,10 @@ export function InvestHomePage() {
               ))}
             </p>
           ) : (
-            <p className="v" style={{ margin: '8px 0 0' }}>{fmt.format(book.cash)}</p>
+            <p className="v" style={{ margin: '8px 0 0' }}>
+              {book.used && <span className="dim">≈ </span>}
+              {fmt.format(book.cash)}
+            </p>
           )}
         </div>
         <div className="sb-stat">
@@ -395,12 +365,30 @@ export function InvestHomePage() {
         <div className="sb-stat">
           <p className="k" style={{ margin: 0 }}>{x(IM.invest_ov_last_run)}</p>
           <p className="v small" style={{ margin: '8px 0 0' }}>
-            {lastRun
-              ? new Date(lastRun.ranAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
+            {lastRun ? (
+              <>
+                {new Date(lastRun.ranAt).toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', {
                   dateStyle: 'medium',
                   timeStyle: 'short',
-                })
-              : x(IM.invest_ov_never_run)}
+                })}
+                {/* Sweep = heartbeat, nothing due; evaluation = a strategy
+                    actually ran — its own dim line, never a dangling "·". */}
+                <span className="dim" style={{ display: 'block' }}>
+                  {x(lastRun.strategyId ? IM.invest_ov_last_run_eval : IM.invest_ov_last_run_sweep)}
+                </span>
+                {lastRunStale && (
+                  <span
+                    className="dim"
+                    style={{ display: 'block', color: 'var(--sb-accent-ink)' }}
+                    title={x(IM.invest_ov_last_run_overdue_hint)}
+                  >
+                    {x(IM.invest_ov_last_run_overdue)}
+                  </span>
+                )}
+              </>
+            ) : (
+              x(IM.invest_ov_never_run)
+            )}
           </p>
         </div>
       </div>
@@ -430,6 +418,7 @@ export function InvestHomePage() {
             cashEvents={state.cashEvents}
             accounts={state.accounts}
             fx={fx}
+            benchmarks={state.benchmarkMarks}
           />
         </Suspense>
       </div>
@@ -453,7 +442,7 @@ export function InvestHomePage() {
                 return (
                   <li key={cls}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '13.5px' }}>
-                      <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[assetLabel[cls]])}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--sb-body)' }}>{x(IM[ASSET_LABEL[cls]])}</span>
                       <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--sb-muted)' }}>
                         {book.missed > 0
                           ? native
@@ -515,119 +504,7 @@ export function InvestHomePage() {
         </section>
       </div>
 
-      <section className={cardClass} style={{ marginTop: 16 }}>
-        {/* Third-party headlines, verbatim — label them as such so a publisher's
-            headline never reads as a Dutiva recommendation. */}
-        <div className="flex items-start justify-between gap-[12px]">
-          <div>
-            <h2 className="m-0 flex items-center gap-[8px]">
-              <span
-                aria-hidden="true"
-                className="flex h-[24px] w-[24px] items-center justify-center rounded-[7px] bg-accent-soft text-accent"
-              >
-                <Newspaper size={13} strokeWidth={2} />
-              </span>
-              {x(IM.invest_news_title)}
-            </h2>
-            <p className="m-0 ml-[32px] mt-[2px] text-[12px] leading-normal text-text-muted">
-              {x(IM.invest_news_note)}
-            </p>
-          </div>
-          <div className="mt-[3px] flex shrink-0 items-center gap-[8px]">
-            {/* 'Your book' keeps only headlines tagged to a held or
-                watched symbol — the general market wrap drops out. */}
-            {bookHeadlines.length > 0 && bookHeadlines.length !== headlines.length && (
-              <div className="sb-seg sb-seg-sm">
-                <button
-                  type="button"
-                  aria-pressed={newsFilter === 'all'}
-                  onClick={() => setNewsFilter('all')}
-                >
-                  {x(IM.invest_news_all)}
-                </button>
-                <button
-                  type="button"
-                  aria-pressed={newsFilter === 'book'}
-                  onClick={() => setNewsFilter('book')}
-                >
-                  {x(IM.invest_news_book)}
-                </button>
-              </div>
-            )}
-            {scopedHeadlines.length > 12 && (
-              <span className="shrink-0 rounded-full bg-inset px-[9px] py-[3px] text-[11px] font-medium tabular-nums text-text-muted">
-                {x(IM.invest_news_count).replace('{count}', String(scopedHeadlines.length))}
-              </span>
-            )}
-          </div>
-        </div>
-        {state.news.length === 0 ? (
-          <p className="sb-empty">{x(IM.invest_news_empty)}</p>
-        ) : (
-          <>
-          <ul className="m-0 mt-[14px] grid list-none grid-cols-1 gap-[8px] p-0 min-[980px]:grid-cols-2">
-            {visibleHeadlines.map((n, i) => (
-              <li key={n.id} className={i === 0 ? 'min-[980px]:col-span-2' : undefined}>
-                <a
-                  href={n.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group flex h-full items-center gap-[11px] rounded-[12px] border border-border bg-surface no-underline transition-all hover:border-border-strong hover:bg-inset hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${i === 0 ? 'p-[13px]' : 'p-[11px]'}`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`flex shrink-0 items-center justify-center rounded-[10px] font-bold uppercase ${i === 0 ? 'h-[34px] w-[34px] text-[13px]' : 'h-[30px] w-[30px] text-[11.5px]'} ${sourceTint(n.source)}`}
-                  >
-                    {(n.source || '?').trim().charAt(0)}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className={`line-clamp-2 block font-semibold leading-snug text-text underline decoration-transparent underline-offset-2 transition-[text-decoration-color] group-hover:decoration-accent ${i === 0 ? 'text-[14px]' : 'text-[13px]'}`}>
-                      {n.title}
-                    </span>
-                    <span className="mt-[5px] flex items-center gap-[6px] text-[11.5px] text-text-muted">
-                      <span className="truncate">{n.source}</span>
-                      {n.symbol && (
-                        <span className="shrink-0 rounded-[6px] bg-accent-soft px-[6px] py-px text-[10px] font-semibold uppercase tracking-[0.04em] text-accent">
-                          {n.symbol}
-                        </span>
-                      )}
-                      {n.publishedAt && (
-                        <span className="ml-auto shrink-0 tabular-nums">
-                          {new Intl.DateTimeFormat(lang === 'fr' ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' }).format(new Date(n.publishedAt))}
-                        </span>
-                      )}
-                    </span>
-                  </span>
-                  <ArrowUpRight
-                    size={14}
-                    strokeWidth={2}
-                    aria-hidden="true"
-                    className="mt-[3px] shrink-0 self-start text-text-3 transition-transform duration-150 group-hover:-translate-y-[1px] group-hover:translate-x-[1px] group-hover:text-accent"
-                  />
-                  <span className="sr-only">{x(IM.invest_news_external)}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {headlines.length > 12 && (
-            <button
-              type="button"
-              onClick={() => setNewsExpanded((v) => !v)}
-              className="mx-auto mt-[12px] flex min-h-[34px] w-auto cursor-pointer items-center justify-center gap-[6px] rounded-full border border-border bg-transparent px-[18px] text-[12.5px] font-semibold text-text-2 transition-colors hover:border-border-strong hover:bg-inset focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {newsExpanded
-                ? x(IM.invest_news_less)
-                : x(IM.invest_news_more).replace('{count}', String(headlines.length))}
-              {newsExpanded ? (
-                <ChevronUp size={14} aria-hidden="true" />
-              ) : (
-                <ChevronDown size={14} aria-hidden="true" />
-              )}
-            </button>
-          )}
-          </>
-        )}
-      </section>
+      <NewsFeedCard />
     </div>
   )
 }

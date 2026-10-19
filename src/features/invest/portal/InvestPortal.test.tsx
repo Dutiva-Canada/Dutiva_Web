@@ -9,6 +9,7 @@ import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import type { AuthContextValue } from '@/features/app/auth/authContext'
 import type { InvestState } from '@/features/invest/data/api'
 import type { FxTable } from '@/features/invest/data/fx'
+import { EMPTY_SWOT } from '@/features/invest/data/types'
 
 /* useAuth is mocked per-test to drive the signed-out / no-access / granted
    gates; the real AuthContext stays so AuthProvider still mounts. */
@@ -34,6 +35,8 @@ vi.mock('@/features/invest/data/api', async (importOriginal) => ({
   setOrderStatus: vi.fn(),
   addWatchSymbol: vi.fn(),
   removeWatchSymbol: vi.fn(),
+  muteNewsSource: vi.fn(),
+  unmuteNewsSource: vi.fn(),
   createAccount: vi.fn(),
   updateAccount: vi.fn(),
   deleteAccount: vi.fn(),
@@ -51,6 +54,8 @@ const {
   executeOrder,
   addWatchSymbol,
   removeWatchSymbol,
+  muteNewsSource,
+  unmuteNewsSource,
   createAccount,
   updateAccount,
   deleteAccount,
@@ -109,6 +114,7 @@ const STATE: InvestState = {
       currency: 'CAD',
       source: 'manual',
       asOf: '2026-01-20T00:00:00Z',
+      quoteName: '',
     },
   ],
   strategies: [
@@ -203,6 +209,8 @@ const STATE: InvestState = {
   scanItems: [],
   memories: [],
   bookSnapshots: [],
+  benchmarkMarks: [],
+  newsMutes: [],
   cashEvents: [],
   fills: [],
   stressScenarios: [],
@@ -217,6 +225,20 @@ const STATE: InvestState = {
       source: 'Example News',
       summary: '',
       publishedAt: '2026-01-20T09:00:00Z',
+      viaTheme: null,
+      kind: null,
+    },
+    {
+      id: 2,
+      symbol: 'AMAT',
+      assetClass: 'equity',
+      title: 'US widens chip-equipment export rules',
+      url: 'https://news.example/export-rules',
+      source: 'Wire',
+      summary: '',
+      publishedAt: '2026-01-20T08:00:00Z',
+      viaTheme: 'US-China trade restrictions',
+      kind: null,
     },
   ],
 }
@@ -256,6 +278,7 @@ const USD_QUOTED: InvestState = {
       currency: 'USD',
       source: 'yahoo',
       asOf: '2026-10-12T00:00:00Z',
+      quoteName: '',
     },
   ],
 }
@@ -355,6 +378,9 @@ describe('InvestPortalLayout', () => {
     expect(screen.getByText('Market headlines (third-party)')).toBeInTheDocument()
     // The link's accessible name carries the sr-only exit note too
     expect(screen.getByRole('link', { name: /Shopify beats estimates/ })).toBeInTheDocument()
+    // A theme-sourced headline marks its provenance — it reached AMAT
+    // via a watched theme, not by naming the holding
+    expect(screen.getByText('via US-China trade restrictions')).toBeInTheDocument()
   })
 })
 
@@ -401,6 +427,198 @@ describe('InvestHomePage', () => {
        the headline sums the converted figure, marked and disclosed. */
     expect(await screen.findByText(/\$26,369\.86/)).toBeInTheDocument()
     expect(screen.getByText(/USD→CAD 1\.3699/)).toBeInTheDocument()
+  })
+
+  it('scopes "Your book" to held and watched symbols, not scan-board links', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* 'All' shows both rows — including the AMAT headline that arrived
+       via a watched theme, tagged to a board link the book doesn't hold. */
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Your book' }))
+    /* SHOP is held → stays. AMAT is only a scan-board linkage (neither
+       held nor watched here) → 'Your book' can't claim it. */
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+  })
+
+  it('filters headlines by ticker and theme facets', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue(STATE)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Facets derive from the feed: AMAT gets a chip even though it's a
+       board link, not a holding — the story IS in the 'All' feed. */
+    const user = userEvent.setup()
+    await user.click(await screen.findByRole('button', { name: 'AMAT' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    expect(screen.queryByText('Shopify beats estimates')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'US-China trade restrictions' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'All' }))
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    /* A single-class feed earns no 'Equity' chip — it wouldn't split
+       anything. */
+    expect(screen.queryByRole('button', { name: 'Equity' })).not.toBeInTheDocument()
+  })
+
+  it('mutes a publisher, lists it under "Muted:", and restores it', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    /* The mute write resolves, then the refresh reloads state with the
+       mute persisted — the same two calls the real flow makes. */
+    vi.mocked(loadInvestState)
+      .mockResolvedValueOnce(STATE)
+      .mockResolvedValueOnce({ ...STATE, newsMutes: ['Wire'] })
+      .mockResolvedValue(STATE)
+    vi.mocked(muteNewsSource).mockResolvedValue(undefined)
+    vi.mocked(unmuteNewsSource).mockResolvedValue(undefined)
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    expect(await screen.findByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    const user = userEvent.setup()
+    /* Per-card control — names the publisher it mutes. */
+    await user.click(screen.getByRole('button', { name: 'Hide Wire headlines' }))
+    expect(muteNewsSource).toHaveBeenCalledWith('Wire')
+    /* Post-refresh the muted source's story is gone and the muted list
+       shows what's hidden. */
+    expect(await screen.findByText('Muted:')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+    expect(screen.getByText('Shopify beats estimates')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show Wire again' }))
+    expect(unmuteNewsSource).toHaveBeenCalledWith('Wire')
+    expect(await screen.findByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    expect(screen.queryByText('Muted:')).not.toBeInTheDocument()
+  })
+
+  it('badges headline kinds and ranks events above churn within a day', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: [
+        ...STATE.news,
+        {
+          id: 3,
+          symbol: 'SHOP',
+          assetClass: 'equity',
+          title: 'Shopify Stock Falls 4% in Morning Trading',
+          url: 'https://news.example/shop-down',
+          source: 'Churn Daily',
+          summary: '',
+          /* Newest row — but a price-move writeup, so it ranks after
+             the event and news rows inside the same day. */
+          publishedAt: '2026-01-20T15:00:00Z',
+          viaTheme: null,
+          kind: null,
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    const move = await screen.findByText('Shopify Stock Falls 4% in Morning Trading')
+    const event = screen.getByText('US widens chip-equipment export rules')
+    /* Event outranks the newer churn inside the same day. */
+    expect(event.compareDocumentPosition(move) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getAllByText('Price move')).toHaveLength(1)
+    expect(screen.getAllByText('Event')).toHaveLength(1)
+  })
+
+  it('hides subscription-only sources until the toggle shows them', async () => {
+    localStorage.setItem('dutiva.news.showPaywalled', '0')
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: [
+        ...STATE.news,
+        {
+          id: 4,
+          symbol: 'SHOP',
+          assetClass: 'equity',
+          title: 'Barron paywalled piece on Shopify',
+          url: 'https://news.example/barrons-shop',
+          source: "Barron's",
+          summary: '',
+          publishedAt: '2026-01-20T07:00:00Z',
+          viaTheme: null,
+          kind: null,
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('Barron paywalled piece on Shopify')).not.toBeInTheDocument()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+    const chip = screen.getByRole('button', { name: /subscription-only headlines hidden/i })
+    expect(chip).toHaveAttribute('title', expect.stringContaining("Barron's"))
+    await user.click(chip)
+    expect(await screen.findByText('Barron paywalled piece on Shopify')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Subscription-only sources shown/i }))
+    expect(screen.queryByText('Barron paywalled piece on Shopify')).not.toBeInTheDocument()
+  })
+
+  it('windows the headline feed to 7 days, 2 weeks, or 30 days', async () => {
+    const recent = new Date(Date.now() - 2 * 86_400_000).toISOString()
+    const older = new Date(Date.now() - 10 * 86_400_000).toISOString()
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      news: STATE.news.map((n, i) => ({
+        ...n,
+        publishedAt: i === 0 ? recent : older,
+      })),
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    const { default: userEvent } = await import('@testing-library/user-event')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Default 7d: the 10-day-old theme headline is out of window. */
+    expect(await screen.findByText('Shopify beats estimates')).toBeInTheDocument()
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: '2 weeks' }))
+    expect(screen.getByText('US widens chip-equipment export rules')).toBeInTheDocument()
+    /* Two different publish days → two day-group headers chunk the list. */
+    const card = screen.getByText('Market headlines (third-party)').closest('section')!
+    expect(within(card).getAllByRole('heading', { level: 3 })).toHaveLength(2)
+    await user.click(screen.getByRole('button', { name: '7 days' }))
+    expect(screen.queryByText('US widens chip-equipment export rules')).not.toBeInTheDocument()
   })
 
   it('lists totals per currency instead of a blended figure when no FX rate loads', async () => {
@@ -489,6 +707,110 @@ describe('InvestHomePage', () => {
     expect(screen.queryByText('Dismissed noise')).not.toBeInTheDocument()
     /* No symbol → date sits alone, never behind a dangling '·'. */
     expect(screen.queryByText(/^· /)).not.toBeInTheDocument()
+  })
+
+  it('tags a mover with the book context that explains it', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      theses: [
+        {
+          id: 'th1',
+          assetClass: 'equity' as const,
+          symbol: 'SHOP',
+          name: 'Shopify',
+          thesis: 'Logistics flywheel',
+          intent: 'core' as const,
+          breakRules: [],
+          driftRules: [],
+          swot: EMPTY_SWOT,
+          status: 'broken' as const,
+          evalDetail: null,
+          lastEvaluatedAt: null,
+          createdAt: '2026-01-10T00:00:00Z',
+          updatedAt: '2026-01-10T00:00:00Z',
+        },
+      ],
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* SHOP −6% clears the mover bar; its thesis is broken and 120 sits
+       under ma50 130 — the strongest two tags ride the mover. */
+    expect(
+      await screen.findByText(/SHOP −6\.0% — thesis broken, below its 50-day average/),
+    ).toBeInTheDocument()
+  })
+
+  it('collapses movers with identical tags into one pluralized tail', async () => {
+    vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+    vi.mocked(loadInvestState).mockResolvedValue({
+      ...STATE,
+      positions: [
+        ...STATE.positions,
+        {
+          id: 'p2',
+          accountId: 'acc1',
+          assetClass: 'equity',
+          symbol: 'AMD',
+          name: 'AMD',
+          quantity: 5,
+          avgCost: 90,
+          currency: 'CAD',
+          lastPrice: 120,
+          lastPriceAt: '2026-01-20T00:00:00Z',
+          targetWeightPct: null,
+        },
+      ],
+      snapshots: [
+        ...STATE.snapshots,
+        {
+          assetClass: 'equity' as const,
+          symbol: 'AMD',
+          price: 120,
+          dayChangePct: -8,
+          ma50: 130,
+          currency: 'CAD',
+          source: 'manual',
+          asOf: '2026-01-20T00:00:00Z',
+          quoteName: '',
+        },
+      ],
+      theses: ['SHOP', 'AMD'].map((sym, i) => ({
+        id: `th${i}`,
+        assetClass: 'equity' as const,
+        symbol: sym,
+        name: sym,
+        thesis: 't',
+        intent: 'core' as const,
+        breakRules: [],
+        driftRules: [],
+        swot: EMPTY_SWOT,
+        status: 'broken' as const,
+        evalDetail: null,
+        lastEvaluatedAt: null,
+        createdAt: '2026-01-10T00:00:00Z',
+        updatedAt: '2026-01-10T00:00:00Z',
+      })),
+    })
+    const { InvestHomePage } = await import('./InvestHomePage')
+    const { InvestDataProvider } = await import('../data/InvestDataProvider')
+    renderPortal(
+      <InvestDataProvider>
+        <InvestHomePage />
+      </InvestDataProvider>,
+    )
+    /* Same two tags on both movers — one shared, pluralized tail
+       instead of the same sentence twice. */
+    expect(
+      await screen.findByText(
+        /AMD −8\.0%, SHOP −6\.0% — theses broken, below their 50-day averages/,
+      ),
+    ).toBeInTheDocument()
   })
 })
 

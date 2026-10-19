@@ -21,8 +21,11 @@ import {
   detectDirectedAdvice,
   extractMentionedSymbols,
   formatMarketEntry,
+  headlineSourceVisible,
   investChatPrompt,
   investReactPrompt,
+  newsKindTag,
+  normalizeSource,
   parseInvestChatReply,
   resolveInvestRef,
   verifyReplyClaims,
@@ -1122,6 +1125,104 @@ describe('formatMarketEntry', () => {
     expect(out).not.toContain('fundamentals:')
     expect(out).not.toContain('news:')
   })
+  it('tags a classified headline and its theme provenance', () => {
+    const out = formatMarketEntry({
+      ...base,
+      headlines: [{
+        title: 'US-China Trade War Escalates', source: 'CNBC',
+        publishedAt: '2026-10-09T12:00:00Z', url: 'https://cnbc.com/x',
+        kind: 'event', viaTheme: 'Trade restrictions',
+      }],
+    })
+    expect(out).toContain('"US-China Trade War Escalates" (CNBC, 2026-10-09, event, via "Trade restrictions")')
+  })
+  it('renders the recent close series oldest-first when present', () => {
+    const closes = Array.from({ length: 30 }, (_, i) => 240 + i)
+    const out = formatMarketEntry({ ...base, closes30d: closes })
+    expect(out).toContain('recent closes (oldest→newest): 240')
+    expect(out).toContain('269')
+    /* Absent on thin coverage — no dangling label. */
+    expect(formatMarketEntry({ ...base, closes30d: undefined })).not.toContain('recent closes')
+    expect(formatMarketEntry({ ...base, closes30d: [] })).not.toContain('recent closes')
+  })
+})
+
+describe('investChatPrompt — attachments + closes legend', () => {
+  const row: MarketContextEntry = {
+    symbol: 'AMD', assetClass: 'equity', price: 254.3, currency: 'USD',
+    dayChangePct: 1.2, ma50: 228.4, ma200: 195.1, rsi14: 61.2,
+    ret1m: 8.4, ret3m: 22.1, ret12m: 65.0, vol20d: 38.2,
+    high52w: 267.08, low52w: 112.76, fundamentals: null,
+    asOf: '2026-10-10T13:00:00Z', headlines: [],
+  }
+  it('adds the closes legend only when a row carries the series', () => {
+    const withCloses: InvestChatContext = {
+      ...EMPTY_CTX,
+      market: [{ ...row, closes30d: [100, 101, 102] }],
+    }
+    /* The legend line itself — "recent closes" alone also appears in the
+       chart-fence instruction, so the assertion names the legend's body. */
+    expect(investChatPrompt(withCloses, 'en').content).toContain(
+      'recent closes — the last ~30 daily closes',
+    )
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain(
+      'the last ~30 daily closes',
+    )
+    expect(
+      investChatPrompt({ ...EMPTY_CTX, market: [row] }, 'en').content,
+    ).not.toContain('the last ~30 daily closes')
+  })
+  it('adds the image honesty clause only when an image rides the turn', () => {
+    expect(investChatPrompt(EMPTY_CTX, 'en', { image: true }).content).toContain('attached an image')
+    expect(investChatPrompt(EMPTY_CTX, 'en').content).not.toContain('attached an image')
+    expect(investChatPrompt(EMPTY_CTX, 'en', { advice: true }).content).not.toContain('attached an image')
+  })
+  it('teaches the chart fence grammar with the grounding rule attached', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('```chart fenced block')
+    expect(p).toContain('bar, hbar, line, area, or donut')
+    /* The chart path is not exempt from grounding — the prompt says so. */
+    expect(p).toContain('never invent values to fill a series')
+  })
+  it('teaches the dutiva-widget grammar and forbids the recommendation badge', () => {
+    const p = investChatPrompt(EMPTY_CTX, 'en').content
+    expect(p).toContain('```dutiva-widget fenced block')
+    for (const type of ['table', 'chart', 'checklist', 'timeline', 'comparison', 'calculator']) {
+      expect(p).toContain(`{"type":"${type}"`)
+    }
+    /* A "recommended" badge on an option card is advice by another name —
+       the prompt forbids it outright. */
+    expect(p).toContain('NEVER set "recommended"')
+    expect(p).toContain('never invent values to fill a widget')
+  })
+})
+
+describe('headline source prefs', () => {
+  const noMutes = new Set<string>()
+  it('hides subscription-only sources by default and reveals them on opt-in', () => {
+    expect(headlineSourceVisible('Reuters', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Barron\'s', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Reuters', noMutes, true)).toBe(true)
+    expect(headlineSourceVisible('CBC News', noMutes, false)).toBe(true)
+  })
+  it('matches paywall names case/punctuation-insensitively and by prefix', () => {
+    expect(headlineSourceVisible('reuters', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Barron’s', noMutes, false)).toBe(false)
+    expect(headlineSourceVisible('Reuters Canada', noMutes, false)).toBe(false)
+  })
+  it('mutes win over everything, including revealed paywalled sources', () => {
+    const muted = new Set(['seekingalpha'])
+    expect(headlineSourceVisible('Seeking Alpha', muted, true)).toBe(false)
+    const mutedYahoo = new Set([normalizeSource('Yahoo Finance')])
+    expect(headlineSourceVisible('Yahoo! Finance Canada', mutedYahoo, false)).toBe(false)
+    expect(headlineSourceVisible('The Globe and Mail', mutedYahoo, false)).toBe(true)
+  })
+  it('newsKindTag passes only the five stored verdicts', () => {
+    expect(newsKindTag('view')).toBe('view')
+    expect(newsKindTag('filing')).toBe('filing')
+    expect(newsKindTag('bogus')).toBeNull()
+    expect(newsKindTag(null)).toBeNull()
+  })
 })
 
 describe('investChatPrompt — market data', () => {
@@ -1147,6 +1248,15 @@ describe('investChatPrompt — market data', () => {
     expect(p).toContain('Market backdrop:')
     expect(p).toContain('"TSX falls on oil"')
     expect(p).toContain('verdict')
+  })
+  it('prints the headline-tag legend when headlines exist and omits it when none do', () => {
+    expect(investChatPrompt(ctxWithMarket, 'en').content).toContain('Headline tags')
+    const quiet: InvestChatContext = {
+      ...ctxWithMarket,
+      market: [{ ...ctxWithMarket.market[0], headlines: [] }],
+      generalNews: [],
+    }
+    expect(investChatPrompt(quiet, 'en').content).not.toContain('Headline tags')
   })
   it('renders (none) cleanly when the table is empty', () => {
     const p = investChatPrompt(EMPTY_CTX, 'en').content
