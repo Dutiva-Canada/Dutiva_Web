@@ -138,8 +138,9 @@ export function InvestNotificationsPage() {
               const title = lang === 'fr' && s.titleFr ? s.titleFr : s.title
               const body = lang === 'fr' && s.bodyFr ? s.bodyFr : s.body
               /* Other held symbols the text mentions get link chips —
-                 same cross-reference the Signals tab offers. */
-              const mentioned = mentionedSymbols(`${title} ${body}`, [...heldSymbols]).filter(
+                 same scan the Signals tab runs, over the raw fields (EN),
+                 so the same row wears the same chips on both surfaces. */
+              const mentioned = mentionedSymbols(`${s.title} ${s.body}`, [...heldSymbols]).filter(
                 (m) => m !== sym,
               )
               return (
