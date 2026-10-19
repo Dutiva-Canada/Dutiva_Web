@@ -20,6 +20,13 @@
   gap: 12px;
   flex-wrap: wrap;
 }
+/* When the title block is wide enough to wrap the row, the actions land
+   alone on line two — a lone flex item sits at flex-start (left), which
+   reads as the actions jumping sides. margin-left:auto pins them to the
+   right edge on either line. */
+.sb-head-row > .sb-row-actions {
+  margin-left: auto;
+}
 .sb-head-row h1 {
   margin: 20px 0 4px;
 }

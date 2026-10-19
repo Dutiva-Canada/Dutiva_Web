@@ -586,7 +586,7 @@ export function InvestPortfolioPage() {
         <div className="sb-head-row">
           <h2 className="sb-h2">{x(IM.invest_positions_title)}</h2>
           {state.accounts.length > 0 && !showPosForm && !showBulk && (
-            <span style={{ display: 'inline-flex', gap: 8 }}>
+            <span className="sb-row-actions">
               {state.positions.length > 0 && (
                 <button
                   type="button"
