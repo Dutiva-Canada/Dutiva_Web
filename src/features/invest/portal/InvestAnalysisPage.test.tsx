@@ -167,6 +167,7 @@ function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
     status: 'healthy',
     evalDetail: null,
     lastEvaluatedAt: null,
+    reaffirmedAt: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     ...over,

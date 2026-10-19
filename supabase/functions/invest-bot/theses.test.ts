@@ -201,7 +201,9 @@ describe('thesisAction', () => {
   it('stays observational for external accounts on degraded states', () => {
     const broken = thesisAction('broken', 'speculative', false)
     expect(broken.en).not.toMatch(/exit/i)
-    expect(broken.en).toMatch(/needs a decision/i)
+    /* The line tripped is the fact; the story call belongs to the holder —
+       never "the thesis failed" off a price line. */
+    expect(broken.en).toMatch(/your call/i)
   })
 
   it('gives the intent line to everyone when healthy', () => {
@@ -210,9 +212,9 @@ describe('thesisAction', () => {
 })
 
 describe('thesisSignalTitle', () => {
-  it('embeds the status word — the dedupe handle per transition', () => {
-    expect(thesisSignalTitle('ARM', 'Arm Holdings', 'broken').en).toContain('broken')
-    expect(thesisSignalTitle('ARM', 'Arm Holdings', 'drifting').en).toContain('drifting')
+  it('names the line, not a verdict — the dedupe handle per transition', () => {
+    expect(thesisSignalTitle('ARM', 'Arm Holdings', 'broken').en).toContain('break line crossed')
+    expect(thesisSignalTitle('ARM', 'Arm Holdings', 'drifting').en).toContain('fraying')
     expect(thesisSignalTitle('ARM', 'Arm Holdings', 'healthy').en).toContain('intact')
   })
 })

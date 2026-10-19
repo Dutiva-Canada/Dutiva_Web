@@ -587,9 +587,12 @@ export const investStrategyBuilderMessages = defineMessages({
     en: 'Each holding’s claim — the story and the conditions that would change your mind. Tally checks them on every sweep.',
     fr: 'La thèse de chaque position — l’histoire et les conditions qui vous feraient changer d’avis. Tally les vérifie à chaque balayage.',
   },
+  /* Status names describe what tripped — a fraying line or a crossed
+     break line — never a verdict on the story. 'Broken' was retired:
+     the sweep reads technicals, it can't call a thesis dead. */
   invest_thesis_status_healthy: { en: 'On track', fr: 'Sur la bonne voie' },
-  invest_thesis_status_drifting: { en: 'Drifting', fr: 'Dérive' },
-  invest_thesis_status_broken: { en: 'Broken', fr: 'Brisée' },
+  invest_thesis_status_drifting: { en: 'Fraying', fr: 'Effiloche' },
+  invest_thesis_status_broken: { en: 'Line crossed', fr: 'Ligne franchie' },
   invest_thesis_intent_label: { en: 'The role it plays', fr: 'Le rôle qu’elle joue' },
   invest_thesis_intent_core: { en: 'Core', fr: 'Cœur' },
   invest_thesis_intent_growth: { en: 'Growth', fr: 'Croissance' },
@@ -611,6 +614,17 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_thesis_no_read: { en: 'No reading yet', fr: 'Pas encore de lecture' },
   invest_thesis_evaluated: { en: 'Checked {when}', fr: 'Vérifiée {when}' },
   invest_thesis_never: { en: 'Not evaluated yet — the next sweep reads it.', fr: 'Pas encore évaluée — le prochain balayage la lira.' },
+  /* Reaffirm — a crossed line is a technical fact; whether the story
+     still holds is the holder's call. The button records that call so a
+     tripped guardrail can't pose as a dead thesis. [FR self-authored] */
+  invest_thesis_reaffirm: { en: 'Story still holds', fr: 'La thèse tient' },
+  /* [FR self-authored] */
+  invest_thesis_reaffirmed: {
+    en: 'Story reaffirmed {when} — the line stays crossed.',
+    fr: 'Thèse réaffirmée {when} — la ligne reste franchie.',
+  },
+  /* [FR self-authored] */
+  invest_thesis_reaffirmed_toast: { en: 'Story reaffirmed.', fr: 'Thèse réaffirmée.' },
   invest_thesis_posture: { en: 'Posture', fr: 'Position' },
   invest_thesis_edit: { en: 'Edit', fr: 'Modifier' },
   /* The composer's h1 names the subject — a bare "Edit"/"Modifier" reads

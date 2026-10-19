@@ -732,6 +732,7 @@ describe('InvestHomePage', () => {
           status: 'broken' as const,
           evalDetail: null,
           lastEvaluatedAt: null,
+          reaffirmedAt: null,
           createdAt: '2026-01-10T00:00:00Z',
           updatedAt: '2026-01-10T00:00:00Z',
         },
@@ -744,10 +745,10 @@ describe('InvestHomePage', () => {
         <InvestHomePage />
       </InvestDataProvider>,
     )
-    /* SHOP −6% clears the mover bar; its thesis is broken and 120 sits
+    /* SHOP −6% clears the mover bar; its break line is crossed and 120 sits
        under ma50 130 — the strongest two tags ride the mover. */
     expect(
-      await screen.findByText(/SHOP −6\.0% — thesis broken, below its 50-day average/),
+      await screen.findByText(/SHOP −6\.0% — break line crossed, below its 50-day average/),
     ).toBeInTheDocument()
   })
 
@@ -798,6 +799,7 @@ describe('InvestHomePage', () => {
         status: 'broken' as const,
         evalDetail: null,
         lastEvaluatedAt: null,
+        reaffirmedAt: null,
         createdAt: '2026-01-10T00:00:00Z',
         updatedAt: '2026-01-10T00:00:00Z',
       })),
@@ -813,7 +815,7 @@ describe('InvestHomePage', () => {
        instead of the same sentence twice. */
     expect(
       await screen.findByText(
-        /AMD −8\.0%, SHOP −6\.0% — theses broken, below their 50-day averages/,
+        /AMD −8\.0%, SHOP −6\.0% — break lines crossed, below their 50-day averages/,
       ),
     ).toBeInTheDocument()
   })

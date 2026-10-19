@@ -1026,13 +1026,13 @@ const investCoreMessages = defineMessages({
      not overnight gaps. */
   /* [FR self-authored] */
   invest_brief_movers_day: { en: 'Session: {list}', fr: 'Séance : {list}' },
-  /* Mover context tails — "ASTS −8.5% — thesis broken, below your cost".
-     The strongest two attach so a bare % never stands in for why a move
-     matters to this book. */
+  /* Mover context tails — "ASTS −8.5% — break line crossed, below your
+     cost". The strongest two attach so a bare % never stands in for why
+     a move matters to this book. */
   /* [FR self-authored] */
-  invest_brief_mover_broken: { en: 'thesis broken', fr: 'thèse brisée' },
+  invest_brief_mover_broken: { en: 'break line crossed', fr: 'ligne de cassure franchie' },
   /* [FR self-authored] */
-  invest_brief_mover_drifting: { en: 'thesis drifting', fr: 'thèse en dérive' },
+  invest_brief_mover_drifting: { en: 'thesis fraying', fr: 'thèse qui s’effiloche' },
   /* [FR self-authored] */
   invest_brief_mover_signal: { en: 'signal fired', fr: 'signal déclenché' },
   /* [FR self-authored] */
@@ -1045,9 +1045,9 @@ const investCoreMessages = defineMessages({
   /* Plural tails — shared when several movers carry the identical tag
      set, so the line never reads "its" about four positions at once. */
   /* [FR self-authored] */
-  invest_brief_mover_broken_many: { en: 'theses broken', fr: 'thèses brisées' },
+  invest_brief_mover_broken_many: { en: 'break lines crossed', fr: 'lignes de cassure franchies' },
   /* [FR self-authored] */
-  invest_brief_mover_drifting_many: { en: 'theses drifting', fr: 'thèses en dérive' },
+  invest_brief_mover_drifting_many: { en: 'theses fraying', fr: 'thèses qui s’effilochent' },
   /* [FR self-authored] */
   invest_brief_mover_signal_many: { en: 'signals fired', fr: 'signaux déclenchés' },
   /* [FR self-authored] */
@@ -1061,8 +1061,8 @@ const investCoreMessages = defineMessages({
   invest_brief_signal_many: { en: 'signals fired since yesterday', fr: 'signaux déclenchés depuis hier' },
   /* [FR self-authored] */
   invest_brief_theses: {
-    en: 'Theses: {broken} broken · {drifting} drifting',
-    fr: 'Thèses : {broken} brisée(s) · {drifting} en dérive',
+    en: 'Theses: {broken} line-crossed · {drifting} fraying',
+    fr: 'Thèses : {broken} ligne(s) franchie(s) · {drifting} qui s’effilochent',
   },
   /* [FR self-authored] */
   invest_brief_goal_one: { en: 'goal off pace', fr: 'objectif qui recule' },
@@ -1132,8 +1132,8 @@ const investCoreMessages = defineMessages({
   invest_hint_thesis_status_aria: { en: 'Thesis statuses', fr: 'États des thèses' },
   /* [FR self-authored] */
   invest_hint_thesis_status: {
-    en: 'Healthy — every watch condition holds. Drifting — a condition tripped; worth a look. Broken — the case failed; the sweep proposes an exit order.',
-    fr: 'Saine — toutes les conditions tiennent. En dérive — une condition a été franchie ; à revoir. Brisée — la thèse a échoué ; l’analyse propose un ordre de sortie.',
+    en: 'On track — every condition holds. Fraying — an early-warning line tripped; worth a look, not a verdict. Line crossed — a break condition fired; the sweep proposes an exit order, and whether the story still holds is your call.',
+    fr: 'Sur la bonne voie — toutes les conditions tiennent. Effiloche — une ligne d’alerte a été franchie ; à revoir, pas un verdict. Ligne franchie — une condition de cassure s’est déclenchée ; le balayage propose un ordre de sortie, et c’est à vous de dire si la thèse tient.',
   },
   /* [FR self-authored] */
   invest_hint_goal_status_aria: { en: 'Goal statuses', fr: 'États des objectifs' },

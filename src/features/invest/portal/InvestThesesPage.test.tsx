@@ -18,6 +18,7 @@ import { InvestThesesPage } from './InvestThesesPage'
 const saveThesis = vi.fn().mockResolvedValue(undefined)
 const deleteThesis = vi.fn().mockResolvedValue(undefined)
 const draftThesis = vi.fn()
+const reaffirmThesis = vi.fn().mockResolvedValue(undefined)
 const loadPendingSuggestions = vi.fn().mockResolvedValue([])
 const resolveSuggestion = vi.fn().mockResolvedValue(undefined)
 
@@ -28,6 +29,7 @@ vi.mock('../data/api', async (importOriginal) => {
     saveThesis: (...a: unknown[]) => saveThesis(...a),
     deleteThesis: (...a: unknown[]) => deleteThesis(...a),
     draftThesis: (...a: unknown[]) => draftThesis(...a),
+    reaffirmThesis: (...a: unknown[]) => reaffirmThesis(...a),
   }
 })
 vi.mock('@/lib/agentQueue', () => ({
@@ -95,6 +97,7 @@ function thesis(over: Partial<InvestThesis> = {}): InvestThesis {
     status: 'healthy',
     evalDetail: null,
     lastEvaluatedAt: null,
+    reaffirmedAt: null,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
     ...over,
@@ -159,7 +162,7 @@ describe('InvestThesesPage — cards', () => {
       ],
     })
     expect(screen.getByText('SHOP')).toBeInTheDocument()
-    expect(screen.getByText('Drifting')).toBeInTheDocument()
+    expect(screen.getByText('Fraying')).toBeInTheDocument()
     expect(screen.getByText(/keeps compounding merchant solutions/)).toBeInTheDocument()
     expect(
       screen.getByText(/Fraying — hold and watch the flagged conditions/),
@@ -409,5 +412,45 @@ describe('InvestThesesPage — suggestions', () => {
     expect(
       screen.getByText(/Tally drafted the claim and its conditions/),
     ).toBeInTheDocument()
+  })
+})
+
+describe('InvestThesesPage — reaffirm', () => {
+  it('a degraded thesis offers Story still holds; reaffirming stamps it without clearing the crossed line', async () => {
+    const user = userEvent.setup()
+    const { refresh } = mount({
+      theses: [thesis({ status: 'broken' })],
+    })
+    /* Pill names the mechanism, not a verdict on the story. */
+    expect(await screen.findByText('Line crossed')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Story still holds' }))
+    await waitFor(() => expect(reaffirmThesis).toHaveBeenCalledWith('t1'))
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('a reaffirmed degraded thesis shows the stamp and hides the button — the pill stays crossed', async () => {
+    mount({
+      theses: [
+        thesis({
+          status: 'broken',
+          reaffirmedAt: new Date(Date.now() - 3600_000).toISOString(),
+        }),
+      ],
+    })
+    expect(await screen.findByText(/Story reaffirmed/)).toBeInTheDocument()
+    expect(screen.getByText(/the line stays crossed/)).toBeInTheDocument()
+    expect(screen.getByText('Line crossed')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Story still holds' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('a healthy thesis offers neither the button nor the stamp', async () => {
+    mount({ theses: [thesis({ status: 'healthy' })] })
+    expect(await screen.findByText('On track')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Story still holds' }),
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/Story reaffirmed/)).not.toBeInTheDocument()
   })
 })

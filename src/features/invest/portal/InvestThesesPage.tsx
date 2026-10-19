@@ -24,7 +24,7 @@ import { fill } from '@/lib/format'
 import { investMessages as IM } from '@/i18n/messages/invest'
 import { useToasts } from '@/features/app/toasts/toastsContext'
 import { useInvestData } from '../data/InvestDataContext'
-import { createOrder, deleteThesis, draftThesis, saveThesis } from '../data/api'
+import { createOrder, deleteThesis, draftThesis, reaffirmThesis, saveThesis } from '../data/api'
 import { readOrderMode } from './investPrefs'
 import { loadPendingSuggestions, resolveSuggestion, type AgentSuggestion } from '@/lib/agentQueue'
 import type {
@@ -164,7 +164,7 @@ export function InvestThesesPage() {
      snapshot, so a Cancel tap can't silently wipe a drafted thesis. */
   const [openedDraft, setOpenedDraft] = useState<ThesisDraftState | null>(null)
   const [cancelArmed, setCancelArmed] = useState(false)
-  const [busy, setBusy] = useState<'save' | 'delete' | null>(null)
+  const [busy, setBusy] = useState<'save' | 'delete' | 'reaffirm' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
 
   /* Two-tap confirm auto-disarms — a permanently-armed button turns a
@@ -506,6 +506,30 @@ export function InvestThesesPage() {
     }
   }, [composer, busy, refresh, showToast, x, lang])
 
+  /* The holder's verdict while a line is crossed — stamps reaffirmed_at
+     and leaves status alone: the line stays tripped, the story call is
+     now on record. The sweep clears the stamp on the next transition. */
+  const reaffirm = useCallback(
+    async (t: InvestThesis) => {
+      if (busy) return
+      setBusy('reaffirm')
+      try {
+        await reaffirmThesis(t.id)
+        showToast(IM.invest_thesis_reaffirmed_toast)
+        await refresh()
+      } catch (e) {
+        showToast(
+          fill(x(IM.invest_thesis_save_failed), {
+            error: e instanceof Error ? e.message : String(e),
+          }),
+        )
+      } finally {
+        setBusy(null)
+      }
+    },
+    [busy, refresh, showToast, x],
+  )
+
   const remove = useCallback(
     async (t: InvestThesis) => {
       if (busy) return
@@ -702,6 +726,8 @@ export function InvestThesesPage() {
                 const breakRows = evalRows.filter((r) => r.zone === 'break')
                 const driftRows = evalRows.filter((r) => r.zone === 'drift')
                 const when = t.lastEvaluatedAt ? relTimeLabel(t.lastEvaluatedAt, x) : null
+                const reaffirmedWhen =
+                  t.reaffirmedAt !== null ? relTimeLabel(t.reaffirmedAt, x) : null
                 return (
                   <article key={t.id} className="sb-thesis">
                     <header className="sb-thesis-head">
@@ -720,6 +746,12 @@ export function InvestThesesPage() {
                     {action && (
                       <p className="sb-thesis-action">
                         <strong>{x(IM.invest_thesis_posture)}</strong> — {action}
+                      </p>
+                    )}
+                    {t.status !== 'healthy' && reaffirmedWhen && (
+                      <p className="sb-thesis-reaffirm">
+                        <Check size={14} aria-hidden="true" />
+                        {fill(x(IM.invest_thesis_reaffirmed), { when: reaffirmedWhen })}
                       </p>
                     )}
                     {evalRows.length > 0 && (
@@ -783,6 +815,16 @@ export function InvestThesesPage() {
                           : x(IM.invest_thesis_never)}
                       </span>
                       <span className="sb-row-actions">
+                        {t.status !== 'healthy' && !t.reaffirmedAt && (
+                          <button
+                            type="button"
+                            className="sb-btn sb-btn-secondary sb-btn-sm"
+                            disabled={busy !== null}
+                            onClick={() => void reaffirm(t)}
+                          >
+                            {x(IM.invest_thesis_reaffirm)}
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="sb-btn sb-btn-secondary sb-btn-sm"
