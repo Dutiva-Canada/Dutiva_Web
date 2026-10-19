@@ -137,7 +137,14 @@ export function InvestNotificationsPage() {
               <li className="sb-card sb-card-pad">
                 <div className="sb-sig" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <p className="sb-sig-title" style={{ margin: 0 }}>
-                    {fill(x(IM.invest_notif_drafts), { n: drafts.length })}
+                    {fill(
+                      x(
+                        drafts.length === 1
+                          ? IM.invest_notif_drafts_one
+                          : IM.invest_notif_drafts_many,
+                      ),
+                      { n: drafts.length },
+                    )}
                   </p>
                   <Link to="/invest/orders" className="sb-notif-open">
                     {x(IM.invest_notif_review_orders)}

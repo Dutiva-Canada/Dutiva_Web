@@ -208,7 +208,7 @@ describe('strategyMeta / runLine', () => {
     /* Sweep rows label their output observations — AI book insights are
        not rule signals and must not masquerade as them. */
     expect(line).toContain('1 observation')
-    expect(line).toContain('2 proposals')
+    expect(line).toContain('2 draft orders')
     expect(line).toContain('0.4s')
     expect(line).not.toContain('(s)')
     expect(runLine('fr', { ...run, signalsEmitted: 0 })).toContain('0 observation')

@@ -191,7 +191,7 @@ const STATE: InvestState = {
       symbolsScanned: ['SHOP'],
       ruleHits: { Dip: 1 },
       durationMs: 1200,
-      summary: '1 symbol(s) scanned',
+      summary: '1 symbol scanned',
       status: 'ok',
     },
   ],
@@ -1251,7 +1251,7 @@ describe('InvestPortfolioPage positions', () => {
       expect.objectContaining({ symbol: 'TSLA', quantity: 2, avgCost: 300, currency: 'CAD' }),
     )
     expect(
-      await screen.findByText(/Added 2 positions — fetching quotes… 2 line\(s\) skipped/i),
+      await screen.findByText(/Added 2 positions — fetching quotes… 2 lines skipped/i),
     ).toBeInTheDocument()
     const box = document.getElementById('inv-bulk-lines') as HTMLTextAreaElement
     expect(box.value).toBe('SHOP, 1, 100\nBROKEN')
@@ -1430,7 +1430,7 @@ describe('InvestStrategiesPage', () => {
     /* Only Runner's own run lands a Last-run line — the sweep's null row
        never stamps s1's card. */
     expect(screen.getAllByText(/Last run/)).toHaveLength(1)
-    expect(screen.getByText(/2 signals · 1 proposal/)).toBeInTheDocument()
+    expect(screen.getByText(/2 signals · 1 draft order/)).toBeInTheDocument()
   })
 
   it('lists strategies and opens the wizard from New strategy', async () => {

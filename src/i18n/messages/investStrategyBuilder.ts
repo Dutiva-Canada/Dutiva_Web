@@ -55,8 +55,8 @@ export const investStrategyBuilderMessages = defineMessages({
   invest_sb_scanned_many: { en: 'symbols scanned', fr: 'symboles analysés' },
   invest_sb_signal_one: { en: 'signal', fr: 'signal' },
   invest_sb_signal_many: { en: 'signals', fr: 'signaux' },
-  invest_sb_proposal_one: { en: 'proposal', fr: 'proposition' },
-  invest_sb_proposal_many: { en: 'proposals', fr: 'propositions' },
+  invest_sb_proposal_one: { en: 'draft order', fr: 'brouillon d’ordre' },
+  invest_sb_proposal_many: { en: 'draft orders', fr: 'brouillons d’ordres' },
   invest_sb_new_signal_one: { en: 'new signal', fr: 'nouveau signal' },
   invest_sb_new_signal_many: { en: 'new signals', fr: 'nouveaux signaux' },
   invest_sb_new_proposal_one: { en: 'new proposal', fr: 'nouvelle proposition' },
@@ -435,9 +435,13 @@ export const investStrategyBuilderMessages = defineMessages({
     fr: 'déjà ouvert — un vrai balayage l’omettrait',
   },
   /* [FR self-authored] Summary-line segment counting suppressed matches. */
-  invest_sb_suppressed_seg: {
+  invest_sb_suppressed_seg_one: {
     en: '{n} already open',
-    fr: '{n} déjà ouvert(s)',
+    fr: '{n} déjà ouvert',
+  },
+  invest_sb_suppressed_seg_many: {
+    en: '{n} already open',
+    fr: '{n} déjà ouverts',
   },
   /* [FR self-authored] Symbol slot on a book-level match card — the
      match describes the whole portfolio, not a symbol or a "sweep". */
@@ -533,9 +537,13 @@ export const investStrategyBuilderMessages = defineMessages({
   },
   /* [FR self-authored] AI-drafted rules the normalizer couldn't read —
      the saved strategy keeps the valid ones and says what was lost. */
-  invest_sb_rules_dropped: {
-    en: '{n} drafted rule(s) couldn’t be read — add them in the editor.',
-    fr: '{n} règle(s) rédigée(s) illisible(s) — ajoutez-les dans l’éditeur.',
+  invest_sb_rules_dropped_one: {
+    en: '1 drafted rule couldn’t be read — add it in the editor.',
+    fr: '1 règle rédigée illisible — ajoutez-la dans l’éditeur.',
+  },
+  invest_sb_rules_dropped_many: {
+    en: '{n} drafted rules couldn’t be read — add them in the editor.',
+    fr: '{n} règles rédigées illisibles — ajoutez-les dans l’éditeur.',
   },
 
   /* Engine warning localization — the edge function ships code+params
@@ -607,7 +615,7 @@ export const investStrategyBuilderMessages = defineMessages({
      break line — never a verdict on the story. 'Broken' was retired:
      the sweep reads technicals, it can't call a thesis dead. */
   invest_thesis_status_healthy: { en: 'On track', fr: 'Sur la bonne voie' },
-  invest_thesis_status_drifting: { en: 'Fraying', fr: 'Effiloche' },
+  invest_thesis_status_drifting: { en: 'Fraying', fr: 'Effilochée' },
   invest_thesis_status_broken: { en: 'Line crossed', fr: 'Ligne franchie' },
   invest_thesis_intent_label: { en: 'The role it plays', fr: 'Le rôle qu’elle joue' },
   invest_thesis_intent_core: { en: 'Core', fr: 'Cœur' },

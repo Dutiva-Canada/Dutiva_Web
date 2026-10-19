@@ -38,8 +38,8 @@ const investCoreMessages = defineMessages({
     fr: 'Dutiva Invest — Suivi de portefeuille et agent de stratégies',
   },
   invest_seo_desc_overview: {
-    en: 'Track manual positions and watchlist prices; scans surface signals and order drafts you review yourself.',
-    fr: 'Suivez positions saisies à la main et cours de la liste de suivi ; les analyses signalent des signaux et des ébauches d’ordres que vous révisez.',
+    en: 'Track manual positions and watchlist prices; scans surface signals and draft orders you review yourself.',
+    fr: 'Suivez positions saisies à la main et cours de la liste de suivi ; les balayages repèrent des signaux et des brouillons d’ordres que vous révisez.',
   },
   invest_seo_title_portfolio: {
     en: 'Dutiva Invest — Portfolios',
@@ -51,7 +51,7 @@ const investCoreMessages = defineMessages({
   },
   invest_seo_title_orders: { en: 'Dutiva Invest — Orders', fr: 'Dutiva Invest — Ordres' },
   invest_seo_desc_orders: {
-    en: 'Agent-proposed order drafts and manual order intents — nothing executes without your approval.',
+    en: 'Agent-proposed draft orders and manual order intents — nothing executes without your approval.',
     fr: 'Ébauches d’ordres proposées par l’agent et intentions saisies à la main — rien ne s’exécute sans votre approbation.',
   },
   invest_seo_title_signals: { en: 'Dutiva Invest — Signals', fr: 'Dutiva Invest — Signaux' },
@@ -64,8 +64,8 @@ const investCoreMessages = defineMessages({
     fr: 'Dutiva Invest — Agent de stratégies',
   },
   invest_seo_desc_strategies: {
-    en: 'Describe or pick a strategy; scans create signals and draft proposals only — never placed orders.',
-    fr: 'Décrivez ou choisissez une stratégie ; les analyses créent seulement signaux et ébauches — jamais d’ordres placés.',
+    en: 'Describe or pick a strategy; scans create signals and draft orders only — never placed orders.',
+    fr: 'Décrivez ou choisissez une stratégie ; les balayages créent seulement signaux et brouillons d’ordres — jamais d’ordres placés.',
   },
   invest_seo_title_notifications: {
     en: 'Dutiva Invest — Notifications',
@@ -132,12 +132,16 @@ const investCoreMessages = defineMessages({
   invest_notif_title: { en: 'Notifications', fr: 'Notifications' },
   invest_notif_attention: { en: 'Needs your attention', fr: 'À traiter' },
   invest_notif_empty: {
-    en: 'Nothing waiting — new signals and draft proposals land here.',
-    fr: 'Rien en attente — les nouveaux signaux et ébauches arrivent ici.',
+    en: 'Nothing waiting — new signals and draft orders land here.',
+    fr: 'Rien en attente — les nouveaux signaux et brouillons d’ordres arrivent ici.',
   },
-  invest_notif_drafts: {
-    en: '{n} draft proposal(s) waiting in Orders',
-    fr: '{n} ébauche(s) d’ordre en attente dans Ordres',
+  invest_notif_drafts_one: {
+    en: '1 draft order waiting in Orders',
+    fr: '1 brouillon d’ordre en attente dans Ordres',
+  },
+  invest_notif_drafts_many: {
+    en: '{n} draft orders waiting in Orders',
+    fr: '{n} brouillons d’ordres en attente dans Ordres',
   },
   invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   /* Each signal row routes to the surface that owns its subject — the
@@ -200,9 +204,9 @@ const investCoreMessages = defineMessages({
   invest_settings_currency: { en: 'Display currency', fr: 'Devise d’affichage' },
   invest_settings_currency_note: {
     en: 'Blended totals convert into this currency. “Book default” uses your first account’s base currency.',
-    fr: 'Les totaux combinés sont convertis dans cette devise. « Devise du livre » utilise la devise de base du premier compte.',
+    fr: 'Les totaux combinés sont convertis dans cette devise. « Devise du carnet » utilise la devise de base du premier compte.',
   },
-  invest_settings_currency_auto: { en: 'Book default', fr: 'Devise du livre' },
+  invest_settings_currency_auto: { en: 'Book default', fr: 'Devise du carnet' },
   invest_settings_defaults: { en: 'Defaults', fr: 'Valeurs par défaut' },
   invest_settings_order_mode: { en: 'New orders default to', fr: 'Les nouveaux ordres passent en' },
   invest_settings_badge: { en: 'Unread badge counts', fr: 'Le badge compte' },
@@ -217,7 +221,7 @@ const investCoreMessages = defineMessages({
   invest_settings_clear_chat: { en: 'Clear Tally history', fr: 'Effacer l’historique de Tally' },
   invest_settings_clear_chat_note: {
     en: 'Deletes every Tally conversation on this account. Book data is untouched.',
-    fr: 'Supprime toutes les conversations Tally de ce compte. Les données du livre sont intactes.',
+    fr: 'Supprime toutes les conversations Tally de ce compte. Les données du carnet sont intactes.',
   },
   invest_settings_clear_chat_confirm: {
     en: 'Delete the whole Tally history? This cannot be undone.',
@@ -229,7 +233,7 @@ const investCoreMessages = defineMessages({
   invest_settings_email_cadence: { en: 'Email alerts', fr: 'Alertes par courriel' },
   invest_settings_email_cadence_note: {
     en: 'Applies to strategies with email on. Immediate sends one summary per scan; digests bundle hits into a single email.',
-    fr: 'S’applique aux stratégies avec courriel activé. Immédiat envoie un sommaire par analyse; les sommaires groupés réunissent les déclenchements.',
+    fr: 'S’applique aux stratégies avec courriel activé. Immédiat envoie un sommaire par balayage; les sommaires groupés réunissent les déclenchements.',
   },
   invest_cadence_email_immediate: { en: 'Immediate', fr: 'Immédiat' },
   invest_cadence_email_daily: { en: 'Daily digest', fr: 'Sommaire quotidien' },
@@ -296,8 +300,8 @@ const investCoreMessages = defineMessages({
     fr: 'Ce qu’Invest fait — et ne fait pas',
   },
   invest_tour_step1_body: {
-    en: 'Invest tracks positions you enter yourself and scans them for signals and order drafts. It never places orders — every proposal waits for your review.',
-    fr: 'Invest suit les positions que vous saisissez et les analyse pour produire signaux et ébauches d’ordres. Il ne place jamais d’ordre — chaque proposition attend votre revue.',
+    en: 'Invest tracks positions you enter yourself and scans them for signals and draft orders. It never places orders — every draft waits for your review.',
+    fr: 'Invest suit les positions que vous saisissez et en fait le balayage pour produire signaux et brouillons d’ordres. Il ne place jamais d’ordre — chaque brouillon attend votre revue.',
   },
   invest_tour_step2_title: { en: 'Your paper account', fr: 'Votre compte simulé' },
   invest_tour_step2_body: {
@@ -311,8 +315,8 @@ const investCoreMessages = defineMessages({
   },
   invest_tour_step4_title: { en: 'Turn on a strategy', fr: 'Activer une stratégie' },
   invest_tour_step4_body: {
-    en: 'Pick a template on the Agent tab and run a scan. Scans create signals and draft proposals only — never orders.',
-    fr: 'Choisissez un modèle dans l’onglet Agent et lancez une analyse. Les analyses créent seulement signaux et ébauches — jamais d’ordres.',
+    en: 'Pick a template on the Agent tab and run a scan. Scans create signals and draft orders only — never orders.',
+    fr: 'Choisissez un modèle dans l’onglet Agent et lancez un balayage. Les balayages créent seulement signaux et brouillons d’ordres — jamais d’ordres.',
   },
   invest_tour_dismiss: { en: 'Dismiss', fr: 'Fermer' },
   invest_tour_cta_portfolio: { en: 'Open Portfolios', fr: 'Ouvrir Portefeuilles' },
@@ -445,9 +449,13 @@ const investCoreMessages = defineMessages({
     en: 'Added {count} — fetching quotes…',
     fr: '{count} ajoutées — récupération des cours…',
   },
-  invest_bulk_skipped: {
-    en: '{count} line(s) skipped — they’re still in the box.',
-    fr: '{count} ligne(s) ignorée(s) — elles sont encore dans la boîte.',
+  invest_bulk_skipped_one: {
+    en: '1 line skipped — it’s still in the box.',
+    fr: '1 ligne ignorée — elle est encore dans la boîte.',
+  },
+  invest_bulk_skipped_many: {
+    en: '{count} lines skipped — they’re still in the box.',
+    fr: '{count} lignes ignorées — elles sont encore dans la boîte.',
   },
   invest_account_remove_confirm: {
     en: 'Remove + its positions?',
@@ -528,7 +536,7 @@ const investCoreMessages = defineMessages({
   /* Signals */
   invest_signals_title: { en: 'Signals', fr: 'Signaux' },
   invest_signal_kind_screen: { en: 'Screen', fr: 'Filtrage' },
-  invest_signal_kind_insight: { en: 'Insight', fr: 'Analyse' },
+  invest_signal_kind_insight: { en: 'Insight', fr: 'À noter' },
   invest_signal_kind_alert: { en: 'Alert', fr: 'Alerte' },
   invest_signal_kind_thesis: { en: 'Thesis', fr: 'Thèse' },
   invest_signal_new: { en: 'New', fr: 'Nouveau' },
@@ -591,7 +599,7 @@ const investCoreMessages = defineMessages({
   },
   invest_rule_metric_gain: { en: 'Gain vs cost', fr: 'Gain vs coût' },
   invest_rule_metric_cash: { en: 'Cash balance', fr: 'Solde en espèces' },
-  invest_cadence_label: { en: 'Scan cadence', fr: 'Fréquence d’analyse' },
+  invest_cadence_label: { en: 'Scan cadence', fr: 'Fréquence des balayages' },
   invest_cadence_daily: { en: 'Daily', fr: 'Quotidienne' },
   invest_cadence_weekly: { en: 'Weekly', fr: 'Hebdomadaire' },
   invest_cadence_monthly: { en: 'Monthly', fr: 'Mensuelle' },
@@ -603,7 +611,7 @@ const investCoreMessages = defineMessages({
   invest_template_use: { en: 'Use template', fr: 'Utiliser' },
   invest_template_busy: {
     en: 'A save or scan is in progress — available when it finishes.',
-    fr: 'Enregistrement ou analyse en cours — disponible à la fin.',
+    fr: 'Enregistrement ou balayage en cours — disponible à la fin.',
   },
   invest_template_badge: { en: 'Template', fr: 'Modèle' },
   invest_ai_title: { en: 'Describe it instead', fr: 'Décrire plutôt' },
@@ -639,12 +647,12 @@ const investCoreMessages = defineMessages({
     en: 'The price feed missed its usual window — marks may be old. Try Refresh prices.',
     fr: 'Le flux de cours a raté sa fenêtre habituelle — les valorisations peuvent dater. Essayez Actualiser les cours.',
   },
-  invest_watchlist_title: { en: 'Watchlist', fr: 'Surveillance' },
+  invest_watchlist_title: { en: 'Watchlist', fr: 'Liste de suivi' },
   invest_watchlist_sub: {
     en: 'Symbols you don’t hold yet — priced on every refresh, and your dip rules can fire on them.',
     fr: 'Symboles que vous ne détenez pas — évalués à chaque actualisation, et vos règles de creux peuvent s’y appliquer.',
   },
-  invest_watchlist_add: { en: 'Watch', fr: 'Surveiller' },
+  invest_watchlist_add: { en: 'Watch', fr: 'Suivre' },
   invest_watchlist_empty: {
     en: 'Nothing watched yet — add a symbol to track its price and headlines.',
     fr: 'Aucun symbole surveillé — ajoutez-en un pour suivre son cours et ses nouvelles.',
@@ -881,7 +889,7 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_rebal_note: {
     en: 'Weights are marked in {ccy}. Set a target share; a draft order closes the gap — nothing moves on its own.',
-    fr: 'Les poids sont évalués en {ccy}. Fixez une part cible; un ordre brouillon comble l’écart — rien ne bouge tout seul.',
+    fr: 'Les poids sont évalués en {ccy}. Fixez une part cible; un brouillon d’ordre comble l’écart — rien ne bouge tout seul.',
   },
   /* [FR self-authored] */
   invest_rebal_weight: { en: 'Weight', fr: 'Poids' },
@@ -892,9 +900,9 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_rebal_set: { en: 'Set', fr: 'Définir' },
   /* [FR self-authored] */
-  invest_rebal_draft_sell: { en: 'Draft sell', fr: 'Vente brouillon' },
+  invest_rebal_draft_sell: { en: 'Draft sell', fr: 'Brouillon de vente' },
   /* [FR self-authored] */
-  invest_rebal_draft_buy: { en: 'Draft buy', fr: 'Achat brouillon' },
+  invest_rebal_draft_buy: { en: 'Draft buy', fr: 'Brouillon d’achat' },
   /* [FR self-authored] */
   invest_rebal_empty: {
     en: 'No targets yet — set one on any row to start measuring drift.',
@@ -903,7 +911,7 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_rebal_review: {
     en: 'Draft orders land on the Orders tab for your review — they never fill on their own.',
-    fr: 'Les ordres brouillons arrivent dans l’onglet Ordres pour votre revue — ils ne s’exécutent jamais seuls.',
+    fr: 'Les brouillons d’ordres arrivent dans l’onglet Ordres pour votre revue — ils ne s’exécutent jamais seuls.',
   },
 
   /* Allocation donut (0223) */
@@ -1076,9 +1084,13 @@ const investCoreMessages = defineMessages({
   invest_brief_signal_many: { en: 'signals fired since yesterday', fr: 'signaux déclenchés depuis hier' },
   /* [FR self-authored] */
   invest_brief_theses: {
-    en: 'Theses: {broken} line-crossed · {drifting} fraying',
-    fr: 'Thèses : {broken} ligne(s) franchie(s) · {drifting} qui s’effilochent',
+    en: 'Theses: {broken} · {drifting}',
+    fr: 'Thèses : {broken} · {drifting}',
   },
+  invest_brief_broken_one: { en: 'line crossed', fr: 'ligne franchie' },
+  invest_brief_broken_many: { en: 'lines crossed', fr: 'lignes franchies' },
+  invest_brief_drift_one: { en: 'fraying', fr: 'thèse qui s’effiloche' },
+  invest_brief_drift_many: { en: 'fraying', fr: 'thèses qui s’effilochent' },
   /* [FR self-authored] */
   invest_brief_goal_one: { en: 'goal off pace', fr: 'objectif qui recule' },
   /* [FR self-authored] */
@@ -1141,21 +1153,21 @@ const investCoreMessages = defineMessages({
   /* [FR self-authored] */
   invest_hint_signal_kinds: {
     en: 'Screen — a scan result. Insight — worth knowing, no urgency. Alert — a line you set got crossed. Thesis, Goal and Scan signals come from your theses, goals and watch board.',
-    fr: 'Filtrage — résultat d’analyse. Analyse — à savoir, sans urgence. Alerte — une ligne que vous avez fixée a été franchie. Les signaux Thèse, Objectif et Veille viennent de vos thèses, objectifs et liste de veille.',
+    fr: 'Filtrage — résultat de balayage. À noter — bon à savoir, sans urgence. Alerte — une ligne que vous avez fixée a été franchie. Les signaux Thèse, Objectif et Veille viennent de vos thèses, objectifs et tableau de veille.',
   },
   /* [FR self-authored] */
   invest_hint_thesis_status_aria: { en: 'Thesis statuses', fr: 'États des thèses' },
   /* [FR self-authored] */
   invest_hint_thesis_status: {
     en: 'On track — every condition holds. Fraying — an early-warning line tripped; worth a look, not a verdict. Line crossed — a break condition fired; the sweep proposes an exit order, and whether the story still holds is your call.',
-    fr: 'Sur la bonne voie — toutes les conditions tiennent. Effiloche — une ligne d’alerte a été franchie ; à revoir, pas un verdict. Ligne franchie — une condition de cassure s’est déclenchée ; le balayage propose un ordre de sortie, et c’est à vous de dire si la thèse tient.',
+    fr: 'Sur la bonne voie — toutes les conditions tiennent. Effilochée — une ligne d’alerte a été franchie ; à revoir, pas un verdict. Ligne franchie — une condition de cassure s’est déclenchée ; le balayage propose un ordre de sortie, et c’est à vous de dire si la thèse tient.',
   },
   /* [FR self-authored] */
   invest_hint_goal_status_aria: { en: 'Goal statuses', fr: 'États des objectifs' },
   /* [FR self-authored] */
   invest_hint_goal_status: {
     en: 'On track or behind — how the last sweep measured it. Achieved when met; missed once the deadline passes unmet.',
-    fr: 'En bonne voie ou en retard — selon la dernière analyse. Atteint une fois rempli ; manqué si l’échéance passe sans qu’il le soit.',
+    fr: 'En bonne voie ou en retard — selon le dernier balayage. Atteint une fois rempli ; manqué si l’échéance passe sans qu’il le soit.',
   },
   /* Goal metrics — one line each, shown under the "Measured on" select so
      the choice is informed. [FR self-authored] */
@@ -1196,7 +1208,7 @@ const investCoreMessages = defineMessages({
   invest_tally_how_title: { en: 'How Tally works', fr: 'Comment Tally fonctionne' },
   invest_tally_how_1: {
     en: 'On each sweep Tally reads your book — prices, strategies, theses, goals.',
-    fr: 'À chaque analyse, Tally lit votre portefeuille — cours, stratégies, thèses, objectifs.',
+    fr: 'À chaque balayage, Tally lit votre carnet — cours, stratégies, thèses, objectifs.',
   },
   invest_tally_how_2: {
     en: 'Crossed a line you set? It lands in the review strip — never acted on silently.',
@@ -1247,14 +1259,14 @@ const investCoreMessages = defineMessages({
   },
   invest_import_apply_book: {
     en: 'Update positions and cash — off records history only, for books already mirrored by hand',
-    fr: 'Mettre à jour positions et liquidités — désactivé, l’historique seul s’enregistre, pour les livres déjà saisis à la main',
+    fr: 'Mettre à jour positions et liquidités — désactivé, l’historique seul s’enregistre, pour les carnets déjà saisis à la main',
   },
   invest_import_run: { en: 'Import', fr: 'Importer' },
   invest_import_bad_line: { en: 'Line {line}: skipped — needs symbol, buy|sell, qty, price, date', fr: 'Ligne {line} : ignorée — symbole, buy|sell, quantité, prix et date requis' },
   invest_hint_import_aria: { en: 'About importing fills', fr: 'À propos de l’import' },
   invest_hint_import: {
     en: 'For an account you mirror from elsewhere: paste the fills that built it and the book reconstructs itself. Nothing syncs — this is history you type in once.',
-    fr: 'Pour un compte que vous reflétez d’ailleurs : collez les exécutions qui l’ont bâti et le livre se reconstruit. Rien ne se synchronise — c’est un historique saisi une fois.',
+    fr: 'Pour un compte que vous reflétez d’ailleurs : collez les exécutions qui l’ont bâti et le carnet se reconstruit. Rien ne se synchronise — c’est un historique saisi une fois.',
   },
 
   /* Position shortcuts + recurring contributions + curve scope (0224).
@@ -1269,7 +1281,7 @@ const investCoreMessages = defineMessages({
   invest_recur_title: { en: 'Recurring contributions', fr: 'Versements périodiques' },
   invest_recur_sub: {
     en: 'A deposit the sweep writes automatically when its date lands — the curve still backs it out of performance.',
-    fr: 'Un dépôt que l’analyse inscrit automatiquement à la date prévue — la courbe l’exclut toujours du rendement.',
+    fr: 'Un dépôt que le balayage inscrit automatiquement à la date prévue — la courbe l’exclut toujours du rendement.',
   },
   invest_recur_amount: { en: 'Amount', fr: 'Montant' },
   /* Options pair with the "Frequency" label and read standalone in the
@@ -1291,9 +1303,9 @@ const investCoreMessages = defineMessages({
   invest_hint_recur_aria: { en: 'About recurring contributions', fr: 'À propos des versements' },
   invest_hint_recur: {
     en: 'When a due date lands, the sweep records a real deposit on the account and bumps the next date — weekly or monthly. Pausing stops new deposits; past ones stay in the ledger.',
-    fr: 'À la date prévue, l’analyse inscrit un vrai dépôt sur le compte et reporte l’échéance — hebdomadaire ou mensuelle. Suspendre arrête les prochains versements ; ceux passés restent au registre.',
+    fr: 'À la date prévue, le balayage inscrit un vrai dépôt sur le compte et reporte l’échéance — hebdomadaire ou mensuelle. Suspendre arrête les prochains versements ; ceux passés restent au registre.',
   },
-  invest_curve_scope_all: { en: 'Whole book', fr: 'Tout le livre' },
+  invest_curve_scope_all: { en: 'Whole book', fr: 'Tout le carnet' },
   invest_curve_scope_aria: { en: 'Curve scope', fr: 'Portée de la courbe' },
   /* Saved stress scenarios (0224). [FR self-authored] */
   invest_stress_saved_label: { en: 'Saved scenarios…', fr: 'Scénarios enregistrés…' },
@@ -1330,7 +1342,7 @@ const investCoreMessages = defineMessages({
   },
   invest_scope_required: {
     en: 'Pick what to scan — the watchlist or at least one symbol — before saving.',
-    fr: 'Choisissez quoi surveiller — la liste de surveillance ou au moins un symbole — avant d’enregistrer.',
+    fr: 'Choisissez quoi surveiller — la liste de suivi ou au moins un symbole — avant d’enregistrer.',
   },
   invest_qty_unit: { en: 'Quantity in', fr: 'Quantité en' },
   invest_unit_shares: { en: 'Shares', fr: 'Actions' },
@@ -1341,13 +1353,13 @@ const investCoreMessages = defineMessages({
   invest_notify_email: { en: 'Email', fr: 'Courriel' },
   invest_notify_email_note: {
     en: 'You’ll get one email per scan that finds something.',
-    fr: 'Vous recevez un courriel à chaque analyse qui détecte quelque chose.',
+    fr: 'Vous recevez un courriel à chaque balayage qui détecte quelque chose.',
   },
   invest_scan_now: { en: 'Scan now', fr: 'Analyser maintenant' },
   invest_scanning: { en: 'Scanning…', fr: 'Analyse…' },
   invest_scan_caption: {
     en: 'Scanning never places orders',
-    fr: 'L’analyse ne passe jamais d’ordres',
+    fr: 'Le balayage ne passe jamais d’ordres',
   },
   invest_health_title: { en: 'Strategy health', fr: 'Santé de la stratégie' },
   invest_health_frequency: {
@@ -1368,10 +1380,6 @@ const investCoreMessages = defineMessages({
     fr: '{symbols} : cours vieux de plus de 48 h — essayez Actualiser les cours.',
   },
   invest_test_scan: { en: 'Test scan', fr: 'Analyse d’essai' },
-  invest_test_scan_result: {
-    en: '{symbols} symbol(s) scanned · {signals} signal(s) · {proposals} proposal(s)',
-    fr: '{symbols} symbole(s) analysé(s) · {signals} signal(s) · {proposals} proposition(s)',
-  },
   invest_run_deleted_strategy: { en: 'deleted strategy', fr: 'stratégie supprimée' },
   invest_run_view_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
   invest_time_now: { en: 'just now', fr: 'à l’instant' },
@@ -1380,10 +1388,6 @@ const investCoreMessages = defineMessages({
   invest_time_day_ago: { en: '{count} d ago', fr: 'il y a {count} j' },
   invest_order_proposed: { en: 'proposed {ago}', fr: 'proposé {ago}' },
   invest_runs_title: { en: 'Run history', fr: 'Historique d’exécution' },
-  invest_run_summary: {
-    en: '{signals} signal(s) · {proposals} proposal(s)',
-    fr: '{signals} signal(s) · {proposals} proposition(s)',
-  },
   invest_template_preview: { en: 'Preview rules', fr: 'Aperçu des règles' },
   invest_proposal_badge: { en: 'Proposes orders', fr: 'Propose des ordres' },
   invest_proposal_book_metric: {
@@ -1447,7 +1451,7 @@ const investCoreMessages = defineMessages({
   },
   invest_error_load: {
     en: 'Your book could not be loaded — refresh to try again.',
-    fr: 'Votre livre n’a pas pu être chargé — actualisez pour réessayer.',
+    fr: 'Votre carnet n’a pas pu être chargé — actualisez pour réessayer.',
   },
   invest_loading: { en: 'Loading…', fr: 'Chargement…' },
 
@@ -1467,7 +1471,7 @@ const investCoreMessages = defineMessages({
      so "never investment advice" would be untrue. [FR self-authored] */
   invest_chat_sub_internal: {
     en: 'The book’s watch clerk — ask about your positions or tell her what to record. Internal staff account: she also advises on this book directly.',
-    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. Compte interne : elle vous conseille aussi directement sur ce portefeuille.',
+    fr: 'La surveillante du carnet — posez-lui une question sur vos positions ou dites-lui quoi noter. Compte interne : elle vous conseille aussi directement sur ce carnet.',
   },
   /* Her opening turn on an empty conversation — a hello, at most one thing
      she noticed from the book, and a question. Built client-side from
@@ -1475,11 +1479,11 @@ const investCoreMessages = defineMessages({
   invest_chat_hi: { en: 'Hi — I’m Tally, the book’s watch clerk.', fr: 'Bonjour — je suis Tally, la surveillante du carnet.' },
   invest_chat_hi_watch_one: {
     en: 'symbol is on the watchlist.',
-    fr: 'symbole est sous surveillance.',
+    fr: 'symbole est dans votre liste de suivi.',
   },
   invest_chat_hi_watch_many: {
     en: 'symbols are on the watchlist.',
-    fr: 'symboles sont sous surveillance.',
+    fr: 'symboles sont dans votre liste de suivi.',
   },
   invest_chat_hi_orders_one: {
     en: 'order is waiting on you.',
