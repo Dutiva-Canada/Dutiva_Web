@@ -685,11 +685,22 @@ export function InvestPortfolioPage() {
                     pl(lang, good.length, IM.invest_position_one, IM.invest_position_many),
                   ) +
                     (bad.length > 0
-                      ? ' ' + x(IM.invest_bulk_skipped).replace('{count}', String(bad.length))
+                      ? ' ' +
+                          x(
+                            bad.length === 1
+                              ? IM.invest_bulk_skipped_one
+                              : IM.invest_bulk_skipped_many,
+                          ).replace('{count}', String(bad.length))
                       : ''),
                 )
               } else if (bad.length > 0) {
-                setError(x(IM.invest_bulk_skipped).replace('{count}', String(bad.length)))
+                setError(
+                  x(
+                    bad.length === 1
+                      ? IM.invest_bulk_skipped_one
+                      : IM.invest_bulk_skipped_many,
+                  ).replace('{count}', String(bad.length)),
+                )
               }
               return bad
             }}

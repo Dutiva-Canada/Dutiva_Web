@@ -432,8 +432,10 @@ export function scanSummaryLine(lang: Lang, res: {
     proposals: pl(lang, res.proposals, IM.invest_sb_proposal_one, IM.invest_sb_proposal_many),
   })
   const suppressed = res.matches?.filter((m) => m.suppressed).length ?? 0
+  const seg =
+    suppressed === 1 ? IM.invest_sb_suppressed_seg_one : IM.invest_sb_suppressed_seg_many
   return suppressed > 0
-    ? `${base} · ${fill(pick(IM.invest_sb_suppressed_seg, lang), { n: fmtNum(lang, suppressed) })}`
+    ? `${base} · ${fill(pick(seg, lang), { n: fmtNum(lang, suppressed) })}`
     : base
 }
 

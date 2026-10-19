@@ -173,7 +173,14 @@ export function InvestStrategiesPage() {
         showToast(IM.invest_sb_created)
         if (dropped > 0) {
           showToast(
-            fill(x(IM.invest_sb_rules_dropped), { n: String(dropped) }),
+            fill(
+              x(
+                dropped === 1
+                  ? IM.invest_sb_rules_dropped_one
+                  : IM.invest_sb_rules_dropped_many,
+              ),
+              { n: String(dropped) },
+            ),
           )
         }
       } catch (e) {

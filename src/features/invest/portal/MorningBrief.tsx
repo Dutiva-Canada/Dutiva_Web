@@ -161,8 +161,14 @@ export function MorningBrief(props: {
     if (broken + drifting > 0) {
       out.push(
         x(IM.invest_brief_theses)
-          .replace('{broken}', String(broken))
-          .replace('{drifting}', String(drifting)),
+          .replace(
+            '{broken}',
+            `${broken} ${pl(lang, broken, IM.invest_brief_broken_one, IM.invest_brief_broken_many)}`,
+          )
+          .replace(
+            '{drifting}',
+            `${drifting} ${pl(lang, drifting, IM.invest_brief_drift_one, IM.invest_brief_drift_many)}`,
+          ),
       )
     }
 

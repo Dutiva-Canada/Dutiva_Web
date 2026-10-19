@@ -1890,7 +1890,7 @@ const ADVICE_PATTERNS: Record<'en' | 'fr', RegExp[]> = {
     /\bje\s+(?:vous\s+)?(?:recommande|conseille|suggère|préconise)\s+(?:d'|de\s+)?(?:acheter|vendre|conserver|détenir|sortir|alléger|que\s+vous)/i,
     /\b(?:achetez|vendez|sortez|allégez|renforcez)\s+(?:le|la|les|des|ce|cette|maintenant|ici|vos|votre)/i,
     /\bun\s+bon\s+(?:achat|placement|moment\s+pour)/i,
-    /\bvotre\s+(?:portefeuille|livre|position|allocation)\s+(?:est|semble|paraît)\s+(?:solide|sain|sécuritaire|sûr|risqué|concentré|déséquilibré|exposé)/i,
+    /\bvotre\s+(?:portefeuille|livre|carnet|position|allocation)\s+(?:est|semble|paraît)\s+(?:solide|sain|sécuritaire|sûr|risqué|concentré|déséquilibré|exposé)/i,
     /\bc'est\s+(?:le|un\s+bon)\s+moment\s+(?:d'|pour\s+)(?:acheter|vendre|sortir)/i,
   ],
 }
@@ -1918,7 +1918,7 @@ export function buildAdviceRepairNote(flags: string[]): string {
 export const ADVICE_FALLBACK_EN =
   'That call is yours — or a licensed adviser’s — and it’s not one I can make for you. What I can do: explain how to weigh it, what the trade-offs look like, or what your book actually shows. Tell me which and I’ll go from there.'
 export const ADVICE_FALLBACK_FR =
-  'Cette décision vous appartient — ou revient à un conseiller agréé — et je ne peux pas la prendre à votre place. Ce que je peux faire : expliquer comment l’évaluer, les compromis en jeu, ou ce que votre livre montre. Dites-moi lequel et je continue.'
+  'Cette décision vous appartient — ou revient à un conseiller agréé — et je ne peux pas la prendre à votre place. Ce que je peux faire : expliquer comment l’évaluer, les compromis en jeu, ou ce que votre carnet montre. Dites-moi lequel et je continue.'
 
 /* ── Reaction screens ──────────────────────────────────────────────────────
    Reactions get the same two eyes a chat reply gets: figures against the
@@ -1929,7 +1929,7 @@ export const ADVICE_FALLBACK_FR =
 /** The deterministic line a flagged reaction falls back to — acknowledges
     the action plainly, cites nothing, evaluates nothing. */
 export const REACT_FALLBACK_EN = "Noted — it's on the book."
-export const REACT_FALLBACK_FR = 'Noté — c’est inscrit au livre.'
+export const REACT_FALLBACK_FR = 'Noté — c’est inscrit au carnet.'
 
 export interface ReactScreen {
   mismatches: ClaimMismatch[]
