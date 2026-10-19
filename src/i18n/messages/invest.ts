@@ -768,8 +768,8 @@ const investCoreMessages = defineMessages({
   invest_curve_title: { en: 'Track record', fr: 'Historique' },
   /* [FR self-authored] */
   invest_curve_note: {
-    en: 'One mark per sweep-day',
-    fr: 'Un relevé par jour de balayage',
+    en: 'One mark per sweep',
+    fr: 'Un relevé par balayage',
   },
   /* [FR self-authored] */
   invest_curve_empty: {
@@ -802,8 +802,8 @@ const investCoreMessages = defineMessages({
   invest_curve_since: { en: 'since {date}', fr: 'depuis le {date}' },
   /* [FR self-authored] */
   invest_curve_benchmark_note: {
-    en: 'dashed — {sym} rebased to your first mark',
-    fr: 'pointillés — {sym} ramené à votre premier relevé',
+    en: 'dashed — {sym} from the same start',
+    fr: 'pointillés — {sym} depuis le même départ',
   },
   /* [FR self-authored] */
   invest_curve_benchmark_row: { en: '{sym} (same start)', fr: '{sym} (même départ)' },
@@ -1708,6 +1708,12 @@ const investCoreMessages = defineMessages({
   invest_read_curve_down_nodip: {
     en: 'down {chg} over the window — never below the start.',
     fr: 'en baisse de {chg} sur la période — jamais sous le point de départ.',
+  },
+  /* The other no-dip case: a slide where the last mark is the deepest
+     point — 'never below the start' would state the opposite. */
+  invest_read_curve_down_slide: {
+    en: 'down {chg} over the window — the last mark is the low.',
+    fr: 'en baisse de {chg} sur la période — le dernier relevé est le creux.',
   },
   invest_read_curve_flat: {
     en: 'flat over the window — inside a tenth of a point either way.',
