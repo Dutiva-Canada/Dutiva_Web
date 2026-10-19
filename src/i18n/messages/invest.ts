@@ -140,6 +140,21 @@ const investCoreMessages = defineMessages({
     fr: '{n} ébauche(s) d’ordre en attente dans Ordres',
   },
   invest_notif_review_orders: { en: 'Review in Orders', fr: 'Voir dans Ordres' },
+  /* Each signal row routes to the surface that owns its subject — the
+     destination names the nav tab it lands on. [FR self-authored] */
+  invest_notif_open: { en: 'Open {dest}', fr: 'Ouvrir {dest}' },
+  /* Acknowledge and Dismiss both clear the row here — the difference only
+     shows on the Signals tab, so the hint says where each lands.
+     [FR self-authored] */
+  invest_hint_notif_actions_aria: {
+    en: 'Acknowledge versus dismiss',
+    fr: 'Accuser réception ou écarter',
+  },
+  /* [FR self-authored] */
+  invest_hint_notif_actions: {
+    en: 'Both clear the row here. Acknowledge marks it seen — it stays on the Signals tab as acknowledged. Dismiss files it under "Show dismissed" there.',
+    fr: 'Les deux retirent la ligne ici. Accuser réception la marque vue — elle reste dans Signaux comme prise en compte. Écarter la classe sous « Afficher les écartés ».',
+  },
   /* [FR self-authored] Bell-icon a11y suffix — "{n} pending" announces the
      badge count the sr-hidden dot can't. Matches invest_notif_attention. */
   invest_notif_badge: {
