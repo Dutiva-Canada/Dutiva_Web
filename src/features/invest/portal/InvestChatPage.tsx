@@ -66,6 +66,7 @@ import {
 } from '@/components/chat/portalChatUtils'
 import { tallyGreeting } from './strategyUi'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 
 /* Markdown + widget-fence rendering is a lazy chunk (react-markdown,
    remark-gfm, the widget spec parser) — the bubble falls back to verbatim
@@ -656,46 +657,52 @@ export function InvestChatPage() {
 
   return (
     <div className="sb sb-page">
-      <div className="sb-head-row">
-        <h1>{x(IM.invest_chat_title)}</h1>
-        <div className="sbchat-head-actions">
-          <ThreadSwitcher
-            activeName={threadName}
-            threads={threads ?? []}
-            activeId={threadId}
-            disabled={sending}
-            labels={{
-              defaultThread: x(IM.invest_chat_thread_default),
-              untitled: x(IM.invest_chat_thread_untitled),
-              newThread: x(IM.invest_chat_thread_new),
-            }}
-            buttonClass="sb-btn sb-btn-sm sb-btn-secondary"
-            listClass="sbchat-thread-list"
-            itemClass="sbchat-thread-item"
-            newItemClass="sbchat-thread-new"
-            onOpen={openThread}
-            onNew={() => void startThread()}
-          />
-          {turns !== null && turns.length > 0 && (
-            <button
-              type="button"
-              className="sb-btn sb-btn-sm sb-btn-secondary"
-              onClick={() => void clear()}
-              disabled={clearing || sending}
-            >
-              <Trash2 size={13} aria-hidden="true" />
-              {x(clearArmed ? IM.invest_sb_tap_confirm : IM.invest_chat_clear)}
-            </button>
-          )}
-        </div>
-      </div>
       {/* Internal-staff tier — the edge function advises @dutiva.ca
           accounts directly, so the "never investment advice" subtitle would
           be untrue for them; the badge makes the active register scannable. */}
-      <p className="sb-sub">
-        {x(isInternal ? IM.invest_chat_sub_internal : IM.invest_chat_sub)}
-        {isInternal && <span className="sbchat-tier">{x(IM.invest_chat_internal_badge)}</span>}
-      </p>
+      <PageHead
+        title={x(IM.invest_chat_title)}
+        actions={
+          <div className="sbchat-head-actions">
+            <ThreadSwitcher
+              activeName={threadName}
+              threads={threads ?? []}
+              activeId={threadId}
+              disabled={sending}
+              labels={{
+                defaultThread: x(IM.invest_chat_thread_default),
+                untitled: x(IM.invest_chat_thread_untitled),
+                newThread: x(IM.invest_chat_thread_new),
+              }}
+              buttonClass="sb-btn sb-btn-sm sb-btn-secondary"
+              listClass="sbchat-thread-list"
+              itemClass="sbchat-thread-item"
+              newItemClass="sbchat-thread-new"
+              onOpen={openThread}
+              onNew={() => void startThread()}
+            />
+            {turns !== null && turns.length > 0 && (
+              <button
+                type="button"
+                className="sb-btn sb-btn-sm sb-btn-secondary"
+                onClick={() => void clear()}
+                disabled={clearing || sending}
+              >
+                <Trash2 size={13} aria-hidden="true" />
+                {x(clearArmed ? IM.invest_sb_tap_confirm : IM.invest_chat_clear)}
+              </button>
+            )}
+          </div>
+        }
+        sub={
+          <>
+            {x(isInternal ? IM.invest_chat_sub_internal : IM.invest_chat_sub)}
+            {isInternal && (
+              <span className="sbchat-tier">{x(IM.invest_chat_internal_badge)}</span>
+            )}
+          </>
+        }
+      />
       {/* Data-source disclosure — an advice surface says what it reads. */}
       <details className="sbchat-sees">
         <summary>{x(IM.invest_chat_sees)}</summary>

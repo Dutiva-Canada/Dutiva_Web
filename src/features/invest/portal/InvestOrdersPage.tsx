@@ -27,6 +27,7 @@ import { sendInvestReaction } from '@/features/invest/data/chatApi'
 import { TallyNote } from './TallyNote'
 import { InfoHint } from './InfoHint'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import { relTimeLabel } from './relTime'
 import { fmtDay, fmtNum } from './strategyUi'
 import { suggestionIcon } from './suggestionIcons'
@@ -206,15 +207,17 @@ export function InvestOrdersPage() {
 
   return (
     <div className="sb sb-page">
-      <div className="sb-head-row">
-        <h1>
-          {x(IM.invest_orders_title)}
-          <InfoHint
-            label={x(IM.invest_hint_order_status_aria)}
-            text={x(IM.invest_hint_order_status)}
-          />
-        </h1>
-      </div>
+      <PageHead
+        title={
+          <>
+            {x(IM.invest_orders_title)}
+            <InfoHint
+              label={x(IM.invest_hint_order_status_aria)}
+              text={x(IM.invest_hint_order_status)}
+            />
+          </>
+        }
+      />
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}

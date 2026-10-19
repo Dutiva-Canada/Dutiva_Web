@@ -99,7 +99,7 @@ export function CashLedger({
 
   return (
     <section className="sb-card sb-card-pad">
-      <h2 className="sb-h2" style={{ margin: 0 }}>
+      <h2 className="sb-h2">
         <Wallet size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_ledger_title)}
       </h2>
       <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_ledger_note)}</p>

@@ -1,3 +1,4 @@
+import './strategies.css'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -24,6 +25,7 @@ import type { ThemePref } from '@/lib/themeContext'
 import { supabase } from '@/lib/supabaseClient'
 import { resetOnboarding } from './onboarding'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import { StrategyDeliveryCard } from './StrategyDeliveryCard'
 import {
   DISPLAY_CURRENCIES,
@@ -43,18 +45,7 @@ import {
 import type { OrderMode } from '@/features/invest/data/types'
 import { PROFILE_SELECTS, PROFILE_TAGS } from './profileDims'
 
-const cardClass = 'rounded-[14px] border border-border bg-surface p-[18px]'
-const rowLabel = 'm-0 text-[12px] font-semibold uppercase tracking-[0.05em] text-text-muted'
-const selectClass =
-  'min-h-[44px] cursor-pointer rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text'
-const segButton = (active: boolean) =>
-  `inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border px-[16px] text-[13px] font-semibold transition-colors ${
-    active
-      ? 'border-gold-border bg-gold-bg text-gold-fg'
-      : 'border-border bg-transparent text-text-2 hover:bg-inset'
-  }`
-const actionButton =
-  'inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-border bg-transparent px-[14px] text-[12.5px] font-semibold text-text-2 hover:bg-inset disabled:opacity-50'
+const cardClass = 'sb-card sb-card-pad'
 
 const THEME_OPTIONS: { pref: ThemePref; label: (typeof IM)[keyof typeof IM]; Icon: typeof Sun }[] = [
   { pref: 'auto', label: IM.invest_sb_theme_auto, Icon: Contrast },
@@ -189,7 +180,8 @@ export function InvestSettingsPage() {
     s === 'idle' ? null : (
       <p
         role="status"
-        className={`m-0 mt-[8px] text-[12px] font-semibold ${s === 'error' ? 'text-risk-fg' : 'text-text-muted'}`}
+        className="sb-helper"
+        style={{ fontWeight: 600, color: s === 'error' ? 'var(--sb-danger)' : undefined }}
       >
         {s === 'saving'
           ? x(IM.invest_saving)
@@ -266,24 +258,22 @@ export function InvestSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-[80px]">
-        <Loader2 size={24} className="animate-spin text-text-muted" aria-hidden="true" />
+      <div className="sb sb-page flex items-center justify-center py-[80px]">
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--sb-muted)' }} aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-[16px]">
-      <h1 className="m-0 font-display text-[22px] font-semibold tracking-[-0.01em] text-text">
-        {x(IM.invest_tab_settings)}
-      </h1>
-
+    <div className="sb sb-page">
+      <PageHead title={x(IM.invest_tab_settings)} />
+      <div className="sb-stack">
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_language)}
         </h2>
         <div
-          className="mt-[12px] flex gap-[8px]"
+          className="sb-seg mt-[12px]"
           role="group"
           aria-label={x(IM.invest_settings_language)}
         >
@@ -293,7 +283,6 @@ export function InvestSettingsPage() {
               type="button"
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
-              className={segButton(lang === l)}
             >
               <Globe size={13} strokeWidth={2} aria-hidden="true" />
               {l === 'en' ? 'English' : 'Français'}
@@ -304,11 +293,11 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_appearance)}
         </h2>
         <div
-          className="mt-[12px] flex gap-[8px]"
+          className="sb-seg mt-[12px]"
           role="group"
           aria-label={x(IM.invest_settings_appearance)}
         >
@@ -318,7 +307,6 @@ export function InvestSettingsPage() {
               type="button"
               onClick={() => setTheme(pref)}
               aria-pressed={themePref === pref}
-              className={segButton(themePref === pref)}
             >
               <Icon size={13} strokeWidth={2} aria-hidden="true" />
               {x(label)}
@@ -329,14 +317,14 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_start_page)}
         </h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_start_page_note)}
         </p>
         <select
-          className={`mt-[12px] ${selectClass}`}
+          className="sb-input mt-[12px]"
           value={homeTab}
           onChange={(e) => {
             const v = e.target.value as HomeTab
@@ -354,14 +342,14 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_currency)}
         </h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_currency_note)}
         </p>
         <select
-          className={`mt-[12px] ${selectClass}`}
+          className="sb-input mt-[12px]"
           value={displayCur}
           onChange={(e) => {
             setDisplayCur(e.target.value)
@@ -381,14 +369,14 @@ export function InvestSettingsPage() {
       <StrategyDeliveryCard />
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_defaults)}
         </h2>
         <div className="mt-[12px] flex flex-col gap-[14px]">
           <div>
-            <p className={rowLabel}>{x(IM.invest_settings_order_mode)}</p>
+            <p className="sb-flabel">{x(IM.invest_settings_order_mode)}</p>
             <select
-              className={`mt-[6px] ${selectClass}`}
+              className="sb-input mt-[6px]"
               value={orderMode}
               onChange={(e) => {
                 const v = e.target.value as OrderMode
@@ -402,12 +390,12 @@ export function InvestSettingsPage() {
             </select>
           </div>
           <div>
-            <p className={rowLabel}>
+            <p className="sb-flabel">
               <Bell size={11} strokeWidth={2} className="mr-[4px] inline align-[-1px]" aria-hidden="true" />
               {x(IM.invest_settings_badge)}
             </p>
             <select
-              className={`mt-[6px] ${selectClass}`}
+              className="sb-input mt-[6px]"
               value={badgeScope}
               onChange={(e) => {
                 const v = e.target.value as BadgeScope
@@ -421,12 +409,12 @@ export function InvestSettingsPage() {
             </select>
           </div>
           <div>
-            <p className={rowLabel}>
+            <p className="sb-flabel">
               <Sparkles size={11} strokeWidth={2} className="mr-[4px] inline align-[-1px]" aria-hidden="true" />
               {x(IM.invest_settings_reads)}
             </p>
             <select
-              className={`mt-[6px] ${selectClass}`}
+              className="sb-input mt-[6px]"
               value={chartReads ? 'on' : 'off'}
               onChange={(e) => setChartReads(e.target.value === 'on')}
               aria-label={x(IM.invest_settings_reads)}
@@ -439,16 +427,16 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_notifications)}
         </h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_email_cadence_note)}
         </p>
         <div className="mt-[12px]">
-          <p className={rowLabel}>{x(IM.invest_settings_email_cadence)}</p>
+          <p className="sb-flabel">{x(IM.invest_settings_email_cadence)}</p>
           <select
-            className={`mt-[6px] ${selectClass}`}
+            className="sb-input mt-[6px]"
             value={cadence}
             onChange={(e) => setEmailCadence(e.target.value as 'immediate' | 'daily' | 'weekly')}
             aria-label={x(IM.invest_settings_email_cadence)}
@@ -462,18 +450,18 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">
+        <h2 className="sb-h2">
           {x(IM.invest_settings_profile)}
         </h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_profile_note)}
         </p>
         <div className="mt-[12px] grid gap-[14px] sm:grid-cols-2">
           {PROFILE_SELECTS.map((sel) => (
             <div key={sel.key}>
-              <p className={rowLabel}>{x(sel.label)}</p>
+              <p className="sb-flabel">{x(sel.label)}</p>
               <select
-                className={`mt-[6px] w-full ${selectClass}`}
+                className="sb-input mt-[6px]"
                 value={profile[sel.key]}
                 onChange={(e) => saveProfile({ ...profile, [sel.key]: e.target.value })}
                 aria-label={x(sel.label)}
@@ -491,7 +479,7 @@ export function InvestSettingsPage() {
         <div className="mt-[14px] grid gap-[14px] sm:grid-cols-2">
           {PROFILE_TAGS.map(([key, msg]) => (
             <div key={key}>
-              <p className={rowLabel}>{x(msg)}</p>
+              <p className="sb-flabel">{x(msg)}</p>
               <input
                 type="text"
                 value={profile[key]}
@@ -499,7 +487,7 @@ export function InvestSettingsPage() {
                 onBlur={() => saveProfile(profile)}
                 placeholder={x(IM.invest_profile_tags_hint)}
                 aria-label={x(msg)}
-                className="mt-[6px] min-h-[44px] w-full rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text"
+                className="sb-input mt-[6px]"
               />
             </div>
           ))}
@@ -508,45 +496,45 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_tour)}</h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <h2 className="sb-h2">{x(IM.invest_settings_tour)}</h2>
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_tour_note)}
         </p>
-        <button type="button" onClick={replayTour} className={`mt-[12px] ${actionButton}`}>
+        <button type="button" onClick={replayTour} className="sb-btn sb-btn-secondary mt-[12px]">
           <RotateCcw size={13} strokeWidth={2} aria-hidden="true" />
           {x(IM.invest_settings_tour_open)}
         </button>
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_data)}</h2>
-        <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+        <h2 className="sb-h2">{x(IM.invest_settings_data)}</h2>
+        <p className="sb-helper" style={{ marginTop: 4 }}>
           {x(IM.invest_settings_export_note)}
         </p>
-        <button type="button" onClick={exportData} className={`mt-[12px] ${actionButton}`}>
+        <button type="button" onClick={exportData} className="sb-btn sb-btn-secondary mt-[12px]">
           <Download size={13} strokeWidth={2} aria-hidden="true" />
           {x(IM.invest_settings_export)}
         </button>
 
-        <div className="mt-[18px] border-t border-border pt-[14px]">
-          <h3 className="m-0 text-[13px] font-semibold text-text">
+        <div className="sb-divider">
+          <h3 className="m-0 text-[13px] font-semibold">
             {x(IM.invest_settings_clear_chat)}
           </h3>
-          <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          <p className="sb-helper" style={{ marginTop: 4 }}>
             {clearDone
               ? x(IM.invest_settings_clear_chat_done)
               : x(IM.invest_settings_clear_chat_note)}
           </p>
           {confirmClear ? (
             <div className="mt-[10px] flex flex-wrap items-center gap-[10px]">
-              <p className="m-0 text-[12.5px] font-semibold text-text">
+              <p className="m-0 text-[12.5px] font-semibold">
                 {x(IM.invest_settings_clear_chat_confirm)}
               </p>
               <button
                 type="button"
                 disabled={busy === 'clear'}
                 onClick={() => void run('clear', clearTallyHistory)}
-                className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-risk-border bg-transparent px-[14px] text-[12.5px] font-semibold text-risk-fg hover:bg-inset disabled:opacity-50"
+                className="sb-btn sb-btn-danger sb-armed"
               >
                 {busy === 'clear' ? (
                   <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -558,7 +546,7 @@ export function InvestSettingsPage() {
               <button
                 type="button"
                 onClick={() => setConfirmClear(false)}
-                className={actionButton}
+                className="sb-btn sb-btn-secondary"
               >
                 {x(IM.invest_cancel)}
               </button>
@@ -568,7 +556,7 @@ export function InvestSettingsPage() {
               type="button"
               onClick={() => setConfirmClear(true)}
               disabled={clearDone}
-              className={`mt-[12px] ${actionButton}`}
+              className="sb-btn sb-btn-danger mt-[12px]"
             >
               <Trash2 size={13} strokeWidth={2} aria-hidden="true" />
               {x(IM.invest_settings_clear_chat)}
@@ -576,11 +564,11 @@ export function InvestSettingsPage() {
           )}
         </div>
 
-        <div className="mt-[18px] border-t border-border pt-[14px]">
-          <h3 className="m-0 text-[13px] font-semibold text-text">
+        <div className="sb-divider">
+          <h3 className="m-0 text-[13px] font-semibold">
             {x(IM.invest_settings_wipe)}
           </h3>
-          <p className="m-0 mt-[4px] text-[12px] leading-normal text-text-muted">
+          <p className="sb-helper" style={{ marginTop: 4 }}>
             {wipeDone ? x(IM.invest_settings_wipe_done) : x(IM.invest_settings_wipe_note)}
           </p>
           {!wipeDone && (
@@ -591,13 +579,14 @@ export function InvestSettingsPage() {
                 onChange={(e) => setWipeText(e.target.value)}
                 placeholder={x(IM.invest_settings_wipe_type)}
                 aria-label={x(IM.invest_settings_wipe_type)}
-                className="min-h-[44px] w-[190px] rounded-[9px] border border-border bg-surface px-[12px] text-[13px] font-semibold text-text"
+                className="sb-input"
+                style={{ width: 190 }}
               />
               <button
                 type="button"
                 disabled={wipeText !== 'DELETE' || busy === 'clear'}
                 onClick={() => void run('clear', wipeAllData)}
-                className="inline-flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[9px] border border-risk-border bg-transparent px-[14px] text-[12.5px] font-semibold text-risk-fg hover:bg-inset disabled:opacity-50"
+                className="sb-btn sb-btn-danger"
               >
                 {busy === 'clear' ? (
                   <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -612,15 +601,15 @@ export function InvestSettingsPage() {
       </section>
 
       <section className={cardClass}>
-        <h2 className="m-0 text-[14px] font-semibold text-text">{x(IM.invest_settings_account)}</h2>
+        <h2 className="sb-h2">{x(IM.invest_settings_account)}</h2>
         <dl className="m-0 mt-[12px] flex flex-col gap-[10px]">
           <div>
-            <dt className={rowLabel}>{x(IM.invest_settings_email)}</dt>
-            <dd className="m-0 mt-[2px] text-[13.5px] text-text">{session?.user.email ?? '—'}</dd>
+            <dt className="sb-notify-hint">{x(IM.invest_settings_email)}</dt>
+            <dd className="small m-0 mt-[2px]">{session?.user.email ?? '—'}</dd>
           </div>
           <div>
-            <dt className={rowLabel}>{x(IM.invest_settings_method)}</dt>
-            <dd className="m-0 mt-[2px] text-[13.5px] text-text">
+            <dt className="sb-notify-hint">{x(IM.invest_settings_method)}</dt>
+            <dd className="small m-0 mt-[2px]">
               {x(IM.invest_settings_method_value)}
             </dd>
           </div>
@@ -630,7 +619,7 @@ export function InvestSettingsPage() {
             type="button"
             disabled={busy !== null}
             onClick={() => void run('signout', signOut)}
-            className={actionButton}
+            className="sb-btn sb-btn-secondary"
           >
             {busy === 'signout' ? (
               <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -643,7 +632,7 @@ export function InvestSettingsPage() {
             type="button"
             disabled={busy !== null}
             onClick={() => void run('global', signOutEverywhere)}
-            className={actionButton}
+            className="sb-btn sb-btn-secondary"
           >
             {busy === 'global' ? (
               <Loader2 size={13} className="animate-spin" aria-hidden="true" />
@@ -653,13 +642,14 @@ export function InvestSettingsPage() {
             {x(IM.invest_settings_signout_all)}
           </button>
         </div>
-        <p className="m-0 mt-[8px] text-[12px] leading-normal text-text-muted">
+        <p className="sb-helper" style={{ marginTop: 8 }}>
           {L(
             '“Sign out everywhere” ends this session and every other session on this account.',
             '« Se déconnecter partout » termine cette session et toutes les autres sur ce compte.',
           )}
         </p>
       </section>
+      </div>
     </div>
   )
 }

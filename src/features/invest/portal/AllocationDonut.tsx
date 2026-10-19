@@ -114,7 +114,7 @@ export function AllocationDonut({
   if (slices.length === 0 || total <= 0) {
     return (
       <section className="sb-card sb-card-pad">
-        <h2 className="sb-h2" style={{ margin: 0 }}>
+        <h2 className="sb-h2">
           <PieIcon size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_alloc_title)}
         </h2>
         <p className="sb-empty" style={{ marginBottom: 0 }}>
@@ -158,7 +158,7 @@ export function AllocationDonut({
 
   return (
     <section className="sb-card sb-card-pad">
-      <h2 className="sb-h2" style={{ margin: 0 }}>
+      <h2 className="sb-h2">
         <PieIcon size={15} strokeWidth={2} aria-hidden="true" /> {x(IM.invest_alloc_title)}
       </h2>
       <p className="sb-helper" style={{ margin: '4px 0 0' }}>

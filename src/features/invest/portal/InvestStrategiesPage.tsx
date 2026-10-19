@@ -27,6 +27,7 @@ import { relTimeLabel } from './relTime'
 import { StrategyEditor } from './StrategyEditor'
 import { StrategyWizard } from './StrategyWizard'
 import { useInvestHead } from './useInvestHead'
+import { PageHead } from './PageHead'
 import {
   formatRunWhen,
   pl,
@@ -563,31 +564,35 @@ export function InvestStrategiesPage() {
     <div className="sb sb-col">
       {view.kind === 'list' && (
         <div className="sb-list">
-          <h1>{x(IM.invest_strategies_title)}</h1>
-          <p className="sub">{x(IM.invest_sb_list_sub)}</p>
-          <div className="sb-list-actions">
-            <button
-              type="button"
-              className="sb-btn sb-btn-primary"
-              disabled={busy === 'scan'}
-              onClick={() => void runScan()}
-            >
-              {busy === 'scan' ? (
-                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-              ) : (
-                <ScanSearch size={16} strokeWidth={2} aria-hidden="true" />
-              )}
-              {x(IM.invest_scan_now)}
-            </button>
-            <button
-              type="button"
-              className="sb-btn sb-btn-secondary"
-              onClick={openWizard}
-            >
-              <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
-              {x(IM.invest_add_strategy)}
-            </button>
-          </div>
+          <PageHead
+            title={x(IM.invest_strategies_title)}
+            sub={x(IM.invest_sb_list_sub)}
+            actions={
+              <>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-primary"
+                  disabled={busy === 'scan'}
+                  onClick={() => void runScan()}
+                >
+                  {busy === 'scan' ? (
+                    <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ScanSearch size={16} strokeWidth={2} aria-hidden="true" />
+                  )}
+                  {x(IM.invest_scan_now)}
+                </button>
+                <button
+                  type="button"
+                  className="sb-btn sb-btn-secondary"
+                  onClick={openWizard}
+                >
+                  <Plus size={16} strokeWidth={2.4} aria-hidden="true" />
+                  {x(IM.invest_add_strategy)}
+                </button>
+              </>
+            }
+          />
           <p className="sb-caption">{x(IM.invest_sb_scan_caption)}</p>
 
           {pending.length > 0 && (

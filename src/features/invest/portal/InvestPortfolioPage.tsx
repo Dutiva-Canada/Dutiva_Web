@@ -38,6 +38,7 @@ import { isQuoteStale } from '@/features/invest/data/freshness'
 import { fmtDay, fmtNum, fmtPct, pl } from './strategyUi'
 import { newRulePersistId } from './ruleDrafts'
 import { TallyNote } from './TallyNote'
+import { PageHead } from './PageHead'
 import { InfoHint } from './InfoHint'
 import { CashLedger } from './CashLedger'
 import { RebalanceCard } from './RebalanceCard'
@@ -442,22 +443,24 @@ export function InvestPortfolioPage() {
 
   return (
     <div className="sb sb-page sb-page-wide">
-      <div className="sb-head-row">
-        <h1>{x(IM.invest_tab_portfolios)}</h1>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void syncNow()}
-          className="sb-btn sb-btn-secondary sb-btn-sm"
-        >
-          {busy ? (
-            <Loader2 size={14} className="animate-spin" aria-hidden="true" />
-          ) : (
-            <RefreshCw size={14} aria-hidden="true" />
-          )}
-          {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
-        </button>
-      </div>
+      <PageHead
+        title={x(IM.invest_tab_portfolios)}
+        actions={
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void syncNow()}
+            className="sb-btn sb-btn-secondary sb-btn-sm"
+          >
+            {busy ? (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <RefreshCw size={14} aria-hidden="true" />
+            )}
+            {busy ? x(IM.invest_syncing) : x(IM.invest_sync_prices)}
+          </button>
+        }
+      />
       {error && (
         <p role="alert" className="sb-helper" style={{ color: 'var(--sb-danger)' }}>
           {error}
@@ -518,7 +521,7 @@ export function InvestPortfolioPage() {
       )}
 
       <section className={cardClass} style={{ marginTop: 18 }}>
-        <h2 style={{ margin: '0 0 14px' }}>{x(IM.invest_accounts_title)}</h2>
+        <h2 className="sb-h2" style={{ marginBottom: 14 }}>{x(IM.invest_accounts_title)}</h2>
         <AccountForm
           busy={busy}
           onCreate={(input) =>
@@ -581,7 +584,7 @@ export function InvestPortfolioPage() {
 
       <section className={cardClass} style={{ marginTop: 16 }}>
         <div className="sb-head-row">
-          <h2 style={{ margin: 0 }}>{x(IM.invest_positions_title)}</h2>
+          <h2 className="sb-h2">{x(IM.invest_positions_title)}</h2>
           {state.accounts.length > 0 && !showPosForm && !showBulk && (
             <span style={{ display: 'inline-flex', gap: 8 }}>
               {state.positions.length > 0 && (
@@ -1062,7 +1065,7 @@ export function InvestPortfolioPage() {
       </div>
 
       <section className={cardClass} style={{ marginTop: 16 }}>
-        <h2 style={{ margin: 0 }}>{x(IM.invest_watchlist_title)}</h2>
+        <h2 className="sb-h2">{x(IM.invest_watchlist_title)}</h2>
         <p className="sb-helper" style={{ margin: '4px 0 14px' }}>{x(IM.invest_watchlist_sub)}</p>
         <WatchForm
           busy={busy}

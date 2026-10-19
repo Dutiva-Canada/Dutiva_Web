@@ -102,12 +102,27 @@
   padding: 18px 16px;
 }
 /* Card heading carrying a glyph and/or an InfoHint — flex puts them on
-   the text line; inline they'd sit on the baseline a couple px low. */
+   the text line; inline they'd sit on the baseline a couple px low.
+   margin:0 because the card pad already owns the rhythm. */
 .sb-h2 {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  margin: 0;
+}
+/* Stacked-card pages — a column of sb-cards at the portal's section
+   rhythm. */
+.sb-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* A rule inside a card separating a danger zone or a distinct block. */
+.sb-divider {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--sb-line);
 }
 .sb-form-grid {
   display: grid;
@@ -300,6 +315,24 @@
 }
 
 /* ---------- overview / signals ---------- */
+/* NewsFeedCard — the card's Tailwind utility classes resolve through the app
+   palette (--surface, --inset, --text-*…). Remap those raw vars onto the sb
+   palette so the card's internals sit on the same surfaces as the rest of
+   the portal in both themes. */
+.sb .sbnews {
+  --surface: var(--sb-input);
+  --inset: var(--sb-card-deep);
+  --border: var(--sb-line);
+  --border-strong: color-mix(in srgb, var(--sb-body) 35%, var(--sb-line));
+  --text: var(--sb-ink);
+  --text-2: var(--sb-body);
+  --text-3: var(--sb-muted);
+  --text-muted: var(--sb-muted);
+  --accent: var(--sb-accent);
+  --accent-soft: var(--sb-accent-soft);
+  --ok-bg: var(--sb-ok-soft);
+  --ok-fg: var(--sb-ok);
+}
 .sb-sub {
   color: var(--sb-muted);
   font-size: 15px;
