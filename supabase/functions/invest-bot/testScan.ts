@@ -1,4 +1,6 @@
 import {
+  dedupeRowActive,
+  DISMISS_REARM_MS,
   draftKey,
   parseRules,
   planRun,
@@ -48,16 +50,23 @@ export async function testScan(
 
   /* Dedupe mirrors a real run — a match already covered by an open signal
      or draft is reported suppressed, not presented as a fresh hit. The
-     0218 column list retries without itself on older schemas. */
-  const signalsSelect = (cols: string) =>
-    adminClient
-      .from('invest_signals')
-      .select(cols)
-      .eq('user_id', userId)
-      .in('status', ['new', 'acknowledged'])
-  let signalsRes = await signalsSelect('strategy_id, symbol, kind, title, rule_id')
-  if (signalsRes.error && /rule_id/.test(signalsRes.error.message)) {
-    signalsRes = await signalsSelect('strategy_id, symbol, kind, title')
+     0218/0246 column list retries without itself on older schemas; recent
+     dismissals still own their keys, same as the sweep. */
+  const dismissCutoffIso = new Date(Date.now() - DISMISS_REARM_MS).toISOString()
+  const signalsSelect = (cols: string, withDismissed: boolean) => {
+    const q = adminClient.from('invest_signals').select(cols).eq('user_id', userId)
+    return withDismissed
+      ? q.or(
+          `status.in.(new,acknowledged),and(status.eq.dismissed,dismissed_at.gte.${dismissCutoffIso})`,
+        )
+      : q.in('status', ['new', 'acknowledged'])
+  }
+  let signalsRes = await signalsSelect(
+    'strategy_id, symbol, kind, title, rule_id, status, dismissed_at',
+    true,
+  )
+  if (signalsRes.error && /rule_id|dismissed_at/.test(signalsRes.error.message)) {
+    signalsRes = await signalsSelect('strategy_id, symbol, kind, title, status', false)
   }
   let draftsRes: PostgrestSingleResponse<Parameters<typeof draftKey>[0][]> =
     await adminClient
@@ -79,11 +88,11 @@ export async function testScan(
   const [snapshotsRes, positionsRes, accountsRes] = await Promise.all([
     adminClient
       .from('invest_market_snapshots')
-      .select('asset_class, symbol, price, day_change_pct, ma50, currency')
+      .select('asset_class, symbol, price, day_change_pct, ma50, currency, as_of')
       .eq('user_id', userId),
     adminClient
       .from('invest_positions')
-      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency')
+      .select('id, account_id, asset_class, symbol, name, quantity, avg_cost, currency, last_price')
       .eq('user_id', userId),
     adminClient
       .from('invest_accounts')
@@ -109,7 +118,10 @@ export async function testScan(
   }, 0)
 
   const existingKeys = new Set(
-    ((signalsRes.data ?? []) as unknown as Parameters<typeof signalKey>[0][]).map(signalKey),
+    ((signalsRes.data ?? []) as unknown as (Parameters<typeof signalKey>[0] &
+      Parameters<typeof dedupeRowActive>[0])[])
+      .filter((s) => dedupeRowActive(s, Date.now()))
+      .map(signalKey),
   )
   const openDraftKeys = new Set(
     (draftsRes.error ? [] : (draftsRes.data ?? [])).map(draftKey),

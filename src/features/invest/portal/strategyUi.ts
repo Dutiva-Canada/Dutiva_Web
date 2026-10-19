@@ -466,9 +466,24 @@ export function warningText(
       return fill(pick(IM.invest_warn_fx_missing, lang), { currencies: p.currencies ?? '' })
     case 'no_snapshot':
       return fill(pick(IM.invest_warn_no_snapshot, lang), { symbols: p.symbols ?? '' })
+    case 'no_mark':
+      return fill(pick(IM.invest_warn_no_mark, lang), { symbols: p.symbols ?? '' })
+    case 'snapshot_stale':
+      return fill(pick(IM.invest_warn_snapshot_stale, lang), { symbols: p.symbols ?? '' })
     case 'qty_unresolvable':
       return fill(pick(IM.invest_warn_qty_unresolvable, lang), {
         title: p.title ?? '',
+        symbol: p.symbol ?? '',
+      })
+    case 'sell_nothing_held':
+      return fill(pick(IM.invest_warn_sell_nothing_held, lang), {
+        title: p.title ?? '',
+        symbol: p.symbol ?? '',
+      })
+    case 'qty_clamped':
+      return fill(pick(IM.invest_warn_qty_clamped, lang), {
+        title: p.title ?? '',
+        qty: p.qty ?? '',
         symbol: p.symbol ?? '',
       })
     case 'book_metric_proposal':

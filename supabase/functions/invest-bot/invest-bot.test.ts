@@ -3,14 +3,17 @@ import {
   applyFill,
   buildDigestEmail,
   buildSignalEmail,
+  dedupeRowActive,
   digestFlushDue,
   draftExpiryCutoff,
   DRAFT_EXPIRY_DAYS,
+  marketSessionsMissed,
   parseRules,
   planRun,
   resolveQuantity,
   ruleMatches,
   signalKey,
+  snapshotStale,
   strategyDue,
   validateBotAction,
   type MarketSnapshot,
@@ -278,8 +281,11 @@ describe('strategyDue', () => {
   const now = new Date('2026-09-25T12:00:00Z')
   const ago = (days: number) => new Date(now.getTime() - days * 86400_000).toISOString()
 
-  it('daily strategies are always due; never-run strategies are due', () => {
-    expect(strategyDue({ cadence: 'daily', last_evaluated_at: ago(0.01) }, now)).toBe(true)
+  it('daily is a 24h window — the twice-weekday sweep must not double-eval', () => {
+    /* Sweeps fire morning + midday; a daily strategy evaluated hours ago
+       is not due again. */
+    expect(strategyDue({ cadence: 'daily', last_evaluated_at: ago(0.4) }, now)).toBe(false)
+    expect(strategyDue({ cadence: 'daily', last_evaluated_at: ago(1.1) }, now)).toBe(true)
     expect(strategyDue({ cadence: 'weekly', last_evaluated_at: null }, now)).toBe(true)
     expect(strategyDue({ cadence: 'monthly', last_evaluated_at: 'not-a-date' }, now)).toBe(true)
   })
@@ -566,6 +572,170 @@ describe('planRun', () => {
     expect(parsed.map((r) => r.title)).toEqual(['First', 'Second'])
     const reversed = parseRules([...raw].reverse())
     expect(reversed.map((r) => r.title)).toEqual(['Second', 'First'])
+  })
+})
+
+describe('snapshot freshness', () => {
+  /* Market sessions are Mon–Fri 13:00–22:00 UTC — market-sync only writes
+     inside them, so staleness counts missed sessions, not wall-clock age. */
+  const friClose = Date.parse('2025-10-10T21:00:00Z') /* Fri Oct 10 */
+  const monMorning = Date.parse('2025-10-13T12:45:00Z') /* Mon, before the 13:00 open */
+  const monClose = Date.parse('2025-10-13T22:30:00Z') /* Mon, after the 22:00 close */
+  const wedMorning = Date.parse('2025-10-15T12:45:00Z') /* Wed, Mon+Tue sessions closed */
+
+  it('a weekend gap is not staleness — Friday close is fresh Monday morning', () => {
+    expect(marketSessionsMissed(friClose, monMorning)).toBe(0)
+    expect(snapshotStale({ ...snap, as_of: '2025-10-10T21:00:00Z' }, monMorning)).toBe(false)
+  })
+
+  it('one missed session warns nothing; two missed sessions go stale', () => {
+    expect(marketSessionsMissed(friClose, monClose)).toBe(1)
+    expect(snapshotStale({ ...snap, as_of: '2025-10-10T21:00:00Z' }, monClose)).toBe(false)
+    expect(marketSessionsMissed(friClose, wedMorning)).toBe(2)
+    expect(snapshotStale({ ...snap, as_of: '2025-10-10T21:00:00Z' }, wedMorning)).toBe(true)
+  })
+
+  it('a mark written inside the session is never stale to it', () => {
+    const inSession = Date.parse('2025-10-13T14:00:00Z')
+    expect(marketSessionsMissed(inSession, monClose)).toBe(0)
+  })
+
+  it('absent or unparseable as_of cannot be judged — treated fresh', () => {
+    expect(snapshotStale(snap, wedMorning)).toBe(false)
+    expect(snapshotStale({ ...snap, as_of: 'not-a-date' }, wedMorning)).toBe(false)
+  })
+
+  it('stale in-scope marks skip rules and warn — they never emit signals', () => {
+    const staleSnap: MarketSnapshot = { ...snap, as_of: '2025-10-10T21:00:00Z' }
+    const strategy: Strategy = { ...baseStrategy, rules: [signalRule()] }
+    const plan = planRun([strategy], [staleSnap], [position], new Set(), {
+      now: new Date(wedMorning),
+    })
+    expect(plan.signals).toHaveLength(0)
+    expect(plan.symbolsScanned).toHaveLength(0)
+    const w = plan.warningDetails.find((d) => d.code === 'snapshot_stale')
+    expect(w?.params.symbols).toBe('ACME')
+  })
+
+  it('staleness outside every scope warns nothing — it changed nothing', () => {
+    const staleSnap: MarketSnapshot = { ...snap, symbol: 'ELSE', as_of: '2025-10-10T21:00:00Z' }
+    const strategy: Strategy = { ...baseStrategy, rules: [signalRule()] }
+    const plan = planRun([strategy], [snap, staleSnap], [position], new Set(), {
+      now: new Date(wedMorning),
+    })
+    expect(plan.warningDetails.some((d) => d.code === 'snapshot_stale')).toBe(false)
+    /* ...while the fresh in-scope mark still evaluates normally. */
+    expect(plan.signals).toHaveLength(1)
+  })
+})
+
+describe('sell-side proposal guard', () => {
+  it('clamps an oversized sell to the held quantity and warns', () => {
+    const rule = proposalRule({ side: 'sell', qty: 50, qty_unit: 'shares' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const plan = planRun([strategy], [snap], [position], new Set())
+    expect(plan.proposals).toHaveLength(1)
+    expect(plan.proposals[0].quantity).toBe(10) /* held qty — never more */
+    expect(plan.warningDetails.some((d) => d.code === 'qty_clamped')).toBe(true)
+  })
+
+  it('a >100% percent-of-position sell clamps to the full position', () => {
+    const rule = proposalRule({ side: 'sell', qty: 150, qty_unit: 'percent_of_position' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const plan = planRun([strategy], [snap], [position], new Set())
+    expect(plan.proposals[0]?.quantity).toBe(10)
+  })
+
+  it('a sell rule on an unheld symbol proposes nothing and warns', () => {
+    const rule = proposalRule({ side: 'sell', qty: 5, qty_unit: 'shares' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const plan = planRun([strategy], [snap], [], new Set())
+    expect(plan.proposals).toHaveLength(0)
+    expect(plan.warningDetails.some((d) => d.code === 'sell_nothing_held')).toBe(true)
+  })
+
+  it('buys still plan at full requested size — no clamp on the buy side', () => {
+    const rule = proposalRule({ side: 'buy', qty: 50, qty_unit: 'shares' })
+    const strategy: Strategy = { ...baseStrategy, rules: [rule] }
+    const plan = planRun([strategy], [snap], [position], new Set())
+    expect(plan.proposals[0]?.quantity).toBe(50)
+  })
+})
+
+describe('dedupeRowActive', () => {
+  const now = Date.parse('2026-01-15T12:00:00Z')
+  const ago = (ms: number) => new Date(now - ms).toISOString()
+
+  it('open rows suppress while open; feed-hidden rows re-arm after the window', () => {
+    expect(dedupeRowActive({ status: 'new', in_feed: true }, now)).toBe(true)
+    expect(dedupeRowActive({ status: 'acknowledged', in_feed: true }, now)).toBe(true)
+    expect(
+      dedupeRowActive({ status: 'new', in_feed: false, created_at: ago(86400_000) }, now),
+    ).toBe(true)
+    expect(
+      dedupeRowActive({ status: 'new', in_feed: false, created_at: ago(8 * 86400_000) }, now),
+    ).toBe(false)
+  })
+
+  it('a dismissal quiets the key for the re-arm window, then releases it', () => {
+    expect(
+      dedupeRowActive(
+        { status: 'dismissed', in_feed: true, dismissed_at: ago(3600_000) },
+        now,
+      ),
+    ).toBe(true)
+    expect(
+      dedupeRowActive(
+        { status: 'dismissed', in_feed: true, dismissed_at: ago(8 * 86400_000) },
+        now,
+      ),
+    ).toBe(false)
+    /* Pre-0246 dismissed rows carry no stamp — they re-arm immediately. */
+    expect(
+      dedupeRowActive({ status: 'dismissed', in_feed: true, dismissed_at: null }, now),
+    ).toBe(false)
+  })
+})
+
+describe('book denominator fallback', () => {
+  it('unsnapshotted positions still count at their last mark — weights stay honest', () => {
+    /* HELD has no snapshot but a mirrored last_price: 10 × 50 = 500.
+       ACME marks 10 × 100 = 1000 → weight 66.7%, not the 100% a
+       HELD-dropped denominator would report. */
+    const heldNoSnap: Position = {
+      account_id: 'acc-1',
+      asset_class: 'equity',
+      symbol: 'HELD',
+      quantity: 10,
+      avg_cost: 40,
+      last_price: 50,
+    }
+    const strategy: Strategy = {
+      ...baseStrategy,
+      rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 90 })],
+    }
+    const plan = planRun([strategy], [snap], [position, heldNoSnap], new Set())
+    expect(plan.signals).toHaveLength(0)
+    const w = plan.warningDetails.find((d) => d.code === 'no_snapshot')
+    expect(w?.params.symbols).toBe('HELD')
+  })
+
+  it('a position with no mark at all drops out of weights and warns separately', () => {
+    const ghost: Position = {
+      account_id: 'acc-1',
+      asset_class: 'equity',
+      symbol: 'GHOST',
+      quantity: 10,
+      avg_cost: 0,
+    }
+    const strategy: Strategy = {
+      ...baseStrategy,
+      rules: [signalRule({ metric: 'weight_pct', op: 'gt', value: 90 })],
+    }
+    const plan = planRun([strategy], [snap], [position, ghost], new Set())
+    /* GHOST contributed nothing → ACME weight is 100% → fires. */
+    expect(plan.signals).toHaveLength(1)
+    expect(plan.warningDetails.some((d) => d.code === 'no_mark')).toBe(true)
   })
 })
 

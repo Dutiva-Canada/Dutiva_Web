@@ -10786,6 +10786,7 @@ export type Database = {
           body: string
           body_fr: string | null
           created_at: string
+          dismissed_at: string | null
           id: string
           in_feed: boolean
           kind: string
@@ -10804,6 +10805,7 @@ export type Database = {
           body?: string
           body_fr?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           in_feed?: boolean
           kind?: string
@@ -10822,6 +10824,7 @@ export type Database = {
           body?: string
           body_fr?: string | null
           created_at?: string
+          dismissed_at?: string | null
           id?: string
           in_feed?: boolean
           kind?: string
