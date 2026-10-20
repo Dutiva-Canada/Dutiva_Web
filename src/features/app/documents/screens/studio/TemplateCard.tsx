@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { useWorkspaceRoot, workspacePath } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
-import { DocChip, JurisdictionPill } from '../../components'
+import { JurisdictionText } from '../../components'
 import { templateCategories } from '../../data'
 import type { DocTemplate, OrgProfile, TemplateCategoryId } from '../../data'
 import { displayTemplateTitle, presentApplicability, reviewLevelInfo } from '../../presentation'
@@ -66,12 +66,15 @@ export function TemplateCard({
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        {category && <DocChip tone="neutral">{x(category.name)}</DocChip>}
-        {template.jurisdictions.map((code) => (
-          <JurisdictionPill key={code} code={code} />
-        ))}
-      </div>
+      <p className="mt-2.5 flex min-w-0 items-center gap-1.5 text-[11.5px] text-text-muted">
+        {category && (
+          <>
+            <span className="truncate">{x(category.name)}</span>
+            <span aria-hidden="true">·</span>
+          </>
+        )}
+        <JurisdictionText codes={template.jurisdictions} />
+      </p>
 
       <div className="mt-auto flex gap-2 pt-3">
         <button
@@ -85,7 +88,7 @@ export function TemplateCard({
           to={workspacePath(root, `documents/generate/${template.id}`)}
           className="inline-flex min-h-[40px] flex-[1.2] items-center justify-center rounded-[9px] bg-navy px-3 text-[12.5px] font-bold text-white hover:opacity-90"
         >
-          {t('doclib_studio_useTemplate')}
+          {t('doclib_studio_generate')}
         </Link>
       </div>
     </div>

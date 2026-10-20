@@ -2,12 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { Check, X } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { jurisdictionInfo } from '../../data'
-import type {
-  DocRiskLevel,
-  Jurisdiction,
-  TemplateCategory,
-  TemplateCategoryId,
-} from '../../data'
+import type { DocRiskLevel, Jurisdiction, TemplateCategory, TemplateCategoryId } from '../../data'
 import { REVIEW_LEVEL_ORDER, reviewLevelInfo } from '../../presentation'
 
 export interface StudioFilterValue {
@@ -75,7 +70,7 @@ export function StudioChips({
     <div
       role="group"
       aria-label={t('doclib_studio_filters')}
-      className="-mx-[14px] flex gap-2 overflow-x-auto px-[14px] pt-2.5 pb-1 sm:mx-0 sm:px-0"
+      className="-mx-[14px] flex gap-2 overflow-x-auto px-[14px] pt-2.5 pb-1 sm:mx-0 sm:px-0 lg:flex-wrap"
     >
       <Chip active={allActive} onClick={onClearAll}>
         {t('doclib_studio_all')}
@@ -88,9 +83,7 @@ export function StudioChips({
           key={info.code}
           active={value.jurisdiction === info.code}
           ariaLabel={x(info.name)}
-          onClick={() =>
-            onJurisdiction(value.jurisdiction === info.code ? 'all' : info.code)
-          }
+          onClick={() => onJurisdiction(value.jurisdiction === info.code ? 'all' : info.code)}
         >
           {info.code}
         </Chip>
@@ -142,7 +135,12 @@ function FilterGroup({
             >
               <span className="min-w-0 truncate">{option.label}</span>
               {selected && (
-                <Check size={15} strokeWidth={2.4} className="shrink-0 text-navy" aria-hidden="true" />
+                <Check
+                  size={15}
+                  strokeWidth={2.4}
+                  className="shrink-0 text-navy"
+                  aria-hidden="true"
+                />
               )}
             </button>
           )

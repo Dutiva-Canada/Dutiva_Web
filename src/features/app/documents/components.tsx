@@ -64,6 +64,26 @@ export function JurisdictionPill({
   )
 }
 
+/**
+ * Compact jurisdiction run — "ON · QC · FED" as plain text with the full
+ * names on hover/AT. The calm alternative to a pill per code on dense
+ * catalogue rows; JurisdictionPill stays for hero/detail surfaces.
+ */
+export function JurisdictionText({ codes }: { readonly codes: readonly Jurisdiction[] }) {
+  const { x } = useI18n()
+  const names = codes
+    .map((code) => {
+      const info = jurisdictionInfo.find((j) => j.code === code)
+      return info ? x(info.name) : code
+    })
+    .join(', ')
+  return (
+    <span title={names} aria-label={names}>
+      {codes.join(' · ')}
+    </span>
+  )
+}
+
 /** Shimmer block for catalogue loading states. */
 export function Skel({ className }: { readonly className?: string }) {
   return (

@@ -22,7 +22,7 @@ import {
 } from '../presentation'
 import { ApplicabilitySummary } from './studio/ApplicabilitySummary'
 import { ContinueDrafting } from './studio/ContinueDrafting'
-import { RecommendedStrip } from './studio/RecommendedStrip'
+import { RecommendedList } from './studio/RecommendedList'
 import { SelectedTemplatePanel } from './studio/SelectedTemplatePanel'
 import { TemplateCard } from './studio/TemplateCard'
 import { TemplateListRow } from './studio/TemplateListRow'
@@ -55,13 +55,15 @@ function isOrgRecommended(template: DocTemplate, org: OrgProfile) {
 }
 
 /**
- * Templates sub-tab — curated catalogue: profile pill, search + quick chips,
- * a "Recommended for your organization" rail, a Continue-drafting rail, then
+ * Templates sub-tab — curated catalogue: profile pill, search + quick chips
+ * (h-scroll on phones, wrapped on lg+), a Continue-drafting rail, then the
+ * catalogue column holding "Recommended for your organization" rows above
  * the full catalogue grouped by need. Filters live behind the search-bar
  * button — a bottom sheet below lg, an anchored popover on lg+.
- * Below lg the catalogue is a card feed (Preview → detail, Use template →
- * generate); on lg+ it stays a dense master-detail list since the detail
- * panel is already on screen. Routes remain `/documents/studio`.
+ * Below lg the catalogue is a card feed (Preview → detail, Create document →
+ * generate); on lg+ it stays a master-detail list with sticky category
+ * headers since the detail panel is already on screen. Routes remain
+ * `/documents/studio`.
  */
 export function StudioScreen() {
   const { t, x } = useI18n()
@@ -113,10 +115,7 @@ export function StudioScreen() {
       .slice(0, 5)
   }, [data, org])
 
-  const drafts = useMemo(
-    () => (data ? draftingDocuments(data.documents) : []),
-    [data],
-  )
+  const drafts = useMemo(() => (data ? draftingDocuments(data.documents) : []), [data])
 
   /* Keep selection in the filtered set; pick top recommendation when empty. */
   useEffect(() => {
@@ -143,7 +142,9 @@ export function StudioScreen() {
     filtered.length === 1 ? t('doclib_studio_result') : t('doclib_studio_results')
   }`
   const activePanelFilters =
-    (category !== 'all' ? 1 : 0) + (jurisdiction !== 'all' ? 1 : 0) + (reviewLevel !== 'all' ? 1 : 0)
+    (category !== 'all' ? 1 : 0) +
+    (jurisdiction !== 'all' ? 1 : 0) +
+    (reviewLevel !== 'all' ? 1 : 0)
   const showCatalogue = lgUp || !mobileShowDetail
   const showDetail = lgUp || mobileShowDetail
   const filterValue: StudioFilterValue = { category, jurisdiction, reviewLevel }
@@ -200,7 +201,7 @@ export function StudioScreen() {
   )
 
   const emptyState = (
-    <div className="rounded-[12px] border border-border bg-surface px-4 py-12 text-center lg:rounded-none lg:border-0">
+    <div className="rounded-[12px] border border-border bg-surface px-4 py-12 text-center">
       <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-[10px] bg-inset text-text-3">
         <SearchX size={20} strokeWidth={1.7} aria-hidden="true" />
       </div>
@@ -306,139 +307,136 @@ export function StudioScreen() {
         </>
       )}
 
-      {!filtersActive && showCatalogue && (
-        <>
-          <RecommendedStrip
-            templates={recommended}
-            org={org}
-            selectedId={selectedId}
-            onPreview={(tpl) => selectTemplate(tpl.id)}
-          />
-          <ContinueDrafting documents={drafts} />
-        </>
-      )}
+      {!filtersActive && showCatalogue && <ContinueDrafting documents={drafts} />}
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,38%)_minmax(0,62%)]">
         {showCatalogue && (
-          <section
-            aria-labelledby="doclib-catalogue-heading"
-            className="lg:rounded-[12px] lg:border lg:border-border lg:bg-surface"
-          >
-            <h2
-              id="doclib-catalogue-heading"
-              tabIndex={-1}
-              className="mb-2.5 text-[13px] font-bold tracking-wide text-text-muted uppercase outline-none lg:px-3 lg:pt-3"
-            >
-              {t('doclib_studio_browseNeed')}
-            </h2>
+          <div>
+            {!filtersActive && (
+              <RecommendedList
+                templates={recommended}
+                selectedId={selectedId}
+                onSelect={(tpl) => selectTemplate(tpl.id)}
+              />
+            )}
 
-            {filtered.length === 0 ? (
-              emptyState
-            ) : lgUp ? (
-              <ul
-                id={listboxId}
-                role="listbox"
-                aria-label={t('doclib_studio_catalogue')}
-                onKeyDown={(event) => {
-                  /* listbox semantics — arrows move focus between options. */
-                  if (
-                    event.key !== 'ArrowDown' &&
-                    event.key !== 'ArrowUp' &&
-                    event.key !== 'Home' &&
-                    event.key !== 'End'
-                  )
-                    return
-                  const options = Array.from(
-                    event.currentTarget.querySelectorAll<HTMLElement>('[role="option"]'),
-                  )
-                  if (options.length === 0) return
-                  event.preventDefault()
-                  const index = options.indexOf(document.activeElement as HTMLElement)
-                  const next =
-                    event.key === 'Home'
-                      ? 0
-                      : event.key === 'End'
-                        ? options.length - 1
-                        : event.key === 'ArrowDown'
-                          ? index < options.length - 1
-                            ? index + 1
-                            : 0
-                          : index > 0
-                            ? index - 1
-                            : options.length - 1
-                  options[next]?.focus()
-                }}
-                className="max-h-[min(640px,70vh)] space-y-0.5 overflow-y-auto p-2"
+            <section aria-labelledby="doclib-catalogue-heading">
+              <h2
+                id="doclib-catalogue-heading"
+                tabIndex={-1}
+                className="mb-2.5 text-[13px] font-bold tracking-wide text-text-muted uppercase outline-none"
               >
-                {browsing
-                  ? groups.map((group) => {
-                      const groupName = group.category
-                        ? x(group.category.name)
-                        : t('doclib_studio_catalogue')
-                      return (
-                        <li key={group.category?.id ?? 'other'} role="presentation">
-                          <div className="sticky top-0 z-10 bg-surface px-2 py-1.5 text-[11px] font-bold tracking-wide text-text-muted uppercase">
-                            {groupName}
-                          </div>
-                          <ul role="group" aria-label={groupName} className="space-y-0.5">
-                            {group.templates.map((template) => (
-                              <TemplateListRow
-                                key={template.id}
-                                template={template}
-                                org={org}
-                                selected={template.id === selectedId}
-                                onSelect={() => selectTemplate(template.id)}
-                              />
-                            ))}
-                          </ul>
-                        </li>
-                      )
-                    })
-                  : filtered.map((template) => (
-                      <TemplateListRow
-                        key={template.id}
-                        template={template}
-                        org={org}
-                        selected={template.id === selectedId}
-                        onSelect={() => selectTemplate(template.id)}
-                      />
-                    ))}
-              </ul>
-            ) : (
-              <ul id={listboxId} className="space-y-5">
-                {browsing
-                  ? groups.map((group) => (
-                      <li key={group.category?.id ?? 'other'}>
-                        <h3 className="sticky top-[38px] z-10 -mx-1 bg-bg px-1 py-1.5 text-[11px] font-bold tracking-wide text-text-muted uppercase">
-                          {group.category ? x(group.category.name) : t('doclib_studio_catalogue')}
-                        </h3>
-                        <ul className="mt-1 space-y-2.5">
-                          {group.templates.map((template) => (
-                            <li key={template.id}>
-                              <TemplateCard
-                                template={template}
-                                org={org}
-                                selected={template.id === selectedId}
-                                onPreview={() => selectTemplate(template.id)}
-                              />
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))
-                  : filtered.map((template) => (
-                      <li key={template.id}>
-                        <TemplateCard
+                {t('doclib_studio_browseNeed')}
+              </h2>
+
+              {filtered.length === 0 ? (
+                emptyState
+              ) : lgUp ? (
+                <ul
+                  id={listboxId}
+                  role="listbox"
+                  aria-label={t('doclib_studio_catalogue')}
+                  onKeyDown={(event) => {
+                    /* listbox semantics — arrows move focus between options. */
+                    if (
+                      event.key !== 'ArrowDown' &&
+                      event.key !== 'ArrowUp' &&
+                      event.key !== 'Home' &&
+                      event.key !== 'End'
+                    )
+                      return
+                    const options = Array.from(
+                      event.currentTarget.querySelectorAll<HTMLElement>('[role="option"]'),
+                    )
+                    if (options.length === 0) return
+                    event.preventDefault()
+                    const index = options.indexOf(document.activeElement as HTMLElement)
+                    const next =
+                      event.key === 'Home'
+                        ? 0
+                        : event.key === 'End'
+                          ? options.length - 1
+                          : event.key === 'ArrowDown'
+                            ? index < options.length - 1
+                              ? index + 1
+                              : 0
+                            : index > 0
+                              ? index - 1
+                              : options.length - 1
+                    options[next]?.focus()
+                  }}
+                  className="space-y-0.5"
+                >
+                  {browsing
+                    ? groups.map((group) => {
+                        const groupName = group.category
+                          ? x(group.category.name)
+                          : t('doclib_studio_catalogue')
+                        return (
+                          <li key={group.category?.id ?? 'other'} role="presentation">
+                            <div className="sticky top-14 z-10 -mx-1 bg-bg px-4 py-1.5 text-[11px] font-bold tracking-wide text-text-muted uppercase">
+                              {groupName}
+                            </div>
+                            <ul role="group" aria-label={groupName} className="space-y-0.5">
+                              {group.templates.map((template) => (
+                                <TemplateListRow
+                                  key={template.id}
+                                  template={template}
+                                  org={org}
+                                  selected={template.id === selectedId}
+                                  onSelect={() => selectTemplate(template.id)}
+                                />
+                              ))}
+                            </ul>
+                          </li>
+                        )
+                      })
+                    : filtered.map((template) => (
+                        <TemplateListRow
+                          key={template.id}
                           template={template}
                           org={org}
                           selected={template.id === selectedId}
-                          onPreview={() => selectTemplate(template.id)}
+                          onSelect={() => selectTemplate(template.id)}
                         />
-                      </li>
-                    ))}
-              </ul>
-            )}
-          </section>
+                      ))}
+                </ul>
+              ) : (
+                <ul id={listboxId} className="space-y-5">
+                  {browsing
+                    ? groups.map((group) => (
+                        <li key={group.category?.id ?? 'other'}>
+                          <h3 className="sticky top-[38px] z-10 -mx-1 bg-bg px-1 py-1.5 text-[11px] font-bold tracking-wide text-text-muted uppercase">
+                            {group.category ? x(group.category.name) : t('doclib_studio_catalogue')}
+                          </h3>
+                          <ul className="mt-1 space-y-2.5">
+                            {group.templates.map((template) => (
+                              <li key={template.id}>
+                                <TemplateCard
+                                  template={template}
+                                  org={org}
+                                  selected={template.id === selectedId}
+                                  onPreview={() => selectTemplate(template.id)}
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      ))
+                    : filtered.map((template) => (
+                        <li key={template.id}>
+                          <TemplateCard
+                            template={template}
+                            org={org}
+                            selected={template.id === selectedId}
+                            onPreview={() => selectTemplate(template.id)}
+                          />
+                        </li>
+                      ))}
+                </ul>
+              )}
+            </section>
+          </div>
         )}
 
         {showDetail && (

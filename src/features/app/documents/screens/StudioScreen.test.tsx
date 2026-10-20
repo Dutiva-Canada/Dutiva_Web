@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderApp } from '@/test/renderApp'
+import { writeLang } from '@/i18n/lang'
 import { AdvisorRail } from '@/features/app/rail/AdvisorRail'
 import { allTemplates } from '../catalogue'
 import { DoclibProvider } from '../DoclibProvider'
@@ -59,6 +60,65 @@ describe('StudioScreen', () => {
     expect(within(listbox).getByText('Confidentiality agreement')).toBeInTheDocument()
     expect(within(listbox).getAllByRole('option')).toHaveLength(CATALOGUE_SIZE)
     expect(screen.getByText(`${CATALOGUE_SIZE} templates found`)).toBeInTheDocument()
+  })
+
+  it('renders the recommended list as compact rows that select into the detail panel', async () => {
+    renderStudio()
+
+    const section = (
+      await screen.findByRole('heading', { name: 'Recommended for your organization' })
+    ).closest('section')
+    expect(section).not.toBeNull()
+    const rows = within(section!).getAllByRole('button')
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.length).toBeLessThanOrEqual(5)
+
+    // The first row is already selected by default; pick an unselected one.
+    const target = rows.find((row) => row.getAttribute('aria-current') !== 'true')
+    expect(target).toBeDefined()
+    const title = target!.querySelector('.block.truncate')!.textContent!
+    fireEvent.click(target!)
+
+    await waitFor(() => expect(target).toHaveAttribute('aria-current', 'true'))
+    expect(await screen.findByRole('article', { name: title })).toBeInTheDocument()
+  })
+
+  it('caps the detail panel section list and points at the full template', async () => {
+    renderStudio()
+
+    // Offer of employment letter has more than seven sections — the default
+    // selection, so no click is needed.
+    const detail = await screen.findByRole('article', {
+      name: /Offer of employment letter/i,
+    })
+    expect(within(detail).getByText(/more in the full template/)).toBeInTheDocument()
+    expect(
+      within(detail).queryByText('Statutory leaves & required workplace policies'),
+    ).not.toBeInTheDocument()
+    expect(within(detail).getByRole('link', { name: 'Preview full template' })).toBeInTheDocument()
+  })
+
+  it('renders the new chrome in French', async () => {
+    writeLang('fr')
+    renderStudio()
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Recommandés pour votre organisation',
+      }),
+    ).toBeInTheDocument()
+    const detail = await screen.findByRole('article')
+    expect(within(detail).getByText(/autres dans le modèle complet/)).toBeInTheDocument()
+    expect(
+      within(detail).getByRole('link', { name: 'Créer le document' }),
+    ).toBeInTheDocument()
+  })
+
+  it('wraps the quick-filter chips instead of clipping them behind a scrollbar', async () => {
+    renderStudio()
+    await screen.findByRole('listbox', { name: 'Templates' })
+
+    expect(screen.getByRole('group', { name: 'Filters' })).toHaveClass('lg:flex-wrap')
   })
 
   it('exposes labelled filters and narrows results by search', async () => {

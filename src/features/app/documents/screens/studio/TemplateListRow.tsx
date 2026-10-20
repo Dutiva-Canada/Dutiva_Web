@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
-import { DocChip, JurisdictionPill } from '../../components'
+import { DocChip, JurisdictionText } from '../../components'
 import type { DocTemplate, OrgProfile } from '../../data'
 import { displayTemplateTitle, presentApplicability, reviewLevelInfo } from '../../presentation'
 
@@ -45,10 +45,8 @@ export function TemplateListRow({
                 </span>
               )}
             </div>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              {template.jurisdictions.map((code) => (
-                <JurisdictionPill key={code} code={code} />
-              ))}
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11.5px] text-text-muted">
+              <JurisdictionText codes={template.jurisdictions} />
               <DocChip tone={review.tone}>{x(review.label)}</DocChip>
             </div>
           </div>

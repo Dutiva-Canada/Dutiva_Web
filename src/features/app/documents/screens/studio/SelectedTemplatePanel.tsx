@@ -122,7 +122,7 @@ export function SelectedTemplatePanel({
             </h3>
             <p className="mt-1 text-[12.5px] text-text-muted">{t('doclib_studio_sectionsSub')}</p>
             <ol className="mt-3 space-y-1.5">
-              {sections.slice(0, 10).map((item, index) => (
+              {sections.slice(0, 7).map((item, index) => (
                 <li key={item.en} className="flex gap-2 text-[13px] text-text">
                   <span className="w-5 shrink-0 font-mono text-[11px] font-bold text-text-faint">
                     {index + 1}.
@@ -131,19 +131,16 @@ export function SelectedTemplatePanel({
                 </li>
               ))}
             </ol>
+            {sections.length > 7 && (
+              <p className="mt-2 pl-7 text-[12px] text-text-faint">
+                {t('doclib_studio_moreSections').replace('{n}', String(sections.length - 7))}
+              </p>
+            )}
           </section>
         )}
       </div>
 
       <div className="space-y-2 border-t border-border bg-surface px-4 py-3 max-[640px]:px-3">
-        <button
-          type="button"
-          onClick={askAdvisor}
-          className="inline-flex min-h-[40px] w-full cursor-pointer items-center justify-center gap-2 rounded-[9px] border border-border bg-surface px-3 text-[13px] font-semibold text-text hover:bg-inset"
-        >
-          <MessageSquare size={15} strokeWidth={1.8} aria-hidden="true" />
-          {t('doclib_studio_askAdvisor')}
-        </button>
         <div className="flex flex-wrap gap-2">
           <Link
             to={workspacePath(root, `documents/templates/${template.tid}`)}
@@ -159,6 +156,14 @@ export function SelectedTemplatePanel({
             <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" />
           </Link>
         </div>
+        <button
+          type="button"
+          onClick={askAdvisor}
+          className="inline-flex min-h-[36px] w-full cursor-pointer items-center justify-center gap-2 rounded-[8px] text-[12.5px] font-semibold text-text-muted transition-colors hover:bg-inset hover:text-text"
+        >
+          <MessageSquare size={15} strokeWidth={1.8} aria-hidden="true" />
+          {t('doclib_studio_askAdvisor')}
+        </button>
       </div>
     </article>
   )
