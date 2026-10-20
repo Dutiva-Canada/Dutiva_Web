@@ -236,7 +236,10 @@ export async function fetchOrganizationMemberships(
       .eq('user_id', userId)
       .eq('status', 'active')
       .or(`access_expires_at.is.null,access_expires_at.gt.${new Date().toISOString()}`)
-      .order('created_at', { referencedTable: 'organizations', ascending: false })
+      /* Order the parent rows by the org's created_at — `organizations(…)`
+         targets the parent table; `referencedTable` only sorts the embedded
+         rows and would silently no-op here. */
+      .order('organizations(created_at)', { ascending: false })
     if (error) return READ_FAILED
     const rows = z.array(membershipRowSchema).parse(data ?? [])
     return ok(
