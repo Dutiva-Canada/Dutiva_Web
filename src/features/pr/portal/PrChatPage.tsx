@@ -184,15 +184,21 @@ export function PrChatPage() {
   /* History reloads whenever the thread changes — skeleton shows while the
      scoped page loads. The thread list loads once. A failed load sets
      historyFailed so the empty log reads as an error, not a fresh start. */
+  const historyGen = useRef(0)
   const reloadHistory = useCallback((tid: string | null) => {
+    const gen = ++historyGen.current
     setHistoryFailed(false)
     return loadPrChatHistory(HISTORY_PAGE, undefined, tid)
       .then((rows) => {
+        /* A stale load must never land — a fast thread switch would show
+           the previous conversation's turns under the new selection. */
+        if (gen !== historyGen.current) return
         setTurns(rows)
         /* A full page back means older turns probably exist. */
         setHasMore(rows.length === HISTORY_PAGE)
       })
       .catch(() => {
+        if (gen !== historyGen.current) return
         setTurns([])
         setHistoryFailed(true)
       })
@@ -200,6 +206,7 @@ export function PrChatPage() {
   useEffect(() => {
     setTurns(null)
     setSuggests([])
+    setHasMore(false)
     void reloadHistory(threadId)
   }, [threadId, reloadHistory])
 
@@ -221,7 +228,6 @@ export function PrChatPage() {
           if (!prev) return prev
           const seen = new Set(prev.map((t) => t.id))
           const fresh = rows.filter((r) => !seen.has(r.id))
-          if (fresh.length === 0) return prev
           /* A persisted row can arrive for a turn the client already shows
              under an optimistic id — an aborted send keeps its u-/a-
              bubbles while the server may still have stored the pair.
@@ -235,11 +241,48 @@ export function PrChatPage() {
                 t.role === r.role &&
                 t.content === r.content,
             )
-            const prevTwin = merged[twin]
-            if (twin >= 0 && prevTwin) merged[twin] = { ...prevTwin, id: r.id }
-            else merged.push(r)
+            if (twin >= 0) {
+              merged[twin] = { ...merged[twin]!, id: r.id }
+              continue
+            }
+            /* A stopped send keeps its partial as a local turn while the
+               server finishes the same reply — adopt the persisted row in
+               place (full text, real id) rather than stacking the reply
+               twice. The streamed partial is always a prefix of the
+               persisted reply since the server buffers the text before
+               the delta leaves. */
+            if (r.role === 'assistant') {
+              const stopIdx = merged.findIndex(
+                (t) =>
+                  t.stopped &&
+                  t.role === 'assistant' &&
+                  t.id.startsWith('a-') &&
+                  t.content !== '' &&
+                  r.content.startsWith(t.content),
+              )
+              if (stopIdx >= 0) {
+                merged[stopIdx] = r
+                continue
+              }
+            }
+            merged.push(r)
           }
-          return merged
+          /* The response is the server's whole tail — a persisted turn
+             inside that window that's missing was deleted elsewhere (a
+             clear from another tab, a regenerate's stale pair), and an
+             append-only merge leaves the ghost on screen forever.
+             Optimistic local rows sit outside the server's view; keep
+             them. */
+          const windowStart = rows[0]?.createdAt
+          const windowIds = new Set(rows.map((r) => r.id))
+          const kept = merged.filter(
+            (t) =>
+              !UUID_RE.test(t.id) ||
+              (windowStart !== undefined &&
+                (t.createdAt < windowStart || windowIds.has(t.id))),
+          )
+          if (kept.length === merged.length && fresh.length === 0) return prev
+          return kept
         })
       } catch {
         /* The poll is best-effort — a miss just means next tick. */
@@ -315,7 +358,9 @@ export function PrChatPage() {
   }
 
   const sendText = async (message: string) => {
-    if (!message || sending) return
+    /* turns === null means the thread's history hasn't resolved — a send
+       now would be wiped when the load lands on setTurns(rows). */
+    if (!message || sending || turns === null) return
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -372,6 +417,7 @@ export function PrChatPage() {
                 action: null,
                 reasoning: partialReasoning,
                 feedback: null,
+                stopped: true,
                 createdAt: new Date().toISOString(),
               },
             ])
@@ -397,7 +443,9 @@ export function PrChatPage() {
 
   const send = () => {
     const message = draft.trim()
-    if (!message || sending) return
+    /* turns === null is checked here too — sendText's guard must not run
+       after the draft has already been cleared. */
+    if (!message || sending || turns === null) return
     setDraft('')
     void sendText(message)
   }
@@ -410,15 +458,26 @@ export function PrChatPage() {
     void sendText(turn.content)
   }
 
+  /* The pair a regenerate re-asks: the newest user turn plus the assistant
+     turn directly on top of it. Paige's reaction lines land in this
+     conversation as bare assistant rows AFTER the pair, so the last two
+     turns aren't always the pair — scan back, same as the server does. */
+  const regenTarget = (() => {
+    const list = turns ?? []
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (list[i]?.role !== 'user') continue
+      const reply = list[i + 1]
+      return reply?.role === 'assistant' ? { user: list[i]!, reply } : null
+    }
+    return null
+  })()
+
   /* Try another answer — the server drops the last pair and re-asks, so
      locally the pair leaves too; the fresh reply streams into the pending
      bubble like a normal send. */
   const regenerate = async () => {
-    if (sending) return
-    const list = turns ?? []
-    const last = list[list.length - 1]
-    const prevUser = list[list.length - 2]
-    if (!last || last.role !== 'assistant' || !prevUser || prevUser.role !== 'user') return
+    if (sending || !regenTarget) return
+    const { user: prevUser, reply: last } = regenTarget
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -456,13 +515,10 @@ export function PrChatPage() {
       if (!(isAbort(err) || ctrl.signal.aborted)) {
         showToast(isUsageLimited(err) ? PM.pr_chat_limit : PM.pr_chat_error)
         /* The server never deleted the stale pair on failure — reload the
-           thread so it returns instead of leaving a bare re-asked line. */
-        loadPrChatHistory(HISTORY_PAGE, undefined, threadId)
-          .then((rows) => {
-            setTurns(rows)
-            setHasMore(rows.length === HISTORY_PAGE)
-          })
-          .catch(() => {})
+           thread so it returns instead of leaving a bare re-asked line.
+           Goes through reloadHistory so a thread switch can't cross the
+           write. */
+        void reloadHistory(threadId)
       }
     } finally {
       abortRef.current = null
@@ -742,8 +798,10 @@ export function PrChatPage() {
                 const prev = i > 0 ? turns[i - 1] : undefined
                 const showDay = !prev || !sameTurnDay(prev.createdAt, t.createdAt)
                 const route = t.action?.ok ? actionRoute(t.action) : null
+                /* Regen belongs to the pair's reply — a reaction line
+                   landing later mustn't carry (or hide) the button. */
                 const isLastAssistant =
-                  t.role === 'assistant' && i === turns.length - 1 && UUID_RE.test(t.id)
+                  t.id === regenTarget?.reply.id && UUID_RE.test(t.id)
                 return (
                   <div key={t.id} style={{ display: 'contents' }}>
                     {showDay && (

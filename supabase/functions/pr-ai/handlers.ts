@@ -800,3 +800,24 @@ export function rowMatchesWrote(
   }
   return true
 }
+
+/* ── regenerate pair scan ────────────────────────────────────────────────
+   chat_regenerate re-asks the newest user turn and replaces the reply on
+   top of it. Paige's reaction lines land in the default conversation as
+   bare assistant rows AFTER the pair, so "the last two rows" isn't always
+   the pair — scan back for the user turn. */
+
+/** Locate the pair a regenerate re-asks: the newest user turn and the
+   assistant row directly on top of it. Rows are newest-first (the API's
+   desc order). Null when the newest user turn has no assistant row right
+   above it — a send still in flight, or a user turn that never answered. */
+export function findRegenPair<T extends { role: string }>(
+  rowsNewestFirst: T[],
+): { user: T; reply: T } | null {
+  const userIdx = rowsNewestFirst.findIndex((r) => r.role === 'user')
+  if (userIdx < 1) return null
+  const reply = rowsNewestFirst[userIdx - 1]
+  if (!reply || reply.role !== 'assistant') return null
+  const user = rowsNewestFirst[userIdx]
+  return user ? { user, reply } : null
+}

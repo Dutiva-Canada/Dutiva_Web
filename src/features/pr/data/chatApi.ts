@@ -62,6 +62,10 @@ export interface PrChatTurn {
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+  /** Client-only — an assistant turn stopped mid-stream; its content is a
+      prefix of the reply the server still persists. The history poll
+      adopts the persisted row into this slot instead of duplicating it. */
+  stopped?: boolean
 }
 
 /** A named conversation — the default thread (threadId null) always exists;
@@ -250,20 +254,27 @@ export async function sendPrReaction(
     return { reply: null, assistantId: null }
   }
   lastReactionAt = Date.now()
-  const client = requireClient()
-  const body = { kind: 'react', event, lang }
-  const raw = (
-    onDelta
-      ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta)
-      : await invokeEdgeFn(client, 'pr-ai', body)
-  ) as {
-    reply?: string
-    assistantId?: string | null
+  try {
+    const client = requireClient()
+    const body = { kind: 'react', event, lang }
+    const raw = (
+      onDelta
+        ? await invokeEdgeFnStream(client, 'pr-ai', body, onDelta)
+        : await invokeEdgeFn(client, 'pr-ai', body)
+    ) as {
+      reply?: string
+      assistantId?: string | null
+    }
+    if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+      throw new Error('Empty reaction from pr-ai')
+    }
+    return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+  } catch (e) {
+    /* Hand the slot back — a failed call shouldn't silence the next save
+       for 90s. */
+    lastReactionAt = 0
+    throw e
   }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reaction from pr-ai')
-  }
-  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
 /** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). A downvote

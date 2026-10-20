@@ -7,7 +7,7 @@ import { prMessages as PM } from '@/i18n/messages/pr'
 import { usePrData } from '@/features/pr/data/PrDataContext'
 import { buildPrReport, reportMonths, type PrReport } from '@/features/pr/data/prReport'
 import { prReportIntro } from '@/features/pr/data/api'
-import { fmtDate } from './prUi'
+import { fmtDate, safeHttpUrl } from './prUi'
 import { usePrHead } from './usePrHead'
 
 const SENT_CLASS = {
@@ -284,7 +284,7 @@ export function PrReportPage() {
                 <li key={i.title}>
                   <span className="prx-chip">{i.kind}</span>
                   <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {i.url ? (
+                    {safeHttpUrl(i.url) ? (
                       <a href={i.url} target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>
                         {i.title}
                       </a>

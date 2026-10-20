@@ -113,6 +113,32 @@ describe('parseFeedItems', () => {
     expect(parseFeedItems('<html><body>not a feed</body></html>')).toHaveLength(0)
     expect(parseFeedItems('')).toHaveLength(0)
   })
+
+  it('drops non-http links — a feed can carry a javascript: href', () => {
+    /* The link goes straight into pr_mentions.url and out to an <a href>
+       in the portal — a malicious or hijacked feed a user added could
+       plant an executable scheme. The item stays, linkless. */
+    const rss = `<rss><channel><title>T</title>
+      <item>
+        <title>Bad link story</title>
+        <link>javascript:alert(document.cookie)</link>
+      </item>
+    </channel></rss>`
+    const rssItems = parseFeedItems(rss)
+    expect(rssItems).toHaveLength(1)
+    expect(rssItems[0].link).toBe('')
+    expect(rssItems[0].title).toBe('Bad link story')
+
+    const atom = `<feed xmlns="http://www.w3.org/2005/Atom"><title>T</title>
+      <entry>
+        <title>Bad atom link</title>
+        <link rel="alternate" href="data:text/html;base64,PGI+eDwvYj4="/>
+      </entry>
+    </feed>`
+    const atomItems = parseFeedItems(atom)
+    expect(atomItems).toHaveLength(1)
+    expect(atomItems[0].link).toBe('')
+  })
 })
 
 describe('toneCounts', () => {

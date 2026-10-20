@@ -9,6 +9,7 @@ import {
   cleanDraft,
   clustersPrompt,
   draftPrompt,
+  findRegenPair,
   parseClusters,
   parsePitch,
   parsePromptList,
@@ -356,22 +357,23 @@ const handler = async (req: Request) => {
       .select('id, role, content')
       .eq('user_id', portal.userId)
     q = threadId === null ? q.is('thread_id', null) : q.eq('thread_id', threadId)
-    const { data: lastTwo, error } = await q
+    /* More than the last two rows — Paige's reaction lines land as bare
+       assistant rows after the pair, so adjacency alone can't find it. */
+    const { data: lastRows, error } = await q
       .order('created_at', { ascending: false })
-      .limit(2)
+      .limit(10)
     if (error) return json({ error: error.message }, 500)
-    const latest = lastTwo?.[0]
-    const prev = lastTwo?.[1]
-    if (!latest || latest.role !== 'assistant' || !prev || prev.role !== 'user') {
+    const pair = findRegenPair((lastRows ?? []) as { id: string; role: string; content: string }[])
+    if (!pair) {
       return json({ error: 'Nothing to regenerate' }, 409)
     }
-    return await runChat(admin, portal.userId, prev.content, lang, stream, advice, threadId, {
-      excludeIds: [latest.id, prev.id],
+    return await runChat(admin, portal.userId, pair.user.content, lang, stream, advice, threadId, {
+      excludeIds: [pair.reply.id, pair.user.id],
       afterPersist: async () => {
         await admin
           .from('pr_chat_messages')
           .delete()
-          .in('id', [latest.id, prev.id])
+          .in('id', [pair.reply.id, pair.user.id])
           .eq('user_id', portal.userId)
       },
     })

@@ -11,7 +11,7 @@ import { PaigeNote } from './PaigeNote'
 import { loadNotifyPref, setNotifyPref } from '@/lib/notifications/notifyPrefs'
 import type { PrSentiment } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { fmtDate, SENTIMENTS, sentimentLabel } from './prUi'
+import { fmtDate, safeHttpUrl, SENTIMENTS, sentimentLabel } from './prUi'
 import { usePrHead } from './usePrHead'
 
 const SENT_PILL: Record<PrSentiment, string> = {
@@ -50,11 +50,23 @@ export function PrMentionsPage() {
   const [fetching, setFetching] = useState(false)
   const [suggesting, setSuggesting] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into the delete it was warning about. */
+  useEffect(() => {
+    if (armDelete === null) return
+    const t = window.setTimeout(() => setArmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armDelete])
   const [feedUrl, setFeedUrl] = useState('')
   const [feedLabel, setFeedLabel] = useState('')
   const [feedSaving, setFeedSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [armFeedDelete, setArmFeedDelete] = useState<string | null>(null)
+  useEffect(() => {
+    if (armFeedDelete === null) return
+    const t = window.setTimeout(() => setArmFeedDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armFeedDelete])
   const [notifyOn, setNotifyOn] = useState<boolean | null>(null)
   const [notifySaving, setNotifySaving] = useState(false)
   const [themes, setThemes] = useState<PrMentionCluster[] | null>(null)
@@ -561,7 +573,7 @@ export function PrMentionsPage() {
               <div key={m.id} className="prx-mention">
                 <div className="prx-mention-main">
                   <p className="prx-mention-title">
-                    {m.url ? (
+                    {safeHttpUrl(m.url) ? (
                       <a href={m.url} target="_blank" rel="noreferrer">
                         {m.title}
                       </a>
@@ -580,7 +592,7 @@ export function PrMentionsPage() {
                     {m.sentimentAuto && ` · ${x(PM.pr_ai_tone_tag)}`}
                   </span>
                   <div className="sb-row-actions">
-                    {m.url && (
+                    {safeHttpUrl(m.url) && (
                       <a
                         href={m.url}
                         target="_blank"

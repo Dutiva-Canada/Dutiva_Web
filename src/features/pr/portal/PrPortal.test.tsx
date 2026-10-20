@@ -242,6 +242,46 @@ describe('PrCampaignsPage', () => {
     expect(screen.getByText('1 items')).toBeInTheDocument()
     expect(screen.getByText('0 items')).toBeInTheDocument()
   })
+
+  it('auto-disarms the delete confirm — a stale arm cannot complete later', async () => {
+    /* An armed delete used to stay armed indefinitely — a stray click
+       hours later counted as the second tap. It resets after 3s now. */
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(useAuth).mockReturnValue(asAuth('signed-in'))
+      vi.mocked(hasPrAccess).mockResolvedValue(true)
+      vi.mocked(loadPrState).mockResolvedValue(STATE)
+      const { deleteCampaign } = await import('@/features/pr/data/api')
+      const { PrDataProvider } = await import('@/features/pr/data/PrDataProvider')
+      const { PrCampaignsPage } = await import('./PrCampaignsPage')
+      renderPortal(
+        <PrDataProvider>
+          <PrCampaignsPage />
+        </PrDataProvider>,
+        '/pr/campaigns',
+      )
+      await screen.findByText('Fall launch')
+
+      fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]!)
+      expect(
+        await screen.findByRole('button', { name: 'Click again to confirm' }),
+      ).toBeInTheDocument()
+
+      await vi.advanceTimersByTimeAsync(3_100)
+      /* The arm lapsed — the button shows Delete again, and a click now
+         re-arms instead of deleting. */
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('button', { name: 'Click again to confirm' }),
+        ).not.toBeInTheDocument(),
+      )
+      fireEvent.click(screen.getAllByRole('button', { name: 'Delete' })[0]!)
+      await screen.findByRole('button', { name: 'Click again to confirm' })
+      expect(deleteCampaign).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 describe('PrMediaPage', () => {

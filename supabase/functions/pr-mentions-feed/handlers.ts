@@ -96,6 +96,13 @@ function toIso(raw: string): string | null {
   return Number.isNaN(t) ? null : new Date(t).toISOString()
 }
 
+/** Only http(s) values are real links — a feed can carry javascript:/data:
+   hrefs that must never reach an href downstream. Anything else drops to
+   linkless, where dedupe falls back to the title. */
+function httpLink(link: string): string {
+  return /^https?:\/\//i.test(link) ? link : ''
+}
+
 /** Channel/feed title — used as the mention's source fallback. */
 function feedTitle(xml: string): string {
   return tagText(xml.slice(0, xml.search(/<(item|entry)[\s>]/i) + 1 || xml.length), 'title')
@@ -114,7 +121,7 @@ export function parseFeedItems(xml: string): FeedItem[] {
     const link = tagText(block, 'link') || (/^https?:\/\//i.test(guid) ? guid : '')
     items.push({
       title: tagText(block, 'title'),
-      link: unwrapGoogleRedirect(link),
+      link: httpLink(unwrapGoogleRedirect(link)),
       publishedAt: toIso(
         tagText(block, 'pubDate') || tagText(block, 'date') || tagText(block, 'dc:date'),
       ),
@@ -132,7 +139,7 @@ export function parseFeedItems(xml: string): FeedItem[] {
     const link = atomLink(block) || (/^https?:\/\//i.test(id) ? id : '')
     items.push({
       title: tagText(block, 'title'),
-      link: unwrapGoogleRedirect(link),
+      link: httpLink(unwrapGoogleRedirect(link)),
       publishedAt: toIso(tagText(block, 'published') || tagText(block, 'updated')),
       source:
         tagText(block, 'source') ||

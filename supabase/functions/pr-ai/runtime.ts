@@ -244,7 +244,7 @@ function sseChannel() {
 /* Persist both turns — history is server-side so the next device/session
    sees the same conversation, and the assistant row keeps what it did.
    The assistant id goes back so the client can attach feedback to it. */
-async function persistChatTurns(
+export async function persistChatTurns(
   admin: SupabaseClient,
   userId: string,
   message: string,
@@ -255,7 +255,7 @@ async function persistChatTurns(
   sources: { label: string; url?: string }[],
 ): Promise<{ userId: string | null; assistantId: string | null }> {
   const nowIso = new Date().toISOString()
-  const { data: userRow } = await admin
+  const { data: userRow, error: userErr } = await admin
     .from('pr_chat_messages')
     .insert({
       user_id: userId,
@@ -266,7 +266,14 @@ async function persistChatTurns(
     })
     .select('id')
     .single()
-  const { data: assistantRow } = await admin
+  if (userErr || !userRow) {
+    /* No question → no answer: writing the reply alone would land an
+       assistant row above nothing, and regenerate's pair scan could
+       mistake it for one. */
+    console.warn('pr-ai chat persist: user insert failed', userErr)
+    return { userId: null, assistantId: null }
+  }
+  const { data: assistantRow, error: assistantErr } = await admin
     .from('pr_chat_messages')
     .insert({
       user_id: userId,
@@ -280,8 +287,23 @@ async function persistChatTurns(
     })
     .select('id')
     .single()
+  if (assistantErr || !assistantRow) {
+    /* Half the pair would persist otherwise — an orphan user turn whose
+       reply the client showed under a local id that never comes back on
+       reload, and one chat_regenerate can't reach (it needs the assistant
+       row on top). Take the user row back down with it. */
+    console.warn('pr-ai chat persist: assistant insert failed; removing user row', assistantErr)
+    await admin
+      .from('pr_chat_messages')
+      .delete()
+      .eq('id', userRow.id)
+      .eq('user_id', userId)
+    return { userId: null, assistantId: null }
+  }
   /* A named thread takes its title from the first user message — set only
-     while the title is still null, so a later turn never renames it. */
+     while the title is still null, so a later turn never renames it. Runs
+     after both inserts so a failed pair can't name the thread after a
+     message that isn't in it. */
   if (threadId) {
     await admin
       .from('pr_chat_threads')
@@ -290,7 +312,10 @@ async function persistChatTurns(
       .eq('user_id', userId)
       .is('title', null)
   }
-  return { userId: userRow?.id ?? null, assistantId: assistantRow?.id ?? null }
+  /* userId:null when the pair came back down — the client's optimistic
+     turn keeps its local id instead of adopting a row that no longer
+     exists. */
+  return { userId: userRow.id, assistantId: assistantRow.id }
 }
 
 /* ── kind 'chat' ──────────────────────────────────────────────────────────
@@ -1128,11 +1153,15 @@ export async function runReact(
         const reply = screenText(draft)
         meterOk = true
         sse.send({ type: 'delta', text: reply })
-        const { data: row } = await admin
+        const { data: row, error: insertErr } = await admin
           .from('pr_chat_messages')
           .insert({ user_id: userId, role: 'assistant', content: reply })
           .select('id')
           .single()
+        /* Best-effort persist — the line already reached the page; a
+           failed insert means it won't survive reload, so at least say so
+           in the log. */
+        if (insertErr) console.warn('pr-ai react persist failed', insertErr)
         sse.send({ type: 'done', reply, assistantId: row?.id ?? null })
       } catch (e) {
         sse.send({ type: 'error', error: e instanceof Error ? e.message : 'stream failed' })
@@ -1152,11 +1181,12 @@ export async function runReact(
   }
   const reply = screenText(draft)
 
-  const { data: row } = await admin
+  const { data: row, error: insertErr } = await admin
     .from('pr_chat_messages')
     .insert({ user_id: userId, role: 'assistant', content: reply })
     .select('id')
     .single()
+  if (insertErr) console.warn('pr-ai react persist failed', insertErr)
   settlePrCall(admin, meter.claimId, true, meterT0)
   return json({ reply, assistantId: row?.id ?? null })
 }

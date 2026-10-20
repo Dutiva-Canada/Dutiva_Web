@@ -13,6 +13,10 @@ export function PrDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | undefined>()
   const mounted = useRef(true)
+  /* Overlapping refreshes must not resolve last-writer-wins — a slower
+     earlier load would overwrite a newer refresh's state. A monotonically
+     increasing generation drops the stale resolution. */
+  const refreshGen = useRef(0)
 
   useEffect(() => {
     mounted.current = true
@@ -22,14 +26,15 @@ export function PrDataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const refresh = useCallback(async () => {
+    const gen = ++refreshGen.current
     try {
       const next = await loadPrState()
-      if (mounted.current) {
+      if (mounted.current && gen === refreshGen.current) {
         setState(next)
         setError(undefined)
       }
     } catch (e) {
-      if (mounted.current) setError(e as Error)
+      if (mounted.current && gen === refreshGen.current) setError(e as Error)
     }
   }, [])
 

@@ -19,6 +19,7 @@ import {
   tonePrompt,
 } from './handlers'
 import {
+  findRegenPair,
   parsePrChatReply,
   PR_CHAT_ACTION_TYPES,
   prChatPrompt,
@@ -741,5 +742,44 @@ describe('rowMatchesWrote', () => {
 
   it('an empty snapshot matches anything — nothing was written to compare', () => {
     expect(rowMatchesWrote({ anything: 'goes' }, {})).toBe(true)
+  })
+})
+
+describe('findRegenPair', () => {
+  const row = (role: string, id: string) => ({ role, id })
+
+  it('finds the newest user turn and the reply directly on top of it', () => {
+    expect(findRegenPair([row('assistant', 'r1'), row('user', 'u1')])).toEqual({
+      user: row('user', 'u1'),
+      reply: row('assistant', 'r1'),
+    })
+  })
+
+  it('scans past Paige reaction lines stacked after the pair', () => {
+    /* Reactions land in the default conversation as bare assistant rows —
+       the last two rows stopped being the pair the moment one arrived,
+       and the old adjacency check 409'd every regenerate until the next
+       send. */
+    const rows = [
+      row('assistant', 'react-2'),
+      row('assistant', 'react-1'),
+      row('assistant', 'r1'),
+      row('user', 'u1'),
+      row('assistant', 'r0'),
+      row('user', 'u0'),
+    ]
+    expect(findRegenPair(rows)).toEqual({
+      user: row('user', 'u1'),
+      reply: row('assistant', 'r1'),
+    })
+  })
+
+  it('returns null when the newest user turn has no assistant row above it', () => {
+    /* A send still in flight (user row down, reply not yet) or a user
+       turn that never answered — there is nothing to re-ask. */
+    expect(findRegenPair([row('user', 'u1'), row('assistant', 'r0')])).toBeNull()
+    expect(findRegenPair([row('user', 'u1')])).toBeNull()
+    expect(findRegenPair([row('assistant', 'r1'), row('assistant', 'r0')])).toBeNull()
+    expect(findRegenPair([])).toBeNull()
   })
 })

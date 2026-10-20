@@ -134,6 +134,13 @@ export function fmtCad(amount: number | null, lang: Lang): string {
   return lang === 'fr' ? `${n} $` : `$${n}`
 }
 
+/** Stored URLs are free text — a `javascript:`/`data:` value must never
+   reach an href (mention urls also arrive via feed ingest, not just the
+   form). Only http(s) values render as links; anything else is inert. */
+export function safeHttpUrl(url: string): string | null {
+  return /^https?:\/\//i.test(url.trim()) ? url : null
+}
+
 const MONTH_MS = 30 * 24 * 60 * 60 * 1000
 
 /** Paige's opening turn on an empty conversation — one breath: hello, at

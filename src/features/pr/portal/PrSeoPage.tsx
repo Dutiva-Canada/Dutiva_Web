@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2, Minus, MoveDown, MoveUp, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
@@ -16,7 +16,7 @@ import { PaigeNote } from './PaigeNote'
 import { parseKeywordImport, rankDelta } from '@/features/pr/data/prStats'
 import type { PrKeyword } from '@/features/pr/data/types'
 import { useToasts } from '@/features/app/toasts/toastsContext'
-import { fmtDate } from './prUi'
+import { fmtDate, safeHttpUrl } from './prUi'
 import { usePrHead } from './usePrHead'
 
 interface Draft {
@@ -34,6 +34,13 @@ export function PrSeoPage() {
   const [draft, setDraft] = useState<Draft>({ keyword: '', targetUrl: '' })
   const [saving, setSaving] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into the delete it was warning about. */
+  useEffect(() => {
+    if (armDelete === null) return
+    const t = window.setTimeout(() => setArmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armDelete])
   const [positions, setPositions] = useState<Record<string, string>>({})
   const [importOpen, setImportOpen] = useState(false)
   const [importText, setImportText] = useState('')
@@ -269,7 +276,7 @@ export function PrSeoPage() {
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {kw.targetUrl ? (
+                        {safeHttpUrl(kw.targetUrl) ? (
                           <a
                             href={kw.targetUrl}
                             target="_blank"
@@ -279,7 +286,7 @@ export function PrSeoPage() {
                             {kw.targetUrl.replace(/^https?:\/\//, '')}
                           </a>
                         ) : (
-                          '—'
+                          kw.targetUrl || '—'
                         )}
                       </td>
                       <td style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>

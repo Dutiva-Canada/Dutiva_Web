@@ -11,11 +11,13 @@ import type { PrDataContextValue } from '@/features/pr/data/PrDataContext'
 import { ToastsProvider } from '@/features/app/toasts/ToastsProvider'
 import {
   clearPrChat,
+  listPrChatThreads,
   loadPrChatHistory,
   ratePrChatTurn,
   sendPrChat,
   undoPrChatAction,
 } from '@/features/pr/data/chatApi'
+import type { PrChatTurn } from '@/features/pr/data/chatApi'
 import { PrChatPage } from './PrChatPage'
 
 /* The page never reads the table directly — history, sending, undo and
@@ -291,5 +293,156 @@ describe('PrChatPage', () => {
 
     expect(await screen.findByText(/Bonjour — je suis Paige/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeInTheDocument()
+  })
+
+  it('ignores a stale history load that resolves after a thread switch', async () => {
+    /* The default thread's fetch was still in flight when the reader
+       opened Alpha — without the generation guard its rows would land on
+       top of Alpha's conversation. */
+    vi.mocked(listPrChatThreads).mockResolvedValue([
+      { id: 't-alpha', title: 'Alpha', createdAt: '2026-10-10T00:00:00Z' },
+    ])
+    let resolveStale!: (rows: PrChatTurn[]) => void
+    vi.mocked(loadPrChatHistory).mockImplementation((_limit, _before, tid) =>
+      tid === 't-alpha'
+        ? Promise.resolve([
+            {
+              id: 'a1',
+              role: 'user' as const,
+              content: 'alpha message',
+              action: null,
+              feedback: null,
+              createdAt: '2026-10-10T09:00:00Z',
+            },
+          ])
+        : new Promise<PrChatTurn[]>((r) => (resolveStale = r)),
+    )
+    renderPage()
+    /* Mount history is pending — the switcher still lists threads. */
+    fireEvent.click(await screen.findByRole('button', { name: /Main conversation/ }))
+    fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Alpha' }))
+    expect(await screen.findByText('alpha message')).toBeInTheDocument()
+
+    /* The stale fetch resolves late — its rows must be dropped. */
+    resolveStale([
+      {
+        id: 's1',
+        role: 'user',
+        content: 'stale default message',
+        action: null,
+        feedback: null,
+        createdAt: '2026-10-09T09:00:00Z',
+      },
+    ])
+    await waitFor(() =>
+      expect(screen.queryByText('stale default message')).not.toBeInTheDocument(),
+    )
+    expect(screen.getByText('alpha message')).toBeInTheDocument()
+  })
+
+  it('drops Load earlier on a thread switch instead of inheriting it', async () => {
+    /* hasMore belonged to the previous conversation — a short thread must
+       not inherit a dead pagination affordance. */
+    vi.mocked(listPrChatThreads).mockResolvedValue([
+      { id: 't-alpha', title: 'Alpha', createdAt: '2026-10-10T00:00:00Z' },
+    ])
+    const fullPage = Array.from({ length: 40 }, (_, i) => ({
+      id: `h${i}`,
+      role: 'user' as const,
+      content: `message ${i}`,
+      action: null,
+      feedback: null,
+      createdAt: `2026-10-0${(i % 9) + 1}T12:00:00Z`,
+    }))
+    vi.mocked(loadPrChatHistory).mockImplementation((_limit, _before, tid) =>
+      Promise.resolve(
+        tid === 't-alpha'
+          ? [
+              {
+                id: 'a1',
+                role: 'user' as const,
+                content: 'alpha message',
+                action: null,
+                feedback: null,
+                createdAt: '2026-10-10T09:00:00Z',
+              },
+            ]
+          : fullPage,
+      ),
+    )
+    renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Load earlier messages' }),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /Main conversation/ }))
+    fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Alpha' }))
+    await screen.findByText('alpha message')
+    expect(
+      screen.queryByRole('button', { name: 'Load earlier messages' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not send — or eat the draft — while history is still loading', async () => {
+    /* turns === null means the thread fetch hasn't resolved; a send here
+       would be wiped by setTurns(rows) when it lands. The draft must stay
+       put so nothing the reader typed silently vanishes. */
+    vi.mocked(loadPrChatHistory).mockImplementation(() => new Promise(() => {}))
+    renderPage()
+    const box = await screen.findByPlaceholderText(/Ask Paige/)
+    fireEvent.change(box, { target: { value: 'ping' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+    expect(sendPrChat).not.toHaveBeenCalled()
+    expect(box).toHaveValue('ping')
+  })
+
+  it('adopts the persisted reply in place when a stopped send resolves via poll', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      vi.mocked(loadPrChatHistory).mockResolvedValue([])
+      /* The reader hits Stop mid-stream: the partial goes out via onDelta,
+         then the transport aborts. The server still persists the full pair
+         — the poll must not stack it next to the local stub. */
+      vi.mocked(sendPrChat).mockImplementation(async (_m, _l, onDelta) => {
+        onDelta?.('Half a reply')
+        throw new DOMException('stopped', 'AbortError')
+      })
+      renderPage()
+      const box = await screen.findByPlaceholderText(/Ask Paige/)
+      fireEvent.change(box, { target: { value: 'ping' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+      /* The stopped partial parks in the log flagged stopped. */
+      await screen.findByText('Half a reply')
+
+      vi.mocked(loadPrChatHistory).mockResolvedValue([
+        {
+          id: USER_ROW_ID,
+          role: 'user',
+          content: 'ping',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:00Z',
+        },
+        {
+          id: ASSISTANT_ID,
+          role: 'assistant',
+          content: 'Half a reply, finished.',
+          action: null,
+          reasoning: null,
+          sources: [],
+          feedback: null,
+          createdAt: '2026-10-13T10:01:01Z',
+        },
+      ])
+      await vi.advanceTimersByTimeAsync(45_000)
+      /* The persisted row replaced the local partial — one reply, full text. */
+      await waitFor(() =>
+        expect(screen.getByText(/Half a reply, finished\./)).toBeInTheDocument(),
+      )
+      expect(screen.queryByText('Half a reply', { exact: true })).not.toBeInTheDocument()
+      expect(screen.getAllByText('ping')).toHaveLength(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

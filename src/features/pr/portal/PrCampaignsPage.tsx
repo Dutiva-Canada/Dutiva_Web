@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2, PenSquare, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
@@ -61,6 +61,13 @@ export function PrCampaignsPage() {
   const [saving, setSaving] = useState(false)
   const [paigeLine, setPaigeLine] = useState<string | null>(null)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into the delete it was warning about. */
+  useEffect(() => {
+    if (armDelete === null) return
+    const t = window.setTimeout(() => setArmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armDelete])
 
   const openNew = () => {
     setDraft(EMPTY)

@@ -1,6 +1,6 @@
 import '@/features/invest/portal/strategies.css'
 import './pr.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ExternalLink, Info, Loader2, PenSquare, Sparkles, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { prMessages as PM } from '@/i18n/messages/pr'
@@ -21,6 +21,7 @@ import {
   CONTENT_STATUSES,
   contentStatusLabel,
   fmtDateTime,
+  safeHttpUrl,
 } from './prUi'
 import { usePrHead } from './usePrHead'
 
@@ -79,6 +80,13 @@ export function PrContentPage() {
   const [drafting, setDrafting] = useState(false)
   const [aiDrafted, setAiDrafted] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into the delete it was warning about. */
+  useEffect(() => {
+    if (armDelete === null) return
+    const t = window.setTimeout(() => setArmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armDelete])
   const [paigeLine, setPaigeLine] = useState<string | null>(null)
 
   /* Rough notes in the body field become the model's input; the returned
@@ -412,7 +420,7 @@ export function PrContentPage() {
                         {campaignName(item.campaignId)}
                       </span>
                     )}
-                    {item.publishedUrl && (
+                    {safeHttpUrl(item.publishedUrl) && (
                       <a
                         href={item.publishedUrl}
                         target="_blank"

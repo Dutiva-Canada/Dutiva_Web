@@ -43,6 +43,13 @@ export function PrMediaPage() {
   const [draft, setDraft] = useState<Draft>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [armDelete, setArmDelete] = useState<string | null>(null)
+  /* Two-tap confirm auto-disarms — a permanently-armed button turns a
+     later stray click into the delete it was warning about. */
+  useEffect(() => {
+    if (armDelete === null) return
+    const t = window.setTimeout(() => setArmDelete(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [armDelete])
   const [pitch, setPitch] = useState<PitchState | null>(null)
   const [pitchBusy, setPitchBusy] = useState<string | null>(null)
   const [pitchFailed, setPitchFailed] = useState<string | null>(null)
