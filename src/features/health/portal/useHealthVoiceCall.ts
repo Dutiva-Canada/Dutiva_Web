@@ -128,14 +128,19 @@ export function useHealthVoiceCall({
   const meterCtxRef = useRef<AudioContext | null>(null)
   const meterRafRef = useRef(0)
   /* sendMessage/onError close over fresh page state every render — the
-     refs keep the recognition/recorder callbacks on the latest. */
+     refs keep the recognition/recorder callbacks on the latest. lang joins
+     them for the same reason: a language toggle mid-call shouldn't strand
+     the next utterance on the old locale while the reply arrives in the
+     new one. */
   const sendRef = useRef(sendMessage)
   const errorRef = useRef(onError)
   const transcribeRef = useRef(transcribe)
+  const langRef = useRef(lang)
   useEffect(() => {
     sendRef.current = sendMessage
     errorRef.current = onError
     transcribeRef.current = transcribe
+    langRef.current = lang
   })
 
   const mark = (s: VoiceCallStatus) => {
@@ -195,7 +200,7 @@ export function useHealthVoiceCall({
     const Ctor = recognitionCtor()
     if (!Ctor) return
     const rec = new Ctor()
-    rec.lang = lang === 'fr' ? 'fr-CA' : 'en-CA'
+    rec.lang = langRef.current === 'fr' ? 'fr-CA' : 'en-CA'
     rec.interimResults = true
     rec.continuous = false
     let finalText = ''
@@ -305,9 +310,21 @@ export function useHealthVoiceCall({
   /* The mic stream is acquired once per call and held — re-prompting
      getUserMedia every turn would make each utterance a permission dance.
      A fresh MediaRecorder wraps each utterance so chunks don't mix. */
+  /* Set before the first await so a second rapid tap sees the acquisition
+     in flight — without it two getUserMedia calls race, the second stream
+     overwrites the ref, and the first's live tracks are never stopped. */
+  const acquiringRef = useRef(false)
+
   const beginRecording = async () => {
-    if (!activeRef.current || mediaRecRef.current) return
+    if (!activeRef.current || mediaRecRef.current || acquiringRef.current) return
+    acquiringRef.current = true
     try {
+      /* A held stream whose tracks ended (device unplugged mid-call)
+         can't record — drop it and reacquire instead of feeding the
+         transcriber silence. */
+      if (streamRef.current?.getTracks().every((t) => t.readyState === 'ended')) {
+        streamRef.current = null
+      }
       const stream = (streamRef.current ??= await navigator.mediaDevices.getUserMedia({
         audio: true,
       }))
@@ -338,6 +355,8 @@ export function useHealthVoiceCall({
       blockedRef.current = true
       setBlockKind((e as DOMException | null)?.name === 'NotAllowedError' ? 'perm' : 'service')
       mark('blocked')
+    } finally {
+      acquiringRef.current = false
     }
   }
 
@@ -346,7 +365,7 @@ export function useHealthVoiceCall({
     try {
       const send = transcribeRef.current?.send
       if (!send) throw new Error('no transcriber')
-      const text = (await send(blob, lang)).trim()
+      const text = (await send(blob, langRef.current)).trim()
       setLiveText('')
       if (!activeRef.current) return
       if (!text) {
@@ -364,9 +383,30 @@ export function useHealthVoiceCall({
 
   /* ---- shared ---------------------------------------------------------- */
 
+  /* The Chrome long-utterance watchdog — desktop Chrome pauses remote-voice
+     synthesis around 15s of continuous speech and may never fire onend,
+     which would park the call on 'speaking' forever with the mic dead. A
+     periodic pause/resume nudge keeps the engine flowing; it's a no-op on
+     implementations that don't need it. */
+  const speakWatchRef = useRef(0)
+  const stopSpeakWatch = () => {
+    if (speakWatchRef.current) {
+      window.clearInterval(speakWatchRef.current)
+      speakWatchRef.current = 0
+    }
+  }
+  const cancelSpeak = () => {
+    stopSpeakWatch()
+    try {
+      window.speechSynthesis.cancel()
+    } catch {
+      /* nothing to cancel */
+    }
+  }
+
   const pickVoice = () => {
     if (!('speechSynthesis' in window)) return null
-    const want = lang === 'fr' ? 'fr' : 'en'
+    const want = langRef.current === 'fr' ? 'fr' : 'en'
     return (
       window.speechSynthesis
         .getVoices()
@@ -384,16 +424,26 @@ export function useHealthVoiceCall({
     }
     try {
       const u = new SpeechSynthesisUtterance(text)
-      u.lang = lang === 'fr' ? 'fr-CA' : 'en-CA'
+      u.lang = langRef.current === 'fr' ? 'fr-CA' : 'en-CA'
       const voice = pickVoice()
       if (voice) u.voice = voice
       const resume = () => {
+        stopSpeakWatch()
         if (activeRef.current && !blockedRef.current) nextTurn()
       }
       u.onend = resume
       u.onerror = resume
       mark('speaking')
       window.speechSynthesis.speak(u)
+      stopSpeakWatch()
+      speakWatchRef.current = window.setInterval(() => {
+        try {
+          window.speechSynthesis.pause()
+          window.speechSynthesis.resume()
+        } catch {
+          /* engine gone — onerror/onend settles the turn regardless */
+        }
+      }, 10_000)
     } catch {
       nextTurn()
     }
@@ -448,11 +498,7 @@ export function useHealthVoiceCall({
     }
     streamRef.current = null
     chunksRef.current = []
-    try {
-      window.speechSynthesis?.cancel()
-    } catch {
-      /* teardown — nothing to report */
-    }
+    cancelSpeak()
     setActive(false)
     setEngine(null)
     engineRef.current = null
@@ -482,11 +528,7 @@ export function useHealthVoiceCall({
     }
     if (engineRef.current === 'server') {
       if (statusRef.current === 'speaking') {
-        try {
-          window.speechSynthesis.cancel()
-        } catch {
-          /* still return to ready */
-        }
+        cancelSpeak()
         mark('ready')
         return
       }
@@ -504,11 +546,7 @@ export function useHealthVoiceCall({
       return
     }
     if (statusRef.current === 'speaking') {
-      try {
-        window.speechSynthesis.cancel()
-      } catch {
-        /* still reopen the mic */
-      }
+      cancelSpeak()
       listen()
       return
     }
@@ -537,11 +575,7 @@ export function useHealthVoiceCall({
     voiceOffRef.current = next
     setVoiceOff(next)
     if (next && statusRef.current === 'speaking') {
-      try {
-        window.speechSynthesis.cancel()
-      } catch {
-        /* fall through to the next turn */
-      }
+      cancelSpeak()
       nextTurn()
     }
   }
@@ -566,11 +600,7 @@ export function useHealthVoiceCall({
       } catch {
         /* nothing */
       }
-      try {
-        window.speechSynthesis?.cancel()
-      } catch {
-        /* nothing */
-      }
+      cancelSpeak()
     },
     [],
   )

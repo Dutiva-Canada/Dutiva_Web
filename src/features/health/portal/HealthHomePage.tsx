@@ -443,11 +443,21 @@ export function HealthHomePage() {
   const { x, lang } = useI18n()
   const { state, loading } = useHealthData()
   useHealthHead(HM.health_seo_title, HM.health_subtitle)
-  const [welcomed, setWelcomed] = useState(
-    () => localStorage.getItem(WELCOME_KEY) === '1',
-  )
+  const [welcomed, setWelcomed] = useState(() => {
+    try {
+      return localStorage.getItem(WELCOME_KEY) === '1'
+    } catch {
+      /* Storage blocked — the card shows once more; dismiss still works
+         for the session. */
+      return false
+    }
+  })
   const dismissWelcome = () => {
-    localStorage.setItem(WELCOME_KEY, '1')
+    try {
+      localStorage.setItem(WELCOME_KEY, '1')
+    } catch {
+      /* Storage blocked — it may greet them again next visit. */
+    }
     setWelcomed(true)
   }
 

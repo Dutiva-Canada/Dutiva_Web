@@ -17,6 +17,7 @@ import {
   chatPrompt,
   detectHealthFlags,
   entryReactPrompt,
+  habitToggleNoop,
   HEALTH_FALLBACK_EN,
   HEALTH_FALLBACK_FR,
   HEALTH_REACT_FALLBACK_EN,
@@ -498,6 +499,25 @@ export async function runChat(
   })
 }
 
+/* Writes carry the writer's local day (migration 0229). If the column
+   hasn't reached the project's schema cache yet the insert 400s with
+   PGRST204 — retry without it; the row then keeps the created_at::date
+   shape every reader already falls back to, instead of failing a write
+   that has nothing wrong with it. */
+async function insertLocalDay(
+  admin: SupabaseClient,
+  table: 'health_checkins' | 'health_habits',
+  row: Record<string, unknown>,
+) {
+  const first = await admin.from(table).insert(row).select('id').single()
+  if (!first.error) return first
+  if (first.error.code === 'PGRST204' && first.error.message.includes("'day'")) {
+    const { day: _day, ...rest } = row
+    return await admin.from(table).insert(rest).select('id').single()
+  }
+  return first
+}
+
 /** Execute a whitelisted action on the caller's own rows. Everything here is
     additive or same-day-undoable — no deletes of history, nothing
     irreversible. A failure reports ok:false so the reply can still land. */
@@ -513,6 +533,12 @@ async function executeChatAction(
     case 'unmark_habit_done': {
       const target = resolveHabitRef(action.habit, statuses)
       if (!target) return { type: action.type, detail: action.habit, ok: false }
+      /* Already in the requested state — the write would be a no-op, so
+         report ok WITHOUT refId. The undo chip keys on refId, and undo on
+         a no-op is destructive (see habitToggleNoop). */
+      if (habitToggleNoop(action.type, target)) {
+        return { type: action.type, detail: target.name, ok: true }
+      }
       if (action.type === 'mark_habit_done') {
         const { error } = await admin
           .from('health_habit_logs')
@@ -530,26 +556,22 @@ async function executeChatAction(
       return { type: action.type, detail: target.name, ok: !error, refId: target.id, day: today }
     }
     case 'add_habit': {
-      const { data, error } = await admin
-        .from('health_habits')
-        .insert({ user_id: userId, name: action.name, day: today })
-        .select('id')
-        .single()
+      const { data, error } = await insertLocalDay(admin, 'health_habits', {
+        user_id: userId,
+        name: action.name,
+        day: today,
+      })
       return { type: action.type, detail: action.name, ok: !error, refId: data?.id }
     }
     case 'add_checkin': {
-      const { data, error } = await admin
-        .from('health_checkins')
-        .insert({
-          user_id: userId,
-          mood: action.mood,
-          energy: action.energy ?? null,
-          note: action.note ?? '',
-          /* The caller's local today — same day the check-in page stamps. */
-          day: today,
-        })
-        .select('id')
-        .single()
+      const { data, error } = await insertLocalDay(admin, 'health_checkins', {
+        user_id: userId,
+        mood: action.mood,
+        energy: action.energy ?? null,
+        note: action.note ?? '',
+        /* The caller's local today — same day the check-in page stamps. */
+        day: today,
+      })
       return { type: action.type, detail: `mood ${action.mood}/5`, ok: !error, refId: data?.id }
     }
     case 'add_journal_entry': {

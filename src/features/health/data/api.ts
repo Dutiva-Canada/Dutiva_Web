@@ -169,6 +169,37 @@ export async function listSharedJournalEntries(
   return (data ?? []).map(journalFromRow)
 }
 
+/* Local-day columns — migration 0229 adds `day` to health_checkins and
+   health_habits in one migration. Same probe contract as journal images
+   and weekly targets: an unapplied migration means the column insert
+   would 400 the whole write, so the key goes out only once the probe
+   sees it. Without it the row keeps the created_at::date shape every
+   reader already falls back to. */
+let localDaysCapable: boolean | null = null
+
+export async function localDaysAvailable(): Promise<boolean> {
+  if (localDaysCapable !== null) return localDaysCapable
+  try {
+    const client = requireSupabase()
+    const { error } = await client.from('health_checkins').select('day').limit(0)
+    localDaysCapable = !error
+  } catch {
+    localDaysCapable = false
+  }
+  return localDaysCapable
+}
+
+/** Test-only: reset the cached probe between specs. */
+export function resetLocalDaysProbe() {
+  localDaysCapable = null
+}
+
+/** Dev-preview only: pose as migrated — a live build still answers from
+    the real probe. */
+export function primeLocalDaysProbe(capable: boolean) {
+  localDaysCapable = capable
+}
+
 export async function addCheckIn(input: {
   mood: number
   energy?: number | null
@@ -185,7 +216,7 @@ export async function addCheckIn(input: {
       note: (input.note ?? '').trim(),
       /* The writer's local day (migration 0229) — stored so the server's
          facts bucket it on the same calendar the writer saw, not UTC. */
-      day: todayDayKey(),
+      ...((await localDaysAvailable()) ? { day: todayDayKey() } : {}),
     })
     .select()
     .single()
@@ -435,7 +466,7 @@ export async function addHabit(name: string, weeklyTarget?: number): Promise<Hea
       name: name.trim(),
       /* The local creation day (migration 0229) — streak math floors logs
          at the habit's own day, not created_at's UTC date. */
-      day: todayDayKey(),
+      ...((await localDaysAvailable()) ? { day: todayDayKey() } : {}),
       ...(weeklyTarget ? { weekly_target: weeklyTarget } : {}),
     })
     .select()

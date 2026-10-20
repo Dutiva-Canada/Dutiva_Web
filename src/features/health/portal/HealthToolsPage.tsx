@@ -73,12 +73,23 @@ function BreathingCard() {
   const [cycles, setCycles] = useState(0)
   /* Opt-in, not opt-out — a pause tool shouldn't sound or buzz before the
      person asks it to. 'on' is the stored value; anything else is off. */
-  const [cues, setCues] = useState(() => localStorage.getItem(BREATH_CUES_KEY) === 'on')
+  const [cues, setCues] = useState(() => {
+    try {
+      return localStorage.getItem(BREATH_CUES_KEY) === 'on'
+    } catch {
+      /* Storage blocked — cues simply start off, the default. */
+      return false
+    }
+  })
   const audioRef = useRef<AudioContext | null>(null)
 
   const toggleCues = () =>
     setCues((on) => {
-      localStorage.setItem(BREATH_CUES_KEY, on ? 'off' : 'on')
+      try {
+        localStorage.setItem(BREATH_CUES_KEY, on ? 'off' : 'on')
+      } catch {
+        /* Storage blocked — the toggle still works for this session. */
+      }
       return !on
     })
 

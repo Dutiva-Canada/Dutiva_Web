@@ -188,6 +188,32 @@ describe('HealthDataPage', () => {
     ).toBeInTheDocument()
   })
 
+  it('disarms the delete-everything confirm after 3s like the other armed buttons', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      renderPage()
+      fireEvent.click(
+        await screen.findByRole('button', { name: 'Delete all my health data' }),
+      )
+      expect(
+        screen.getByRole('button', { name: 'No undo — click again to delete' }),
+      ).toBeInTheDocument()
+      /* The arm expires — a stray later click re-arms instead of wiping. */
+      await vi.advanceTimersByTimeAsync(3_100)
+      await waitFor(() =>
+        expect(
+          screen.getByRole('button', { name: 'Delete all my health data' }),
+        ).toBeInTheDocument(),
+      )
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Delete all my health data' }),
+      )
+      expect(api.deleteAllHealthData).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('renders in French', async () => {
     renderPage('fr')
     expect(await screen.findByText('Vos données')).toBeInTheDocument()

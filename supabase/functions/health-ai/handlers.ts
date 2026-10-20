@@ -660,6 +660,14 @@ export function resolveHabitRef(
   return partial.length === 1 ? partial[0] : null
 }
 
+/** Is the requested toggle already in effect? A write that changes nothing
+   must not become undoable — undo on a no-op writes data the action never
+   touched: reversing a mark that never wrote deletes the pre-existing log;
+   reversing an unmark that matched nothing invents one. */
+export function habitToggleNoop(actionType: string, target: HabitStatus): boolean {
+  return target.doneToday === (actionType === 'mark_habit_done')
+}
+
 /* ── Reactions — Mira noticing what the person just did ─────────────────────
    Fired on positive actions (check-in saved, habit marked done) and on an
    explicitly shared journal entry. Same context and same rules as chat —

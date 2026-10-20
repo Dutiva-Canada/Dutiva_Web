@@ -120,6 +120,15 @@ export function HealthDataPage() {
     }
   }
 
+  /* Same contract as every other armed confirm in the portal — the arm
+     disarms itself after 3s so a stale "really?" can't complete an
+     everything-delete on an accidental later click. Blur still disarms. */
+  useEffect(() => {
+    if (!deleteArmed) return
+    const t = window.setTimeout(() => setDeleteArmed(false), 3000)
+    return () => window.clearTimeout(t)
+  }, [deleteArmed])
+
   const doDelete = async () => {
     if (!deleteArmed) {
       setDeleteArmed(true)

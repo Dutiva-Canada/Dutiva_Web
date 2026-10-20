@@ -9,6 +9,7 @@ import {
   detectHealthFlags,
   entryReactPrompt,
   habitPrompt,
+  habitToggleNoop,
   HEALTH_FALLBACK_EN,
   HEALTH_FALLBACK_FR,
   HEALTH_REACT_FALLBACK_EN,
@@ -1100,5 +1101,24 @@ describe('detectHealthFlags (boundary backstop)', () => {
       expect(detectHealthFlags(HEALTH_RECAP_FALLBACK_EN, 'en', advice)).toEqual([])
       expect(detectHealthFlags(HEALTH_RECAP_FALLBACK_FR, 'fr', advice)).toEqual([])
     }
+  })
+})
+
+/* A mark/unmark already in effect must report NOT undoable — executeChatAction
+   keys the undo chip on refId, and undo of a no-op writes data the action
+   never touched (reversing a no-op mark deletes the pre-existing log;
+   reversing a no-op unmark invents one). */
+describe('habitToggleNoop', () => {
+  const done = { id: 'h1', name: 'Walk', doneToday: true, streak: 3 }
+  const pending = { id: 'h1', name: 'Walk', doneToday: false, streak: 3 }
+
+  it('flags a mark on an already-done habit and an unmark on a not-done one', () => {
+    expect(habitToggleNoop('mark_habit_done', done)).toBe(true)
+    expect(habitToggleNoop('unmark_habit_done', pending)).toBe(true)
+  })
+
+  it('lets real state changes stay undoable', () => {
+    expect(habitToggleNoop('mark_habit_done', pending)).toBe(false)
+    expect(habitToggleNoop('unmark_habit_done', done)).toBe(false)
   })
 })

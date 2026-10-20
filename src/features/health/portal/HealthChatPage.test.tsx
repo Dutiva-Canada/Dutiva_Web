@@ -18,6 +18,7 @@ import {
   healthVoiceTranscribeAvailable,
   listHealthChatThreads,
   loadHealthChatHistory,
+  newHealthChatThread,
   rateHealthChatTurn,
   regenerateHealthChat,
   renameHealthChatThread,
@@ -900,6 +901,50 @@ describe('HealthChatPage', () => {
     }
   })
 
+  /* Browser-engine stubs — a fake SpeechRecognition whose instances the
+     test can drive, plus a no-op speechSynthesis. Returns the fakes so a
+     spec can emit utterances or watch the synthesizer. */
+  function stubBrowserEngine() {
+    type Result = { isFinal: boolean; 0: { transcript: string } }
+    class FakeRecognition {
+      static instances: FakeRecognition[] = []
+      lang = ''
+      interimResults = false
+      continuous = true
+      onresult: ((e: { results: ArrayLike<Result> }) => void) | null = null
+      onerror: ((e: { error?: string }) => void) | null = null
+      onend: (() => void) | null = null
+      start() {
+        FakeRecognition.instances.push(this)
+      }
+      abort() {
+        this.onend?.()
+      }
+      emit(transcript: string) {
+        this.onresult?.({ results: [{ isFinal: true, 0: { transcript } }] })
+        this.onend?.()
+      }
+    }
+    const speak = vi.fn((u: { onend?: (() => void) | null }) => u.onend?.())
+    const cancel = vi.fn()
+    vi.stubGlobal('SpeechRecognition', FakeRecognition)
+    vi.stubGlobal('speechSynthesis', { speak, cancel, getVoices: () => [] })
+    vi.stubGlobal(
+      'SpeechSynthesisUtterance',
+      class {
+        text: string
+        lang = ''
+        voice: unknown = null
+        onend: (() => void) | null = null
+        onerror: (() => void) | null = null
+        constructor(t: string) {
+          this.text = t
+        }
+      },
+    )
+    return { FakeRecognition, speak, cancel }
+  }
+
   /* Server-engine stubs — Brave-shaped browsers keep MediaRecorder even
      though their recognition constructor can't start. getUserMedia yields
      a one-track stream; the fake recorder emits its clip on stop(). */
@@ -1034,6 +1079,131 @@ describe('HealthChatPage', () => {
     } finally {
       vi.unstubAllGlobals()
       delete (window.navigator as { brave?: unknown }).brave
+    }
+  })
+
+  it('adopts the persisted reply in place of a stopped partial instead of stacking it', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const userRowId = '11111111-2222-3333-4444-555555555556'
+      const assistantId = '11111111-2222-3333-4444-555555555555'
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+      /* Stream a partial, then hang — Stop aborts before the reply finishes. */
+      vi.mocked(sendHealthChat).mockImplementation(async (_m, _l, onDelta, opts) => {
+        onDelta?.('Half a reply')
+        return await new Promise<never>((_resolve, reject) => {
+          opts?.signal?.addEventListener('abort', () => {
+            reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+          })
+        })
+      })
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+
+      fireEvent.change(screen.getByPlaceholderText(/Tell Mira/), {
+        target: { value: 'ping' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Send' }))
+      expect(await screen.findByText('Half a reply')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Stop' }))
+      /* The partial stays in the log, flagged so it can't pass for a
+         finished answer. */
+      expect(await screen.findByText('Stopped early')).toBeInTheDocument()
+
+      /* The server still finished and persisted the full reply — the poll
+         delivers it. The row is adopted into the partial's slot (real id,
+         full text, finished state), not appended as a second reply. */
+      vi.mocked(loadHealthChatHistory).mockResolvedValue([
+        {
+          id: userRowId,
+          role: 'user',
+          content: 'ping',
+          action: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:00Z',
+        },
+        {
+          id: assistantId,
+          role: 'assistant',
+          content: 'Half a reply, finished.',
+          action: null,
+          reasoning: null,
+          feedback: null,
+          createdAt: '2026-10-13T10:01:01Z',
+        },
+      ])
+      await vi.advanceTimersByTimeAsync(45_000)
+      await waitFor(() =>
+        expect(screen.getByText(/Half a reply, finished/)).toBeInTheDocument(),
+      )
+      /* One bubble carries the reply — the stopped marker and the
+         un-persisted id are gone with the partial it replaced. */
+      const bubbles = document.querySelectorAll('.sbchat-bubble.assistant')
+      expect(
+        [...bubbles].filter((b) => b.textContent?.includes('Half a reply')),
+      ).toHaveLength(1)
+      expect(screen.queryByText('Stopped early')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('ends the call when a new conversation starts from the switcher', async () => {
+    stubBrowserEngine()
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    vi.mocked(newHealthChatThread).mockResolvedValue({
+      id: 't-new',
+      title: null,
+      createdAt: '2026-10-15T12:00:00Z',
+    })
+    try {
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+      fireEvent.click(screen.getByRole('button', { name: 'Voice call' }))
+      expect(await screen.findByText('Listening…')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: /Main conversation/ }))
+      fireEvent.click(screen.getByRole('menuitem', { name: 'New conversation' }))
+
+      /* The call belonged to the conversation it was opened in — a new
+         thread ends it and the overlay unmounts. */
+      await waitFor(() =>
+        expect(screen.queryByText('Listening…')).not.toBeInTheDocument(),
+      )
+      await waitFor(() => expect(newHealthChatThread).toHaveBeenCalled())
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('ends the call when the active conversation is deleted', async () => {
+    stubBrowserEngine()
+    vi.mocked(listHealthChatThreads).mockResolvedValue({
+      threads: [{ id: 't1', title: 'Sleep notes', createdAt: '2026-10-01T00:00:00Z' }],
+      activity: {},
+    })
+    vi.mocked(loadHealthChatHistory).mockResolvedValue([])
+    try {
+      renderPage()
+      await screen.findByPlaceholderText(/Tell Mira/)
+
+      /* Sit inside the named thread, then open a call there. */
+      fireEvent.click(screen.getByRole('button', { name: /Main conversation/ }))
+      fireEvent.click(screen.getByRole('menuitemradio', { name: 'Sleep notes' }))
+      await screen.findByPlaceholderText(/Tell Mira/)
+      fireEvent.click(screen.getByRole('button', { name: 'Voice call' }))
+      expect(await screen.findByText('Listening…')).toBeInTheDocument()
+
+      fireEvent.click(screen.getByRole('button', { name: /Sleep notes/ }))
+      fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Sure?' }))
+      await waitFor(() => expect(deleteHealthChatThread).toHaveBeenCalledWith('t1'))
+      /* The thread it was opened in is gone — so is the call. */
+      await waitFor(() =>
+        expect(screen.queryByText('Listening…')).not.toBeInTheDocument(),
+      )
+    } finally {
+      vi.unstubAllGlobals()
     }
   })
 })

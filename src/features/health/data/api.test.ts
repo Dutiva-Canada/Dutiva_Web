@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { supabase } from '@/lib/supabaseClient'
 import {
+  addCheckIn,
+  addHabit,
   healthVoiceTranscribeAvailable,
+  localDaysAvailable,
   resetHealthReactionThrottle,
   resetHealthVoiceProbe,
+  resetLocalDaysProbe,
   sendHealthReaction,
   transcribeHealthAudio,
 } from './api'
@@ -128,5 +132,85 @@ describe('health voice transcription helpers', () => {
       transcribeHealthAudio(new Blob(['pcm']), 'en'),
     ).rejects.toThrow('health-transcribe 502')
     vi.unstubAllGlobals()
+  })
+})
+
+/* Migration 0229's `day` column is the one write that can't afford to
+   fail blind — unlike weekly_target (a feature flag), check-ins and
+   habits are core flows and an unknown-column error kills the insert.
+   The probe keys the key out of the body until the column answers. */
+describe('localDaysAvailable probe', () => {
+  const CHECKIN_ROW = {
+    id: 'c1',
+    mood: 3,
+    energy: null,
+    note: '',
+    day: null,
+    created_at: '2026-10-15T12:00:00Z',
+  }
+  const HABIT_ROW = {
+    id: 'h1',
+    name: 'Walk',
+    weekly_target: null,
+    day: null,
+    created_at: '2026-10-15T12:00:00Z',
+  }
+
+  const inserted: Record<string, unknown>[] = []
+  let probeError: { message: string } | null
+  let probeCalls: number
+
+  beforeEach(() => {
+    resetLocalDaysProbe()
+    inserted.length = 0
+    probeCalls = 0
+    probeError = null
+    const client = supabase as unknown as Record<string, unknown>
+    client.auth = {
+      getUser: vi.fn(async () => ({ data: { user: { id: 'u1' } } })),
+    }
+    client.from = vi.fn((_table: string) => ({
+      select: vi.fn(() => ({
+        limit: vi.fn(() => {
+          probeCalls += 1
+          return Promise.resolve({ error: probeError })
+        }),
+      })),
+      insert: vi.fn((body: Record<string, unknown>) => {
+        inserted.push(body)
+        return {
+          select: vi.fn(() => ({
+            single: vi.fn(() =>
+              Promise.resolve({
+                data: 'name' in body ? { ...HABIT_ROW, name: body.name } : CHECKIN_ROW,
+                error: null,
+              }),
+            ),
+          })),
+        }
+      }),
+    }))
+  })
+
+  it('writes the local day once the column answers — and probes once', async () => {
+    await expect(localDaysAvailable()).resolves.toBe(true)
+    await addCheckIn({ mood: 3 })
+    await addHabit('Walk')
+    expect(probeCalls).toBe(1)
+    expect(inserted[0]).toMatchObject({ mood: 3, day: expect.any(String) })
+    expect(inserted[1]).toMatchObject({ name: 'Walk', day: expect.any(String) })
+  })
+
+  it('omits the key entirely when the column is not there — the insert still lands', async () => {
+    probeError = { message: 'column health_checkins.day does not exist' }
+    await expect(localDaysAvailable()).resolves.toBe(false)
+    await addCheckIn({ mood: 4 })
+    await addHabit('Stretch')
+    expect(probeCalls).toBe(1)
+    for (const body of inserted) {
+      expect(body).not.toHaveProperty('day')
+    }
+    expect(inserted[0]).toMatchObject({ mood: 4 })
+    expect(inserted[1]).toMatchObject({ name: 'Stretch' })
   })
 })

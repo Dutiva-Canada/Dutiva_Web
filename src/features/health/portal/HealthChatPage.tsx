@@ -136,11 +136,25 @@ export function HealthChatPage() {
     pickReason,
   } = useHealthChatTurnOps(turns, setTurns)
 
+  /* markSeen and the history loaders read chatActivity inside async
+     callbacks — a ref keeps them free of reactive captures so the effect
+     dep arrays below stay honest (the same sendRef pattern the voice
+     hook uses). */
+  const chatActivityRef = useRef(chatActivity)
+  useEffect(() => {
+    chatActivityRef.current = chatActivity
+  })
+
   /* The conversation the reader has seen through — activity newer than
      this stamp dots the switcher. Persisted per thread in sessionStorage. */
   const markSeen = (id: string | null, at?: string) => {
     const key = id ?? 'main'
-    const stamp = at ?? new Date().toISOString()
+    const nowStamp = new Date().toISOString()
+    /* chatActivity carries server stamps — a client clock running behind
+       the server would leave a phantom unseen-dot on the conversation
+       you're sitting in, so the seen stamp takes the later of the two. */
+    const server = chatActivityRef.current[key]
+    const stamp = at ?? (server && server > nowStamp ? server : nowStamp)
     setSeenAt((prev) => (prev[key] && prev[key] >= stamp ? prev : { ...prev, [key]: stamp }))
     try {
       const stored = sessionStorage.getItem(`${SEEN_PREFIX}${key}`)
@@ -165,6 +179,9 @@ export function HealthChatPage() {
       markSeen(id, rows[rows.length - 1]?.createdAt)
     } catch {
       setTurns([])
+      /* A previous thread's "load earlier" affordance must not linger
+         over the error card — its cursor (turns[0]) is gone anyway. */
+      setHasMore(false)
       setLoadError(true)
     }
   }
@@ -214,9 +231,29 @@ export function HealthChatPage() {
               .filter((t) => !UUID_RE.test(t.id))
               .map((t) => `${t.role} ${t.content}`),
           )
-          const fresh = rows.filter(
-            (r) => !seen.has(r.id) && !localOnly.has(`${r.role} ${r.content}`),
+          /* A stopped send keeps its partial as a local turn while the
+             server finishes the same reply — the poll then delivers the
+             persisted row. Adopt it in place (full text, real id) rather
+             than stacking the reply twice; the streamed partial is always
+             a prefix of the persisted reply since the server buffers the
+             text before the delta leaves. */
+          const stoppedLocal = prev.filter(
+            (t) => !UUID_RE.test(t.id) && t.role === 'assistant' && t.stopped && t.content,
           )
+          const adopted = new Map<string, HealthChatTurn>()
+          const fresh = rows.filter((r) => {
+            if (seen.has(r.id) || localOnly.has(`${r.role} ${r.content}`)) return false
+            if (r.role === 'assistant') {
+              const stop = stoppedLocal.find(
+                (t) => !adopted.has(t.id) && r.content.startsWith(t.content),
+              )
+              if (stop) {
+                adopted.set(stop.id, r)
+                return false
+              }
+            }
+            return true
+          })
           /* The response is the server's whole tail — a persisted turn
              inside that window that's missing was deleted elsewhere (or
              the thread was cleared when the window came back empty), and
@@ -225,13 +262,15 @@ export function HealthChatPage() {
              them. */
           const windowStart = rows[0]?.createdAt
           const windowIds = new Set(rows.map((r) => r.id))
-          const kept = prev.filter(
-            (t) =>
-              !UUID_RE.test(t.id) ||
-              (windowStart !== undefined &&
-                (t.createdAt < windowStart || windowIds.has(t.id))),
-          )
-          if (fresh.length === 0 && kept.length === prev.length) return prev
+          const kept = prev
+            .filter(
+              (t) =>
+                !UUID_RE.test(t.id) ||
+                (windowStart !== undefined &&
+                  (t.createdAt < windowStart || windowIds.has(t.id))),
+            )
+            .map((t) => adopted.get(t.id) ?? t)
+          if (fresh.length === 0 && adopted.size === 0 && kept.length === prev.length) return prev
           return [...kept, ...fresh].sort((a, b) =>
             a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0,
           )
@@ -525,7 +564,31 @@ export function HealthChatPage() {
     try {
       await deleteHealthChatThread(id)
       setThreads((prev) => (prev ?? []).filter((t) => t.id !== id))
-      if (threadId === id) setThreadId(null)
+      if (threadId === id) {
+        /* Same rule as the switcher — the call belongs to the thread it
+           was opened in; if that thread is gone the call goes too. */
+        voice.end()
+        setThreadId(null)
+      }
+      /* A gone conversation can't hold unseen activity — drop its stamps
+         or the dot could linger on the switcher until the next poll. */
+      setChatActivity((prev) => {
+        if (!(id in prev)) return prev
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+      setSeenAt((prev) => {
+        if (!(id in prev)) return prev
+        const next = { ...prev }
+        delete next[id]
+        return next
+      })
+      try {
+        sessionStorage.removeItem(`${SEEN_PREFIX}${id}`)
+      } catch {
+        /* storage blocked — the ghost stamp just stays session-scoped */
+      }
     } catch {
       showToast(HM.health_chat_error)
     }
@@ -610,6 +673,9 @@ export function HealthChatPage() {
   }
   const startThread = async () => {
     if (sending) return
+    /* Same rule as openThread — a call belongs to the conversation it
+       was opened in, not whichever thread this moves the view to. */
+    voice.end()
     /* An untitled thread with no activity is empty — reuse it instead of
        stacking another "Untitled conversation" the reader can't tell apart
        or clean up. */

@@ -22,15 +22,20 @@ export function HealthDataProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  /* Overlapping refreshes resolve in network order, not issue order —
+     a slow earlier fetch landing last would stomp a newer snapshot back
+     to stale. Only the latest issued refresh may write. */
+  const refreshGen = useRef(0)
   const refresh = useCallback(async () => {
+    const gen = ++refreshGen.current
     try {
       const next = await loadHealthState()
-      if (mounted.current) {
+      if (mounted.current && gen === refreshGen.current) {
         setState(next)
         setError(undefined)
       }
     } catch (e) {
-      if (mounted.current) setError(e as Error)
+      if (mounted.current && gen === refreshGen.current) setError(e as Error)
     }
     /* The evening sweep reads "today" per user — stamp the zone once per
        session (no-op before migration 0229 lands; UTC stays the fallback). */

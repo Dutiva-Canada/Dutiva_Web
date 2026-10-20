@@ -331,4 +331,31 @@ describe('HealthToolsPage — tabs', () => {
     expect(await screen.findByRole('heading', { name: 'Box breathing' })).toBeInTheDocument()
     expect(screen.queryByText('Cognitive behavioral therapy (CBT)')).not.toBeInTheDocument()
   })
+
+  /* Blocked storage (embedded webview, site-data disabled) must not take
+     the tool down — the read initializer and the write both sit behind
+     try/catch. */
+  it('renders and toggles breath cues where localStorage throws', async () => {
+  vi.mocked(useAuth).mockReturnValue(asAuth('me@dutiva.ca'))
+  const denied = () => {
+    throw new DOMException('denied', 'SecurityError')
+  }
+  const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(denied)
+  const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(denied)
+  try {
+    const user = userEvent.setup()
+    renderTools()
+    const cues = await screen.findByRole('button', { name: /Chime/ })
+    /* Unreadable storage → the opt-in default (off), and toggling still
+       flips the session value even though the persist silently fails. */
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+    await user.click(cues)
+    expect(cues).toHaveAttribute('aria-pressed', 'true')
+    await user.click(cues)
+    expect(cues).toHaveAttribute('aria-pressed', 'false')
+  } finally {
+    getItem.mockRestore()
+    setItem.mockRestore()
+  }
+})
 })
