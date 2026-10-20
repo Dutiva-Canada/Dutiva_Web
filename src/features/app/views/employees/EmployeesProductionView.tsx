@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SubmitEvent } from 'react'
 import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLink'
-import { Plus, Trash2, Upload, Users } from 'lucide-react'
+import { Pencil, Plus, Trash2, Upload, Users } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import { pick } from '@/i18n/core'
 import { employeesMessages as M } from '@/i18n/messages/employees'
@@ -16,8 +16,10 @@ import { createEmployeeBulkImportAdapter } from './bulkImport/employeeAdapter'
 import {
   EMPLOYMENT_JURISDICTIONS,
   addEmployee,
+  jurisdictionBi,
   listEmployees,
   removeEmployee,
+  updateEmployee,
 } from './productionApi'
 import type {
   ProductionEmployee,
@@ -92,8 +94,11 @@ export function EmployeesProductionView() {
   const [loadFailed, setLoadFailed] = useState(false)
   const { formOpen, setFormOpen } = useOpenCreateFormFromQuery(isOrgAdmin)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [showBulkImport, setShowBulkImport] = useState(false)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const loadGen = useRef(0)
 
   const employeeAdapter = createEmployeeBulkImportAdapter((fields) => {
     if (!organizationId) throw new Error('No organization selected')
@@ -105,12 +110,18 @@ export function EmployeesProductionView() {
 
   const load = useCallback(async () => {
     if (!organizationId) return
+    /* Drop stale resolutions — an earlier load resolving after a newer one
+       (retry or org switch) must not overwrite fresher state. */
+    const gen = ++loadGen.current
     setLoadFailed(false)
     try {
-      setRows(await listEmployees(organizationId))
+      const list = await listEmployees(organizationId)
+      if (gen === loadGen.current) setRows(list)
     } catch {
-      setRows([])
-      setLoadFailed(true)
+      if (gen === loadGen.current) {
+        setRows([])
+        setLoadFailed(true)
+      }
     }
   }, [organizationId])
 
@@ -124,36 +135,74 @@ export function EmployeesProductionView() {
     return <ProductionEmptyState title={x(M.employees_prod_empty_title)} />
   }
 
+  const startEdit = (emp: ProductionEmployee) => {
+    setEditingId(emp.id)
+    setForm({
+      name: emp.name,
+      title: emp.title ?? '',
+      email: emp.email ?? '',
+      jurisdiction: emp.jurisdiction,
+      startDate: emp.startDate ?? '',
+      managerId: emp.managerId ?? '',
+      department: emp.department ?? '',
+      employmentType: emp.employmentType ?? '',
+      phone: emp.phone ?? '',
+    })
+    setFormOpen(true)
+  }
+
+  const closeForm = () => {
+    setFormOpen(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
   const onSubmit = async (e: SubmitEvent) => {
     e.preventDefault()
     if (!form.name.trim() || saving) return
     setSaving(true)
+    const payload = {
+      ...form,
+      name: form.name.trim(),
+      managerId: form.managerId || undefined,
+      employmentType: form.employmentType || undefined,
+    }
     try {
-      const added = await addEmployee(organizationId, {
-        ...form,
-        name: form.name.trim(),
-        managerId: form.managerId || undefined,
-        employmentType: form.employmentType || undefined,
-      })
-      setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
+      if (editingId) {
+        const updated = await updateEmployee(editingId, payload)
+        setRows((prev) =>
+          (prev ?? [])
+            .map((row) => (row.id === updated.id ? updated : row))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        )
+        showToast(M.employees_prod_updated, 'ok')
+      } else {
+        const added = await addEmployee(organizationId, payload)
+        setRows((prev) => [...(prev ?? []), added].sort((a, b) => a.name.localeCompare(b.name)))
+        showToast(M.employees_prod_added, 'ok')
+      }
       setForm(EMPTY_FORM)
+      setEditingId(null)
       setFormOpen(false)
-      showToast(M.employees_prod_added, 'ok')
     } catch {
-      showToast(M.employees_prod_add_failed, 'info')
+      showToast(editingId ? M.employees_prod_update_failed : M.employees_prod_add_failed, 'info')
     } finally {
       setSaving(false)
     }
   }
 
   const onRemove = async (emp: ProductionEmployee) => {
+    if (removingId === emp.id) return
     if (!window.confirm(x(M.employees_prod_remove_confirm))) return
+    setRemovingId(emp.id)
     try {
       await removeEmployee(emp.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== emp.id))
       showToast(M.employees_prod_removed, 'ok')
     } catch {
       showToast(M.employees_prod_remove_failed, 'info')
+    } finally {
+      setRemovingId(null)
     }
   }
 
@@ -163,7 +212,7 @@ export function EmployeesProductionView() {
   return (
     <AppPage width="default">
       <div className="mb-[18px] flex flex-wrap items-center justify-between gap-[16px]">
-        <div className="text-[13px] text-text-muted">
+        <div aria-live="polite" className="text-[13px] text-text-muted">
           {rows === null ? x(M.employees_prod_loading) : countLabel}
         </div>
         {!formOpen && isOrgAdmin && (
@@ -210,6 +259,9 @@ export function EmployeesProductionView() {
           onSubmit={(e) => void onSubmit(e)}
           className="mb-[18px] rounded-[12px] border border-border bg-surface px-[20px] py-[18px]"
         >
+          <div className="mb-[14px] text-[14px] font-semibold text-text">
+            {editingId ? x(M.employees_prod_edit_title) : x(M.employees_prod_add)}
+          </div>
           <div className="grid grid-cols-1 gap-[14px] sm:grid-cols-2">
             <div>
               <label htmlFor="emp-name" className={labelClass}>
@@ -218,6 +270,7 @@ export function EmployeesProductionView() {
               <input
                 id="emp-name"
                 required
+                autoFocus
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 className={inputClass}
@@ -321,7 +374,7 @@ export function EmployeesProductionView() {
                 className={inputClass}
               />
             </div>
-            {(rows?.length ?? 0) > 0 && (
+            {(rows ?? []).some((row) => row.status !== 'terminated' && row.id !== editingId) && (
               <div>
                 <label htmlFor="emp-manager" className={labelClass}>
                   {x(M.employees_manager_label)}
@@ -333,11 +386,13 @@ export function EmployeesProductionView() {
                   className={inputClass}
                 >
                   <option value="">{x(M.employees_prod_manager_unset)}</option>
-                  {(rows ?? []).map((row) => (
-                    <option key={row.id} value={row.id}>
-                      {row.name}
-                    </option>
-                  ))}
+                  {(rows ?? [])
+                    .filter((row) => row.status !== 'terminated' && row.id !== editingId)
+                    .map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}
@@ -352,10 +407,7 @@ export function EmployeesProductionView() {
             </button>
             <button
               type="button"
-              onClick={() => {
-                setFormOpen(false)
-                setForm(EMPTY_FORM)
-              }}
+              onClick={closeForm}
               className="cursor-pointer rounded-[8px] border border-border bg-surface px-[14px] py-[8px] font-sans text-[13px] font-semibold text-text"
             >
               {x(M.employees_prod_cancel)}
@@ -389,23 +441,25 @@ export function EmployeesProductionView() {
       )}
 
       {rows !== null && rows.length > 0 && (
-        <div className="overflow-hidden rounded-[12px] border border-border bg-surface">
+        <ul className="m-0 list-none overflow-hidden rounded-[12px] border border-border bg-surface p-0">
           {rows.map((emp) => (
-            <div
+            <li
               key={emp.id}
               className="flex items-center gap-[12px] border-t border-inset px-[18px] py-[13px] first:border-t-0"
             >
               <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent">
                 {initialsOf(emp.name)}
               </div>
-              <Link to={`/app/employees/${emp.id}`} className="min-w-0 flex-1 hover:opacity-80">
-                <div className="truncate text-[13.5px] font-semibold text-text">{emp.name}</div>
+              <Link to={`/app/employees/${emp.id}`} className="group min-w-0 flex-1">
+                <div className="truncate text-[13.5px] font-semibold text-text underline-offset-2 group-hover:underline">
+                  {emp.name}
+                </div>
                 <div className="truncate text-[12px] text-text-muted">
                   {[
                     emp.title,
                     emp.department,
                     emp.employmentType ? x(M[EMPLOYMENT_TYPE_LABELS[emp.employmentType]]) : null,
-                    emp.jurisdiction,
+                    emp.jurisdiction ? x(jurisdictionBi(emp.jurisdiction)) : null,
                   ]
                     .filter(Boolean)
                     .join(' · ')}
@@ -417,16 +471,29 @@ export function EmployeesProductionView() {
               {isOrgAdmin && (
                 <button
                   type="button"
+                  onClick={() => startEdit(emp)}
+                  aria-label={`${x(M.employees_prod_edit)} — ${emp.name}`}
+                  title={x(M.employees_prod_edit)}
+                  className="flex min-h-[36px] min-w-[36px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-transparent text-text-muted hover:bg-inset hover:text-text"
+                >
+                  <Pencil size={15} strokeWidth={1.7} aria-hidden="true" />
+                </button>
+              )}
+              {isOrgAdmin && (
+                <button
+                  type="button"
                   onClick={() => void onRemove(emp)}
+                  disabled={removingId === emp.id}
                   aria-label={`${x(M.employees_prod_remove)} — ${emp.name}`}
-                  className="cursor-pointer border-none bg-transparent p-[6px] text-text-muted hover:text-risk-fg"
+                  title={x(M.employees_prod_remove)}
+                  className="flex min-h-[36px] min-w-[36px] cursor-pointer items-center justify-center rounded-[8px] border-none bg-transparent text-text-muted hover:bg-inset hover:text-risk-fg disabled:cursor-wait disabled:opacity-50"
                 >
                   <Trash2 size={15} strokeWidth={1.7} aria-hidden="true" />
                 </button>
               )}
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </AppPage>
   )

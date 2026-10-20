@@ -186,6 +186,38 @@ export async function addEmployee(
   return toEmployee(row, await managerNameForId(row.manager_id))
 }
 
+/**
+ * Update an employee's roster fields (name, title, contact, manager, etc.).
+ * Lifecycle transitions (status, probation/termination dates) stay on their
+ * dedicated writers below.
+ */
+export async function updateEmployee(
+  id: string,
+  fields: NewEmployee,
+): Promise<ProductionEmployee> {
+  if (!supabase) throw new Error('Supabase is not configured')
+  const { data, error } = await supabase
+    .from('employees')
+    .update({
+      name: fields.name,
+      title: fields.title || null,
+      email: fields.email || null,
+      jurisdiction: fields.jurisdiction,
+      start_date: fields.startDate || null,
+      department: fields.department || null,
+      employment_type: fields.employmentType || null,
+      phone: fields.phone || null,
+      manager_id: fields.managerId || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select(SELECT_COLUMNS)
+    .single()
+  if (error) throw error
+  const row = rowSchema.parse(data)
+  return toEmployee(row, await managerNameForId(row.manager_id))
+}
+
 export async function removeEmployee(id: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { error } = await supabase.from('employees').delete().eq('id', id)
@@ -713,3 +745,11 @@ export const EMPLOYMENT_JURISDICTIONS: readonly Bi[] = [
   bi('Saskatchewan', 'Saskatchewan'),
   bi('Yukon', 'Yukon'),
 ]
+
+/**
+ * Resolve a stored `employees.jurisdiction` value (English name) to its
+ * bilingual label; unrecognized/legacy values pass through in both languages.
+ */
+export function jurisdictionBi(stored: string): Bi {
+  return EMPLOYMENT_JURISDICTIONS.find((jur) => jur.en === stored) ?? { en: stored, fr: stored }
+}

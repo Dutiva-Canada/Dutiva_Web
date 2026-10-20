@@ -103,6 +103,26 @@ describe('EmployeesView in production mode', () => {
   /** Admin signed in, production stored, one org, real employees table. */
   function mockProductionClient(initialRows: Record<string, unknown>[]) {
     const employeeRows = [...initialRows]
+    const updateCalls: Record<string, unknown>[] = []
+    const deleteEq = vi.fn((_col: string, val: string) => {
+      const idx = employeeRows.findIndex((row) => row.id === val)
+      if (idx >= 0) employeeRows.splice(idx, 1)
+      return Promise.resolve({ data: null, error: null })
+    })
+    const updateEq = vi.fn((_col: string, val: string) => ({
+      select: () => ({
+        single: () => {
+          const target = employeeRows.find((row) => row.id === val)
+          if (!target) return Promise.resolve({ data: null, error: { message: 'not found' } })
+          Object.assign(target, updateCalls[updateCalls.length - 1])
+          return Promise.resolve({ data: target, error: null })
+        },
+      }),
+    }))
+    const update = vi.fn((patch: Record<string, unknown>) => {
+      updateCalls.push(patch)
+      return { eq: updateEq }
+    })
     const insert = vi.fn((row: Record<string, unknown>) => ({
       select: () => ({
         single: () => {
@@ -198,6 +218,10 @@ describe('EmployeesView in production mode', () => {
                 }),
               }),
               insert,
+              update,
+              delete: () => ({
+                eq: deleteEq,
+              }),
             }
           }
           throw new Error(`unexpected table: ${table}`)
@@ -205,7 +229,7 @@ describe('EmployeesView in production mode', () => {
       },
     }))
     vi.resetModules()
-    return { insert }
+    return { insert, deleteEq, updateEq, updateCalls }
   }
 
   it('renders the real roster from the backend instead of the Northgate fixtures', async () => {
@@ -301,6 +325,160 @@ describe('EmployeesView in production mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))
     expect(insert).not.toHaveBeenCalled()
     expect(screen.queryByText('1 employee')).not.toBeInTheDocument()
+  })
+
+  it('excludes terminated employees from the manager options', async () => {
+    mockProductionClient([
+      {
+        id: 'emp-1',
+        name: 'Ana Souza',
+        title: 'Coordinator',
+        email: null,
+        jurisdiction: 'Ontario',
+        start_date: null,
+        status: 'active',
+      },
+      {
+        id: 'emp-2',
+        name: 'Tom Ex',
+        title: 'Driver',
+        email: null,
+        jurisdiction: 'Ontario',
+        start_date: null,
+        status: 'terminated',
+      },
+    ])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
+    expect(await screen.findByText('Ana Souza')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Add employee' })[0]!)
+
+    const options = Array.from(
+      (screen.getByLabelText('Manager') as HTMLSelectElement).options,
+    ).map((option) => option.textContent)
+    expect(options).toContain('Ana Souza')
+    expect(options).not.toContain('Tom Ex')
+  })
+
+  it('edits an employee through the real update path, pre-filling the form', async () => {
+    const { updateEq, updateCalls } = mockProductionClient([
+      {
+        id: 'emp-1',
+        name: 'Ana Souza',
+        title: 'Coordinator',
+        email: null,
+        jurisdiction: 'Ontario',
+        start_date: null,
+        status: 'active',
+      },
+      {
+        id: 'emp-2',
+        name: 'Bruno Lopes',
+        title: 'Driver',
+        email: null,
+        jurisdiction: 'Ontario',
+        start_date: null,
+        status: 'active',
+      },
+    ])
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit — Ana Souza' }))
+
+    /* Edit mode: heading switches, fields are pre-filled. */
+    expect(screen.getByText('Edit employee')).toBeInTheDocument()
+    expect(screen.getByLabelText('Full name')).toHaveValue('Ana Souza')
+    expect(screen.getByLabelText('Job title')).toHaveValue('Coordinator')
+
+    /* The employee being edited can't be their own manager; others can. */
+    const options = Array.from(
+      (screen.getByLabelText('Manager') as HTMLSelectElement).options,
+    ).map((option) => option.textContent)
+    expect(options).not.toContain('Ana Souza')
+    expect(options).toContain('Bruno Lopes')
+
+    fireEvent.change(screen.getByLabelText('Job title'), { target: { value: 'Lead' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save employee' }))
+
+    expect(await screen.findByText(/Lead · Ontario/)).toBeInTheDocument()
+    expect(updateEq).toHaveBeenCalledWith('id', 'emp-1')
+    expect(updateCalls[0]).toEqual(expect.objectContaining({ title: 'Lead', name: 'Ana Souza' }))
+  })
+
+  it('disables the remove action while a delete is in flight', async () => {
+    let resolveDelete!: (value: { data: null; error: null }) => void
+    const { deleteEq } = mockProductionClient([
+      {
+        id: 'emp-1',
+        name: 'Ana Souza',
+        title: 'Coordinator',
+        email: null,
+        jurisdiction: 'Ontario',
+        start_date: null,
+        status: 'active',
+      },
+    ])
+    deleteEq.mockImplementation(
+      () =>
+        new Promise<{ data: null; error: null }>((resolve) => {
+          resolveDelete = resolve
+        }),
+    )
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    renderAppFresh(<EmployeesViewFresh />, {
+      route: '/workspace/employees',
+      path: '/workspace/employees',
+    })
+    const removeBtn = await screen.findByRole('button', { name: /Remove — Ana Souza/ })
+    fireEvent.click(removeBtn)
+    expect(removeBtn).toBeDisabled()
+
+    await act(async () => {
+      resolveDelete({ data: null, error: null })
+    })
+    expect(screen.queryByText('Ana Souza')).not.toBeInTheDocument()
+    confirmSpy.mockRestore()
+  })
+
+  it('renders a stored English jurisdiction in French', async () => {
+    mockProductionClient([
+      {
+        id: 'emp-1',
+        name: 'Ana Souza',
+        title: 'Coordinator',
+        email: null,
+        jurisdiction: 'British Columbia',
+        start_date: null,
+        status: 'active',
+      },
+    ])
+    const { writeLang } = await import('@/i18n/lang')
+    writeLang('fr')
+    const { renderApp: renderAppFresh } = await import('@/test/renderApp')
+    const { EmployeesView: EmployeesViewFresh } = await import('./EmployeesView')
+
+    try {
+      renderAppFresh(<EmployeesViewFresh />, {
+        route: '/workspace/employees',
+        path: '/workspace/employees',
+      })
+      expect(await screen.findByText(/Colombie-Britannique/)).toBeInTheDocument()
+    } finally {
+      writeLang('en')
+    }
   })
 })
 

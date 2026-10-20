@@ -264,6 +264,13 @@ export const employeesMessages = defineMessages({
     en: 'Couldn’t add the employee. Try again.',
     fr: 'Impossible d’ajouter l’employé. Réessayez.',
   },
+  employees_prod_edit: { en: 'Edit', fr: 'Modifier' },
+  employees_prod_edit_title: { en: 'Edit employee', fr: 'Modifier l’employé' },
+  employees_prod_updated: { en: 'Employee updated', fr: 'Employé mis à jour' },
+  employees_prod_update_failed: {
+    en: 'Couldn’t update the employee. Try again.',
+    fr: 'Impossible de mettre à jour l’employé. Réessayez.',
+  },
   employees_prod_remove: { en: 'Remove', fr: 'Retirer' },
   employees_prod_remove_confirm: {
     en: 'Delete this employee? Their record will be permanently removed.',

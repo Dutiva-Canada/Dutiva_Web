@@ -22,6 +22,7 @@ import {
   addLeave,
   endLeave,
   getEmployee,
+  jurisdictionBi,
   listEmployeeExpiryRecords,
   listEmployeeLeaves,
   listEmployeeNotes,
@@ -272,7 +273,10 @@ export function EmployeeProfileProductionView() {
         },
         { label: M.employees_prod_detail_email, value: employee.email },
         { label: M.employees_prod_detail_phone, value: employee.phone },
-        { label: M.employees_prod_detail_jurisdiction, value: employee.jurisdiction },
+        {
+          label: M.employees_prod_detail_jurisdiction,
+          value: employee.jurisdiction ? x(jurisdictionBi(employee.jurisdiction)) : null,
+        },
         { label: M.employees_prod_detail_start, value: employee.startDate },
       ]
     : []
