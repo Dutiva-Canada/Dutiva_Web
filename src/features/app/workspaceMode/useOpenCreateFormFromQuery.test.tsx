@@ -42,18 +42,30 @@ describe('useOpenCreateFormFromQuery', () => {
     expect(screen.getByTestId('search').textContent).not.toContain('new=1')
   })
 
-  it('does not open when enabled is false', async () => {
+  it('strips ?new=1 without opening when enabled is false', async () => {
     const { result } = renderHook(() => useOpenCreateFormFromQuery(false), {
       wrapper: ({ children }) => (
         <MemoryRouter initialEntries={['/workspace/employees?new=1']}>
           <Routes>
-            <Route path="/workspace/employees" element={children} />
+            <Route
+              path="/workspace/employees"
+              element={
+                <>
+                  {children}
+                  <LocationProbe />
+                </>
+              }
+            />
           </Routes>
         </MemoryRouter>
       ),
     })
 
     expect(result.current.formOpen).toBe(false)
+    /* The param must not linger for a viewer without create rights. */
+    await waitFor(() => {
+      expect(screen.getByTestId('search').textContent).not.toContain('new=1')
+    })
   })
 })
 

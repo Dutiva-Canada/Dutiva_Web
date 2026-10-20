@@ -42,6 +42,11 @@ export interface ThreadResponseState {
  * `mountSeq` gives each AdvisorView mount a distinct engine id-prefix, so ids
  * of messages restored from `transcripts` can never collide with ids the
  * freshly-mounted engine generates.
+ *
+ * `resetSeq` is a generation counter bumped by resetAdvisorSession — a
+ * mounted view compares it during render to notice the reset even when the
+ * route didn't remount it (mode / organization switch), so no component can
+ * keep writing into an orphaned store.
  */
 interface AdvisorSessionStore {
   chats: SessionChat[]
@@ -51,6 +56,7 @@ interface AdvisorSessionStore {
   activeChatId: string | null
   nextChatSeq: number
   mountSeq: number
+  resetSeq: number
 }
 
 export const advisorSession: AdvisorSessionStore = {
@@ -61,6 +67,7 @@ export const advisorSession: AdvisorSessionStore = {
   activeChatId: null,
   nextChatSeq: 1,
   mountSeq: 1,
+  resetSeq: 0,
 }
 
 /** Test helper — clear all session state between tests. */
@@ -72,4 +79,5 @@ export function resetAdvisorSession(): void {
   advisorSession.activeChatId = null
   advisorSession.nextChatSeq = 1
   advisorSession.mountSeq = 1
+  advisorSession.resetSeq += 1
 }

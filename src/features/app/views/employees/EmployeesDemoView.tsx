@@ -9,6 +9,7 @@ import { employeesMessages as M } from '@/i18n/messages/employees'
 import { statusChipClass } from '@/components/chips'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
 import { OrgChart } from './OrgChart'
 import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 
@@ -16,6 +17,9 @@ import { useAskAdvisorAboutEmployee } from './useAskAdvisorAboutEmployee'
 export function EmployeesDemoView() {
   const { x, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
+  /* The demo roster has no create form — consume ?new=1 so the deep link
+     doesn't linger in the URL after landing here. */
+  useOpenCreateFormFromQuery(false)
   const askAdvisor = useAskAdvisorAboutEmployee()
   const [mode, setMode] = useState<'list' | 'org'>('list')
   const [filter, setFilter] = useState('')

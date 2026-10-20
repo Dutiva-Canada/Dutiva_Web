@@ -62,7 +62,26 @@ export function useAdvisorThreadSession(
   enginePrefixRef.current ??= `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
   const enginePrefix = enginePrefixRef.current
 
+  /* resetAdvisorSession swaps the store contents for fresh objects while
+     this hook may stay mounted (mode/org switch — the outlet keys on
+     pathname, not mode). Syncing during render drops every captured
+     reference to the orphaned store before stale state can be written back
+     into it. */
+  const [resetSeq, setResetSeq] = useState(advisorSession.resetSeq)
+  if (resetSeq !== advisorSession.resetSeq) {
+    setResetSeq(advisorSession.resetSeq)
+    advisorSession.activeChatId = null
+    setSessionChats(advisorSession.chats)
+    setExtras(advisorSession.extras)
+    setResponseState(advisorSession.responseState)
+    activeChatIdRef.current = null
+    setActiveChatId(null)
+    transcripts.current = advisorSession.transcripts
+    enginePrefixRef.current = `${ENGINE_PREFIX}m${advisorSession.mountSeq++}`
+  }
+
   return {
+    resetSeq,
     sessionChats,
     updateSessionChats,
     extras,

@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
 
 import { Plus } from 'lucide-react'
@@ -12,13 +11,17 @@ import { barToneClass, listCases, addCreatedCase } from './caseModel'
 import type { WorkspaceCase } from './caseModel'
 import { AppPage } from '@/features/app/shell/AppPage'
 import { NewCaseModal } from './NewCaseModal'
+import { useOpenCreateFormFromQuery } from '@/features/app/workspaceMode/useOpenCreateFormFromQuery'
 
 /** Northgate case files — demo workspace and public `/demo` only. */
 export function CasesDemoView() {
   const { x, lang } = useI18n()
   const navigate = useWorkspaceNavigate()
   const { showToast } = useToasts()
-  const [newCaseOpen, setNewCaseOpen] = useState(false)
+  /* /app/cases?new=1 (sidebar Create menu, Advisor CTAs) opens the intake
+     modal in demo exactly like the production inline form. */
+  const { formOpen: newCaseOpen, setFormOpen: setNewCaseOpen } =
+    useOpenCreateFormFromQuery(true)
 
   const allCases = listCases()
   const openCount = allCases.filter((c) => c.status.en !== 'Resolved').length

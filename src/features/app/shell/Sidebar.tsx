@@ -7,7 +7,7 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 import { useOrgRole } from '@/features/app/workspaceMode/useOrgRole'
 import { useProductionNavBadges } from '@/features/app/workspaceMode/useProductionNavBadges'
-import type { NavGroup, NavItem } from './navConfig'
+import type { NavGroup, NavItem, NavSectionKey } from './navConfig'
 import { getNavGroups, getPublicDemoNavGroups, isNavActive } from './navConfig'
 import { useWorkspaceRoot } from '@/features/app/workspaceRoot/workspaceRootContext'
 import { cx } from './cx'
@@ -23,20 +23,11 @@ import { WorkspaceLink as Link } from '@/features/app/workspaceRoot/WorkspaceLin
 
 type SidebarMode = 'expanded' | 'compact' | 'drawer'
 
-/* Collapsible section keys, positionally aligned with getNavGroups output:
-   group i with a heading maps to SECTION_KEYS[i - 1]. Heading-less groups
-   (Home / Advisor / Workflows, Analytics) render as always-visible top-level
-   items. */
-const SECTION_KEYS = [
-  'revenue',
-  'operations',
-  'people',
-  'finance',
-  'governance',
-  'security',
-  'external',
-] as const
-type SectionKey = (typeof SECTION_KEYS)[number]
+/* Collapsible section identity comes from NavGroup.key — it survives
+   getNavGroups role/module filtering, so prefs can't shift onto a different
+   group. Heading-less groups (Home / Advisor / Workflows, Analytics) render
+   as always-visible top-level items. */
+type SectionKey = NavSectionKey
 
 const SECTION_PREFS_KEY = 'dutiva.sidebar.sections.v2'
 const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
@@ -71,13 +62,12 @@ function writeSectionPrefs(state: Record<SectionKey, boolean>): void {
   }
 }
 
-function activeGroupIndex(pathname: string, groups: NavGroup[]): number | null {
-  for (let i = 0; i < groups.length; i += 1) {
-    const group = groups[i]
-    if (!group?.heading) continue
+function activeSectionKey(pathname: string, groups: NavGroup[]): SectionKey | null {
+  for (const group of groups) {
+    if (!group.key) continue
     for (const item of group.items) {
       if (item.isActive ? item.isActive(pathname) : isNavActive(item.to, pathname)) {
-        return i
+        return group.key
       }
     }
   }
@@ -140,7 +130,10 @@ export function Sidebar({
   const firstPersonHref = `${root}/employees?new=1`
 
   const [sections, setSections] = useState<Record<SectionKey, boolean>>(readSectionPrefs)
-  const activeGroup = useMemo(() => activeGroupIndex(pathname, navGroups), [pathname, navGroups])
+  const activeSection = useMemo(
+    () => activeSectionKey(pathname, navGroups),
+    [pathname, navGroups],
+  )
 
   const toggleSection = useCallback((key: SectionKey) => {
     setSections((prev) => {
@@ -152,12 +145,9 @@ export function Sidebar({
 
   const effectiveSections = useMemo(() => {
     const next = { ...sections }
-    if (activeGroup !== null) {
-      const key = SECTION_KEYS[activeGroup - 1]
-      if (key) next[key] = true
-    }
+    if (activeSection !== null) next[activeSection] = true
     return next
-  }, [sections, activeGroup])
+  }, [sections, activeSection])
 
   useEffect(() => {
     if (mode !== 'drawer') return
@@ -248,8 +238,8 @@ export function Sidebar({
       >
         {navGroups.map((group, i) => {
           const isLast = i === navGroups.length - 1
-          const key = group.heading ? SECTION_KEYS[i - 1] : null
-          if (group.heading === null) {
+          const key = group.key
+          if (group.heading === null || key === null) {
             return (
               <div key={group.items[0]?.key ?? i} className="flex flex-col">
                 <div className="flex flex-col">{renderGroupItems(group)}</div>

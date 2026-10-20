@@ -225,6 +225,11 @@ export const shellMessages = defineMessages({
   shell_v_security: { en: 'Security', fr: 'Sécurité' },
   shell_v_operations: { en: 'Operations', fr: 'Opérations' },
   shell_v_specialists: { en: 'Specialists', fr: 'Spécialistes' },
+  shell_v_support: { en: 'Support', fr: 'Soutien' },
+  shell_v_chat_widgets: {
+    en: 'Chat widgets',
+    fr: 'Outils de clavardage',
+  }, // [FR self-authored — matches chatw_demo_title]
 
   /* Route subtitles (buildI18n sub_*) — rendered inside the views */
   shell_sub_policies: {

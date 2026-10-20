@@ -50,6 +50,8 @@ export const VIEW_LABELS: Record<string, Bi> = {
   security: M.shell_v_security,
   operations: M.shell_v_operations,
   specialists: M.shell_v_specialists,
+  support: M.shell_v_support,
+  'chat-widgets': M.shell_v_chat_widgets,
 }
 
 /** Active when the route is the item or one of its children (/app/cases/:id …). */

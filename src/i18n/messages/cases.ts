@@ -212,6 +212,10 @@ export const casesMessages = defineMessages({
     fr: 'Impossible de créer le dossier. Réessayez.',
   },
   cases_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  cases_prod_remove_confirm: {
+    en: 'Delete this case? This can’t be undone.',
+    fr: 'Supprimer ce dossier ? Cette action est irréversible.',
+  }, // [FR self-authored]
   cases_prod_removed: { en: 'Case removed', fr: 'Dossier retiré' },
   cases_prod_remove_failed: {
     en: 'Couldn’t remove the case.',

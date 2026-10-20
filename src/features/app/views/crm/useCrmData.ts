@@ -32,36 +32,54 @@ export interface UseCrmDataReturn {
   dealTitle: (id?: string) => string
 }
 
+const EMPTY_CRM_STATE: CrmState = {
+  companies: [],
+  contacts: [],
+  deals: [],
+  activities: [],
+}
+
+/** Org the state belongs to — null outside production. */
+type LiveOrg = string | null
+
+function readCrmState(liveOrg: LiveOrg): CrmState {
+  if (!liveOrg) return initialCrmState
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY(liveOrg))
+    if (raw) return JSON.parse(raw) as CrmState
+  } catch {
+    // ignore
+  }
+  return EMPTY_CRM_STATE
+}
+
 export function useCrmData(
   mode: 'demo' | 'production',
   orgId: string | undefined,
 ): UseCrmDataReturn {
-  const isLive = mode === 'production' && orgId != null && orgId !== ''
-  const [state, setState] = useState<CrmState>(() => {
-    if (!isLive || !orgId) return initialCrmState
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY(orgId))
-      if (raw) return JSON.parse(raw) as CrmState
-    } catch {
-      // ignore
-    }
-    return {
-      companies: [],
-      contacts: [],
-      deals: [],
-      activities: [],
-    }
-  })
+  const liveOrg: LiveOrg =
+    mode === 'production' && orgId != null && orgId !== '' ? orgId : null
+  const [state, setState] = useState<CrmState>(() => readCrmState(liveOrg))
+
+  /* The org switcher doesn't remount this view — when liveOrg changes mid-
+     session, swap in the new org's stored state (or the demo fixtures)
+     during render so the persist effect below can never write the previous
+     org's data under the new org's key. */
+  const [stateOrg, setStateOrg] = useState<LiveOrg>(liveOrg)
+  if (stateOrg !== liveOrg) {
+    setStateOrg(liveOrg)
+    setState(readCrmState(liveOrg))
+  }
 
   useEffect(() => {
-    if (isLive && orgId) {
+    if (liveOrg) {
       try {
-        localStorage.setItem(STORAGE_KEY(orgId), JSON.stringify(state))
+        localStorage.setItem(STORAGE_KEY(liveOrg), JSON.stringify(state))
       } catch {
         // ignore
       }
     }
-  }, [isLive, orgId, state])
+  }, [liveOrg, state])
 
   const replace = useCallback((next: CrmState) => {
     setState(next)

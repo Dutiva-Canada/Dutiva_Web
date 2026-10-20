@@ -89,4 +89,11 @@ describe('getNavGroups', () => {
     expect(keys).toContain('finance')
     expect(keys).toContain('revenue')
   })
+
+  it('keeps section keys bound to their groups when filtering drops earlier groups', () => {
+    /* A viewer loses revenue/security/external — collapse prefs must key by
+       section identity, not array position. */
+    const keys = getNavGroups('/workspace', 'viewer').map((g) => g.key)
+    expect(keys).toEqual([null, 'operations', 'people', 'finance', 'governance', null])
+  })
 })

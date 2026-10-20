@@ -73,6 +73,7 @@ export function useAdvisorViewController() {
   const cancelRealSend = () => sendAbortRef.current?.abort()
   const [buyingAdvisorPack, setBuyingAdvisorPack] = useState<AdvisorPackSize | null>(null)
   const {
+    resetSeq,
     sessionChats,
     updateSessionChats,
     extras,
@@ -109,6 +110,7 @@ export function useAdvisorViewController() {
     bindBackendConversationId,
   } = useAdvisorProductionThreads({
     workspaceMode,
+    organizationId,
     activeChatIdRef,
     updateActiveChatId,
     updateSessionChats,
@@ -197,6 +199,22 @@ export function useAdvisorViewController() {
     engine.pushTurn(spec)
     return id
   }
+
+  /* Mode/org switches reset the shared session store while this view stays
+     mounted — clear the engine and deferred refs so nothing from the old
+     generation can be restashed or re-selected. */
+  const appliedResetSeq = useRef(resetSeq)
+  useEffect(() => {
+    if (appliedResetSeq.current === resetSeq) return
+    appliedResetSeq.current = resetSeq
+    sendAbortRef.current?.abort()
+    setSendingReal(false)
+    engine.reset([])
+    conversationIdRef.current = null
+    pendingNavChatIdRef.current = null
+    setProdThreads([])
+    setWorkspaceOpen(false)
+  }, [resetSeq, engine, conversationIdRef, pendingNavChatIdRef, setProdThreads])
 
   const stashActive = () => {
     if (activeChatId !== null) transcripts.current.set(activeChatId, settle(engine.messages))

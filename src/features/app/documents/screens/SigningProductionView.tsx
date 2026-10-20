@@ -37,8 +37,8 @@ export function SigningProductionView() {
   const [signing, setSigning] = useState(false)
   const [declining, setDeclining] = useState(false)
   const [consentChecked, setConsentChecked] = useState(false)
-  const [selectedEmail, setSelectedEmail] = useState<string | null>(() =>
-    searchParams.get('recipient'),
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(
+    () => searchParams.get('recipient')?.trim().toLowerCase() ?? null,
   )
   const [signature, setSignature] = useState<SignatureValue | undefined>()
   const requestRef = useRef(0)
@@ -105,7 +105,7 @@ export function SigningProductionView() {
   }, [turn, pkg, userEmail, selectedEmail])
 
   const selectedRecipient = useMemo(
-    () => pkg?.recipients.find((r) => r.email === selectedEmail),
+    () => pkg?.recipients.find((r) => r.email.toLowerCase() === selectedEmail?.toLowerCase()),
     [pkg, selectedEmail],
   )
 

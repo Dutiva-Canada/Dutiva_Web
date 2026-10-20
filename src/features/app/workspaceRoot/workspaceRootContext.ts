@@ -46,6 +46,10 @@ export function workspaceSegments(pathname: string): string[] {
     production root, so `/app/welcome` and `/app/auth/*` always land on
     `/workspace` even from inside the demo. */
 export function rewriteAppPath(path: string, root: WorkspaceRoot): string {
+  /* Bare `/app` (optionally with ?query/#hash) maps to the root itself. */
+  if (path === '/app' || path.startsWith('/app?') || path.startsWith('/app#')) {
+    return root + path.slice('/app'.length)
+  }
   if (!path.startsWith('/app/')) return path
   if (path.startsWith('/app/welcome') || path.startsWith('/app/auth/')) {
     return path.replace(/^\/app/, '/workspace')

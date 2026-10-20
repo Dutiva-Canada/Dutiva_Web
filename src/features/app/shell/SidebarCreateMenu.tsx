@@ -5,6 +5,7 @@ import { shellMessages as M } from '@/i18n/messages/shell'
 import { SidebarTooltip } from './SidebarTooltip'
 import { cx } from './cx'
 import { useWorkspaceNavigate } from '@/features/app/workspaceRoot/workspaceRootContext'
+import { useWorkspaceMode } from '@/features/app/workspaceMode/workspaceModeContext'
 
 type CreateActionKey =
   'conversation' | 'workflow' | 'case' | 'document' | 'employee' | 'communication'
@@ -19,15 +20,19 @@ interface CreateAction {
 }
 
 function useCreateActions(): CreateAction[] {
+  const { mode } = useWorkspaceMode()
   /* Order matches empty-workspace first steps (person → Studio → guided
      process), then case / conversation / communication. Employee and Case
-     use ?new=1 so the create form opens — same contract as Home checklist. */
+     use ?new=1 so the create form opens — same contract as Home checklist.
+     The demo roster has no create form, so Employee is marked unavailable
+     outside production rather than landing on a dead deep link. */
   return [
     {
       key: 'employee',
       label: M.shell_create_employee,
       icon: Users,
       href: '/app/employees?new=1',
+      disabled: mode !== 'production',
     },
     {
       key: 'document',

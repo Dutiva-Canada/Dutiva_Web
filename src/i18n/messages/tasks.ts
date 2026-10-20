@@ -112,6 +112,10 @@ export const tasksMessages = defineMessages({
     fr: 'Impossible d’ajouter la tâche. Réessayez.',
   },
   tasks_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  tasks_prod_remove_confirm: {
+    en: 'Delete this task? This can’t be undone.',
+    fr: 'Supprimer cette tâche ? Cette action est irréversible.',
+  }, // [FR self-authored]
   tasks_prod_removed: { en: 'Task removed', fr: 'Tâche retirée' },
   tasks_prod_remove_failed: {
     en: 'Couldn’t remove the task.',

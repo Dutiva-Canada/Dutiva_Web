@@ -142,6 +142,7 @@ export function TasksProductionView() {
   }
 
   const onRemove = async (task: ProductionTask) => {
+    if (!window.confirm(x(M.tasks_prod_remove_confirm))) return
     try {
       await removeTask(task.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== task.id))

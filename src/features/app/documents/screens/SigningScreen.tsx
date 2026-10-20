@@ -30,8 +30,8 @@ function SigningDemoScreen() {
   const navigate = useWorkspaceNavigate()
   const { showToast } = useToasts()
   const { data, org, applySignature } = useDoclib()
-  const [selectedEmail, setSelectedEmail] = useState<string | null>(() =>
-    searchParams.get('recipient'),
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(
+    () => searchParams.get('recipient')?.trim().toLowerCase() ?? null,
   )
   const [signature, setSignature] = useState<SignatureValue | undefined>()
 
@@ -58,7 +58,7 @@ function SigningDemoScreen() {
   }, [pendingRecipients, selectedEmail])
 
   const selectedRecipient = useMemo(
-    () => doc?.recipients.find((r) => r.email === selectedEmail),
+    () => doc?.recipients.find((r) => r.email.toLowerCase() === selectedEmail?.toLowerCase()),
     [doc, selectedEmail],
   )
 

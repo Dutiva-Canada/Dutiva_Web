@@ -26,6 +26,14 @@ describe('workspaceRootContext helpers', () => {
     expect(rewriteAppPath('/templates', '/demo')).toBe('/templates')
   })
 
+  it('maps a bare /app (and its query/hash forms) to the root itself', () => {
+    expect(rewriteAppPath('/app', '/demo')).toBe('/demo')
+    expect(rewriteAppPath('/app', '/fr/demo')).toBe('/fr/demo')
+    expect(rewriteAppPath('/app', '/workspace')).toBe('/workspace')
+    expect(rewriteAppPath('/app?x=1', '/demo')).toBe('/demo?x=1')
+    expect(rewriteAppPath('/app#frag', '/demo')).toBe('/demo#frag')
+  })
+
   it('always sends the sign-in gate and auth landing to /workspace', () => {
     expect(rewriteAppPath('/app/welcome', '/demo')).toBe('/workspace/welcome')
     expect(rewriteAppPath('/app/welcome', '/fr/demo')).toBe('/workspace/welcome')

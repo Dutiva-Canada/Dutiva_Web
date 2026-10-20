@@ -41,6 +41,10 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
   const drawingRef = useRef(false)
+  /* Whether the canvas currently holds a drawn stroke — the name→emit effect
+     needs it to re-emit when the signer draws first and types their name
+     after. */
+  const drawnRef = useRef(false)
   const lastRef = useRef({ x: 0, y: 0 })
 
   const emit = (image: string) => {
@@ -53,6 +57,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
     if (!canvas || !ctx) return
     const { width, height } = canvas.getBoundingClientRect()
     ctx.clearRect(0, 0, width, height)
+    drawnRef.current = false
     onChange(undefined)
   }
 
@@ -86,6 +91,14 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
   useEffect(() => {
     if (mode === 'type') {
       renderTyped()
+      return
+    }
+    /* Draw mode: a stroke already on canvas was emitted before the name was
+       typed (emit needs a name, so it sent undefined). Re-emit the drawn
+       image once the name arrives — and emit undefined when it's cleared. */
+    if (drawnRef.current) {
+      const canvas = canvasRef.current
+      if (canvas) emit(canvas.toDataURL('image/png'))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, signedName])
@@ -111,6 +124,7 @@ export function SignaturePad({ onChange, labels }: SignaturePadProps) {
   const endStroke = () => {
     if (!drawingRef.current) return
     drawingRef.current = false
+    drawnRef.current = true
     const canvas = canvasRef.current
     if (canvas) emit(canvas.toDataURL('image/png'))
   }

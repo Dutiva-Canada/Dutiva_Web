@@ -60,9 +60,23 @@ export interface NavItem {
   roles?: OrgMemberRole[]
 }
 
+/** Stable identity for a collapsible sidebar section — survives role/module
+    filtering, so collapse prefs never shift onto a different group. Heading-
+    less top-level groups carry no key and are never collapsible. */
+export type NavSectionKey =
+  | 'revenue'
+  | 'operations'
+  | 'people'
+  | 'finance'
+  | 'governance'
+  | 'security'
+  | 'external'
+
 export interface NavGroup {
   /** Uppercase section heading (only rendered when the sidebar is expanded). */
   heading: Bi | null
+  /** Collapse-pref identity for headed groups; null on heading-less groups. */
+  key: NavSectionKey | null
   items: NavItem[]
 }
 
@@ -129,6 +143,7 @@ export function getNavGroups(
   const groups: NavGroup[] = [
     {
       heading: null,
+      key: null,
       items: [
         { key: 'home', to: p('home'), icon: House, label: M.shell_nav_home },
         {
@@ -147,6 +162,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_revenue,
+      key: 'revenue',
       items: [
         {
           key: 'revenue',
@@ -174,6 +190,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_operations,
+      key: 'operations',
       items: [
         {
           key: 'operations',
@@ -202,6 +219,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_people,
+      key: 'people',
       items: [
         { key: 'employees', to: p('employees'), icon: Users, label: M.shell_nav_people },
         {
@@ -235,6 +253,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_finance,
+      key: 'finance',
       items: [
         {
           key: 'finance',
@@ -255,6 +274,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_governance,
+      key: 'governance',
       items: [
         {
           key: 'governance',
@@ -281,6 +301,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_security,
+      key: 'security',
       items: [
         {
           key: 'security',
@@ -293,6 +314,7 @@ export function getNavGroups(
     },
     {
       heading: M.shell_sec_external,
+      key: 'external',
       items: [
         {
           key: 'specialists',
@@ -305,6 +327,7 @@ export function getNavGroups(
     },
     {
       heading: null,
+      key: null,
       items: [
         {
           key: 'analytics',

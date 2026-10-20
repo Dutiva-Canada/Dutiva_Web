@@ -17,6 +17,8 @@ import type { SessionChat, ThreadResponseState } from './advisorSession'
 
 interface UseAdvisorProductionThreadsParams {
   workspaceMode: WorkspaceMode
+  /** Reloaded on change — conversations are org-scoped. */
+  organizationId: string | null
   activeChatIdRef: MutableRefObject<string | null>
   updateActiveChatId: (id: string | null) => void
   updateSessionChats: (updater: (prev: SessionChat[]) => SessionChat[]) => void
@@ -31,6 +33,7 @@ interface UseAdvisorProductionThreadsParams {
  */
 export function useAdvisorProductionThreads({
   workspaceMode,
+  organizationId,
   activeChatIdRef,
   updateActiveChatId,
   updateSessionChats,
@@ -54,7 +57,7 @@ export function useAdvisorProductionThreads({
       .then(setProdThreads)
       .catch(() => setProdThreads([]))
       .finally(() => setProdThreadsLoaded(true))
-  }, [workspaceMode])
+  }, [workspaceMode, organizationId])
 
   const migrateThreadId = (oldId: string, newId: string) => {
     if (oldId === newId) return

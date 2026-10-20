@@ -177,6 +177,7 @@ export function ComplianceProductionView() {
   }
 
   const onRemove = async (finding: ProductionFinding) => {
+    if (!window.confirm(x(M.compliance_prod_remove_confirm))) return
     try {
       await removeFinding(finding.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== finding.id))
@@ -216,6 +217,7 @@ export function ComplianceProductionView() {
   }
 
   const onObRemove = async (obligation: ProductionObligation) => {
+    if (!window.confirm(x(M.compliance_prod_ob_remove_confirm))) return
     try {
       await removeObligation(obligation.id)
       setObRows((prev) => (prev ?? []).filter((r) => r.id !== obligation.id))

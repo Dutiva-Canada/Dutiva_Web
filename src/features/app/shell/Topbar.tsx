@@ -46,7 +46,7 @@ export function Topbar({
   const navigate = useWorkspaceNavigate()
   const { root } = useWorkspaceRoot()
 
-  const { mode } = useWorkspaceMode()
+  const { mode, organizationId } = useWorkspaceMode()
   const [demoNotifications, setDemoNotifications] = useState(demoNotificationFixtures)
   const [prodNotifications, setProdNotifications] = useState<WorkspaceNotification[]>([])
   const [notifOpen, setNotifOpen] = useState(false)
@@ -67,8 +67,19 @@ export function Topbar({
     notifWasOpenRef.current = notifOpen
   }, [notifOpen])
 
+  /* Fetch on mount/mode change, and again when the popover OPENS — the
+     [notifOpen] dep used to refetch on close too, a wasted query every
+     dismissal. */
+  const fetchedKeyRef = useRef<string | null>(null)
+  const prevNotifOpenRef = useRef(notifOpen)
   useEffect(() => {
+    const justOpened = notifOpen && !prevNotifOpenRef.current
+    const scopeKey = `${mode}:${organizationId ?? ''}`
+    const scopeChanged = fetchedKeyRef.current !== scopeKey
+    prevNotifOpenRef.current = notifOpen
     if (mode !== 'production') return
+    if (!scopeChanged && !justOpened) return
+    fetchedKeyRef.current = scopeKey
     let cancelled = false
     void listWorkspaceNotifications()
       .then((rows) => {
@@ -80,7 +91,7 @@ export function Topbar({
     return () => {
       cancelled = true
     }
-  }, [mode, notifOpen])
+  }, [mode, organizationId, notifOpen])
 
   const demoItems = demoNotifications.map((n) => ({
     id: n.id,

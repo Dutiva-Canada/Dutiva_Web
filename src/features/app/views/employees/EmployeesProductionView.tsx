@@ -147,6 +147,7 @@ export function EmployeesProductionView() {
   }
 
   const onRemove = async (emp: ProductionEmployee) => {
+    if (!window.confirm(x(M.employees_prod_remove_confirm))) return
     try {
       await removeEmployee(emp.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== emp.id))

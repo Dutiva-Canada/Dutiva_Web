@@ -131,6 +131,7 @@ export function CasesProductionView() {
   }
 
   const onRemove = async (caze: ProductionCase) => {
+    if (!window.confirm(x(M.cases_prod_remove_confirm))) return
     try {
       await removeCase(caze.id)
       setRows((prev) => (prev ?? []).filter((r) => r.id !== caze.id))

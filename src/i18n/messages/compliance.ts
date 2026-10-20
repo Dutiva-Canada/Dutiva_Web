@@ -114,6 +114,10 @@ export const complianceMessages = defineMessages({
     fr: 'Impossible de consigner le constat. Réessayez.',
   },
   compliance_prod_remove: { en: 'Remove', fr: 'Retirer' },
+  compliance_prod_remove_confirm: {
+    en: 'Delete this finding? This can’t be undone.',
+    fr: 'Supprimer ce constat ? Cette action est irréversible.',
+  }, // [FR self-authored]
   compliance_prod_removed: { en: 'Finding removed', fr: 'Constat retiré' },
   compliance_prod_remove_failed: {
     en: 'Couldn’t remove the finding.',
@@ -168,4 +172,8 @@ export const complianceMessages = defineMessages({
     fr: 'Impossible de supprimer l’obligation. Réessayez.',
   },
   compliance_prod_ob_remove: { en: 'Remove obligation', fr: 'Supprimer l’obligation' },
+  compliance_prod_ob_remove_confirm: {
+    en: 'Delete this obligation? This can’t be undone.',
+    fr: 'Supprimer cette obligation ? Cette action est irréversible.',
+  },
 })

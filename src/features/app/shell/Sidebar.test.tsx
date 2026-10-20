@@ -255,7 +255,9 @@ describe('Sidebar', () => {
       'aria-disabled',
       'true',
     )
-    expect(within(menu).getByRole('menuitem', { name: /Employee record/i })).not.toHaveAttribute(
+    /* The demo roster has no create form — Employee is unavailable outside
+       production rather than landing on a dead ?new=1 deep link. */
+    expect(within(menu).getByRole('menuitem', { name: /Employee record/i })).toHaveAttribute(
       'aria-disabled',
       'true',
     )
@@ -265,7 +267,7 @@ describe('Sidebar', () => {
     )
   })
 
-  it('opens Employee create via ?new=1 from the Create menu', async () => {
+  it('opens Case create via ?new=1 from the Create menu', async () => {
     function LocationProbe() {
       const location = useLocation()
       return (
@@ -285,9 +287,9 @@ describe('Sidebar', () => {
     )
 
     await user.click(screen.getByRole('button', { name: /Create/i }))
-    await user.click(screen.getByRole('menuitem', { name: /Employee record/i }))
+    await user.click(screen.getByRole('menuitem', { name: /Case/i }))
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/employees?new=1')
+    expect(screen.getByTestId('location')).toHaveTextContent('/workspace/cases?new=1')
   })
 
   it('supports keyboard operation inside the Create menu', async () => {
