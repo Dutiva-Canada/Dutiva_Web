@@ -14,7 +14,7 @@ import {
 } from './handlers.ts'
 import { json, UPSTREAM_TIMEOUT_MS } from './runtimeShared.ts'
 import { fetchOnDemandMarket } from './marketFetch.ts'
-import { loadPersonalContext } from './personalContext.ts'
+import { loadPersonalContext, loadPositionFacts } from './personalContext.ts'
 import { convertFx, fetchFxTable } from '../invest-bot/fx.ts'
 
 /* The action lifecycle for Tally's chat — the whitelisted write path
@@ -362,7 +362,18 @@ export async function executeChatAction(
       const description = pos
         ? `I hold ${pos.quantity} ${pos.symbol} at an average cost of ${pos.avg_cost} ${pos.currency || 'CAD'}.`
         : `${action.name ?? action.symbol} — a holding I'm tracking.`
-      const personal = await loadPersonalContext(adminClient, userId)
+      /* Same personalization the page-side draft gets — profile dims and
+         the live tape reads, so the bounds fit this holder and this
+         position. */
+      const [personal, chatFacts] = await Promise.all([
+        loadPersonalContext(adminClient, userId),
+        loadPositionFacts(
+          adminClient,
+          userId,
+          pos?.asset_class ?? 'equity',
+          action.symbol,
+        ),
+      ])
       let upstream: Response
       try {
         upstream = await postChatCompletion(
@@ -383,6 +394,8 @@ export async function executeChatAction(
                   deps.lang,
                   personal.memories,
                   personal.mandate,
+                  personal.profile,
+                  chatFacts,
                 ),
               },
             ],

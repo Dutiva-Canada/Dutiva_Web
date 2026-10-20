@@ -33,7 +33,11 @@ import {
   UPSTREAM_TIMEOUT_MS,
   type ExecutedAction,
 } from './runtime.ts'
-import { loadMemories, loadPersonalContext } from './personalContext.ts'
+import {
+  loadMemories,
+  loadPersonalContext,
+  loadPositionFacts,
+} from './personalContext.ts'
 import { parseInvestReactEvent, runReact } from './reactRuntime.ts'
 
 /**
@@ -360,7 +364,13 @@ const handler = async (req: Request) => {
     const thesisRouted = await modelRoute(adminClient)
     if ('error' in thesisRouted) return thesisRouted.error
     const tr = thesisRouted
-    const thesisPersonal = await loadPersonalContext(adminClient, userId)
+    /* Profile dims + the live position/snapshot reads ride the prompt —
+       the drafted bounds scale to the holder and anchor to where the
+       tape actually sits, not to generic defaults. */
+    const [thesisPersonal, thesisFacts] = await Promise.all([
+      loadPersonalContext(adminClient, userId),
+      loadPositionFacts(adminClient, userId, assetClass, symbol),
+    ])
     let thesisUpstream: Response
     try {
       thesisUpstream = await postChatCompletion(
@@ -377,6 +387,8 @@ const handler = async (req: Request) => {
                 lang,
                 thesisPersonal.memories,
                 thesisPersonal.mandate,
+                thesisPersonal.profile,
+                thesisFacts,
               ),
             },
           ],

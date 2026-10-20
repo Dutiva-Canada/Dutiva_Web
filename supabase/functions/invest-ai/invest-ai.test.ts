@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildDraftPrompt,
   buildMemoryReviewPrompt,
+  buildThesisDraftPrompt,
   draftSystemPrompt,
   memoryPromptBlock,
   parseDraft,
@@ -1571,5 +1572,87 @@ describe('chatSources', () => {
     expect(chatSources(shortCtx, 'TO looks flat.')).toEqual([
       { label: 'TO — delayed market data on file' },
     ])
+  })
+})
+
+describe('buildThesisDraftPrompt — personalization', () => {
+  const input = {
+    symbol: 'QUBT',
+    name: 'Quantum Computing Inc.',
+    description: 'Speculative bet that early quantum software revalues.',
+  }
+  const profile = {
+    riskTolerance: 'aggressive',
+    horizon: 'long',
+    goal: 'growth',
+    experience: 'intermediate',
+    planObjective: 'Compound aggressively through 2030.',
+  }
+  const facts = {
+    held: true,
+    quantity: 236,
+    avgCost: 6.42,
+    costCurrency: 'USD',
+    price: 8.42,
+    priceCurrency: 'USD',
+    dayChangePct: 2.1,
+    vsMa50Pct: -19.2,
+    unrealizedGainPct: 31.16,
+    marketValue: 1987.12,
+    marketValueCurrency: 'USD',
+    weightPct: 10.44,
+    bookCurrency: 'CAD',
+    priceAsOf: '2026-10-19T14:00:00Z',
+  }
+
+  it('carries the declared profile and the plan objective', () => {
+    const p = buildThesisDraftPrompt(input, 'en', undefined, null, profile, facts)
+    expect(p).toContain('risk tolerance aggressive')
+    expect(p).toContain('long horizon')
+    expect(p).toContain('growth goal')
+    expect(p).toContain('their stated objective, in their words: "Compound aggressively through 2030."')
+  })
+
+  it('anchors to live reads and flags metrics with no data', () => {
+    const p = buildThesisDraftPrompt(input, 'en', undefined, null, profile, facts)
+    expect(p).toContain('236 units')
+    expect(p).toContain('avg cost 6.42 USD')
+    expect(p).toContain('worth 1987.12 USD')
+    expect(p).toContain('10.4% of the book')
+    expect(p).toContain('-19.2% vs its 50-day')
+    expect(p).toContain('+31.2% on cost')
+    expect(p).toContain('(as of 2026-10-19)')
+    /* The book currency is named — value_floor bounds write in it. */
+    expect(p).toContain('book currency: CAD')
+    /* Everything has a read → no dead-metric warning. */
+    expect(p).not.toContain('never fire')
+  })
+
+  it('names the dead metrics so the model never drafts a rule that cannot fire', () => {
+    const thin = { ...facts, vsMa50Pct: null, weightPct: null, unrealizedGainPct: null }
+    const p = buildThesisDraftPrompt(input, 'en', undefined, null, undefined, thin)
+    expect(p).toContain('metrics with NO data (rules on these never fire): vs_ma50, weight_pct, unrealized_gain_pct')
+    expect(p).toContain('metrics with a live read: day_change_pct, value_floor')
+  })
+
+  it('a watch-only symbol reads as watched, not held', () => {
+    const p = buildThesisDraftPrompt(input, 'fr', undefined, null, undefined, {
+      ...facts,
+      held: false,
+      quantity: null,
+      avgCost: null,
+      marketValue: null,
+      weightPct: null,
+      unrealizedGainPct: null,
+    })
+    expect(p).toContain('watched, not held')
+    expect(p).toContain('Canadian French')
+  })
+
+  it('renders neither block when nothing is on file', () => {
+    const p = buildThesisDraftPrompt(input, 'en')
+    expect(p).not.toContain('About the holder')
+    expect(p).not.toContain('Live facts')
+    expect(p).toContain("The holder's story")
   })
 })
