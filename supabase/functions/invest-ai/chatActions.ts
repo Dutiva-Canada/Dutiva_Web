@@ -146,12 +146,25 @@ export async function executeChatAction(
 ): Promise<ExecutedAction> {
   switch (action.type) {
     case 'add_watch_symbol': {
+      const assetClass = action.assetClass ?? 'equity'
+      /* Already watched — nothing to write. The upsert would overwrite the
+         row's name with the action's (or '') AND return the existing row's
+         id as refId, so Undo would delete a watch entry the holder added
+         long before this turn. ok:true with no refId renders no chip. */
+      const existing = deps.watchlist.find(
+        (w) =>
+          w.symbol.toUpperCase() === action.symbol.toUpperCase() &&
+          w.asset_class === assetClass,
+      )
+      if (existing) {
+        return { type: action.type, detail: action.symbol, ok: true }
+      }
       const { data, error } = await adminClient
         .from('invest_watchlist')
         .upsert(
           {
             user_id: userId,
-            asset_class: action.assetClass ?? 'equity',
+            asset_class: assetClass,
             symbol: action.symbol,
             name: action.name ?? '',
           },
@@ -160,7 +173,7 @@ export async function executeChatAction(
         .select('id')
         .single()
       if (!error) {
-        await priceFreshSymbol(adminClient, userId, action.symbol, action.assetClass ?? 'equity')
+        await priceFreshSymbol(adminClient, userId, action.symbol, assetClass)
       }
       return { type: action.type, detail: action.symbol, ok: !error, refId: data?.id }
     }

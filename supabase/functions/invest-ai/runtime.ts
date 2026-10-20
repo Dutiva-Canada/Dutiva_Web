@@ -370,7 +370,7 @@ export async function loadBookContext(
 /* Persist both turns — history is server-side so the next device/session
    sees the same conversation, and the assistant row keeps what it did.
    The assistant id goes back so the client can attach feedback to it. */
-async function persistChatTurns(
+export async function persistChatTurns(
   adminClient: SupabaseClient,
   userId: string,
   message: string,
@@ -393,7 +393,7 @@ async function persistChatTurns(
     })
     .select('id')
     .single()
-  const { data: assistantRow } = await adminClient
+  const { data: assistantRow, error: assistantErr } = await adminClient
     .from('invest_chat_messages')
     .insert({
       user_id: userId,
@@ -407,6 +407,17 @@ async function persistChatTurns(
     })
     .select('id')
     .single()
+  if (assistantErr && userRow?.id) {
+    /* Half the pair would persist otherwise — an orphan user turn whose
+       reply the client showed under a local id that never comes back on
+       reload, and one chat_regenerate can't reach (it needs the assistant
+       row on top). Take the user row back down with it. */
+    await adminClient
+      .from('invest_chat_messages')
+      .delete()
+      .eq('id', userRow.id)
+      .eq('user_id', userId)
+  }
   /* A named thread takes its title from the first user message — set only
      while the title is still null, so a later turn never renames it. */
   if (threadId) {
@@ -417,7 +428,13 @@ async function persistChatTurns(
       .eq('user_id', userId)
       .is('title', null)
   }
-  return { userId: userRow?.id ?? null, assistantId: assistantRow?.id ?? null }
+  /* userId:null when the pair came back down — the client's optimistic
+     turn keeps its local id instead of adopting a row that no longer
+     exists (the poll would drop it as a ghost). */
+  return {
+    userId: assistantErr ? null : (userRow?.id ?? null),
+    assistantId: assistantRow?.id ?? null,
+  }
 }
 
 /* ── kind 'chat' ──────────────────────────────────────────────────────────

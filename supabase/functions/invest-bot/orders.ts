@@ -92,7 +92,7 @@ export async function executeOrder(
 
   const { data: position } = await adminClient
     .from('invest_positions')
-    .select('id, quantity, avg_cost, currency')
+    .select('id, quantity, avg_cost, currency, last_price, last_price_at')
     .eq('account_id', order.account_id)
     .eq('user_id', userId)
     .eq('asset_class', order.asset_class)
@@ -146,6 +146,19 @@ export async function executeOrder(
     costBase = conv
   }
 
+  /* A sell can't exceed the holding; a buy can't exceed the cash — without
+     this check a fill mints money the book never had (the withdrawal path
+     refuses an overdraft for the same reason). */
+  if (side === 'buy' && costBase > Number(account.cash_balance)) {
+    return json(
+      {
+        error: `${costBase.toFixed(2)} ${accCcy} needed but only ${Number(account.cash_balance).toFixed(2)} on hand`,
+        code: 'insufficient_cash',
+      },
+      409,
+    )
+  }
+
   /* Completing fills claim the order first: the conditional update only
      lands while the row is still draft/queued, so a second concurrent
      execute finds nothing to claim instead of double-filling. The settled
@@ -193,12 +206,35 @@ export async function executeOrder(
   if (fillErr) {
     return json({ error: `Execution failed: ${fillErr.message}`, code: 'write_failed' }, 500)
   }
+  let newPositionId: string | null = null
   const release = async (err: string): Promise<Response> => {
     await adminClient
       .from('invest_order_fills')
       .delete()
       .eq('id', fillRow.id)
       .eq('user_id', userId)
+    /* The position write may already have landed when a later step fails —
+       put the book back or the fill is gone while its mutation stays. An
+       errored write left the pre-write values, so restoring is a no-op on
+       the earlier failure paths too. */
+    if (position) {
+      await adminClient
+        .from('invest_positions')
+        .update({
+          quantity: Number(position.quantity),
+          avg_cost: Number(position.avg_cost),
+          last_price: position.last_price,
+          last_price_at: position.last_price_at,
+          updated_at: now,
+        })
+        .eq('id', position.id)
+    } else if (newPositionId) {
+      await adminClient
+        .from('invest_positions')
+        .delete()
+        .eq('id', newPositionId)
+        .eq('user_id', userId)
+    }
     if (complete) {
       /* Hand the claim back — the fill is gone, the order isn't done. */
       await adminClient
@@ -220,6 +256,37 @@ export async function executeOrder(
         .eq('user_id', userId)
     }
     return json({ error: `Execution failed: ${err}`, code: 'write_failed' }, 500)
+  }
+
+  /* Two concurrent partial fills both pass the pre-write `remaining` check
+     on the same stale read — the claim only guards the completing fill.
+     Re-read after this insert: whoever's fill pushed the total past the
+     order's quantity self-reverts here, before any book write moves. */
+  const { data: postFills } = await adminClient
+    .from('invest_order_fills')
+    .select('quantity')
+    .eq('order_id', orderId)
+    .eq('user_id', userId)
+  const totalAfter = (postFills ?? []).reduce((s, f) => s + Number(f.quantity), 0)
+  if (totalAfter > Number(order.quantity)) {
+    await adminClient
+      .from('invest_order_fills')
+      .delete()
+      .eq('id', fillRow.id)
+      .eq('user_id', userId)
+    if (complete) {
+      await adminClient
+        .from('invest_orders')
+        .update({
+          status: String(order.status),
+          executed_price: null,
+          executed_at: null,
+          updated_at: now,
+        })
+        .eq('id', orderId)
+        .eq('user_id', userId)
+    }
+    return json({ error: 'A concurrent fill landed first', code: 'over_fill' }, 409)
   }
 
   const fill = applyFill(
@@ -250,21 +317,26 @@ export async function executeOrder(
       .eq('id', position.id)
     if (error) return release(error.message)
   } else if (side === 'buy') {
-    const { error } = await adminClient.from('invest_positions').insert({
-      user_id: userId,
-      account_id: order.account_id,
-      asset_class: order.asset_class,
-      symbol: order.symbol,
-      name: order.name,
-      quantity: fill.quantity,
-      avg_cost: fill.avg_cost,
-      last_price: price,
-      last_price_at: now,
-      /* The instrument's currency, not the column default — a USD fill
-         landing 'CAD' would corrupt every FX conversion downstream. */
-      currency: fillCcy,
-    })
+    const { data: inserted, error } = await adminClient
+      .from('invest_positions')
+      .insert({
+        user_id: userId,
+        account_id: order.account_id,
+        asset_class: order.asset_class,
+        symbol: order.symbol,
+        name: order.name,
+        quantity: fill.quantity,
+        avg_cost: fill.avg_cost,
+        last_price: price,
+        last_price_at: now,
+        /* The instrument's currency, not the column default — a USD fill
+           landing 'CAD' would corrupt every FX conversion downstream. */
+        currency: fillCcy,
+      })
+      .select('id')
+      .single()
     if (error) return release(error.message)
+    newPositionId = inserted?.id ?? null
   }
 
   const { error: cashError } = await adminClient
@@ -331,7 +403,7 @@ export async function importFill(
 
   const { data: position } = await adminClient
     .from('invest_positions')
-    .select('id, quantity, avg_cost, currency')
+    .select('id, quantity, avg_cost, currency, last_price, last_price_at')
     .eq('account_id', input.account_id)
     .eq('user_id', userId)
     .eq('asset_class', input.asset_class)
@@ -417,8 +489,34 @@ export async function importFill(
       }
       costBase = conv
     }
+    /* A failed book write can't stand — the order+fill claim a fill that
+       never moved, so back out everything the way the no_fx path does. */
+    const rollback = async (err: string): Promise<Response> => {
+      if (position) {
+        await adminClient
+          .from('invest_positions')
+          .update({
+            quantity: Number(position.quantity),
+            avg_cost: Number(position.avg_cost),
+            last_price: position.last_price,
+            last_price_at: position.last_price_at,
+          })
+          .eq('id', position.id)
+      } else {
+        await adminClient
+          .from('invest_positions')
+          .delete()
+          .eq('account_id', input.account_id)
+          .eq('user_id', userId)
+          .eq('asset_class', input.asset_class)
+          .eq('symbol', input.symbol)
+      }
+      await adminClient.from('invest_order_fills').delete().eq('order_id', orderRow.id).eq('user_id', userId)
+      await adminClient.from('invest_orders').delete().eq('id', orderRow.id).eq('user_id', userId)
+      return json({ error: `Import failed: ${err}`, code: 'write_failed' }, 500)
+    }
     if (position) {
-      await adminClient
+      const { error } = await adminClient
         .from('invest_positions')
         .update({
           quantity: fill.quantity,
@@ -428,8 +526,9 @@ export async function importFill(
           updated_at: iso,
         })
         .eq('id', position.id)
+      if (error) return rollback(error.message)
     } else if (input.side === 'buy') {
-      await adminClient.from('invest_positions').insert({
+      const { error } = await adminClient.from('invest_positions').insert({
         user_id: userId,
         account_id: input.account_id,
         asset_class: input.asset_class,
@@ -441,8 +540,9 @@ export async function importFill(
         last_price_at: iso,
         currency: fillCcy,
       })
+      if (error) return rollback(error.message)
     }
-    await adminClient
+    const { error: cashError } = await adminClient
       .from('invest_accounts')
       .update({
         cash_balance: Number(account.cash_balance) + (input.side === 'sell' ? costBase : -costBase),
@@ -450,6 +550,7 @@ export async function importFill(
       })
       .eq('id', input.account_id)
       .eq('user_id', userId)
+    if (cashError) return rollback(cashError.message)
   }
 
   return json({ status: 'executed', order_id: orderRow.id, filled: qty })

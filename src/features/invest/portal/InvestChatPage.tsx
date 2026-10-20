@@ -214,16 +214,25 @@ export function InvestChatPage() {
 
   /* History reloads whenever the thread changes — skeleton shows while the
      scoped page loads. The thread list loads once. */
+  const historyGen = useRef(0)
   useEffect(() => {
+    const gen = ++historyGen.current
     setTurns(null)
     setSuggests([])
+    setHasMore(false)
     loadInvestChatHistory(HISTORY_PAGE, undefined, threadId)
       .then((rows) => {
+        /* A stale load must never land — a fast thread switch would show
+           the previous conversation's turns under the new selection. */
+        if (gen !== historyGen.current) return
         setTurns(rows)
         /* A full page back means older turns probably exist. */
         setHasMore(rows.length === HISTORY_PAGE)
       })
-      .catch(() => setTurns([]))
+      .catch(() => {
+        if (gen !== historyGen.current) return
+        setTurns([])
+      })
   }, [threadId])
 
   useEffect(() => {
@@ -234,8 +243,9 @@ export function InvestChatPage() {
 
   /* While the tab sits open, pick up turns another writer added — the
      scheduled invest-bot insight lands in the default conversation without
-     a send. Append-only merge on row ids; a poll never reorders or drops
-     local turns. */
+     a send. The merge dedupes on ids, on role+content for local stubs that
+     never adopted a server id, and drops persisted rows that vanished —
+     a poll never reorders local turns. */
   useEffect(() => {
     const poll = async () => {
       if (document.hidden || sending) return
@@ -244,8 +254,57 @@ export function InvestChatPage() {
         setTurns((prev) => {
           if (!prev) return prev
           const seen = new Set(prev.map((t) => t.id))
-          const fresh = rows.filter((r) => !seen.has(r.id))
-          return fresh.length ? [...prev, ...fresh] : prev
+          /* A send stopped mid-stream keeps its local u-/a- ids while the
+             server persists the real pair — dedupe those on role+content,
+             not just the id they never got to adopt. */
+          const localOnly = new Set(
+            prev
+              .filter((t) => !UUID_RE.test(t.id))
+              .map((t) => `${t.role} ${t.content}`),
+          )
+          /* A stopped send keeps its partial as a local turn while the
+             server finishes the same reply — the poll then delivers the
+             persisted row. Adopt it in place (full text, real id) rather
+             than stacking the reply twice; the streamed partial is always
+             a prefix of the persisted reply since the server buffers the
+             text before the delta leaves. */
+          const stoppedLocal = prev.filter(
+            (t) => !UUID_RE.test(t.id) && t.role === 'assistant' && t.stopped && t.content,
+          )
+          const adopted = new Map<string, InvestChatTurn>()
+          const fresh = rows.filter((r) => {
+            if (seen.has(r.id) || localOnly.has(`${r.role} ${r.content}`)) return false
+            if (r.role === 'assistant') {
+              const stop = stoppedLocal.find(
+                (t) => !adopted.has(t.id) && r.content.startsWith(t.content),
+              )
+              if (stop) {
+                adopted.set(stop.id, r)
+                return false
+              }
+            }
+            return true
+          })
+          /* The response is the server's whole tail — a persisted turn
+             inside that window that's missing was deleted elsewhere (or
+             the thread was cleared when the window came back empty), and
+             the old append-only merge left the ghost on screen forever.
+             Optimistic local rows sit outside the server's view; keep
+             them. */
+          const windowStart = rows[0]?.createdAt
+          const windowIds = new Set(rows.map((r) => r.id))
+          const kept = prev
+            .filter(
+              (t) =>
+                !UUID_RE.test(t.id) ||
+                (windowStart !== undefined &&
+                  (t.createdAt < windowStart || windowIds.has(t.id))),
+            )
+            .map((t) => adopted.get(t.id) ?? t)
+          if (fresh.length === 0 && adopted.size === 0 && kept.length === prev.length) return prev
+          return [...kept, ...fresh].sort((a, b) =>
+            a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0,
+          )
         })
       } catch {
         /* The poll is best-effort — a miss just means next tick. */
@@ -350,7 +409,9 @@ export function InvestChatPage() {
   }
 
   const sendText = async (message: string, atts?: AdvisorAttachment[]) => {
-    if ((!message && !atts?.length) || sending) return
+    /* turns === null means the thread's history hasn't resolved — a send
+       here would be wiped the moment the fetch lands. */
+    if ((!message && !atts?.length) || sending || turns === null) return
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setSending(true)
@@ -394,9 +455,10 @@ export function InvestChatPage() {
       await adoptReply(result, userTurn.id)
     } catch (err) {
       if (isAbort(err) || ctrl.signal.aborted) {
-        /* Stop pressed — keep whatever streamed in as a local turn (the
-           server may still persist the full reply; reload reconciles). The
-           partial thinking trace rides the turn so it isn't lost. */
+        /* Stop pressed — keep whatever streamed in as a local turn flagged
+           stopped so the history poll adopts the persisted full reply into
+           this slot instead of stacking a second bubble. The partial
+           thinking trace rides the turn so it isn't lost. */
         const partialReasoning = reasoningSoFar || null
         setStreamed((partial) => {
           if (partial) {
@@ -409,6 +471,7 @@ export function InvestChatPage() {
                 action: null,
                 reasoning: partialReasoning,
                 feedback: null,
+                stopped: true,
                 createdAt: new Date().toISOString(),
               },
             ])
@@ -442,7 +505,9 @@ export function InvestChatPage() {
   const send = () => {
     const message = draft.trim()
     const atts = pendingAtt
-    if ((!message && atts.length === 0) || sending) return
+    /* turns === null is checked here too — sendText's guard must not run
+       after the draft has already been cleared. */
+    if ((!message && atts.length === 0) || sending || turns === null) return
     setDraft('')
     setPendingAtt([])
     void sendText(message, atts.length ? atts : undefined)

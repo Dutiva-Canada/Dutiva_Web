@@ -205,6 +205,83 @@ describe('executeOrder', () => {
     expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
   })
 
+  it('rejects a buy bigger than the cash on hand — no minted cash', async () => {
+    /* A sell can't exceed the holding; a buy can't exceed the balance —
+       without the guard a $1M paper buy on a $1K book fills anyway. */
+    const seed = baseSeed({ side: 'buy', quantity: 20 })
+    seed['invest_positions'] = []
+    const { client, tables } = fakeDb(seed)
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ code: 'insufficient_cash' })
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    expect(tables['invest_positions'] ?? []).toHaveLength(0)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+    expect(tables['invest_orders']![0]!['status']).toBe('queued')
+  })
+
+  it('affords a buy inside the balance — the guard only bounds overspend', async () => {
+    const seed = baseSeed({ side: 'buy', quantity: 5 })
+    seed['invest_positions'] = []
+    const { client, tables } = fakeDb(seed)
+    const res = await executeOrder(client, 'u-1', 'ord-1', null)
+    expect(res.status).toBe(200)
+    /* 5 × 120 = 600 — inside the 1000 balance. */
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(400)
+  })
+
+  it('rolls the position back when the cash write fails', async () => {
+    /* Order: fill → position → cash. A failed cash write used to leave the
+       position moved while the fill row and order claim came back — the
+       book said 0 held and 1000 cash for 5 shares that were never paid
+       out. release() now restores the pre-fill position too. */
+    const { client, tables } = fakeDb(baseSeed(), {
+      failOn: { table: 'invest_accounts', op: 'update' },
+    })
+    const res = await executeOrder(client, 'u-1', 'ord-1', 110, 5)
+    expect(res.status).toBe(500)
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    expect(tables['invest_positions']![0]!).toMatchObject({ quantity: 5, avg_cost: 100 })
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+    expect(tables['invest_orders']![0]!['status']).toBe('queued')
+  })
+
+  it('self-reverts the fill that loses a concurrent-partial race', async () => {
+    /* Two partials both read 'queued' + the same remaining — each inserts
+       before seeing the other's. The post-insert recount makes the loser
+       delete its own fill instead of booking 6-of-5 on the order. The
+       stale read is served by a getter: first select sees nothing, the
+       recount sees the winner's fills already there. */
+    const seed = baseSeed()
+    seed['invest_order_fills'] = []
+    let call = 0
+    const { client, tables } = fakeDb(seed, {
+      frozen: {
+        get invest_order_fills() {
+          call++
+          /* 1st read (prior fills) → pre-race empty; insert's from() →
+             unused read; 3rd read (recount) → both racers' fills landed —
+             4 + 2 against a 5-share order. The rows need order_id/user_id —
+             the recount's .eq() filters match on them. */
+          return call <= 2
+            ? []
+            : [
+                { order_id: 'ord-1', user_id: 'u-1', quantity: 4, price: 100 },
+                { order_id: 'ord-1', user_id: 'u-1', quantity: 2, price: 110 },
+              ]
+        },
+      },
+    })
+    const res = await executeOrder(client, 'u-1', 'ord-1', 110, 2)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ code: 'over_fill' })
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    /* The losing fill deleted itself before any book write — position and
+       cash belong to the winner's fill, untouched here. */
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+  })
+
   it('refuses an order whose account belongs to someone else', async () => {
     /* The service role bypasses RLS — an order row naming a foreign
        account_id must not read that book's position or move its cash. */
@@ -350,6 +427,32 @@ describe('importFill', () => {
     const res = await importFill(client, 'u-1', { ...FILL, side: 'sell', quantity: 9 })
     expect(res.status).toBe(409)
     expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+  })
+
+  it('backs the order + fill out when the position write fails', async () => {
+    /* Unchecked errors here returned `executed` for a book that never
+       moved — the order and fill claimed a write that didn't happen. */
+    const { client, tables } = fakeDb(baseSeed(), {
+      failOn: { table: 'invest_positions', op: 'update' },
+    })
+    const res = await importFill(client, 'u-1', FILL)
+    expect(res.status).toBe(500)
+    expect(tables['invest_orders']).toHaveLength(1) /* only the queued seed */
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    expect(tables['invest_positions']![0]!['quantity']).toBe(5)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
+  })
+
+  it('restores the position when the cash write fails', async () => {
+    const { client, tables } = fakeDb(baseSeed(), {
+      failOn: { table: 'invest_accounts', op: 'update' },
+    })
+    const res = await importFill(client, 'u-1', FILL)
+    expect(res.status).toBe(500)
+    expect(tables['invest_positions']![0]!).toMatchObject({ quantity: 5, avg_cost: 100 })
+    expect(tables['invest_orders']).toHaveLength(1)
+    expect(tables['invest_order_fills'] ?? []).toHaveLength(0)
+    expect(tables['invest_accounts']![0]!['cash_balance']).toBe(1000)
   })
 })
 

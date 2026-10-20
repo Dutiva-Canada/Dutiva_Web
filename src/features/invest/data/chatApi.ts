@@ -62,6 +62,10 @@ export interface InvestChatTurn {
   /** Client-only — an optimistic user turn whose send threw; the bubble
       keeps the text and offers a retry instead of vanishing. */
   failed?: boolean
+  /** Client-only — the reader pressed Stop mid-stream; the partial reply
+     stays in place, and the history poll adopts the persisted full row
+     into this slot instead of stacking a second bubble. */
+  stopped?: boolean
   /** Client-only — the live attachment objects on a just-sent turn. They
       carry the data URLs a retry needs; after a reload the persisted row
       only holds the "[Attached …]" manifest, never the bytes. */
@@ -321,27 +325,34 @@ export async function sendInvestReaction(
     return { reply: null, assistantId: null }
   }
   lastReactionAt = Date.now()
-  const client = requireClient()
-  /* symbol is optional on signal_updated — goal/scan rows carry '' (no
-     position symbol), which isn't a subject. Drop empty values at the
-     boundary so Tally never reads "symbol: " with nothing after it. */
-  const evt =
-    event.type === 'signal_updated' && !(event.symbol ?? '').trim()
-      ? { ...event, symbol: undefined }
-      : event
-  const body = { kind: 'react', event: evt, lang, showPaywalled: showPaywalledPref() }
-  const raw = (
-    onDelta
-      ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta)
-      : await invokeEdgeFn(client, 'invest-ai', body)
-  ) as {
-    reply?: string
-    assistantId?: string | null
+  try {
+    const client = requireClient()
+    /* symbol is optional on signal_updated — goal/scan rows carry '' (no
+       position symbol), which isn't a subject. Drop empty values at the
+       boundary so Tally never reads "symbol: " with nothing after it. */
+    const evt =
+      event.type === 'signal_updated' && !(event.symbol ?? '').trim()
+        ? { ...event, symbol: undefined }
+        : event
+    const body = { kind: 'react', event: evt, lang, showPaywalled: showPaywalledPref() }
+    const raw = (
+      onDelta
+        ? await invokeEdgeFnStream(client, 'invest-ai', body, onDelta)
+        : await invokeEdgeFn(client, 'invest-ai', body)
+    ) as {
+      reply?: string
+      assistantId?: string | null
+    }
+    if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
+      throw new Error('Empty reaction from invest-ai')
+    }
+    return { reply: raw.reply, assistantId: raw.assistantId ?? null }
+  } catch (err) {
+    /* A failed call must not keep the slot it stamped — that would silence
+       the next legitimate nudge for 90 seconds on top of losing this one. */
+    lastReactionAt = 0
+    throw err
   }
-  if (typeof raw.reply !== 'string' || raw.reply.trim() === '') {
-    throw new Error('Empty reaction from invest-ai')
-  }
-  return { reply: raw.reply, assistantId: raw.assistantId ?? null }
 }
 
 /** Thumbs up/down on one assistant turn (1 | -1 | 0 to clear). A downvote

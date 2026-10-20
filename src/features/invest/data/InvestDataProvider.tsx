@@ -16,8 +16,12 @@ export function InvestDataProvider({ children }: { children: ReactNode }) {
      create must not loop, and a user who deletes every account later isn't
      re-provisioned mid-session. */
   const provisioned = useRef(false)
+  /* Overlapping refreshes resolve in call order, not fetch order — a slow
+     stale read must never overwrite a newer one. */
+  const refreshGen = useRef(0)
 
   const refresh = useCallback(async () => {
+    const gen = ++refreshGen.current
     try {
       let next = await loadInvestState()
       if (next.accounts.length === 0 && !provisioned.current) {
@@ -34,12 +38,14 @@ export function InvestDataProvider({ children }: { children: ReactNode }) {
            success we get the row we just wrote. */
         next = await loadInvestState()
       }
+      if (gen !== refreshGen.current) return
       setState(next)
       setError(false)
     } catch {
+      if (gen !== refreshGen.current) return
       setError(true)
     } finally {
-      setLoading(false)
+      if (gen === refreshGen.current) setLoading(false)
     }
   }, [])
 

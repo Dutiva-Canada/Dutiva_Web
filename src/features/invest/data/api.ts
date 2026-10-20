@@ -207,20 +207,7 @@ export async function loadInvestState(): Promise<InvestState> {
      them in the filter a "via theme" headline could never reach the
      card that asked for it. Server-side filter so general headlines
      can't crowd out a user's symbol news. */
-  const symbols = [
-    ...new Set(
-      [...(positions.data ?? []), ...(watchlist.data ?? [])]
-        .map((r) => String(r.symbol ?? '').toUpperCase())
-        .filter(Boolean)
-        .concat(
-          scanRows.flatMap((r) =>
-            (Array.isArray(r.symbols) ? (r.symbols as unknown[]) : [])
-              .map((s) => String(s).toUpperCase())
-              .filter(Boolean),
-          ),
-        ),
-    ),
-  ]
+  const symbols = newsFilterSymbols(positions.data ?? [], watchlist.data ?? [], scanRows)
   /* The feed retains 30 days — the sync prunes older rows, and the card
      offers 7d/2w/30d windows over this set. The row cap is a safety
      bound for a very busy feed, not the intended window. */
@@ -1797,6 +1784,27 @@ function toWatchItem(row: any): InvestWatchItem {
     name: row.name ?? '',
     createdAt: row.created_at,
   }
+}
+
+/* Symbols are stored free-text — a value containing ", ( or ) would break
+   the PostgREST .or() filter the news feed builds and take the whole state
+   load with it. Anything outside the market-symbol charset simply gets no
+   feed — it's dropped from the clause, not escaped into it. */
+const SYMBOL_SAFE_RE = /^[A-Z0-9.^=_-]+$/
+export function newsFilterSymbols(
+  positionRows: { symbol?: unknown }[],
+  watchRows: { symbol?: unknown }[],
+  scanRows: { symbols?: unknown }[],
+): string[] {
+  const held = [...positionRows, ...watchRows].map((r) => String(r.symbol ?? ''))
+  const themed = scanRows.flatMap((r) =>
+    Array.isArray(r.symbols) ? (r.symbols as unknown[]).map((s) => String(s)) : [],
+  )
+  return [
+    ...new Set(
+      [...held, ...themed].map((s) => s.toUpperCase()).filter((s) => SYMBOL_SAFE_RE.test(s)),
+    ),
+  ]
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
