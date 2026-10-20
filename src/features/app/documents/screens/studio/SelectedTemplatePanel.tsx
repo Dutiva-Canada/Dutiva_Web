@@ -74,7 +74,7 @@ export function SelectedTemplatePanel({
   return (
     <article
       aria-labelledby="doclib-selected-template-title"
-      className="flex h-full flex-col rounded-[12px] border border-border bg-surface lg:max-h-[calc(100vh-4.5rem)]"
+      className="flex h-full flex-col rounded-[12px] border border-border bg-surface lg:max-h-[calc(100dvh-8rem)]"
     >
       <div className="border-b border-border-soft px-4 py-4 max-[640px]:px-3">
         <div className="flex items-start gap-3">
