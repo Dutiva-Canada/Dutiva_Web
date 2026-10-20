@@ -396,6 +396,18 @@ SignalRule: {"metric", "op": "lt"|"gt", "value": number, "title",
   value_floor     — position market value in account currency
   weight_pct      — position's share of the book in %
   unrealized_gain_pct — gain vs avg cost in %
+- Personalize the bounds, don't default them. The holder's risk
+  tolerance, horizon, and the position's role set the tightness: a
+  conservative or short-horizon holder needs earlier drift warnings and
+  shallower break floors; a long-horizon growth holder tolerates a
+  deeper drawdown before the break line. A speculative intent earns
+  tighter drift lines than a core one.
+- Anchor every threshold to the live reads when they're given. A break
+  line that already sits past the current read ("−20% vs the 50-day"
+  when the price is already −19% under it) trips on the next tick — that
+  is a drift line, not a break. A value_floor far from the current
+  market value is dead weight. Prefer metrics with a live read — a rule
+  on a metric listed as having no data never fires.
 - Rules carry round, conservative thresholds the user can edit. Titles
   name what fired WITH the bound — "5%+ under the 50-day average" for a
   -5% vs_ma50 rule, "position under $2,500" for value_floor — never a
@@ -403,17 +415,120 @@ SignalRule: {"metric", "op": "lt"|"gt", "value": number, "title",
 - Every rule is type "signal" — a thesis watches, it never proposes an
   order.`
 
+/** The holder's declared dims + objective rendered as prompt lines —
+    what the bounds should scale to. Empty when nothing is on file. */
+function thesisProfileBlock(profile?: {
+  riskTolerance: string | null
+  horizon: string | null
+  goal: string | null
+  experience: string | null
+  planObjective: string | null
+}): string {
+  if (!profile) return ''
+  const lines: string[] = []
+  const dims = [
+    profile.riskTolerance && `risk tolerance ${profile.riskTolerance}`,
+    profile.horizon && `${profile.horizon} horizon`,
+    profile.goal && `${profile.goal} goal`,
+    profile.experience && `${profile.experience} investor`,
+  ].filter(Boolean)
+  if (dims.length > 0) lines.push(`  - declared profile: ${dims.join(', ')}`)
+  const objective = profile.planObjective?.trim()
+  if (objective) {
+    lines.push(`  - their stated objective, in their words: "${objective.slice(0, 400)}"`)
+  }
+  return lines.length > 0 ? `\nAbout the holder:\n${lines.join('\n')}\n` : ''
+}
+
+/** The live position/snapshot reads rendered for the model — anchors
+    for the thresholds it picks, and the honest list of which metrics
+    have data at all. */
+function thesisFactsBlock(facts?: {
+  held: boolean
+  quantity: number | null
+  avgCost: number | null
+  costCurrency: string | null
+  price: number | null
+  priceCurrency: string | null
+  dayChangePct: number | null
+  vsMa50Pct: number | null
+  unrealizedGainPct: number | null
+  marketValue: number | null
+  marketValueCurrency: string | null
+  weightPct: number | null
+  bookCurrency: string | null
+  priceAsOf: string | null
+}): string {
+  if (!facts) return ''
+  const n = (v: number | null, d = 2) =>
+    v === null ? null : Math.round(v * 10 ** d) / 10 ** d
+  const lines: string[] = []
+  if (facts.held && facts.quantity !== null) {
+    const bits = [`${n(facts.quantity, 4)} units`]
+    if (facts.avgCost !== null && facts.costCurrency) {
+      bits.push(`avg cost ${n(facts.avgCost)} ${facts.costCurrency}`)
+    }
+    if (facts.marketValue !== null && facts.marketValueCurrency) {
+      bits.push(`worth ${n(facts.marketValue)} ${facts.marketValueCurrency}`)
+    }
+    if (facts.weightPct !== null) bits.push(`${n(facts.weightPct, 1)}% of the book`)
+    if (facts.unrealizedGainPct !== null) {
+      bits.push(`${facts.unrealizedGainPct > 0 ? '+' : ''}${n(facts.unrealizedGainPct, 1)}% on cost`)
+    }
+    lines.push(`  - position: ${bits.join(', ')}`)
+  } else {
+    lines.push('  - watched, not held')
+  }
+  if (facts.price !== null && facts.priceCurrency) {
+    const tape = [`last ${n(facts.price)} ${facts.priceCurrency}`]
+    if (facts.dayChangePct !== null) {
+      tape.push(`${facts.dayChangePct > 0 ? '+' : ''}${n(facts.dayChangePct, 1)}% today`)
+    }
+    if (facts.vsMa50Pct !== null) {
+      tape.push(`${facts.vsMa50Pct > 0 ? '+' : ''}${n(facts.vsMa50Pct, 1)}% vs its 50-day`)
+    }
+    lines.push(`  - tape: ${tape.join(', ')}${facts.priceAsOf ? ` (as of ${facts.priceAsOf.slice(0, 10)})` : ''}`)
+  }
+  /* value_floor bounds are written in book currency — name it so a
+     USD-priced holding in a CAD book doesn't get a USD floor titled as
+     account currency. */
+  if (facts.bookCurrency) lines.push(`  - book currency: ${facts.bookCurrency}`)
+  const live: string[] = []
+  const dead: string[] = []
+  const has: Record<string, boolean> = {
+    day_change_pct: facts.dayChangePct !== null,
+    vs_ma50: facts.vsMa50Pct !== null,
+    value_floor: facts.marketValue !== null,
+    weight_pct: facts.weightPct !== null,
+    unrealized_gain_pct: facts.unrealizedGainPct !== null,
+  }
+  for (const [metric, ok] of Object.entries(has)) (ok ? live : dead).push(metric)
+  if (dead.length > 0) {
+    lines.push(`  - metrics with a live read: ${live.join(', ') || 'none'}`)
+    lines.push(`  - metrics with NO data (rules on these never fire): ${dead.join(', ')}`)
+  }
+  return lines.length > 0 ? `\nLive facts:\n${lines.join('\n')}\n` : ''
+}
+
 export function buildThesisDraftPrompt(
   input: { symbol: string; name: string; description: string },
   lang: 'en' | 'fr',
   memories?: MemoryPromptFact[],
   mandate?: string | null,
+  profile?: {
+    riskTolerance: string | null
+    horizon: string | null
+    goal: string | null
+    experience: string | null
+    planObjective: string | null
+  },
+  facts?: Parameters<typeof thesisFactsBlock>[0],
 ): string {
   const langName = lang === 'fr' ? 'Canadian French' : 'English'
   return `Language for the thesis field and rule titles: ${langName}.
 
 Holding: ${input.symbol}${input.name ? ` (${input.name})` : ''}
-${memoryPromptBlock(memories, input.symbol, mandate)}
+${thesisProfileBlock(profile)}${thesisFactsBlock(facts)}${memoryPromptBlock(memories, input.symbol, mandate)}
 The holder's story:
 ${input.description}`
 }
