@@ -57,4 +57,12 @@ export const seoMetaMessages = defineMessages({
     en: 'Invite-only portfolio tracking, rules-based signals, and paper trading across asset classes. Informational only — not investment advice.',
     fr: 'Suivi de portefeuille sur invitation, signaux fondés sur des règles et négociation simulée — informatif seulement, pas un conseil.',
   },
+  wellnessDoor_meta_description: {
+    en: 'Invite-only private check-ins, habit tracking, and a journal with gentle trends. Self-tracking only — not medical or crisis support.',
+    fr: 'Bilans privés, suivi d’habitudes et journal avec tendances, sur invitation — autosurveillance seulement, pas un service médical ni de crise.',
+  },
+  prDoor_meta_description: {
+    en: 'Invite-only communications desk for campaigns, content, media contacts, and coverage. Plans and tracks — never publishes on its own.',
+    fr: 'Bureau de communication sur invitation : campagnes, contenu, contacts médias et retombées. Planifie et suit — ne publie jamais lui-même.',
+  },
 })

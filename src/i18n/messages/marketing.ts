@@ -11,6 +11,8 @@ import { jurisdictionToolMessages } from './jurisdictionTool'
 import { changelogMessages } from './changelog'
 import { comparisonMessages } from './comparison'
 import { investorsMessages } from './investors'
+import { wellnessDoorMessages } from './wellnessDoor'
+import { prDoorMessages } from './prDoor'
 import { seoMetaMessages } from './seoMeta'
 import { sharedMessages } from './shared'
 
@@ -35,6 +37,8 @@ export const marketingMessages = {
   ...changelogMessages,
   ...comparisonMessages,
   ...investorsMessages,
+  ...wellnessDoorMessages,
+  ...prDoorMessages,
   ...seoMetaMessages,
   ...sharedMessages,
 } as const

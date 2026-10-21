@@ -52,6 +52,8 @@ export type SeoRouteId =
   | 'demoWorkspace'
   | 'careers'
   | 'investors'
+  | 'wellnessDoor'
+  | 'prDoor'
 
 interface SeoRoute {
   id: SeoRouteId
@@ -316,6 +318,32 @@ export const SEO_ROUTES: readonly SeoRoute[] = [
     description: t('investors_meta_description'),
     indexable: true,
     updated: '2026-11-28',
+  },
+  {
+    /* Public door to the invite-only /wellness portal — the portal path
+       itself serves the signed-in app, so the marketing page needs its own
+       slug. Same model as /investors. */
+    id: 'wellnessDoor',
+    path: { en: '/wellbeing', fr: '/fr/bien-etre' },
+    title: {
+      en: 'Dutiva Wellness — private check-ins, journal, gentle trends | Dutiva',
+      fr: 'Dutiva Mieux-être — bilans privés, journal, tendances | Dutiva',
+    },
+    description: t('wellnessDoor_meta_description'),
+    indexable: true,
+    updated: '2026-10-21',
+  },
+  {
+    /* Public door to the invite-only /pr portal. */
+    id: 'prDoor',
+    path: { en: '/public-relations', fr: '/fr/relations-publiques' },
+    title: {
+      en: 'Dutiva PR — campaigns, content, media contacts, coverage | Dutiva',
+      fr: 'Dutiva RP — campagnes, contenu, contacts médias, retombées | Dutiva',
+    },
+    description: t('prDoor_meta_description'),
+    indexable: true,
+    updated: '2026-10-21',
   },
 ] as const
 

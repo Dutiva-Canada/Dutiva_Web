@@ -44,10 +44,15 @@ const COMPANY_LINKS: FooterLink[] = [
   { key: 'landing_fc_openapp', to: '/workspace/welcome' },
 ]
 
-/* The invite-only invest portal — public overview page + direct sign-in. */
-const INVESTOR_LINKS: FooterLink[] = [
+/* The invite-only standalone portals — each pairs its public door page with
+   a direct sign-in link. */
+const PORTAL_LINKS: FooterLink[] = [
   { key: 'landing_foot_investors', route: 'investors' },
   { key: 'landing_foot_invest_portal', to: '/invest' },
+  { key: 'landing_foot_wellness', route: 'wellnessDoor' },
+  { key: 'landing_foot_wellness_portal', to: '/wellness' },
+  { key: 'landing_foot_pr', route: 'prDoor' },
+  { key: 'landing_foot_pr_portal', to: '/pr' },
 ]
 
 /* The five most-visited policies (content migration); the rest live behind
@@ -147,8 +152,8 @@ export function Footer() {
             {renderLinks(COMPANY_LINKS)}
           </div>
           <div>
-            <FooterHeading>{lt('landing_foot_investors')}</FooterHeading>
-            {renderLinks(INVESTOR_LINKS)}
+            <FooterHeading>{lt('landing_foot_portals')}</FooterHeading>
+            {renderLinks(PORTAL_LINKS)}
           </div>
           <div>
             <FooterHeading>{lt('landing_foot_legal')}</FooterHeading>

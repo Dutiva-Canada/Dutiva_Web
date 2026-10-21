@@ -3,7 +3,7 @@ import { defineMessages } from '../../core'
 export const landingFooter = defineMessages({
   landing_foot_disclaimer: {
     en: 'Dutiva provides practical HR workflow support and compliance-oriented guidance. It does not provide legal, tax, medical, or financial advice.',
-    fr: "Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. L’entreprise ne fournit pas d’avis juridique, fiscal, médical ou financier.",
+    fr: 'Dutiva offre un soutien pratique aux processus RH et des conseils axés sur la conformité. L’entreprise ne fournit pas d’avis juridique, fiscal, médical ou financier.',
   },
   landing_foot_desc: {
     en: 'Compliance-led workspace for Canadian employers — HR guidance, review-ready documents, and the day-to-day operations around your people.',
@@ -41,13 +41,33 @@ export const landingFooter = defineMessages({
     en: 'Legal',
     fr: 'Mentions légales',
   },
+  landing_foot_portals: {
+    en: 'Portals',
+    fr: 'Portails',
+  },
   landing_foot_investors: {
-    en: 'Investors',
-    fr: 'Investisseurs',
+    en: 'For investors',
+    fr: 'Pour les investisseurs',
   },
   landing_foot_invest_portal: {
-    en: 'Client sign-in',
-    fr: 'Connexion client',
+    en: 'Invest sign-in',
+    fr: 'Connexion Investir',
+  },
+  landing_foot_wellness: {
+    en: 'Dutiva Wellness',
+    fr: 'Dutiva Mieux-être',
+  },
+  landing_foot_wellness_portal: {
+    en: 'Wellness sign-in',
+    fr: 'Connexion Mieux-être',
+  },
+  landing_foot_pr: {
+    en: 'Dutiva PR',
+    fr: 'Dutiva RP',
+  },
+  landing_foot_pr_portal: {
+    en: 'PR sign-in',
+    fr: 'Connexion RP',
   },
   /* Footer link to the legal hub — chrome copy, lives here so it stays in
      the eager marketing catalogue (Footer renders on every public page). */

@@ -37,6 +37,8 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const VsSixfiftyPage = lazy(() => import('@/features/marketing/pages/ComparisonPage').then((m) => ({ default: m.VsSixfiftyPage })))
 /* prettier-ignore */ const JurisdictionToolPage = lazy(() => import('@/features/marketing/pages/JurisdictionToolPage').then((m) => ({ default: m.JurisdictionToolPage })))
 /* prettier-ignore */ const InvestorsPage = lazy(() => import('@/features/marketing/pages/InvestorsPage').then((m) => ({ default: m.InvestorsPage })))
+/* prettier-ignore */ const WellnessDoorPage = lazy(() => import('@/features/marketing/pages/WellnessDoorPage').then((m) => ({ default: m.WellnessDoorPage })))
+/* prettier-ignore */ const PrDoorPage = lazy(() => import('@/features/marketing/pages/PrDoorPage').then((m) => ({ default: m.PrDoorPage })))
 /* prettier-ignore */ const PricingShell = lazy(() => import('@/features/marketing/pages/PricingShell').then((m) => ({ default: m.PricingShell })))
 /* prettier-ignore */ const TemplatesPage = lazy(() => import('@/features/marketing/pages/TemplatesPage').then((m) => ({ default: m.TemplatesPage })))
 /* prettier-ignore */ const GuidesIndexPage = lazy(() => import('@/features/marketing/pages/GuidesIndexPage').then((m) => ({ default: m.GuidesIndexPage })))
@@ -182,6 +184,8 @@ function publicRoutes(lang: Lang): RouteObject {
       { path: p('vsSixfifty'), element: <VsSixfiftyPage /> },
       { path: p('jurisdictionTool'), element: <JurisdictionToolPage /> },
       { path: p('investors'), element: <InvestorsPage /> },
+      { path: p('wellnessDoor'), element: <WellnessDoorPage /> },
+      { path: p('prDoor'), element: <PrDoorPage /> },
     ],
   }
 }
@@ -267,6 +271,8 @@ function AppLegacyRedirect() {
  *   /invest/plan            the book as one reviewed document — objective,
  *                           investor profile, goals, holdings + theses,
  *                           standing rules, watch board, open items, review
+ *   /wellbeing & /fr/bien-etre   public door to the wellness portal
+ *   /public-relations & /fr/relations-publiques   public door to the PR portal
  *   /wellness               wellness portal — standalone shell, shared auth,
  *                           gated by a health_access grant (invite-only);
  *                           non-clinical self-tracking + journal

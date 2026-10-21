@@ -122,6 +122,32 @@ export const landingWorkspaceDemos = defineMessages({
     en: 'Illustrative sample — not your organization’s data.',
     fr: 'Exemple illustratif — pas les données de votre organisation.',
   },
+  /* Standalone invite-only portals beside the workspace — each card links to
+     that portal's public door page, which states the invite model plainly. */
+  landing_portals_heading: {
+    en: 'Standalone portals',
+    fr: 'Portails autonomes',
+  },
+  landing_portals_sub: {
+    en: 'Separate products beside the workspace — invite-only, with one sign-in.',
+    fr: 'Des produits distincts à côté de l’espace de travail — sur invitation, avec une seule connexion.',
+  },
+  landing_portal_invest_t: { en: 'Dutiva Invest', fr: 'Dutiva Investir' },
+  landing_portal_invest_b: {
+    en: 'Portfolio tracking with rules-based signals — informational tooling, not advice.',
+    fr: 'Suivi de portefeuille avec signaux fondés sur des règles — outil informatif, pas un conseil.',
+  },
+  landing_portal_wellness_t: { en: 'Dutiva Wellness', fr: 'Dutiva Mieux-être' },
+  landing_portal_wellness_b: {
+    en: 'Private check-ins, habits, and a journal — non-clinical self-tracking.',
+    fr: 'Bilans privés, habitudes et journal — autosurveillance non clinique.',
+  },
+  landing_portal_pr_t: { en: 'Dutiva PR', fr: 'Dutiva RP' },
+  landing_portal_pr_b: {
+    en: 'Campaigns, media contacts, and coverage — plans and tracks, never publishes for you.',
+    fr: 'Campagnes, contacts médias et retombées — planifie et suit, sans jamais publier pour vous.',
+  },
+  landing_portals_link: { en: 'Learn more', fr: 'En savoir plus' },
   landing_ws_demo_comms_caps: {
     en: 'Capabilities',
     fr: 'Fonctions',

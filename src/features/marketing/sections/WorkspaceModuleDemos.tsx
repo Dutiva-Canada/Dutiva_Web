@@ -7,6 +7,7 @@ import {
   BarChart3,
   Book,
   BookOpen,
+  Briefcase,
   CalendarCheck,
   ChevronRight,
   Cog,
@@ -15,6 +16,7 @@ import {
   FileSignature,
   FileStack,
   FileText,
+  HeartPulse,
   Megaphone,
   MessageCircle,
   MessageSquare,
@@ -103,6 +105,30 @@ const TABS: { id: TabId; labelKey: LandingMessageKey }[] = [
   { id: 'comms', labelKey: 'landing_ws_demo_comms_title' },
   { id: 'hiring', labelKey: 'landing_ws_demo_hiring_title' },
   { id: 'finance', labelKey: 'landing_ws_demo_finance_title' },
+]
+
+/** The standalone invite-only portals — separate products beside the
+    workspace, each with its own public door page. Links go through the SEO
+    route registry so they stay localized. */
+const PORTALS: {
+  icon: LucideIcon
+  title: LandingMessageKey
+  body: LandingMessageKey
+  route: 'investors' | 'wellnessDoor' | 'prDoor'
+}[] = [
+  {
+    icon: Briefcase,
+    title: 'landing_portal_invest_t',
+    body: 'landing_portal_invest_b',
+    route: 'investors',
+  },
+  {
+    icon: HeartPulse,
+    title: 'landing_portal_wellness_t',
+    body: 'landing_portal_wellness_b',
+    route: 'wellnessDoor',
+  },
+  { icon: Megaphone, title: 'landing_portal_pr_t', body: 'landing_portal_pr_b', route: 'prDoor' },
 ]
 
 /**
@@ -425,6 +451,33 @@ export function WorkspaceModuleDemos() {
             />
           ))}
         </div>
+      </div>
+
+      <div className="mt-4 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-7">
+        <h3 className="m-0 text-base font-semibold text-text">{lt('landing_portals_heading')}</h3>
+        <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{lt('landing_portals_sub')}</p>
+        <ul className="mt-4 grid list-none gap-3 p-0 sm:grid-cols-3">
+          {PORTALS.map((portal) => (
+            <li key={portal.route}>
+              <Link
+                to={p(portal.route)}
+                className="group flex h-full flex-col rounded-xl border border-border bg-bg-soft p-4 transition-colors hover:border-(--accent-soft-border)"
+              >
+                <span className="flex items-center gap-2 text-sm font-semibold text-text">
+                  <portal.icon size={16} className="shrink-0 text-gold-strong" aria-hidden="true" />
+                  {lt(portal.title)}
+                </span>
+                <span className="mt-1.5 flex-1 text-xs leading-[1.55] text-text-2">
+                  {lt(portal.body)}
+                </span>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-accent transition-opacity group-hover:opacity-80">
+                  {lt('landing_portals_link')}
+                  <ChevronRight size={12} aria-hidden="true" />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   )

@@ -41,4 +41,24 @@ describe('WorkspaceModuleDemos', () => {
       '/demo/finance/overview',
     )
   })
+
+  it('links the three standalone portals to their door pages', () => {
+    renderApp(<WorkspaceModuleDemos />, { route: '/', path: '/' })
+
+    expect(
+      screen.getByRole('heading', { name: /Standalone portals|Portails autonomes/i }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Dutiva Invest/ })).toHaveAttribute(
+      'href',
+      '/investors',
+    )
+    expect(screen.getByRole('link', { name: /Dutiva Wellness/ })).toHaveAttribute(
+      'href',
+      '/wellbeing',
+    )
+    expect(screen.getByRole('link', { name: /Dutiva PR/ })).toHaveAttribute(
+      'href',
+      '/public-relations',
+    )
+  })
 })
