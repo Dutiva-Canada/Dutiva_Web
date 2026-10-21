@@ -465,6 +465,8 @@ for (const { route, file } of pages) {
     if (target.startsWith('/careers/portal') || target.startsWith('/fr/carrieres/portal')) continue // candidate portal (auth-gated, noindex)
     if (target === '/employer' || target === '/fr/employeur') continue // employer sign-in door (auth-gated, noindex)
     if (target === '/invest' || target.startsWith('/invest/')) continue // invest portal (auth-gated, noindex)
+    if (target === '/wellness' || target.startsWith('/wellness/')) continue // wellness portal (auth-gated, noindex)
+    if (target === '/pr' || target.startsWith('/pr/')) continue // PR portal (auth-gated, noindex)
     if (target.startsWith('/demo/') || target.startsWith('/fr/demo/')) continue // demo SPA subpaths
     if (target.startsWith('/assets') || target.startsWith('/brand')) {
       if (!existsSync(path.join(dist, target))) fail(`${route}: broken asset link ${target}`)
