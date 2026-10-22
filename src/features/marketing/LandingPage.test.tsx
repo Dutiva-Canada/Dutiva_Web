@@ -7,6 +7,18 @@ import { LandingPage } from './LandingPage'
 import { HOME_FAQ_ITEMS } from './homeFaq'
 
 describe('LandingPage', () => {
+  it('renders on the portal design system (.lp scope over surface-app)', () => {
+    renderApp(<LandingPage />, { route: '/', path: '/' })
+    const root = document.querySelector('.lp')
+    expect(root).not.toBeNull()
+    expect(root).toHaveClass('surface-app')
+    /* Portal cards in the first viewport — the trust row and hero note are
+       lp-styled, proving the skin mounted rather than the old navy ramp. */
+    expect(document.querySelector('.lp .lp-card')).not.toBeNull()
+    expect(document.querySelector('.lp .lp-note')).not.toBeNull()
+    expect(document.querySelector('.lp .lp-btn-primary')).not.toBeNull()
+  })
+
   it('emits FAQPage JSON-LD from the same homepage questions that are visible', () => {
     renderApp(<LandingPage />, { route: '/', path: '/' })
 

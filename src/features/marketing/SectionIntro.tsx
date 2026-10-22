@@ -1,4 +1,5 @@
-/** Shared section header: badge, display heading, one-line subcopy. */
+/** Shared section header — the portal page-head: caps eyebrow, serif
+    heading, one muted line of subcopy. */
 export function SectionIntro({
   badge,
   title,
@@ -9,12 +10,10 @@ export function SectionIntro({
   readonly sub: string
 }) {
   return (
-    <div className="mb-10 max-w-[640px]">
-      <span className="badge">{badge}</span>
-      <h2 className="mt-4 font-display text-[clamp(2rem,3.5vw,3rem)] font-semibold tracking-[-0.02em] text-text">
-        {title}
-      </h2>
-      <p className="mt-3 text-base leading-[1.6] text-text-2">{sub}</p>
+    <div className="mb-7 max-w-[640px]">
+      <span className="lp-eyebrow">{badge}</span>
+      <h2 className="lp-h2 mt-2">{title}</h2>
+      <p className="lp-sub mt-2 leading-[1.6]">{sub}</p>
     </div>
   )
 }

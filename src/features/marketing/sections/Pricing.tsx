@@ -24,21 +24,16 @@ export function Pricing() {
   const { lt, t } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section
-      id="pricing"
-      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
-    >
+    <section id="pricing" className="lp-col scroll-mt-20 py-8 sm:py-10">
       <SectionIntro
         badge={lt('landing_price_badge')}
         title={lt('landing_price_title')}
         sub={lt('landing_price_sub')}
       />
       {PAID_PLANS_DISABLED_DURING_BETA ? (
-        <p className="mb-6 max-w-[68ch] rounded-xl border border-border bg-bg-elevated px-4 py-3 text-sm leading-6 text-text-2">
-          {t('pricing_beta_banner')}
-        </p>
+        <p className="lp-note mb-5 max-w-[68ch]">{t('pricing_beta_banner')}</p>
       ) : null}
-      <div className="marketing-auto-grid marketing-auto-grid--230 gap-4">
+      <div className="marketing-auto-grid marketing-auto-grid--230 gap-3">
         {PLANS.map((plan) => {
           const purchasable = isPurchasable(plan)
           const hasPrice = plan.monthlyPrice > 0
@@ -47,8 +42,8 @@ export function Pricing() {
               key={plan.id}
               className={[
                 plan.popular
-                  ? 'flex flex-col rounded-[14px] border border-gold-border bg-bg-soft p-6'
-                  : 'flex flex-col rounded-[14px] border border-border bg-bg-elevated p-6',
+                  ? 'lp-card lp-card-pad flex flex-col border-gold-border'
+                  : 'lp-card lp-card-pad flex flex-col',
                 purchasable ? '' : 'opacity-60',
               ].join(' ')}
             >

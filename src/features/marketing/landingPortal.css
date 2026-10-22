@@ -1,0 +1,562 @@
+/* ── Landing page, portal design language ───────────────────────────────────
+   Scoped `.lp` system — the same design vocabulary the standalone portals
+   carry (`.sb` in invest, `.hb` in wellness, `.prx` in PR): flat warm
+   hairline cards on an ivory floor, serif headings, 999px buttons in navy,
+   warm gold as the interactive accent, and quiet hairline lists.
+
+   The page wraps in `surface-app` (ivory/navy ramp), so shared Tailwind
+   utilities already resolve to portal chrome; these tokens cover what the
+   surface ramp does not — card fills, the working accent, and the serif
+   headline signature.
+
+   Token values mirror `src/features/invest/portal/strategies/shell.css`
+   (`.sb`) deliberately — a scoped copy like `.hb`/`.prx`, not an import, so
+   marketing never reaches into invest-portal internals. */
+
+.lp {
+  --lp-card: #f3eddd;
+  --lp-card-deep: #eadfc3;
+  --lp-ink: #1e3a5f;
+  --lp-ink-soft: #43608c;
+  --lp-body: #2e3b52;
+  --lp-muted: #847a60;
+  --lp-line: #e2d6b8;
+  --lp-input: #fffdf6;
+  --lp-accent: #b8891f;
+  --lp-accent-ink: #8a680f;
+  --lp-accent-soft: #f0e4c4;
+  --lp-primary: #1e3a5f;
+  --lp-primary-text: #fbf7ec;
+  --lp-danger: #b3452e;
+  --lp-ok: #2e7d4f;
+  --lp-ok-soft: #dceedf;
+  --lp-radius: 16px;
+  --lp-shadow: 0 1px 2px rgba(30, 58, 95, 0.06), 0 4px 14px rgba(30, 58, 95, 0.06);
+
+  /* ── Marketing-name bridge ────────────────────────────────────────────────
+     The landing markup and the shared components it mounts (Header pills,
+     IconChip, AdvisorDemo, statusChips, Footer) were written against the
+     marketing ramp's token names — `--bg-elevated`, `--topbar-bg`,
+     `--control-border`, `--gold-strong` — which `.surface-app` never defines.
+     Aliasing them here onto the portal values reskins every shared component
+     with zero JSX changes: `text-accent` links go gold-ink, selected chips
+     get the accent-soft pill, cards flatten, and the topbar turns ivory.
+
+     Accent remap is the loudest move: gold replaces teal as the interactive
+     accent on this page only — `.lp` scopes it, other surfaces are untouched. */
+  --bg: #faf6ec;
+  --desk: #efe9d9;
+  --bg-elevated: var(--lp-input);
+  --bg-soft: var(--lp-card);
+  --bg-softer: var(--lp-card-deep);
+  --surface: var(--lp-input);
+  --surface-2: var(--lp-card);
+  --inset: var(--lp-card-deep);
+  --border: var(--lp-line);
+  --border-soft: #ece3cc;
+  --border-strong: var(--lp-muted);
+  --control-border: var(--lp-line);
+  --danger: var(--lp-danger);
+  --topbar-bg: rgba(250, 246, 236, 0.92);
+  --card-bg-1: var(--lp-card);
+  --card-bg-2: var(--lp-card);
+
+  /* Text ramp: ink + body take the portal navy hues; text-3/text-muted/
+     text-faint keep the surface-app values — those were AA-validated at
+     ≥4.5:1 on this canvas and lp-muted (#847a60 ≈4.0:1) is not. */
+  --text: var(--lp-ink);
+  --text-2: var(--lp-body);
+
+  /* Working accent: teal → gold-ink across the whole page via the shared
+     --accent name; chips/tabs/selected states follow for free. */
+  --accent: var(--lp-accent-ink);
+  --accent-soft: var(--lp-accent-soft);
+  --accent-soft-border: var(--lp-accent);
+  --focus: var(--lp-accent);
+  --sel: var(--lp-accent-soft);
+
+  /* Gold-name utilities (text-gold-strong, border-gold-border, bg-gold-bg)
+     resolve to the portal accent — IconChip highlighted states and the
+     recommended pricing tier keep their accent treatment, in gold. */
+  --gold-strong: var(--lp-accent-ink);
+  --gold-fg: var(--lp-accent-ink);
+  --gold-bg: var(--lp-accent-soft);
+  --gold-border: color-mix(in srgb, var(--lp-accent) 45%, transparent);
+  --gold-border-soft: var(--lp-accent);
+  --gold-dot: var(--lp-accent);
+
+  color: var(--lp-body);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+[data-theme='dark'] .lp {
+  --lp-card: #1c2438;
+  --lp-card-deep: #242e46;
+  --lp-ink: #f0e9d6;
+  --lp-ink-soft: #c9d2e6;
+  --lp-body: #d9deea;
+  --lp-muted: #8e97b0;
+  --lp-line: #2b3650;
+  --lp-input: #0e1421;
+  --lp-accent: #d9ac45;
+  --lp-accent-ink: #e4c06a;
+  --lp-accent-soft: #3a3020;
+  --lp-primary: #d9ac45;
+  --lp-primary-text: #20242e;
+  --lp-danger: #e07b62;
+  --lp-ok: #6fc79a;
+  --lp-ok-soft: #1e3329;
+  --lp-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.3);
+
+  --bg: #121826;
+  --desk: #0d1322;
+  --border-soft: #233050;
+  --topbar-bg: rgba(18, 24, 38, 0.9);
+}
+
+/* ---------- type ---------- */
+
+.lp .lp-eyebrow {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+/* Serif is the portal signature — h1/h2/h3 inside .lp always take Georgia. */
+.lp h1,
+.lp h2,
+.lp h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: 0.002em;
+  color: var(--lp-ink);
+}
+.lp .lp-h1 {
+  font-size: clamp(1.875rem, 3.4vw, 2.625rem);
+  line-height: 1.15;
+}
+.lp .lp-h2 {
+  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+  line-height: 1.2;
+}
+.lp .lp-sub {
+  color: var(--lp-muted);
+  font-size: 15px;
+}
+
+/* ---------- page column & section rhythm ---------- */
+
+/* The portal column: ~980px content under the shared 1200px header. */
+.lp .lp-col {
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 0 20px;
+}
+/* A deliberate wide moment — the tabbed product showcase. */
+.lp .lp-col-wide {
+  max-width: 1180px;
+}
+.lp section {
+  scroll-margin-top: 80px;
+}
+
+/* ---------- cards ---------- */
+
+.lp .lp-card {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-line);
+  border-radius: var(--lp-radius);
+  box-shadow: var(--lp-shadow);
+}
+.lp .lp-card-pad {
+  padding: 18px;
+}
+@media (min-width: 640px) {
+  .lp .lp-card-pad {
+    padding: 22px;
+  }
+}
+/* A linked card: quiet lift, accent border — health-grade, never glow. */
+.lp a.lp-card,
+.lp button.lp-card {
+  transition:
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+.lp a.lp-card:hover,
+.lp button.lp-card:hover {
+  border-color: var(--lp-accent);
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp a.lp-card:hover,
+  .lp button.lp-card:hover {
+    transform: none;
+  }
+}
+
+/* ---------- quiet callout ---------- */
+
+.lp .lp-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--lp-input);
+  border: 1px solid var(--lp-line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--lp-muted);
+}
+.lp .lp-note svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--lp-accent-ink);
+}
+.lp .lp-note-accent {
+  border-color: var(--lp-accent);
+  color: var(--lp-body);
+}
+
+/* ---------- buttons ---------- */
+
+/* `.lp button` inherits color like `.sb button` — every variant selector
+   stays scoped under .lp for the same specificity reason documented there. */
+.lp .lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.25;
+  cursor: pointer;
+  text-decoration: none;
+}
+.lp .lp-btn-primary {
+  background: var(--lp-primary);
+  color: var(--lp-primary-text);
+}
+.lp .lp-btn-secondary {
+  background: transparent;
+  border-color: var(--lp-ink);
+  color: var(--lp-ink);
+}
+.lp .lp-btn-sm {
+  min-height: 40px;
+  padding: 8px 18px;
+  font-size: 14px;
+}
+.lp .lp-btn[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+.lp .lp-btn:focus-visible {
+  outline: 2px solid var(--lp-accent);
+  outline-offset: 2px;
+}
+.lp .lp-btn-block {
+  width: 100%;
+}
+
+/* Quiet text link — the accent does the affordance, no underline needed. */
+.lp .lp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--lp-accent-ink);
+  text-decoration: none;
+}
+.lp .lp-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- pills ---------- */
+
+.lp .lp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  line-height: 1.4;
+  border: 1px solid var(--lp-line);
+  color: var(--lp-muted);
+  background: var(--lp-card-deep);
+}
+.lp .lp-pill-accent {
+  background: var(--lp-accent-soft);
+  color: var(--lp-accent-ink);
+  border-color: var(--lp-accent);
+}
+
+/* ---------- stats ---------- */
+
+.lp .lp-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+  gap: 12px;
+}
+.lp .lp-stat {
+  background: var(--lp-card);
+  border: 1px solid var(--lp-line);
+  border-radius: var(--lp-radius);
+  box-shadow: var(--lp-shadow);
+  padding: 14px 16px;
+}
+.lp .lp-stat .lp-stat-k {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+.lp .lp-stat .lp-stat-v {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--lp-ink);
+}
+.lp .lp-stat .lp-stat-sub {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--lp-muted);
+}
+
+/* ---------- hairline lists ---------- */
+
+.lp .lp-mini-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lp .lp-mini-list > li {
+  border-bottom: 1px solid var(--lp-line);
+}
+.lp .lp-mini-list > li:last-child {
+  border-bottom: 0;
+}
+
+/* ---------- section head ---------- */
+
+/* Heading left, quiet accent link right — the portal section-head row. */
+.lp .lp-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* ---------- inputs ---------- */
+
+.lp .lp-input {
+  min-height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--lp-line);
+  background: var(--lp-input);
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 15px;
+  color: var(--lp-body);
+}
+.lp .lp-input::placeholder {
+  color: var(--lp-muted);
+}
+.lp .lp-input:focus-visible {
+  outline: 2px solid var(--lp-accent);
+  outline-offset: 1px;
+}
+.lp .lp-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lp-ink);
+  margin-bottom: 6px;
+}
+
+/* ---------- dividers & misc ---------- */
+
+.lp .lp-hairline {
+  border: 0;
+  border-top: 1px solid var(--lp-line);
+}
+.lp .lp-check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14.5px;
+  color: var(--lp-body);
+}
+.lp .lp-check-row svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--lp-accent-ink);
+}
+
+/* ── Shared marketing classes, reskinned under .lp ──────────────────────────
+   These selectors mirror the portal role each class plays — the pill button,
+   the caps eyebrow, the flat hairline card — so components shared with the
+   .surface-marketing subpages keep one JSX and take the portal look here. */
+
+/* Buttons → portal pills (48px, 999px, navy fill / navy outline). The size
+   modifiers (-lg/-md/-block/-consent) still apply on top. */
+.lp .gold-button {
+  min-height: 48px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: var(--lp-primary);
+  color: var(--lp-primary-text);
+  font-weight: 700;
+  box-shadow: none;
+  overflow: visible;
+}
+.lp .gold-button::before {
+  content: none;
+}
+.lp .gold-button:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.92;
+}
+.lp .gold-button:active {
+  transform: none;
+}
+.lp .gold-button:disabled,
+.lp .gold-button[aria-disabled='true'] {
+  opacity: 0.55;
+  box-shadow: none;
+}
+
+.lp .ghost-button {
+  min-height: 48px;
+  border-radius: 999px;
+  border: 1px solid var(--lp-ink);
+  background: transparent;
+  color: var(--lp-ink);
+  font-weight: 700;
+}
+.lp .ghost-button:hover {
+  transform: none;
+  border-color: var(--lp-accent);
+  color: var(--lp-accent-ink);
+  background: var(--lp-accent-soft);
+}
+.lp .ghost-button:active {
+  transform: none;
+}
+[data-theme='dark'] .lp .ghost-button {
+  background: transparent;
+}
+[data-theme='dark'] .lp .ghost-button:hover {
+  background: var(--lp-accent-soft);
+}
+.lp .gold-button:focus-visible,
+.lp .ghost-button:focus-visible {
+  outline: 2px solid var(--lp-accent);
+  outline-offset: 2px;
+}
+.lp .gold-button-md,
+.lp .ghost-button-md {
+  min-height: 40px;
+}
+.lp .gold-button-consent {
+  min-height: 40px;
+}
+
+/* Badge → caps eyebrow: the portal uses bare caps kickers, not bordered pills. */
+.lp .badge {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+/* Cards → flat warm hairline. Kills the gradient fill, the 22px radius, the
+   lift-and-glow hover — the lp-card treatment via the existing class names. */
+.lp .premium-card,
+.lp .premium-card-soft {
+  border-radius: var(--lp-radius);
+  background: var(--lp-card);
+  border: 1px solid var(--lp-line);
+  box-shadow: var(--lp-shadow);
+}
+.lp .premium-card:hover {
+  transform: none;
+  box-shadow: var(--lp-shadow);
+}
+.lp .premium-card-soft:hover {
+  transform: translateY(-1px);
+  border-color: var(--lp-accent);
+  box-shadow: var(--lp-shadow);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp .premium-card-soft:hover {
+    transform: none;
+  }
+}
+
+/* Trust pill → portal pill. */
+.lp .dutiva-pill {
+  border-radius: 999px;
+  border: 1px solid var(--lp-line);
+  background: var(--lp-card-deep);
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lp-muted);
+}
+
+/* Gilded gradient → the portal's single accent-ink emphasis colour. */
+.lp .gradient-text {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--lp-accent-ink);
+}
+
+/* Portal motion is near-static — no fade-up entrance on this page. */
+.lp .animate-fade-up {
+  animation: none;
+}
+
+/* Serif signature: display type inside .lp takes the portal's Georgia —
+   except the brand wordmark, which stays Montserrat like in the portals. */
+.lp .font-display:not(.wordmark-lg):not(.wordmark-drawer) {
+  font-family: var(--font-serif);
+}
+
+/* Skip link → navy pill consistent with the portal primary. */
+.lp .skip-link {
+  border-radius: 999px;
+  background: var(--lp-primary);
+  color: var(--lp-primary-text);
+}

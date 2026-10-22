@@ -13,16 +13,18 @@ const POINTS: { icon: LucideIcon; title: LandingMessageKey; body: LandingMessage
 export function WhyDutiva() {
   const { lt } = useLanding()
   return (
-    <section className="mx-auto max-w-[1200px] px-4 pt-6 pb-10 sm:px-6">
-      <div className="premium-card marketing-auto-grid marketing-auto-grid--300 items-start gap-8 p-[clamp(20px,4vw,56px)] sm:gap-10">
+    <section className="lp-col py-8 sm:py-10">
+      <div className="lp-card lp-card-pad marketing-auto-grid marketing-auto-grid--300 items-start gap-6 sm:gap-8">
         <div>
-          <span className="badge">{lt('landing_why_badge')}</span>
-          <h2 className="mt-4 font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
+          <span className="lp-eyebrow">{lt('landing_why_badge')}</span>
+          <h2 className="lp-h2 mt-2">
             {lt('landing_why_title_a')}
             <span className="gradient-text">{lt('landing_why_title_b')}</span>
           </h2>
-          <blockquote className="mt-5 border-l-2 border-gold-strong pl-4">
-            <p className="text-base leading-[1.65] text-text-2 italic">{lt('landing_why_p')}</p>
+          <blockquote className="mt-4 border-l-2 border-gold-border pl-4">
+            <p className="text-[0.9375rem] leading-[1.65] text-text-2 italic">
+              {lt('landing_why_p')}
+            </p>
             <footer className="mt-3 text-sm font-semibold not-italic text-text">
               — {lt('landing_why_attribution')}
             </footer>
@@ -30,20 +32,17 @@ export function WhyDutiva() {
           <p className="mt-3 text-sm text-text-3">{lt('landing_why_foot')}</p>
           <FounderIdentity size="compact" />
         </div>
-        <div className="flex h-full flex-col gap-3">
+        <ul className="lp-mini-list m-0 p-0">
           {POINTS.map((point) => (
-            <div
-              key={point.title}
-              className="flex flex-1 items-start gap-3.5 rounded-[14px] border border-border bg-bg-elevated p-[18px]"
-            >
-              <point.icon size={20} className="mt-0.5 flex-none text-gold-strong" />
+            <li key={point.title} className="flex items-start gap-3.5 py-4 first:pt-1 last:pb-1">
+              <point.icon size={18} className="mt-0.5 flex-none text-gold-strong" />
               <div>
                 <div className="font-semibold text-text">{lt(point.title)}</div>
                 <p className="mt-1 text-sm leading-normal text-text-2">{lt(point.body)}</p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   )

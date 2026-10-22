@@ -10,8 +10,8 @@ export const landingHowItWorks = defineMessages({
     fr: 'De la question au document prêt à réviser en trois étapes.',
   },
   landing_how_sub: {
-    en: 'Compliance is stressful. Dutiva structures the work and shows you exactly what to verify before anything leaves your hands — so you never have to guess.',
-    fr: 'La conformité est stressante. Dutiva structure le travail et vous montre exactement quoi vérifier avant que quoi que ce soit ne quitte vos mains — pour que vous n’ayez plus à deviner.',
+    en: 'Three steps from question to document — each one shows what to verify before anything leaves your hands.',
+    fr: 'Trois étapes de la question au document — chacune montre quoi vérifier avant que quoi que ce soit ne quitte vos mains.',
   },
   landing_how1_t: {
     en: 'Ask, with jurisdiction',
@@ -19,7 +19,7 @@ export const landingHowItWorks = defineMessages({
   },
   landing_how1_p: {
     en: 'Ask a plain-language HR question and pick Ontario, Quebec, or federal — or start a guided workflow for multi-step processes like termination or accommodation.',
-    fr: "Posez une question RH en langage clair et choisissez l’Ontario, le Québec ou le fédéral — ou démarrez un processus guidé pour les démarches à plusieurs étapes comme une cessation d’emploi ou un accommodement.",
+    fr: 'Posez une question RH en langage clair et choisissez l’Ontario, le Québec ou le fédéral — ou démarrez un processus guidé pour les démarches à plusieurs étapes comme une cessation d’emploi ou un accommodement.',
   },
   landing_how2_t: {
     en: 'Advisor assesses and flags risk',

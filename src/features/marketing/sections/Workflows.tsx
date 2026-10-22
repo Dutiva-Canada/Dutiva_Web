@@ -59,26 +59,23 @@ export const LANDING_WORKFLOW_TILES: Tile[] = [
 export function Workflows() {
   const { lt } = useLanding()
   return (
-    <section
-      id="workflows"
-      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
-    >
+    <section id="workflows" className="lp-col scroll-mt-20 py-8 sm:py-10">
       <SectionIntro
         badge={lt('landing_wf_badge')}
         title={lt('landing_wf_title')}
         sub={lt('landing_wf_sub')}
       />
-      <div className="marketing-auto-grid marketing-auto-grid--150 gap-2.5">
+      <div className="marketing-auto-grid marketing-auto-grid--150 gap-2">
         {LANDING_WORKFLOW_TILES.map((tile) => (
-          <div key={tile.label} className="rounded-xl border border-border bg-bg-elevated p-4">
-            <tile.icon size={18} className="text-gold-strong" />
-            <div className="mt-2.5 text-[0.8125rem] font-semibold text-text">{lt(tile.label)}</div>
+          <div key={tile.label} className="lp-card p-3.5">
+            <tile.icon size={16} className="text-gold-strong" aria-hidden="true" />
+            <div className="mt-2 text-[0.8125rem] font-semibold text-text">{lt(tile.label)}</div>
             <div className="mt-0.5 text-xs text-text-3">{lt(tile.sub)}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {LANDING_WORKFLOW_EXAMPLES.map((example) => (
           <WorkflowExampleCard key={example.nameKey} {...example} />
         ))}

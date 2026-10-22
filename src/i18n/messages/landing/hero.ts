@@ -5,10 +5,10 @@ import { defineMessages } from '../../core'
 const STARTER_PRICE = getPlanById('starter')!.monthlyPrice
 
 export const landingHero = defineMessages({
-  /* Hero badge copy. [FR self-authored] */
+  /* Hero eyebrow (portal page-head kicker). [FR self-authored] */
   landing_hero_badge: {
     en: 'Canadian · Bilingual EN/FR · Human support on demand · Compliance-oriented',
-    fr: 'Canadien · Bilingue FR/EN · Soutien humain sur demande · Axé sur la conformité',
+    fr: 'Canadien · Bilingue EN/FR · Soutien humain sur demande · Axé sur la conformité',
   },
   landing_h_dir_a: {
     en: 'HR compliance support for Canadian employers ',
@@ -35,16 +35,16 @@ export const landingHero = defineMessages({
     fr: ' en toute confiance.',
   },
   landing_sub_dir_strong: {
-    en: 'Stop losing sleep over changing labour laws.',
-    fr: 'Arrêtez de perdre le sommeil à cause des normes du travail qui changent.',
+    en: 'Ask an HR question, get grounded guidance, and leave with a document ready for review.',
+    fr: 'Posez une question RH, obtenez des conseils ancrés dans les lois applicables et repartez avec un document prêt à réviser.',
   },
   landing_sub_dir_rest: {
-    en: ' We guide you from a blank page to a review-ready document, safely. Grounded in the exact statutes that apply to your workplace — and connected to the hiring, communications, compensation, and day-to-day operations around it.',
-    fr: ' Nous vous guidons d’une page blanche à un document prêt à réviser, en toute sécurité. Ancré dans les lois exactes qui s’appliquent à votre milieu de travail — et relié à l’embauche, aux communications, à la rémunération et aux opérations quotidiennes qui l’entourent.',
+    en: ' Advisor works from the employment standards that actually apply to your workplace — and the same workspace runs the hiring, communications, and day-to-day operations around your people.',
+    fr: ' Le Conseiller s’appuie sur les normes du travail réellement applicables à votre entreprise — et le même espace gère l’embauche, les communications et les opérations quotidiennes de votre équipe.',
   },
   landing_sub_inf: {
     en: 'Jurisdiction-aware HR guidance and review-ready documents across the full employee lifecycle — grounded in the actual employment standards, in English or French.',
-    fr: "Des conseils RH adaptés à la compétence et des documents prêts à réviser tout au long du cycle de vie de l’employé — ancrés dans les normes du travail applicables, en français ou en anglais.",
+    fr: 'Des conseils RH adaptés à la compétence et des documents prêts à réviser tout au long du cycle de vie de l’employé — ancrés dans les normes du travail applicables, en français ou en anglais.',
   },
   landing_sub_q: {
     en: 'Dutiva gives Canadian employers jurisdiction-aware HR guidance and review-ready documents — grounded in the actual employment standards, in English or French.',
@@ -103,6 +103,6 @@ export const landingHero = defineMessages({
   },
   landing_hero_check3: {
     en: 'Work in English or French across document workflows',
-    fr: "Travaillez en français ou en anglais dans l’ensemble des processus documentaires",
+    fr: 'Travaillez en français ou en anglais dans l’ensemble des processus documentaires',
   },
 })

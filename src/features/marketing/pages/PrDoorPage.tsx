@@ -32,7 +32,7 @@ function PrDoorPageInner() {
   ]
 
   return (
-    <MarketingPageShell>
+    <MarketingPageShell surface="portal">
       <Seo route="prDoor" />
       <PageHero eyebrow={t('pr_door_eyebrow')} title={t('pr_door_h1')} intro={t('pr_door_intro')} />
 

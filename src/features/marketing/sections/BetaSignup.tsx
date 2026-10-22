@@ -22,9 +22,8 @@ function isValidEmail(value: string): boolean {
   return !value.startsWith(' ') && !value.endsWith(' ') && !value.includes(' ')
 }
 
-const LABEL = 'text-[0.8125rem] font-semibold text-text'
-const INPUT =
-  'rounded-xl border border-control-border bg-bg px-4 font-sans text-text placeholder:text-text-3'
+const LABEL = 'lp-label'
+const INPUT = 'lp-input'
 
 type Status = 'idle' | 'sending' | 'done' | 'waitlisted'
 
@@ -120,20 +119,18 @@ export function BetaSignup() {
   }
 
   return (
-    <section id="start" className="mx-auto max-w-300 scroll-mt-20 px-4 pt-6 sm:px-6 pb-18">
-      <div className="premium-card marketing-auto-grid marketing-auto-grid--300 items-center gap-8 p-[clamp(20px,4vw,56px)] sm:gap-10">
+    <section id="start" className="lp-col scroll-mt-20 py-8 pb-16 sm:py-10">
+      <div className="lp-card lp-card-pad marketing-auto-grid marketing-auto-grid--300 items-start gap-8 sm:gap-10">
         <div>
-          <span className="badge">{lt('landing_cta_badge')}</span>
-          <h2 className="mt-4 font-display text-[clamp(1.75rem,3vw,2.5rem)] leading-[1.1] font-semibold tracking-[-0.02em] text-text">
-            {lt('landing_cta_title')}
-          </h2>
-          <p className="mt-3.5 max-w-[44ch] text-base leading-[1.6] text-text-2">
+          <span className="lp-eyebrow">{lt('landing_cta_badge')}</span>
+          <h2 className="lp-h2 mt-2">{lt('landing_cta_title')}</h2>
+          <p className="mt-3 max-w-[44ch] text-base leading-[1.6] text-text-2">
             {lt('landing_cta_p')}
           </p>
           <div className="mt-5">
             <Link
               to={p('pricing')}
-              className="gold-button gold-button-lg px-6"
+              className="lp-btn lp-btn-primary"
               onClick={() =>
                 trackMarketingEvent('cta_click', { cta: 'see_plans', location: 'final_cta' })
               }
@@ -144,7 +141,7 @@ export function BetaSignup() {
           </div>
           <Link
             to={p('demoWorkspace')}
-            className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
+            className="lp-link mt-4 min-h-11"
             onClick={() =>
               trackMarketingEvent('cta_click', { cta: 'open_demo', location: 'final_cta' })
             }
@@ -154,7 +151,7 @@ export function BetaSignup() {
           </Link>
         </div>
 
-        <div className="premium-card-soft p-5 sm:p-6">
+        <div className="lp-card lp-card-pad bg-bg-softer">
           <h3 className="m-0 text-base font-semibold text-text">
             {lt('landing_cta_waitlist_title')}
           </h3>
@@ -168,20 +165,20 @@ export function BetaSignup() {
             <BetaSpotCounter extraTaken={extraTaken} />
           </div>
           {status === 'done' || status === 'waitlisted' ? (
-            <div className="flex items-center gap-3 rounded-[14px] border border-border bg-bg-elevated px-5 py-4.5">
+            <div className="lp-note lp-note-accent mt-3">
               {status === 'waitlisted' ? (
-                <Hourglass size={22} className="flex-none text-gold-strong" />
+                <Hourglass size={20} className="flex-none" />
               ) : (
-                <CircleCheck size={22} className="flex-none text-gold-strong" />
+                <CircleCheck size={20} className="flex-none" />
               )}
-              <div>
-                <div className="font-semibold text-text">
+              <span>
+                <span className="block font-semibold text-text">
                   {lt(status === 'waitlisted' ? 'landing_cta_wait_t' : 'landing_cta_done_t')}
-                </div>
-                <p className="m-0 mt-0.5 text-sm text-text-2">
+                </span>
+                <span className="mt-0.5 block text-sm text-text-2">
                   {lt(status === 'waitlisted' ? 'landing_cta_wait_p' : 'landing_cta_done_p')}
-                </p>
-              </div>
+                </span>
+              </span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
@@ -211,7 +208,7 @@ export function BetaSignup() {
                   placeholder={lt('landing_cta_email_ph')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`min-h-12 text-[0.9375rem] ${INPUT}`}
+                  className={INPUT}
                 />
               </div>
               <div className="flex flex-wrap gap-2.5">
@@ -227,7 +224,7 @@ export function BetaSignup() {
                     placeholder={lt('landing_cta_company_ph')}
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className={`min-h-11 text-sm ${INPUT}`}
+                    className={INPUT}
                   />
                 </div>
                 <div className="flex min-w-45 flex-1 flex-col gap-1.5">
@@ -240,7 +237,7 @@ export function BetaSignup() {
                     autoComplete="address-level1"
                     value={province}
                     onChange={(e) => setProvince(e.target.value as BetaProvince | '')}
-                    className="min-h-11 rounded-xl border border-control-border bg-bg px-3 font-sans text-sm text-text"
+                    className={INPUT}
                   >
                     <option value="">{lt('landing_cta_prov_0')}</option>
                     <option value="on">{lt('landing_cta_prov_on')}</option>
@@ -273,7 +270,7 @@ export function BetaSignup() {
 
               <button
                 type="submit"
-                className={`gold-button gold-button-lg self-start ${status === 'sending' ? 'opacity-60' : ''}`}
+                className={`lp-btn lp-btn-primary self-start ${status === 'sending' ? 'opacity-60' : ''}`}
                 disabled={status === 'sending'}
               >
                 {status === 'sending' ? (

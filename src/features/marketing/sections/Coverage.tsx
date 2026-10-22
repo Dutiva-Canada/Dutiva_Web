@@ -36,27 +36,24 @@ const REGIONS: Region[] = [
 export function Coverage() {
   const { lt } = useLanding()
   return (
-    <section
-      id="coverage"
-      className="mx-auto max-w-[1200px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
-    >
+    <section id="coverage" className="lp-col scroll-mt-20 py-8 sm:py-10">
       <SectionIntro
         badge={lt('landing_cov_badge')}
         title={lt('landing_cov_title')}
         sub={lt('landing_cov_sub')}
       />
-      <div className="marketing-auto-grid marketing-auto-grid--240 gap-4">
+      <div className="marketing-auto-grid marketing-auto-grid--240 gap-3">
         {REGIONS.map((region) => (
-          <div key={region.name} className="rounded-[22px] border border-border bg-bg-elevated p-6">
-            <div className="inline-flex items-center gap-2">
-              <Globe size={16} className="text-gold-strong" />
-              <span className="text-base font-semibold text-text">{lt(region.name)}</span>
+          <div key={region.name} className="lp-card lp-card-pad">
+            <div className="flex items-center gap-2">
+              <Globe size={15} className="text-gold-strong" aria-hidden="true" />
+              <span className="text-[0.9375rem] font-semibold text-text">{lt(region.name)}</span>
             </div>
-            <div className="mt-1 mb-4 text-xs font-medium text-text-3">{lt(region.stat)}</div>
-            <ul className="m-0 grid list-none gap-2.5 p-0">
+            <div className="mt-0.5 text-xs font-medium text-text-3">{lt(region.stat)}</div>
+            <ul className="lp-mini-list m-0 mt-3 p-0">
               {region.items.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-text-2">
-                  <Check size={14} className="mt-[3px] flex-none text-gold-strong" />
+                <li key={item} className="lp-check-row py-2">
+                  <Check size={13} aria-hidden="true" />
                   {lt(item)}
                 </li>
               ))}
@@ -64,7 +61,7 @@ export function Coverage() {
           </div>
         ))}
       </div>
-      <p className="mt-5 text-sm text-text-3">{lt('landing_cov_soon')}</p>
+      <p className="mt-4 text-sm text-text-3">{lt('landing_cov_soon')}</p>
     </section>
   )
 }

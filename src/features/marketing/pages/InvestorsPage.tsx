@@ -32,7 +32,7 @@ function InvestorsPageInner() {
   ]
 
   return (
-    <MarketingPageShell>
+    <MarketingPageShell surface="portal">
       <Seo route="investors" />
       <PageHero
         eyebrow={t('investors_eyebrow')}

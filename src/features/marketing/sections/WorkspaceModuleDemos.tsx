@@ -177,7 +177,7 @@ export function WorkspaceModuleDemos() {
   }
 
   return (
-    <section id="workspace" className="mx-auto max-w-300 scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
+    <section id="workspace" className="lp-col lp-col-wide scroll-mt-20 py-8 sm:py-10">
       <SectionIntro
         badge={lt('landing_ws_demo_badge')}
         title={lt('landing_ws_demo_title')}
@@ -211,8 +211,8 @@ export function WorkspaceModuleDemos() {
             onKeyDown={(e) => onTabKeyDown(e, index)}
             className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
               activeTab === tab.id
-                ? 'border-gold-border bg-bg-soft text-gold-strong'
-                : 'border-border bg-bg-elevated text-text-2 hover:text-text'
+                ? 'border-gold-border bg-accent-soft text-gold-strong'
+                : 'border-border bg-bg-softer text-text-2 hover:border-gold-border hover:text-text'
             }`}
           >
             {lt(tab.labelKey)}
@@ -224,11 +224,11 @@ export function WorkspaceModuleDemos() {
         role="tabpanel"
         id={`showcase-panel-${activeTab}`}
         aria-labelledby={`showcase-tab-${activeTab}`}
-        className="premium-card-soft mt-4 p-4 sm:p-5"
+        className="lp-card lp-card-pad mt-4"
       >
         {activeTab === 'studio' && (
           <>
-            <h3 className="text-base font-semibold text-text">
+            <h3 className="m-0 text-base font-semibold text-text">
               {lt('landing_ws_demo_studio_title')}
             </h3>
             <p className="mt-1 text-sm leading-[1.55] text-text-2">
@@ -236,14 +236,17 @@ export function WorkspaceModuleDemos() {
             </p>
             <div className="marketing-auto-grid marketing-auto-grid--240 mt-4 gap-3">
               {STUDIO_FEATURES.map((feature) => (
-                <div key={feature.title} className="rounded-xl border border-border bg-bg-soft p-4">
+                <div
+                  key={feature.title}
+                  className="rounded-xl border border-border bg-bg-softer p-4"
+                >
                   <feature.icon size={18} className="text-gold-strong" aria-hidden="true" />
                   <div className="mt-2.5 text-sm font-semibold text-text">{lt(feature.title)}</div>
                   <p className="mt-1 text-xs leading-[1.55] text-text-2">{lt(feature.body)}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-4 rounded-xl border border-border bg-bg-soft p-4">
+            <div className="mt-4 rounded-xl border border-border bg-bg-softer p-4">
               <div className="mb-3 text-xs font-bold tracking-[0.14em] text-text-muted uppercase">
                 {lt('landing_cat_label')}
               </div>
@@ -436,7 +439,7 @@ export function WorkspaceModuleDemos() {
         {lt('landing_ws_demo_preview_note')}
       </p>
 
-      <div className="mt-10 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-7">
+      <div className="lp-card lp-card-pad mt-8">
         <h3 className="m-0 text-base font-semibold text-text">
           {lt('landing_ws_demo_modules_heading')}
         </h3>
@@ -453,7 +456,7 @@ export function WorkspaceModuleDemos() {
         </div>
       </div>
 
-      <div className="mt-4 rounded-[22px] border border-border bg-bg-elevated p-4 sm:p-7">
+      <div className="lp-card lp-card-pad mt-4">
         <h3 className="m-0 text-base font-semibold text-text">{lt('landing_portals_heading')}</h3>
         <p className="mt-1.5 text-sm leading-[1.55] text-text-2">{lt('landing_portals_sub')}</p>
         <ul className="mt-4 grid list-none gap-3 p-0 sm:grid-cols-3">
@@ -461,7 +464,7 @@ export function WorkspaceModuleDemos() {
             <li key={portal.route}>
               <Link
                 to={p(portal.route)}
-                className="group flex h-full flex-col rounded-xl border border-border bg-bg-soft p-4 transition-colors hover:border-(--accent-soft-border)"
+                className="group flex h-full flex-col rounded-xl border border-border bg-bg-softer p-4 transition-colors hover:border-gold-border"
               >
                 <span className="flex items-center gap-2 text-sm font-semibold text-text">
                   <portal.icon size={16} className="shrink-0 text-gold-strong" aria-hidden="true" />
@@ -499,11 +502,11 @@ function Pane({
     <>
       <h3 className="text-base font-semibold text-text">{title}</h3>
       <p className="mt-1 text-sm leading-[1.55] text-text-2">{sub}</p>
-      <div className="mt-4 rounded-xl border border-border bg-bg-soft p-3 sm:p-4">{children}</div>
+      <div className="mt-4 rounded-xl border border-border bg-bg-softer p-3 sm:p-4">{children}</div>
       <div className="mt-4 pt-1">
         <Link
           to={to}
-          className="inline-flex min-h-11 items-center gap-1 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
+          className="lp-link min-h-11"
           onClick={() =>
             trackMarketingEvent('cta_click', { cta: 'open_demo', location: 'showcase' })
           }

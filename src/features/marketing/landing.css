@@ -38,9 +38,11 @@
   background: rgba(var(--dutiva-teal-rgb), 0.2);
 }
 
-/* Prototype: html { scroll-behavior: smooth } — gated on motion preference. */
+/* Prototype: html { scroll-behavior: smooth } — gated on motion preference.
+   `.lp` is the portal-skinned landing surface (landingPortal.css). */
 @media (prefers-reduced-motion: no-preference) {
-  html:has(.surface-marketing) {
+  html:has(.surface-marketing),
+  html:has(.lp) {
     scroll-behavior: smooth;
   }
 }
@@ -89,7 +91,9 @@
 /* Keep fixed consent chrome from covering the last lines of page content. */
 @media (max-width: 640px) {
   body.consent-banner-open .surface-marketing main,
-  body.consent-banner-open .surface-marketing footer {
+  body.consent-banner-open .surface-marketing footer,
+  body.consent-banner-open .lp main,
+  body.consent-banner-open .lp footer {
     padding-bottom: 11rem;
   }
 }

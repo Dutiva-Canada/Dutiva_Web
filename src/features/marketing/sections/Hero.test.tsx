@@ -23,9 +23,10 @@ describe('Hero', () => {
     expect(landing.landing_hero_price.fr).toContain(`${price} $ CA`)
   })
 
-  it('leads with relief and statute-grounded guidance in the hero subhead', () => {
-    expect(landing.landing_sub_dir_strong.en).toMatch(/losing sleep/i)
-    expect(landing.landing_sub_dir_rest.en).toMatch(/review-ready document/)
-    expect(landing.landing_sub_dir_rest.en).toMatch(/exact statutes/)
+  it('states the question→document outcome and statute grounding in the hero subhead', () => {
+    expect(landing.landing_sub_dir_strong.en).toMatch(/Ask an HR question/i)
+    expect(landing.landing_sub_dir_strong.en).toMatch(/document ready for review/i)
+    expect(landing.landing_sub_dir_rest.en).toMatch(/employment standards/)
+    expect(landing.landing_sub_dir_rest.fr).toMatch(/normes du travail/)
   })
 })

@@ -88,7 +88,7 @@ function TourStopPreviewDialog({
   }, [])
 
   return createPortal(
-    <div className="surface-marketing dutiva-surface text-text fixed inset-0 z-300 pt-[env(safe-area-inset-top)]">
+    <div className="surface-app lp text-text fixed inset-0 z-300 pt-[env(safe-area-inset-top)]">
       <div onClick={onClose} aria-hidden="true" className="absolute inset-0 bg-overlay-scrim-mid" />
       <div
         role="dialog"

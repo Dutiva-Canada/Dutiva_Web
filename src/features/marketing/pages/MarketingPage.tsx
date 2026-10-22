@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { ArrowRight, ChevronRight } from 'lucide-react'
 import { useI18n } from '@/i18n/context'
 import '../landing.css'
+import '../landingPortal.css'
 import { Header } from '../sections/Header'
 import { Footer } from '../sections/Footer'
 
@@ -12,15 +13,33 @@ import { Footer } from '../sections/Footer'
  * landing page's Header/Footer inside the marketing surface scope. The
  * subpages ship no prototype HTML — layout composes the landing design
  * system (badge, premium-card, gold-button) around the handoff's copy.
+ *
+ * `surface="portal"` mounts the standalone portals' design language (the
+ * `.lp` scope — ivory floor, serif headings, navy pills) instead: the door
+ * pages for the invite-only portals (/investors, /wellbeing,
+ * /public-relations) so the surface a visitor lands on matches the product
+ * they are about to sign into. All other subpages keep the marketing ramp.
  */
-export function MarketingPageShell({ children }: { readonly children: ReactNode }) {
+export function MarketingPageShell({
+  children,
+  surface = 'marketing',
+}: {
+  readonly children: ReactNode
+  readonly surface?: 'marketing' | 'portal'
+}) {
   const { pathname } = useLocation()
   // Client-side navigation preserves scroll; a subpage must open at its top.
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [pathname])
   return (
-    <div className="surface-marketing dutiva-surface min-h-screen text-text">
+    <div
+      className={
+        surface === 'portal'
+          ? 'surface-app lp min-h-screen bg-bg'
+          : 'surface-marketing dutiva-surface min-h-screen text-text'
+      }
+    >
       <Header />
       <main id="main-content" tabIndex={-1}>
         {children}

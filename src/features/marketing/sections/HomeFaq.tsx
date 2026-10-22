@@ -16,26 +16,23 @@ export function HomeFaq() {
     <section
       id="questions"
       aria-label={lt('landing_faq_badge')}
-      className="mx-auto max-w-[840px] scroll-mt-[80px] px-4 py-12 sm:px-6 sm:py-16"
+      className="lp-col scroll-mt-20 py-8 sm:py-10"
     >
-      <span className="badge">{lt('landing_faq_badge')}</span>
-      <div className="mt-6 grid gap-8">
-        {HOME_FAQ_ITEMS.map((item) => (
-          <div key={item.q}>
-            <h2 className="font-display text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold tracking-[-0.02em] text-text">
-              {lt(item.q)}
-            </h2>
-            <p className="mt-3 text-[0.9375rem] leading-[1.65] text-text-2">{lt(item.a)}</p>
-          </div>
-        ))}
+      <div className="lp-card lp-card-pad">
+        <span className="lp-eyebrow">{lt('landing_faq_badge')}</span>
+        <ul className="lp-mini-list m-0 mt-3 p-0">
+          {HOME_FAQ_ITEMS.map((item) => (
+            <li key={item.q} className="py-4 first:pt-2 last:pb-0">
+              <h2 className="text-[1.25rem] leading-[1.25]">{lt(item.q)}</h2>
+              <p className="mt-2 text-[0.9375rem] leading-[1.65] text-text-2">{lt(item.a)}</p>
+            </li>
+          ))}
+        </ul>
+        <Link to={p('faq')} className="lp-link mt-5">
+          {lt('landing_faq_more')}
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
       </div>
-      <Link
-        to={p('faq')}
-        className="mt-8 inline-flex items-center gap-1.5 text-sm font-semibold text-accent transition-opacity hover:opacity-80"
-      >
-        {lt('landing_faq_more')}
-        <ArrowRight size={14} aria-hidden="true" />
-      </Link>
     </section>
   )
 }

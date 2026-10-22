@@ -8,6 +8,7 @@ import { latestChangelogDate } from './changelog/changelogEntries'
 import { homeFaqEntries } from './homeFaq'
 import { useScrollToHash } from './useScrollToHash'
 import './landing.css'
+import './landingPortal.css'
 import { Header } from './sections/Header'
 import { Hero } from './sections/Hero'
 import { TrustStrip } from './sections/TrustStrip'
@@ -34,12 +35,14 @@ const WorkspaceModuleDemos = lazy(() =>
 )
 
 /**
- * Marketing landing page (dutiva.ca). Section order follows the conversion
- * funnel: hero → trust → how it works → product proof (Document Studio +
- * workspace demos) → coverage → workflows → founder → testimonials →
- * guides teaser → pricing → objections (FAQ) → dual CTA (paid / waitlist) →
- * footer. Guides cards stay visible because Article JSON-LD is coupled to
- * them (see LandingPage.test.tsx).
+ * Marketing landing page (dutiva.ca) — reskinned in the standalone portals'
+ * design language (landingPortal.css: ivory floor, flat hairline cards,
+ * serif headings, navy pill CTAs, gold working accent). Section order
+ * follows the conversion funnel: hero → trust line → how it works → product
+ * proof (workspace showcase + workflow tiles) → jurisdiction coverage →
+ * founder → testimonials → guides teaser → pricing → objections (FAQ) →
+ * dual CTA (paid / waitlist) → footer. Guides cards stay visible because
+ * Article JSON-LD is coupled to them (see LandingPage.test.tsx).
  */
 const SCOPE = { ...landing, ...aboutMessages }
 
@@ -67,7 +70,7 @@ function LandingPageInner() {
     }),
   )
   return (
-    <div className="surface-marketing dutiva-surface min-h-screen text-text">
+    <div className="surface-app lp min-h-screen bg-bg">
       <Seo
         route="home"
         faq={homeFaqEntries(lang)}
@@ -86,8 +89,8 @@ function LandingPageInner() {
         <Suspense fallback={<div className="mx-auto min-h-[600px] max-w-300" aria-hidden="true" />}>
           <WorkspaceModuleDemos />
         </Suspense>
-        <Coverage />
         <Workflows />
+        <Coverage />
         <WhyDutiva />
         <TestimonialWall />
         <Guides />

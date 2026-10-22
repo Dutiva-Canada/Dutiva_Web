@@ -81,7 +81,11 @@ function StatusPageInner() {
         >
           <div className="flex items-center gap-3">
             {allOk ? (
-              <CheckCircle2 size={22} aria-hidden="true" className={STATUS_ICON_CLASS.operational} />
+              <CheckCircle2
+                size={22}
+                aria-hidden="true"
+                className={STATUS_ICON_CLASS.operational}
+              />
             ) : (
               <TriangleAlert size={22} aria-hidden="true" className={STATUS_ICON_CLASS[overall]} />
             )}
@@ -108,11 +112,7 @@ function StatusPageInner() {
             disabled={refreshing}
             className="flex min-h-[44px] cursor-pointer items-center gap-[6px] rounded-[8px] border border-border bg-transparent px-[12px] py-[7px] text-[0.8125rem] font-semibold text-text-2 hover:bg-inset disabled:opacity-50"
           >
-            <RefreshCw
-              size={12}
-              className={refreshing ? 'animate-spin' : ''}
-              aria-hidden="true"
-            />
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
             {x(common.refresh)}
           </button>
         </div>

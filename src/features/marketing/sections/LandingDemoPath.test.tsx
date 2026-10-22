@@ -45,7 +45,11 @@ describe('LandingDemoPath', () => {
       ),
     )
     expect(
-      await screen.findByText(/Attendance-related PIP|PAR lié à l’assiduité/i, {}, { timeout: 3000 }),
+      await screen.findByText(
+        /Attendance-related PIP|PAR lié à l’assiduité/i,
+        {},
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /Close preview|Fermer l’aperçu/i }))

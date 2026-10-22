@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, CircleCheck, LayoutGrid, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Check, LayoutGrid, ShieldCheck } from 'lucide-react'
 import { useLanding } from '../useLanding'
 import type { LandingMessageKey } from '../useLanding'
 import { usePublicPath } from '@/seo/usePublicPath'
@@ -13,36 +13,32 @@ const CHECK_KEYS: LandingMessageKey[] = [
 ]
 
 /**
- * Hero — renders the prototype's default "director" headline variant
- * (`?hh=director`): plain lead + gilded trailing phrase, and the bold-lead
- * subcopy. The alternate "infrastructure" / "question" variants' strings are
- * kept in the landing message module for completeness.
+ * Hero — portal page-head treatment: caps eyebrow, serif headline, muted
+ * sub, navy pill + outline pill, and the disclaimer as a quiet `lp-note`.
+ * The Advisor preview stays as the right-hand proof column.
  */
 export function Hero() {
   const { lt } = useLanding()
   const { p } = usePublicPath()
   return (
-    <section
-      id="top"
-      className="mx-auto max-w-300 scroll-mt-20 px-4 pt-14 pb-8 sm:px-6 sm:pt-18 sm:pb-10"
-    >
+    <section id="top" className="lp-col scroll-mt-20 pt-10 pb-6 sm:pt-14 sm:pb-8">
       <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
         {/* Left */}
-        <div className="animate-fade-up">
-          <span className="badge">{lt('landing_hero_badge')}</span>
-          <h1 className="mt-5.5 font-display text-[clamp(2.125rem,4vw,3.5rem)] leading-[1.08] font-semibold tracking-[-0.02em] text-text">
+        <div>
+          <span className="lp-eyebrow">{lt('landing_hero_badge')}</span>
+          <h1 className="lp-h1 mt-3">
             {lt('landing_h_dir_a')}
             <span className="gradient-text">{lt('landing_h_dir_b')}</span>
           </h1>
-          <p className="mt-5 max-w-[42ch] text-lg leading-[1.6] text-text-2">
+          <p className="mt-4 max-w-[46ch] text-[1.0625rem] leading-[1.6] text-text-2">
             <strong className="font-semibold text-text">{lt('landing_sub_dir_strong')}</strong>
             {lt('landing_sub_dir_rest')}
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to={p('pricing')}
-              className="gold-button gold-button-lg px-6"
+              className="lp-btn lp-btn-primary"
               onClick={() =>
                 trackMarketingEvent('cta_click', { cta: 'see_plans', location: 'hero' })
               }
@@ -52,7 +48,7 @@ export function Hero() {
             </Link>
             <Link
               to={`${p('demoWorkspace')}/home`}
-              className="ghost-button ghost-button-lg inline-flex items-center gap-2 px-[22px]"
+              className="lp-btn lp-btn-secondary"
               onClick={() =>
                 trackMarketingEvent('cta_click', { cta: 'open_demo', location: 'hero' })
               }
@@ -63,22 +59,22 @@ export function Hero() {
           </div>
           <p className="mt-3 text-sm text-text-3">{lt('landing_hero_price')}</p>
 
-          <div className="mt-6 grid gap-2.5 text-[0.9375rem] text-text-2">
+          <div className="mt-5 grid gap-2">
             {CHECK_KEYS.map((key) => (
-              <div key={key} className="flex items-start gap-2">
-                <CircleCheck size={16} className="mt-0.5 flex-none text-gold-strong" />
+              <div key={key} className="lp-check-row">
+                <Check size={15} aria-hidden="true" />
                 {lt(key)}
               </div>
             ))}
           </div>
 
           <div className="mt-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-bg-elevated px-3.5 py-1.75 text-xs font-medium text-text">
-              <ShieldCheck size={14} className="text-gold-strong" />
-              {lt('landing_hero_disclaimer')}
-            </div>
-            <p className="mt-2 max-w-[48ch] text-xs leading-normal text-text-3">
-              {lt('landing_hero_scope')}
+            <p className="lp-note max-w-[52ch]">
+              <ShieldCheck size={16} aria-hidden="true" />
+              <span>
+                {lt('landing_hero_disclaimer')}
+                <span className="mt-1 block text-[0.8125rem]">{lt('landing_hero_scope')}</span>
+              </span>
             </p>
           </div>
         </div>
