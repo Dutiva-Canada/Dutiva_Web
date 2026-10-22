@@ -4,7 +4,7 @@
  */
 /* oxlint-disable react/only-export-components -- route table, not a component
    module: the lazy() wrappers here don't participate in fast refresh. */
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Outlet, redirect, useLocation } from 'react-router-dom'
 import type { RouteObject } from 'react-router-dom'
 import { ForcedLangProvider } from '@/i18n/ForcedLangProvider'
@@ -84,20 +84,11 @@ const LandingPage = lazy(() =>
 /* prettier-ignore */ const InvestChatPage = lazy(() => import('@/features/invest/portal/InvestChatPage').then((m) => ({ default: m.InvestChatPage })))
 /* prettier-ignore */ const InvestLegalPage = lazy(() => import('@/features/invest/portal/InvestLegalPage').then((m) => ({ default: m.InvestLegalPage })))
 /* prettier-ignore */ const InvestPortalLayout = lazy(() => import('@/features/invest/portal/InvestPortalLayout').then((m) => ({ default: m.InvestPortalLayout })))
-/* Health surface — standalone invite-only wellness portal (/wellness), see healthSurface.tsx. */
+/* Health surface — standalone wellness portal, sunsetting: /wellness now
+   redirects to wellness.dutiva.ca (the standalone app); only its public
+   /wellness/legal/:slug docs still render, via healthSurface.tsx. */
 /* prettier-ignore */ const HealthPortalSurface = lazy(() => import('./healthSurface').then((m) => ({ default: m.HealthPortalSurface })))
-/* prettier-ignore */ const HealthHomePage = lazy(() => import('@/features/health/portal/HealthHomePage').then((m) => ({ default: m.HealthHomePage })))
-/* prettier-ignore */ const HealthCheckInPage = lazy(() => import('@/features/health/portal/HealthCheckInPage').then((m) => ({ default: m.HealthCheckInPage })))
-/* prettier-ignore */ const HealthHabitsPage = lazy(() => import('@/features/health/portal/HealthHabitsPage').then((m) => ({ default: m.HealthHabitsPage })))
-/* prettier-ignore */ const HealthJournalPage = lazy(() => import('@/features/health/portal/HealthJournalPage').then((m) => ({ default: m.HealthJournalPage })))
-/* prettier-ignore */ const HealthToolsPage = lazy(() => import('@/features/health/portal/HealthToolsPage').then((m) => ({ default: m.HealthToolsPage })))
-/* prettier-ignore */ const HealthInsightsPage = lazy(() => import('@/features/health/portal/HealthInsightsPage').then((m) => ({ default: m.HealthInsightsPage })))
-/* prettier-ignore */ const HealthResourcesPage = lazy(() => import('@/features/health/portal/HealthResourcesPage').then((m) => ({ default: m.HealthResourcesPage })))
-/* prettier-ignore */ const HealthReviewPage = lazy(() => import('@/features/health/portal/HealthReviewPage').then((m) => ({ default: m.HealthReviewPage })))
-/* prettier-ignore */ const HealthChatPage = lazy(() => import('@/features/health/portal/HealthChatPage').then((m) => ({ default: m.HealthChatPage })))
 /* prettier-ignore */ const HealthLegalPage = lazy(() => import('@/features/health/portal/HealthLegalPage').then((m) => ({ default: m.HealthLegalPage })))
-/* prettier-ignore */ const HealthDataPage = lazy(() => import('@/features/health/portal/HealthDataPage').then((m) => ({ default: m.HealthDataPage })))
-/* prettier-ignore */ const HealthPortalLayout = lazy(() => import('@/features/health/portal/HealthPortalLayout').then((m) => ({ default: m.HealthPortalLayout })))
 /* Dev-only visual preview of the health portal on fixture data — never routed in prod builds. */
 const HealthPreview = import.meta.env.DEV
   ? lazy(() => import('@/dev/HealthPreview').then((m) => ({ default: m.HealthPreview })))
@@ -207,13 +198,28 @@ function NotFoundRoute() {
   )
 }
 
-/* The portal launched at /health and was renamed Wellness — old links
-   (bookmarks, emails already sent, the recap deep-link) keep working via a
-   path-preserving redirect: /health/journal?x → /wellness/journal?x. */
-function HealthLegacyRedirect() {
-  const loc = useLocation()
-  const rest = loc.pathname.replace(/^\/health/, '')
-  return <Navigate to={`/wellness${rest}${loc.search}${loc.hash}`} replace />
+/* The wellness portal moved to its own app (wellness.dutiva.ca). Every
+   gated /wellness page — and the legacy /health paths that fed it —
+   redirects externally; only /wellness/legal/:slug stays, because the new
+   app links back here for member legal docs until they migrate. */
+const WELLNESS_APP_URL = 'https://wellness.dutiva.ca/app'
+const WELLNESS_APP_URL_FR = 'https://wellness.dutiva.ca/fr/app'
+
+function WellnessMovedRedirect() {
+  useEffect(() => {
+    window.location.replace(WELLNESS_APP_URL)
+  }, [])
+  return (
+    <div className="mx-auto max-w-md px-6 py-24 text-center">
+      <p className="text-lg font-semibold">Dutiva Wellness has moved</p>
+      <p className="mt-2 text-sm">
+        You’re being redirected — <a className="underline" href={WELLNESS_APP_URL}>continue to wellness.dutiva.ca</a>.
+      </p>
+      <p lang="fr" className="mt-4 text-sm">
+        Dutiva Mieux-être a déménagé — <a className="underline" href={WELLNESS_APP_URL_FR}>continuer vers wellness.dutiva.ca</a>.
+      </p>
+    </div>
+  )
 }
 
 /* The workspace surface launched at /app and was renamed Workspace — old
@@ -273,19 +279,11 @@ function AppLegacyRedirect() {
  *                           standing rules, watch board, open items, review
  *   /wellbeing & /fr/bien-etre   public door to the wellness portal
  *   /public-relations & /fr/relations-publiques   public door to the PR portal
- *   /wellness               wellness portal — standalone shell, shared auth,
- *                           gated by a health_access grant (invite-only);
- *                           non-clinical self-tracking + journal
- *   /wellness/check-in      daily mood/energy check-in + history
- *   /wellness/habits        daily habit toggles + streaks (non-clinical)
- *   /wellness/journal       private journal entries
- *   /wellness/tools         self-guided pauses — breathing, grounding, gratitude
- *   /wellness/insights      trends derived from the user's own check-ins
- *   /wellness/resources     crisis + support resources (real services)
- *   /wellness/review        Mira's pending suggestions queue
- *   /wellness/data          export + delete-all trust surface
- *   /wellness/legal/:slug   public legal docs (terms, privacy, wellness notice)
- *   /health/*               legacy — path-preserving redirect to /wellness/*
+ *   /wellness               sunset — the gated portal moved to
+ *                           wellness.dutiva.ca; everything redirects there
+ *   /wellness/legal/:slug   public legal docs (terms, privacy, wellness
+ *                           notice) — kept; the new portal links back here
+ *   /health/*               legacy — external redirect to wellness.dutiva.ca
  *   /pr                     PR portal — standalone shell, shared auth,
  *                           gated by a pr_access grant (invite-only);
  *                           communications desk: campaigns, content,
@@ -486,11 +484,11 @@ function routeTree(): RouteObject[] {
        /wellness — the original /health paths redirect below. */
     {
       path: '/health/*',
-      element: <HealthLegacyRedirect />,
+      element: <WellnessMovedRedirect />,
     },
     {
       path: '/health',
-      element: <HealthLegacyRedirect />,
+      element: <WellnessMovedRedirect />,
     },
     {
       path: '/wellness',
@@ -500,24 +498,12 @@ function routeTree(): RouteObject[] {
         </Suspense>
       ),
       children: [
-        /* Public legal pages — outside the gated layout so the sign-in
-           wall's footer links work for signed-out visitors. */
+        /* Public legal pages stay — the standalone portal at
+           wellness.dutiva.ca links back here for member legal docs until
+           they migrate. Everything else under /wellness redirects there. */
         { path: 'legal/:slug', element: <HealthLegalPage /> },
-        {
-          element: <HealthPortalLayout />,
-          children: [
-            { index: true, element: <HealthHomePage /> },
-            { path: 'chat', element: <HealthChatPage /> },
-            { path: 'check-in', element: <HealthCheckInPage /> },
-            { path: 'habits', element: <HealthHabitsPage /> },
-            { path: 'journal', element: <HealthJournalPage /> },
-            { path: 'tools', element: <HealthToolsPage /> },
-            { path: 'insights', element: <HealthInsightsPage /> },
-            { path: 'review', element: <HealthReviewPage /> },
-            { path: 'resources', element: <HealthResourcesPage /> },
-            { path: 'data', element: <HealthDataPage /> },
-          ],
-        },
+        { index: true, element: <WellnessMovedRedirect /> },
+        { path: '*', element: <WellnessMovedRedirect /> },
       ],
     },
     /* Standalone PR portal — shared auth + pr_access grant, own shell.
